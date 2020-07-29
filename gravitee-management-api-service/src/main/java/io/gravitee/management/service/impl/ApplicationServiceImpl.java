@@ -267,7 +267,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Application application = convert(newApplicationEntity);
             application.setId( UUID.toString(UUID.random()));
             application.setStatus(ApplicationStatus.ACTIVE);
-
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
             // Add Default groups
@@ -696,7 +695,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             settings.setoAuthClient(clientSettings);
         }
         applicationEntity.setSettings(settings);
-
+        applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
         return applicationEntity;
     }
 
@@ -743,7 +742,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         application.setMetadata(metadata);
-
+        application.setDisableMembershipNotifications(updateApplicationEntity.isDisableMembershipNotifications());
         return application;
     }
 }

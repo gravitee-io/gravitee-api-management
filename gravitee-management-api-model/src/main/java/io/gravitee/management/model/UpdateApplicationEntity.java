@@ -16,6 +16,7 @@
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.management.model.application.ApplicationSettings;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -72,6 +73,9 @@ public class UpdateApplicationEntity {
     @Deprecated
     private String clientId;
 
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
+
     public String getName() {
         return name;
     }
@@ -120,12 +124,21 @@ public class UpdateApplicationEntity {
         this.clientId = clientId;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Application{");
         sb.append("description='").append(description).append('\'');
         sb.append(", name='").append(name).append('\'');
-        sb.append(", groups='").append(groups);
+        sb.append(", groups='").append(groups).append('\'');
+        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications);
         sb.append('}');
         return sb.toString();
     }

@@ -206,7 +206,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiEntity create(final NewApiEntity newApiEntity, final String userId,
-            final ImportSwaggerDescriptorEntity swaggerDescriptor, final SwaggerApiEntity swaggerApiEntity) throws ApiAlreadyExistsException {
+                             final ImportSwaggerDescriptorEntity swaggerDescriptor, final SwaggerApiEntity swaggerApiEntity) throws ApiAlreadyExistsException {
         UpdateApiEntity apiEntity = new UpdateApiEntity();
 
         apiEntity.setName(newApiEntity.getName());
@@ -248,7 +248,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         final List<String> declaredPaths = newApiEntity.getPaths() != null ? newApiEntity.getPaths() : new ArrayList<>();
         if (!declaredPaths.contains("/")) {
-          declaredPaths.add(0, "/");
+            declaredPaths.add(0, "/");
         }
 
         // Initialize with a default path and provided paths
@@ -279,14 +279,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void createOrUpdateDocumentation(final ImportSwaggerDescriptorEntity swaggerDescriptor,
-            final ApiEntity api, boolean isForCreation) {
+                                             final ApiEntity api, boolean isForCreation) {
         List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder()
                 .api(api.getId())
                 .type(PageType.SWAGGER)
                 .build());
 
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
-            if(isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
+            if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
                 final NewPageEntity page = new NewPageEntity();
                 page.setName("Swagger");
                 page.setType(SWAGGER);
@@ -300,7 +300,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
                 }
                 pageService.createPage(api.getId(), page);
-            } else if(apiDocs.size() == 1) {
+            } else if (apiDocs.size() == 1) {
                 PageEntity pageToUpdate = apiDocs.get(0);
                 final UpdatePageEntity page = new UpdatePageEntity();
                 page.setName(pageToUpdate.getName());
@@ -462,7 +462,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         //Is service discovery enabled ?
         EndpointDiscoveryService endpointDiscoveryService = endpointGroup.getServices() == null ? null : endpointGroup.getServices().get(EndpointDiscoveryService.class);
         if ((endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
-            (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())) {
+                (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())) {
             throw new EndpointMissingException();
         }
     }
@@ -821,7 +821,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // add a default path
             if (updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty()) {
-                updateApiEntity.setPaths(singletonMap("/",new Path()));
+                updateApiEntity.setPaths(singletonMap("/", new Path()));
             }
 
             Api apiToUpdate = optApiToUpdate.get();
@@ -926,7 +926,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         // validate regex on pathMappings
         if (updateApiEntity.getPathMappings() != null) {
-            updateApiEntity.getPathMappings().forEach( pathMapping -> {
+            updateApiEntity.getPathMappings().forEach(pathMapping -> {
                 try {
                     Pattern.compile(pathMapping);
                 } catch (java.util.regex.PatternSyntaxException pse) {
@@ -999,7 +999,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 // Delete pages
                 final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build());
-                pages.forEach(pageEntity ->  pageService.delete(pageEntity.getId()));
+                pages.forEach(pageEntity -> pageService.delete(pageEntity.getId()));
 
                 // Delete top API
                 topApiService.delete(apiId);
@@ -1253,7 +1253,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
 
         String apiDefinition = apiDefinitionOrURL;
-        if(apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
+        if (apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
             apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         }
 
@@ -1325,7 +1325,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             .stream()
                             .anyMatch(m -> m.getRole().equals(memberToImport.getRole())
                                     && (m.getSourceId().equals(memberToImport.getSourceId())
-                                        && m.getSource().equals(memberToImport.getSource())));
+                                    && m.getSource().equals(memberToImport.getSource())));
 
                     // add/update members if :
                     //  - not already present with the same role
@@ -1334,7 +1334,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     if (!presentWithSameRole
                             && !SystemRole.PRIMARY_OWNER.name().equals(memberToImport.getRole())
                             && !(memberToImport.getSourceId().equals(currentPo.getSourceId())
-                                && memberToImport.getSource().equals(currentPo.getSource()))) {
+                            && memberToImport.getSource().equals(currentPo.getSource()))) {
                         try {
                             UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
                             membershipService.addOrUpdateMember(
@@ -1523,7 +1523,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 newPage.setType(PageType.valueOf(pageEntityToImport.getType()));
 
                 createdOrUpdatedPage = pageService.createPage(apiId, newPage);
-            } else if(pageEntities.size() == 1) {
+            } else if (pageEntities.size() == 1) {
                 UpdatePageEntity updatePageEntity = new UpdatePageEntity();
                 updatePageEntity.setConfiguration(pageEntityToImport.getConfiguration());
                 updatePageEntity.setContent(pageEntityToImport.getContent());
@@ -1542,7 +1542,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 throw new TechnicalManagementException("Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much page with the same name");
             }
 
-            if(child.children != null && !child.children.isEmpty()) {
+            if (child.children != null && !child.children.isEmpty()) {
                 this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children);
             }
         }
@@ -1644,6 +1644,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiModelEntity.setProperties(apiEntity.getProperties());
         apiModelEntity.setProxy(convert(apiEntity.getProxy()));
         apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
+        apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
 
         final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
 
@@ -1718,24 +1719,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public List<ApiHeaderEntity> getPortalHeaders(String apiId) {
-            List<ApiHeaderEntity> entities = apiHeaderService.findAll();
-            ApiModelEntity apiEntity = this.findByIdForTemplates(apiId);
-            Map<String, Object> model = new HashMap<>();
-            model.put("api", apiEntity);
-            entities.forEach(entity -> {
-                // Skip api.endpoint which is no more required for entrypoints
-                // this avoid exception with existing header which is trying to get value from context-path
-                if (! entity.getName().equals("api.endpoint") && entity.getValue().contains("${")) {
-                    try {
-                        Template template = new Template(entity.getId() + entity.getUpdatedAt().toString(), entity.getValue(), freemarkerConfiguration);
-                        entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));
-                    } catch (IOException | TemplateException e) {
-                        LOGGER.error("Unable to apply templating on api headers ", e);
-                        throw new TechnicalManagementException("Unable to apply templating on api headers", e);
-                    }
+        List<ApiHeaderEntity> entities = apiHeaderService.findAll();
+        ApiModelEntity apiEntity = this.findByIdForTemplates(apiId);
+        Map<String, Object> model = new HashMap<>();
+        model.put("api", apiEntity);
+        entities.forEach(entity -> {
+            // Skip api.endpoint which is no more required for entrypoints
+            // this avoid exception with existing header which is trying to get value from context-path
+            if (!entity.getName().equals("api.endpoint") && entity.getValue().contains("${")) {
+                try {
+                    Template template = new Template(entity.getId() + entity.getUpdatedAt().toString(), entity.getValue(), freemarkerConfiguration);
+                    entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));
+                } catch (IOException | TemplateException e) {
+                    LOGGER.error("Unable to apply templating on api headers ", e);
+                    throw new TechnicalManagementException("Unable to apply templating on api headers", e);
                 }
-            });
-            return entities;
+            }
+        });
+        return entities;
     }
 
     @Override
@@ -1765,7 +1766,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final Proxy proxy = apiEntity.getProxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(duplicateApiEntity.getContextPath())));
         newApiEntity.setProxy(proxy);
-        newApiEntity.setVersion(duplicateApiEntity.getVersion() == null? apiEntity.getVersion(): duplicateApiEntity.getVersion());
+        newApiEntity.setVersion(duplicateApiEntity.getVersion() == null ? apiEntity.getVersion() : duplicateApiEntity.getVersion());
 
         if (duplicateApiEntity.getFilteredFields().contains("groups")) {
             newApiEntity.setGroups(null);
@@ -1825,6 +1826,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setVisibility(apiEntity.getVisibility());
         updateApiEntity.setPaths(apiEntity.getPaths());
         updateApiEntity.setPathMappings(apiEntity.getPathMappings());
+        updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
         return updateApiEntity;
     }
 
@@ -1933,7 +1935,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (loggingToUpdate == loggingUpdated ||
                     (loggingToUpdate != null && loggingUpdated != null
                             && Objects.equals(loggingToUpdate.getMode(), loggingUpdated.getMode())
-                            &&  Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition()))) {
+                            && Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition()))) {
                 return;
             }
 
@@ -2014,6 +2016,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setDeployedAt(api.getDeployedAt());
         apiEntity.setCreatedAt(api.getCreatedAt());
         apiEntity.setGroups(api.getGroups());
+        apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
 
         if (api.getDefinition() != null) {
             try {
@@ -2114,6 +2117,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         api.setGroups(updateApiEntity.getGroups());
+        api.setDisableMembershipNotifications(updateApiEntity.isDisableMembershipNotifications());
 
         try {
             io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();

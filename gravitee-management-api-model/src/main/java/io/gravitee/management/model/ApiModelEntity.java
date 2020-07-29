@@ -52,6 +52,7 @@ public class ApiModelEntity {
     private Set<String> views;
     private Map<String, String> metadata;
     private ApiLifecycleState lifecycleState;
+    private boolean disableMembershipNotifications;
 
     public String getId() {
         return id;
@@ -164,7 +165,7 @@ public class ApiModelEntity {
     public void setTags(Set<String> tags) {
         this.tags = tags;
     }
-    
+
     public Date getDeployedAt() {
         return deployedAt;
     }
@@ -172,7 +173,7 @@ public class ApiModelEntity {
     public void setDeployedAt(Date deployedAt) {
         this.deployedAt = deployedAt;
     }
-    
+
     public String getPicture() {
         return picture;
     }
@@ -221,6 +222,14 @@ public class ApiModelEntity {
         this.lifecycleState = lifecycleState;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -237,22 +246,23 @@ public class ApiModelEntity {
 
     public String toString() {
         return "ApiEntity{" +
-            "id='" + id + '\'' +
-            ", name='" + name + '\'' +
-            ", version='" + version + '\'' +
-            ", description='" + description + '\'' +
-            ", proxy=" + proxy +
-            ", paths=" + paths +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            ", visibility=" + visibility +
-            ", state=" + state +
-            ", primaryOwner=" + primaryOwner +
-            ", tags=" + tags +
-            ", view=" + views +
-            ", groups=" + groups +
-            ", metadata=" + metadata +
-            ", lifecycleState=" + lifecycleState +
-            '}';
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", version='" + version + '\'' +
+                ", description='" + description + '\'' +
+                ", proxy=" + proxy +
+                ", paths=" + paths +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", visibility=" + visibility +
+                ", state=" + state +
+                ", primaryOwner=" + primaryOwner +
+                ", tags=" + tags +
+                ", view=" + views +
+                ", groups=" + groups +
+                ", metadata=" + metadata +
+                ", lifecycleState=" + lifecycleState +
+                ", disableMembershipNotifications=" + disableMembershipNotifications +
+                '}';
     }
 }

@@ -43,6 +43,8 @@ public class UpdateGroupEntity {
     private boolean systemInvitation;
     @JsonProperty("email_invitation")
     private boolean emailInvitation;
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
 
     public String getName() {
         return name;
@@ -108,6 +110,14 @@ public class UpdateGroupEntity {
         this.emailInvitation = emailInvitation;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public String toString() {
         return "UpdateGroupEntity{" +
@@ -119,6 +129,7 @@ public class UpdateGroupEntity {
                 ", lockApplicationRole=" + lockApplicationRole +
                 ", systemInvitation=" + systemInvitation +
                 ", emailInvitation=" + emailInvitation +
+                ", disableMembershipNotifications=" + disableMembershipNotifications +
                 '}';
     }
 }

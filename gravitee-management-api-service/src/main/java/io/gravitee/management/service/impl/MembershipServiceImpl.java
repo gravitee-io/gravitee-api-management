@@ -295,12 +295,27 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 membership.setUpdatedAt(updateDate);
                 returnedMembership = membershipRepository.create(membership);
                 createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
-                if (notify && userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
+
+                boolean shouldNotify = notify && userEntity.getEmail() != null && !userEntity.getEmail().isEmpty();
+                if (shouldNotify) {
+                    if (GROUP.equals(reference.getType())) {
+                        final GroupEntity group = groupService.findById(reference.getId());
+                        shouldNotify = shouldNotify && !group.isDisableMembershipNotifications();
+                    } else if (API.equals(reference.getType())) {
+                        final ApiEntity api = apiService.findById(reference.getId());
+                        shouldNotify = shouldNotify && !api.isDisableMembershipNotifications();
+                    } else if (APPLICATION.equals(reference.getType())) {
+                        final ApplicationEntity application = applicationService.findById(reference.getId());
+                        shouldNotify = shouldNotify && !application.isDisableMembershipNotifications();
+                    }
+                }
+                if (shouldNotify) {
                     EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
                     if (emailNotification != null) {
                         emailService.sendAsyncEmailNotification(emailNotification);
                     }
                 }
+
                 if (GROUP.equals(reference.getType())) {
                     notifierService.trigger(GROUP_INVITATION, singletonMap("group", groupService.findById(reference.getId())));
                 }

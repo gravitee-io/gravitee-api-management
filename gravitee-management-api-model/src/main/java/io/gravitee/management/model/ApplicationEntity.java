@@ -81,6 +81,9 @@ public class ApplicationEntity {
     @JsonProperty("settings")
     private ApplicationSettings settings;
 
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
+
     public String getId() {
         return id;
     }
@@ -161,6 +164,14 @@ public class ApplicationEntity {
         this.type = type;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -179,7 +190,8 @@ public class ApplicationEntity {
         final StringBuilder sb = new StringBuilder("Application{");
         sb.append("id='").append(id).append('\'');
         sb.append(", name='").append(name).append('\'');
-        sb.append(", createdAt=").append(createdAt);
+        sb.append(", createdAt=").append(createdAt).append('\'');
+        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications);
         sb.append('}');
         return sb.toString();
     }

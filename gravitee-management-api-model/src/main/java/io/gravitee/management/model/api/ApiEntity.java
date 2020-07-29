@@ -200,6 +200,9 @@ public class ApiEntity implements Indexable {
     @JsonProperty(value = "workflow_state")
     private WorkflowState workflowState;
 
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
+
     private List<ApiEntrypointEntity> entrypoints;
 
     public String getId() {
@@ -426,6 +429,14 @@ public class ApiEntity implements Indexable {
         this.contextPath = contextPath;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -442,23 +453,24 @@ public class ApiEntity implements Indexable {
 
     public String toString() {
         return "ApiEntity{" +
-            "id='" + id + '\'' +
-            ", name='" + name + '\'' +
-            ", version='" + version + '\'' +
-            ", description='" + description + '\'' +
-            ", proxy=" + proxy +
-            ", paths=" + paths +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            ", visibility=" + visibility +
-            ", state=" + state +
-            ", primaryOwner=" + primaryOwner +
-            ", tags=" + tags +
-            ", view=" + views +
-            ", groups=" + groups +
-            ", pathMappings=" + pathMappings +
-            ", lifecycleState=" + lifecycleState +
-            ", workflowState=" + workflowState +
-            '}';
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", version='" + version + '\'' +
+                ", description='" + description + '\'' +
+                ", proxy=" + proxy +
+                ", paths=" + paths +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", visibility=" + visibility +
+                ", state=" + state +
+                ", primaryOwner=" + primaryOwner +
+                ", tags=" + tags +
+                ", view=" + views +
+                ", groups=" + groups +
+                ", pathMappings=" + pathMappings +
+                ", lifecycleState=" + lifecycleState +
+                ", workflowState=" + workflowState +
+                ", disableMembershipNotifications=" + disableMembershipNotifications +
+                '}';
     }
 }
