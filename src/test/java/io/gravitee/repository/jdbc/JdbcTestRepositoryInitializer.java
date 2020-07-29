@@ -83,6 +83,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "pages",
             "page_excluded_groups",
             "page_configuration",
+            "page_revisions",
             "plans",
             "plan_characteristics",
             "plan_excluded_groups",

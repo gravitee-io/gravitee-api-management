@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.2.0
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: page_revisions
+            columns:
+              - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: revision, type: int, constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: hash, type: nvarchar(256), constraints: { nullable: true } }
+              - column: {name: content, type: nclob, constraints: { nullable: true } }
+              - column: {name: contributor, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_page_revisions
+            columnNames: page_id, revision
+            tableName: page_revisions

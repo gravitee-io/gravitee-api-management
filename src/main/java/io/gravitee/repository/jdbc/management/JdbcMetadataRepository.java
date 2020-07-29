@@ -72,7 +72,8 @@ public class JdbcMetadataRepository implements MetadataRepository {
                     .addColumn("created_at", Types.TIMESTAMP, Date.class)
                     .addColumn("updated_at", Types.TIMESTAMP, Date.class)
                     .build();    
-    
+
+
     @Override
     public Metadata create(final Metadata metadata) throws TechnicalException {
         LOGGER.debug("JdbcMetadataRepository.create({})", metadata);

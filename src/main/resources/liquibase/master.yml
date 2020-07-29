@@ -81,3 +81,5 @@ databaseChangeLog:
     - file: liquibase/changelogs/v3_1_0/schema.yml
   - include:
     - file: liquibase/changelogs/v3_1_2/schema.yml
+  - include:
+    - file: liquibase/changelogs/v3_2_0/schema.yml
