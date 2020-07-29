@@ -82,6 +82,8 @@ public abstract class AbstractRepositoryTest {
     @Inject
     protected PageRepository pageRepository;
     @Inject
+    protected PageRevisionRepository pageRevisionRepository;
+    @Inject
     protected SubscriptionRepository subscriptionRepository;
     @Inject
     protected TenantRepository tenantRepository;
@@ -284,6 +286,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if( object instanceof Token) {
             tokenRepository.create((Token) object);
+        }
+        else if( object instanceof PageRevision) {
+            pageRevisionRepository.create((PageRevision) object);
         }
     }
 

@@ -88,6 +88,11 @@ public class MockTestRepositoryConfiguration {
     }
 
     @Bean
+    public PageRevisionRepositoryMock pageRevisionRepository() {
+        return new PageRevisionRepositoryMock();
+    }
+
+    @Bean
     public SubscriptionRepositoryMock subscriptionRepository() {
         return new SubscriptionRepositoryMock();
     }
