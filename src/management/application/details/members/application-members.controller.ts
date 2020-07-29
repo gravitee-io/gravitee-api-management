@@ -219,6 +219,13 @@ class ApplicationMembersController {
   isPrimaryOwner() {
     return this.UserService.currentUser.id === this.application.owner.id;
   }
+
+  toggleDisableMembershipNotifications() {
+    this.ApplicationService.update(this.application).then(updatedApplication => {
+      this.application = updatedApplication.data;
+      this.NotificationService.show("Application " + this.application.name + " has been updated");
+    });
+  }
 }
 
 export default ApplicationMembersController;

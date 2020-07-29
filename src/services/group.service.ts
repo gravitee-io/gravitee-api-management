@@ -58,7 +58,8 @@ class GroupService {
       lock_api_role: grp.lock_api_role,
       lock_application_role: grp.lock_application_role,
       system_invitation: grp.system_invitation,
-      email_invitation: grp.email_invitation
+      email_invitation: grp.email_invitation,
+      disable_membership_notifications: grp.disable_membership_notifications,
     };
   }
 

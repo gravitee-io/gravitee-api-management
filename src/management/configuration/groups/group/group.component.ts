@@ -54,6 +54,9 @@ const GroupComponent: ng.IComponentOptions = {
 
       if(!this.updateMode) {
         this.group = {};
+        this.group.lock_api_role = false;
+        this.group.lock_application_role = false;
+        this.group.disable_membership_notifications = false;
       }
 
       $scope.groupApis = [];

@@ -20,7 +20,15 @@
   <div class="gv-form">
     <h2>Members</h2>
     <div class="gv-form-content" layout="column">
-
+      <md-checkbox
+        ng-model="$ctrl.application.disable_membership_notifications"
+        ng-true-value="false"
+        ng-false-value="true"
+        aria-label="Enables notifications when members are added to this application"
+        ng-change="$ctrl.toggleDisableMembershipNotifications()"
+      >
+        Enables notifications when members are added to this application
+      </md-checkbox>
         <md-table-container ng-show="$ctrl.members.length">
           <table md-table class="gv-table-dense">
             <thead md-head md-order="order">

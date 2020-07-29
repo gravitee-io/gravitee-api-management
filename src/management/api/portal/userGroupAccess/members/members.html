@@ -21,6 +21,16 @@
   <div class="gv-form">
     <h2>{{apiMembersCtrl.members.length}} direct members</h2>
     <div class="gv-form-content" layout="column">
+      <md-checkbox
+        ng-model="apiMembersCtrl.api.disable_membership_notifications"
+        ng-true-value="false"
+        ng-false-value="true"
+        aria-label="Enables notifications when members are added to this API"
+        ng-change="apiMembersCtrl.toggleDisableMembershipNotifications()"
+      >
+        Enables notifications when members are added to this API
+      </md-checkbox>
+
       <md-table-container ng-show="apiMembersCtrl.members.length">
         <table md-table class="gv-table-dense">
           <thead md-head md-order="order">

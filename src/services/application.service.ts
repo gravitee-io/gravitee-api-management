@@ -91,7 +91,8 @@ class ApplicationService {
         'name': application.name,
         'description': application.description,
         'groups': application.groups,
-        'settings': application.settings
+        'settings': application.settings,
+        'disable_membership_notifications': application.disable_membership_notifications,
       }
     );
   }

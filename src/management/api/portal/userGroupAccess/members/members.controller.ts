@@ -153,6 +153,13 @@ class ApiMembersController {
   getMembershipAvatar(member): string {
     return (member.id) ? this.UserService.getUserAvatar(member.id) : 'assets/default_photo.png';
   }
+
+  toggleDisableMembershipNotifications() {
+    this.ApiService.update(this.api).then(updatedApi => {
+      this.api = updatedApi.data;
+      this.NotificationService.show("API " + this.api.name + " has been updated");
+    });
+  }
 }
 
 export default ApiMembersController;
