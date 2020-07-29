@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.security.utils;
+package io.gravitee.rest.api.management.rest.utils;
 
 import io.gravitee.rest.api.exception.InvalidImageException;
+import io.gravitee.rest.api.security.utils.ImageUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,4 +51,10 @@ public class ImageUtilsTest {
         ImageUtils.verify(picture);
     }
 
+    @Test
+    public void shouldVerify_jpegFormat_issue4086() throws InvalidImageException, IOException {
+        InputStream inputStream = this.getClass().getResourceAsStream("/images/4086_jpeg.b64");
+        String picture = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        ImageUtils.verify(picture);
+    }
 }

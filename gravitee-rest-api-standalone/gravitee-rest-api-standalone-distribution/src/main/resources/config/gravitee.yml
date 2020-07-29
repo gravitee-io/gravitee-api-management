@@ -450,3 +450,8 @@ notifiers:
 # Allows to enable or disable the 'Subscribe to newsletter' feature when user completes his profile on first log in. Default is enabled.
 #newsletter:
 #  enabled: true
+
+# Specify the visibility duration of a gateway in Unknown State (in seconds)
+# Default : 604800 seconds (7 days)
+#gateway:
+#  unknown-expire-after: 604800
