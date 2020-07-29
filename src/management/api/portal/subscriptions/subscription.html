@@ -25,7 +25,7 @@
     <h2>Details</h2>
     <div class="gv-form-content" layout="column">
     <md-table-container>
-      <table md-table>
+      <table md-table style="border-collapse: separate;">
         <tbody md-body>
         <tr md-row style="height: 30px;">
           <td md-cell><span style="font-weight: bold">ID</span></td>
@@ -40,27 +40,38 @@
           <td md-cell>{{$ctrl.subscription.processed_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status">
-          <td md-cell><span style="font-weight: bold">Application</span></td>
-          <td md-cell><span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span> ({{$ctrl.subscription.application.owner.displayName}})</td>
-
+          <td md-cell><span style="font-weight: bold">Status</span></td>
+          <td md-cell>{{$ctrl.subscription.status|uppercase}}</td>
           <td md-cell><span style="font-weight: bold">Starting at</span></td>
           <td md-cell>{{$ctrl.subscription.starting_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' === $ctrl.subscription.status">
-          <td md-cell><span style="font-weight: bold">Application</span></td>
-          <td md-cell colspan="3"><span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span> ({{$ctrl.subscription.application.owner.displayName}})</td>
+          <td md-cell><span style="font-weight: bold">Status</span></td>
+          <td md-cell colspan="3">{{$ctrl.subscription.status|uppercase}}</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status">
-          <td md-cell><span style="font-weight: bold">Status</span></td>
-          <td md-cell>{{$ctrl.subscription.status|uppercase}}</td>
+          <td md-cell><span style="font-weight: bold">Subscribed by</span></td>
+          <td md-cell>{{$ctrl.subscription.subscribed_by.displayName}}</td>
           <td md-cell><span style="font-weight: bold">Ending at</span></td>
           <td md-cell>{{$ctrl.subscription.ending_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="'rejected' === $ctrl.subscription.status">
-          <td md-cell><span style="font-weight: bold">Status</span></td>
-          <td md-cell>{{$ctrl.subscription.status|uppercase}}</td>
+          <td md-cell><span style="font-weight: bold">Subscribed by</span></td>
+          <td md-cell>{{$ctrl.subscription.subscribed_by.displayName}}</td>
           <td md-cell><span style="font-weight: bold">Closed at</span></td>
           <td md-cell>{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
+        </tr>
+        <tr md-row style="height: 30px;">
+          <td md-cell><span style="font-weight: bold">Application</span></td>
+          <td md-cell colspan="3">
+            <span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span> ({{$ctrl.subscription.application.owner.displayName}})
+            -
+            Type: {{$ctrl.subscription.application.type}}
+          </td>
+        </tr>
+        <tr md-row style="height: 30px;">
+          <td md-cell style="border-top: 0px"></td>
+          <td md-cell style="border-top: 0px" colspan="3">{{$ctrl.subscription.application.description}}</td>
         </tr>
         <tr md-row style="height: 30px;" ng-if="$ctrl.subscription.request">
           <td md-cell><span style="font-weight: bold">Message from subscriber</span></td>
@@ -77,10 +88,6 @@
         <tr md-row style="height: 30px;" ng-if="'rejected' !== $ctrl.subscription.status && $ctrl.subscription.closed_at">
           <td md-cell><span style="font-weight: bold">Closed at</span></td>
           <td md-cell colspan="3">{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Subscribed by</span></td>
-          <td md-cell colspan="3">{{$ctrl.subscription.subscribed_by.displayName}}</td>
         </tr>
         </tbody>
       </table>
