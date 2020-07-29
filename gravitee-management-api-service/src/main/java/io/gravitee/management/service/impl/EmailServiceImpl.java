@@ -15,7 +15,6 @@
  */
 package io.gravitee.management.service.impl;
 
-import freemarker.core.HTMLOutputFormat;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import io.gravitee.management.service.EmailNotification;
@@ -92,17 +91,22 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                     mailMessage.setFrom(from, emailNotification.getFromName());
                 }
 
+                String sender = emailNotification.getFrom();
                 if (! isEmpty(emailNotification.getReplyTo())) {
                     mailMessage.setReplyTo(emailNotification.getReplyTo());
+                    sender = emailNotification.getReplyTo();
                 }
 
                 mailMessage.setTo(emailNotification.getTo());
-                if (emailNotification.isCopyToSender() && emailNotification.getFrom() != null) {
-                    mailMessage.setBcc(emailNotification.getFrom());
+
+                if (emailNotification.isCopyToSender() && sender != null) {
+                    mailMessage.setBcc(sender);
                 }
+
                 if (emailNotification.getBcc() != null && emailNotification.getBcc().length > 0) {
                     mailMessage.setBcc(emailNotification.getBcc());
                 }
+
                 mailMessage.setSubject(format(subject, emailNotification.getSubject()));
 
                 final String html = addResourcesInMessage(mailMessage, content);
