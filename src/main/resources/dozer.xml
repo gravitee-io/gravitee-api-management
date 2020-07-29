@@ -16,4 +16,16 @@
         </field>
     </mapping>
 
+    <mapping>
+        <class-a>io.gravitee.repository.management.model.PageRevision</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.PageRevisionMongo</class-b>
+        <field>
+            <a>pageId</a>
+            <b>id.pageId</b>
+        </field>
+        <field>
+            <a>revision</a>
+            <b>id.revision</b>
+        </field>
+    </mapping>
 </mappings>
