@@ -260,12 +260,14 @@ public class Subscription {
         private final String id;
         private final String name;
         private final String type;
+        private final String description;
         private final User owner;
 
-        public Application(final String id, final String name, final String type, final User owner) {
+        public Application(final String id, final String name, final String type, final String description, final User owner) {
             this.id = id;
             this.name = name;
             this.type = type;
+            this.description = description;
             this.owner = owner;
         }
 
@@ -279,6 +281,10 @@ public class Subscription {
 
         public String getName() {
             return name;
+        }
+
+        public String getDescription() {
+            return description;
         }
 
         public User getOwner() {
