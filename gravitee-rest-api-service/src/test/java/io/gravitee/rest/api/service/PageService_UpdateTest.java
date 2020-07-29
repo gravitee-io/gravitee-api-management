@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
@@ -77,6 +78,9 @@ public class PageService_UpdateTest {
     @Mock
     private SearchEngineService searchEngineService;
 
+    @Mock
+    private PageRevisionService pageRevisionService;
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
@@ -86,6 +90,57 @@ public class PageService_UpdateTest {
 
         verify(pageRepository).update(
                 argThat(pageToUpdate -> PAGE_ID.equals(pageToUpdate.getId()) && pageToUpdate.getUpdatedAt() != null));
+
+        // neither content nor name are updated
+        verify(pageRevisionService, times(0)).create(any());
+    }
+
+    @Test
+    public void shouldUpdateWithRevision_becauseOfContentChange() throws TechnicalException {
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+        when(pageRepository.update(any(Page.class))).thenReturn(page1);
+
+        when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
+        when(page1.getContent()).thenReturn("some");
+        when(existingPage.getContent()).thenReturn("awesome");
+        pageService.update(PAGE_ID, existingPage);
+
+        verify(pageRepository).update(
+                argThat(pageToUpdate -> PAGE_ID.equals(pageToUpdate.getId()) && pageToUpdate.getUpdatedAt() != null));
+
+        verify(pageRevisionService, times(1)).create(any());
+    }
+
+    @Test
+    public void shouldUpdateWithRevision_becauseOfNameChange() throws TechnicalException {
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+        when(pageRepository.update(any(Page.class))).thenReturn(page1);
+
+        when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
+        when(page1.getName()).thenReturn("some");
+        when(existingPage.getName()).thenReturn("awesome");
+        pageService.update(PAGE_ID, existingPage);
+
+        verify(pageRepository).update(
+                argThat(pageToUpdate -> PAGE_ID.equals(pageToUpdate.getId()) && pageToUpdate.getUpdatedAt() != null));
+
+        verify(pageRevisionService, times(1)).create(any());
+    }
+    @Test
+    public void shouldUpdateWithoutRevision_becauseOfNoRevisionForType() throws TechnicalException {
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+        when(pageRepository.update(any(Page.class))).thenReturn(page1);
+
+        when(page1.getType()).thenReturn(PageType.FOLDER.name());
+        when(page1.getName()).thenReturn("some");
+        when(existingPage.getName()).thenReturn("awesome");
+        pageService.update(PAGE_ID, existingPage);
+
+        verify(pageRepository).update(
+                argThat(pageToUpdate -> PAGE_ID.equals(pageToUpdate.getId()) && pageToUpdate.getUpdatedAt() != null));
+
+        // no revision for folder
+        verify(pageRevisionService, times(0)).create(any());
     }
 
     @Test
@@ -134,6 +189,8 @@ public class PageService_UpdateTest {
             }
             return false;
         }));
+        // neither content nor name are updated
+        verify(pageRevisionService, times(0)).create(any());
     }
 
     @Test
@@ -181,6 +238,8 @@ public class PageService_UpdateTest {
             }
             return false;
         }));
+        // neither content nor name are updated
+        verify(pageRevisionService, times(0)).create(any());
     }
 
     @Test(expected = PageNotFoundException.class)
@@ -230,6 +289,7 @@ public class PageService_UpdateTest {
         pageService.update(PAGE_ID, updatePageEntity);
 
         verify(pageRepository).update(argThat(p -> p.isPublished() == linkPage.isPublished()));
+        verify(pageRevisionService, times(0)).create(any());
     }
 
     @Test
@@ -298,6 +358,8 @@ public class PageService_UpdateTest {
         doReturn(updatedPage).when(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID)));
 
         pageService.update(PAGE_ID, updatePageEntity);
+        // neither content nor name are updated
+        verify(pageRevisionService, times(0)).create(any());
 
         verify(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID) && p.isPublished()));
         verify(pageRepository).update(argThat(p -> p.getId().equals("LINK_ID") && p.isPublished()));

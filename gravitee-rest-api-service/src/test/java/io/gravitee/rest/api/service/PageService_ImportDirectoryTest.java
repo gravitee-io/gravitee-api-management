@@ -78,6 +78,9 @@ public class PageService_ImportDirectoryTest {
     @Mock
     private ImportConfiguration importConfiguration;
 
+    @Mock
+    private PageRevisionService pageRevisionService;
+
     private ObjectMapper mapper = new ObjectMapper();
 
     @Test
@@ -161,5 +164,7 @@ public class PageService_ImportDirectoryTest {
                 && "MARKDOWN".equals(pageToCreate.getType())
                 && null != pageToCreate.getParentId()));
 
+
+        verify(pageRevisionService, times(5)).create(any());
     }
 }

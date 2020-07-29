@@ -54,7 +54,10 @@ public class PageService_DeleteTest {
 
     @Mock
     private SearchEngineService searchEngineService;
-    
+
+    @Mock
+    private PageRevisionService pageRevisionService;
+
     @Test
     public void shouldDeletePage() throws TechnicalException {
         Page page = mock(Page.class);
@@ -64,6 +67,8 @@ public class PageService_DeleteTest {
         pageService.delete(PAGE_ID);
 
         verify(pageRepository).delete(PAGE_ID);
+
+        verify(pageRevisionService).deleteAllByPageId(PAGE_ID);
     }
 
     @Test(expected = TechnicalManagementException.class)

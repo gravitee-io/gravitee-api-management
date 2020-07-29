@@ -41,6 +41,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
@@ -73,6 +74,9 @@ public class PageService_CreateTest {
 
     @Mock
     private SearchEngineService searchEngineService;
+
+    @Mock
+    private PageRevisionService pageRevisionService;
 
     @Mock
     private ImportConfiguration importConfiguration;
@@ -118,6 +122,8 @@ public class PageService_CreateTest {
         assertEquals(content, createdPage.getContent());
         assertEquals(contrib, createdPage.getLastContributor());
         assertEquals(type, createdPage.getType());
+        // create revision for MD page
+        verify(pageRevisionService).create(page1);
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -172,6 +178,8 @@ public class PageService_CreateTest {
 
         final PageEntity createdFolder = pageService.createPage(newFolder);
         assertNotNull(createdFolder);
+
+        verify(pageRevisionService, times(0)).create(any());
     }
 
     @Test(expected = PageActionException.class)
@@ -267,6 +275,8 @@ public class PageService_CreateTest {
 
         pageService.createPage(newFolder);
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
+        // do not create revision for Link
+        verify(pageRevisionService, times(0)).create(any());
 
     }
 
@@ -295,6 +305,8 @@ public class PageService_CreateTest {
 
         pageService.createPage(newLink);
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
+        // do not create revision for Link
+        verify(pageRevisionService, times(0)).create(any());
 
     }
 
@@ -401,7 +413,8 @@ public class PageService_CreateTest {
 
         pageService.createPage(newTranslation);
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
-
+        // create revision for translate if the parent page is a Markdown or Swagger
+        verify(pageRevisionService, times(1)).create(any());
     }
 
 

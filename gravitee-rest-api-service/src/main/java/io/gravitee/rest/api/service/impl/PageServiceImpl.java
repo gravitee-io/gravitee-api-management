@@ -29,12 +29,11 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.PageSource;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
@@ -125,7 +124,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
     private SearchEngineService searchEngineService;
     @Autowired
     private MetadataService metadataService;
-
+    @Autowired
+    private PageRevisionService pageRevisionService;
     @Autowired
     private GraviteeDescriptorService graviteeDescriptorService;
 
@@ -444,12 +444,20 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
             PageType newPageType = newPageEntity.getType();
 
+            // create page revision only for :
+            // - SWAGGER
+            // - Markdown
+            // - Translation
+            boolean createRevision = false;
+
             if (PageType.TRANSLATION.equals(newPageType)) {
                 checkTranslationConsistency(newPageEntity.getParentId(), newPageEntity.getConfiguration(), true);
 
                 Optional<Page> optTranslatedPage = this.pageRepository.findById(newPageEntity.getParentId());
                 if (optTranslatedPage.isPresent()) {
                     newPageEntity.setPublished(optTranslatedPage.get().isPublished());
+                    // create revision only for Swagger & Markdown page
+                    createRevision = isSwaggerOrMarkdown(optTranslatedPage.get().getType());
                 }
             }
 
@@ -477,6 +485,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
             if (PageType.SWAGGER == newPageType || PageType.MARKDOWN == newPageType) {
                 checkMarkdownOrSwaggerConsistency(newPageEntity, newPageType);
+                createRevision = true;
             }
 
             Page page = convert(newPageEntity);
@@ -484,7 +493,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
             if (page.getSource() != null) {
                 fetchPage(page);
             }
-
 
             page.setId(id);
             if (StringUtils.isEmpty(apiId)) {
@@ -499,6 +507,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
             page.setUpdatedAt(page.getCreatedAt());
 
             Page createdPage = validateContentAndCreate(page);
+
+            if (createRevision) {
+                createPageRevision(createdPage);
+            }
 
             //only one homepage is allowed
             onlyOneHomepage(page);
@@ -516,6 +528,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
         }
     }
 
+    private void createPageRevision(Page page) {
+        try {
+            pageRevisionService.create(page);
+        } catch (TechnicalManagementException ex) {
+            logger.info("Creation of page revision has failed");
+        }
+    }
 
     private void checkMarkdownOrSwaggerConsistency(NewPageEntity newPageEntity, PageType newPageType)
             throws TechnicalException {
@@ -635,6 +654,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
             String pageType = pageToUpdate.getType();
 
+            // create page revision if content has changed only for :
+            // - SWAGGER
+            // - Markdown
+            // - Translation
+            boolean createRevision = false;
             if (PageType.LINK.name().equalsIgnoreCase(pageType)) {
                 String newResourceRef = updatePageEntity.getContent();
                 String actualResourceRef = pageToUpdate.getContent();
@@ -668,6 +692,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 String parentId = (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().isEmpty()) ? updatePageEntity.getParentId() : pageToUpdate.getParentId();
                 Map<String, String> configuration = updatePageEntity.getConfiguration() != null ? updatePageEntity.getConfiguration() : pageToUpdate.getConfiguration();
                 checkTranslationConsistency(parentId, configuration, false);
+
+                boolean hasChanged = pageHasChanged(updatePageEntity, pageToUpdate);
+                Optional<Page> optParentPage = this.pageRepository.findById(parentId);
+                if (optParentPage.isPresent()) {
+                    createRevision = isSwaggerOrMarkdown(optParentPage.get().getType()) && hasChanged;
+                }
             }
 
             if (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().equals(pageToUpdate.getParentId())) {
@@ -697,6 +727,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 }
             }
 
+            if (isSwaggerOrMarkdown(pageType)) {
+                createRevision = pageHasChanged(pageToUpdate, page);
+            }
+
             page.setId(pageId);
             page.setUpdatedAt(new Date());
 
@@ -710,6 +744,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
             // if order change, reorder all pages
             if (page.getOrder() != pageToUpdate.getOrder()) {
                 reorderAndSavePages(page);
+
+                if (createRevision) {
+                    createPageRevision(page);
+                }
+
                 return null;
             } else {
                 Page updatedPage = validateContentAndUpdate(page);
@@ -723,6 +762,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
                 createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
                         PAGE_UPDATED, page.getUpdatedAt(), pageToUpdate, page);
+
+                if (createRevision) {
+                    createPageRevision(updatedPage);
+                }
 
                 PageEntity pageEntity = convert(updatedPage);
 
@@ -738,6 +781,25 @@ public class PageServiceImpl extends TransactionalService implements PageService
         } catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
         }
+    }
+
+    private boolean pageHasChanged(UpdatePageEntity updatePageEntity, Page pageToUpdate) {
+        return pageHasChanged(convert(updatePageEntity), pageToUpdate);
+    }
+
+    private boolean pageHasChanged(Page updatedPage, Page pageToUpdate) {
+        String newContent = updatedPage.getContent();
+        String actualContent = pageToUpdate.getContent();
+
+        String newName = updatedPage.getName();
+        String actualName = pageToUpdate.getName();
+        // newContent may be null in case of partialUpdate
+        boolean hasChanged = (newContent != null && !newContent.equals(actualContent)) || (newName != null && !newName.equals(actualName));
+        return hasChanged;
+    }
+
+    private boolean isSwaggerOrMarkdown(String pageType) {
+        return PageType.SWAGGER.name().equalsIgnoreCase(pageType) || PageType.MARKDOWN.name().equalsIgnoreCase(pageType);
     }
 
     private void checkUpdatedPageSituation(UpdatePageEntity updatePageEntity, String pageType, String pageId) throws TechnicalException {
@@ -852,6 +914,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build()).stream()
                     .forEach(p -> {
                         try {
+                            pageRevisionService.deleteAllByPageId(p.getId());
                             pageRepository.delete(p.getId());
                         } catch (TechnicalException ex) {
                             logger.error("An error occurs while trying to delete Page {}", p.getId(), ex);
@@ -1296,7 +1359,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 throw new TechnicalManagementException("Unable to remove the folder. It must be empty before being removed.");
             }
 
+            // delete revision first to avoid orphan data is case of failure
+            pageRevisionService.deleteAllByPageId(pageId);
+
             pageRepository.delete(pageId);
+
+
             // delete links and translations related to the page
             if (!PageType.LINK.name().equalsIgnoreCase(page.getType()) && !PageType.TRANSLATION.name().equalsIgnoreCase(page.getType())) {
                 this.deleteRelatedPages(pageId);
@@ -1390,6 +1458,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 throw new NoFetcherDefinedException(pageId);
             }
 
+            // preserve content & name before the fetch
+            // to detect if there are some changes
+            Page previousPage = new Page();
+            previousPage.setContent(page.getContent());
+            previousPage.setName(page.getName());
+
             try {
                 fetchPage(page);
             } catch (FetcherException e) {
@@ -1400,6 +1474,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
             page.setLastContributor(contributor);
 
             Page updatedPage = validateContentAndUpdate(page);
+            if (isSwaggerOrMarkdown(updatedPage.getType()) && pageHasChanged(updatedPage, previousPage)) {
+                createPageRevision(updatedPage);
+            }
+
             createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
                     PAGE_UPDATED, page.getUpdatedAt(), page, page);
             return convert(updatedPage);
@@ -1678,7 +1756,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 field.setAccessible(true);
                 try {
                     Object updatedValue = field.get(updatedFetcherConfiguration);
-                    if (updatedValue.equals(SENSITIVE_DATA_REPLACEMENT)) {
+                    if (SENSITIVE_DATA_REPLACEMENT.equals(updatedValue)) {
                         updated = true;
                         field.set(updatedFetcherConfiguration, field.get(originalFetcherConfiguration));
                     }

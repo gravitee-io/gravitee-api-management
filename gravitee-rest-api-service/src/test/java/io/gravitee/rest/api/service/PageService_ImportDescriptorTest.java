@@ -43,8 +43,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -76,6 +75,9 @@ public class PageService_ImportDescriptorTest {
 
     @Mock
     private GraviteeDescriptorServiceImpl graviteeDescriptorService;
+
+    @Mock
+    private PageRevisionService pageRevisionService;
 
     @Mock
     private ObjectMapper mockMapper;
@@ -114,8 +116,8 @@ public class PageService_ImportDescriptorTest {
 
         List<PageEntity> pageEntities = pageService.importFiles(pageEntity);
 
-
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());
+        verify(pageRevisionService, times(6)).create(any());
     }
 }
