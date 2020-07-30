@@ -100,6 +100,33 @@ public class RepositoryConfiguration {
 	@Value("${analytics.elasticsearch.http.timeout:10000}")
 	private Long requestTimeout;
 
+	@Value("${analytics.elasticsearch.http.proxy.type:HTTP}")
+	private String proxyType;
+
+	@Value("${analytics.elasticsearch.http.proxy.http.host:#{systemProperties['http.proxyHost'] ?: 'localhost'}}")
+	private String proxyHttpHost;
+
+	@Value("${analytics.elasticsearch.http.proxy.http.port:#{systemProperties['http.proxyPort'] ?: 3128}}")
+	private int proxyHttpPort;
+
+	@Value("${analytics.elasticsearch.http.proxy.http.username:#{null}}")
+	private String proxyHttpUsername;
+
+	@Value("${analytics.elasticsearch.http.proxy.http.password:#{null}}")
+	private String proxyHttpPassword;
+
+	@Value("${analytics.elasticsearch.http.proxy.https.host:#{systemProperties['https.proxyHost'] ?: 'localhost'}}")
+	private String proxyHttpsHost;
+
+	@Value("${analytics.elasticsearch.http.proxy.https.port:#{systemProperties['https.proxyPort'] ?: 3128}}")
+	private int proxyHttpsPort;
+
+	@Value("${analytics.elasticsearch.http.proxy.https.username:#{null}}")
+	private String proxyHttpsUsername;
+
+	@Value("${analytics.elasticsearch.http.proxy.https.password:#{null}}")
+	private String proxyHttpsPassword;
+
 	/**
 	 * Elasticsearch endpoints
 	 */
@@ -248,5 +275,94 @@ public class RepositoryConfiguration {
 		}
 
 		return endpoints;
+	}
+
+	public void setRequestTimeout(Long requestTimeout) {
+		this.requestTimeout = requestTimeout;
+	}
+
+	public String getProxyType() {
+		return proxyType;
+	}
+
+	public void setProxyType(String proxyType) {
+		this.proxyType = proxyType;
+	}
+
+	public String getProxyHttpHost() {
+		return proxyHttpHost;
+	}
+
+	public void setProxyHttpHost(String proxyHttpHost) {
+		this.proxyHttpHost = proxyHttpHost;
+	}
+
+	public int getProxyHttpPort() {
+		return proxyHttpPort;
+	}
+
+	public void setProxyHttpPort(int proxyHttpPort) {
+		this.proxyHttpPort = proxyHttpPort;
+	}
+
+	public String getProxyHttpUsername() {
+		return proxyHttpUsername;
+	}
+
+	public void setProxyHttpUsername(String proxyHttpUsername) {
+		this.proxyHttpUsername = proxyHttpUsername;
+	}
+
+	public String getProxyHttpPassword() {
+		return proxyHttpPassword;
+	}
+
+	public void setProxyHttpPassword(String proxyHttpPassword) {
+		this.proxyHttpPassword = proxyHttpPassword;
+	}
+
+	public String getProxyHttpsHost() {
+		return proxyHttpsHost;
+	}
+
+	public void setProxyHttpsHost(String proxyHttpsHost) {
+		this.proxyHttpsHost = proxyHttpsHost;
+	}
+
+	public int getProxyHttpsPort() {
+		return proxyHttpsPort;
+	}
+
+	public void setProxyHttpsPort(int proxyHttpsPort) {
+		this.proxyHttpsPort = proxyHttpsPort;
+	}
+
+	public String getProxyHttpsUsername() {
+		return proxyHttpsUsername;
+	}
+
+	public void setProxyHttpsUsername(String proxyHttpsUsername) {
+		this.proxyHttpsUsername = proxyHttpsUsername;
+	}
+
+	public String getProxyHttpsPassword() {
+		return proxyHttpsPassword;
+	}
+
+	public void setProxyHttpsPassword(String proxyHttpsPassword) {
+		this.proxyHttpsPassword = proxyHttpsPassword;
+	}
+
+	public boolean isProxyConfigured() {
+		return !EnvironmentUtils.getPropertiesStartingWith((ConfigurableEnvironment) environment,
+				"analytics.elasticsearch.http.proxy").isEmpty();
+	}
+
+	public boolean isCrossClusterInitialized() {
+		return crossClusterInitialized;
+	}
+
+	public void setCrossClusterInitialized(boolean crossClusterInitialized) {
+		this.crossClusterInitialized = crossClusterInitialized;
 	}
 }
