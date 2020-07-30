@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-import java.util.Set;
-
 import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.plan.PlanQuery;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,6 +48,8 @@ public interface PlanService {
     PlanEntity publish(String plan);
 
     PlanEntity depreciate(String plan);
+
+    PlanEntity depreciate(String plan, boolean allowStaging);
 
     PlansConfigurationEntity getConfiguration();
 

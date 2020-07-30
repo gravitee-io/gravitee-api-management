@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service.builder;
 
+import io.gravitee.rest.api.service.EmailNotification;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import io.gravitee.rest.api.service.EmailNotification;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
@@ -73,6 +73,11 @@ public class EmailNotificationBuilder {
 
     public EmailNotificationBuilder bcc(String[] bcc) {
         this.emailNotification.setBcc(bcc);
+        return this;
+    }
+
+    public EmailNotificationBuilder replyTo(String replyTo) {
+        this.emailNotification.setReplyTo(replyTo);
         return this;
     }
 

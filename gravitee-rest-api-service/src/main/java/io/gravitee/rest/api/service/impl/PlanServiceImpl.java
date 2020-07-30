@@ -458,6 +458,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Override
     public PlanEntity depreciate(String planId) {
+        return depreciate(planId, false);
+    }
+
+    @Override
+    public PlanEntity depreciate(String planId, boolean allowStaging) {
         try {
             logger.debug("Depreciate plan {}", planId);
 
@@ -472,7 +477,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new PlanAlreadyDeprecatedException(planId);
             } else if (plan.getStatus() == Plan.Status.CLOSED) {
                 throw new PlanAlreadyClosedException(planId);
-            } else if (plan.getStatus() == Plan.Status.STAGING) {
+            } else if (!allowStaging && plan.getStatus() == Plan.Status.STAGING) {
                 throw new PlanNotYetPublishedException(planId);
             }
 

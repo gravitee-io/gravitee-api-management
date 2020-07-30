@@ -155,7 +155,7 @@ public class CategoryResource extends AbstractCategoryResource {
             ImageUtils.verify(category.getPicture());
             ImageUtils.verify(category.getBackground());
         } catch (InvalidImageException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+            throw new BadRequestException("Invalid image format");
         }
 
         CategoryEntity categoryEntity = categoryService.update(categoryId, category);

@@ -169,7 +169,7 @@ public class CurrentUserResource extends AbstractResource {
                 user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
             }
         } catch (InvalidImageException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+            throw new BadRequestException("Invalid image format");
         }
 
         return ok(userService.update(userEntity.getId(), user)).build();
