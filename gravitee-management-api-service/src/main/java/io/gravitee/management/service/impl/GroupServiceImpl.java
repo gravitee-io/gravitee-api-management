@@ -16,8 +16,8 @@
 package io.gravitee.management.service.impl;
 
 import io.gravitee.common.utils.UUID;
-import io.gravitee.management.model.*;
 import io.gravitee.management.model.Visibility;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.SystemRole;
@@ -30,12 +30,10 @@ import io.gravitee.management.service.exceptions.GroupNotFoundException;
 import io.gravitee.management.service.exceptions.GroupsNotFoundException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +70,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     private AuditService auditService;
     @Autowired
     private PermissionService permissionService;
+    @Autowired
+    private PageRepository pageRepository;
+    @Autowired
+    private PlanRepository planRepository;
 
     @Override
     public List<GroupEntity> findAll() {
@@ -128,7 +130,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     public GroupEntity create(NewGroupEntity group) {
         try {
             logger.debug("create {}", group);
-            if( !this.findByName(group.getName()).isEmpty()) {
+            if (!this.findByName(group.getName()).isEmpty()) {
                 throw new GroupNameAlreadyExistsException(group.getName());
             }
             Group newGroup = this.map(group);
@@ -231,7 +233,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                                     api.setGroups(new HashSet<>());
                                 }
 
-                                if (! api.getGroups().contains(groupId)) {
+                                if (!api.getGroups().contains(groupId)) {
                                     api.getGroups().add(groupId);
                                     try {
                                         apiRepository.update(api);
@@ -250,7 +252,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                                     application.setGroups(new HashSet<>());
                                 }
 
-                                if (! application.getGroups().contains(groupId)) {
+                                if (!application.getGroups().contains(groupId)) {
                                     application.getGroups().add(groupId);
                                     try {
                                         applicationRepository.update(application);
@@ -347,8 +349,15 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     logger.error("An error occurs while trying to delete a group", ex);
                     throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
                 }
+
+                //remove from API plans
+                removeFromAPIPlans(groupId, updatedDate, api.getId());
+
+                //remove from API pages
+                removeGroupFromPages(groupId, updatedDate, api.getId());
+
             });
-            applicationRepository.findByGroups(Collections.singletonList(groupId)).forEach( application -> {
+            applicationRepository.findByGroups(Collections.singletonList(groupId)).forEach(application -> {
                 application.getGroups().remove(groupId);
                 application.setUpdatedAt(updatedDate);
                 try {
@@ -358,6 +367,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
                 }
             });
+
+            //remove from portal pages
+            removeGroupFromPages(groupId, updatedDate, null);
+
             //remove group
             groupRepository.delete(groupId);
 
@@ -377,6 +390,42 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     }
 
+    private void removeFromAPIPlans(String groupId, Date updatedDate, String apiId) {
+        try {
+            final Set<Plan> apiPlans = this.planRepository.findByApi(apiId);
+            for (Plan plan : apiPlans) {
+                if (plan.getExcludedGroups().contains(groupId)) {
+                    plan.getExcludedGroups().remove(groupId);
+                    plan.setUpdatedAt(updatedDate);
+                    this.planRepository.update(plan);
+                }
+            }
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to delete a group", ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+        }
+    }
+
+    private void removeGroupFromPages(String groupId, Date updatedDate, String apiId) {
+        try {
+            PageCriteria.Builder criteriaBuilder = new PageCriteria.Builder();
+            if (apiId != null) {
+                criteriaBuilder.api(apiId);
+            }
+            final List<Page> apiPages = this.pageRepository.search(criteriaBuilder.build());
+            for (Page page : apiPages) {
+                if (page.getExcludedGroups().contains(groupId)) {
+                    page.getExcludedGroups().remove(groupId);
+                    page.setUpdatedAt(updatedDate);
+                    this.pageRepository.update(page);
+                }
+            }
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to delete a group", ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+        }
+    }
+
     @Override
     public boolean isUserAuthorizedToAccessApiData(ApiEntity api, List<String> excludedGroups, String username) {
         // in anonymous mode, only public API without restrictions are authorized
@@ -386,10 +435,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
 
         if ( // plan contains excluded groups
-             excludedGroups != null && !excludedGroups.isEmpty()
-             // user is not directly member of the API
-             && membershipService.getMember(MembershipReferenceType.API, api.getId(), username, RoleScope.API) == null
-           ) {
+                excludedGroups != null && !excludedGroups.isEmpty()
+                        // user is not directly member of the API
+                        && membershipService.getMember(MembershipReferenceType.API, api.getId(), username, RoleScope.API) == null
+        ) {
 
             // for public apis, default authorized groups are all groups,
             // for private apis, default authorized groups are all apis groups
@@ -466,7 +515,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 new ApiCriteria.Builder().groups(groupId).build(),
                 new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())
                 .stream()
-                .map( api -> {
+                .map(api -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(api.getId());
                     apiEntity.setName(api.getName());
@@ -491,7 +540,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     })
                     .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to find all application of group {}",groupId, ex);
+            logger.error("An error occurs while trying to find all application of group {}", groupId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find all application of group " + groupId, ex);
         }
     }
@@ -505,7 +554,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         group.setId(entity.getId());
         group.setName(entity.getName());
 
-        if(entity.getEventRules() != null && !entity.getEventRules().isEmpty()) {
+        if (entity.getEventRules() != null && !entity.getEventRules().isEmpty()) {
             List<GroupEventRule> groupEventRules = new ArrayList<>();
             for (GroupEventRuleEntity groupEventRuleEntity : entity.getEventRules()) {
                 GroupEventRule eventRule = new GroupEventRule();
@@ -515,7 +564,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             group.setEventRules(groupEventRules);
         }
 
-        if(entity.getRoles() != null && !entity.getRoles().isEmpty()) {
+        if (entity.getRoles() != null && !entity.getRoles().isEmpty()) {
             Map<Integer, String> roles = new HashMap<>();
             for (Map.Entry<io.gravitee.management.model.permissions.RoleScope, String> role : entity.getRoles().entrySet()) {
                 roles.put(RoleScope.valueOf(role.getKey().name()).getId(), role.getValue());
@@ -541,7 +590,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
         Group group = new Group();
         group.setName(entity.getName());
-        if(entity.getEventRules() != null && !entity.getEventRules().isEmpty()) {
+        if (entity.getEventRules() != null && !entity.getEventRules().isEmpty()) {
             List<GroupEventRule> groupEventRules = new ArrayList<>();
             for (GroupEventRuleEntity groupEventRuleEntity : entity.getEventRules()) {
                 GroupEventRule eventRule = new GroupEventRule();
@@ -567,7 +616,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         entity.setId(group.getId());
         entity.setName(group.getName());
 
-        if(group.getEventRules() != null && !group.getEventRules().isEmpty()) {
+        if (group.getEventRules() != null && !group.getEventRules().isEmpty()) {
             List<GroupEventRuleEntity> groupEventRules = new ArrayList<>();
             for (GroupEventRule groupEventRule : group.getEventRules()) {
                 GroupEventRuleEntity eventRuleEntity = new GroupEventRuleEntity();
