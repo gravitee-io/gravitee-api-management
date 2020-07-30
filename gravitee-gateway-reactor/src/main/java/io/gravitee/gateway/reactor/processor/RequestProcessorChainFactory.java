@@ -17,9 +17,10 @@ package io.gravitee.gateway.reactor.processor;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.Processor;
-import io.gravitee.gateway.core.processor.chain.DefaultProcessorChain;
+import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
+import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
+import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.reactor.processor.forward.XForwardForProcessor;
-import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessor;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -27,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -45,17 +45,19 @@ public class RequestProcessorChainFactory implements InitializingBean {
     @Value("${handlers.request.trace-context.enabled:false}")
     private boolean traceContext;
 
-    private final List<Processor<ExecutionContext>> processors = new ArrayList<>();
+    private final List<ProcessorProvider<ExecutionContext, Processor<ExecutionContext>>> providers = new ArrayList<>();
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        processors.add(new XForwardForProcessor());
-        processors.add(transactionHandlerFactory.create());
+        providers.add(new ProcessorSupplier<>(XForwardForProcessor::new));
+        providers.add(new ProcessorSupplier<>(() -> transactionHandlerFactory.create()));
 
-        if (traceContext) processors.add(traceContextHandlerFactory.create());
+        if (traceContext) {
+            providers.add(new ProcessorSupplier<>(() -> traceContextHandlerFactory.create()));
+        }
     }
 
     public Processor<ExecutionContext> create() {
-        return new DefaultProcessorChain<>(processors);
+        return new ProcessorProviderChain<>(providers);
     }
 }
