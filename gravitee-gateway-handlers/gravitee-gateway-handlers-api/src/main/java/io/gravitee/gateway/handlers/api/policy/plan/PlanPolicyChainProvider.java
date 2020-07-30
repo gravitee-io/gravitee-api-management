@@ -69,6 +69,15 @@ public class PlanPolicyChainProvider extends AbstractPolicyChainProvider {
                                 "Unauthorized"), context);
             } else if (policies.isEmpty()) {
                 return new NoOpPolicyChain(context);
+            } else {
+                // Fix consuming application and subscription which are data that can be used by policies (ie. rate-limit).
+                context.setAttribute(ExecutionContext.ATTR_APPLICATION, APPLICATION_NAME_ANONYMOUS);
+                context.setAttribute(ExecutionContext.ATTR_PLAN, PLAN_NAME_ANONYMOUS);
+                context.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, context.request().remoteAddress());
+
+                context.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
+                context.request().metrics().setPlan(PLAN_NAME_ANONYMOUS);
+                context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
             }
 
             return (streamType == StreamType.ON_REQUEST) ?
