@@ -47,6 +47,7 @@ public class Page {
 	private String parentId;
 	private List<String> excludedGroups;
 	private Map<String, String> metadata;
+	private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
 
 	public String getId() {
 		return id;
@@ -178,6 +179,14 @@ public class Page {
 
 	public void setMetadata(Map<String, String> metadata) {
 		this.metadata = metadata;
+	}
+
+	public Boolean getUseAutoFetch() {
+		return useAutoFetch;
+	}
+
+	public void setUseAutoFetch(Boolean useAutoFetch) {
+		this.useAutoFetch = useAutoFetch;
 	}
 
 	@Override

@@ -28,7 +28,8 @@ public class PageCriteria {
     private Boolean published;
     private String parent;
     private Boolean rootParent;
-    
+    private Boolean useAutoFetch;
+
 
     private PageCriteria() {}
 
@@ -53,6 +54,7 @@ public class PageCriteria {
     public Boolean getRootParent() {
         return rootParent;
     }
+    public Boolean getUseAutoFetch() { return useAutoFetch; }
 
     public String getReferenceType() {
         return referenceType;
@@ -61,7 +63,6 @@ public class PageCriteria {
     public void setReferenceType(String referenceType) {
         this.referenceType = referenceType;
     }
-
     private void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
     }
@@ -80,9 +81,12 @@ public class PageCriteria {
     private void setParent(String parent) {
         this.parent = parent;
     }
+
     public void setRootParent(Boolean rootParent) {
         this.rootParent = rootParent;
     }
+
+    public void setUseAutoFetch(Boolean useAutoFetch) { this.useAutoFetch = useAutoFetch; }
 
     public static class Builder {
 
@@ -133,6 +137,11 @@ public class PageCriteria {
 
         public Builder rootParent(Boolean root) {
             this.query.setRootParent(root);
+            return this;
+        }
+
+        public Builder withAutoFetch() {
+            this.query.setUseAutoFetch(Boolean.TRUE);
             return this;
         }
     }
