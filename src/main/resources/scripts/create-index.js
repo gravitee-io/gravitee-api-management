@@ -47,6 +47,7 @@ db.keys.reIndex();
 // "pages" collection
 db.pages.dropIndexes();
 db.pages.createIndex( { "api" : 1 } );
+db.pages.createIndex( { "useAutoFetch" : 1 } );
 db.pages.reIndex();
 
 // "memberships" collection

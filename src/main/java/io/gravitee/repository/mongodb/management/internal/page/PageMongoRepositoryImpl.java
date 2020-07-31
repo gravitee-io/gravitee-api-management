@@ -15,21 +15,20 @@
  */
 package io.gravitee.repository.mongodb.management.internal.page;
 
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-
-import java.util.List;
-
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 
-import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+import java.util.List;
+
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -80,6 +79,9 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 			}
 			if (criteria.getType() != null) {
 				q.addCriteria(where("type").is(criteria.getType()));
+			}
+			if (criteria.getUseAutoFetch() != null) {
+				q.addCriteria(where("useAutoFetch").is(criteria.getUseAutoFetch().booleanValue()));
 			}
 		}
 

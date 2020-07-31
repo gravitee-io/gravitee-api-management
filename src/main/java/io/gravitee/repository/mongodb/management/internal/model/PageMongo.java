@@ -46,8 +46,7 @@ public class PageMongo extends Auditable {
 	private List<String> excludedGroups;
     private String parentId;
 	private Map<String, String> metadata;
-
-	
+	private Boolean useAutoFetch;  // use Boolean to avoid default value of primitive type
 
 	public String getId() {
         return id;
@@ -173,6 +172,14 @@ public class PageMongo extends Auditable {
 		this.metadata = metadata;
 	}
 
+	public Boolean getUseAutoFetch() {
+		return useAutoFetch;
+	}
+
+	public void setUseAutoFetch(Boolean useAutoFetch) {
+		this.useAutoFetch = useAutoFetch;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -205,6 +212,7 @@ public class PageMongo extends Auditable {
 				", excludedGroups=" + excludedGroups +
 				", parentId='" + parentId + '\'' +
 				", metadata=" + metadata +
+				", useAutoFetch=" + useAutoFetch +
 				"} " + super.toString();
 	}
 }
