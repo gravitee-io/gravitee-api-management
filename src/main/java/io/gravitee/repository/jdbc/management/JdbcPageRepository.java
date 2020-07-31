@@ -21,12 +21,12 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -66,6 +66,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("parent_id", Types.NVARCHAR, String.class)
+            .addColumn("use_auto_fetch", Types.BOOLEAN, Boolean.class)
             .build();
 
     private static final JdbcHelper.ChildAdder<Page> CHILD_ADDER = (Page parent, ResultSet rs) -> {
@@ -446,6 +447,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 if (criteria.getType() != null) {
                     where.add("p.type = ?");
                     params.add(criteria.getType());
+                }
+                if (criteria.getUseAutoFetch() != null) {
+                    where.add("p.use_auto_fetch = ?");
+                    params.add(criteria.getUseAutoFetch().booleanValue());
                 }
             }
 

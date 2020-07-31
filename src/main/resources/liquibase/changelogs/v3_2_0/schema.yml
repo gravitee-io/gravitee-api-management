@@ -53,3 +53,20 @@ databaseChangeLog:
                   type: nvarchar(64)
                   constraints:
                     nullable: true
+
+        - addColumn:
+            tableName: pages
+            columns:
+              - column:
+                  name: use_auto_fetch
+                  type: boolean
+                  constraints:
+                    nullable: true
+        - createIndex:
+            indexName: idx_pages_with_auto_fetch
+            columns:
+              - column:
+                  name: use_auto_fetch
+                  type: boolean
+            tableName: pages
+
