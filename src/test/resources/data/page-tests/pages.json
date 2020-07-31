@@ -31,7 +31,8 @@
       "homepage": true,
       "excludedGroups": [ "grp1", "grp2" ],
       "createdAt": 1486771200000,
-      "updatedAt": 1486771200000
+      "updatedAt": 1486771200000,
+      "useAutoFetch": true
    },
    {
       "id":"updatePage",

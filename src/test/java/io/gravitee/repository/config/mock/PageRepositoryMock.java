@@ -15,10 +15,8 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
@@ -60,6 +58,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(findApiPage.getLastContributor()).thenReturn("john_doe");
         when(findApiPage.getOrder()).thenReturn(2);
         when(findApiPage.isPublished()).thenReturn(true);
+        when(findApiPage.getUseAutoFetch()).thenReturn(true);
         PageSource pageSource = new PageSource();
         pageSource.setType("sourceType");
         pageSource.setConfiguration("sourceConfiguration");
@@ -101,6 +100,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(createPage.getType()).thenReturn("MARKDOWN");
         when(createPage.isHomepage()).thenReturn(true);
         when(createPage.getParentId()).thenReturn("2");
+        when(createPage.getUseAutoFetch()).thenReturn(Boolean.FALSE);
         metadata = new HashMap<>();
         metadata.put("edit_url", "url");
         metadata.put("size", "10");
@@ -141,6 +141,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(createPortalPageFolder.getType()).thenReturn("FOLDER");
         when(createPortalPageFolder.isHomepage()).thenReturn(false);
         when(createPortalPageFolder.getParentId()).thenReturn("");
+        when(createPortalPageFolder.getUseAutoFetch()).thenReturn(false);
         when(pageRepository.findById("new-portal-page-folder")).thenReturn(empty(), of(createPortalPageFolder));
 
 
@@ -226,7 +227,6 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("unknown api id", PageReferenceType.API)).thenReturn(0);
         when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("DEFAULT", PageReferenceType.ENVIRONMENT)).thenReturn(20);
 
-
         List<Page> findAllPages = IntStream.range(0,10).mapToObj((i) -> {
             Page page = mock(Page.class);
             when(page.getId()).thenReturn("pageid"+i);
@@ -245,6 +245,9 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
                             return new io.gravitee.common.data.domain.Page<Page>(Arrays.asList(findAllPages.get(pageable.pageNumber())), pageable.pageNumber(), 1, 11);
                         }
                     }});
+
+        // search autoFetch
+        when(pageRepository.search(argThat(criteria -> criteria != null && Boolean.TRUE.equals(criteria.getUseAutoFetch())))).thenReturn(Arrays.asList(findApiPage));
 
     }
 }

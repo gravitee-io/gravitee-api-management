@@ -92,6 +92,14 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldReturnPageWithAutoFetch() throws Exception {
+        List<Page> autofetchPages = pageRepository.search(new PageCriteria.Builder().withAutoFetch().build());
+        assertNotNull(autofetchPages);
+        assertEquals("Should have One page with autofetch", 1, autofetchPages.size());
+        assertEquals("AutoFetch Page should be FindApiPage", "FindApiPage", autofetchPages.get(0).getId());
+    }
+
+    @Test
     public void shouldFindPortalPages() throws Exception {
         Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().referenceId("DEFAULT").referenceType("ENVIRONMENT").build());
         assertNotNull(pages);

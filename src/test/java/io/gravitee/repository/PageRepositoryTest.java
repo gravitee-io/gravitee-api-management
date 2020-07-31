@@ -120,6 +120,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
         assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
         assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
+        assertTrue("no autofetch",page.getUseAutoFetch().booleanValue());
     }
 
     @Test
@@ -136,6 +137,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setParentId("2");
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
+        page.setUseAutoFetch(Boolean.FALSE);
 
         final Map<String, String> configuration = new HashMap<>();
         configuration.put("displayOperationId", "true");
@@ -170,6 +172,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertNull("Invalid page source.", page.getSource());
         assertEquals("Invalid configuration.", page.getConfiguration(), pageSaved.getConfiguration());
         assertEquals("Invalid metadata.", page.getMetadata(), pageSaved.getMetadata());
+        assertEquals("Invalid useAutoFetch.", page.getUseAutoFetch().booleanValue(), pageSaved.getUseAutoFetch().booleanValue());
     }
 
     @Test
@@ -262,6 +265,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
         page.setParentId("");
+        page.setParentId("");
+        page.setUseAutoFetch(false);
 
         Optional<Page> optionalBefore = pageRepository.findById("new-portal-page-folder");
         pageRepository.create(page);
@@ -276,6 +281,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
         assertEquals("Invalid ParentId.", page.getParentId(), pageSaved.getParentId());
         assertNull("Invalid page source.", page.getSource());
+        assertFalse("Invalid useAutoFetch.", page.getUseAutoFetch());
     }
 
     @Test
