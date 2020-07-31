@@ -65,6 +65,8 @@ public interface PageService {
 	boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
 
 	void fetchAll(PageQuery query, String contributor);
+
+	long execAutoFetch();
 	
 	PageEntity fetch(String pageId, String contributor);
 

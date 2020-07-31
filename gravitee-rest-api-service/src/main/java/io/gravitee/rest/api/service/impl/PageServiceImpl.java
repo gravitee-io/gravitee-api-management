@@ -68,6 +68,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -93,6 +94,7 @@ import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processT
  */
 @Component
 public class PageServiceImpl extends TransactionalService implements PageService, ApplicationContextAware {
+    public static final String SYSTEM_CONTRIBUTOR = "system";
 
     private static final Gson gson = new Gson();
 
@@ -794,6 +796,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 } catch (FetcherException e) {
                     throw onUpdateFail(pageId, e);
                 }
+            } else {
+                page.setUseAutoFetch(null); // set null to remove the value not set to false
             }
 
             if (isSwaggerOrMarkdown(pageType)) {
@@ -1015,12 +1019,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
         if (pageEntity.isPublished()) {
             searchEngineService.index(pageEntity, false);
         }
-
     }
 
     private void fetchPage(final Page page) throws FetcherException {
         validateSafeSource(page);
         Fetcher fetcher = this.getFetcher(page.getSource());
+
         if (fetcher != null) {
             try {
                 final Resource resource = fetcher.fetch();
@@ -1032,6 +1036,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
                             page.getMetadata().put(entry.getKey(), String.valueOf(entry.getValue()));
                         }
                     }
+                }
+                if (fetcher.getConfiguration().isAutoFetch()) {
+                    page.setUseAutoFetch(Boolean.TRUE);
+                } else {
+                    page.setUseAutoFetch(null); // set null to remove the value not set to false
                 }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
@@ -1099,6 +1108,69 @@ public class PageServiceImpl extends TransactionalService implements PageService
         Page page = upsertRootPage(apiId, pageEntity);
         pageEntity.setSource(convert(page.getSource(), false));
         return fetchPages(apiId, pageEntity);
+    }
+
+    @Override
+    public long execAutoFetch() {
+        logger.debug("Auto Fetch pages");
+        try {
+
+            List<Page> autoFetchPages = pageRepository.search(new PageCriteria.Builder().withAutoFetch().build());
+            long nbOfFetchedPages = autoFetchPages.stream()
+                        .filter(pageListItem -> pageListItem.getSource() != null)
+                        .filter(this::isFetchRequired)
+                        .map(this::executeAutoFetch)
+                        .flatMap(Collection::stream)
+                        .count();
+
+            logger.debug("{} pages fetched", nbOfFetchedPages );
+            return nbOfFetchedPages;
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to fetch pages", ex);
+            throw new TechnicalManagementException("An error occurs while trying to fetch pages", ex);
+        }
+    }
+
+    private boolean isFetchRequired(Page pageItem) {
+        boolean fetchRequired = false;
+        try {
+            FetcherConfiguration configuration = getFetcher(pageItem.getSource()).getConfiguration();
+            if (configuration.isAutoFetch()) {
+                String cron = configuration.getFetchCron();
+                if (cron != null && !cron.isEmpty()) {
+                    CronSequenceGenerator cronSequenceGenerator = new CronSequenceGenerator(cron);
+                    if (pageItem.getUpdatedAt() != null) {
+                        Date nextRun = cronSequenceGenerator.next(pageItem.getUpdatedAt());
+                        fetchRequired = nextRun.before(new Date());
+                    }
+                }
+            }
+        } catch (FetcherException e) {
+            logger.error("An error occurs while trying to initialize fetcher '{}'", pageItem.getSource().getType(), e);
+        } catch (IllegalArgumentException e) {
+            logger.error("An error occurs while trying to parse the cron expression", e);
+        }
+        return fetchRequired;
+    }
+
+    private List<PageEntity> executeAutoFetch(Page page) {
+        try {
+            if (page.getType() != null && page.getType().toString().equals("ROOT")) {
+                final ImportPageEntity pageEntity = new ImportPageEntity();
+                pageEntity.setType(PageType.valueOf(page.getType().toString()));
+                pageEntity.setSource(convert(page.getSource(), false));
+                pageEntity.setConfiguration(page.getConfiguration());
+                pageEntity.setPublished(page.isPublished());
+                pageEntity.setExcludedGroups(page.getExcludedGroups());
+                pageEntity.setLastContributor(SYSTEM_CONTRIBUTOR);
+                return fetchPages(page.getReferenceId(), pageEntity);
+            } else {
+                return Arrays.asList(fetch(page, SYSTEM_CONTRIBUTOR));
+            }
+        } catch (TechnicalException e) {
+            logger.error("An error occurs while trying to auto fetch page {}", page.getId(), e);
+            return Collections.emptyList();
+        }
     }
 
     @Override
@@ -1355,12 +1427,27 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
             Page page = convert(rootPage);
             page.setReferenceId(apiId);
+            page.setReferenceType(PageReferenceType.API);
+
+            if (page.getSource() != null) {
+                final FetcherConfiguration configuration = this.getFetcher(page.getSource()).getConfiguration();
+                if (configuration.isAutoFetch()) {
+                    page.setUseAutoFetch(Boolean.TRUE);
+                } else {
+                    page.setUseAutoFetch(null);
+                }
+            }
+
             if (searchResult.isEmpty()) {
+                page.setCreatedAt(new Date());
+                page.setUpdatedAt(page.getCreatedAt());
                 page.setId(RandomString.generate());
                 return validateContentAndCreate(page);
             } else {
                 page.setId(searchResult.get(0).getId());
-                mergeSensitiveData(this.getFetcher(searchResult.get(0).getSource()).getConfiguration(), page);
+                final FetcherConfiguration configuration = this.getFetcher(searchResult.get(0).getSource()).getConfiguration();
+                mergeSensitiveData(configuration, page);
+                page.setUpdatedAt(new Date());
                 return validateContentAndUpdate(page);
             }
         } catch (TechnicalException | FetcherException ex) {
@@ -1561,33 +1648,37 @@ public class PageServiceImpl extends TransactionalService implements PageService
             if (page.getSource() == null) {
                 throw new NoFetcherDefinedException(pageId);
             }
-
-            // preserve content & name before the fetch
-            // to detect if there are some changes
-            Page previousPage = new Page();
-            previousPage.setContent(page.getContent());
-            previousPage.setName(page.getName());
-
-            try {
-                fetchPage(page);
-            } catch (FetcherException e) {
-                throw onUpdateFail(pageId, e);
-            }
-
-            page.setUpdatedAt(new Date());
-            page.setLastContributor(contributor);
-
-            Page updatedPage = validateContentAndUpdate(page);
-            if (isSwaggerOrMarkdown(updatedPage.getType()) && pageHasChanged(updatedPage, previousPage)) {
-                createPageRevision(updatedPage);
-            }
-
-            createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
-                    PAGE_UPDATED, page.getUpdatedAt(), page, page);
-            return convert(updatedPage);
+            
+            return fetch(page, contributor);
         } catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
         }
+    }
+
+    private PageEntity fetch(Page page, String contributor) throws TechnicalException {
+        // preserve content & name before the fetch
+        // to detect if there are some changes
+        Page previousPage = new Page();
+        previousPage.setContent(page.getContent());
+        previousPage.setName(page.getName());
+
+        try {
+            fetchPage(page);
+        } catch (FetcherException e) {
+            throw onUpdateFail(page.getId(), e);
+        }
+
+        page.setUpdatedAt(new Date());
+        page.setLastContributor(contributor);
+
+        Page updatedPage = validateContentAndUpdate(page);
+        if (isSwaggerOrMarkdown(updatedPage.getType()) && pageHasChanged(updatedPage, previousPage)) {
+            createPageRevision(updatedPage);
+        }
+
+        createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
+                PAGE_UPDATED, page.getUpdatedAt(), page, page);
+        return convert(updatedPage);
     }
 
     private List<PageEntity> fetchPages(final String apiId, ImportPageEntity pageEntity) {

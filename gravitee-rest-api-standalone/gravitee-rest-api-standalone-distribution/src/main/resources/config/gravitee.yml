@@ -157,6 +157,12 @@ services:
   # v3 upgrader service. Can be disabled after first launch.
   v3-upgrader:
     enabled: true
+  # AutoFetch service. (since 3.2)
+  # Use to fetch periodically documentation pages.
+  auto_fetch:
+    enabled: true
+    cron: "0 */5 * * * *"
+
 
 # Analytics repository is used to store all reporting, metrics, health-checks stored by gateway instances
 # This is the default configuration using Elasticsearch

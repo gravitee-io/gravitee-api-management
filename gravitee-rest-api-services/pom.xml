@@ -39,6 +39,7 @@
         <module>gravitee-rest-api-services-dictionary</module>
         <module>gravitee-rest-api-services-search-indexer</module>
         <module>gravitee-rest-api-services-v3-upgrader</module>
+        <module>gravitee-rest-api-services-auto-fetch</module>
     </modules>
 
     <dependencyManagement>
