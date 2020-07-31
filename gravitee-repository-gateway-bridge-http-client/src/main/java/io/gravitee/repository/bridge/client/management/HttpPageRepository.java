@@ -68,4 +68,5 @@ public class HttpPageRepository extends AbstractRepository implements PageReposi
     public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) {
         throw new IllegalStateException();
     }
+
 }
