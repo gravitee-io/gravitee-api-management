@@ -23,7 +23,7 @@ import java.util.stream.Stream;
  * @author GraviteeSource Team
  */
 public class TraceparentHelper {
-    private static final String FLAGS = "-01";
+    private static final String FLAGS = "-00";
     private static final String VERSION = "00-";
 
     public static String leftPad(String value, int length) {
