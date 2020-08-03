@@ -120,9 +120,12 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
             apiServiceDiscoveries.put(api, discoveries);
 
             try {
+                final Set<Endpoint> endpoints = group.getEndpoints() == null ? new HashSet<>() : group.getEndpoints();
+                if (group.getEndpoints() == null) {
+                    group.setEndpoints(endpoints);
+                }
                 serviceDiscovery.listen(event -> {
                     LOGGER.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
-                    Set<Endpoint> endpoints = group.getEndpoints();
                     DiscoveredEndpoint endpoint = createEndpoint(event.service(), group);
                     switch (event.type()) {
                         case REGISTER:
