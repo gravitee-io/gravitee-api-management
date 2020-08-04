@@ -41,6 +41,8 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValues;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -105,7 +107,8 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
 
             try {
                 // At least, validate json.
-                JsonNode jsonConfiguration = JsonLoader.fromString(policy.getConfiguration());
+                String safePolicyConfiguration = clearNullValues(policy.getConfiguration());
+                JsonNode jsonConfiguration = JsonLoader.fromString(safePolicyConfiguration);
 
                 if (schema != null && !schema.equals("")) {
                     // Validate json against schema when defined.
@@ -119,6 +122,9 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
                         throw new InvalidDataException("Invalid policy configuration" + msg);
                     }
                 }
+
+                policy.setConfiguration(safePolicyConfiguration);
+
             } catch (IOException | ProcessingException e) {
                 throw new InvalidDataException("Unable to validate policy configuration", e);
             }

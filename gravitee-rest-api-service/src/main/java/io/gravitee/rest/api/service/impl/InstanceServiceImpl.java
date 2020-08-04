@@ -16,25 +16,25 @@
 package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
-
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,6 +50,9 @@ public class InstanceServiceImpl implements InstanceService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Value("${gateway.unknown-expire-after:604800}") // default value : 7 days
+    private long unknownExpireAfterInSec;
 
     private static final List<EventType> instancesAllState = new ArrayList<>();
 
@@ -74,6 +77,7 @@ public class InstanceServiceImpl implements InstanceService {
             types = instancesRunningOnly;
         }
 
+        ExpiredPredicate filter = new ExpiredPredicate(Duration.ofSeconds(unknownExpireAfterInSec));
         return eventService.search(types, query.getProperties(), query.getFrom(),
                 query.getTo(), query.getPage(), query.getSize(), new Function<EventEntity, InstanceListItem>() {
                     @Override
@@ -97,7 +101,7 @@ public class InstanceServiceImpl implements InstanceService {
 
                         return item;
                     }
-                });
+                }, filter);
     }
 
     @Override
@@ -248,6 +252,24 @@ public class InstanceServiceImpl implements InstanceService {
 
         public void setTenant(String tenant) {
             this.tenant = tenant;
+        }
+    }
+
+    public static final class ExpiredPredicate implements Predicate<InstanceListItem> {
+        private Duration threshold;
+
+        public ExpiredPredicate(Duration threshold) {
+            this.threshold = threshold;
+        }
+
+        @Override
+        public boolean test(InstanceListItem instance) {
+            boolean result = true;
+            if (instance.getState().equals(InstanceState.UNKNOWN)) {
+                Instant now = Instant.now();
+                result = (now.toEpochMilli() - instance.getLastHeartbeatAt().getTime() <= threshold.toMillis());
+            }
+            return result;
         }
     }
 }

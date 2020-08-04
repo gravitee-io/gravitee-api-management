@@ -54,7 +54,7 @@ public class NewExternalUserEntity {
      */
     private String sourceId;
 
-    private boolean newsletter;
+    private Boolean newsletter;
 
     public String getSource() {
         return source;
@@ -104,11 +104,11 @@ public class NewExternalUserEntity {
         this.email = email;
     }
 
-    public boolean isNewsletter() {
+    public Boolean getNewsletter() {
         return newsletter;
     }
 
-    public void setNewsletter(boolean newsletter) {
+    public void setNewsletter(Boolean newsletter) {
         this.newsletter = newsletter;
     }
 

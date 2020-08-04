@@ -253,7 +253,7 @@ public class ApiResource extends AbstractResource {
             ImageUtils.verify(apiToUpdate.getPicture());
             ImageUtils.verify(apiToUpdate.getBackground());
         } catch (InvalidImageException e) {
-            return Response.status(Status.BAD_REQUEST).entity("Invalid image format").build();
+            throw new BadRequestException("Invalid image format");
         }
 
         final ApiEntity currentApi = (ApiEntity) responseApi.getEntity();

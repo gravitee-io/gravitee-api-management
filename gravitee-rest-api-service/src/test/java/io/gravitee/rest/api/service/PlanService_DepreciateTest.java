@@ -19,22 +19,17 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collections;
 import java.util.Optional;
 
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -90,6 +85,35 @@ public class PlanService_DepreciateTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         planService.depreciate(PLAN_ID);
+    }
+
+    @Test
+    public void shouldDepreciateWithStagingPlanAndAllowStaging() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+
+        planService.depreciate(PLAN_ID, true);
+
+        verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
+        verify(planRepository, times(1)).update(plan);
+    }
+
+    @Test(expected = PlanNotYetPublishedException.class)
+    public void shouldNotDepreciateWithStagingPlanAndNotAllowStaging() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+
+        planService.depreciate(PLAN_ID, false);
+
+        verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
+        verify(planRepository, times(1)).update(plan);
     }
 
     @Test(expected = TechnicalManagementException.class)

@@ -94,6 +94,11 @@ public class UserEntity implements Indexable {
      */
     private Date lastConnectionAt;
 
+    /**
+     * The user first connection date
+     */
+    private Date firstConnectionAt;
+
     @JsonProperty("primary_owner")
     private boolean primaryOwner;
 
@@ -103,6 +108,8 @@ public class UserEntity implements Indexable {
 
     @JsonProperty("number_of_active_tokens")
     private int nbActiveTokens;
+
+    private Boolean newsletterSubscribed;
 
     public String getId() {
         return id;
@@ -248,6 +255,22 @@ public class UserEntity implements Indexable {
 
     public void setNbActiveTokens(int nbActiveTokens) {
         this.nbActiveTokens = nbActiveTokens;
+    }
+
+    public Date getFirstConnectionAt() {
+        return firstConnectionAt;
+    }
+
+    public void setFirstConnectionAt(Date firstConnectionAt) {
+        this.firstConnectionAt = firstConnectionAt;
+    }
+
+    public Boolean getNewsletterSubscribed() {
+        return newsletterSubscribed;
+    }
+
+    public void setNewsletterSubscribed(Boolean newsletterSubscribed) {
+        this.newsletterSubscribed = newsletterSubscribed;
     }
 
     @Override

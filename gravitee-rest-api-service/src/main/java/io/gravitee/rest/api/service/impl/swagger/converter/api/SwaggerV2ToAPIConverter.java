@@ -32,6 +32,8 @@ import java.util.function.Consumer;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toMap;
 
+import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValues;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -98,7 +100,7 @@ public class SwaggerV2ToAPIConverter implements SwaggerToApiConverter<SwaggerV2D
 
                                         io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
                                         defPolicy.setName(policy.get().getName());
-                                        defPolicy.setConfiguration(policy.get().getConfiguration());
+                                        defPolicy.setConfiguration(clearNullValues(policy.get().getConfiguration()));
                                         rule.setPolicy(defPolicy);
                                         rules.add(rule);
                                     }

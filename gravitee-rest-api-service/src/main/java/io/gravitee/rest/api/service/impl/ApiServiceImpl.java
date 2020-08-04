@@ -353,6 +353,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check if there is regex errors in plaintext fields
             validateRegexfields(api);
 
+            // check policy configurations.
+            checkPolicyConfigurations(api);
+
             Api repoApi = convert(id, api);
 
             if (repoApi != null) {
@@ -907,7 +910,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
                     planService.findByApi(api.getId()).forEach(plan -> {
                         if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
-                            planService.depreciate(plan.getId());
+                            planService.depreciate(plan.getId(), true);
                         }
                     });
                     notifierService.trigger(ApiHook.API_DEPRECATED, apiId,

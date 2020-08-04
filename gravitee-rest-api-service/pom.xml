@@ -29,7 +29,7 @@
 	<parent>
         <groupId>io.gravitee.rest.api</groupId>
         <artifactId>gravitee-rest-api</artifactId>
-        <version>3.2.0-SNAPSHOT</version>
+    <version>3.2.0-SNAPSHOT</version>
     </parent>
 
 	<artifactId>gravitee-rest-api-service</artifactId>
@@ -193,6 +193,10 @@
 				<exclusion>
 					<groupId>io.swagger</groupId>
 					<artifactId>swagger-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.github.fge</groupId>
+					<artifactId>json-patch</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>

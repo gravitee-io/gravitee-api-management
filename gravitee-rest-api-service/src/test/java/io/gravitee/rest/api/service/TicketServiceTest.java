@@ -16,27 +16,17 @@
 package io.gravitee.rest.api.service;
 
 import com.google.common.collect.ImmutableMap;
-
 import io.gravitee.rest.api.model.ApiModelEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewTicketEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.EmailService;
-import io.gravitee.rest.api.service.MetadataService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.TicketService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
 import io.gravitee.rest.api.service.impl.TicketServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.PortalHook;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -165,7 +155,7 @@ public class TicketServiceTest {
 
         verify(emailService).sendEmailNotification(
                 new EmailNotificationBuilder()
-                        .from(USER_EMAIL)
+                        .replyTo(USER_EMAIL)
                         .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
                         .to(EMAIL_SUPPORT)
                         .subject(EMAIL_SUBJECT)

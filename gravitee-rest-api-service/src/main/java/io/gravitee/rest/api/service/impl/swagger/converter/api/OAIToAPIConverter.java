@@ -18,12 +18,11 @@ package io.gravitee.rest.api.service.impl.swagger.converter.api;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
-import io.gravitee.rest.api.model.api.SwaggerPath;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIDescriptorVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
-import io.gravitee.policy.api.swagger.Policy;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -41,7 +40,8 @@ import java.util.regex.Pattern;
 
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
+
+import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValues;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -114,7 +114,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
                                         io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
                                         defPolicy.setName(policy.get().getName());
-                                        defPolicy.setConfiguration(policy.get().getConfiguration());
+                                        defPolicy.setConfiguration(clearNullValues(policy.get().getConfiguration()));
                                         rule.setPolicy(defPolicy);
                                         rules.add(rule);
                                     }

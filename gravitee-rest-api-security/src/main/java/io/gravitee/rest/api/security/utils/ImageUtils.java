@@ -97,7 +97,7 @@ public final class ImageUtils {
 
             // check base64 inline
             if (matcher.matches()) {
-                if (ALLOWED_MIMETYPE.contains(matcher.group(2))) {
+                if (ALLOWED_MIMETYPE.contains(matcher.group(2).toLowerCase())) {
                     try {
                         return new Image(matcher.group(2), matcher.group(1), Base64.getDecoder().decode(matcher.group(3)));
                     } catch (IllegalArgumentException iae) {
@@ -123,7 +123,7 @@ public final class ImageUtils {
                 ImageReader reader = imageReaders.next();
                 String discoveredType = reader.getFormatName();
 
-                if (! ALLOWED_MIMETYPE.contains(discoveredType)) {
+                if (! ALLOWED_MIMETYPE.contains(discoveredType.toLowerCase())) {
                     throw new InvalidImageException(discoveredType + " format is not supported");
                 }
 
