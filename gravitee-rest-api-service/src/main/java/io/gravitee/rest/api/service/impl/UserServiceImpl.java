@@ -667,7 +667,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
             user.setUpdatedAt(new Date());
 
             // Set variant fields
-            user.setPicture(updateUserEntity.getPicture());
+            if(updateUserEntity.getPicture() != null) {
+                user.setPicture(updateUserEntity.getPicture());
+            }
 
             if (updateUserEntity.getFirstname() != null) {
                 user.setFirstname(updateUserEntity.getFirstname());
@@ -682,9 +684,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 user.setStatus(UserStatus.valueOf(updateUserEntity.getStatus()));
             }
 
-            user.setNewsletterSubscribed(updateUserEntity.isNewsletter());
-            if (updateUserEntity.isNewsletter() != null && updateUserEntity.isNewsletter() && newsletterEmail != null) {
-                newsletterService.subscribe(newsletterEmail);
+            if (updateUserEntity.isNewsletter() != null) {
+                user.setNewsletterSubscribed(updateUserEntity.isNewsletter());
+                if (updateUserEntity.isNewsletter() && newsletterEmail != null) {
+                    newsletterService.subscribe(newsletterEmail);
+                }
             }
 
             User updatedUser = userRepository.update(user);
