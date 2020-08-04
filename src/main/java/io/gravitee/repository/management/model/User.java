@@ -23,14 +23,14 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class User {
-	public enum AuditEvent implements Audit.AuditEvent {
-		USER_CREATED, USER_UPDATED, USER_CONNECTED, PASSWORD_RESET
-	}
+    public enum AuditEvent implements Audit.AuditEvent {
+        USER_CREATED, USER_UPDATED, USER_CONNECTED, PASSWORD_RESET, USER_CONFIRMED, USER_REJECTED;
+    }
 
-	/**
-	 * User identifier
-	 */
-	private String id;
+    /**
+     * User identifier
+     */
+    private String id;
 
     /**
      * The external reference id. Depending on the reference type.
@@ -42,92 +42,93 @@ public class User {
      * this helps to know the model of the referenceId
      */
     private UserReferenceType referenceType;
-	
-	/**
-	 * The source when user is coming from an external system (LDAP, ...)
-	 */
-	private String source;
 
-	/**
-	 * The user reference in the external source
-	 */
-	private String sourceId;
+    /**
+     * The source when user is coming from an external system (LDAP, ...)
+     */
+    private String source;
 
-	/**
-	 * The user password
-	 */
-	private String password;
+    /**
+     * The user reference in the external source
+     */
+    private String sourceId;
 
-	/**
-	 * The user email
-	 */
-	private String email;
+    /**
+     * The user password
+     */
+    private String password;
 
-	/**
-	 * The user first name
-	 */
-	private String firstname;
+    /**
+     * The user email
+     */
+    private String email;
 
-	/**
-	 * The user last name
-	 */
-	private String lastname;
+    /**
+     * The user first name
+     */
+    private String firstname;
 
-	/**
-	 * The user creation date
-	 */
-	private Date createdAt;
+    /**
+     * The user last name
+     */
+    private String lastname;
 
-	/**
-	 * The user last updated date
-	 */
-	private Date updatedAt;
+    /**
+     * The user creation date
+     */
+    private Date createdAt;
 
-	/**
-	 * The user last connection date
-	 */
-	private Date lastConnectionAt;
+    /**
+     * The user last updated date
+     */
+    private Date updatedAt;
 
-	/**
-	 * The user first connection date
-	 */
-	private Date firstConnectionAt;
+    /**
+     * The user last connection date
+     */
+    private Date lastConnectionAt;
 
-	/**
-	 * The user picture
-	 */
-	private String picture;
+    /**
+     * The user first connection date
+     */
+    private Date firstConnectionAt;
 
-	private UserStatus status;
+    /**
+     * The user picture
+     */
+    private String picture;
 
-	/**
-	 * The user login count
-	 */
-	private long loginCount;
+    private UserStatus status;
 
-	private Boolean newsletterSubscribed;
+    /**
+     * The user login count
+     */
+    private long loginCount;
 
-	public User() {}
+    private Boolean newsletterSubscribed;
 
-	public User(User cloned) {
-		this.id = cloned.id;
-		this.referenceId = cloned.referenceId;
-		this.referenceType = cloned.referenceType;
+    public User() {
+    }
+
+    public User(User cloned) {
+        this.id = cloned.id;
+        this.referenceId = cloned.referenceId;
+        this.referenceType = cloned.referenceType;
         this.source = cloned.source;
-		this.sourceId = cloned.sourceId;
-		this.password = cloned.password;
-		this.email = cloned.email;
-		this.firstname = cloned.firstname;
-		this.lastname = cloned.lastname;
-		this.createdAt = cloned.createdAt;
-		this.updatedAt = cloned.updatedAt;
-		this.lastConnectionAt = cloned.lastConnectionAt;
-		this.picture = cloned.picture;
-		this.status = cloned.status;
-		this.loginCount = cloned.loginCount;
-		this.firstConnectionAt = cloned.firstConnectionAt;
-		this.newsletterSubscribed = cloned.newsletterSubscribed;
-	}
+        this.sourceId = cloned.sourceId;
+        this.password = cloned.password;
+        this.email = cloned.email;
+        this.firstname = cloned.firstname;
+        this.lastname = cloned.lastname;
+        this.createdAt = cloned.createdAt;
+        this.updatedAt = cloned.updatedAt;
+        this.lastConnectionAt = cloned.lastConnectionAt;
+        this.picture = cloned.picture;
+        this.status = cloned.status;
+        this.loginCount = cloned.loginCount;
+        this.firstConnectionAt = cloned.firstConnectionAt;
+        this.newsletterSubscribed = cloned.newsletterSubscribed;
+    }
 
     public String getReferenceId() {
         return referenceId;
@@ -146,153 +147,153 @@ public class User {
     }
 
     public String getId() {
-		return id;
-	}
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getFirstname() {
-		return firstname;
-	}
+    public String getFirstname() {
+        return firstname;
+    }
 
-	public void setFirstname(String firstname) {
-		this.firstname = firstname;
-	}
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
 
-	public String getLastname() {
-		return lastname;
-	}
+    public String getLastname() {
+        return lastname;
+    }
 
-	public void setLastname(String lastname) {
-		this.lastname = lastname;
-	}
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	public Date getUpdatedAt() {
-		return updatedAt;
-	}
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
 
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
-	public String getPicture() {
-		return picture;
-	}
+    public String getPicture() {
+        return picture;
+    }
 
-	public void setPicture(String picture) {
-		this.picture = picture;
-	}
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
 
-	public String getSource() {
-		return source;
-	}
+    public String getSource() {
+        return source;
+    }
 
-	public void setSource(String source) {
-		this.source = source;
-	}
+    public void setSource(String source) {
+        this.source = source;
+    }
 
-	public String getSourceId() {
-		return sourceId;
-	}
+    public String getSourceId() {
+        return sourceId;
+    }
 
-	public void setSourceId(String sourceId) {
-		this.sourceId = sourceId;
-	}
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
+    }
 
-	public Date getLastConnectionAt() {
-		return lastConnectionAt;
-	}
+    public Date getLastConnectionAt() {
+        return lastConnectionAt;
+    }
 
-	public void setLastConnectionAt(Date lastConnectionAt) {
-		this.lastConnectionAt = lastConnectionAt;
-	}
+    public void setLastConnectionAt(Date lastConnectionAt) {
+        this.lastConnectionAt = lastConnectionAt;
+    }
 
-	public UserStatus getStatus() {
-		return status;
-	}
+    public UserStatus getStatus() {
+        return status;
+    }
 
-	public void setStatus(UserStatus status) {
-		this.status = status;
-	}
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
 
-	public long getLoginCount() {
-		return loginCount;
-	}
+    public long getLoginCount() {
+        return loginCount;
+    }
 
-	public void setLoginCount(long loginCount) {
-		this.loginCount = loginCount;
-	}
+    public void setLoginCount(long loginCount) {
+        this.loginCount = loginCount;
+    }
 
-	public Date getFirstConnectionAt() {
-		return firstConnectionAt;
-	}
+    public Date getFirstConnectionAt() {
+        return firstConnectionAt;
+    }
 
-	public void setFirstConnectionAt(Date firstConnectionAt) {
-		this.firstConnectionAt = firstConnectionAt;
-	}
+    public void setFirstConnectionAt(Date firstConnectionAt) {
+        this.firstConnectionAt = firstConnectionAt;
+    }
 
-	public Boolean getNewsletterSubscribed() {
-		return newsletterSubscribed;
-	}
+    public Boolean getNewsletterSubscribed() {
+        return newsletterSubscribed;
+    }
 
-	public void setNewsletterSubscribed(Boolean newsletterSubscribed) {
-		this.newsletterSubscribed = newsletterSubscribed;
-	}
+    public void setNewsletterSubscribed(Boolean newsletterSubscribed) {
+        this.newsletterSubscribed = newsletterSubscribed;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		User user = (User) o;
-		return Objects.equals(id, user.id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("User{");
-		sb.append("id='").append(id).append('\'');
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("User{");
+        sb.append("id='").append(id).append('\'');
         sb.append(", referenceId='").append(referenceId).append('\'');
         sb.append(", referenceType='").append(referenceType).append('\'');
         sb.append(", source='").append(source).append('\'');
-		sb.append(", sourceId='").append(sourceId).append('\'');
-		sb.append(", firstname='").append(firstname).append('\'');
-		sb.append(", lastname='").append(lastname).append('\'');
-		sb.append(", mail='").append(email).append('\'');
-		sb.append(", status='").append(status).append('\'');
-		sb.append(", loginCount='").append(loginCount).append('\'');
-		sb.append('}');
-		return sb.toString();
-	}
+        sb.append(", sourceId='").append(sourceId).append('\'');
+        sb.append(", firstname='").append(firstname).append('\'');
+        sb.append(", lastname='").append(lastname).append('\'');
+        sb.append(", mail='").append(email).append('\'');
+        sb.append(", status='").append(status).append('\'');
+        sb.append(", loginCount='").append(loginCount).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 
 }

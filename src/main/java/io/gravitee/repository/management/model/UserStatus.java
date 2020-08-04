@@ -21,5 +21,7 @@ package io.gravitee.repository.management.model;
  */
 public enum UserStatus {
     ACTIVE,
-    ARCHIVED
+    ARCHIVED,
+    DISABLED,
+    PENDING
 }
