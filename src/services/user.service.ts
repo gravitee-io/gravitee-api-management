@@ -194,7 +194,6 @@ class UserService {
   }
 
   login(user): ng.IPromise<any> {
-
     return this.$http.post(`${this.userURL}login`, {}, {
       headers: {
         Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`
@@ -238,6 +237,10 @@ class UserService {
       newsletter: user.newsletter,
       email: user.email,
     });
+  }
+
+  subscribeNewsletter(email): ng.IPromise<any> {
+    return this.$http.post(`${this.userURL}/subscribeNewsletter`, email);
   }
 
   resetPassword(id: string): ng.IPromise<any> {

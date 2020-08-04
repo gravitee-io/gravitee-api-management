@@ -53,7 +53,7 @@ class LoginController {
   $onInit() {
     this.ReCaptchaService.displayBadge();
     document.addEventListener('click', this._toDisabledMode);
-  }
+}
 
   $onDestroy() {
     document.removeEventListener('click', this._toDisabledMode);
