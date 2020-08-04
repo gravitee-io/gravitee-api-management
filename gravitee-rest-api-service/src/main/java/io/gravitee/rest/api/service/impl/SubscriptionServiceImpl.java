@@ -16,12 +16,20 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.RandomString;
@@ -29,18 +37,10 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.ApplicationType;
-import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Subscription;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -85,13 +85,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Autowired
     private EmailService emailService;
     @Autowired
-    private ConfigurableEnvironment environment;
-    @Autowired
     private AuditService auditService;
     @Autowired
     private NotifierService notifierService;
     @Autowired
     private GroupService groupService;
+    @Autowired
+    private ParameterService parameterService;
 
     @Override
     public SubscriptionEntity findById(String subscription) {
@@ -197,11 +197,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                             .apis(Collections.singleton(planEntity.getApi()))
                             .build());
 
-            if (! subscriptions.isEmpty()) {
+            if (!subscriptions.isEmpty()) {
                 Predicate<Subscription> onlyValidSubs =
                         subscription ->
                                 subscription.getStatus() != Subscription.Status.REJECTED &&
-                                subscription.getStatus() != Subscription.Status.CLOSED;
+                                        subscription.getStatus() != Subscription.Status.CLOSED;
 
                 // First, check that there is no subscription to the same plan
                 long subscriptionCount = subscriptions.stream()
@@ -274,16 +274,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final PrimaryOwnerEntity apiOwner = api.getPrimaryOwner();
             //final PrimaryOwnerEntity appOwner = applicationEntity.getPrimaryOwner();
 
-
-            String portalUrl = environment.getProperty("portalURL");
+            String managementURL = parameterService.find(Key.MANAGEMENT_URL);
 
             String subscriptionsUrl = "";
 
-            if (portalUrl != null) {
-                if (portalUrl.endsWith("/")) {
-                    portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
+            if (managementURL != null) {
+                if (managementURL.endsWith("/")) {
+                    managementURL = managementURL.substring(0, managementURL.length() - 1);
                 }
-                subscriptionsUrl = portalUrl + "/#!/apis/" + api.getId() + "/subscriptions/" + subscription.getId();
+                subscriptionsUrl = managementURL + "/#!/apis/" + api.getId() + "/subscriptions/" + subscription.getId();
             }
 
             final Map<String, Object> params = new NotificationParamsBuilder()
@@ -714,9 +713,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (query.getStatuses() != null) {
                 builder.statuses(
-                query.getStatuses().stream()
-                        .map(subscriptionStatus -> Subscription.Status.valueOf(subscriptionStatus.name()))
-                        .collect(Collectors.toSet()));
+                        query.getStatuses().stream()
+                                .map(subscriptionStatus -> Subscription.Status.valueOf(subscriptionStatus.name()))
+                                .collect(Collectors.toSet()));
             }
 
             Stream<SubscriptionEntity> subscriptionsStream =
@@ -919,10 +918,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         return map == null ? "" : ((Map) map).get("name").toString();
     }
 
+    @Override
     public Metadata getMetadata(List<SubscriptionEntity> subscriptions) {
         Metadata metadata = new Metadata();
 
-        subscriptions.forEach( subscription -> {
+        subscriptions.forEach(subscription -> {
             if (!metadata.containsKey(subscription.getApplication())) {
                 ApplicationEntity applicationEntity = applicationService.findById(subscription.getApplication());
                 metadata.put(subscription.getApplication(), "name", applicationEntity.getName());

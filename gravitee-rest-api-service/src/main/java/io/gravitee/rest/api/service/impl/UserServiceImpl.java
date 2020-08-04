@@ -532,7 +532,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
      * Allows to create an user and send an email notification to finalize its creation.
      */
     private UserEntity createAndSendEmail(final NewExternalUserEntity newExternalUserEntity, final ACTION action, final String confirmationPageUrl) {
-        if (!EmailValidator.isValid(newExternalUserEntity.getEmail())){
+        if (!EmailValidator.isValid(newExternalUserEntity.getEmail())) {
             throw new EmailFormatInvalidException(newExternalUserEntity.getEmail());
         }
 
@@ -588,13 +588,13 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     @Override
-    public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
+    public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String managementUri,
                                                           final ACTION action) {
-        return getTokenRegistrationParams(userEntity, portalUri, action, null);
+        return getTokenRegistrationParams(userEntity, managementUri, action, null);
     }
 
     @Override
-    public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String portalUri,
+    public Map<String, Object> getTokenRegistrationParams(final UserEntity userEntity, final String managementUri,
                                                           final ACTION action, final String targetPageUrl) {
         // generate a JWT to store user's information and for security purpose
         final String jwtSecret = environment.getProperty("jwt.secret");
@@ -619,19 +619,19 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 .withClaim(Claims.ACTION, action.name())
                 .sign(algorithm);
 
-        String registrationUrl= "";
+        String registrationUrl = "";
         if (targetPageUrl != null && !targetPageUrl.isEmpty()) {
             registrationUrl += targetPageUrl;
-            if(!targetPageUrl.endsWith("/")) {
+            if (!targetPageUrl.endsWith("/")) {
                 registrationUrl += "/";
             }
             registrationUrl += token;
         } else {
-            String portalUrl = environment.getProperty("portalURL");
-            if (portalUrl!= null && portalUrl.endsWith("/")) {
-                portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
+            String managementUrl = parameterService.find(Key.MANAGEMENT_URL);
+            if (managementUrl != null && managementUrl.endsWith("/")) {
+                managementUrl = managementUrl.substring(0, managementUrl.length() - 1);
             }
-            registrationUrl = portalUrl + portalUri + token;
+            registrationUrl = managementUrl + managementUri + token;
         }
 
         // send a confirm email with the token
@@ -747,7 +747,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     .referenceId(GraviteeContext.getCurrentOrganization())
                     .referenceType(UserReferenceType.ORGANIZATION)
                     .statuses(criteria.getStatuses());
-            if(criteria.hasNoStatus()) {
+            if (criteria.hasNoStatus()) {
                 builder.noStatus();
             }
             UserCriteria newCriteria = builder.build();
@@ -995,7 +995,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public UserEntity createOrUpdateUserFromSocialIdentityProvider(SocialIdentityProviderEntity socialProvider,
-            String userInfo) {
+                                                                   String userInfo) {
         HashMap<String, String> attrs = getUserProfileAttrs(socialProvider.getUserProfileMapping(), userInfo);
 
         String email = attrs.get(SocialIdentityProviderEntity.UserProfile.EMAIL);
@@ -1135,10 +1135,10 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             // Get roles
             if (match) {
-                if(mapping.getOrganizations() != null && !mapping.getOrganizations().isEmpty()) {
+                if (mapping.getOrganizations() != null && !mapping.getOrganizations().isEmpty()) {
                     mapping.getOrganizations().forEach(organizationRoleName -> addRoleScope(rolesToAdd, organizationRoleName, RoleScope.ORGANIZATION));
                 }
-                if(mapping.getEnvironments() != null && !mapping.getEnvironments().isEmpty()) {
+                if (mapping.getEnvironments() != null && !mapping.getEnvironments().isEmpty()) {
                     mapping.getEnvironments().forEach(environmentRoleName -> addRoleScope(rolesToAdd, environmentRoleName, RoleScope.ENVIRONMENT));
                 }
             }
@@ -1224,7 +1224,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 .filter(membership -> membership.getReferenceType().equals(MembershipReferenceType.ENVIRONMENT) || membership.getReferenceType().equals(MembershipReferenceType.ORGANIZATION))
                 .collect(Collectors.toSet());
         userMemberships.forEach(membership -> {
-            if(!roleIds.contains(membership.getRoleId())) {
+            if (!roleIds.contains(membership.getRoleId())) {
                 membershipService.deleteMembership(membership.getId());
             } else {
                 roleIds.remove(membership.getRoleId());
