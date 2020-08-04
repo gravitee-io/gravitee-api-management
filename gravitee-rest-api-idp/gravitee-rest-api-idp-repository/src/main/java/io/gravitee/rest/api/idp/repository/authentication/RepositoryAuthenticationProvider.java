@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.idp.repository.authentication;
 
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.rest.api.idp.repository.authentication.spring.RepositoryAuthenticationProviderConfiguration;
-
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,76 +47,80 @@ import java.util.stream.Collectors;
  */
 @Import(RepositoryAuthenticationProviderConfiguration.class)
 public class RepositoryAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider
-		implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
+        implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryAuthenticationProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryAuthenticationProvider.class);
 
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private UserService userService;
 
-	@Autowired
-	private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-	@Override
-	protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
-		if (authentication.getCredentials() == null) {
-			LOGGER.debug("Authentication failed: no credentials provided");
-			throw new BadCredentialsException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
-		}
+    @Override
+    protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+        if (authentication.getCredentials() == null) {
+            LOGGER.debug("Authentication failed: no credentials provided");
+            throw new BadCredentialsException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+        }
 
-		String presentedPassword = authentication.getCredentials().toString();
+        String presentedPassword = authentication.getCredentials().toString();
 
-		if (!passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
-			LOGGER.debug("Authentication failed: password does not match stored value");
-			throw new BadCredentialsException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
-		}
-	}
+        if (!passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
+            LOGGER.debug("Authentication failed: password does not match stored value");
+            throw new BadCredentialsException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+        }
 
-	@Override
-	protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
-		try {
-			UserEntity user = userService.findBySource(RepositoryIdentityProvider.PROVIDER_TYPE,  username, true);
-			if (RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())) {
-				if (user.getPassword() == null) {
-					throw new BadCredentialsException(messages.getMessage(
-							"AbstractUserDetailsAuthenticationProvider.badCredentials",
-							"Bad credentials"));
-				}
-				return mapUserEntityToUserDetails(user);
-			} else {
-				throw new UserNotFoundException(username);
-			}
-		} catch (UserNotFoundException notFound) {
-			throw new UsernameNotFoundException(String.format("User '%s' not found", username), notFound);
-		} catch (Exception repositoryProblem) {
-			LOGGER.error("Failed to retrieveUser : {}", username, repositoryProblem);
-			throw new InternalAuthenticationServiceException(repositoryProblem.getMessage(), repositoryProblem);
-		}
-	}
+    }
 
-	private UserDetails mapUserEntityToUserDetails(UserEntity userEntity) {
-		List<GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
-		if (userEntity.getRoles() != null && userEntity.getRoles().size() > 0) {
+    @Override
+    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+        try {
+            UserEntity user = userService.findBySource(RepositoryIdentityProvider.PROVIDER_TYPE, username, true);
+            if (RepositoryIdentityProvider.PROVIDER_TYPE.equals(user.getSource())) {
+                if (user.getPassword() == null) {
+                    throw new BadCredentialsException(messages.getMessage(
+                            "AbstractUserDetailsAuthenticationProvider.badCredentials",
+                            "Bad credentials"));
+                }
+                if (user.getStatus().toUpperCase().equals("PENDING")) {
+                    throw new UnauthorizedAccessException();
+                }
+                return mapUserEntityToUserDetails(user);
+            } else {
+                throw new UserNotFoundException(username);
+            }
+        } catch (UserNotFoundException notFound) {
+            throw new UsernameNotFoundException(String.format("User '%s' not found", username), notFound);
+        } catch (Exception repositoryProblem) {
+            LOGGER.error("Failed to retrieveUser : {}", username, repositoryProblem);
+            throw new InternalAuthenticationServiceException(repositoryProblem.getMessage(), repositoryProblem);
+        }
+    }
 
-			authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(
-					userEntity.getRoles().stream().map(r -> r.getScope().name()+':'+r.getName()).collect(Collectors.joining(","))
-			);
-		}
+    private UserDetails mapUserEntityToUserDetails(UserEntity userEntity) {
+        List<GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
+        if (userEntity.getRoles() != null && userEntity.getRoles().size() > 0) {
 
-		io.gravitee.rest.api.idp.api.authentication.UserDetails userDetails = new io.gravitee.rest.api.idp.api.authentication.UserDetails(
-				userEntity.getId(), userEntity.getPassword(), authorities);
+            authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(
+                    userEntity.getRoles().stream().map(r -> r.getScope().name() + ':' + r.getName()).collect(Collectors.joining(","))
+            );
+        }
 
-		userDetails.setFirstname(userEntity.getFirstname());
-		userDetails.setLastname(userEntity.getLastname());
-		userDetails.setEmail(userEntity.getEmail());
-		userDetails.setSource(RepositoryIdentityProvider.PROVIDER_TYPE);
-		userDetails.setSourceId(userEntity.getSourceId());
+        io.gravitee.rest.api.idp.api.authentication.UserDetails userDetails = new io.gravitee.rest.api.idp.api.authentication.UserDetails(
+                userEntity.getId(), userEntity.getPassword(), authorities);
 
-		return userDetails;
-	}
+        userDetails.setFirstname(userEntity.getFirstname());
+        userDetails.setLastname(userEntity.getLastname());
+        userDetails.setEmail(userEntity.getEmail());
+        userDetails.setSource(RepositoryIdentityProvider.PROVIDER_TYPE);
+        userDetails.setSourceId(userEntity.getSourceId());
 
-	@Override
-	public org.springframework.security.authentication.AuthenticationProvider configure() throws Exception {
-		return this;
-	}
+        return userDetails;
+    }
+
+    @Override
+    public org.springframework.security.authentication.AuthenticationProvider configure() throws Exception {
+        return this;
+    }
 }

@@ -367,9 +367,6 @@ user:
   anonymize-on-delete:
     #enabled: true
 
-# The portal URL used in emails
-portalURL: http://localhost:3000/
-
 # Enable / disable documentation sanitize. Enabled by default.
 documentation:
   markdown:

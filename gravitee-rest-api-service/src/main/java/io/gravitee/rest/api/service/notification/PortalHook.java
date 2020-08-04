@@ -21,6 +21,7 @@ package io.gravitee.rest.api.service.notification;
  */
 public enum PortalHook implements Hook {
 
+    USER_REGISTRATION_REQUEST("User Registration Request", "Triggered when a new user is created and automatic validation is disabled", "USER"),
     USER_REGISTERED("User Registered", "Triggered when an user is registered", "USER"),
     USER_CREATED("User Created", "Triggered when an user is created", "USER"),
     USER_FIRST_LOGIN("First Login", "Triggered when an user log in for the first time", "USER"),

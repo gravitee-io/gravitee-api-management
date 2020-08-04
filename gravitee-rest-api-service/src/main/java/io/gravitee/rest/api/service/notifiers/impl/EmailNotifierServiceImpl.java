@@ -79,12 +79,12 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         String[] mails = genericNotificationConfig.getConfig().split(",|;|\\s");
         List<String> result = new ArrayList<>();
         for (String mail : mails) {
-            if(!mail.isEmpty()) {
-                if(mail.contains("$")) {
+            if (!mail.isEmpty()) {
+                if (mail.contains("$")) {
                     try {
                         final Template template = new Template(mail, mail, freemarkerConfiguration);
                         String tmpMail = FreeMarkerTemplateUtils.processTemplateIntoString(template, params);
-                        if(!tmpMail.isEmpty()) {
+                        if (!tmpMail.isEmpty()) {
                             mail = tmpMail;
                         }
                     } catch (IOException | TemplateException e) {
@@ -105,102 +105,75 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         // Api Hook
         if (hook.equals(ApiHook.APIKEY_REVOKED)) {
             return EmailNotificationBuilder.EmailTemplate.REVOKE_API_KEY;
-        }
-        else if (hook.equals(ApiHook.APIKEY_RENEWED)) {
+        } else if (hook.equals(ApiHook.APIKEY_RENEWED)) {
             return EmailNotificationBuilder.EmailTemplate.RENEWED_API_KEY;
-        }
-        else if (hook.equals(ApiHook.APIKEY_EXPIRED)) {
+        } else if (hook.equals(ApiHook.APIKEY_EXPIRED)) {
             return EmailNotificationBuilder.EmailTemplate.EXPIRE_API_KEY;
-        }
-        else if (hook.equals(SUBSCRIPTION_ACCEPTED)) {
+        } else if (hook.equals(SUBSCRIPTION_ACCEPTED)) {
             return EmailNotificationBuilder.EmailTemplate.APPROVE_SUBSCRIPTION;
-        }
-        else if (hook.equals(SUBSCRIPTION_NEW)) {
+        } else if (hook.equals(SUBSCRIPTION_NEW)) {
             return EmailNotificationBuilder.EmailTemplate.NEW_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
+        } else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
             return EmailNotificationBuilder.EmailTemplate.CLOSE_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApiHook.SUBSCRIPTION_REJECTED)) {
+        } else if (hook.equals(ApiHook.SUBSCRIPTION_REJECTED)) {
             return EmailNotificationBuilder.EmailTemplate.REJECT_SUBSCRIPTION;
-        }
-        else if (hook.equals(SUBSCRIPTION_PAUSED)) {
+        } else if (hook.equals(SUBSCRIPTION_PAUSED)) {
             return EmailNotificationBuilder.EmailTemplate.PAUSE_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApiHook.SUBSCRIPTION_RESUMED)) {
+        } else if (hook.equals(ApiHook.SUBSCRIPTION_RESUMED)) {
             return EmailNotificationBuilder.EmailTemplate.RESUME_SUBSCRIPTION;
-        }
-        else if (hook.equals(SUBSCRIPTION_TRANSFERRED)) {
+        } else if (hook.equals(SUBSCRIPTION_TRANSFERRED)) {
             return EmailNotificationBuilder.EmailTemplate.TRANSFER_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
+        } else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
             return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
-        }
-        else if (hook.equals(ApiHook.API_STOPPED)) {
+        } else if (hook.equals(ApiHook.API_STOPPED)) {
             return EmailNotificationBuilder.EmailTemplate.API_STOPPED;
-        }
-        else if (hook.equals(ApiHook.API_STARTED)) {
+        } else if (hook.equals(ApiHook.API_STARTED)) {
             return EmailNotificationBuilder.EmailTemplate.API_STARTED;
-        }
-        else if (hook.equals(ApiHook.NEW_RATING)) {
+        } else if (hook.equals(ApiHook.NEW_RATING)) {
             return EmailNotificationBuilder.EmailTemplate.NEW_RATING;
-        }
-        else if (hook.equals(ApiHook.NEW_RATING_ANSWER)) {
+        } else if (hook.equals(ApiHook.NEW_RATING_ANSWER)) {
             return EmailNotificationBuilder.EmailTemplate.NEW_RATING_ANSWER;
-        }
-        else if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
+        } else if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
             return EmailNotificationBuilder.EmailTemplate.ASK_FOR_REVIEW;
-        }
-        else if (hook.equals(ApiHook.REQUEST_FOR_CHANGES)) {
+        } else if (hook.equals(ApiHook.REQUEST_FOR_CHANGES)) {
             return EmailNotificationBuilder.EmailTemplate.REQUEST_FOR_CHANGES;
-        }
-        else if (hook.equals(ApiHook.REVIEW_OK)) {
+        } else if (hook.equals(ApiHook.REVIEW_OK)) {
             return EmailNotificationBuilder.EmailTemplate.REVIEW_OK;
-        }
-        else if (hook.equals(API_DEPRECATED)) {
+        } else if (hook.equals(API_DEPRECATED)) {
             return EmailNotificationBuilder.EmailTemplate.API_DEPRECATED;
         }
 
         // Application Hook
         else if (hook.equals(ApplicationHook.SUBSCRIPTION_NEW)) {
             return EmailNotificationBuilder.EmailTemplate.SUBSCRIPTION_CREATED;
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_ACCEPTED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_ACCEPTED)) {
             return EmailNotificationBuilder.EmailTemplate.APPROVE_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_REJECTED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_REJECTED)) {
             return EmailNotificationBuilder.EmailTemplate.REJECT_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_CLOSED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_CLOSED)) {
             return EmailNotificationBuilder.EmailTemplate.CLOSE_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_PAUSED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_PAUSED)) {
             return EmailNotificationBuilder.EmailTemplate.PAUSE_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_RESUMED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_RESUMED)) {
             return EmailNotificationBuilder.EmailTemplate.RESUME_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_TRANSFERRED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_TRANSFERRED)) {
             return EmailNotificationBuilder.EmailTemplate.TRANSFER_SUBSCRIPTION;
-        }
-        else if (hook.equals(ApplicationHook.NEW_SUPPORT_TICKET)) {
+        } else if (hook.equals(ApplicationHook.NEW_SUPPORT_TICKET)) {
             return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
         }
 
         // Portal Hook
         else if (hook.equals(PortalHook.USER_REGISTERED)) {
             return EmailNotificationBuilder.EmailTemplate.USER_REGISTERED;
-        }
-        else if (hook.equals(PortalHook.USER_CREATED)) {
+        } else if (hook.equals(PortalHook.USER_REGISTRATION_REQUEST)) {
+            return EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION_REQUEST;
+        } else if (hook.equals(PortalHook.USER_CREATED)) {
             return EmailNotificationBuilder.EmailTemplate.USER_CREATED;
-        }
-        else if (hook.equals(PortalHook.PASSWORD_RESET)) {
+        } else if (hook.equals(PortalHook.PASSWORD_RESET)) {
             return EmailNotificationBuilder.EmailTemplate.PASSWORD_RESET;
-        }
-        else if (hook.equals(PortalHook.USER_FIRST_LOGIN)) {
+        } else if (hook.equals(PortalHook.USER_FIRST_LOGIN)) {
             return EmailNotificationBuilder.EmailTemplate.USER_FIRST_LOGIN;
-        }
-        else if (hook.equals(PortalHook.NEW_SUPPORT_TICKET)) {
+        } else if (hook.equals(PortalHook.NEW_SUPPORT_TICKET)) {
             return EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET_NOTIFICATION;
         }
 
@@ -216,79 +189,61 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
                 return "API key revoked for API " + apiName;
             }
-        }
-        else if (hook.equals(ApiHook.APIKEY_EXPIRED)) {
+        } else if (hook.equals(ApiHook.APIKEY_EXPIRED)) {
             return "API key expiration!";
-        }
-        else if (hook.equals(ApiHook.APIKEY_RENEWED)) {
+        } else if (hook.equals(ApiHook.APIKEY_RENEWED)) {
             return "API key renewed";
-        }
-        else if (hook.equals(ApiHook.SUBSCRIPTION_NEW)) {
+        } else if (hook.equals(ApiHook.SUBSCRIPTION_NEW)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "New subscription for " + apiName + " with plan " + ((PlanEntity)plan).getName();
+                return "New subscription for " + apiName + " with plan " + ((PlanEntity) plan).getName();
             }
-        }
-        else if (hook.equals(ApiHook.SUBSCRIPTION_ACCEPTED)) {
+        } else if (hook.equals(ApiHook.SUBSCRIPTION_ACCEPTED)) {
             return "Subscription approved";
-        }
-        else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
+        } else if (hook.equals(ApiHook.SUBSCRIPTION_CLOSED)) {
             return "Subscription closed";
-        }
-        else if (hook.equals(ApiHook.SUBSCRIPTION_REJECTED)) {
+        } else if (hook.equals(ApiHook.SUBSCRIPTION_REJECTED)) {
             return "Subscription rejected";
-        }
-        else if (hook.equals(SUBSCRIPTION_PAUSED)) {
+        } else if (hook.equals(SUBSCRIPTION_PAUSED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "Subscription for " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been paused";
+                return "Subscription for " + apiName + " with plan " + ((PlanEntity) plan).getName() + " has been paused";
             }
-        }
-        else if (hook.equals(SUBSCRIPTION_RESUMED)) {
+        } else if (hook.equals(SUBSCRIPTION_RESUMED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "Subscription for " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been resumed";
+                return "Subscription for " + apiName + " with plan " + ((PlanEntity) plan).getName() + " has been resumed";
             }
-        }
-        else if (hook.equals(SUBSCRIPTION_TRANSFERRED)) {
+        } else if (hook.equals(SUBSCRIPTION_TRANSFERRED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "Subscription for " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been transferred";
+                return "Subscription for " + apiName + " with plan " + ((PlanEntity) plan).getName() + " has been transferred";
             }
-        }
-        else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
+        } else if (hook.equals(ApiHook.NEW_SUPPORT_TICKET)) {
             return "New Support Ticket";
-        }
-        else if (hook.equals(ApiHook.API_STOPPED)) {
+        } else if (hook.equals(ApiHook.API_STOPPED)) {
             return "API Stopped";
-        }
-        else if (hook.equals(ApiHook.API_STARTED)) {
+        } else if (hook.equals(ApiHook.API_STARTED)) {
             return "API Started";
-        }
-        else if (hook.equals(ApiHook.NEW_RATING)) {
+        } else if (hook.equals(ApiHook.NEW_RATING)) {
             return "New Rating";
-        }
-        else if (hook.equals(ApiHook.NEW_RATING_ANSWER)) {
+        } else if (hook.equals(ApiHook.NEW_RATING_ANSWER)) {
             return "New Rating Answer";
-        }
-        else if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
+        } else if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
             return "Review asked";
-        }
-        else if (hook.equals(ApiHook.REQUEST_FOR_CHANGES)) {
+        } else if (hook.equals(ApiHook.REQUEST_FOR_CHANGES)) {
             return "Request for changes on API";
-        }
-        else if (hook.equals(ApiHook.REVIEW_OK)) {
+        } else if (hook.equals(ApiHook.REVIEW_OK)) {
             return "API review accepted";
-        }
-        else if (hook.equals(API_DEPRECATED)) {
+        } else if (hook.equals(API_DEPRECATED)) {
             return "API deprecated";
         }
 
@@ -298,75 +253,66 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "New subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName();
+                return "New subscription to " + apiName + " with plan " + ((PlanEntity) plan).getName();
             }
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_ACCEPTED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_ACCEPTED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "Your subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been approved";
+                return "Your subscription to " + apiName + " with plan " + ((PlanEntity) plan).getName() + " has been approved";
             }
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_REJECTED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_REJECTED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "Your subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been rejected";
+                return "Your subscription to " + apiName + " with plan " + ((PlanEntity) plan).getName() + " has been rejected";
             }
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_CLOSED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_CLOSED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "Your subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been closed";
+                return "Your subscription to " + apiName + " with plan " + ((PlanEntity) plan).getName() + " has been closed";
             }
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_PAUSED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_PAUSED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "Your subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been paused";
+                return "Your subscription to " + apiName + " with plan " + ((PlanEntity) plan).getName() + " has been paused";
             }
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_RESUMED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_RESUMED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "Your subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been resumed";
+                return "Your subscription to " + apiName + " with plan " + ((PlanEntity) plan).getName() + " has been resumed";
             }
-        }
-        else if (hook.equals(ApplicationHook.SUBSCRIPTION_TRANSFERRED)) {
+        } else if (hook.equals(ApplicationHook.SUBSCRIPTION_TRANSFERRED)) {
             Object api = params.get(NotificationParamsBuilder.PARAM_API);
             Object plan = params.get(NotificationParamsBuilder.PARAM_PLAN);
             if (api != null && plan != null) {
                 String apiName = api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName();
-                return "Your subscription to " + apiName + " with plan " + ((PlanEntity)plan).getName() + " has been transferred";
+                return "Your subscription to " + apiName + " with plan " + ((PlanEntity) plan).getName() + " has been transferred";
             }
-        }
-        else if (hook.equals(ApplicationHook.NEW_SUPPORT_TICKET)) {
+        } else if (hook.equals(ApplicationHook.NEW_SUPPORT_TICKET)) {
             return "New Support Ticket by " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
         }
 
         // Portal Hook
         else if (hook.equals(PortalHook.USER_REGISTERED)) {
-            return "User registration - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
-        }
-        else if (hook.equals(PortalHook.USER_CREATED)) {
+            return "User registered - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
+        } else if (hook.equals(PortalHook.USER_REGISTRATION_REQUEST)) {
+            return "User registration requested - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
+        } else if (hook.equals(PortalHook.USER_CREATED)) {
             return "User creation - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
-        }
-        else if (hook.equals(PortalHook.PASSWORD_RESET)) {
+        } else if (hook.equals(PortalHook.PASSWORD_RESET)) {
             return "Password reset - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
-        }
-        else if (hook.equals(PortalHook.USER_FIRST_LOGIN)) {
+        } else if (hook.equals(PortalHook.USER_FIRST_LOGIN)) {
             return "First login - " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
-        }
-        else if (hook.equals(PortalHook.NEW_SUPPORT_TICKET)) {
+        } else if (hook.equals(PortalHook.NEW_SUPPORT_TICKET)) {
             return "New Support Ticket by " + params.get(NotificationParamsBuilder.PARAM_USERNAME);
         }
 

@@ -35,6 +35,7 @@ public class NotificationParamsBuilder {
     public static final String PARAM_OWNER = "owner";
     public static final String PARAM_API_KEY = "apiKey";
     public static final String PARAM_PLAN = "plan";
+    public static final String PARAM_USER_URL = "userUrl";
     public static final String PARAM_USER = "user";
     public static final String PARAM_USERNAME = "username";
     public static final String PARAM_GROUP = "group";
@@ -79,6 +80,11 @@ public class NotificationParamsBuilder {
 
     public NotificationParamsBuilder apikey(ApiKey apikey) {
         this.params.put(PARAM_API_KEY, apikey.getKey());
+        return this;
+    }
+
+    public NotificationParamsBuilder userUrl(String userUrl) {
+        this.params.put(PARAM_USER_URL, userUrl);
         return this;
     }
 

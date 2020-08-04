@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 
@@ -27,7 +26,7 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(value={ "baseURL" })
+@JsonIgnoreProperties(value = {"baseURL"})
 public class PortalConfigEntity {
 
     private Company company;
@@ -71,6 +70,7 @@ public class PortalConfigEntity {
     public Company getCompany() {
         return company;
     }
+
     public void setCompany(Company company) {
         this.company = company;
     }
@@ -78,6 +78,7 @@ public class PortalConfigEntity {
     public Portal getPortal() {
         return portal;
     }
+
     public void setPortal(Portal portal) {
         this.portal = portal;
     }
@@ -85,6 +86,7 @@ public class PortalConfigEntity {
     public Management getManagement() {
         return management;
     }
+
     public void setManagement(Management management) {
         this.management = management;
     }
@@ -92,6 +94,7 @@ public class PortalConfigEntity {
     public Authentication getAuthentication() {
         return authentication;
     }
+
     public void setAuthentication(Authentication authentication) {
         this.authentication = authentication;
     }
@@ -99,6 +102,7 @@ public class PortalConfigEntity {
     public Scheduler getScheduler() {
         return scheduler;
     }
+
     public void setScheduler(Scheduler scheduler) {
         this.scheduler = scheduler;
     }
@@ -106,6 +110,7 @@ public class PortalConfigEntity {
     public Documentation getDocumentation() {
         return documentation;
     }
+
     public void setDocumentation(Documentation documentation) {
         this.documentation = documentation;
     }
@@ -113,6 +118,7 @@ public class PortalConfigEntity {
     public Theme getTheme() {
         return theme;
     }
+
     public void setTheme(Theme theme) {
         this.theme = theme;
     }
@@ -120,6 +126,7 @@ public class PortalConfigEntity {
     public Plan getPlan() {
         return plan;
     }
+
     public void setPlan(Plan plan) {
         this.plan = plan;
     }
@@ -127,6 +134,7 @@ public class PortalConfigEntity {
     public ApiQualityMetrics getApiQualityMetrics() {
         return apiQualityMetrics;
     }
+
     public void setApiQualityMetrics(ApiQualityMetrics apiQualityMetrics) {
         this.apiQualityMetrics = apiQualityMetrics;
     }
@@ -142,6 +150,7 @@ public class PortalConfigEntity {
     public Logging getLogging() {
         return logging;
     }
+
     public void setLogging(Logging logging) {
         this.logging = logging;
     }
@@ -217,8 +226,6 @@ public class PortalConfigEntity {
         private String apikeyHeader;
         @ParameterKey(Key.PORTAL_SUPPORT_ENABLED)
         private Enabled support;
-        @ParameterKey(Key.PORTAL_USERCREATION_ENABLED)
-        private Enabled userCreation;
         @ParameterKey(Key.PORTAL_URL)
         private String url;
 
@@ -228,19 +235,14 @@ public class PortalConfigEntity {
 
         private PortalUploadMedia media;
 
+        private PortalUserCreation userCreation;
+
         public Portal() {
             apis = new PortalApis();
             analytics = new PortalAnalytics();
             rating = new PortalRating();
             media = new PortalUploadMedia();
-        }
-
-        public Enabled isUserCreation() {
-            return userCreation;
-        }
-
-        public void setUserCreation(Enabled userCreation) {
-            this.userCreation = userCreation;
+            userCreation = new PortalUserCreation();
         }
 
         public String getEntrypoint() {
@@ -259,9 +261,13 @@ public class PortalConfigEntity {
             this.apikeyHeader = apikeyHeader;
         }
 
-        public String getUrl() { return url; }
+        public String getUrl() {
+            return url;
+        }
 
-        public void setUrl(String url) { this.url = url; }
+        public void setUrl(String url) {
+            this.url = url;
+        }
 
         public PortalApis getApis() {
             return apis;
@@ -283,12 +289,16 @@ public class PortalConfigEntity {
             return support;
         }
 
-        public void setSupport(Enabled support)  {
+        public void setSupport(Enabled support) {
             this.support = support;
         }
 
-        public Enabled getUserCreation() {
+        public PortalUserCreation getUserCreation() {
             return userCreation;
+        }
+
+        public void setUserCreation(PortalUserCreation userCreation) {
+            this.userCreation = userCreation;
         }
 
         public PortalAnalytics getAnalytics() {
@@ -375,6 +385,29 @@ public class PortalConfigEntity {
 
             public void setMaxSizeInOctet(Integer maxSizeInOctet) {
                 this.maxSizeInOctet = maxSizeInOctet;
+            }
+        }
+
+        public class PortalUserCreation {
+            @ParameterKey(Key.PORTAL_USERCREATION_ENABLED)
+            private Boolean enabled;
+            @ParameterKey(Key.PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED)
+            private Enabled automaticValidation;
+
+            public Boolean getEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(Boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            public Enabled getAutomaticValidation() {
+                return automaticValidation;
+            }
+
+            public void setAutomaticValidation(Enabled automaticValidation) {
+                this.automaticValidation = automaticValidation;
             }
         }
     }
@@ -502,7 +535,7 @@ public class PortalConfigEntity {
     }
 
     public static class GoogleAuthentication {
-//        @ParameterKey(Key.AUTHENTICATION_GOOGLE_CLIENTID)
+        //        @ParameterKey(Key.AUTHENTICATION_GOOGLE_CLIENTID)
         private String clientId;
 
         public String getClientId() {
@@ -515,7 +548,7 @@ public class PortalConfigEntity {
     }
 
     public static class GithubAuthentication {
-//        @ParameterKey(Key.AUTHENTICATION_GITHUB_CLIENTID)
+        //        @ParameterKey(Key.AUTHENTICATION_GITHUB_CLIENTID)
         private String clientId;
 
         public String getClientId() {
@@ -529,7 +562,7 @@ public class PortalConfigEntity {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class OAuth2Authentication {
-//        @ParameterKey(Key.AUTHENTICATION_OAUTH2_CLIENTID)
+        //        @ParameterKey(Key.AUTHENTICATION_OAUTH2_CLIENTID)
         private String clientId;
         @ParameterKey(Key.AUTHENTICATION_OAUTH2_NAME)
         private String name;
@@ -594,7 +627,9 @@ public class PortalConfigEntity {
     public static class Enabled {
         private boolean enabled;
 
-        Enabled() {}
+        Enabled() {
+        }
+
         public Enabled(boolean enabled) {
             this.enabled = enabled;
         }
@@ -733,6 +768,7 @@ public class PortalConfigEntity {
 
     public class Plan {
         private PlanSecurity security;
+
         public Plan() {
             security = new PlanSecurity();
         }
@@ -740,6 +776,7 @@ public class PortalConfigEntity {
         public PlanSecurity getSecurity() {
             return security;
         }
+
         public void setSecurity(PlanSecurity security) {
             this.security = security;
         }

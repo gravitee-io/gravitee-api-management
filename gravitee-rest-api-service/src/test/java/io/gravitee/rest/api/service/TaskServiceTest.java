@@ -15,19 +15,13 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.TaskService;
 import io.gravitee.rest.api.service.impl.TaskServiceImpl;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -64,6 +58,8 @@ public class TaskServiceTest {
     private RoleService roleService;
     @Mock
     private PlanService planService;
+    @Mock
+    private UserService userService;
 
     @Test
     public void shouldFindAll() throws TechnicalException {
@@ -105,6 +101,9 @@ public class TaskServiceTest {
         memberships.add(m2);
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
                 .thenReturn(memberships);
+
+        when(userService.search(any(UserCriteria.class), any())).thenReturn(new Page<>(Collections.emptyList(), 1, 0, 0));
+        
         taskService.findAll("user");
 
         verify(subscriptionService, times(1)).search(any());

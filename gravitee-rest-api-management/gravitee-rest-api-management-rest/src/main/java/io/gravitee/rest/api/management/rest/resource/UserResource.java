@@ -63,7 +63,7 @@ public class UserResource extends AbstractResource {
     @GET
     @Produces(APPLICATION_JSON)
     @ApiOperation(value = "Retrieve a user",
-            notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service")
+            notes = "User must have the ORGANIZATION_USERS[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "A user", response = UserEntity.class),
             @ApiResponse(code = 404, message = "User not found"),
@@ -83,7 +83,7 @@ public class UserResource extends AbstractResource {
 
     @DELETE
     @ApiOperation(value = "Delete a user",
-            notes = "User must have the MANAGEMENT_USERS[DELETE] permission to use this service")
+            notes = "User must have the ORGANIZATION_USERS[DELETE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "User successfully deleted"),
             @ApiResponse(code = 404, message = "User not found"),
@@ -100,7 +100,7 @@ public class UserResource extends AbstractResource {
     @Path("/groups")
     @Produces(APPLICATION_JSON)
     @ApiOperation(value = "List of groups the user belongs to",
-            notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service")
+            notes = "User must have the ORGANIZATION_USERS[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of user groups"),
             @ApiResponse(code = 404, message = "User not found"),
@@ -129,7 +129,7 @@ public class UserResource extends AbstractResource {
     @Path("/memberships")
     @Produces(APPLICATION_JSON)
     @ApiOperation(value = "List of memberships the user belongs to",
-            notes = "User must have the MANAGEMENT_USERS[READ] permission to use this service")
+            notes = "User must have the ORGANIZATION_USERS[READ] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of user memberships"),
             @ApiResponse(code = 404, message = "User not found"),
@@ -152,9 +152,10 @@ public class UserResource extends AbstractResource {
 
     @POST
     @ApiOperation(value = "Reset the user's password",
-            notes = "User must have the MANAGEMENT_USERS[UPDATE] permission to use this service")
+            notes = "User must have the ORGANIZATION_USERS[UPDATE] permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "User's password resetted"),
+            @ApiResponse(code = 204, message = "User's password reset"),
+            @ApiResponse(code = 400, message = "reset page URL must not be null"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions(
@@ -179,7 +180,7 @@ public class UserResource extends AbstractResource {
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }
-        
+
         InlinePictureEntity image = (InlinePictureEntity) picture;
         if (image == null || image.getContent() == null) {
             return Response.ok().build();
@@ -213,14 +214,30 @@ public class UserResource extends AbstractResource {
                 .type(image.getType())
                 .build();
     }
-    
+
     @PUT
     @Path("/roles")
     @Permissions(
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
     )
-    public Response updateUserRoles(@PathParam("id") String userId, List<String> roleIds ) {
+    public Response updateUserRoles(@PathParam("id") String userId, List<String> roleIds) {
         userService.updateUserRoles(userId, roleIds);
         return Response.ok().build();
+    }
+
+    @POST
+    @Path("/_process")
+    @Permissions(
+            @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
+    )
+    @ApiOperation(value = "Process a user registration by accepting or rejecting it")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Processed user"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response validateRegistration(@PathParam("id") String userId, boolean accepted) {
+        return Response
+                .ok(userService.processRegistration(userId, accepted))
+                .build();
     }
 }

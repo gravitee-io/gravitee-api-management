@@ -1,0 +1,16 @@
+<html>
+	<body style="text-align: center;">
+		<header>
+			<#include "header.html" />
+		</header>
+		<div style="margin-top: 50px; color: #424e5a;">
+			<h3>Hi ${user.displayName},</h3>
+			<#if user.status == 'ACTIVE'>
+				<p>Your registration request has been successfully validated.</p>
+				<p>You can now sign-in on Gravitee.IO platform.</p>
+			<#else>
+				<p>Your registration request has been rejected.</p>
+			</#if>
+		</div>
+	</body>
+</html>

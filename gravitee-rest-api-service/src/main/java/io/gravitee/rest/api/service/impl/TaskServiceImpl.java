@@ -15,19 +15,21 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +42,6 @@ import static io.gravitee.rest.api.model.SubscriptionStatus.PENDING;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.permissions.ApiPermission.*;
 import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -51,6 +52,7 @@ import static java.util.stream.Collectors.toList;
 public class TaskServiceImpl extends AbstractService implements TaskService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(TaskServiceImpl.class);
+    private static final int NUMBER_OF_PENDING_USERS_TO_SEARCH = 100;
 
     @Autowired
     private ApiService apiService;
@@ -66,6 +68,8 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     private RoleService roleService;
     @Autowired
     private PlanService planService;
+    @Autowired
+    private UserService userService;
     @Autowired
     private WorkflowService workflowService;
 
@@ -92,6 +96,15 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                         .stream()
                         .map(this::convert)
                         .collect(toList());
+            }
+
+            // search for PENDING user registration
+            final Page<UserEntity> pendingUsers = userService.search(new UserCriteria.Builder().statuses(UserStatus.PENDING).build(), new PageableImpl(1, NUMBER_OF_PENDING_USERS_TO_SEARCH));
+            if (pendingUsers.getContent() != null && !pendingUsers.getContent().isEmpty()) {
+                tasks.addAll(pendingUsers.getContent()
+                        .stream()
+                        .map(this::convert)
+                        .collect(toList()));
             }
 
             // search for IN_REVIEW apis
@@ -134,7 +147,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         // 1. find apis and group memberships
         Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, io.gravitee.rest.api.model.MembershipReferenceType.API);
         memberships.addAll(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, io.gravitee.rest.api.model.MembershipReferenceType.GROUP));
-        
+
         Map<String, RoleEntity> roleNameToEntity = new HashMap<>();
         Set<String> apiIds = new HashSet<>();
         List<String> groupIds = new ArrayList<>();
@@ -155,7 +168,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 if (rights != null) {
                     for (char c : rights) {
                         if (c == 'U') {
-                            switch(membership.getReferenceType()) {
+                            switch (membership.getReferenceType()) {
                                 case GROUP:
                                     groupIds.add(membership.getReferenceId());
                                     break;
@@ -184,9 +197,10 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         return apiIds;
     }
 
+    @Override
     public Metadata getMetadata(List<TaskEntity> tasks) {
         final Metadata metadata = new Metadata();
-        tasks.forEach( task -> {
+        tasks.forEach(task -> {
             final Object data = task.getData();
             if (data instanceof SubscriptionEntity) {
                 final SubscriptionEntity subscription = (SubscriptionEntity) data;
@@ -213,6 +227,19 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
             }
         });
         return metadata;
+    }
+
+    private TaskEntity convert(UserEntity user) {
+        TaskEntity taskEntity = new TaskEntity();
+        try {
+            taskEntity.setType(TaskType.USER_REGISTRATION_APPROVAL);
+            taskEntity.setCreatedAt(user.getCreatedAt());
+            taskEntity.setData(user);
+        } catch (Exception e) {
+            LOGGER.error("Error converting user {} to a Task", user.getId());
+            throw new TechnicalManagementException("Error converting user " + user.getId() + " to a Task", e);
+        }
+        return taskEntity;
     }
 
     private TaskEntity convert(SubscriptionEntity subscription) {

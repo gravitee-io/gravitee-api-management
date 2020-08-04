@@ -16,16 +16,15 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.PortalConfigEntity;
-import io.gravitee.rest.api.model.PortalConfigEntity.*;
-import io.gravitee.rest.api.model.PortalConfigEntity.Analytics;
 import io.gravitee.rest.api.model.PortalConfigEntity.Application;
-import io.gravitee.rest.api.model.PortalConfigEntity.Application.ApplicationTypes;
+import io.gravitee.rest.api.model.PortalConfigEntity.*;
 import io.gravitee.rest.api.model.PortalConfigEntity.Plan;
+import io.gravitee.rest.api.model.PortalConfigEntity.Application.ApplicationTypes;
 import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalRating;
 import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalRating.RatingComment;
 import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalUploadMedia;
-import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Enabled;
+import io.gravitee.rest.api.portal.rest.model.*;
 import org.springframework.stereotype.Component;
 
 /**
@@ -66,7 +65,7 @@ public class ConfigurationMapper {
         configuration.setRating(convert(portal.getRating()));
         configuration.setSupport(convert(portal.getSupport()));
         configuration.setTitle(portal.getTitle());
-        configuration.setUserCreation(convert(portal.getUserCreation()));
+        configuration.setUserCreation(convert(portal.getUserCreation().getEnabled()));
 
         ApplicationTypes types = application.getTypes();
         if (!application.getRegistration().getEnabled() && !types.getSimpleType().isEnabled()

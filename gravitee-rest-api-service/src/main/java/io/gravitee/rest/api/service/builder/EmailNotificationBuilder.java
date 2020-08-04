@@ -100,6 +100,8 @@ public class EmailNotificationBuilder {
         TRANSFER_SUBSCRIPTION("subscriptionTransferred.html"),
         USER_REGISTRATION("userRegistration.html"),
         USER_REGISTERED("userRegistered.html"),
+        USER_REGISTRATION_REQUEST("userRegistrationRequest.html"),
+        USER_REGISTRATION_REQUEST_PROCESSED("userRegistrationRequestProcessed.html"),
         USER_CREATED("userCreated.html"),
         APPLICATION_MEMBER_SUBSCRIPTION("applicationMember.html"),
         API_MEMBER_SUBSCRIPTION("apiMember.html"),

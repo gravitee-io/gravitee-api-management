@@ -31,6 +31,7 @@ public enum Key {
     PORTAL_RATING_ENABLED("portal.rating.enabled", "true"),
     PORTAL_RATING_COMMENT_MANDATORY("portal.rating.comment.mandatory", "false"),
     PORTAL_USERCREATION_ENABLED("portal.userCreation.enabled", "true"),
+    PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED("portal.userCreation.automaticValidation.enabled", "true"),
     PORTAL_ANALYTICS_ENABLED("portal.analytics.enabled", "false"),
     PORTAL_ANALYTICS_TRACKINGID("portal.analytics.trackingId"),
     PORTAL_APIS_TILESMODE_ENABLED("portal.apis.tilesMode.enabled", "true"),
@@ -39,10 +40,10 @@ public enum Key {
     PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER("portal.apis.apiheader.showcategories.enabled", "true"),
     PORTAL_UPLOAD_MEDIA_ENABLED("portal.uploadMedia.enabled", "false"),
     PORTAL_UPLOAD_MEDIA_MAXSIZE("portal.uploadMedia.maxSizeInOctet", "1000000"),
-    PORTAL_URL("portal.url", ""),
+    PORTAL_URL("portal.url", "http://localhost:4100"),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management"),
-    MANAGEMENT_URL("management.url", ""),
+    MANAGEMENT_URL("management.url", "http://localhost:3000"),
 
     THEME_NAME("theme.name", "default"),
     THEME_LOGO("theme.logo", "themes/assets/GRAVITEE_LOGO1-01.png"),
@@ -100,7 +101,7 @@ public enum Key {
     MAINTENANCE_MODE_ENABLED("maintenance.enabled", "false"),
     NEWSLETTER_ENABLED("newsletter.enabled", "true"),
 
-    RECAPTCHA_ENABLED("reCaptcha.enabled","false"),
+    RECAPTCHA_ENABLED("reCaptcha.enabled", "false"),
     RECAPTCHA_SITE_KEY("reCaptcha.siteKey");
 
     String key;

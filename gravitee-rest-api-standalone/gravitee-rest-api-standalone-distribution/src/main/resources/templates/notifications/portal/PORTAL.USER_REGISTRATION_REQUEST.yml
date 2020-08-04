@@ -1,0 +1,3 @@
+title: New user registration to validate!
+message: |
+  User registration for "${user.firstname} ${user.lastname}" has to be validated.

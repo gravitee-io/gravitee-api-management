@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -24,10 +28,6 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.SubscriptionServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.model.Subscription;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -35,13 +35,15 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -92,11 +94,11 @@ public class SubscriptionServiceTest {
     @Mock
     private AuditService auditService;
     @Mock
-    private ConfigurableEnvironment environment;
-    @Mock
     private NotifierService notifierService;
     @Mock
     private GroupService groupService;
+    @Mock
+    private ParameterService parameterService;
 
     @Test
     public void shouldFindById() throws TechnicalException {
@@ -507,7 +509,7 @@ public class SubscriptionServiceTest {
         assertNotNull(subscriptionEntity.getCreatedAt());
     }
 
-    @Test (expected = PlanNotSubscribableException.class)
+    @Test(expected = PlanNotSubscribableException.class)
     public void shouldNotSubscribe_applicationWithoutClientId() throws Exception {
         // Prepare data
         when(plan.getApi()).thenReturn(API_ID);
@@ -687,7 +689,7 @@ public class SubscriptionServiceTest {
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(plan.getApi()).thenReturn(API_ID);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
-        
+
         // Run
         subscriptionService.update(updatedSubscription);
 
