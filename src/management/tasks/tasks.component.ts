@@ -19,10 +19,12 @@ import { StateService } from '@uirouter/core';
 
 const TasksComponent: ng.IComponentOptions = {
   template: require('./tasks.html'),
-  controller: function($state: StateService, UserService: UserService) {
+  controller: function ($state: StateService, UserService: UserService) {
     'ngInject';
 
-    this.tasks = UserService.currentUser.tasks;
+    this.$onInit = () => {
+      this.tasks = UserService.currentUser.tasks;
+    };
 
     this.taskMessage = (task) => {
       switch (task.type) {
@@ -40,6 +42,8 @@ const TasksComponent: ng.IComponentOptions = {
             message += ': ' + task.data.comment;
           }
           return message;
+        case 'user_registration_approval':
+          return 'The registration of the user "' + task.data.displayName + '" has to be validated';
         default:
           return 'Unknown task';
       }
@@ -60,7 +64,10 @@ const TasksComponent: ng.IComponentOptions = {
           break;
         case 'in_review':
         case 'request_for_changes':
-          $state.go('management.apis.detail.portal.general', {apiId: task.data.referenceId});
+          $state.go('management.apis.detail.portal.general', { apiId: task.data.referenceId });
+          break;
+        case 'user_registration_approval':
+          $state.go('management.settings.user', { userId: task.data.id });
           break;
       }
     };
@@ -72,6 +79,8 @@ const TasksComponent: ng.IComponentOptions = {
         case 'in_review':
         case 'request_for_changes':
           return 'rate_review';
+        case 'user_registration_approval':
+          return 'user';
         default:
           return '';
       }

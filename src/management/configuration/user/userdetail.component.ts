@@ -17,9 +17,9 @@ import GroupService from '../../../services/group.service';
 import NotificationService from '../../../services/notification.service';
 import UserService from '../../../services/user.service';
 import RoleService from '../../../services/role.service';
+import { IScope } from 'angular';
+import { StateService } from '@uirouter/core';
 import _ = require('lodash');
-import {IScope} from 'angular';
-import {StateService} from '@uirouter/core';
 
 interface IUserDetailComponentScope extends ng.IScope {
   selectedOrganizationRole: string[];
@@ -27,6 +27,7 @@ interface IUserDetailComponentScope extends ng.IScope {
   userApis: any[];
   userApplications: any[];
 }
+
 const UserDetailComponent: ng.IComponentOptions = {
   bindings: {
     selectedUser: '<',
@@ -73,9 +74,9 @@ const UserDetailComponent: ng.IComponentOptions = {
           title: 'Are you sure you want to remove the user from the group "' + group.name + '"?',
           confirmButton: 'Remove'
         }
-      }).then( (response) => {
+      }).then((response) => {
         if (response) {
-          GroupService.deleteMember(group.id, this.selectedUser.id).then( () => {
+          GroupService.deleteMember(group.id, this.selectedUser.id).then(() => {
             NotificationService.show(this.selectedUser.displayName + ' has been removed from the group "' + group.name + '"');
             UserService.getUserGroups(this.selectedUser.id).then((response) =>
               this.groups = response.data
@@ -131,7 +132,7 @@ const UserDetailComponent: ng.IComponentOptions = {
 
     this.addGroupDialog = () => {
       let that = this;
-      GroupService.list().then( (groups) => {
+      GroupService.list().then((groups) => {
         $mdDialog.show({
           controller: 'DialogAddUserGroupController',
           controllerAs: 'dialogCtrl',
@@ -159,9 +160,9 @@ const UserDetailComponent: ng.IComponentOptions = {
           msg: 'An email with a link to change it will be sent to him',
           confirmButton: 'Reset'
         }
-      }).then( (response) => {
+      }).then((response) => {
         if (response) {
-          UserService.resetPassword(this.selectedUser.id).then( () => {
+          UserService.resetPassword(this.selectedUser.id, window.location.origin + '/#!/resetPassword/').then(() => {
             NotificationService.show('The password of user "' + this.selectedUser.displayName + '" has been successfully reset');
           });
         }
@@ -169,10 +170,10 @@ const UserDetailComponent: ng.IComponentOptions = {
     };
 
     this.loadUserApis = () => {
-      UserService.getMemberships(this.selectedUser.id, 'api').then( (response) => {
+      UserService.getMemberships(this.selectedUser.id, 'api').then((response) => {
           let newApiList = [];
           _.forEach(response.data.metadata, (apiMetadata: any, apiId: string) => {
-            newApiList.push( {
+            newApiList.push({
               id: apiId,
               name: apiMetadata.name,
               version: apiMetadata.version,
@@ -185,7 +186,7 @@ const UserDetailComponent: ng.IComponentOptions = {
     };
 
     this.loadUserApplications = () => {
-      UserService.getMemberships(this.selectedUser.id, 'application').then( (response) => {
+      UserService.getMemberships(this.selectedUser.id, 'application').then((response) => {
           let newAppList = [];
           _.forEach(response.data.metadata, (appMetadata: any, appId: string) => {
             if (!appMetadata.status || appMetadata.status !== 'archived') {
@@ -204,7 +205,51 @@ const UserDetailComponent: ng.IComponentOptions = {
     this.backToUsers = () => {
       let page = $window.localStorage.usersTablePage || 1;
       let query = $window.localStorage.usersTableQuery || undefined;
-      $state.go('management.settings.users', {q: query, page: page});
+      $state.go('management.settings.users', { q: query, page: page });
+    };
+
+    this.accept = (ev: Event) => {
+      ev.stopPropagation();
+      let that = this;
+      $mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to accept the registration request of "' + that.selectedUser.displayName + '"?',
+          confirmButton: 'Accept'
+        }
+      }).then((response) => {
+        if (response) {
+          UserService.processRegistration(this.selectedUser.id, true).then((response) => {
+            NotificationService.show('User ' + this.selectedUser.displayName + ' has been accepted.');
+            $state.reload();
+          });
+        }
+      });
+    };
+
+    this.reject = (ev: Event) => {
+      ev.stopPropagation();
+      let that = this;
+      $mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to reject the registration request of "' + that.selectedUser.displayName + '"?',
+          confirmButton: 'Reject'
+        }
+      }).then((response) => {
+        if (response) {
+          UserService.processRegistration(this.selectedUser.id, false).then((response) => {
+            NotificationService.show('User ' + this.selectedUser.displayName + ' has been rejected.');
+            $state.reload();
+          });
+        }
+      });
     };
   }
 };

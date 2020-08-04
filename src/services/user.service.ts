@@ -263,6 +263,10 @@ class UserService {
   updateUserRoles(id: string, roles: any[]): ng.IPromise<any> {
     return this.$http.put(`${this.usersURL}${id}/roles`, roles);
   }
+
+  processRegistration(id: string, accepted: boolean): ng.IPromise<any> {
+    return this.$http.post(`${this.usersURL}${id}/_process`, accepted);
+  }
 }
 
 export default UserService;
