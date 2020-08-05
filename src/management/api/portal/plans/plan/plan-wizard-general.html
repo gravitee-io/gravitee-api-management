@@ -64,6 +64,27 @@
         <br />
 
         <section>
+          <md-subheader>General Conditions</md-subheader>
+
+          <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex="100">
+              <label>Page of General Conditions
+                <span class="italic warn-general-conditions" ng-if="$ctrl.parent.shouldNotEditConditions()">*</span>
+              </label>
+              <md-select ng-model="$ctrl.parent.plan.general_conditions">
+                <md-option ng-repeat="page in $ctrl.parent.pages | orderBy:'name' " ng-value="page.id">
+                  {{page.name}}
+                </md-option>
+              </md-select>
+              <span class="italic warn-general-conditions" ng-if="$ctrl.parent.shouldNotEditConditions()">
+                * This plan is published, if you change the general conditions please remember to notify you API subscribers</span>
+            </md-input-container>
+          </div>
+        </section>
+
+        <br />
+
+        <section>
           <md-subheader>Subscriptions</md-subheader>
 
           <div layout-gt-md="row">

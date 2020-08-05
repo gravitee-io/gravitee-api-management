@@ -17,6 +17,7 @@ const ApiEditPlanComponent: ng.IComponentOptions = {
   bindings: {
     api: '<',
     plan: '<',
+    pages: '<',
     groups: '<',
     policies: '<',
     tags: '<',

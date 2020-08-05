@@ -90,7 +90,13 @@ function apisPortalRouterConfig($stateProvider) {
         groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
         policies: (PolicyService: PolicyService) => PolicyService.list().then(response => response.data),
         tags: (TagService: TagService) => TagService.list().then(response => response.data),
-        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data)
+        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data),
+        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'MARKDOWN';
+          q.api = $stateParams.apiId;
+          return DocumentationService.search(q, $stateParams.apiId).then(response => response.data);
+        }
       },
       data: {
         perms: {
@@ -110,7 +116,13 @@ function apisPortalRouterConfig($stateProvider) {
         groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
         policies: (PolicyService: PolicyService) => PolicyService.list().then(response => response.data),
         tags: (TagService: TagService) => TagService.list().then(response => response.data),
-        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data)
+        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data),
+        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'MARKDOWN';
+          q.api = $stateParams.apiId;
+          return DocumentationService.search(q, $stateParams.apiId).then(response => response.data);
+        }
       },
       data: {
         perms: {

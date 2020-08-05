@@ -48,10 +48,11 @@
 
     <h5>Select a plan</h5>
     <div layout="column" layout-align="start start" ng-cloak >
+      <span ng-if="dialogSubscriptionCreateController.atLeastOnePlanWithGeneralConditions()" class="general_conditions_disabled">Plan with general conditions can only be subscribed through the portal</span>
       <md-radio-group ng-model="dialogSubscriptionCreateController.selectedPlan">
         <md-radio-button ng-repeat="plan in dialogSubscriptionCreateController.plans | orderBy: 'order'"
                          value="{{plan.id}}"
-                         ng-disabled="dialogSubscriptionCreateController.planAlreadyHaveSubscriptions(plan.id)">
+                         ng-disabled="dialogSubscriptionCreateController.planAlreadyHaveSubscriptions(plan.id) || dialogSubscriptionCreateController.hasGeneralConditions(plan)">
           {{plan.name}}
           <md-tooltip md-direction="right"> {{plan.description}} </md-tooltip>
           <div ng-if="dialogSubscriptionCreateController.planAlreadyHaveSubscriptions(plan.id)"

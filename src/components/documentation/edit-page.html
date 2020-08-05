@@ -47,6 +47,9 @@
           </md-button>
         </div>
     </div>
+    <div ng-if="$ctrl.usedAsGeneralConditions()" class="page-as-general-conditions" >
+        This page is used as general conditions, if you change the content please remember to notify you API subscribers
+    </div>
     <div class="gv-forms-header" layout="row" layout-align="space-between end" ng-if="rename">
         <div>
             <md-icon md-svg-src="assets/logo_{{$ctrl.page.type | lowercase}}.svg" style="margin: 0 8px 12px 0;"></md-icon>
@@ -412,8 +415,9 @@
                             <md-checkbox ng-model="$ctrl.page.published"
                                          aria-label="Published"
                                          class="md-align-top-left"
-                                         flex>
-                               Publish this page
+                                         flex
+                                         ng-disabled="$ctrl.usedAsGeneralConditions()">
+                                {{($ctrl.usedAsGeneralConditions() ? 'Publish this page (Used as general conditions, publishing actions are disabled)' : 'Publish this page')}}
                             </md-checkbox>
                         </md-input-container>
                         <!-- SWAGGER Configuration -->

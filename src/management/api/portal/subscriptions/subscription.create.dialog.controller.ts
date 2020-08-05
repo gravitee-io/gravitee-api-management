@@ -66,6 +66,14 @@ function DialogSubscriptionCreateController(
         return response.data;
       });
   };
+
+  this.hasGeneralConditions = function (plan) {
+    return plan.general_conditions !== undefined && plan.general_conditions !== null;
+  };
+
+  this.atLeastOnePlanWithGeneralConditions = function () {
+    return this.plans.find((p) => p.general_conditions !== undefined && p.general_conditions !== '') != null;
+  };
 }
 
 export default DialogSubscriptionCreateController;

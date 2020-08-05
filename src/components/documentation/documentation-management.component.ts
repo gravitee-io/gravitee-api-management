@@ -297,10 +297,14 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.togglePublish = (page: any) => {
-      page.published = !page.published;
-      DocumentationService.partialUpdate('published', page.published, page.id, this.apiId).then( () => {
-        NotificationService.show('Page ' + page.name + ' has been ' + (page.published ? '' : 'un') + 'published with success');
-      });
+      if (page.generalConditions) {
+        NotificationService.showError('Page ' + page.name + ' is used as general conditions');
+      } else {
+        page.published = !page.published;
+        DocumentationService.partialUpdate('published', page.published, page.id, this.apiId).then( () => {
+          NotificationService.show('Page ' + page.name + ' has been ' + (page.published ? '' : 'un') + 'published with success');
+        });
+      }
     };
 
     this.upward = (page: any) => {

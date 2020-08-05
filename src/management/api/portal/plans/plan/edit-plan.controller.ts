@@ -20,6 +20,7 @@ import {StateService} from '@uirouter/core';
 
 class ApiEditPlanController {
 
+  pages: any[];
   plan: any;
   groups: any[];
   api: any;
@@ -104,6 +105,7 @@ class ApiEditPlanController {
         this.groups = [];
       }
     }
+
   }
 
   moveToNextStep(step: any) {
@@ -163,6 +165,10 @@ class ApiEditPlanController {
 
   isTagDisabled(tag: any): boolean {
     return !_.includes(this.userTags, tag.id) || !_.includes(this.api.tags, tag.id);
+  }
+
+  shouldNotEditConditions() : boolean {
+    return (this.plan.status === 'published' || this.plan.status === 'deprecated');
   }
 }
 

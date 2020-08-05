@@ -272,7 +272,8 @@ class ApiService {
           comment_required: plan.comment_required,
           comment_message: plan.comment_message,
           tags: plan.tags,
-          selection_rule: plan.selection_rule
+          selection_rule: plan.selection_rule,
+          general_conditions: plan.general_conditions
         });
     } else {
       return this.$http.post(this.apisURL + apiId + '/plans',
@@ -284,7 +285,8 @@ class ApiService {
           comment_required: plan.comment_required,
           comment_message: plan.comment_message,
           tags: plan.tags,
-          selection_rule: plan.selection_rule
+          selection_rule: plan.selection_rule,
+          general_conditions: plan.general_conditions
         });
     }
   }

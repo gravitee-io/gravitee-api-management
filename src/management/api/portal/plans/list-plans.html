@@ -40,6 +40,7 @@
                                             {{plan.name}}
                                         </h4>
                                         <span style="font-size: 12px;">Authentication: {{plan.security}}</span>
+                                        <span ng-if="plan.general_conditions" style="font-size: 12px; margin-bottom: 1rem;">With general conditions</span>
                                         <span style="font-size: 12px;" ng-if="plan.tags && plan.tags.length > 0">Deploy on: {{plan.tags.join(', ')}}</span>
                                     </div>
                                     <span flex></span>
