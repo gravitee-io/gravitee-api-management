@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PageRevision;
 
 import java.util.List;
@@ -30,15 +29,11 @@ import java.util.Optional;
  */
 public interface PageRevisionRepository {
 
+    Page<PageRevision> findAll(Pageable pageable) throws TechnicalException;
+
     Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException;
 
     PageRevision create(PageRevision item) throws TechnicalException;
-
-    /**
-     * Remove all revision for a given pageId
-     * @param pageId
-     */
-    void deleteAllByPageId(String pageId) throws TechnicalException;
 
     /**
      * List all revision for a given pageId

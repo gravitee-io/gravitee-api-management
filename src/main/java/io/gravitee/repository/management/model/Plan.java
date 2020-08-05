@@ -101,6 +101,8 @@ public class Plan {
 
     private String commentMessage;
 
+    private String generalConditions;
+
     private Set<String> tags = new HashSet<>();
 
     public Plan() {
@@ -126,6 +128,7 @@ public class Plan {
         this.needRedeployAt = cloned.getNeedRedeployAt();
         this.selectionRule = cloned.getSelectionRule();
         this.tags = cloned.getTags();
+        this.generalConditions = cloned.getGeneralConditions();
     }
 
 
@@ -303,6 +306,14 @@ public class Plan {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
+    }
+
+    public String getGeneralConditions() {
+        return generalConditions;
+    }
+
+    public void setGeneralConditions(String generalConditions) {
+        this.generalConditions = generalConditions;
     }
 
     @Override

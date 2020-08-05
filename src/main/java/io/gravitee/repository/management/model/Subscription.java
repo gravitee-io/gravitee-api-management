@@ -98,6 +98,12 @@ public class Subscription {
 
     private Date pausedAt;
 
+    private Integer generalConditionsContentRevision;
+
+    private String generalConditionsContentPageId;
+
+    private Boolean generalConditionsAccepted;
+
     public Subscription() {}
 
     public Subscription(Subscription cloned) {
@@ -116,6 +122,9 @@ public class Subscription {
         this.updatedAt = cloned.updatedAt;
         this.closedAt = cloned.closedAt;
         this.pausedAt = cloned.pausedAt;
+        this.generalConditionsAccepted = cloned.generalConditionsAccepted;
+        this.generalConditionsContentRevision = cloned.generalConditionsContentRevision;
+        this.generalConditionsContentPageId = cloned.generalConditionsContentPageId;
     }
 
     public String getId() {
@@ -252,6 +261,30 @@ public class Subscription {
 
     public void setPausedAt(Date pausedAt) {
         this.pausedAt = pausedAt;
+    }
+
+    public Integer getGeneralConditionsContentRevision() {
+        return generalConditionsContentRevision;
+    }
+
+    public void setGeneralConditionsContentRevision(Integer generalConditionsContentRevision) {
+        this.generalConditionsContentRevision = generalConditionsContentRevision;
+    }
+
+    public String getGeneralConditionsContentPageId() {
+        return generalConditionsContentPageId;
+    }
+
+    public void setGeneralConditionsContentPageId(String generalConditionsContentPageId) {
+        this.generalConditionsContentPageId = generalConditionsContentPageId;
+    }
+
+    public Boolean getGeneralConditionsAccepted() {
+        return generalConditionsAccepted;
+    }
+
+    public void setGeneralConditionsAccepted(Boolean generalConditionsAccepted) {
+        this.generalConditionsAccepted = generalConditionsAccepted;
     }
 
     @Override

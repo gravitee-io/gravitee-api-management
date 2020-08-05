@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 
@@ -41,4 +42,6 @@ public interface PageRepository {
 	List<Page> search(PageCriteria criteria) throws TechnicalException;
 	
 	Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType) throws TechnicalException;
+
+	io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException;
 }
