@@ -21,6 +21,15 @@
   <div class="gv-form">
     <h2>{{apiMembersCtrl.members.length}} direct members</h2>
     <div class="gv-form-content" layout="column">
+      <md-checkbox
+        ng-model="apiMembersCtrl.api.disable_membership_notifications"
+        ng-true-value="false"
+        ng-false-value="true"
+        aria-label="Enables notifications when members are added to this API"
+        ng-change="apiMembersCtrl.toggleDisableMembershipNotifications()"
+      >
+        Enables notifications when members are added to this API
+      </md-checkbox>
       <md-table-container ng-show="apiMembersCtrl.members.length">
         <table md-table class="gv-table-dense">
           <thead md-head md-order="order">
@@ -34,7 +43,7 @@
           <tbody md-body>
           <tr md-row ng-repeat="member in apiMembersCtrl.members | orderBy: order">
             <td md-cell>
-              <gravitee-identity-picture 
+              <gravitee-identity-picture
                 image-id="member.id"
                 image-url="apiMembersCtrl.getMembershipAvatar(member)"
                 image-name="apiMembersCtrl.getMembershipDisplay(member)"
@@ -100,7 +109,7 @@
             <tr md-row ng-repeat="member in apiMembersCtrl.groupMembers[grp] | orderBy: order">
               <td md-cell>
                 <md-list-item>
-                  <gravitee-identity-picture 
+                  <gravitee-identity-picture
                     image-id="member.id"
                     image-url="apiMembersCtrl.getMembershipAvatar(member)"
                     image-name="apiMembersCtrl.getMembershipDisplay(member)"

@@ -93,7 +93,8 @@ class ApplicationService {
         'description': application.description,
         'groups': application.groups,
         'settings': application.settings,
-        'picture': application.picture
+        'picture': application.picture,
+        'disable_membership_notifications': application.disable_membership_notifications,
       }
     );
   }
