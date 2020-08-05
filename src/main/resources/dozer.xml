@@ -28,4 +28,17 @@
             <b>id.revision</b>
         </field>
     </mapping>
+
+    <mapping map-null="false">
+        <class-a>io.gravitee.repository.management.model.Subscription</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo</class-b>
+        <field>
+            <a>generalConditionsContentPageId</a>
+            <b>generalConditionsContentRevision.pageId</b>
+        </field>
+        <field>
+            <a>generalConditionsContentRevision</a>
+            <b>generalConditionsContentRevision.revision</b>
+        </field>
+    </mapping>
 </mappings>

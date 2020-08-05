@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import java.util.List;
 import java.util.Optional;
 
+import io.gravitee.repository.management.api.search.Pageable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,6 +149,17 @@ public class MongoPageRepository implements PageRepository {
         }
     }
 
+    @Override
+    public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException {
+        try {
+            io.gravitee.common.data.domain.Page<PageMongo> page = internalPageRepo.findAll(pageable);
+            List<Page> pageItems = mapper.collection2list(page.getContent(), PageMongo.class, Page.class);
+            return new io.gravitee.common.data.domain.Page<Page>(pageItems, page.getPageNumber(), pageItems.size(), page.getTotalElements());
+        } catch (Exception e) {
+            logger.error("An error occurred when searching all pages", e);
+            throw new TechnicalException("An error occurred when searching all pages");
+        }
+    }
 
     private PageSourceMongo convert(PageSource pageSource) {
         PageSourceMongo pageSourceMongo = new PageSourceMongo();

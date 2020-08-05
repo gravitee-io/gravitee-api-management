@@ -93,6 +93,10 @@ public class SubscriptionMongo extends Auditable {
 
     private Date pausedAt;
 
+    private PageRevisionPkMongo generalConditionsContentRevision;
+
+    private Boolean generalConditionsAccepted;
+
     public String getId() {
         return id;
     }
@@ -211,6 +215,22 @@ public class SubscriptionMongo extends Auditable {
 
     public void setPausedAt(Date pausedAt) {
         this.pausedAt = pausedAt;
+    }
+
+    public PageRevisionPkMongo getGeneralConditionsContentRevision() {
+        return generalConditionsContentRevision;
+    }
+
+    public void setGeneralConditionsContentRevision(PageRevisionPkMongo generalConditionsContentRevision) {
+        this.generalConditionsContentRevision = generalConditionsContentRevision;
+    }
+
+    public Boolean getGeneralConditionsAccepted() {
+        return generalConditionsAccepted;
+    }
+
+    public void setGeneralConditionsAccepted(Boolean generalConditionsAccepted) {
+        this.generalConditionsAccepted = generalConditionsAccepted;
     }
 
     @Override

@@ -81,6 +81,8 @@ public class PlanMongo extends Auditable {
 
     private String commentMessage;
 
+    private String generalConditions;
+
     private Set<String> tags;
 
     private String selectionRule;
@@ -243,6 +245,14 @@ public class PlanMongo extends Auditable {
 
     public void setSelectionRule(String selectionRule) {
         this.selectionRule = selectionRule;
+    }
+
+    public String getGeneralConditions() {
+        return generalConditions;
+    }
+
+    public void setGeneralConditions(String generalConditions) {
+        this.generalConditions = generalConditions;
     }
 
     @Override

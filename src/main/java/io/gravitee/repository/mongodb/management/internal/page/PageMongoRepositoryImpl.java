@@ -20,7 +20,10 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import java.util.List;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
@@ -83,5 +86,18 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 		q.with(new Sort(ASC, "order"));
 
 		return mongoTemplate.find(q, PageMongo.class);
+	}
+
+	@Override
+	public Page<PageMongo> findAll(Pageable pageable) {
+		Query query = new Query();
+		query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
+
+		List<PageMongo> pages = mongoTemplate.find(query, PageMongo.class);
+		long total = mongoTemplate.count(query, PageMongo.class);
+
+		return new Page<>(
+				pages, (pageable != null) ? pageable.pageNumber() : 0,
+				pages.size(), total);
 	}
 }

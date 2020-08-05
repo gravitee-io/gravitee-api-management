@@ -15,8 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRevisionRepository;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PageRevision;
 import io.gravitee.repository.mongodb.management.internal.model.PageRevisionMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageRevisionPkMongo;
@@ -25,6 +27,7 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -45,6 +48,19 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
 
     @Autowired
     private GraviteeMapper mapper;
+
+    @Override
+    public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
+        org.springframework.data.domain.Page<PageRevisionMongo> revisions = internalPageRevisionRepo.findAll(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
+        return new Page<>(
+                revisions.getContent()
+                        .stream()
+                        .map(page -> mapper.map(page, PageRevision.class))
+                        .collect(Collectors.toList()),
+                pageable.pageNumber(),
+                revisions.getNumberOfElements(),
+                revisions.getTotalElements());
+    }
 
     @Override
     public Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException {
@@ -69,16 +85,6 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
         logger.debug("Create revision for page [{}] - Done", page.getName());
 
         return res;
-    }
-
-    @Override
-    public void deleteAllByPageId(String pageId) throws TechnicalException {
-        try {
-            internalPageRevisionRepo.deleteByPageId(pageId);
-        } catch (Exception e) {
-            logger.error("An error occurred when deleting all revisions for page [{}]", pageId, e);
-            throw new TechnicalException("An error occurred when deleting page revisions");
-        }
     }
 
     @Override

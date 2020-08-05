@@ -17,7 +17,9 @@ package io.gravitee.repository.mongodb.management.internal.page;
 
 import java.util.List;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 
 /**
@@ -31,4 +33,5 @@ public interface PageMongoRepositoryCustom {
 	
 	int findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, String referenceType);
 
+	Page<PageMongo> findAll(Pageable pageable);
 }
