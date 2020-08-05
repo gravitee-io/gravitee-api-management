@@ -201,6 +201,9 @@ public class ApiEntity implements Indexable, FilterableItem {
     @JsonProperty(value = "workflow_state")
     private WorkflowState workflowState;
 
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
+
     private List<ApiEntrypointEntity> entrypoints;
 
     public String getId() {
@@ -427,6 +430,14 @@ public class ApiEntity implements Indexable, FilterableItem {
         this.contextPath = contextPath;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -460,6 +471,7 @@ public class ApiEntity implements Indexable, FilterableItem {
                 ", pathMappings=" + pathMappings +
                 ", lifecycleState=" + lifecycleState +
                 ", workflowState=" + workflowState +
+                ", disableMembershipNotifications=" + disableMembershipNotifications +
                 '}';
     }
 }

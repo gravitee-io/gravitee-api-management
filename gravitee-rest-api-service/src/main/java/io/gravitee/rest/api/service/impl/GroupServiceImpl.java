@@ -16,17 +16,16 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.ApplicationRepository;
-import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.InvitationReferenceType;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -77,6 +76,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     private PermissionService permissionService;
     @Autowired
     private InvitationService invitationService;
+    @Autowired
+    private PageRepository pageRepository;
+    @Autowired
+    private PlanRepository planRepository;
     
     @Override
     public List<GroupEntity> findAll() {
@@ -136,7 +139,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     public GroupEntity create(NewGroupEntity group) {
         try {
             logger.debug("create {}", group);
-            if( !this.findByName(group.getName()).isEmpty()) {
+            if (!this.findByName(group.getName()).isEmpty()) {
                 throw new GroupNameAlreadyExistsException(group.getName());
             }
             Group newGroup = this.map(group);
@@ -174,6 +177,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             updatedGroupEntity.setLockApplicationRole(group.isLockApplicationRole());
             updatedGroupEntity.setSystemInvitation(group.isSystemInvitation());
             updatedGroupEntity.setEmailInvitation(group.isEmailInvitation());
+            updatedGroupEntity.setDisableMembershipNotifications(group.isDisableMembershipNotifications());
 
             Group updatedGroup = this.map(updatedGroupEntity);
             GroupEntity grp = this.map(groupRepository.update(updatedGroup));
@@ -274,7 +278,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                                     api.setGroups(new HashSet<>());
                                 }
 
-                                if (! api.getGroups().contains(groupId)) {
+                                if (!api.getGroups().contains(groupId)) {
                                     api.getGroups().add(groupId);
                                     try {
                                         apiRepository.update(api);
@@ -293,7 +297,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                                     application.setGroups(new HashSet<>());
                                 }
 
-                                if (! application.getGroups().contains(groupId)) {
+                                if (!application.getGroups().contains(groupId)) {
                                     application.getGroups().add(groupId);
                                     try {
                                         applicationRepository.update(application);
@@ -378,8 +382,14 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     logger.error("An error occurs while trying to delete a group", ex);
                     throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
                 }
+
+                //remove from API plans
+                removeFromAPIPlans(groupId, updatedDate, api.getId());
+
+                //remove from API pages
+                removeGroupFromPages(groupId, updatedDate, api.getId());
             });
-            applicationRepository.findByGroups(Collections.singletonList(groupId)).forEach( application -> {
+            applicationRepository.findByGroups(Collections.singletonList(groupId)).forEach(application -> {
                 application.getGroups().remove(groupId);
                 application.setUpdatedAt(updatedDate);
                 try {
@@ -389,6 +399,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
                 }
             });
+
+            //remove from portal pages
+            removeGroupFromPages(groupId, updatedDate, null);
+
             //remove group
             groupRepository.delete(groupId);
 
@@ -405,7 +419,42 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
+    }
 
+    private void removeFromAPIPlans(String groupId, Date updatedDate, String apiId) {
+        try {
+            final Set<Plan> apiPlans = this.planRepository.findByApi(apiId);
+            for (Plan plan : apiPlans) {
+                if (plan.getExcludedGroups().contains(groupId)) {
+                    plan.getExcludedGroups().remove(groupId);
+                    plan.setUpdatedAt(updatedDate);
+                    this.planRepository.update(plan);
+                }
+            }
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to delete a group", ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+        }
+    }
+
+    private void removeGroupFromPages(String groupId, Date updatedDate, String apiId) {
+        try {
+            PageCriteria.Builder criteriaBuilder = new PageCriteria.Builder();
+            if (apiId != null) {
+                criteriaBuilder.referenceId(apiId);
+            }
+            final List<Page> apiPages = this.pageRepository.search(criteriaBuilder.build());
+            for (Page page : apiPages) {
+                if (page.getExcludedGroups().contains(groupId)) {
+                    page.getExcludedGroups().remove(groupId);
+                    page.setUpdatedAt(updatedDate);
+                    this.pageRepository.update(page);
+                }
+            }
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to delete a group", ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+        }
     }
 
     @Override
@@ -558,6 +607,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         group.setSystemInvitation(entity.isSystemInvitation());
         group.setEmailInvitation(entity.isEmailInvitation());
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        group.setDisableMembershipNotifications(entity.isDisableMembershipNotifications());
 
         return group;
     }
@@ -583,6 +633,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         group.setLockApplicationRole(entity.isLockApplicationRole());
         group.setSystemInvitation(entity.isSystemInvitation());
         group.setEmailInvitation(entity.isEmailInvitation());
+        group.setDisableMembershipNotifications(entity.isDisableMembershipNotifications());
         return group;
     }
 
@@ -623,6 +674,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         entity.setLockApplicationRole(group.isLockApplicationRole());
         entity.setSystemInvitation(group.isSystemInvitation());
         entity.setEmailInvitation(group.isEmailInvitation());
+        entity.setDisableMembershipNotifications(group.isDisableMembershipNotifications());
 
         return entity;
     }

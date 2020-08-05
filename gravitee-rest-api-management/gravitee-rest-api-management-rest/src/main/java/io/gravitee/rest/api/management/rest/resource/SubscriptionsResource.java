@@ -16,10 +16,10 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
@@ -31,7 +31,6 @@ import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import java.util.Set;
@@ -89,8 +88,8 @@ public class SubscriptionsResource {
                 new Subscription.Application(
                         application.getId(),
                         application.getName(),
-                //        application.getType(),
-                        null,
+                        application.getType(),
+                        application.getDescription(),
                         new Subscription.User(
                                 application.getPrimaryOwner().getId(),
                                 application.getPrimaryOwner().getDisplayName()

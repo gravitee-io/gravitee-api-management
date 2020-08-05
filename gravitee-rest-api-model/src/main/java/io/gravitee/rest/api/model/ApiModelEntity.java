@@ -18,7 +18,6 @@ package io.gravitee.rest.api.model;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -53,6 +52,7 @@ public class ApiModelEntity {
     private Set<String> categories;
     private Map<String, String> metadata;
     private ApiLifecycleState lifecycleState;
+    private boolean disableMembershipNotifications;
 
     public String getId() {
         return id;
@@ -222,6 +222,14 @@ public class ApiModelEntity {
         this.lifecycleState = lifecycleState;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -254,6 +262,7 @@ public class ApiModelEntity {
             ", groups=" + groups +
             ", metadata=" + metadata +
             ", lifecycleState=" + lifecycleState +
+                ", disableMembershipNotifications=" + disableMembershipNotifications +
             '}';
     }
 }
