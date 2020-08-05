@@ -15,20 +15,25 @@
  */
 package io.gravitee.repository.config.mock;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -220,5 +225,26 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("my-api-2", PageReferenceType.API)).thenReturn(2);
         when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("unknown api id", PageReferenceType.API)).thenReturn(0);
         when(pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("DEFAULT", PageReferenceType.ENVIRONMENT)).thenReturn(20);
+
+
+        List<Page> findAllPages = IntStream.range(0,10).mapToObj((i) -> {
+            Page page = mock(Page.class);
+            when(page.getId()).thenReturn("pageid"+i);
+            return page;
+        }).collect(Collectors.toList());
+        findAllPages.add(findApiPage);
+
+        when(pageRepository.findAll(any())).thenAnswer(
+                new Answer<io.gravitee.common.data.domain.Page>(){
+                    @Override
+                    public io.gravitee.common.data.domain.Page answer(InvocationOnMock invocation){
+                        Pageable pageable = invocation.getArgument(0);
+                        if (pageable.pageSize() == 100) {
+                            return new io.gravitee.common.data.domain.Page<Page>(findAllPages, 1, 11, 11);
+                        } else {
+                            return new io.gravitee.common.data.domain.Page<Page>(Arrays.asList(findAllPages.get(pageable.pageNumber())), pageable.pageNumber(), 1, 11);
+                        }
+                    }});
+
     }
 }

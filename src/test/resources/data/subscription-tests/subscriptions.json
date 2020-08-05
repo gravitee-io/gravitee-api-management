@@ -15,7 +15,10 @@
     "createdAt": 1459022010883,
     "updatedAt": 1469022010883,
     "processedAt": 1479022010883,
-    "pausedAt": 1479022010883
+    "pausedAt": 1479022010883,
+    "generalConditionsContentPageId": "ref",
+    "generalConditionsContentRevision": 2,
+    "generalConditionsAccepted": true
   },
   {
     "id":"sub2",

@@ -27,6 +27,8 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -59,6 +61,9 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
         sub1.setProcessedAt(new Date(1479022010883L));
         sub1.setPausedAt(new Date(1479022010883L));
         sub1.setClientId("my-client-id");
+        sub1.setGeneralConditionsAccepted(true);
+        sub1.setGeneralConditionsContentPageId("ref");
+        sub1.setGeneralConditionsContentRevision(2);
 
         final Subscription sub3 = new Subscription();
         sub3.setId("sub3");

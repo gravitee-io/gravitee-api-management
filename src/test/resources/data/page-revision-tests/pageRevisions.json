@@ -48,30 +48,6 @@
       "name":"revision 3",
       "content": "lorem ipsum",
       "createdAt": 1439022010885
-   },
-
-   {
-      "pageId": "deleteByPageId",
-      "revision": 1,
-      "hash": "hexstring1",
-      "name":"revision 1",
-      "content": "lorem ipsum",
-      "createdAt": 1439022010883
-   },
-   {
-      "pageId": "deleteByPageId",
-      "revision": 2,
-      "hash": "hexstring2",
-      "name":"revision 2",
-      "content": "lorem ipsum",
-      "createdAt": 1439022010884
-   },
-   {
-      "pageId": "deleteByPageId",
-      "revision": 3,
-      "hash": "hexstring3",
-      "name":"revision 3",
-      "content": "lorem ipsum",
-      "createdAt": 1439022010885
    }
+
 ]

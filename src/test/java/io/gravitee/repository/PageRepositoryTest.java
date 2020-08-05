@@ -17,6 +17,8 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import org.junit.Test;
@@ -35,6 +37,48 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
     @Override
     protected String getTestCasesPath() {
         return "/data/page-tests/";
+    }
+
+
+    @Test
+    public void shouldFindAll() throws Exception {
+        final io.gravitee.common.data.domain.Page<Page> pages = pageRepository.findAll(new PageableBuilder().pageNumber(0).pageSize(100).build());
+
+        assertNotNull(pages);
+        assertEquals(11, pages.getTotalElements());
+        assertEquals(11, pages.getPageElements());
+        assertEquals(11, pages.getContent().size());
+
+        Page findApiPage = pages.getContent().stream().filter(p -> p.getId().equals("FindApiPage")).findFirst().get();
+        assertFindPage(findApiPage);
+    }
+
+    @Test
+    public void shouldFindAll_Paging() throws Exception {
+        boolean findApiTested = false;
+
+        Set<String> ids = new HashSet<>();
+        int pageNumber = 0;
+        do {
+            Pageable build = new PageableBuilder().pageNumber(pageNumber).pageSize(1).build();
+            io.gravitee.common.data.domain.Page<Page> pages = pageRepository.findAll(build);
+            assertNotNull(pages);
+            assertEquals(11, pages.getTotalElements());
+            assertEquals(1, pages.getPageElements());
+            assertEquals(1, pages.getContent().size());
+
+            Page foundPage = pages.getContent().get(0);
+            ids.add(foundPage.getId());
+            if (foundPage.getId().equals("FindApiPage")) {
+                assertFindPage(foundPage);
+                findApiTested = true;
+            }
+
+            pageNumber++;
+        } while (pageNumber < 11);
+
+        assertTrue(findApiTested);
+        assertEquals(11, ids.size()); // all pages were different
     }
 
     @Test

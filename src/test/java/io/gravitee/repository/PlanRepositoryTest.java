@@ -46,6 +46,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(plan);
         assertTrue(plan.isPresent());
         assertEquals("my-plan", plan.get().getId());
+        assertEquals("GCU-my-plan", plan.get().getGeneralConditions());
         assertEquals("Free plan", plan.get().getName());
         assertEquals("Description of the free plan", plan.get().getDescription());
         assertEquals("api1", plan.get().getApi());
@@ -122,6 +123,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setType(Plan.PlanType.API);
         plan.setStatus(Plan.Status.STAGING);
         plan.setApi("my-api");
+        plan.setGeneralConditions("general_conditions");
         plan.setCreatedAt(parse("11/02/2016"));
         plan.setUpdatedAt(parse("12/02/2016"));
         plan.setPublishedAt(parse("13/02/2016"));
@@ -135,6 +137,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
 
         final Plan createdPlan = optional.get();
         Assert.assertEquals("Invalid plan name.", plan.getName(), createdPlan.getName());
+        Assert.assertEquals("Invalid GeneralCondition.", plan.getGeneralConditions(), createdPlan.getGeneralConditions());
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), createdPlan.getDescription());
         Assert.assertEquals("Invalid plan validation.", plan.getValidation(), createdPlan.getValidation());
         Assert.assertEquals("Invalid plan type.", plan.getType(), createdPlan.getType());
@@ -196,6 +199,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         final Plan plan = optional.get();
         plan.setName("New plan");
         plan.setDescription("New description");
+        plan.setGeneralConditions("New GCU");
         plan.setStatus(Plan.Status.CLOSED);
         plan.setTags(Collections.singleton("tag1"));
 
@@ -206,6 +210,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
 
         final Plan planUpdated = optionalUpdated.get();
         Assert.assertEquals("Invalid saved plan name.", plan.getName(), planUpdated.getName());
+        Assert.assertEquals("Invalid saved general conditions.", plan.getGeneralConditions(), planUpdated.getGeneralConditions());
         Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
         Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
         Assert.assertEquals("Invalid plan tags.", plan.getTags().size(), planUpdated.getTags().size());

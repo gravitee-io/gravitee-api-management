@@ -57,6 +57,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(plan.getClosedAt()).thenReturn(parse("14/02/2016"));
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        when(plan.getGeneralConditions()).thenReturn("general_conditions");
 
         final Plan plan2 = mock(Plan.class);
         when(plan2.getId()).thenReturn("my-plan");
@@ -79,6 +80,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(plan2.isCommentRequired()).thenReturn(true);
         when(plan2.getCommentMessage()).thenReturn("What is your project code?");
         when(plan2.getSelectionRule()).thenReturn(null);
+        when(plan2.getGeneralConditions()).thenReturn("GCU-my-plan");
 
         final Plan planOAuth2 = mock(Plan.class);
         when(planOAuth2.getName()).thenReturn("Plan oauth2 name");

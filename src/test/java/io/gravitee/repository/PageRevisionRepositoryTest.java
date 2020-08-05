@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.PageRevision;
 import org.junit.Test;
 
@@ -58,6 +58,33 @@ public class PageRevisionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindAll_MaxInteger() throws TechnicalException {
+        Page<PageRevision> revisions = pageRevisionRepository.findAll(new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build());
+        assertNotNull(revisions);
+        assertNotNull(revisions.getContent());
+        assertEquals(revisions.getPageNumber(), 0);
+        assertEquals(revisions.getPageElements(), 6);
+        assertEquals(revisions.getTotalElements(), 6);
+        assertEquals(revisions.getContent().size(), 6);
+    }
+
+    @Test
+    public void shouldFindAll_PageSize3() throws TechnicalException {
+        int pageNumber = 0;
+        Set<String> accumulator = new HashSet<>();
+        do {
+            Page<PageRevision> revisions = pageRevisionRepository.findAll(new PageableBuilder().pageNumber(pageNumber).pageSize(3).build());
+            assertNotNull(revisions);
+            assertNotNull(revisions.getContent());
+            assertEquals(revisions.getPageNumber(), pageNumber);
+            assertEquals(revisions.getPageElements(), 3);
+            assertEquals(revisions.getTotalElements(), 6);
+            assertEquals(revisions.getContent().size(), 3);
+            revisions.getContent().stream().forEach(rev -> accumulator.add(rev.getPageId()+"-"+rev.getRevision()));
+        } while (++pageNumber < 2);
+    }
+
+    @Test
     public void shouldCreateApiPageRevision() throws Exception {
         final PageRevision pageRevision = new PageRevision();
         pageRevision.setPageId("new-page");
@@ -79,22 +106,6 @@ public class PageRevisionRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid pageRevision pageId.", pageRevision.getPageId(), pageSaved.getPageId());
         assertEquals("Invalid pageRevision hash.", pageRevision.getHash(), pageSaved.getHash());
         assertEquals("Invalid pageRevision revision.", pageRevision.getRevision(), pageSaved.getRevision());
-    }
-    @Test
-    public void shouldDeleteAllByPageId() throws Exception {
-        List<PageRevision> pageShouldExists = pageRevisionRepository.findAllByPageId("deleteByPageId");
-        pageRevisionRepository.deleteAllByPageId("deleteByPageId");
-        List<PageRevision> pageShouldNotExists =  pageRevisionRepository.findAllByPageId("deleteByPageId");
-
-        assertTrue("should exists before delete", pageShouldExists != null && !pageShouldExists.isEmpty());
-        assertTrue("should not exists after delete",pageShouldNotExists != null && pageShouldNotExists.isEmpty());
-    }
-
-    @Test
-    public void shouldDeleteAllByPageId_unknownId() throws Exception {
-        List<PageRevision> pageShouldNotExists =  pageRevisionRepository.findAllByPageId("deleteByPageId_unknown");
-        pageRevisionRepository.deleteAllByPageId("deleteByPageId_unknown"); // should not throw exception
-        assertTrue("should not exists after delete",pageShouldNotExists != null && pageShouldNotExists.isEmpty());
     }
 
     @Test

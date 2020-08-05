@@ -70,6 +70,10 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Subscription processed at", compareDate(1479022010883L, subscription.getProcessedAt().getTime()));
         assertTrue("Subscription paused at", compareDate(1479022010883L, subscription.getPausedAt().getTime()));
         assertEquals("Subscription client id", "my-client-id", subscription.getClientId());
+        assertTrue("Subscription GCU accepted", subscription.getGeneralConditionsAccepted());
+        assertEquals("Subscription GCU content pageId", "ref", subscription.getGeneralConditionsContentPageId());
+        assertEquals("Subscription GCU content revision", Integer.valueOf(2), subscription.getGeneralConditionsContentRevision());
+
     }
 
     @Test
