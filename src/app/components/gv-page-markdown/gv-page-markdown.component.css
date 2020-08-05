@@ -58,3 +58,27 @@ app-gv-markdown-toc {
 :host ::ng-deep img {
   max-width: 100%;
 }
+
+
+:host ::ng-deep table {
+  border: 1px solid var(--gv-theme-font-color-dark, #262626);
+  margin: 12px 0 14px;
+  color: var(--gv-theme-font-color-dark, #262626);
+  width: auto;
+  border-collapse: collapse;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep  table th,
+:host ::ng-deep  table td {
+  border: 1px solid var(--gv-theme-neutral-color-dark, #EFEFEF);
+  padding: 5px 14px 5px 12px;
+  height: 32px;
+}
+
+:host ::ng-deep table th {
+  background-color: var(--gv-theme-color-dark, #28444F);
+  font-weight: 300;
+  color: var(--gv-theme-font-color-light, #FFFFFF);
+  padding-top: 6px;
+}
