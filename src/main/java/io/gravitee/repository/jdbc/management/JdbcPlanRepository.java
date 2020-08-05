@@ -71,7 +71,8 @@ public class JdbcPlanRepository implements PlanRepository {
             .addColumn("comment_required", Types.BOOLEAN, boolean.class)
             .addColumn("comment_message", Types.NVARCHAR, String.class)
             .addColumn("selection_rule", Types.NVARCHAR, String.class)
-            .build(); 
+            .addColumn("general_conditions", Types.NVARCHAR, String.class)
+            .build();
     
     private void addTags(Plan parent) {
         List<String> tags = getTags(parent.getId());

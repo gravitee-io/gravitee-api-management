@@ -63,6 +63,9 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             .addColumn("reason", Types.NVARCHAR, String.class)
             .addColumn("status", Types.NVARCHAR, Subscription.Status.class)
             .addColumn("paused_at", Types.TIMESTAMP, Date.class)
+            .addColumn("general_conditions_content_page_id", Types.NVARCHAR, String.class)
+            .addColumn("general_conditions_content_revision", Types.INTEGER, Integer.class)
+            .addColumn("general_conditions_accepted", Types.BOOLEAN, Boolean.class)
             .build();
 
     @Override

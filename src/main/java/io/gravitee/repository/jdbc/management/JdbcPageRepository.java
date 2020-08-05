@@ -20,6 +20,7 @@ import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
@@ -308,6 +310,29 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             result.ifPresent(this::addExcludedGroups);
             LOGGER.debug("JdbcPageRepository.findById({}) = {}", id, result);
             return result;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find page by id:", ex);
+            throw new TechnicalException("Failed to find page by id", ex);
+        }
+    }
+
+    @Override
+    public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException {
+        LOGGER.debug("JdbcPageRepository.findAll()", pageable);
+        try {
+            JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
+            Integer totalPages = jdbcTemplate.queryForObject("select count(p.*) from pages p", Integer.class);
+            jdbcTemplate.query("select p.*, " +
+                            "pm.k as pm_k, pm.v as pm_v, " +
+                            "pc.k as pc_k, pc.v as pc_v " +
+                            "from ( select * from pages limit " + pageable.pageSize() + " OFFSET "+ pageable.from() +") as p " +
+                            "left join page_configuration pc on p.id = pc.page_id " +
+                            "left join page_metadata pm on p.id = pm.page_id"
+                    , rowMapper
+            );
+            List<Page> result = rowMapper.getRows().stream().limit(pageable.pageSize()).map(p -> {addExcludedGroups(p); return p;}).collect(Collectors.toList());
+            LOGGER.debug("JdbcPageRepository.findAll() = {} result",  result.size());
+            return new io.gravitee.common.data.domain.Page<>(result, pageable.pageNumber(), result.size(), totalPages);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find page by id:", ex);
             throw new TechnicalException("Failed to find page by id", ex);

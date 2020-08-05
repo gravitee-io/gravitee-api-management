@@ -15,26 +15,22 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PageRevisionRepository;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.PageRevision;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
+import java.sql.Types;
 import java.util.Date;
-import java.util.*;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -57,6 +53,24 @@ public class JdbcPageRevisionRepository implements PageRevisionRepository {
             .addColumn("contributor", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .build();
+
+    @Override
+    public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
+        String rowCountSql = "SELECT count(1) AS row_count FROM page_revisions";
+        int total = jdbcTemplate.queryForObject(
+                        rowCountSql,
+                        (rs, rowNum) -> rs.getInt(1));
+
+        String querySql = "SELECT * FROM page_revisions " +
+                "LIMIT " + pageable.pageSize() + " " +
+                "OFFSET " + pageable.from();
+        List<PageRevision> revisions = jdbcTemplate.query(
+                querySql,
+                ORM.getRowMapper()
+        );
+
+        return new Page<>(revisions, pageable.pageNumber(), revisions.size(), total);
+    }
 
     @Override
     public Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException {
@@ -83,17 +97,6 @@ public class JdbcPageRevisionRepository implements PageRevisionRepository {
         } catch (final Exception ex) {
             LOGGER.error("Failed to create page revision", ex);
             throw new TechnicalException("Failed to create page revision", ex);
-        }
-    }
-
-    @Override
-    public void deleteAllByPageId(String pageId) throws TechnicalException {
-        LOGGER.debug("JdbcPageRepository.deleteAllByPageId({})", pageId);
-        try {
-            jdbcTemplate.update("delete from page_revisions p where p.page_id = ?", pageId);
-        } catch (final Exception ex) {
-            LOGGER.error("Failed to delete revisions fo page : {}", pageId, ex);
-            throw new TechnicalException("Failed to delete page revisions", ex);
         }
     }
 

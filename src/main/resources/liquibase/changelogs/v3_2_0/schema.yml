@@ -18,3 +18,30 @@ databaseChangeLog:
             constraintName: pk_page_revisions
             columnNames: page_id, revision
             tableName: page_revisions
+
+        - addColumn:
+            tableName: plans
+            columns:
+              - column:
+                  name: general_conditions
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - addColumn:
+            tableName: subscriptions
+            columns:
+              - column:
+                  name: general_conditions_accepted
+                  type: boolean
+                  constraints:
+                    nullable: true
+              - column:
+                  name: general_conditions_content_page_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: general_conditions_content_revision
+                  type: int
+                  constraints:
+                    nullable: true
