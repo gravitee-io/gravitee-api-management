@@ -76,6 +76,8 @@ public class Application {
 
     private Map<String, String> metadata;
 
+    private boolean disableMembershipNotifications;
+
     public Application(){}
 
     public Application(Application cloned) {
@@ -87,7 +89,7 @@ public class Application {
         this.updatedAt = cloned.updatedAt;
         this.groups = cloned.groups;
         this.status = cloned.status;
-        this.picture = cloned.picture;
+        this.disableMembershipNotifications = cloned.disableMembershipNotifications;
     }
 
     public Date getCreatedAt() {
@@ -178,6 +180,14 @@ public class Application {
         this.metadata = metadata;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -201,7 +211,8 @@ public class Application {
                 ", groups='" + groups + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt + '\'' +
-                ", updatedAt=" + updatedAt +
+                ", updatedAt=" + updatedAt + '\'' +
+                ", disableMembershipNotifications=" + disableMembershipNotifications +
                 '}';
     }
 }

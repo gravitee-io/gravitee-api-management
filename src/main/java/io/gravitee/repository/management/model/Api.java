@@ -103,6 +103,10 @@ public class Api {
      */
     private List<String> labels;
 
+    /**
+     */
+    private boolean disableMembershipNotifications;
+
     private ApiLifecycleState apiLifecycleState = ApiLifecycleState.CREATED;
 
     public Api(){}
@@ -124,6 +128,7 @@ public class Api {
         this.categories = cloned.categories;
         this.labels = cloned.labels;
         this.apiLifecycleState = cloned.apiLifecycleState;
+        this.disableMembershipNotifications = cloned.disableMembershipNotifications;
     }
 
     public Date getCreatedAt() {
@@ -254,6 +259,14 @@ public class Api {
         this.apiLifecycleState = apiLifecycleState;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -280,6 +293,7 @@ public class Api {
             ", visibility=" + visibility +
             ", lifecycleState=" + lifecycleState +
             ", apiLifecycleState=" + apiLifecycleState +
+                ", disableMembershipNotifications=" + disableMembershipNotifications +
             '}';
     }
 }
