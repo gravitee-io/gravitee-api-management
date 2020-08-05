@@ -25,7 +25,7 @@
     </div>
 
     <div
-      [ngClass]="{'step-content': true, 'one': currentStep === 1, 'two': currentStep === 2,'three': currentStep === 3}">
+      [ngClass]="{'step-content': true, 'one': currentStep === 1, 'two': currentStep === 2,'three': currentStep === 3,'four': currentStep === 4}">
 
       <form [formGroup]="subscribeForm">
 
@@ -44,9 +44,10 @@
           </div>
 
         </div>
-
+   
         <div class="step step-2">
           <div class="message">
+     
             <p>{{ 'apiSubscribe.apps.description' | translate }}</p>
             <p *ngIf="hasConnectedApps()"
                [innerHTML]="'apiSubscribe.apps.connectedApps' | translate:{ count: getConnectedAppsCount(), apiName: apiName }"></p>
@@ -70,7 +71,6 @@
         </div>
 
         <div class="step step-3">
-
           <div class="message" *ngIf="!subscribeForm.valid">
             <p
               [innerHTML]="'apiSubscribe.validate.notCompleted' | translate: {apiName: apiName}"></p>
@@ -126,6 +126,20 @@
           <div class="message" *ngIf="hasSubscriptionRejected()">
             <p
               [innerHTML]="'apiSubscribe.success.subscriptionRejected' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
+          </div>
+          
+          <div *ngIf="planHasGeneralConditions() && displayGeneralConditions()">
+            <h3>{{'common.general_conditions.title' | translate}}</h3>
+
+            <app-gv-page class="general_conditions general_conditions_content" [page]="getCurrentGeneralConditions()"> </app-gv-page>
+              
+            <gv-checkbox
+                formControlName="general_conditions_accepted"
+                label="{{ 'common.general_conditions.accept' | translate }}"
+                name="general_conditions_accepted"
+                ngDefaultControl>
+            </gv-checkbox>
+
           </div>
         </div>
       </form>

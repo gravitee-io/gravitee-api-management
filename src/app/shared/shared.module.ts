@@ -28,6 +28,13 @@ import { LocalizedDatePipe } from '../pipes/localized-date.pipe';
 import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
 import { SafePipe } from './../pipes/safe.pipe';
 import { ApiStatesPipe } from './../pipes/api-states.pipe';
+
+import { GvPageComponent } from '../components/gv-page/gv-page.component';
+import { GvPageContentSlotDirective } from '../directives/gv-page-content-slot.directive';
+import { GvPageMarkdownComponent } from '../components/gv-page-markdown/gv-page-markdown.component';
+import { GvPageRedocComponent } from '../components/gv-page-redoc/gv-page-redoc.component';
+import { GvPageSwaggerUIComponent } from '../components/gv-page-swaggerui/gv-page-swaggerui.component';
+
 @NgModule({
   declarations: [
     ApiLabelsPipe,
@@ -36,7 +43,13 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
     SafePipe,
     GvFormControlDirective,
     GvCheckboxControlValueAccessorDirective,
+    GvPageComponent,
+    GvPageContentSlotDirective,
+    GvPageMarkdownComponent,
+    GvPageRedocComponent,
+    GvPageSwaggerUIComponent,
   ],
+  entryComponents: [GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [
     CommonModule,
     HttpClientModule,
@@ -62,6 +75,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
     SafePipe,
     LocalizedDatePipe,
     GvCheckboxControlValueAccessorDirective,
+    GvPageComponent
   ],
   schemas: [
     CUSTOM_ELEMENTS_SCHEMA

@@ -294,12 +294,19 @@ export class ApplicationCreationComponent implements OnInit {
       .then((application) => {
         this.createdApplication = application;
         const subscriptions = this.subscribeList.map(async (s) => {
+          const subscriptionInput: any = {
+            application: application.id,
+            plan: s.plan.id,
+            request: s.request
+          };
+
+          if (s.general_conditions_accepted) {
+            subscriptionInput.general_conditions_accepted = s.general_conditions_accepted;
+            subscriptionInput.general_conditions_content_revision = s.general_conditions_content_revision;
+          }
+
           return this.subscriptionService.createSubscription({
-            SubscriptionInput: {
-              application: application.id,
-              plan: s.plan.id,
-              request: s.request
-            }
+            SubscriptionInput: subscriptionInput
           }).toPromise();
         });
 

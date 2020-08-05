@@ -16,6 +16,7 @@
 
 -->
 <form [formGroup]="planForm" *ngIf="planForm" class="form step application-creation__subscription-form">
+  <div class="application-creation__subscription-form__title">
   <gv-autocomplete #searchApiAutocomplete
                    class="form-control application-creation__autocomplete"
                    [options]="apiList"
@@ -28,6 +29,8 @@
 
     </gv-input>
   </gv-autocomplete>
+  <h3 *ngIf="hasGeneralConditions && !canAddPlan && !generalConditionsAcceptedAndPlanSubscribed">{{'common.general_conditions.title' | translate}}</h3>
+  </div>
   <div>
     <div class="step-grid-content">
       <div class="step-grid-column">
@@ -52,13 +55,30 @@
             </gv-button>
             <div *ngIf="!requireClientId"></div>
             <gv-button
-                [disabled]="canAddPlan || requireClientId"
+                [disabled]="canAddPlan || requireClientId || !generalConditionsAccepted"
                 (:gv-button:click)="addPlan()"> {{ 'applicationCreation.subscription.subscribe' | translate }}
             </gv-button>
           </div>
         </div>
       </div>
-      <div class="step-grid-column">
+           
+      <div class="step-grid-column" *ngIf="hasGeneralConditions && !canAddPlan && !generalConditionsAcceptedAndPlanSubscribed">
+
+        <div class="application-creation__subscription-form__plans__gc">
+          <app-gv-page class="application-creation__subscription-form__plans__gc application-creation__subscription-form__plans__gccontent" 
+                      [page]="getCurrentGeneralConditions()" (loaded)="refeshGeneralCondition()"> </app-gv-page>
+              
+          <gv-checkbox
+            id="general_conditions_accepted"
+            formControlName="general_conditions_accepted"
+            label="{{ 'common.general_conditions.accept' | translate }}"
+            name="general_conditions_accepted"
+            ngDefaultControl>
+          </gv-checkbox>
+        </div>
+      </div>
+
+      <div class="step-grid-column" *ngIf="!hasGeneralConditions || canAddPlan || generalConditionsAcceptedAndPlanSubscribed">
         <gv-table [items]="this.subscribeList"
                   (input)="this.onRequestChange($event)"
                   rowheight="75px"

@@ -44,11 +44,6 @@ import { GvMarkdownTocComponent } from './components/gv-markdown-toc/gv-markdown
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvMenuRightTransitionSlotDirective } from './directives/gv-menu-right-transition-slot.directive';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
-import { GvPageComponent } from './components/gv-page/gv-page.component';
-import { GvPageContentSlotDirective } from './directives/gv-page-content-slot.directive';
-import { GvPageMarkdownComponent } from './components/gv-page-markdown/gv-page-markdown.component';
-import { GvPageRedocComponent } from './components/gv-page-redoc/gv-page-redoc.component';
-import { GvPageSwaggerUIComponent } from './components/gv-page-swaggerui/gv-page-swaggerui.component';
 import { GvSearchApiComponent } from './components/gv-search-api/gv-search-api.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -96,11 +91,6 @@ import { GvCheckboxControlValueAccessorDirective } from './directives/gv-checkbo
     GvMenuRightSlotDirective,
     GvMenuRightTransitionSlotDirective,
     GvMenuTopSlotDirective,
-    GvPageComponent,
-    GvPageContentSlotDirective,
-    GvPageMarkdownComponent,
-    GvPageRedocComponent,
-    GvPageSwaggerUIComponent,
     GvSearchApiComponent,
     HomepageComponent,
     LoginComponent,
@@ -116,7 +106,7 @@ import { GvCheckboxControlValueAccessorDirective } from './directives/gv-checkbo
     UserNotificationComponent,
     GvMarkdownTocComponent,
   ],
-  entryComponents: [GvSearchApiComponent, GvHeaderItemComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
+  entryComponents: [GvSearchApiComponent, GvHeaderItemComponent],
   imports: [
     ApiModule,
     AppRoutingModule,

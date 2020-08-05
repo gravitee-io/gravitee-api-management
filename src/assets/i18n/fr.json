@@ -536,6 +536,10 @@
     "filters": {
       "title": "Filtres"
     },
+    "general_conditions": {
+      "accept": "J'accepte les conditions générales",
+      "title": "Conditions Générales"
+    },
     "ok": "Valider",
     "options": "Options",
     "reset": "Réinitialiser",
@@ -610,6 +614,8 @@
       "invalid": "Le mot de passe n'est pas valide selon les règles en vigueur"
     },
     "plan": {
+      "general_conditions_accept": "Le plan {plan} requiert l'acceptation des conditions générales.",
+      "general_conditions_status": "Le plan {plan} référence une page de conditions générales non publiée.",
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
     },

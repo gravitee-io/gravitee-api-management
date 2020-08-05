@@ -536,6 +536,10 @@
     "filters": {
       "title": "Filtry"
     },
+    "general_conditions": {
+      "accept": "Souhlasím s pravidly a podmínkami",
+      "title": "Pravidla a podmínky"
+    },
     "ok": "Potvrdit",
     "options": "Možnosti",
     "reset": "Resetovat",
@@ -610,6 +614,8 @@
       "invalid": "Heslo není platné podle platných pravidel\n"
     },
     "plan": {
+      "general_conditions_accept": "Plán {plan} vyžadoval přijetí obecných podmínek.",
+      "general_conditions_status": "Plan {plan} odkazuje na nezveřejněnou stránku jako obecné podmínky.",
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
     },

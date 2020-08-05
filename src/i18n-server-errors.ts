@@ -22,6 +22,8 @@ i18n([
   'errors.passwordFormat.invalid',
   'errors.plan.notSubscribable',
   'errors.plan.subscribed',
+  'errors.plan.general_conditions_accept',
+  'errors.plan.general_conditions_status',
   'errors.support.disabled',
   'errors.unexpected',
   'errors.user.exists',

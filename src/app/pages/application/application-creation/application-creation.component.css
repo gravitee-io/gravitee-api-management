@@ -78,6 +78,16 @@ app-application-creation-step4 {
   flex: 1;
 }
 
+.application-creation__subscription-form__title {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 4rem;
+}
+
+.application-creation__subscription-form__title h3 {
+  margin: auto 0;
+}
+
 .application-creation__subscription-form__plans {
   display: flex;
   flex-direction: column;
@@ -86,6 +96,20 @@ app-application-creation-step4 {
 .application-creation__subscription-form__plans gv-button {
   align-self: center;
   margin: 2rem 0;
+}
+
+.application-creation__subscription-form__plans__gc {
+  padding: 0.5rem;
+  background-color: var(--gv-theme-neutral-color-lighter);
+  font-size: var(--gv-theme-font-size-m);
+}
+
+.application-creation__subscription-form__plans__gccontent {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 18rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .form-control {

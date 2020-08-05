@@ -76,6 +76,20 @@
   margin-bottom: 16px;
 }
 
+.general_conditions {
+  padding: 2rem;
+  background-color: var(--gv-theme-neutral-color-lighter);
+  font-size: var(--gv-theme-font-size-m);
+}
+
+.general_conditions_content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 30rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .subscription-accepted {
   background-color: var(--gv-theme-color);
   color: var(--gv-theme-font-color-light);

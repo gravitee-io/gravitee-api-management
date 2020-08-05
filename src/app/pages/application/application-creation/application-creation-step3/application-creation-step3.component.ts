@@ -17,9 +17,11 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, View
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { Api, ApiService, ApisResponse, Plan } from '@gravitee/ng-portal-webclient';
+import { Api, ApiService, ApisResponse, Plan, Page } from '@gravitee/ng-portal-webclient';
 import { TranslateService } from '@ngx-translate/core';
 import { SearchRequestParams } from '../../../../utils/search-query-param.enum';
+import { distinctUntilChanged } from 'rxjs/operators';
+import { PageService } from 'src/app/services/page.service';
 
 @Component({
   selector: 'app-application-creation-step3',
@@ -41,6 +43,11 @@ export class ApplicationCreationStep3Component implements OnInit {
   selectedApi: Api;
   disabledPlans: number;
 
+  generalConditions: Map<string, Page> = new Map();
+
+  currentGeneralConditions: Page;
+  _generalConditionsAccepted = false;
+
   subscriptionListOptions: any;
 
   private updateStepsTimer: any;
@@ -49,7 +56,7 @@ export class ApplicationCreationStep3Component implements OnInit {
               private apiService: ApiService,
               private activatedRoute: ActivatedRoute,
               private translateService: TranslateService,
-              private ref: ChangeDetectorRef
+              private ref: ChangeDetectorRef,
   ) {
     this.apiList = [];
     this.subscribeList = [];
@@ -57,10 +64,59 @@ export class ApplicationCreationStep3Component implements OnInit {
     this.plans = [];
   }
 
+  refeshGeneralCondition() {
+    this.ref.detectChanges();
+  }
+
   ngOnInit(): void {
     this.planForm = this.formBuilder.group({
       apiId: new FormControl(null, [Validators.required]),
       planId: new FormControl(null, [Validators.required]),
+      general_conditions_accepted: new FormControl(null),
+    });
+
+    this.planForm.valueChanges
+    .pipe(distinctUntilChanged((prev, curr) => prev.planId === curr.planId))
+    .subscribe(() => {
+      console.info("In SUbscribe test planId");
+      if (this.hasGeneralConditions) {
+
+        this.planForm.get('general_conditions_accepted').setValidators(Validators.requiredTrue);
+
+        const pageId = this.selectedPlan.general_conditions;
+        if (this.generalConditions.get(pageId) === undefined) {
+          let _api = this.planForm.get('apiId').value;
+          if (!_api && this.activatedRoute.snapshot.queryParamMap.has('api')) {
+            _api = this.activatedRoute.snapshot.queryParamMap.get('api');
+          }
+
+          this.apiService.getPageByApiIdAndPageId({
+            apiId: _api,
+            pageId:this.selectedPlan.general_conditions,
+            include: ['content'] }).toPromise()
+          .then((page) => {
+            this.generalConditions.set(page.id, page);
+            this.currentGeneralConditions = page;
+          });
+        } else {
+          this.currentGeneralConditions = this.generalConditions.get(pageId);
+        }
+
+      } else {
+        this.planForm.get('general_conditions_accepted').clearValidators();
+      }
+
+      this.planForm.get('general_conditions_accepted').setValue(false);
+      this._generalConditionsAccepted = false;
+      this.ref.detectChanges();
+    });
+
+    this.planForm.valueChanges
+    .pipe(distinctUntilChanged((prev, curr) => prev.general_conditions_accepted === curr.general_conditions_accepted))
+    .subscribe(() => {
+      console.info("In SUbscribe test Accepted");
+      this._generalConditionsAccepted = this.planForm.get('general_conditions_accepted').value;
+      this.ref.detectChanges();
     });
 
     if (this.activatedRoute.snapshot.queryParamMap.has('api')) {
@@ -149,12 +205,30 @@ export class ApplicationCreationStep3Component implements OnInit {
     this.loadPlans(api);
   }
 
+  get generalConditionsAccepted() {
+    return (!this.hasGeneralConditions || this._generalConditionsAccepted);
+  }
+
+  get generalConditionsAcceptedAndPlanSubscribed() {
+    // 'canAddPlan' is used to keep the GCU displayed until the user click on subscribe button
+    return (!this.hasGeneralConditions || (this.canAddPlan && this._generalConditionsAccepted));
+  }
+
   requireComment() {
     return this.hasRequireComment(this.selectedPlan);
   }
 
   hasRequireComment(plan) {
     return plan && plan.comment_required;
+  }
+
+  getCurrentGeneralConditions() {
+    return this.currentGeneralConditions;
+  }
+
+  get hasGeneralConditions() {
+    const plan = this.selectedPlan;
+    return plan !== undefined && plan.general_conditions !== undefined && plan.general_conditions !== '';
   }
 
   private async loadPlans(api) {
@@ -170,7 +244,7 @@ export class ApplicationCreationStep3Component implements OnInit {
   }
 
   get canAddPlan() {
-    return this.subscribeList.find((s) => s.plan.id === this.selectedPlan.id) != null;
+    return this.subscribeList && this.subscribeList.find((s) => s.plan.id === this.selectedPlan.id) != null;
   }
 
   get requireClientId() {
@@ -179,17 +253,28 @@ export class ApplicationCreationStep3Component implements OnInit {
 
   addPlan() {
     if (this.planForm.valid && this.selectedApi && this.selectedPlan) {
-      this.subscribeList = [...this.subscribeList, {
+      const _subscription: any = {
         api: this.selectedApi,
         plan: this.selectedPlan,
         requiredComment: this.requireComment(),
         request: ''
-      }];
+      };
+
+      if (this.hasGeneralConditions) {
+          _subscription.general_conditions_accepted = this.planForm.get('general_conditions_accepted').value;
+          _subscription.general_conditions_content_revision = this.currentGeneralConditions.contentRevisionId;
+      }
+
+      this.subscribeList = [...this.subscribeList, _subscription];
       this.updated.emit(this.subscribeList);
     }
   }
 
   removePlan(plan) {
+    if (this.planForm.get('planId').value === plan.id && this.hasGeneralConditions) {
+      this.planForm.get('general_conditions_accepted').setValue(false);
+      this._generalConditionsAccepted = false;
+    }
     this.subscribeList = this.subscribeList.filter((s) => !(s.plan.id === plan.id));
     this.updated.emit(this.subscribeList);
     this.ref.detectChanges();
