@@ -108,7 +108,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         assertEquals(1, pages.size());
         assertNotNull(pages.get(0).getLinks());
     }
-    
+
     @Test
     public void shouldGetNoApiPage() {
         final Builder request = target(API).path("pages").request();

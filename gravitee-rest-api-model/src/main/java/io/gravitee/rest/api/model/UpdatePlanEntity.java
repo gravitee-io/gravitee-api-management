@@ -60,6 +60,9 @@ public class UpdatePlanEntity {
     @JsonProperty("comment_message")
     private String commentMessage;
 
+    @JsonProperty("general_conditions")
+    private String generalConditions;
+
     private Set<String> tags;
 
     @JsonProperty("selection_rule")
@@ -167,6 +170,14 @@ public class UpdatePlanEntity {
 
     public void setSelectionRule(String selectionRule) {
         this.selectionRule = selectionRule;
+    }
+
+    public String getGeneralConditions() {
+        return generalConditions;
+    }
+
+    public void setGeneralConditions(String generalConditions) {
+        this.generalConditions = generalConditions;
     }
 
     @Override

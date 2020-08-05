@@ -3129,7 +3129,10 @@ components:
 
             The content of the page.
           type: string
-
+        contentRevisionId:
+          description:
+            The page revision used to fill the content.
+          $ref: '#/components/schemas/PageRevisionId'
     Plan:
       required:
         - id
@@ -3177,6 +3180,9 @@ components:
           type: boolean
         comment_question:
           description: Content of the message sent to a user creating a subscription.
+          type: string
+        general_conditions:
+          description: The  page reference with general conditions of use for the API.
           type: string
     Rating:
       required:
@@ -3913,6 +3919,12 @@ components:
         request:
           description: A request message to the api owner why a user want to subscribe
           type: string
+        general_conditions_accepted:
+          description: Specify if the general conditions have been accepted by the API subscriber
+          type: boolean
+        general_conditions_content_revision:
+          description: Page revision of the general conditions visualized and accepted by the API subscriber
+          $ref: '#/components/schemas/PageRevisionId'
     TransferOwnershipInput:
       properties:
         new_primary_owner_id:
@@ -4286,6 +4298,13 @@ components:
         - GITHUB
         - GRAVITEEIO_AM
         - OIDC
+    PageRevisionId:
+      properties:
+        pageId:
+          type: string
+        revision:
+          type: integer
+          format: int32
     #################
     # Links Objects #
     #################

@@ -141,7 +141,6 @@ public class PageRevisionServiceTest {
         PageRevision createdRev = newRevisionCaptor.getValue();
         assertNotNull(createdRev);
         assertEquals(1, createdRev.getRevision());
-
     }
 
     @Test(expected = TechnicalManagementException.class)
@@ -153,54 +152,4 @@ public class PageRevisionServiceTest {
         pageRevisionService.create(page);
     }
 
-    @Test
-    public void shouldDeleteRevision_NoRevision() throws TechnicalException {
-
-        when(pageRevisionRepository.findLastByPageId(PAGE_ID)).thenReturn(Optional.empty());
-        pageRevisionService.deleteAllByPageId(PAGE_ID);
-
-        verify(pageRevisionRepository).findLastByPageId(anyString());
-        verify(pageRevisionRepository, times(0)).deleteAllByPageId(anyString());
-
-        // check audit call
-        verify(auditService, times(0)).createApiAuditLog(anyString(), anyMap(), any(), any(), any(), any());
-        verify(auditService, times(0)).createPortalAuditLog(anyMap(), any(), any(), any(), any());
-    }
-
-    @Test
-    public void shouldDeleteRevision_ApiDoc() throws TechnicalException {
-        PageRevision revision = mock(PageRevision.class);
-
-        when(pageRevisionRepository.findLastByPageId(PAGE_ID)).thenReturn(Optional.of(revision));
-
-        ArgumentCaptor<String> pageIdCaptor = ArgumentCaptor.forClass(String.class);
-
-        pageRevisionService.deleteAllByPageId(PAGE_ID);
-
-        verify(pageRevisionRepository).findLastByPageId(PAGE_ID);
-        verify(pageRevisionRepository).deleteAllByPageId(pageIdCaptor.capture());
-
-        String pid = pageIdCaptor.getValue();
-        assertEquals(PAGE_ID, pid);
-
-    }
-
-
-    @Test
-    public void shouldDeleteRevision_PortalDoc() throws TechnicalException {
-        PageRevision revision = mock(PageRevision.class);
-
-        when(pageRevisionRepository.findLastByPageId(PAGE_ID)).thenReturn(Optional.of(revision));
-
-        ArgumentCaptor<String> pageIdCaptor = ArgumentCaptor.forClass(String.class);
-
-        pageRevisionService.deleteAllByPageId(PAGE_ID);
-
-        verify(pageRevisionRepository).findLastByPageId(PAGE_ID);
-        verify(pageRevisionRepository).deleteAllByPageId(pageIdCaptor.capture());
-
-        String pid = pageIdCaptor.getValue();
-        assertEquals(PAGE_ID, pid);
-
-    }
 }

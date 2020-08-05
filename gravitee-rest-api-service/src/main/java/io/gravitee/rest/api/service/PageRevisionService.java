@@ -15,14 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageRevision;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.PageRevisionEntity;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -30,6 +27,8 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface PageRevisionService {
+
+	io.gravitee.common.data.domain.Page<PageRevisionEntity> findAll(Pageable pageable);
 
 	Optional<PageRevisionEntity> findById(String pageId, int revision);
 
@@ -39,5 +38,4 @@ public interface PageRevisionService {
 
 	PageRevisionEntity create(Page page);
 
-	void deleteAllByPageId(String pageId);
 }

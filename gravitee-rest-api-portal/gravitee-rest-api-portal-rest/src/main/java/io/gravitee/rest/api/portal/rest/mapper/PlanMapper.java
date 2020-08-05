@@ -40,6 +40,7 @@ public class PlanMapper {
         planItem.setOrder(plan.getOrder());
         planItem.setSecurity(SecurityEnum.fromValue(plan.getSecurity().name()));
         planItem.setValidation(ValidationEnum.fromValue(plan.getValidation().name()));
+        planItem.setGeneralConditions(plan.getGeneralConditions());
         return planItem;
     }
 }

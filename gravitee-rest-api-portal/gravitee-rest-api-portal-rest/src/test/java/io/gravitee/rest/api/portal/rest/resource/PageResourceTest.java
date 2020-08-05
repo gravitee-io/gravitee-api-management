@@ -203,4 +203,5 @@ public class PageResourceTest extends AbstractResourceTest {
         Response response = target(UNPUBLISHED_PAGE).path("content").request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
+
 }

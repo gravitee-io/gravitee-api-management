@@ -71,6 +71,9 @@ public class NewPlanEntity {
     @JsonProperty("selection_rule")
     private String selectionRule;
 
+    @JsonProperty("general_conditions")
+    private String generalConditions;
+
     public String getName() {
         return name;
     }
@@ -189,6 +192,14 @@ public class NewPlanEntity {
 
     public void setSelectionRule(String selectionRule) {
         this.selectionRule = selectionRule;
+    }
+
+    public String getGeneralConditions() {
+        return generalConditions;
+    }
+
+    public void setGeneralConditions(String generalConditions) {
+        this.generalConditions = generalConditions;
     }
 
     @Override

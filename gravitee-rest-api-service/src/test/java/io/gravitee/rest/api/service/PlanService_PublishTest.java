@@ -18,14 +18,12 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
-import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
-import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 
 import org.junit.Test;
@@ -68,6 +66,9 @@ public class PlanService_PublishTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private PageService pageService;
 
 
     @Test(expected = PlanAlreadyPublishedException.class)
@@ -141,5 +142,45 @@ public class PlanService_PublishTest {
 
         verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
         verify(planRepository, times(1)).update(plan);
+    }
+
+    @Test
+    public void shouldPublish_WithPublishGCPage() throws TechnicalException {
+        final String GC_PAGE_ID = "GC_PAGE_ID";
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(plan.getGeneralConditions()).thenReturn(GC_PAGE_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+
+        PageEntity page = mock(PageEntity.class);
+        when(page.getId()).thenReturn(GC_PAGE_ID);
+        when(page.isPublished()).thenReturn(true);
+        when(pageService.findById(page.getId())).thenReturn(page);
+
+        planService.publish(PLAN_ID);
+
+        verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
+        verify(planRepository, times(1)).update(plan);
+    }
+
+    @Test(expected = PlanGeneralConditionStatusException.class)
+    public void shouldNotPublish_WithNotPublishGCPage() throws TechnicalException {
+        final String GC_PAGE_ID = "GC_PAGE_ID";
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(plan.getGeneralConditions()).thenReturn(GC_PAGE_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+
+        PageEntity page = mock(PageEntity.class);
+        when(page.getId()).thenReturn(GC_PAGE_ID);
+        when(page.isPublished()).thenReturn(false);
+        when(pageService.findById(page.getId())).thenReturn(page);
+
+        planService.publish(PLAN_ID);
     }
 }

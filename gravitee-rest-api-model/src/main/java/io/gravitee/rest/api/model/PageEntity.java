@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
 
@@ -46,6 +47,15 @@ public class PageEntity implements Indexable {
     private List<String> excludedGroups;
     private Map<String, String> metadata;
     private List<PageEntity> translations;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Boolean generalConditions;
+
+    /**
+     * revision Id of the page used to fill the content attributes
+     */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private PageRevisionId contentRevisionId;
 
     public String getId() {
         return id;
@@ -102,6 +112,7 @@ public class PageEntity implements Indexable {
     public void setPublished(boolean published) {
         this.published = published;
     }
+
 
     public Date getLastModificationDate() {
         return lastModificationDate;
@@ -175,6 +186,22 @@ public class PageEntity implements Indexable {
         this.translations = translations;
     }
 
+    public Boolean isGeneralConditions() {
+        return generalConditions;
+    }
+
+    public void setGeneralConditions(boolean generalConditions) {
+        this.generalConditions = generalConditions;
+    }
+
+    public PageRevisionId getContentRevisionId() {
+        return contentRevisionId;
+    }
+
+    public void setContentRevisionId(PageRevisionId contentRevisionId) {
+        this.contentRevisionId = contentRevisionId;
+    }
+
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -209,6 +236,34 @@ public class PageEntity implements Indexable {
 				", excludedGroups=" + excludedGroups +
 				", metadata='" + metadata + '\'' +
 				", translations='" + translations + '\'' +
+				", generalConditions='" + generalConditions + '\'' +
+				", contentRevisionId='" + contentRevisionId + '\'' +
 				'}';
 	}
+
+	public static class PageRevisionId {
+        private final String pageId;
+        private final int revision;
+
+        public PageRevisionId(String pageId, int revision) {
+            this.pageId = pageId;
+            this.revision = revision;
+        }
+
+        public String getPageId() {
+            return pageId;
+        }
+
+        public int getRevision() {
+            return revision;
+        }
+
+        @Override
+        public String toString() {
+            return "PageRevisionId{" +
+                    "pageId='" + pageId + '\'' +
+                    ", revision=" + revision +
+                    '}';
+        }
+    }
 }

@@ -186,6 +186,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             }
 
+            if (planEntity.getGeneralConditions() != null
+                    && !planEntity.getGeneralConditions().isEmpty()
+                    && (Boolean.FALSE.equals(newSubscriptionEntity.getGeneralConditionsAccepted())
+                    || (newSubscriptionEntity.getGeneralConditionsContentRevision() == null))) {
+                throw new PlanGeneralConditionAcceptedException(planEntity.getName());
+            }
+
             ApplicationEntity applicationEntity = applicationService.findById(application);
             if (ApplicationStatus.ARCHIVED.name().equals(applicationEntity.getStatus())) {
                 throw new ApplicationArchivedException(applicationEntity.getName());
@@ -267,6 +274,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setClientId(clientId);
             String apiId = planEntity.getApi();
             subscription.setApi(apiId);
+            subscription.setGeneralConditionsAccepted(newSubscriptionEntity.getGeneralConditionsAccepted());
+            if (newSubscriptionEntity.getGeneralConditionsContentRevision() != null) {
+                subscription.setGeneralConditionsContentRevision(newSubscriptionEntity.getGeneralConditionsContentRevision().getRevision());
+                subscription.setGeneralConditionsContentPageId(newSubscriptionEntity.getGeneralConditionsContentRevision().getPageId());
+            }
+
             subscription = subscriptionRepository.create(subscription);
 
             createAudit(apiId, application, SUBSCRIPTION_CREATED, subscription.getCreatedAt(), null, subscription);
@@ -808,7 +821,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             Subscription subscription = optSubscription.get();
             if (planEntity.getStatus() != PlanStatus.PUBLISHED ||
-                    !planEntity.getSecurity().equals(planService.findById(subscription.getPlan()).getSecurity())) {
+                    !planEntity.getSecurity().equals(planService.findById(subscription.getPlan()).getSecurity()) ||
+                    (planEntity.getGeneralConditions() != null && !planEntity.getGeneralConditions().isEmpty())) {
                 throw new TransferNotAllowedException(planEntity.getId());
             }
 

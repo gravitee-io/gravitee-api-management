@@ -57,7 +57,7 @@ public class PageResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
-        if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+        if (isDisplayable(pageEntity)) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
             }
@@ -86,7 +86,7 @@ public class PageResource extends AbstractResource {
 
         PageEntity pageEntity = pageService.findById(pageId, null);
 
-        if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+        if (isDisplayable(pageEntity)) {
             pageService.transformWithTemplate(pageEntity, null);
             return Response.ok(pageEntity.getContent()).build();
         } else {
@@ -94,8 +94,7 @@ public class PageResource extends AbstractResource {
         }
     }
 
-    private boolean isDisplayable(boolean isPagePublished, List<String> excludedGroups) {
-        return isPagePublished
-                && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull());
+    private boolean isDisplayable(PageEntity page) {
+        return page.isPublished() && groupService.isUserAuthorizedToAccessPortalData(page.getExcludedGroups(), getAuthenticatedUserOrNull());
     }
 }

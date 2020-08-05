@@ -16,14 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -97,6 +97,12 @@ public class ApiPagesResource extends AbstractResource {
                             , translated?acceptedLocale:null)
                     .stream()
                     .filter(page -> isDisplayable(apiEntity, page.isPublished(), page.getExcludedGroups()))
+                    .map(page -> {
+                        // check if the page is used as GeneralCondition by an active Plan
+                        // and update the PageEntity to transfer the information to the FrontEnd
+                        page.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(page, api));
+                        return page;
+                    })
                     .collect(Collectors.toList());
         }
         throw new ForbiddenAccessException();

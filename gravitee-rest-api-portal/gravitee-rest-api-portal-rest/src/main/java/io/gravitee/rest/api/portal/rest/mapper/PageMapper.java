@@ -17,13 +17,10 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.portal.rest.model.Metadata;
-import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Page.TypeEnum;
-import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.DocExpansionEnum;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.ViewerEnum;
-import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneOffset;
@@ -66,6 +63,13 @@ public class PageMapper {
         }
         if (page.getLastModificationDate() != null) {
             pageItem.setUpdatedAt(page.getLastModificationDate().toInstant().atOffset(ZoneOffset.UTC));
+        }
+
+        if (page.getContentRevisionId() != null) {
+            final PageRevisionId contentRevisionId = new PageRevisionId();
+            contentRevisionId.setPageId(page.getContentRevisionId().getPageId()); // do not use the pageId because the content maybe a translation (so a different pageId in the revisionId)
+            contentRevisionId.setRevision(page.getContentRevisionId().getRevision());
+            pageItem.setContentRevisionId(contentRevisionId);
         }
 
         return pageItem;

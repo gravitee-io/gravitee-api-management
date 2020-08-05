@@ -100,6 +100,9 @@ public class PlanEntity {
     @JsonProperty("comment_message")
     private String commentMessage;
 
+    @JsonProperty("general_conditions")
+    private String generalConditions;
+
     @DeploymentRequired
     private Set<String> tags;
 
@@ -281,6 +284,14 @@ public class PlanEntity {
 
     public void setSelectionRule(String selectionRule) {
         this.selectionRule = selectionRule;
+    }
+
+    public String getGeneralConditions() {
+        return generalConditions;
+    }
+
+    public void setGeneralConditions(String generalConditions) {
+        this.generalConditions = generalConditions;
     }
 
     @Override

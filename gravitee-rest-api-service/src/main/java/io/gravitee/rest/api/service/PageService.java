@@ -18,8 +18,10 @@ package io.gravitee.rest.api.service;
 import java.util.List;
 import java.util.Map;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 
 /**
@@ -29,6 +31,8 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
  * @author GraviteeSource Team
  */
 public interface PageService {
+
+	Page<PageEntity> findAll(Pageable pageable);
 
 	PageEntity findById(String pageId);
 
@@ -75,4 +79,15 @@ public interface PageService {
 	Map<SystemFolderType, String> initialize(String environmentId);
 
 	PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId);
+
+	/**
+	 * Check if the page is used as GeneralCondition by an active Plan for the given ApiID
+	 *
+	 * @param page
+	 * @param apiId
+	 * @return
+	 */
+	boolean isPageUsedAsGeneralConditions(PageEntity page, String apiId);
+
+	boolean shouldHaveRevision(String pageType);
 }

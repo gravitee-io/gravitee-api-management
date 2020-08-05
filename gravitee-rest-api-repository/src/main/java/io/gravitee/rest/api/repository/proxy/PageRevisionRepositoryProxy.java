@@ -15,11 +15,12 @@
  */
 package io.gravitee.rest.api.repository.proxy;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageRevision;
 import org.springframework.stereotype.Component;
@@ -34,8 +35,8 @@ import java.util.Optional;
 @Component
 public class PageRevisionRepositoryProxy extends AbstractProxy<PageRevisionRepository> implements PageRevisionRepository {
     @Override
-    public void deleteAllByPageId(String pageId) throws TechnicalException {
-        target.deleteAllByPageId(pageId);
+    public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
+        return target.findAll(pageable);
     }
 
     @Override

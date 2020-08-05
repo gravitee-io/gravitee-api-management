@@ -19,13 +19,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

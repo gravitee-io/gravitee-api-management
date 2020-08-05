@@ -35,7 +35,7 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-
+import io.gravitee.rest.api.model.PageEntity.PageRevisionId;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -80,7 +80,11 @@ public class SubscriptionsResource extends AbstractResource {
             newSubscriptionEntity.setApplication(subscriptionInput.getApplication());
             newSubscriptionEntity.setPlan(subscriptionInput.getPlan());
             newSubscriptionEntity.setRequest(subscriptionInput.getRequest());
-
+            newSubscriptionEntity.setGeneralConditionsAccepted(subscriptionInput.getGeneralConditionsAccepted());
+            if (subscriptionInput.getGeneralConditionsContentRevision() != null) {
+                final PageRevisionId generalConditionsContentRevision = new PageRevisionId(subscriptionInput.getGeneralConditionsContentRevision().getPageId(), subscriptionInput.getGeneralConditionsContentRevision().getRevision());
+                newSubscriptionEntity.setGeneralConditionsContentRevision(generalConditionsContentRevision);
+            }
             SubscriptionEntity createdSubscription = subscriptionService.create(newSubscriptionEntity);
 
             return Response

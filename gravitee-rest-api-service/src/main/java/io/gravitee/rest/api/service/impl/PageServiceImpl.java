@@ -29,6 +29,7 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
@@ -133,6 +135,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
     @Autowired
     private ImportConfiguration importConfiguration;
 
+    @Autowired
+    private PlanService planService;
+
     private enum PageSituation {
         ROOT, IN_ROOT, IN_FOLDER_IN_ROOT, IN_FOLDER_IN_FOLDER, SYSTEM_FOLDER, IN_SYSTEM_FOLDER, IN_FOLDER_IN_SYSTEM_FOLDER, TRANSLATION;
     }
@@ -190,6 +195,43 @@ public class PageServiceImpl extends TransactionalService implements PageService
     }
 
     @Override
+    public boolean isPageUsedAsGeneralConditions(PageEntity page, String apiId) {
+        boolean result = false;
+        if (PageType.MARKDOWN.name().equals(page.getType())) {
+            Optional<PlanEntity> optPlan = planService.findByApi(apiId).stream()
+                    .filter(p -> p.getGeneralConditions() != null)
+                    .filter(p -> !(PlanStatus.CLOSED.equals(p.getStatus()) || PlanStatus.STAGING.equals(p.getStatus())))
+                    .filter(p -> page.getId().equals(p.getGeneralConditions())).findFirst();
+            result = optPlan.isPresent();
+        }
+        return result;
+    }
+
+    @Override
+    public io.gravitee.common.data.domain.Page<PageEntity> findAll(Pageable pageable) {
+        Objects.requireNonNull(pageable, "FindAll requires a pageable parameter");
+        logger.debug("Find all pages with pageNumber {} and pageSize {}", pageable.getPageNumber(), pageable.getPageSize());
+        try {
+            io.gravitee.repository.management.api.search.Pageable repoPageable = new PageableBuilder()
+                    .pageSize(pageable.getPageSize())
+                    .pageNumber(pageable.getPageNumber())
+                    .build();
+            io.gravitee.common.data.domain.Page<Page> pages = this.pageRepository.findAll(repoPageable);
+            List<PageEntity> entities = pages.getContent().stream().map(this::convert).collect(toList());
+
+            logger.debug("{} pages found", pages.getPageElements());
+            return new io.gravitee.common.data.domain.Page<PageEntity>(
+                    entities,
+                    pages.getPageNumber(),
+                    entities.size(),
+                    pages.getTotalElements());
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to fetch pages", ex);
+            throw new TechnicalManagementException("An error occurs while trying to fetch pages", ex);
+        }
+    }
+
+    @Override
     public PageEntity findById(String pageId) {
         return this.findById(pageId, null);
     }
@@ -202,6 +244,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             Optional<Page> page = pageRepository.findById(pageId);
 
             if (page.isPresent()) {
+                String contentPageId = pageId;
                 PageEntity foundPageEntity = convert(page.get());
                 if (acceptedLocale != null && !acceptedLocale.isEmpty()) {
                     Page translation = getTranslation(foundPageEntity, acceptedLocale);
@@ -210,10 +253,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
                         if (translationName != null && !translationName.isEmpty()) {
                             foundPageEntity.setName(translationName);
                         }
+
                         String inheritContent = translation.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT);
                         if (inheritContent != null && "false".equals(inheritContent)) {
                             foundPageEntity.setContent(translation.getContent());
                         }
+                        // translation is used, set the translation page id as the one used to retrieve the content revision
+                        contentPageId =  translation.getId();
                     }
                 } else {
                     List<PageEntity> translations = convert(getTranslations(foundPageEntity.getId()));
@@ -221,6 +267,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                         foundPageEntity.setTranslations(translations);
                     }
                 }
+                fillContentRevisionId(foundPageEntity, contentPageId);
                 return foundPageEntity;
             }
 
@@ -229,6 +276,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
             logger.error("An error occurs while trying to find a page using its ID {}", pageId, ex);
             throw new TechnicalManagementException(
                     "An error occurs while trying to find a page using its ID " + pageId, ex);
+        }
+    }
+
+    private void fillContentRevisionId(PageEntity foundPageEntity, String pageId) {
+        if (foundPageEntity.getType() != null && shouldHaveRevision(foundPageEntity.getType())) {
+            Optional<PageRevisionEntity> revision = pageRevisionService.findLastByPageId(pageId);
+            if (revision.isPresent()) {
+                foundPageEntity.setContentRevisionId(new PageEntity.PageRevisionId(revision.get().getPageId(), revision.get().getRevision()));
+            } else {
+                logger.info("Revision is missing for the page {}", pageId);
+            }
         }
     }
 
@@ -750,6 +808,22 @@ public class PageServiceImpl extends TransactionalService implements PageService
             page.setReferenceType(pageToUpdate.getReferenceType());
 
             onlyOneHomepage(page);
+
+            // if the page is used as general condition for a plan,
+            // we can't unpublish it until the plan is closed
+            if (PageReferenceType.API.equals(pageToUpdate.getReferenceType())) {
+                if (!updatePageEntity.isPublished()) {
+                    Optional<PlanEntity> activePlan = planService.findByApi(pageToUpdate.getReferenceId()).stream()
+                            .filter(plan -> plan.getGeneralConditions() != null)
+                            .filter(plan -> pageToUpdate.getId().equals(plan.getGeneralConditions()))
+                            .filter(plan -> !(PlanStatus.CLOSED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())))
+                            .findFirst();
+                    if (activePlan.isPresent()) {
+                        throw new PageUsedAsGeneralConditionsException(pageId, page.getName(), "unpublish", activePlan.get().getName());
+                    }
+                }
+            }
+
             // if order change, reorder all pages
             if (page.getOrder() != pageToUpdate.getOrder()) {
                 reorderAndSavePages(page);
@@ -923,7 +997,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
             this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build()).stream()
                     .forEach(p -> {
                         try {
-                            pageRevisionService.deleteAllByPageId(p.getId());
                             pageRepository.delete(p.getId());
                         } catch (TechnicalException ex) {
                             logger.error("An error occurs while trying to delete Page {}", p.getId(), ex);
@@ -1368,11 +1441,24 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 throw new TechnicalManagementException("Unable to remove the folder. It must be empty before being removed.");
             }
 
-            // delete revision first to avoid orphan data is case of failure
-            pageRevisionService.deleteAllByPageId(pageId);
+            // if the page is used as general condition for a plan,
+            // we can't remove it until the plan is closed
+            if (page.getReferenceType() != null && page.getReferenceType().equals(PageReferenceType.API)) {
+                Optional<PlanEntity> activePlan = planService.findByApi(page.getReferenceId()).stream()
+                        .filter(plan -> plan.getGeneralConditions() != null)
+                        .filter(plan -> // check the page and the parent for translations.
+                                (PageType.TRANSLATION.name().equals(page.getType()) && plan.getGeneralConditions().equals(page.getParentId()))
+                                || plan.getGeneralConditions().equals(page.getId()))
+                        .filter(plan -> !PlanStatus.CLOSED.equals(plan.getStatus()))
+                        .findFirst();
+
+
+                if (activePlan.isPresent()) {
+                    throw new PageUsedAsGeneralConditionsException(pageId, page.getName(), "remove", activePlan.get().getName());
+                }
+            }
 
             pageRepository.delete(pageId);
-
 
             // delete links and translations related to the page
             if (!PageType.LINK.name().equalsIgnoreCase(page.getType()) && !PageType.TRANSLATION.name().equalsIgnoreCase(page.getType())) {
@@ -1649,7 +1735,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
         page.setPublished(
                 updatePageEntity.isPublished() != null ? updatePageEntity.isPublished() : withUpdatePage.isPublished()
         );
-
         PageSource pageSource = convert(updatePageEntity.getSource());
         page.setSource(
                 pageSource != null ? pageSource : withUpdatePage.getSource()
@@ -1917,5 +2002,18 @@ public class PageServiceImpl extends TransactionalService implements PageService
         newSysFolder.setPublished(true);
         newSysFolder.setType(PageType.SYSTEM_FOLDER);
         return this.createPage(apiId, newSysFolder, environmentId);
+    }
+
+    @Override
+    public boolean shouldHaveRevision(String pageType) {
+        PageType type = PageType.valueOf(pageType);
+        switch (type) {
+            case MARKDOWN:
+            case SWAGGER:
+            case TRANSLATION:
+                return true;
+            default:
+                return false;
+        }
     }
 }

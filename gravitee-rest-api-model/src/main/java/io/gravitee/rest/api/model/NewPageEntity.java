@@ -41,7 +41,7 @@ public class NewPageEntity {
 	private int order;
 
 	private boolean published;
-	
+
 	private String lastContributor;
 
 	private PageSourceEntity source;

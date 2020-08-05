@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model;
 
 /**
+ * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -24,6 +25,8 @@ public class NewSubscriptionEntity {
     private String application;
     private String plan;
     private String request;
+    private PageEntity.PageRevisionId generalConditionsContentRevision;
+    private Boolean generalConditionsAccepted;
 
     public NewSubscriptionEntity() {
     }
@@ -55,5 +58,21 @@ public class NewSubscriptionEntity {
 
     public void setRequest(String request) {
         this.request = request;
+    }
+
+    public Boolean getGeneralConditionsAccepted() {
+        return generalConditionsAccepted;
+    }
+
+    public void setGeneralConditionsAccepted(Boolean generalConditionsAccepted) {
+        this.generalConditionsAccepted = generalConditionsAccepted;
+    }
+
+    public PageEntity.PageRevisionId getGeneralConditionsContentRevision() {
+        return generalConditionsContentRevision;
+    }
+
+    public void setGeneralConditionsContentRevision(PageEntity.PageRevisionId generalConditionsContentRevision) {
+        this.generalConditionsContentRevision = generalConditionsContentRevision;
     }
 }

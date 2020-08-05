@@ -17,22 +17,17 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
-import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.rest.api.model.PageConfigurationKeys;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.UpdatePageEntity;
-import io.gravitee.rest.api.service.exceptions.PageActionException;
-import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
-import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
@@ -80,6 +75,9 @@ public class PageService_UpdateTest {
 
     @Mock
     private PageRevisionService pageRevisionService;
+
+    @Mock
+    private PlanService planService;
 
     @Test
     public void shouldUpdate() throws TechnicalException {
@@ -456,5 +454,86 @@ public class PageService_UpdateTest {
         pageService.update(PAGE_ID, existingPage);
 
         verify(pageRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_UnpublishPage_LinkedToStagingPlan() throws TechnicalException {
+        shouldUnpublishPage(PlanStatus.STAGING);
+    }
+
+    @Test
+    public void should_UnpublishPage_LinkedToClosedPlan() throws TechnicalException {
+        shouldUnpublishPage(PlanStatus.CLOSED);
+    }
+
+    private void shouldUnpublishPage(PlanStatus planStatus) throws TechnicalException {
+        final String API_ID = "API_ID_TEST";
+        Page unpublishedPage = new Page();
+        unpublishedPage.setId(PAGE_ID);
+        unpublishedPage.setOrder(1);
+        unpublishedPage.setReferenceId(API_ID);
+        unpublishedPage.setReferenceType(PageReferenceType.API);
+        unpublishedPage.setType("MARKDOWN");
+        unpublishedPage.setPublished(true);
+        doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
+
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setPublished(false);
+        updatePageEntity.setOrder(1);
+
+        Page updatedPage = new Page();
+        updatedPage.setId(PAGE_ID);
+        updatedPage.setOrder(1);
+        updatedPage.setReferenceId(API_ID);
+        updatedPage.setReferenceType(PageReferenceType.API);
+        updatedPage.setType("MARKDOWN");
+        updatedPage.setPublished(false);
+        doReturn(updatedPage).when(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID)));
+
+        PlanEntity plan = mock(PlanEntity.class);
+        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
+        when(plan.getStatus()).thenReturn(planStatus);
+        when(planService.findByApi(API_ID)).thenReturn(Sets.newSet(plan));
+
+        pageService.update(PAGE_ID, updatePageEntity);
+
+        verify(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID) && !p.isPublished()));
+        verify(planService).findByApi(argThat(p -> p.equals(API_ID)));
+    }
+
+
+    @Test(expected = PageUsedAsGeneralConditionsException.class)
+    public void shouldNotUnpublishPage_LinkedToPublishedPlan() throws TechnicalException {
+        shouldNotUnpublishPage(PlanStatus.PUBLISHED);
+    }
+
+    @Test(expected = PageUsedAsGeneralConditionsException.class)
+    public void shouldNotUnpublishPage_LinkedToDepreciatedPlan() throws TechnicalException {
+        shouldNotUnpublishPage(PlanStatus.DEPRECATED);
+    }
+
+    private void shouldNotUnpublishPage(PlanStatus planStatus) throws TechnicalException {
+        final String API_ID = "API_ID_TEST";
+        Page unpublishedPage = new Page();
+        unpublishedPage.setId(PAGE_ID);
+        unpublishedPage.setOrder(1);
+        unpublishedPage.setReferenceId(API_ID);
+        unpublishedPage.setReferenceType(PageReferenceType.API);
+        unpublishedPage.setType("MARKDOWN");
+        unpublishedPage.setPublished(true);
+        doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
+
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setPublished(false);
+        updatePageEntity.setOrder(1);
+
+        PlanEntity plan = mock(PlanEntity.class);
+        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
+        when(plan.getStatus()).thenReturn(planStatus);
+        when(planService.findByApi(API_ID)).thenReturn(Sets.newSet(plan));
+
+        pageService.update(PAGE_ID, updatePageEntity);
+
+        verify(planService).findByApi(argThat(p -> p.equals(API_ID)));
     }
 }

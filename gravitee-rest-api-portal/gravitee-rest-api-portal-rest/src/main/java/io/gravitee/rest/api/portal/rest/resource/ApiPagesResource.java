@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
@@ -73,7 +74,7 @@ public class ApiPagesResource extends AbstractResource {
             
             Stream<Page> pageStream = pageService.search(new PageQuery.Builder().api(apiId).homepage(homepage).published(true).build(), acceptedLocale)
                     .stream()
-                    .filter(pageEntity -> isDisplayable(apiEntity, pageEntity.getExcludedGroups(), pageEntity.getType()))
+                    .filter(pageEntity -> isDisplayable(apiEntity, pageEntity))
                     .map(pageMapper::convert)
                     .map(page -> this.addPageLink(apiId, page));
 
@@ -117,9 +118,9 @@ public class ApiPagesResource extends AbstractResource {
         return resourceContext.getResource(ApiPageResource.class);
     }
 
-    private boolean isDisplayable(ApiEntity api, List<String> excludedGroups, String pageType) {
-        return groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull())
-                && !"SYSTEM_FOLDER".equals(pageType);
+    private boolean isDisplayable(ApiEntity api, PageEntity page) {
+        return groupService.isUserAuthorizedToAccessApiData(api, page.getExcludedGroups(), getAuthenticatedUserOrNull())
+                && !"SYSTEM_FOLDER".equals(page.getType());
     }
     
     private Page addPageLink(String apiId, Page page) {

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.repository.proxy;
 import java.util.List;
 import java.util.Optional;
 
+import io.gravitee.repository.management.api.search.Pageable;
 import org.springframework.stereotype.Component;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -66,5 +67,10 @@ public class PageRepositoryProxy extends AbstractProxy<PageRepository> implement
     public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
             throws TechnicalException {
         return target.findMaxPageReferenceIdAndReferenceTypeOrder(referenceId, referenceType);
+    }
+
+    @Override
+    public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException {
+        return target.findAll(pageable);
     }
 }

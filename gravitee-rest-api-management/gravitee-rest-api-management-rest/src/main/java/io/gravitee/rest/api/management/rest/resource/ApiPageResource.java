@@ -16,10 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.UpdatePageEntity;
-import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -73,7 +70,13 @@ public class ApiPageResource extends AbstractResource {
 
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
+
             PageEntity pageEntity = pageService.findById(page, translated?acceptedLocale:null);
+
+            // check if the page is used as GeneralCondition by an active Plan
+            // and update the PageEntity to transfer the information to the FrontEnd
+            pageEntity.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(pageEntity, api));
+
             if (portal) {
                 pageService.transformSwagger(pageEntity, api);
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {

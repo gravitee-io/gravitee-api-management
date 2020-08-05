@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRevisionRepository;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageRevision;
 import io.gravitee.rest.api.model.PageRevisionEntity;
@@ -52,6 +53,25 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
 
     @Autowired
     private AuditService auditService;
+
+    @Override
+    public io.gravitee.common.data.domain.Page<PageRevisionEntity> findAll(Pageable pageable) {
+        logger.debug("get all page revisions with pageable {}", pageable);
+        try {
+            io.gravitee.common.data.domain.Page<PageRevision> revisions = pageRevisionRepository.findAll(pageable);
+            List<PageRevisionEntity> revisionEntities = revisions.getContent()
+                    .stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
+            return new io.gravitee.common.data.domain.Page<PageRevisionEntity>(revisionEntities,
+                    revisions.getPageNumber(),
+                    revisionEntities.size(),
+                    revisions.getTotalElements());
+        } catch (TechnicalException e) {
+            logger.warn("An error occurs while trying to get the page revisions {}", pageable, e);
+            throw new TechnicalManagementException("An error occurs while trying to get all page revisions", e);
+        }
+    }
 
     @Override
     public Optional<PageRevisionEntity> findById(String pageId, int revision) {
@@ -105,21 +125,6 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         }
     }
 
-    @Override
-    public void deleteAllByPageId(String pageId) {
-        try {
-            logger.debug("Delete all revisions for page {}", pageId);
-
-            Optional<PageRevision> optRevision = pageRevisionRepository.findLastByPageId(pageId);
-            if(optRevision.isPresent()) {
-                pageRevisionRepository.deleteAllByPageId(pageId);
-            }
-        } catch (TechnicalException e) {
-            logger.warn("An error occurs while trying to delete all revisions for page {}", pageId, e);
-            throw new TechnicalManagementException("An error occurs while trying to delete all revisions", e);
-        }
-    }
-
     private PageRevisionEntity convert(PageRevision revision) {
         PageRevisionEntity entity = new PageRevisionEntity();
         entity.setPageId(revision.getPageId());
@@ -140,7 +145,6 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
                 .map(rev -> rev.getRevision() + 1)
                 .orElse(1));
 
-        // contact pageId with revision as identifier
         revision.setName(page.getName());
         revision.setContent(page.getContent());
         revision.setContributor(page.getLastContributor());

@@ -311,6 +311,7 @@ public class ApiPlansResource extends AbstractResource {
         filtered.setValidation(filtered.getValidation());
         filtered.setCommentRequired(entity.isCommentRequired());
         filtered.setCommentMessage(entity.getCommentMessage());
+        filtered.setGeneralConditions(entity.getGeneralConditions());
 
         return filtered;
     }

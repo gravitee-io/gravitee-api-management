@@ -20,6 +20,8 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageRevisionEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
@@ -59,6 +61,9 @@ public class PageService_FindByIdTest {
 
     @Mock
     private Page translationPage;
+
+    @Mock
+    private PageRevisionService pageRevisionService;
     
     @Test
     public void shouldFindById() throws TechnicalException {
@@ -70,10 +75,16 @@ public class PageService_FindByIdTest {
         when(translationPage.getConfiguration()).thenReturn(conf);
 
         when(page1.getId()).thenReturn(PAGE_ID);
+        when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
         when(page1.getOrder()).thenReturn(1);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.search(argThat(p->"TRANSLATION".equals(p.getType()) && PAGE_ID.equals(p.getParent())))).thenReturn(Arrays.asList(translationPage));
-        
+
+        final PageRevisionEntity pageRevision = new PageRevisionEntity();
+        pageRevision.setRevision(5);
+        pageRevision.setPageId(PAGE_ID);
+        when(pageRevisionService.findLastByPageId(PAGE_ID)).thenReturn(Optional.of(pageRevision));
+
         final PageEntity pageEntity = pageService.findById(PAGE_ID);
 
         assertNotNull(pageEntity);
@@ -85,6 +96,10 @@ public class PageService_FindByIdTest {
         PageEntity oneTranslation = translations.get(0);
         assertNotNull(oneTranslation);
         assertEquals(TRANSLATION_ID, oneTranslation.getId());
+
+        assertNotNull(pageEntity.getContentRevisionId());
+        assertEquals(PAGE_ID, pageEntity.getContentRevisionId().getPageId());
+        assertEquals(5, pageEntity.getContentRevisionId().getRevision());
     }
 
     @Test(expected = PageNotFoundException.class)

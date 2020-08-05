@@ -59,6 +59,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Autowired
     private SubscriptionService subscriptionService;
     @Autowired
+    private PageService pageService;
+    @Autowired
     private ObjectMapper objectMapper;
     @Autowired
     private AuditService auditService;
@@ -168,6 +170,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setCommentMessage(newPlan.getCommentMessage());
             plan.setTags(newPlan.getTags());
             plan.setSelectionRule(newPlan.getSelectionRule());
+            plan.setGeneralConditions(newPlan.getGeneralConditions());
 
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO
@@ -245,6 +248,11 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setCommentMessage(updatePlan.getCommentMessage());
             newPlan.setTags(updatePlan.getTags());
             newPlan.setSelectionRule(updatePlan.getSelectionRule());
+            newPlan.setGeneralConditions(updatePlan.getGeneralConditions());
+
+            if (Plan.Status.PUBLISHED.equals(newPlan.getStatus()) || Plan.Status.DEPRECATED.equals(newPlan.getStatus())) {
+                checkStatusOfGeneralConditions(newPlan);
+            }
 
             String planPolicies = objectMapper.writeValueAsString(updatePlan.getPaths());
             newPlan.setDefinition(planPolicies);
@@ -288,6 +296,15 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             logger.error("Unexpected error while generating plan definition", jse);
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to update a plan %s", updatePlan.getName()), jse);
+        }
+    }
+
+    private void checkStatusOfGeneralConditions(Plan plan) {
+        if (plan.getGeneralConditions() != null && !plan.getGeneralConditions().isEmpty()) {
+            PageEntity generalConditions = pageService.findById(plan.getGeneralConditions());
+            if (!generalConditions.isPublished()) {
+                throw new PlanGeneralConditionStatusException(plan.getName());
+            }
         }
     }
 
@@ -407,6 +424,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             } else if (plan.getStatus() == Plan.Status.DEPRECATED) {
                 throw new PlanAlreadyDeprecatedException(planId);
             }
+
+            checkStatusOfGeneralConditions(plan);
 
             Set<Plan> plans = planRepository.findByApi(plan.getApi());
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
@@ -610,7 +629,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         entity.setCommentMessage(plan.getCommentMessage());
         entity.setTags(plan.getTags());
         entity.setSelectionRule(plan.getSelectionRule());
-
+        entity.setGeneralConditions(plan.getGeneralConditions());
         return entity;
     }
 

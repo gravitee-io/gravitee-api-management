@@ -122,4 +122,5 @@ public class PagesResourceTest extends AbstractResourceTest {
         assertNotNull(pages);
         assertEquals(0, pages.size()); 
     }
+
 }
