@@ -64,6 +64,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         api.setDefinition("{}");
         api.setCreatedAt(parse("11/02/2016"));
         api.setUpdatedAt(parse("12/02/2016"));
+        api.setDisableMembershipNotifications(true);
 
         apiRepository.create(api);
 
@@ -79,6 +80,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Invalid api createdAt.", compareDate(api.getCreatedAt(), apiSaved.getCreatedAt()));
         assertTrue("Invalid api updateAt.", compareDate(api.getUpdatedAt(), apiSaved.getUpdatedAt()));
         assertEquals("Invalid api lifecycle.", api.getApiLifecycleState(), apiSaved.getApiLifecycleState());
+        assertTrue("Invalid api disable membership notifications", apiSaved.isDisableMembershipNotifications());
 
         // test delete
         int nbApplicationBefore = apiRepository.search(null).size();
@@ -109,6 +111,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         api.setVersion("New version");
         api.setVisibility(Visibility.PRIVATE);
         api.setApiLifecycleState(ApiLifecycleState.UNPUBLISHED);
+        api.setDisableMembershipNotifications(false);
 
         int nbAPIsBeforeUpdate = apiRepository.search(null).size();
         apiRepository.update(api);
@@ -134,6 +137,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid API version.", "New version", apiUpdated.getVersion());
         assertEquals("Invalid API visibility.", Visibility.PRIVATE, apiUpdated.getVisibility());
         assertEquals("Invalid API lifecycle state.", ApiLifecycleState.UNPUBLISHED, apiUpdated.getApiLifecycleState());
+        assertFalse("Invalid API disable membership notifications", apiUpdated.isDisableMembershipNotifications());
     }
 
     @Test
@@ -150,6 +154,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid api labels", 2, api.getLabels().size());
         assertEquals("Invalid api label at position 0", "label 1", api.getLabels().iterator().next());
         assertEquals("Invalid api lifecycle state", ApiLifecycleState.DEPRECATED, api.getApiLifecycleState());
+        assertTrue("Invalid api disable membership notifications", api.isDisableMembershipNotifications());
     }
 
     @Test
@@ -354,7 +359,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertTrue(apis.stream().
                 map(Api::getId).
                 collect(toList()).
-                containsAll(asList( "api-to-update", "grouped-api")));
+                containsAll(asList("api-to-update", "grouped-api")));
         assertEquals(PUBLISHED, apis.get(0).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(1).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(2).getApiLifecycleState());
