@@ -66,6 +66,8 @@ public class ApiMongo extends Auditable {
 
     private String apiLifecycleState;
 
+    private boolean disableMembershipNotifications;
+
     public String getId() {
         return id;
     }
@@ -186,6 +188,14 @@ public class ApiMongo extends Auditable {
         this.apiLifecycleState = apiLifecycleState;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -211,6 +221,7 @@ public class ApiMongo extends Auditable {
         sb.append(", groups='").append(groups).append('\'');
         sb.append(", metadatas='").append(metadatas).append('\'');
         sb.append(", apiLifecycleState='").append(apiLifecycleState).append('\'');
+        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications).append('\'');
         sb.append('}');
         return sb.toString();
     }

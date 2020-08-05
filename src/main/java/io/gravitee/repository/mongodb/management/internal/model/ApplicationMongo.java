@@ -53,6 +53,8 @@ public class ApplicationMongo extends Auditable {
 
     private Map<String, String> metadata;
 
+    private boolean disableMembershipNotifications;
+
     public String getId() {
         return id;
     }
@@ -126,6 +128,14 @@ public class ApplicationMongo extends Auditable {
         this.metadata = metadata;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -148,6 +158,7 @@ public class ApplicationMongo extends Auditable {
         sb.append(", type='").append(type).append('\'');
         sb.append(", status='").append(status).append('\'');
         sb.append(", groups='").append(groups).append('\'');
+        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications).append('\'');
         sb.append('}');
         return sb.toString();
     }
