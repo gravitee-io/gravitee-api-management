@@ -33,6 +33,7 @@ import { ApplicationCreationComponent } from '../application/application-creatio
 import { ApplicationGeneralComponent } from '../application/application-general/application-general.component';
 import { ApplicationLogsComponent } from '../application/application-logs/application-logs.component';
 import { ApplicationMembersComponent } from '../application/application-members/application-members.component';
+import { ApplicationMetadataComponent } from '../application/application-metadata/application-metadata.component';
 import { ApplicationNotificationsComponent } from '../application/application-notifications/application-notifications.component';
 import { ApplicationSubscriptionsComponent } from '../application/application-subscriptions/application-subscriptions.component';
 import { SubscriptionsComponent } from '../subscriptions/subscriptions.component';
@@ -46,6 +47,7 @@ import { ApplicationsComponent } from './applications.component';
     ApplicationAnalyticsComponent,
     ApplicationGeneralComponent,
     ApplicationMembersComponent,
+    ApplicationMetadataComponent,
     ApplicationNotificationsComponent,
     ApplicationSubscriptionsComponent,
     SubscriptionsComponent,

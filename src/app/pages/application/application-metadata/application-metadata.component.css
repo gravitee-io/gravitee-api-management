@@ -13,36 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@import "../../../../../src/css/form.css";
 
-@import "../../../../src/css/form.css";
-
-.timeframe gv-option {
-  --gv-option-button--maw: 75px;
-  width: 100%;
-}
-
-.timepicker {
-  display: flex;
-  flex-direction: row;
-}
-
-.timepicker > div {
-  flex: 1;
-}
-
-.timepicker gv-date-picker {
-  width: 350px;
-}
-
-.grid-filters {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-gap: 1rem;
-}
-
-.grid-filters > * {
-  display: flex;
-  align-self: flex-end;
-  width: 100%;
-  flex-direction: column;
+.form .form__actions {
+  justify-content: space-between;
 }

@@ -161,7 +161,7 @@
 
 .layout__footer {
   height: 0px;
-  z-index: 110;
+  z-index: 100;
   display: flex;
   flex-direction: column;
 }

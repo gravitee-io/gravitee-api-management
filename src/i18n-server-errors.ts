@@ -19,6 +19,7 @@ i18n([
   'errors.clientRegistrationProvider.exception',
   'errors.email.required',
   'errors.forbidden',
+  'errors.metadata.exists',
   'errors.passwordFormat.invalid',
   'errors.plan.notSubscribable',
   'errors.plan.subscribed',
