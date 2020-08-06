@@ -131,11 +131,9 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             }
         } else if (ACTION_INDEX.equals(content.getAction())) {
             Indexable source = getSource(content.getClazz(), content.getId());
-            if (source == null) {
-                logger.error("Unable to get source from message content [{}]", content);
-                throw new TechnicalManagementException("Unable to get source from message content [" + content + "]");
+            if (source != null) {
+                indexLocally(source);
             }
-            indexLocally(source);
         }
     }
 
