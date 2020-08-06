@@ -287,11 +287,11 @@ public class ApplicationSubscriptionsResource {
         private String application;
 
         @QueryParam("plan")
-        @ApiParam(value = "plan", required = true)
+        @ApiParam(value = "plan")
         private ListStringParam plans;
 
         @QueryParam("api")
-        @ApiParam(value = "api", required = true)
+        @ApiParam(value = "api")
         private ListStringParam apis;
 
         @QueryParam("status")
