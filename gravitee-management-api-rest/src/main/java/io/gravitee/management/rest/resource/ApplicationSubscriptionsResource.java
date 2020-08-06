@@ -41,7 +41,9 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -119,12 +121,32 @@ public class ApplicationSubscriptionsResource {
     })
     public PagedResult<SubscriptionEntity> listApplicationSubscriptions(
             @BeanParam SubscriptionParam subscriptionParam,
-            @Valid @BeanParam Pageable pageable) {
+            @Valid @BeanParam Pageable pageable,
+            @ApiParam(allowableValues = "keys", value = "Expansion of data to return in subscriptions") @QueryParam("expand") List<String> expand) {
         // Transform query parameters to a subscription query
         SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
 
         Page<SubscriptionEntity> subscriptions = subscriptionService
                 .search(subscriptionQuery, pageable.toPageable());
+
+        if (expand != null && !expand.isEmpty()) {
+            for (String e : expand) {
+                switch (e) {
+                    case "keys":
+                        subscriptions.getContent().forEach(subscriptionEntity -> {
+                            final List<String> keys = apiKeyService.findBySubscription(subscriptionEntity.getId())
+                                    .stream()
+                                    .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
+                                    .map(ApiKeyEntity::getKey)
+                                    .collect(Collectors.toList());
+                            subscriptionEntity.setKeys(keys);
+                        });
+                        break;
+                    default: break;
+                }
+            }
+        }
+
         PagedResult<SubscriptionEntity> result = new PagedResult<>(subscriptions, pageable.getSize());
         result.setMetadata(subscriptionService.getMetadata(subscriptions.getContent()).getMetadata());
         return result;

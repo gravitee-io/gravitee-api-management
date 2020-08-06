@@ -18,6 +18,7 @@ package io.gravitee.management.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -74,6 +75,8 @@ public class SubscriptionEntity {
 
     @JsonProperty("client_id")
     private String clientId;
+
+    private List<String> keys;
 
     public String getId() {
         return id;
@@ -209,6 +212,14 @@ public class SubscriptionEntity {
 
     public void setPausedAt(Date pausedAt) {
         this.pausedAt = pausedAt;
+    }
+
+    public List<String> getKeys() {
+        return keys;
+    }
+
+    public void setKeys(List<String> keys) {
+        this.keys = keys;
     }
 
     @Override
