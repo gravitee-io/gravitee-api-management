@@ -34,6 +34,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -102,6 +104,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         if (apiEntity.getProperties() != null && apiEntity.getProperties().getValues() != null) {
             jsonGenerator.writeObjectField("properties", apiEntity.getProperties());
+        } else {
+            jsonGenerator.writeObjectField("properties", emptyList());
         }
 
         if (apiEntity.getViews() != null && !apiEntity.getViews().isEmpty()) {
@@ -153,7 +157,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             // pages
             if (!filteredFieldsList.contains("pages")) {
                 List<PageEntity> pages = applicationContext.getBean(PageService.class).search(new PageQuery.Builder().api(apiEntity.getId()).build());
-                jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
+                jsonGenerator.writeObjectField("pages", pages == null ? emptyList() : pages);
             }
 
             // plans
