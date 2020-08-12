@@ -67,13 +67,12 @@ public class PortalMediaResource extends AbstractResource {
         if (fileDetail.getSize() > this.mediaService.getMediaMaxSize()) {
             throw new UploadUnauthorized("Max size achieved " + fileDetail.getSize());
         } else {
-            MediaEntity mediaEntity = new MediaEntity(
-                    IOUtils.toByteArray(uploadedInputStream),
-                    body.getMediaType().getType(),
-                    body.getMediaType().getSubtype(),
-                    fileDetail.getFileName(),
-                    fileDetail.getSize());
-
+            MediaEntity mediaEntity = new MediaEntity();
+            mediaEntity.setSize(fileDetail.getSize());
+            mediaEntity.setType(body.getMediaType().getType());
+            mediaEntity.setSubType(body.getMediaType().getSubtype());
+            mediaEntity.setData(IOUtils.toByteArray(uploadedInputStream));
+            mediaEntity.setFileName(fileDetail.getFileName());
             try {
                 ImageUtils.verify(body.getMediaType().getType(), body.getMediaType().getSubtype(), mediaEntity.getData());
             } catch (InvalidImageException e) {
@@ -96,7 +95,7 @@ public class PortalMediaResource extends AbstractResource {
             @Context Request request,
             @PathParam("hash") String hash) {
 
-        MediaEntity mediaEntity = mediaService.findby(hash);
+        MediaEntity mediaEntity = mediaService.findByHash(hash);
 
         if (mediaEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).build();

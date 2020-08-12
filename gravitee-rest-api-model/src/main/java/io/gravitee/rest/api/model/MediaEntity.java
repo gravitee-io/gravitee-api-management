@@ -15,28 +15,28 @@
  */
 package io.gravitee.rest.api.model;
 
-import java.io.InputStream;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Guillaume GILLON
  */
 public class MediaEntity {
 
+    private String id;
     private String type;
     private String subType;
     private String fileName;
     private Date createAt;
     private long size;
-
     private byte [] data;
 
-    public MediaEntity(byte [] data, String type, String subType, String fileName, long size) {
-        this.type = type;
-        this.subType = subType;
-        this.fileName = fileName;
-        this.size = size;
-        this.data = data;
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getType() {
@@ -91,4 +91,27 @@ public class MediaEntity {
         return this.type + '/' + this.subType;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MediaEntity mediaEntity = (MediaEntity) o;
+        return Objects.equals(id, mediaEntity.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    public String toString() {
+        return "MediaEntity{" +
+            "id='" + id + '\'' +
+            ", type='" + type + '\'' +
+            ", subType='" + subType + '\'' +
+            ", filename='" + fileName + '\'' +
+            ", createAt=" + createAt +
+            ", size=" + size +
+            '}';
+    }
 }

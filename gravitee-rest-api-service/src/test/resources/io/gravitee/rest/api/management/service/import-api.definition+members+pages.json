@@ -114,6 +114,7 @@
   ],
   "pages": [
     {
+      "id": "toto",
       "name": "toto",
       "type": "MARKDOWN",
       "order": 1,
@@ -127,6 +128,7 @@
       }
     },
     {
+      "id": "petstore",
       "name": "petstore",
       "type": "SWAGGER",
       "order": 2,

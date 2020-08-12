@@ -15,8 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.MediaEntity;
+
+import java.util.List;
 
 /**
  * @author Guillaume Gillon
@@ -24,10 +25,19 @@ import io.gravitee.rest.api.model.MediaEntity;
 public interface MediaService {
 
     String savePortalMedia(MediaEntity imageEntity);
+
     String saveApiMedia(String api, MediaEntity imageEntity);
 
-    MediaEntity findby(String id);
-    MediaEntity findby(String id, String api);
+    MediaEntity findByHash(String hash);
+
+    MediaEntity findByHashAndApiId(String hash, String apiId);
 
     Long getMediaMaxSize();
+
+    List<MediaEntity> findAllByApiId(String apiId);
+
+    String createWithDefinition(String api, String definition);
+
+    void deleteAllByApi(String apiId);
+
 }

@@ -20,6 +20,7 @@ import io.gravitee.rest.api.service.ApiMetadataService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
 import static java.util.stream.Collectors.toList;
@@ -47,6 +48,12 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
     @Override
     public void delete(final String metadataId, final String apiId) {
         delete(metadataId, API, apiId);
+    }
+
+    @Override
+    public void deleteAllByApi(String apiId) {
+        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, true);
+        allMetadata.stream().forEach(referenceMetadataEntity -> delete(referenceMetadataEntity.getKey(), API, apiId));
     }
 
     @Override

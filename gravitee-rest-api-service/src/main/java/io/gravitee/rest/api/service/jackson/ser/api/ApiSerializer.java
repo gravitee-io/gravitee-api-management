@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
 import org.springframework.context.ApplicationContext;
 
+import javax.print.attribute.standard.Media;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -158,7 +159,11 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 if (this.version().getVersion().startsWith("1.")) {
                     pages = pages.stream().filter(pageEntity -> !pageEntity.getType().equals(PageType.LINK.name()) && !pageEntity.getType().equals(PageType.TRANSLATION.name()) && !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name())).collect(Collectors.toList());
                 }
-                jsonGenerator.writeObjectField("pages", pages == null ? emptyList() : pages);
+                jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
+                List<MediaEntity> apiMedia = applicationContext.getBean(MediaService.class).findAllByApiId(apiEntity.getId());
+                if (apiMedia != null && !apiMedia.isEmpty()) {
+                    jsonGenerator.writeObjectField("apiMedia", apiMedia);
+                }
             }
 
             // plans

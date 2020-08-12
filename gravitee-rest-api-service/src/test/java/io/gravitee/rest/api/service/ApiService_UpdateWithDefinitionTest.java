@@ -112,7 +112,7 @@ public class ApiService_UpdateWithDefinitionTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
-        
+
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findByScopeAndName(any(), eq("PRIMARY_OWNER"))).thenReturn(Optional.of(poRoleEntity));
@@ -140,7 +140,7 @@ public class ApiService_UpdateWithDefinitionTest {
                 Collections.singletonList(API_ID),
                 "API_PRIMARY_OWNER"))
                 .thenReturn(Collections.singleton(po));
-        
+
         UserEntity admin = new UserEntity();
         admin.setId(po.getId());
         admin.setSource(SOURCE);
@@ -151,19 +151,18 @@ public class ApiService_UpdateWithDefinitionTest {
         user.setSourceId(owner.getReferenceId());
         when(userService.findById(admin.getId())).thenReturn(admin);
         PageEntity existingPage = mock(PageEntity.class);
-        when(pageService.search(any())).thenReturn(Collections.singletonList(existingPage), Collections.emptyList());
+        when(pageService.findById(anyString())).thenReturn(existingPage);
 
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(admin.getId());
         memberEntity.setRoles(Collections.singletonList(poRoleEntity));
-        
+
         when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any())).thenReturn(memberEntity);
         when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
 
-        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
+        apiService.updateWithImportedDefinition(apiEntity, toBeImport, "import");
 
-        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class));
-        verify(pageService, times(1)).update(any(), any(UpdatePageEntity.class));
+        verify(pageService, times(2)).update(any(), any(UpdatePageEntity.class));
         verify(membershipService, never()).addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_PRIMARY_OWNER");
         verify(membershipService, times(1)).addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
         verify(apiRepository, times(1)).update(any());
@@ -179,7 +178,7 @@ public class ApiService_UpdateWithDefinitionTest {
         apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
-        
+
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
         when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRole));
@@ -225,7 +224,7 @@ public class ApiService_UpdateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findByScopeAndName(any(), eq("PRIMARY_OWNER"))).thenReturn(Optional.of(poRoleEntity));
-        
+
         MemberEntity po = new MemberEntity();
         po.setId("admin");
         po.setReferenceId(API_ID);
@@ -236,7 +235,7 @@ public class ApiService_UpdateWithDefinitionTest {
         when(membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, Collections.singletonList(API_ID), "API_PRIMARY_OWNER")).thenReturn(new HashSet(Arrays.asList(po)));
         when(userService.findById(admin.getId())).thenReturn(admin);
 
-        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
+        apiService.updateWithImportedDefinition(apiEntity, toBeImport, "import");
 
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_PRIMARY_OWNER");
@@ -252,18 +251,18 @@ public class ApiService_UpdateWithDefinitionTest {
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
-        
-        
+
+
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
         when(roleService.findByScopeAndName(any(), eq("PRIMARY_OWNER"))).thenReturn(Optional.of(poRoleEntity));
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
-        
+
         when(userService.findById(admin.getId())).thenReturn(admin);
         when(userService.findById(user.getId())).thenReturn(user);
 
-        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
+        apiService.updateWithImportedDefinition(apiEntity, toBeImport, "import");
 
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addRoleToMemberOnReference(
@@ -291,11 +290,11 @@ public class ApiService_UpdateWithDefinitionTest {
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
 
-        
+
         when(userService.findById(admin.getId())).thenReturn(admin);
         when(userService.findById(user.getId())).thenReturn(user);
 
-        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
+        apiService.updateWithImportedDefinition(apiEntity, toBeImport, "import");
 
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addRoleToMemberOnReference(
@@ -336,14 +335,12 @@ public class ApiService_UpdateWithDefinitionTest {
                 Collections.singletonList(API_ID),
                 "API_PRIMARY_OWNER"))
                 .thenReturn(Collections.singleton(po));
-        
+
         PageEntity existingPage = mock(PageEntity.class);
-        when(pageService.search(any())).thenReturn(Collections.singletonList(existingPage), Collections.emptyList());
 
-        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
+        apiService.updateWithImportedDefinition(apiEntity, toBeImport, null);
 
-        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class));
-        verify(pageService, times(1)).update(any(), any(UpdatePageEntity.class));
+        verify(pageService, times(2)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
@@ -359,7 +356,7 @@ public class ApiService_UpdateWithDefinitionTest {
         apiEntity.setId(API_ID);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
-        
+
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
         when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRole));
@@ -375,7 +372,7 @@ public class ApiService_UpdateWithDefinitionTest {
                 "API_PRIMARY_OWNER"))
                 .thenReturn(Collections.singleton(po));
 
-        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, null);
+        apiService.updateWithImportedDefinition(apiEntity, toBeImport, null);
 
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
@@ -393,7 +390,7 @@ public class ApiService_UpdateWithDefinitionTest {
         PlanEntity existingPlan = new PlanEntity();
         when(planService.search(any())).thenReturn(Collections.singletonList(existingPlan), Collections.emptyList());
 
-        apiService.createOrUpdateWithDefinition(apiEntity, toBeImport, "import");
+        apiService.updateWithImportedDefinition(apiEntity, toBeImport, "import");
 
         verify(planService, times(1)).create(any(NewPlanEntity.class));
         verify(planService, times(1)).update(any(UpdatePlanEntity.class));

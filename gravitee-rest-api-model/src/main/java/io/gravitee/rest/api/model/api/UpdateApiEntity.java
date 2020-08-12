@@ -90,7 +90,7 @@ public class UpdateApiEntity {
             dataType = "java.util.List",
             example = "public, private")
     private Set<String> tags;
-    
+
     @ApiModelProperty(
             value = "the API logo encoded in base64")
     private String picture;

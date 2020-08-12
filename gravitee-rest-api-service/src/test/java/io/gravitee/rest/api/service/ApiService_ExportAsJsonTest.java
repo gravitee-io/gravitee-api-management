@@ -90,6 +90,8 @@ public class ApiService_ExportAsJsonTest {
     private ParameterService parameterService;
     @Mock
     private ApiMetadataService apiMetadataService;
+    @Mock
+    private MediaService mediaService;
 
     @Before
     public void setUp() throws TechnicalException {
@@ -104,6 +106,7 @@ public class ApiService_ExportAsJsonTest {
         when(applicationContext.getBean(GroupService.class)).thenReturn(groupService);
         when(applicationContext.getBean(UserService.class)).thenReturn(userService);
         when(applicationContext.getBean(ApiMetadataService.class)).thenReturn(apiMetadataService);
+        when(applicationContext.getBean(MediaService.class)).thenReturn(mediaService);
         ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer();
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
         apiDefaultSerializer.setApplicationContext(applicationContext);
@@ -408,7 +411,7 @@ public class ApiService_ExportAsJsonTest {
     }
 
 
-    private void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws TechnicalException, IOException {
+    private void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExport" + (filename != null ? "-" + filename : "") + ".json");

@@ -180,8 +180,8 @@ public class ApisResource extends AbstractResource {
     })
     public Response importDefinition(
             @ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition) {
-        return Response.ok(apiService.createOrUpdateWithDefinition(
-                null, apiDefinition, getAuthenticatedUser())).build();
+
+        return Response.ok(apiService.createWithImportedDefinition(null, apiDefinition, getAuthenticatedUser())).build();
     }
 
     @POST

@@ -47,13 +47,15 @@ public interface PageService {
 	PageEntity createPage(String apiId, NewPageEntity page);
 
 	PageEntity createPage(NewPageEntity page);
-	
+
 	PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
 
 	PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial);
 
 	void delete(String pageId);
-	
+
+	void deleteAllByApi(String apiId);
+
 	int findMaxApiPageOrderByApi(String apiId);
 
 	int findMaxPortalPageOrder();
@@ -61,7 +63,7 @@ public interface PageService {
 	boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
 
 	void fetchAll(PageQuery query, String contributor);
-	
+
 	PageEntity fetch(String pageId, String contributor);
 
 	List<PageEntity> importFiles(ImportPageEntity pageEntity);
@@ -75,4 +77,6 @@ public interface PageService {
 	Map<SystemFolderType, String> initialize(String environmentId);
 
 	PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId);
+
+    PageEntity createWithDefinition(String apiId, String toString);
 }

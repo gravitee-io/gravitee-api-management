@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -359,6 +360,27 @@ public abstract class AbstractResource {
         baos.write(image.getContent(), 0, image.getContent().length);
 
         return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+    }
+
+    protected Response createMediaResponse(Request request, String hashMedia, MediaEntity media) {
+        if (media == null || media.getData() == null) {
+            return Response.ok().build();
+        }
+        CacheControl cc = new CacheControl();
+        cc.setNoTransform(true);
+        cc.setMustRevalidate(false);
+        cc.setNoCache(false);
+        cc.setMaxAge(86400);
+
+        EntityTag etag = new EntityTag(hashMedia);
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+
+        if (builder != null) {
+            // Preconditions are not met, returning HTTP 304 'not-modified'
+            return builder.cacheControl(cc).build();
+        }
+
+        return Response.ok(media.getData()).cacheControl(cc).tag(etag).type(media.getType()+"/"+media.getSubType()).build();
     }
 
     private class DataResponse {

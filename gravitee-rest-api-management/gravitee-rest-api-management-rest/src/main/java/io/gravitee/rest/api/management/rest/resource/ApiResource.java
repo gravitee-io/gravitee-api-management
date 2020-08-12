@@ -357,30 +357,30 @@ public class ApiResource extends AbstractResource {
         }
     }
 
-    @POST
+    @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Path("import")
     @ApiOperation(
-            value = "Update the API with an existing API definition",
-            notes = "User must have the MANAGE_API permission to use this service")
+        value = "Update the API with an existing API definition",
+        notes = "User must have the MANAGE_API permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "API successfully updated from API definition", response = ApiEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+        @ApiResponse(code = 200, message = "API successfully updated from API definition", response = ApiEntity.class),
+        @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
+        @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public Response updateWithDefinition(
-            @PathParam("api") String api,
-            @ApiParam(name = "definition", required = true) String apiDefinition) {
+        @PathParam("api") String api,
+        @ApiParam(name = "definition", required = true) String apiDefinition) {
         final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
-        ApiEntity updatedApi = apiService.createOrUpdateWithDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
-        return Response
-                .ok(updatedApi)
-                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
-                .lastModified(updatedApi.getUpdatedAt())
-                .build();
-    }
 
+        ApiEntity updatedApi = apiService.updateWithImportedDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
+        return Response
+            .ok(updatedApi)
+            .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+            .lastModified(updatedApi.getUpdatedAt())
+            .build();
+    }
 
     @POST
     @Path("import/swagger")
