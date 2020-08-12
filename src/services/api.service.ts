@@ -158,7 +158,10 @@ class ApiService {
   }
 
   import(apiId: string, apiDefinition: string): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + (apiId ? apiId + '/' : '') + 'import', apiDefinition);
+    if (apiId) {
+      return this.$http.put(this.apisURL + apiId + '/import', apiDefinition);
+    }
+    return this.$http.post(this.apisURL + 'import', apiDefinition);
   }
 
   importSwagger(apiId: string, swaggerDescriptor: string): ng.IPromise<any> {
