@@ -40,9 +40,8 @@
                 "plan": {
                     "type": "keyword"
                 },
-                    "proxy-latency": {
-                    "type": "integer",
-                    "index": false
+                "proxy-latency": {
+                    "type": "integer"
                 },
                 "remote-address": {
                     "type": "ip"
@@ -126,10 +125,10 @@
                                 "full": {
                                     "type": "text"
                                 },
-                        "name": {
-                            "type": "keyword",
-                            "index": true
-                        },
+                                "name": {
+                                    "type": "keyword",
+                                    "index": true
+                                },
                                 "version": {
                                     "type": "keyword",
                                     "index": true
