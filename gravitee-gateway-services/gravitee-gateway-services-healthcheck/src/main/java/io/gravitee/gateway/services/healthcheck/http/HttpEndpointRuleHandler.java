@@ -51,6 +51,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.net.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -155,6 +156,7 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
 
     @Override
     public void handle(Long timer) {
+        MDC.put("api", rule.api());
         HttpEndpoint endpoint = (HttpEndpoint) rule.endpoint();
 
         logger.debug("Running health-check for endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
@@ -435,6 +437,7 @@ public class HttpEndpointRuleHandler implements Handler<Long> {
                 logger.error("An unexpected error occurs", ex);
             }
         }
+        MDC.remove("api");
     }
 
     private void report(final EndpointStatus endpointStatus) {
