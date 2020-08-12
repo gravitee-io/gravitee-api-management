@@ -17,8 +17,14 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
+import org.aopalliance.intercept.Invocation;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.mockito.stubbing.OngoingStubbing;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -47,7 +53,6 @@ public class MediaRepositoryMock extends AbstractRepositoryMock<MediaRepository>
         when(mediaData.getHash()).thenReturn("4692FBACBEF919061ECF328CA543E028");
         when(mediaData.getCreatedAt()).thenReturn(new Date());
 
-
         final Media mediaData2 = mock(Media.class);
         when(mediaData2.getId()).thenReturn("556677");
         when(mediaData2.getFileName()).thenReturn("default_photo.png");
@@ -64,20 +69,31 @@ public class MediaRepositoryMock extends AbstractRepositoryMock<MediaRepository>
         when(mediaData3.getHash()).thenReturn("77C921AB285376AFF72FBDD2D0784E0B");
         when(mediaData3.getCreatedAt()).thenReturn(new Date());
 
-
-
-        when(mediaRepository.save(any(Media.class))).thenReturn("223344");
+        when(mediaRepository.create(any(Media.class))).thenReturn(mediaData);
 
         when(mediaRepository.findByHash("4692FBACBEF919061ECF328CA543E028", "image"))
-                .thenReturn(of(mediaData));
+            .thenReturn(of(mediaData));
 
-        when(mediaRepository.findByHash("77C921AB285376AFF72FBDD2D0784E0B", "123456","image"))
-                .thenReturn(of(mediaData3));
+        when(mediaRepository.findByHashAndApi("77C921AB285376AFF72FBDD2D0784E0B", "apiId", "image"))
+            .thenReturn(of(mediaData3));
 
         when(mediaRepository.findByHash("1BC5D9656D860DE678CBEF5C169D8B15", "image"))
-                .thenReturn(of(mediaData2), empty());
+            .thenReturn(of(mediaData2), empty());
 
         when(mediaRepository.findByHash("1BC5D9656D860DE678CBEF5C169D8B152", "image"))
-                .thenReturn(of(mediaData2), empty());
+            .thenReturn(of(mediaData2), empty());
+
+        List<Media> all = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            final Media media = mock(Media.class);
+            when(media.getId()).thenReturn("image-" + i);
+            when(media.getFileName()).thenReturn("default_photo.png");
+            when(media.getSize()).thenReturn(85361L);
+            when(media.getApi()).thenReturn("apiId");
+            when(media.getHash()).thenReturn("1BC5D9656D860DE678CBEF5C169D8B15");
+            all.add(media);
+        }
+
+        when(mediaRepository.findAllByApi("myApi")).thenReturn(all);
     }
 }
