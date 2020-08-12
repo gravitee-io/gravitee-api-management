@@ -41,4 +41,5 @@ public interface MetadataRepository {
     List<Metadata> findByReferenceType(MetadataReferenceType referenceType) throws TechnicalException;
 
     List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) throws TechnicalException;
+
 }
