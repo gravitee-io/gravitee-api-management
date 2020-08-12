@@ -32,8 +32,7 @@ import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import java.util.stream.Collectors;
 
 /**
  * @author Guillaume GILLON
@@ -59,7 +58,25 @@ public class JdbcMediaRepository implements MediaRepository {
             .build();
 
     @Override
-    public String save(Media media) throws TechnicalException {
+    public Optional<Media> findByHash(String hash, String mediaType) {
+        LOGGER.debug("JdbcMediaRepository.findMediaBy({},{})", hash, mediaType);
+        return this.findByHashAndApi(hash, null, mediaType);
+    }
+
+    @Override
+    public List<Media> findAllByApi(String api) {
+        LOGGER.debug("JdbcMediaRepository.findAllByApi({})", api);
+
+        String sql = "select * from media where api = ?";
+        Object[] param = new Object[]{api};
+
+        List<Media> mediaList = jdbcTemplate.query(sql, ORM.getRowMapper(), param);
+
+        return mediaList.stream().collect(Collectors.toList());
+    }
+
+    @Override
+    public Media create(Media media) throws TechnicalException {
         LOGGER.debug("JdbcMediaRepository.create({})", media);
 
         media.setCreatedAt(new Date());
@@ -72,7 +89,7 @@ public class JdbcMediaRepository implements MediaRepository {
             ps.execute();
             conn.commit();
 
-            return media.getId();
+            return media;
         } catch (final Exception ex) {
             LOGGER.error("Failed to create media", ex);
             throw new TechnicalException("Failed to create media", ex);
@@ -80,20 +97,19 @@ public class JdbcMediaRepository implements MediaRepository {
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, String mediaType) {
-        LOGGER.debug("JdbcMediaRepository.findMediaBy({},{})", hash, mediaType);
-
-        return this.findByHash(hash, null, mediaType);
+    public void deleteAllByApi(String api) {
+        LOGGER.debug("JdbcMediaRepository.deleteByApi({})", api);
+        jdbcTemplate.update("delete from media where api = ?", api);
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, String api, String mediaType) {
-        LOGGER.debug("JdbcMediaRepository.findMediaBy({},{},{})", hash, mediaType, api);
+    public Optional<Media> findByHashAndApi(String hash, String api, String mediaType) {
+        LOGGER.debug("JdbcMediaRepository.findByHashAndApi({},{},{})", hash, mediaType, api);
 
         String sql;
         Object[] param;
         if (api != null) {
-            sql = "select * from "+ escapeReservedWord("media")+" where hash = ? and type = ? and api = ?";
+            sql = "select * from media where hash = ? and type = ? and api = ?";
             param = new Object[]{hash, mediaType, api};
         } else {
             sql = "select * from media where hash = ? and type = ?";
@@ -101,8 +117,8 @@ public class JdbcMediaRepository implements MediaRepository {
         }
 
         List<Media> mediaList = jdbcTemplate.query(sql,
-                ORM.getRowMapper(),
-                param);
+            ORM.getRowMapper(),
+            param);
 
         return mediaList.stream().findFirst();
     }
