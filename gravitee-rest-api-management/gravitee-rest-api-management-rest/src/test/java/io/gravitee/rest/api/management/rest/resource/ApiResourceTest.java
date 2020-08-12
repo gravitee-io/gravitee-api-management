@@ -19,6 +19,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
+import io.gravitee.rest.api.model.ApiStateEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -178,6 +179,16 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message, message.contains("Invalid image format"));
+    }
+
+    @Test
+    public void shouldAccessToApiState_asAdmin() {
+        final Response response = target(API+"/state").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
+        assertNotNull(stateEntity);
+        assertEquals(API, stateEntity.getApiId());
     }
 
     @Test

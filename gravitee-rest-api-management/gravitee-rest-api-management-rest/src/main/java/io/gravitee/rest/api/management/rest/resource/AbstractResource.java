@@ -17,6 +17,11 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -31,10 +36,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.StreamingOutput;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static io.gravitee.rest.api.model.MembershipMemberType.USER;
 import static io.gravitee.rest.api.model.MembershipReferenceType.API;
+import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -92,19 +101,40 @@ public abstract class AbstractResource {
 
     protected boolean canReadAPIConfiguration() {
         if (!isAdmin()) {
-            final Set<MembershipEntity> memberships = membershipService
-                    .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API);
-            return memberships != null && !memberships.isEmpty();
+            return retrieveApiMembership().findFirst().isPresent();
         }
         return true;
     }
 
+    /**
+     * @return The list of API Membership for the authenticated user (direct membership or through groups)
+     */
+    private Stream<MembershipEntity> retrieveApiMembership() {
+        Stream<MembershipEntity> streamUserMembership = membershipService
+                .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API).stream();
+
+        Stream<MembershipEntity> streamGroupMembership = membershipService
+                .getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), GROUP).stream()
+                .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.API));
+
+        return Stream.concat(streamUserMembership, streamGroupMembership);
+    }
+
     protected void canReadAPI(final String api) {
         if (!isAdmin()) {
-            final boolean canReadAPI =
-                    membershipService.getMembershipsByMemberAndReference(USER, getAuthenticatedUser(), API).stream()
-                            .map(MembershipEntity::getReferenceId)
-                            .anyMatch(ref -> ref.equals(api));
+            final boolean canReadAPI = retrieveApiMembership().flatMap(membership -> {
+                // membership is possible thanks to a group
+                // in this case we have to query ApiService to retrieve all the API for this group
+                if (GROUP.equals(membership.getReferenceType())) {
+                    final ApiQuery apiQuery = new ApiQuery();
+                    apiQuery.setGroups(Arrays.asList(membership.getReferenceId()));
+                    return apiService.search(apiQuery).stream().map(ApiEntity::getId);
+                } else {
+                    // otherwise, user is a member for an API
+                    return Stream.of(membership.getReferenceId());
+                }
+            }).anyMatch(ref -> api.equals(ref));
+
             if (!canReadAPI) {
                 throw new ForbiddenAccessException();
             }
