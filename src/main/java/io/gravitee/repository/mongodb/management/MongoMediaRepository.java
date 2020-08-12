@@ -21,6 +21,7 @@ import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSFindIterable;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import org.bson.BsonString;
@@ -28,17 +29,16 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
-import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.and;
@@ -54,52 +54,70 @@ public class MongoMediaRepository implements MediaRepository {
     @Autowired
     private MongoDbFactory mongoFactory;
 
-    @Autowired
-    private MappingMongoConverter converter;
-
-
     @Override
-    public String save(Media media) {
-
+    public Media create(Media media) {
         Document doc = new Document()
-                .append("type", media.getType())
-                .append("subType", media.getSubType())
-                .append("size", media.getSize())
-                .append("hash", media.getHash());
+            .append("type", media.getType())
+            .append("subType", media.getSubType())
+            .append("size", media.getSize())
+            .append("hash", media.getHash());
 
-        if(media.getApi() != null) {
+        if (media.getApi() != null) {
             doc.append("api", media.getApi());
         }
 
         GridFSUploadOptions options = new GridFSUploadOptions()
-                .metadata(doc);
+            .metadata(doc);
 
         getGridFs()
-                .uploadFromStream(
-                    new BsonString(media.getId()),
-                    media.getFileName(),
-                    new ByteArrayInputStream(media.getData()),
-                    options
-                );
+            .uploadFromStream(
+                new BsonString(media.getId()),
+                media.getFileName(),
+                new ByteArrayInputStream(media.getData()),
+                options
+            );
 
-        return media.getId();
+        return media;
     }
 
     @Override
     public Optional<Media> findByHash(String hash, String mediaType) {
-        return this.findByHash(hash, null, mediaType);
+        return this.findByHashAndApi(hash, null, mediaType);
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, String api, String mediaType) {
-        return this.finder(this.getQueryFindMedia(hash, api, mediaType));
+    public Optional<Media> findByHashAndApi(String hash, String api, String mediaType) {
+        return this.findFirst(this.getQueryFindMedia(hash, api, mediaType));
     }
 
-    private Optional<Media> finder(Bson query) {
-        Bson filter = null;
+    @Override
+    public List<Media> findAllByApi(String api) {
+        if (api != null) {
+            Bson apiQuery = eq("metadata.api", api);
+            return this.findAll(apiQuery);
+        }
+        return new ArrayList<>();
+    }
 
+    private List<Media> findAll(Bson query) {
+        GridFSFindIterable files = getGridFs().find(query);
+        ArrayList<Media> all = new ArrayList<>();
+        files.forEach((Consumer<GridFSFile>) file -> {
+            Media convert = convert(file);
+            if (convert != null) {
+                all.add(convert);
+            }
+        });
+        return all;
+    }
+
+    private Optional<Media> findFirst(Bson query) {
         GridFSFile file = getGridFs().find(query).first();
+        Media imageData = convert(file);
+        return Optional.ofNullable(imageData);
+    }
 
+    private Media convert(GridFSFile file) {
         Media imageData = null;
         if (file != null) {
             InputStream inputStream = getGridFs().openDownloadStream(file.getId());
@@ -114,12 +132,10 @@ public class MongoMediaRepository implements MediaRepository {
             imageData.setFileName(file.getFilename());
             imageData.setHash((String) metadata.get("hash"));
 
-
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
             byte[] result = null;
             try {
-
                 int next = inputStream.read();
 
                 while (next > -1) {
@@ -134,47 +150,29 @@ public class MongoMediaRepository implements MediaRepository {
                 e.printStackTrace();
             }
             imageData.setData(result);
-            }
-
-        return Optional.ofNullable(imageData);
+        }
+        return imageData;
     }
-
-//    @Override
-//    public void delete(String hash, String mediaType) {
-//        this.deleteApiFor(hash, null, mediaType);
-//    }
-//
-//    @Override
-//    public void deleteApiFor(String hash, String api, String mediaType) {
-//        GridFSFile file = getGridFs().find(getQueryFindMedia(hash, api, mediaType)).first();
-//
-//        getGridFs().delete(file.getId());
-//
-//    }
 
     private Bson getQueryFindMedia(String hash, String api, String mediaType) {
         Bson addQuery = api == null ? not(exists("metadata.api")) : eq("metadata.api", api);
         return and(eq("metadata.type", mediaType), eq("metadata.hash", hash), addQuery);
     }
 
-
-//    @Override
-//    public long totalSizeFor(String api, String mediaType) {
-//
-//        GridFSFindIterable gridFSFindIterable = getGridFs().find();
-//
-//        long sum = 0;
-//        for (GridFSFile gridFSFile : gridFSFindIterable) {
-//            sum += (Long)gridFSFile.getMetadata().get("size");
-//        }
-//
-//        return sum;
-//    }
-
     private GridFSBucket getGridFs() {
-
         MongoDatabase db = mongoFactory.getDb();
         String bucketName = "media";
         return GridFSBuckets.create(db, bucketName);
     }
+
+    @Override
+    public void deleteAllByApi(String api) {
+        if (api != null) {
+            Bson apiQuery = eq("metadata.api", api);
+            GridFSBucket gridFs = getGridFs();
+            GridFSFindIterable files = gridFs.find(apiQuery);
+            files.forEach((Consumer<GridFSFile>) gridFSFile -> gridFs.delete(gridFSFile.getId()));
+        }
+    }
+
 }
