@@ -32,6 +32,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -100,6 +102,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
         if (apiEntity.getProperties() != null && apiEntity.getProperties().getValues() != null) {
             jsonGenerator.writeObjectField("properties", apiEntity.getProperties());
+        } else {
+            jsonGenerator.writeObjectField("properties", emptyList());
         }
 
         if (apiEntity.getCategories() != null && !apiEntity.getCategories().isEmpty()) {
@@ -154,7 +158,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 if (this.version().getVersion().startsWith("1.")) {
                     pages = pages.stream().filter(pageEntity -> !pageEntity.getType().equals(PageType.LINK.name()) && !pageEntity.getType().equals(PageType.TRANSLATION.name()) && !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name())).collect(Collectors.toList());
                 }
-                jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
+                jsonGenerator.writeObjectField("pages", pages == null ? emptyList() : pages);
             }
 
             // plans
