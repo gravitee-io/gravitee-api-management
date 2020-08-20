@@ -39,7 +39,7 @@ public class Application {
      * The ID of the environment the application is attached to
      */
     private String environmentId;
-    
+
     /**
      * The application name
      */
@@ -54,7 +54,7 @@ public class Application {
      * The application picture
      */
     private String picture;
-    
+
     /**
      * The application creation date
      */
@@ -76,6 +76,8 @@ public class Application {
 
     private Map<String, String> metadata;
 
+    private boolean disableMembershipNotifications;
+
     private String background;
 
     public Application(){}
@@ -89,7 +91,7 @@ public class Application {
         this.updatedAt = cloned.updatedAt;
         this.groups = cloned.groups;
         this.status = cloned.status;
-        this.picture = cloned.picture;
+        this.disableMembershipNotifications = cloned.disableMembershipNotifications;
         this.background = cloned.background;
     }
 
@@ -181,6 +183,14 @@ public class Application {
         this.metadata = metadata;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     public String getBackground() {
         return background;
     }
@@ -212,7 +222,8 @@ public class Application {
                 ", groups='" + groups + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt + '\'' +
-                ", updatedAt=" + updatedAt +
+                ", updatedAt=" + updatedAt + '\'' +
+                ", disableMembershipNotifications=" + disableMembershipNotifications +
                 '}';
     }
 }
