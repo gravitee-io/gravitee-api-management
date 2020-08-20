@@ -66,6 +66,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("lifecycle_state", Types.NVARCHAR, LifecycleState.class)
             .addColumn("picture", Types.NVARCHAR, String.class)
             .addColumn("api_lifecycle_state", Types.NVARCHAR, ApiLifecycleState.class)
+            .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
             .addColumn("background", Types.NVARCHAR, String.class)
             .build();
 

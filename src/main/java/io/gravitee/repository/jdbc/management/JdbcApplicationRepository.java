@@ -59,6 +59,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("picture", Types.NVARCHAR, String.class)
             .addColumn(STATUS_FIELD, Types.NVARCHAR, ApplicationStatus.class)
+            .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
             .addColumn("background", Types.NVARCHAR, String.class)
             .build();
 
@@ -82,16 +83,16 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     protected String getId(Application item) {
         return item.getId();
     }
-    
-    private void addGroups(Application parent) {        
+
+    private void addGroups(Application parent) {
         List<String> groups = getGroups(parent.getId());
         parent.setGroups(new HashSet<>(groups));
     }
-    
+
     private List<String> getGroups(String apiId) {
         return jdbcTemplate.queryForList("select group_id from application_groups where application_id = ?", String.class, apiId);
     }
-    
+
     private void storeGroups(Application application, boolean deleteFirst) {
         if (deleteFirst) {
             jdbcTemplate.update("delete from application_groups where application_id = ?", application.getId());
@@ -219,7 +220,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
         try {
             List<ApplicationStatus> statuses = Arrays.asList(ass);
-            
+
             StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id");
             boolean first = true;
             ORM.buildInCondition(first, query, STATUS_FIELD, statuses);
@@ -293,7 +294,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
         try {
             List<ApplicationStatus> statuses = Arrays.asList(ass);
-            
+
             StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.environment_id = ?");
             boolean first = false;
             ORM.buildInCondition(first, query, STATUS_FIELD, statuses);
