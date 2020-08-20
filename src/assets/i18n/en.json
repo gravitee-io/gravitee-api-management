@@ -253,6 +253,33 @@
         "transfer": "Transfer"
       }
     },
+    "metadata": {
+      "add": {
+        "success": "The metadata \"{key}\" has been added"
+      },
+      "format": "Format",
+      "key": "Key",
+      "list": {
+        "add": {
+          "title": "Add"
+        },
+        "remove": {
+          "message": "Are you sure to remove this metadata ?",
+          "success": "The metadata \"{key}\" has been removed",
+          "title": "Remove"
+        },
+        "title": "Metadata list"
+      },
+      "name": "Name",
+      "reset": {
+        "title": "Reset"
+      },
+      "update": {
+        "success": "Update successfully completed",
+        "title": "Update"
+      },
+      "value": "Value"
+    },
     "name": {
       "label": "Name of the app",
       "title": "Name of the application"
@@ -606,6 +633,9 @@
       "required": "Please configure an e-mail to use the contact form"
     },
     "forbidden": "You do not have sufficient rights to access this resource",
+    "metadata": {
+      "exists": "The metadata \"{metadata}\" already exists"
+    },
     "passwordFormat": {
       "invalid": "The password is not valid according to policy rules"
     },
@@ -900,6 +930,7 @@
     "logsApplication": "Logs",
     "management": "Administration",
     "members": "Members",
+    "metadata": "Metadata",
     "myApplications": "My applications",
     "mySubscriptions": "My subscriptions",
     "notFound": "Page not found",

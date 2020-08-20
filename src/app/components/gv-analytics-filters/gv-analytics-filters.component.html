@@ -36,16 +36,18 @@
                    reverse></gv-option>
       </div>
       <div class="form__control timepicker">
-        <gv-date-picker label="{{ 'common.date.range.title' | translate }}"
-                        time
-                        range
-                        formControlName="range"
-                        name="range"
-                        ngDefaultControl
-                        [max]="maxDate"
-                        class="form__control">
+        <div>
+          <gv-date-picker label="{{ 'common.date.range.title' | translate }}"
+                          time
+                          range
+                          formControlName="range"
+                          name="range"
+                          ngDefaultControl
+                          [max]="maxDate"
+                          class="form__control">
 
-        </gv-date-picker>
+          </gv-date-picker>
+        </div>
 
         <gv-button link (:gv-button:click)="toggleFilters()" class="gv-analytics-filter__showhide">
           <span *ngIf="advancedFiltersDisplayed">{{'application.analytics.filters.advanced.hide' | translate}}</span>
@@ -103,7 +105,8 @@
                    [loading]="exportLoading" icon="finance:export" outlined>
           {{ 'application.analytics.exportCSV' | translate }}
         </gv-button>
-        <gv-button *ngIf="link" (:gv-button:click)="goTo(link.relativePath)" type="button" class="gv-analytics-filter__input"
+        <gv-button *ngIf="link" (:gv-button:click)="goTo(link.relativePath)" type="button"
+                   class="gv-analytics-filter__input"
                    [icon]="link.icon">
           {{ link.label }}
         </gv-button>

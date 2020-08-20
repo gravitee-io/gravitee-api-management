@@ -253,6 +253,33 @@
         "transfer": "Převod"
       }
     },
+    "metadata": {
+      "add": {
+        "success": "Byla přidána metadata \"{key}\""
+      },
+      "format": "Formát",
+      "key": "Klíč",
+      "list": {
+        "add": {
+          "title": "Přidat"
+        },
+        "remove": {
+          "message": "Opravdu chcete tato metadata odstranit?",
+          "success": "Metadata \"{key}\" byla odstraněna",
+          "title": "Odstranit"
+        },
+        "title": "Seznam metadat"
+      },
+      "name": "Název",
+      "reset": {
+        "title": "Resetovat"
+      },
+      "update": {
+        "success": "Aktualizace byla úspěšně dokončena",
+        "title": "Aktualizace"
+      },
+      "value": "Hodnota"
+    },
     "name": {
       "label": "Název aplikace",
       "title": "Název aplikace"
@@ -606,6 +633,9 @@
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },
     "forbidden": "Nemáte dostatečná práva pro přístup k tomuto prostředku",
+    "metadata": {
+      "exists": "Metadata '{{metadata}}' již existují"
+    },
     "passwordFormat": {
       "invalid": "Heslo není platné podle platných pravidel\n"
     },
@@ -900,6 +930,7 @@
     "logsApplication": "Protokoly",
     "management": "Administrace",
     "members": "Členové",
+    "metadata": "Metadata",
     "myApplications": "Moje aplikace",
     "mySubscriptions": "Moje předplatné",
     "notFound": "Stránka nebyla nalezena",

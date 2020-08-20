@@ -253,6 +253,33 @@
         "transfer": "Transférer"
       }
     },
+    "metadata": {
+      "add": {
+        "success": "La metadata \"{key}\" a été ajoutée"
+      },
+      "format": "Format",
+      "key": "Clé",
+      "list": {
+        "add": {
+          "title": "Ajouter"
+        },
+        "remove": {
+          "message": "Êtes-vous sûr de vouloir supprimer cette metadata ?",
+          "success": "La metadata \"{key}\" a été supprimée",
+          "title": "Supprimer"
+        },
+        "title": "Liste des metadata"
+      },
+      "name": "Nom",
+      "reset": {
+        "title": "Réinitialiser"
+      },
+      "update": {
+        "success": "Mise à jour effectuée avec succès",
+        "title": "Mettre à jour"
+      },
+      "value": "Valeur"
+    },
     "name": {
       "label": "Nom de l'app",
       "title": "Nom de l'application"
@@ -606,6 +633,9 @@
       "required": "Merci de configurer un e-mail pour utiliser le formulaire de contact"
     },
     "forbidden": "Vous n'avez pas les droits suffisants pour effectuer cette action",
+    "metadata": {
+      "exists": "La metadata \"{metadata}\" existe déjà"
+    },
     "passwordFormat": {
       "invalid": "Le mot de passe n'est pas valide selon les règles en vigueur"
     },
@@ -900,6 +930,7 @@
     "logsApplication": "Logs",
     "management": "Administration",
     "members": "Membres",
+    "metadata": "Metadata",
     "myApplications": "Mes applications",
     "mySubscriptions": "Mes souscriptions",
     "notFound": "Page introuvable",
