@@ -82,6 +82,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
 		applicationMongo.setBackground(application.getBackground());
 		applicationMongo.setStatus(application.getStatus().toString());
 		applicationMongo.setMetadata(application.getMetadata());
+		applicationMongo.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
 
 		ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
 		return mapApplication(applicationMongoUpdated);

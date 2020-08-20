@@ -25,7 +25,7 @@ import java.util.Set;
 
 /**
  * Mongo object model for application.
- * 
+ *
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -40,7 +40,7 @@ public class ApplicationMongo extends Auditable {
     private String name;
 
     private String environmentId;
-    
+
     private String description;
 
     private String type;
@@ -52,6 +52,8 @@ public class ApplicationMongo extends Auditable {
     private Set<String> groups;
 
     private Map<String, String> metadata;
+
+    private boolean disableMembershipNotifications;
 
     private String background;
 
@@ -103,7 +105,7 @@ public class ApplicationMongo extends Auditable {
         this.groups = groups;
     }
 
-    
+
     public String getPicture() {
         return picture;
     }
@@ -126,6 +128,14 @@ public class ApplicationMongo extends Auditable {
 
     public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
+    }
+
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
     }
 
     public String getBackground() {
@@ -158,6 +168,7 @@ public class ApplicationMongo extends Auditable {
         sb.append(", type='").append(type).append('\'');
         sb.append(", status='").append(status).append('\'');
         sb.append(", groups='").append(groups).append('\'');
+        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications).append('\'');
         sb.append('}');
         return sb.toString();
     }
