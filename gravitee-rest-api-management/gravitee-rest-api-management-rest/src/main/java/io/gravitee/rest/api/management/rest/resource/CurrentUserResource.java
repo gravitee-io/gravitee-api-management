@@ -137,7 +137,7 @@ public class CurrentUserResource extends AbstractResource {
                 userDetails.setEmail(details.getEmail());
             }
 
-            if (userEntity.getNewsletterSubscribed() == null) {
+            if (userEntity.getNewsletterSubscribed() == null && userEntity.getFirstConnectionAt() != null) {
                 long diffInMs = Math.abs(new Date().getTime() - userEntity.getFirstConnectionAt().getTime());
                 long diff = TimeUnit.DAYS.convert(diffInMs, TimeUnit.MILLISECONDS);
                 userDetails.setDisplayNewsletterSubscription(diff >= 7);
