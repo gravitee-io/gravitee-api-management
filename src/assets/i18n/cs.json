@@ -92,7 +92,8 @@
       "subscriptionAccepted": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je přijato!",
       "subscriptionKey": "Zde je váš osobní klíč pro přístup k API",
       "subscriptionPending": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> se ověřuje.",
-      "subscriptionRejected": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je odmítnuto."
+      "subscriptionRejected": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je odmítnuto.",
+      "oauth2": "Je potřeba si opatřit access_token z autorizačního serveru před tím než budete schopni konzumovat toto API."
     },
     "validate": {
       "askConfirmation": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> bude dokončeno.",
@@ -641,6 +642,7 @@
     },
     "plan": {
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
+      "otherOAuth2OrJWTSubscribed": "Jiný plán OAuth2 nebo JWT je již přihlášen stejnou aplikací.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
     },
     "server": {

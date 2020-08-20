@@ -244,6 +244,22 @@ export class ApiSubscribeComponent implements OnInit {
     return false;
   }
 
+  isOAuth2() {
+    const currentPlan = this.getCurrentPlan();
+    if (currentPlan && currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2) {
+      return true;
+    }
+    return false;
+  }
+
+  isJWT() {
+    const currentPlan = this.getCurrentPlan();
+    if (currentPlan && currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT) {
+      return true;
+    }
+    return false;
+  }
+
   getCommentLabel() {
     const currentPlan = this.getCurrentPlan();
     let label = this._commentLabel;
@@ -279,8 +295,15 @@ export class ApiSubscribeComponent implements OnInit {
             subscriptionId: subscription.id,
             include: ['keys']
           }).toPromise();
-          const apikeyHeader = this.configurationService.get('portal.apikeyHeader');
-          this.apiSample += ` -H "${apikeyHeader}:${subscription.keys[0].id}"`;
+          let currentPlan = this.getCurrentPlan();
+          if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.APIKEY) {
+            const apikeyHeader = this.configurationService.get('portal.apikeyHeader');
+            this.apiSample += ` -H "${apikeyHeader}:${subscription.keys[0].id}"`;
+          } else if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 || currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT) {
+            this.apiSample += ` -H "Authorization: Bearer xxxx-xxxx-xxxx-xxxx"`;
+          } else {
+            this.apiSample = null;
+          }
         } else {
           this.apiSample = null;
         }
@@ -338,7 +361,7 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   getSubscriptionKey() {
-    return this._subscription ? this._subscription.keys[0].id : null;
+    return this._subscription && this._subscription.keys && this._subscription.keys[0] ? this._subscription.keys[0].id : null;
   }
 
   private updateApplications() {

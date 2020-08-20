@@ -92,7 +92,8 @@
       "subscriptionAccepted": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est acceptée!",
       "subscriptionKey": "Voici votre clé personnelle pour accèder à l'API",
       "subscriptionPending": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est en cours de validation.",
-      "subscriptionRejected": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est rejetée."
+      "subscriptionRejected": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est rejetée.",
+      "oauth2": "Vous devez récupèrer un access_token auprès du serveur d'autorisation avant de pouvoir consommer cette API."
     },
     "validate": {
       "askConfirmation": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est sur le point d'être finalisée.",
@@ -641,6 +642,7 @@
     },
     "plan": {
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
+      "otherOAuth2OrJWTSubscribed": "Un autre plan de type OAuth2 ou JWT a déjà été souscrit par cette application.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
     },
     "server": {

@@ -97,9 +97,12 @@
               <h2>{{'apiSubscribe.success.congratulations' | translate}} </h2>
               <p
                 [innerHTML]="'apiSubscribe.success.subscriptionAccepted' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
-              <p>
+              <p *ngIf="getSubscriptionKey()">
                 <span>{{'apiSubscribe.success.subscriptionKey' | translate}}</span>
                 <gv-input clipboard [value]="getSubscriptionKey()" small></gv-input>
+              </p>
+              <p *ngIf="isOAuth2() || isJWT()">
+                <span>{{'apiSubscribe.success.oauth2' | translate}}</span>
               </p>
               <div class="success-links">
                 <a [routerLink]="['/' ]">{{ 'apiSubscribe.success.goToHome' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>
