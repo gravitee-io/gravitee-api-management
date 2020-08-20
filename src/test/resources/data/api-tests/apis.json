@@ -9,7 +9,8 @@
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883,
     "lifecycleState": "STOPPED",
-    "apiLifecycleState": "UNPUBLISHED"
+    "apiLifecycleState": "UNPUBLISHED",
+    "disableMembershipNotifications": true
   },
   {
     "id": "api-to-update",
@@ -21,7 +22,8 @@
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883,
     "lifecycleState": "STOPPED",
-    "apiLifecycleState": "PUBLISHED"
+    "apiLifecycleState": "PUBLISHED",
+    "disableMembershipNotifications": true
   },
   {
     "id": "api-to-findById",
@@ -35,7 +37,8 @@
     "labels": [ "label 1", "label 2"],
     "lifecycleState": "STOPPED",
     "categories": ["my-category"],
-    "apiLifecycleState": "DEPRECATED"
+    "apiLifecycleState": "DEPRECATED",
+    "disableMembershipNotifications": true
   },
   {
     "id": "grouped-api",
@@ -48,7 +51,8 @@
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883,
     "lifecycleState": "STOPPED",
-    "apiLifecycleState": "PUBLISHED"
+    "apiLifecycleState": "PUBLISHED",
+    "disableMembershipNotifications": true
   },
   {
     "id": "big-name",
@@ -60,6 +64,7 @@
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883,
     "lifecycleState": "STARTED",
-    "apiLifecycleState": "PUBLISHED"
+    "apiLifecycleState": "PUBLISHED",
+    "disableMembershipNotifications": false
   }
 ]

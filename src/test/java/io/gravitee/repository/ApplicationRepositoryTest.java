@@ -82,6 +82,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         application.setStatus(ApplicationStatus.ACTIVE);
         application.setCreatedAt(parse("11/02/2016"));
         application.setUpdatedAt(parse("12/02/2016"));
+        application.setDisableMembershipNotifications(true);
 
         applicationRepository.create(application);
 
@@ -98,7 +99,8 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid application status.", application.getStatus(), appSaved.getStatus());
         assertTrue("Invalid application createdAt.", compareDate(application.getCreatedAt(), appSaved.getCreatedAt()));
         assertTrue("Invalid application updateAt.", compareDate(application.getUpdatedAt(), appSaved.getUpdatedAt()));
-        assertEquals("Invalid application metadata.", application.getMetadata().get("type"), application.getMetadata().get("type"));
+        assertEquals("Invalid application metadata.", application.getMetadata().get("type"), appSaved.getMetadata().get("type"));
+        assertTrue("Invalid application disable membership notifications", appSaved.isDisableMembershipNotifications());
     }
 
     @Test
@@ -119,6 +121,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         application.setType(ApplicationType.SIMPLE);
         application.setCreatedAt(parse("11/02/2016"));
         application.setUpdatedAt(parse("22/02/2016"));
+        application.setDisableMembershipNotifications(true);
 
         applicationRepository.update(application);
 
@@ -134,6 +137,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Invalid updated application createdAt.", compareDate(application.getCreatedAt(), appUpdated.getCreatedAt()));
         assertTrue("Invalid updated application updateAt.", compareDate(application.getUpdatedAt(), appUpdated.getUpdatedAt()));
         assertEquals("Invalid application metadata.", application.getMetadata().get("type"), appUpdated.getMetadata().get("type"));
+        assertTrue("Invalid application disable membership notifications", appUpdated.isDisableMembershipNotifications());
         assertEquals("Invalid updated application picture.", application.getPicture(), appUpdated.getPicture());
         assertEquals("Invalid updated application background.", application.getBackground(), appUpdated.getBackground());
     }
@@ -207,7 +211,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByGroups() throws Exception {
-        Set<Application> apps = applicationRepository.findByGroups(Arrays.asList("application-group"));
+        Set<Application> apps = applicationRepository.findByGroups(Collections.singletonList("application-group"));
 
         assertNotNull(apps);
         assertEquals(2, apps.size());
@@ -215,7 +219,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByGroupsAndStatus() throws Exception {
-        Set<Application> apps = applicationRepository.findByGroups(Arrays.asList("application-group"), ApplicationStatus.ARCHIVED);
+        Set<Application> apps = applicationRepository.findByGroups(Collections.singletonList("application-group"), ApplicationStatus.ARCHIVED);
 
         assertNotNull(apps);
         assertEquals(1, apps.size());
