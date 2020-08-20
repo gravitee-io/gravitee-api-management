@@ -94,6 +94,7 @@ class ApplicationService {
         'groups': application.groups,
         'settings': application.settings,
         'picture': application.picture,
+        'disable_membership_notifications': application.disable_membership_notifications,
         'background': application.background
       }
     );
