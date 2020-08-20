@@ -50,6 +50,8 @@ public class GroupEntity {
     private boolean systemInvitation;
     @JsonProperty("email_invitation")
     private boolean emailInvitation;
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
 
     public String getId() {
         return id;
@@ -147,6 +149,14 @@ public class GroupEntity {
         this.emailInvitation = emailInvitation;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -175,6 +185,7 @@ public class GroupEntity {
                 ", lockApplicationRole=" + lockApplicationRole +
                 ", systemInvitation=" + systemInvitation +
                 ", emailInvitation=" + emailInvitation +
+                ", disableMembershipNotifications=" + disableMembershipNotifications +
                 '}';
     }
 }

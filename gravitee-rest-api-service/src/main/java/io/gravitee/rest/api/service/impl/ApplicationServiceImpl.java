@@ -766,7 +766,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             settings.setoAuthClient(clientSettings);
         }
         applicationEntity.setSettings(settings);
-
+        applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
         return applicationEntity;
     }
 
@@ -816,7 +816,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         application.setMetadata(metadata);
-
+        application.setDisableMembershipNotifications(updateApplicationEntity.isDisableMembershipNotifications());
         return application;
     }
 

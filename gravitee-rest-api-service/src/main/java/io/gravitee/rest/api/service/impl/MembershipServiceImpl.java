@@ -138,7 +138,22 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
 
                     Set<io.gravitee.repository.management.model.Membership> userRolesOnReference = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userEntity.getId(), convert(member.getMemberType()), convert(reference.getType()), reference.getId());
-                    if (notify && userRolesOnReference != null && userRolesOnReference.size() == 1 && userEntity.getEmail() != null && !userEntity.getEmail().isEmpty()) {
+                    boolean shouldNotify = notify && userRolesOnReference != null && userRolesOnReference.size() == 1 &&
+                            userEntity.getEmail() != null && !userEntity.getEmail().isEmpty();
+                    if (shouldNotify) {
+                        if (MembershipReferenceType.GROUP.equals(reference.getType())) {
+                            final GroupEntity group = groupService.findById(reference.getId());
+                            shouldNotify = !group.isDisableMembershipNotifications();
+                        } else if (MembershipReferenceType.API.equals(reference.getType())) {
+                            final ApiEntity api = apiService.findById(reference.getId());
+                            shouldNotify = !api.isDisableMembershipNotifications();
+                        } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
+                            final ApplicationEntity application = applicationService.findById(reference.getId());
+                            shouldNotify = !application.isDisableMembershipNotifications();
+                        }
+                    }
+
+                    if (shouldNotify) {
                         EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
                         if (emailNotification != null) {
                             emailService.sendAsyncEmailNotification(emailNotification);
@@ -160,7 +175,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membershipRepository.create(membership);
                     createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
                 }
-                
                 
                 if (MembershipReferenceType.GROUP == reference.getType()) {
                     notifierService.trigger(GROUP_INVITATION, singletonMap("group", groupService.findById(reference.getId())));

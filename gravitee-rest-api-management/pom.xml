@@ -25,10 +25,10 @@
     <version>3.1.3-SNAPSHOT</version>
   </parent>
 
-  <groupId>io.gravitee.rest.api.management</groupId>    
+  <groupId>io.gravitee.rest.api.management</groupId>
   <artifactId>gravitee-rest-api-management</artifactId>
   <packaging>pom</packaging>
-  
+
   <name>Gravitee.io Rest APIs - Management</name>
 
   <modules>

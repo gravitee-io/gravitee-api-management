@@ -28,10 +28,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.*;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -44,6 +41,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -70,6 +69,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Inject
     private UserService userService;
 
+    @Inject
+    private ApiKeyService apiKeyService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List subscriptions for the API",
@@ -81,15 +83,34 @@ public class ApiSubscriptionsResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
     public PagedResult<SubscriptionEntity> listApiSubscriptions(
-            @PathParam("api") String api,
             @BeanParam SubscriptionParam subscriptionParam,
-            @Valid @BeanParam Pageable pageable) {
+            @Valid @BeanParam Pageable pageable,
+            @ApiParam(allowableValues = "keys", value = "Expansion of data to return in subscriptions") @QueryParam("expand") List<String> expand) {
         // Transform query parameters to a subscription query
         SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
-        subscriptionQuery.setApi(api);
+        subscriptionQuery.setApi(subscriptionParam.getApi());
 
         Page<SubscriptionEntity> subscriptions = subscriptionService
                 .search(subscriptionQuery, pageable.toPageable());
+
+        if (expand != null && !expand.isEmpty()) {
+            for (String e : expand) {
+                switch (e) {
+                    case "keys":
+                        subscriptions.getContent().forEach(subscriptionEntity -> {
+                            final List<String> keys = apiKeyService.findBySubscription(subscriptionEntity.getId())
+                                    .stream()
+                                    .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
+                                    .map(ApiKeyEntity::getKey)
+                                    .collect(Collectors.toList());
+                            subscriptionEntity.setKeys(keys);
+                        });
+                        break;
+                    default: break;
+                }
+            }
+        }
+
         PagedResult<SubscriptionEntity> result = new PagedResult<>(subscriptions, pageable.getSize());
         result.setMetadata(subscriptionService.getMetadata(subscriptions.getContent()).getMetadata());
         return result;
@@ -137,13 +158,12 @@ public class ApiSubscriptionsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
     public Response exportAPILogsAsCSV(
-            @PathParam("api") String api,
             @BeanParam SubscriptionParam subscriptionParam,
             @Valid @BeanParam Pageable pageable) {
-        final PagedResult<SubscriptionEntity> subscriptions = listApiSubscriptions(api, subscriptionParam, pageable);
+        final PagedResult<SubscriptionEntity> subscriptions = listApiSubscriptions(subscriptionParam, pageable, null);
         return Response
                 .ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", api, System.currentTimeMillis()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", subscriptionParam.getApi(), System.currentTimeMillis()))
                 .build();
     }
 
@@ -177,8 +197,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 new Subscription.Application(
                         application.getId(),
                         application.getName(),
-                        //application.getType(),
-                        null,
+                        application.getType(),
+                        application.getDescription(),
                         new Subscription.User(
                                 application.getPrimaryOwner().getId(),
                                 application.getPrimaryOwner().getDisplayName()
@@ -191,12 +211,15 @@ public class ApiSubscriptionsResource extends AbstractResource {
     }
 
     private static class SubscriptionParam {
+        @PathParam("api")
+        private String api;
+
         @QueryParam("plan")
-        @ApiParam(value = "plan", required = true)
+        @ApiParam(value = "plan")
         private ListStringParam plans;
 
         @QueryParam("application")
-        @ApiParam(value = "application", required = true)
+        @ApiParam(value = "application")
         private ListStringParam applications;
 
         @QueryParam("status")
@@ -206,6 +229,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         @QueryParam("api_key")
         private String apiKey;
+
+        public String getApi() {
+            return api;
+        }
+
+        public void setApi(String api) {
+            this.api = api;
+        }
 
         public ListStringParam getPlans() {
             return plans;

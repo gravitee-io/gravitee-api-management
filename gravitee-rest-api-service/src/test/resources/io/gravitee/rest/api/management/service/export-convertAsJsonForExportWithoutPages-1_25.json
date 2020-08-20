@@ -2,6 +2,7 @@
   "description" : "Gravitee.io",
   "paths" : { },
   "resources" : [ ],
+  "properties" : [ ],
   "path_mappings":[],
   "groups" : [ "My Group" ],
   "members" : [ {

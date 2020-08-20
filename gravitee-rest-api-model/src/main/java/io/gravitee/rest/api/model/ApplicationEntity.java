@@ -82,6 +82,9 @@ public class ApplicationEntity {
     @JsonProperty("settings")
     private ApplicationSettings settings;
 
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
+
     private String background;
 
     public String getId() {
@@ -172,6 +175,14 @@ public class ApplicationEntity {
         this.picture = picture;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     public String getBackground() {
         return background;
     }
@@ -198,7 +209,8 @@ public class ApplicationEntity {
         final StringBuilder sb = new StringBuilder("Application{");
         sb.append("id='").append(id).append('\'');
         sb.append(", name='").append(name).append('\'');
-        sb.append(", createdAt=").append(createdAt);
+        sb.append(", createdAt=").append(createdAt).append('\'');
+        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications);
         sb.append('}');
         return sb.toString();
     }
