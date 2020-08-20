@@ -229,7 +229,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                             .count();
 
                     if (count > 0) {
-                        throw new PlanNotSubscribableException(
+                        throw new PlanOAuth2OrJWTAlreadySubscribedException(
                                 "An other OAuth2 or JWT plan is already subscribed by the same application.");
                     }
                 }
