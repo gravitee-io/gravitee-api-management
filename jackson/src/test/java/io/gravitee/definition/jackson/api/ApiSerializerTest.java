@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
@@ -111,9 +112,13 @@ public class ApiSerializerTest extends AbstractTest {
     @Test
     public void definition_apiWithoutProperties() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withoutproperties.json", Api.class);
+        Assert.assertNull(api.getProperties());
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
         Assert.assertNotNull(generatedJsonDefinition);
+
+        JsonNode node = objectMapper().readTree(generatedJsonDefinition.getBytes());
+        Assert.assertNotNull(node.get("properties"));
     }
 
     @Test

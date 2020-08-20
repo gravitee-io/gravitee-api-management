@@ -41,7 +41,7 @@ public class CorsSerializer extends StdScalarSerializer<Cors> {
 
         jgen.writeBooleanField("enabled", cors.isEnabled());
         jgen.writeBooleanField("allowCredentials", cors.isAccessControlAllowCredentials());
-
+        
         jgen.writeArrayFieldStart("allowOrigin");
         if (cors.getAccessControlAllowOrigin() != null && ! cors.getAccessControlAllowOrigin().isEmpty()) {
             cors.getAccessControlAllowOrigin().forEach(origin -> {
