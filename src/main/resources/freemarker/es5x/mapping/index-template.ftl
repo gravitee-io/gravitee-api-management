@@ -39,8 +39,7 @@
                     "type": "keyword"
                 },
                 "proxy-latency": {
-                    "type": "integer",
-                    "index": false
+                    "type": "integer"
                 },
                 "remote-address": {
                     "type": "ip",
