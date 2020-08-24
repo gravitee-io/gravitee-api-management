@@ -395,7 +395,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             final Set<Plan> apiPlans = this.planRepository.findByApi(apiId);
             for (Plan plan : apiPlans) {
-                if (plan.getExcludedGroups().contains(groupId)) {
+                if (plan.getExcludedGroups() != null && plan.getExcludedGroups().contains(groupId)) {
                     plan.getExcludedGroups().remove(groupId);
                     plan.setUpdatedAt(updatedDate);
                     this.planRepository.update(plan);
@@ -415,7 +415,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             final List<Page> apiPages = this.pageRepository.search(criteriaBuilder.build());
             for (Page page : apiPages) {
-                if (page.getExcludedGroups().contains(groupId)) {
+                if (page.getExcludedGroups() != null && page.getExcludedGroups().contains(groupId)) {
                     page.getExcludedGroups().remove(groupId);
                     page.setUpdatedAt(updatedDate);
                     this.pageRepository.update(page);
