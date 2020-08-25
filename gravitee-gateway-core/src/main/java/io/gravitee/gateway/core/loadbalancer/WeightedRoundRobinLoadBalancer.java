@@ -39,6 +39,10 @@ public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
             return null;
         }
 
+        if (endpoints.size() != getRuntimeRatios().size()) {
+            refresh();
+        }
+
         if (isRuntimeRatiosZeroed())  {
             resetRuntimeRatios();
             counter = 0;
