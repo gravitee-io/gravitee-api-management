@@ -19,12 +19,12 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.management.model.Visibility;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
+import io.gravitee.management.model.configuration.identity.GroupMappingEntity;
+import io.gravitee.management.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.management.model.permissions.RolePermission;
 import io.gravitee.management.model.permissions.SystemRole;
-import io.gravitee.management.service.AuditService;
-import io.gravitee.management.service.GroupService;
-import io.gravitee.management.service.MembershipService;
-import io.gravitee.management.service.PermissionService;
+import io.gravitee.management.service.*;
+import io.gravitee.management.service.configuration.identity.IdentityProviderService;
 import io.gravitee.management.service.exceptions.GroupNameAlreadyExistsException;
 import io.gravitee.management.service.exceptions.GroupNotFoundException;
 import io.gravitee.management.service.exceptions.GroupsNotFoundException;
@@ -74,6 +74,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     private PageRepository pageRepository;
     @Autowired
     private PlanRepository planRepository;
+    @Autowired
+    private IdentityProviderRepository identityProviderRepository;
 
     @Override
     public List<GroupEntity> findAll() {
@@ -372,6 +374,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             //remove from portal pages
             removeGroupFromPages(groupId, updatedDate, null);
 
+            //remove idp group mapping using this group
+            removeIDPGroupMapping(groupId, updatedDate);
+
             //remove group
             groupRepository.delete(groupId);
 
@@ -389,6 +394,40 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
 
+    }
+
+    private void removeIDPGroupMapping(String groupId, Date updatedDate) {
+        try {
+            final Set<IdentityProvider> allIdp = this.identityProviderRepository.findAll();
+            boolean idpHasBeenModified;
+            for(IdentityProvider idp : allIdp) {
+                idpHasBeenModified = false;
+                Map<String, String[]> groupMappings = idp.getGroupMappings();
+                if (groupMappings != null && !groupMappings.isEmpty()) {
+                    for (Map.Entry<String, String[]> mapping : groupMappings.entrySet()) {
+                        if (mapping.getValue() != null && mapping.getValue().length > 0) {
+                            List<String> groups = new ArrayList<>(Arrays.asList(mapping.getValue()));
+                            if (groups.contains(groupId)) {
+                                groups.remove(groupId);
+                                if (groups.isEmpty()) {
+                                    groupMappings.remove(mapping.getKey());
+                                } else {
+                                    groupMappings.put(mapping.getKey(), groups.toArray(new String[groups.size()]));
+                                }
+                                idpHasBeenModified = true;
+                            }
+                        }
+                    }
+                    if (idpHasBeenModified) {
+                        idp.setUpdatedAt(updatedDate);
+                        this.identityProviderRepository.update(idp);
+                    }
+                }
+            }
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to delete a group", ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+        }
     }
 
     private void removeFromAPIPlans(String groupId, Date updatedDate, String apiId) {
