@@ -108,6 +108,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Component
 public class ApiServiceImpl extends AbstractService implements ApiService {
 
+    public static final String ALLOW_ORIGIN_PATTERN = "^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$";
+
     private final static Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
@@ -792,6 +794,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check HC inheritance
             checkHealthcheckInheritance(updateApiEntity);
 
+            // check CORS Allow-origin format
+            checkAllowOriginFormat(updateApiEntity);
+
             addLoggingMaxDuration(updateApiEntity.getProxy().getLogging());
 
             // check if there is regex errors in plaintext fields
@@ -887,6 +892,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to update API " + apiId, ex);
+        }
+    }
+
+    private void checkAllowOriginFormat(UpdateApiEntity updateApiEntity) {
+        if (updateApiEntity.getProxy() != null && updateApiEntity.getProxy().getCors() != null) {
+            final Set<String> accessControlAllowOrigin = updateApiEntity.getProxy().getCors().getAccessControlAllowOrigin();
+            Pattern pattern = Pattern.compile(ALLOW_ORIGIN_PATTERN);
+            for(String allowOriginItem : accessControlAllowOrigin) {
+                if (!pattern.matcher(allowOriginItem).matches()) {
+                    throw new AllowOriginNotAllowedException(allowOriginItem);
+                }
+            }
         }
     }
 
