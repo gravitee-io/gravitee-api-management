@@ -881,6 +881,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
+    public Map<String, char[]> getUserMemberPermissions(EnvironmentEntity environment, String userId) {
+        return getUserMemberPermissions(MembershipReferenceType.ENVIRONMENT, environment.getId(), userId);
+    }
+
+    @Override
     public void removeRole(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType,
             String memberId, String roleId) {
         try {

@@ -18,8 +18,8 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -46,9 +46,9 @@ public class EnvironmentsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List available environments for current organization")
-    public Collection<EnvironmentEntity> list() {
-        return this.environmentService.findAll();
+    @ApiOperation(value = "List available environments for current user organization")
+    public Collection<EnvironmentEntity> getEnvironments() {
+        return this.environmentService.findByUser(getAuthenticatedUserOrNull());
     }
 
     @Path("{envId}")

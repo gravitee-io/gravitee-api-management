@@ -91,7 +91,7 @@ public enum Key {
     LOGGING_AUDIT_TRAIL_ENABLED("logging.audit.trail.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     LOGGING_USER_DISPLAYED("logging.user.displayed", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
     APPLICATION_TYPE_SIMPLE_ENABLED("application.types.simple.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     APPLICATION_TYPE_BROWSER_ENABLED("application.types.browser.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),

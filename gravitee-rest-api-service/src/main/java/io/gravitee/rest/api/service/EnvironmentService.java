@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
+
+import java.util.List;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -27,6 +27,8 @@ import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 public interface EnvironmentService {
 
     List<EnvironmentEntity> findAll();
+
+    List<EnvironmentEntity> findByUser(String userId);
 
     List<EnvironmentEntity> findByOrganization(String organizationId);
 

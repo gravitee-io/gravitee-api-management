@@ -45,6 +45,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +108,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private ApplicationTypeService applicationTypeService;
+
+    @Autowired
+    private EnvironmentService environmentService;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -226,7 +230,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String userId) {
-        try {
+        return this.create(newApplicationEntity, userId, false);
+    }
+
+    @Override
+    public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String userId, boolean isDefaultApplication) {
             LOGGER.debug("Create {} for user {}", newApplicationEntity, userId);
 
             // Check that only one settings is defined
@@ -245,7 +253,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Create a simple "internal" application
             if (newApplicationEntity.getSettings().getApp() != null) {
                 // If client registration is enabled, check that the simple type is allowed
-                if (isClientRegistrationEnabled() && !isApplicationTypeAllowed("simple")) {
+                if (!isDefaultApplication && isClientRegistrationEnabled() && !isApplicationTypeAllowed("simple")) {
                     throw new IllegalStateException("Application type 'simple' is not allowed");
                 }
 
@@ -254,12 +262,17 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
                 if (clientId != null && !clientId.trim().isEmpty()) {
                     LOGGER.debug("Check that client_id is unique among all applications");
-                    final Set<Application> applications = applicationRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment(), ApplicationStatus.ACTIVE);
-                    final boolean alreadyExistingApp = applications.stream().anyMatch(app ->
-                        app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id")));
-                    if (alreadyExistingApp) {
-                        LOGGER.error("An application already exists with the same client_id");
-                        throw new ClientIdAlreadyExistsException(clientId);
+                    try {
+                        final Set<Application> applications = applicationRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment(), ApplicationStatus.ACTIVE);
+                        final boolean alreadyExistingApp = applications.stream().anyMatch(app ->
+                                app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id")));
+                        if (alreadyExistingApp) {
+                            LOGGER.error("An application already exists with the same client_id");
+                            throw new ClientIdAlreadyExistsException(clientId);
+                        }
+                    } catch (TechnicalException ex) {
+                        LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, userId, ex);
+                        throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + userId, ex);
                     }
                 }
             } else {
@@ -293,7 +306,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Application application = convert(newApplicationEntity);
             application.setId(RandomString.generate());
             application.setStatus(ApplicationStatus.ACTIVE);
-            application.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
             // Add Default groups
@@ -307,26 +319,40 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 application.getGroups().addAll(defaultGroups);
             }
 
+
             // Set date fields
             application.setCreatedAt(new Date());
             application.setUpdatedAt(application.getCreatedAt());
+
+            if (isDefaultApplication) {
+                // TODO: this has to be modified for https://github.com/gravitee-io/issues/issues/4776
+                return createApplicationForEnvironment(userId, application, GraviteeContext.getDefaultEnvironment());
+            } else {
+                return createApplicationForEnvironment(userId, application, GraviteeContext.getCurrentEnvironment());
+            }
+    }
+
+    @NotNull
+    private ApplicationEntity createApplicationForEnvironment(String userId, Application application, String environmentId) {
+        try {
+            application.setEnvironmentId(environmentId);
 
             Application createdApplication = applicationRepository.create(application);
 
             // Audit
             auditService.createApplicationAuditLog(
-                createdApplication.getId(),
-                Collections.emptyMap(),
-                APPLICATION_CREATED,
-                createdApplication.getCreatedAt(),
-                null,
-                createdApplication);
+                    createdApplication.getId(),
+                    Collections.emptyMap(),
+                    APPLICATION_CREATED,
+                    createdApplication.getCreatedAt(),
+                    null,
+                    createdApplication);
 
             // Add the primary owner of the newly created Application
             membershipService.addRoleToMemberOnReference(
-                new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, createdApplication.getId()),
-                new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name()));
+                    new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, createdApplication.getId()),
+                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name()));
 
             // create the default mail notification
             UserEntity userEntity = userService.findById(userId);
@@ -340,11 +366,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 notificationConfigEntity.setConfig(userEntity.getEmail());
                 genericNotificationConfigService.create(notificationConfigEntity);
             }
-
             return convert(createdApplication, userEntity);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create {} for user {}", newApplicationEntity, userId, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + newApplicationEntity + " for user " + userId, ex);
+            LOGGER.error("An error occurs while trying to create {} for user {} in environment {}", application, userId, environmentId, ex);
+            throw new TechnicalManagementException("An error occurs while trying create " + application + " for user " + userId + " in environment " + environmentId, ex);
         }
     }
 

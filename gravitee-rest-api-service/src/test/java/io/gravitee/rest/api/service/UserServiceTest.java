@@ -323,7 +323,7 @@ public class UserServiceTest {
 
         userService.connect(USER_NAME);
 
-        verify(applicationService, times(1)).create(any(), eq(USER_NAME));
+        verify(applicationService, times(1)).create(any(), eq(USER_NAME), eq(true));
     }
 
     @Test

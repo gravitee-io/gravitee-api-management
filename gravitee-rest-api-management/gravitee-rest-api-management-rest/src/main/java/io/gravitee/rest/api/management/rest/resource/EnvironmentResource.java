@@ -22,12 +22,13 @@ import io.gravitee.rest.api.management.rest.resource.organization.UsersResource;
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
+import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
@@ -37,14 +38,19 @@ import io.swagger.annotations.*;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -122,8 +128,9 @@ public class EnvironmentResource extends AbstractResource {
     }
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/identities")
-    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION, acls = RolePermissionAction.READ))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION, acls = READ))
     @ApiOperation(value = "Get the list of identity provider activations for current environment",
             notes = "User must have the ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service")
     @ApiResponses({
@@ -137,7 +144,7 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/identities")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION, acls = {RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE}))
+    @Permissions(@Permission(value = RolePermission.ENVIRONMENT_IDENTITY_PROVIDER_ACTIVATION, acls = {CREATE, DELETE, UPDATE}))
     @ApiOperation(value = "Update available environment identities", tags = {"Environment"})
     @ApiResponses({
             @ApiResponse(code = 204, message = "Environment successfully updated"),
@@ -153,6 +160,30 @@ public class EnvironmentResource extends AbstractResource {
                         .map(IdentityProviderActivationEntity::getIdentityProvider)
                         .collect(Collectors.toList()));
         return Response.noContent().build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/permissions")
+    @ApiOperation(value = "Get permissions on environment")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Current user permissions on environement", response = char[].class, responseContainer = "Map"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response getEnvironmentPermissions() {
+        Map<String, char[]> permissions = new HashMap<>();
+        if (isAuthenticated()) {
+            final String username = getAuthenticatedUser();
+            final EnvironmentEntity environmentEntity = environmentService.findById(envId);
+            if (isAdmin()) {
+                final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
+                for (EnvironmentPermission perm : EnvironmentPermission.values()) {
+                    permissions.put(perm.getName(), rights);
+                }
+            } else {
+                permissions = membershipService.getUserMemberPermissions(environmentEntity, username);
+            }
+        }
+        return Response.ok(permissions).build();
     }
 
     @Path("alerts")

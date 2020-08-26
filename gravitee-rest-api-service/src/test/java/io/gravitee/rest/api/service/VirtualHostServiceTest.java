@@ -222,6 +222,7 @@ public class VirtualHostServiceTest {
     private Api createMock(String api, String path, String host) {
         Api api1 = mock(Api.class);
         when(api1.getId()).thenReturn(api);
+        when(api1.getEnvironmentId()).thenReturn("DEFAULT");
         if (host == null) {
             when(api1.getDefinition()).thenReturn("{\"id\": \"" + api + "\",\"name\": \"API 1\",\"proxy\": {\"context_path\": \"" + path + "\"}}");
         } else {

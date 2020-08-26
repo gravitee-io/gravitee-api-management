@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.NewApplicationEntity;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 
 import java.util.List;
@@ -39,6 +42,8 @@ public interface ApplicationService {
     Set<ApplicationListItem> findAll();
 
     ApplicationEntity create(NewApplicationEntity application, String username);
+
+    ApplicationEntity create(NewApplicationEntity application, String username, boolean isDefaultApplication);
 
     ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
 

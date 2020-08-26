@@ -18,12 +18,8 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
-import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
-import io.gravitee.rest.api.service.ApiHeaderService;
-import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.OrganizationService;
-import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.BadOrganizationException;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
@@ -36,6 +32,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -58,6 +55,9 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Autowired
     private PageService pageService;
 
+    @Autowired
+    private MembershipService membershipService;
+
     @Override
     public EnvironmentEntity findById(String environmentId) {
         try {
@@ -79,9 +79,35 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     public List<EnvironmentEntity> findAll() {
         try {
             LOGGER.debug("Find all environments");
-            return environmentRepository.findAll()
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
+            return environmentRepository.findAll().stream()
+                    .map(this::convert)
+                    .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all environments", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
+        }
+    }
+
+    @Override
+    public List<EnvironmentEntity> findByUser(String userId) {
+        try {
+            LOGGER.debug("Find all environments by user");
+
+            Stream<Environment> envStream = environmentRepository.findAll().stream();
+
+            if (userId != null) {
+                final List<String> stringStream = membershipService
+                        .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.ENVIRONMENT)
+                        .stream()
+                        .map(MembershipEntity::getReferenceId)
+                        .collect(Collectors.toList());
+
+                envStream = envStream.filter(env -> stringStream.contains(env.getId()));
+            }
+
+            return envStream
+                    .map(this::convert)
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all environments", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);

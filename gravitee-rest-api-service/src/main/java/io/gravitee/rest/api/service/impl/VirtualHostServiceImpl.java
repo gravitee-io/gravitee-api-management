@@ -76,10 +76,10 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         // validate domain restrictions
         validateDomainRestrictions(sanitizedVirtualHosts);
 
-        // Get all the API, except the one to update
+        // Get all the API of the currentEnvironment, except the one to update
         Set<ApiEntity> apis = apiRepository.search(null)
                 .stream()
-                .filter(api -> !api.getId().equals(apiId))
+                .filter(api -> !api.getId().equals(apiId) && api.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
                 .map(this::convert)
                 .collect(Collectors.toSet());
 

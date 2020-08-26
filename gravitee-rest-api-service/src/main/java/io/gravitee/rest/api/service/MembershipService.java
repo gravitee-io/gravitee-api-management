@@ -51,30 +51,19 @@ public interface MembershipService {
     Set<MembershipEntity>   getMembershipsByReferencesAndRole           (MembershipReferenceType referenceType, List<String> referenceIds, String role);
     MembershipEntity        getPrimaryOwner                             (MembershipReferenceType referenceType, String referenceId);
     Set<RoleEntity>         getRoles                                    (MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
-
-    MemberEntity getUserMember(MembershipReferenceType referenceType, String referenceId, String userId);
-
-    Map<String, char[]> getUserMemberPermissions(MembershipReferenceType referenceType, String referenceId, String userId);
-
-    Map<String, char[]> getUserMemberPermissions(ApiEntity api, String userId);
-
-    Map<String, char[]> getUserMemberPermissions(ApplicationEntity application, String userId);
-
-    Map<String, char[]> getUserMemberPermissions(GroupEntity group, String userId);
-
-    void removeRole(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId, String roleId);
-
-    void removeRoleUsage(String oldRoleId, String newRoleId);
-
-    void removeMemberMemberships(MembershipMemberType memberType, String memberId);
-
-    void transferApiOwnership(String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
-
-    void transferApplicationOwnership(String applicationId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
-
-    MemberEntity updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role);
-
-    List<MemberEntity> updateRolesToMemberOnReference(MembershipReference reference, MembershipMember member, Collection<MembershipRole> roles, String source, boolean notify);
+    MemberEntity            getUserMember                               (MembershipReferenceType referenceType, String referenceId, String userId);
+    Map<String, char[]>     getUserMemberPermissions                    (MembershipReferenceType referenceType, String referenceId, String userId);
+    Map<String, char[]>     getUserMemberPermissions                    (ApiEntity api, String userId);
+    Map<String, char[]>     getUserMemberPermissions                    (ApplicationEntity application, String userId);
+    Map<String, char[]>     getUserMemberPermissions                    (GroupEntity group, String userId);
+    Map<String, char[]>     getUserMemberPermissions                    (EnvironmentEntity environment, String userId);
+    void                    removeRole                                  (MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId, String roleId);
+    void                    removeRoleUsage                             (String oldRoleId, String newRoleId);
+    void                    removeMemberMemberships                     (MembershipMemberType memberType, String memberId);
+    void                    transferApiOwnership                        (String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
+    void                    transferApplicationOwnership                (String applicationId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
+    MemberEntity            updateRoleToMemberOnReference               (MembershipReference reference, MembershipMember member, MembershipRole role);
+    List<MemberEntity>      updateRolesToMemberOnReference              (MembershipReference reference, MembershipMember member, Collection<MembershipRole> roles, String source, boolean notify);
 
     class MembershipReference {
         private final MembershipReferenceType type;
