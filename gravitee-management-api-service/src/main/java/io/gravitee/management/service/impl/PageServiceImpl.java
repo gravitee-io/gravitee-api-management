@@ -167,10 +167,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
         if (markdownSanitize && io.gravitee.repository.management.model.PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
             pageEntity.setContent(HtmlSanitizer.sanitize(pageEntity.getContent()));
-        }else if (io.gravitee.repository.management.model.PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+        } else if (io.gravitee.repository.management.model.PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
             // If swagger page, let's try to apply transformations
-            SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
-
+            SwaggerDescriptor<?> descriptor = null;
+            try {
+                descriptor = swaggerService.parse(pageEntity.getContent());
+            } catch (SwaggerDescriptorException sde) {
+                if (apiId != null) {
+                    logger.error("Parsing error for API : %s", apiId);
+                }
+                throw sde;
+            }
 			if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
 				Collection<SwaggerTransformer<SwaggerV2Descriptor>> transformers = new ArrayList<>();
 				transformers.add(new PageConfigurationSwaggerV2Transformer(pageEntity));
