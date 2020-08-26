@@ -318,14 +318,28 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId({}, {}, {}, {})", memberId, memberType, referenceType, referenceId);
         try {
-            final String query = "select * from memberships where member_id = ? and member_type = ? and reference_type = ? and reference_id = ? ";
-            final List<Membership> memberships = jdbcTemplate.query(query
-                    , ORM.getRowMapper()
-                    , memberId
-                    , memberType.name()
-                    , referenceType.name()
-                    , referenceId
-            );
+            final String query = "select * from memberships where member_id = ? and member_type = ? and reference_type = ?";
+
+            final List<Membership> memberships;
+
+            if (referenceId != null) {
+                memberships = jdbcTemplate.query(query + " and reference_id = ?"
+                        , ORM.getRowMapper()
+                        , memberId
+                        , memberType.name()
+                        , referenceType.name()
+                        , referenceId
+                );
+
+            } else {
+                memberships = jdbcTemplate.query(query
+                        , ORM.getRowMapper()
+                        , memberId
+                        , memberType.name()
+                        , referenceType.name()
+                );
+            }
+
             return new HashSet<>(memberships);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find membership by user and membership type", ex);
