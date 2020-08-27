@@ -88,9 +88,16 @@ public class WebSocketProxyConnection extends AbstractHttpProxyConnection {
                 // From server to client
                 wsProxyRequest.frameHandler(frame -> {
                     if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.BINARY) {
-                        event.writeBinaryMessage(io.vertx.core.buffer.Buffer.buffer(frame.data().getBytes()));
+                        event.writeFrame(io.vertx.core.http.WebSocketFrame.binaryFrame(
+                                io.vertx.core.buffer.Buffer.buffer(frame.data().getBytes()), frame.isFinal()));
                     } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT) {
-                        event.writeTextMessage(frame.data().toString());
+                        event.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(
+                                frame.data().toString(), frame.isFinal()));
+                    } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.CONTINUATION) {
+                        event.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(
+                                io.vertx.core.buffer.Buffer.buffer(frame.data().toString()),
+                                frame.isFinal()
+                        ));
                     }
                 });
 

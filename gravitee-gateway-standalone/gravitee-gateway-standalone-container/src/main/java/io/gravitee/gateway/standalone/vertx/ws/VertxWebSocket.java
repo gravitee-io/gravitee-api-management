@@ -17,6 +17,8 @@ package io.gravitee.gateway.standalone.vertx.ws;
 
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.ws.WebSocket;
+import io.gravitee.gateway.api.ws.WebSocketFrame;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
 
@@ -53,10 +55,12 @@ class VertxWebSocket implements WebSocket {
 
     @Override
     public WebSocket write(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
-        if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.BINARY) {
-            websocket.writeBinaryMessage(io.vertx.core.buffer.Buffer.buffer(frame.data().getBytes()));
-        } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT) {
-            websocket.writeTextMessage(frame.data().toString());
+        if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.BINARY && frame.isFinal()) {
+            websocket.writeFrame(io.vertx.core.http.WebSocketFrame.binaryFrame(Buffer.buffer(frame.data().getBytes()), frame.isFinal()));
+        } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT && frame.isFinal()) {
+            websocket.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame.data().toString(), frame.isFinal()));
+        } else if (frame.type() == WebSocketFrame.Type.CONTINUATION) {
+            websocket.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(frame.data().toString()), frame.isFinal()));
         }
 
         return this;

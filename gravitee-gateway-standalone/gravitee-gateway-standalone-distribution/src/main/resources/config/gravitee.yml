@@ -37,6 +37,8 @@
 #  websocket:
 #    enabled: false
 #    subProtocols: v10.stomp, v11.stomp, v12.stomp
+#    perMessageWebSocketCompressionSupported: true
+#    perFrameWebSocketCompressionSupported: true
 
 # Plugins repository
 #plugins:
