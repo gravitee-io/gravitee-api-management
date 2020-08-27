@@ -43,4 +43,9 @@ class VertxWebSocketFrame implements WebSocketFrame {
     public Buffer data() {
         return Buffer.buffer(frame.binaryData().getBytes());
     }
+
+    @Override
+    public boolean isFinal() {
+        return frame.isFinal();
+    }
 }

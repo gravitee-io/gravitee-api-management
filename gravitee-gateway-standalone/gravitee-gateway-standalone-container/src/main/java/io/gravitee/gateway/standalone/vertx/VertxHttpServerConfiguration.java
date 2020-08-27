@@ -83,6 +83,12 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.websocket.subProtocols:#{null}}")
     private String websocketSubProtocols;
 
+    @Value("${http.websocket.perMessageWebSocketCompressionSupported:true}")
+    private boolean perMessageWebSocketCompressionSupported;
+
+    @Value("${http.websocket.perFrameWebSocketCompressionSupported:true}")
+    private boolean perFrameWebSocketCompressionSupported;
+
     public int getPort() {
         return port;
     }
@@ -225,6 +231,22 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setWebsocketSubProtocols(String websocketSubProtocols) {
         this.websocketSubProtocols = websocketSubProtocols;
+    }
+
+    public boolean isPerMessageWebSocketCompressionSupported() {
+        return perMessageWebSocketCompressionSupported;
+    }
+
+    public void setPerMessageWebSocketCompressionSupported(boolean perMessageWebSocketCompressionSupported) {
+        this.perMessageWebSocketCompressionSupported = perMessageWebSocketCompressionSupported;
+    }
+
+    public boolean isPerFrameWebSocketCompressionSupported() {
+        return perFrameWebSocketCompressionSupported;
+    }
+
+    public void setPerFrameWebSocketCompressionSupported(boolean perFrameWebSocketCompressionSupported) {
+        this.perFrameWebSocketCompressionSupported = perFrameWebSocketCompressionSupported;
     }
 
     @Override
