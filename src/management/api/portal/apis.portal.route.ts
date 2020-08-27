@@ -16,8 +16,8 @@
 import ApiService from '../../../services/api.service';
 import MetadataService from '../../../services/metadata.service';
 import GroupService from '../../../services/group.service';
-import DocumentationService, {DocumentationQuery} from '../../../services/documentation.service';
-import {StateParams} from '@uirouter/core';
+import DocumentationService, { DocumentationQuery } from '../../../services/documentation.service';
+import { StateParams } from '@uirouter/core';
 import FetcherService from '../../../services/fetcher.service';
 import PolicyService from '../../../services/policy.service';
 import TagService from '../../../services/tag.service';
@@ -391,7 +391,15 @@ function apisPortalRouterConfig($stateProvider) {
           if ($stateParams.type === 'LINK') {
             return CategoryService.list().then(response => response.data);
           }
-        }
+        },
+        pagesToLink: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN') {
+            const q = new DocumentationQuery();
+            q.homepage = false;
+            return DocumentationService.search(q, $stateParams.apiId)
+              .then(response => response.data.filter(page => page.published === true && (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER')));
+          }
+        },
       },
       data: {
         menu: null,
@@ -478,6 +486,14 @@ function apisPortalRouterConfig($stateProvider) {
         categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
             return CategoryService.list().then(response => response.data);
+          }
+        },
+        pagesToLink: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN') {
+            const q = new DocumentationQuery();
+            q.homepage = false;
+            return DocumentationService.search(q, $stateParams.apiId)
+              .then(response => response.data.filter(page => page.published === true && (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER') && page.id !== $stateParams.pageId));
           }
         }
       },

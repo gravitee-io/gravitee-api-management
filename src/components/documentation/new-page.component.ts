@@ -15,12 +15,11 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import DocumentationService, { DocumentationQuery, FolderSituation, SystemFolderName } from '../../services/documentation.service';
+import DocumentationService, { FolderSituation, SystemFolderName } from '../../services/documentation.service';
 import PortalConfigService from '../../services/portalConfig.service';
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import _ = require('lodash');
-import {IScope} from 'angular';
-import CategoryService from '../../services/category.service';
 
 interface IPageScope extends IScope {
   getContentMode: string;
@@ -32,7 +31,8 @@ const NewPageComponent: ng.IComponentOptions = {
     folders: '<',
     systemFolders: '<',
     pageResources: '<',
-    categoryResources: '<'
+    categoryResources: '<',
+    pagesToLink: '<'
   },
   template: require('./new-page.html'),
   controller: function (
@@ -65,7 +65,8 @@ const NewPageComponent: ng.IComponentOptions = {
     this.$onInit = () => {
       this.foldersById = _.keyBy(this.folders, 'id');
       this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
-      this.pageList = this.buildPageList(this.pageResources);
+      this.pageList = this.buildPageList(this.pageResources, true);
+      this.pagesToLink = this.buildPageList(this.pagesToLink);
 
       this.fetchers = this.resolvedFetchers;
       if (DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
@@ -92,7 +93,7 @@ const NewPageComponent: ng.IComponentOptions = {
 
     };
 
-    this.buildPageList = (pagesToFilter: any[]) => {
+    this.buildPageList = (pagesToFilter: any[], withRootFolder?: boolean) => {
       let pageList = _
         .filter(pagesToFilter, (p) => p.type === 'MARKDOWN' || p.type === 'SWAGGER' || (p.type === 'FOLDER' && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
         .map((page) => { return {
@@ -111,7 +112,9 @@ const NewPageComponent: ng.IComponentOptions = {
         return comparison;
       });
 
-      pageList.unshift( {id: 'root', name: '', type: 'FOLDER', fullPath: ''});
+      if (withRootFolder) {
+        pageList.unshift({ id: 'root', name: '', type: 'FOLDER', fullPath: '' });
+      }
       return pageList;
     };
 

@@ -21,11 +21,17 @@ class ComponentCtrl implements ng.IComponentController {
 
   public page: any;
   public options: any;
+  public pagesToLink: any[];
 
   private maxSize: number;
   private tuiEditor: any;
 
-  constructor(private $http, private Constants, private $state: StateService) {
+  constructor(
+    private $http,
+    private Constants,
+    private $state: StateService,
+    private $mdDialog: angular.material.IDialogService,
+  ) {
     'ngInject';
     var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
   }
@@ -38,7 +44,6 @@ class ComponentCtrl implements ng.IComponentController {
     } else {
       mediaURL = this.Constants.baseURL + '/portal/media/';
     }
-
     var toolbarItems = [
       'heading',
       'bold',
@@ -111,6 +116,44 @@ class ComponentCtrl implements ng.IComponentController {
       },
       plugins: [[codeSyntaxHighlight, { hljs }]]
     }, this.options));
+
+    this.tuiEditor.eventManager.addEventType('addLinkToPage');
+    const toolbar = this.tuiEditor.getUI().getToolbar();
+    toolbar.insertItem(
+      (Constants.portal.uploadMedia.enabled ? 17 : 16), // index depends on image button
+      {
+      type: 'button',
+      options: {
+        event: 'addLinkToPage',
+        tooltip: 'Insert page link',
+        style: 'background-image: url(\'assets/logo_file.svg\');  background-size: 20px 20px;'
+      }
+    });
+    const that = this;
+    this.tuiEditor.eventManager.listen('addLinkToPage', function () {
+      that.$mdDialog.show({
+        controller: 'SelectPageDialogController',
+        controllerAs: 'ctrl',
+        template: require('../dialog/selectpage.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          pages: that.pagesToLink,
+          title: 'Create a link to a page'
+        }
+      })
+        .then((page) => {
+          if (page) {
+            if (that.$state.params.apiId) {
+              const pageLinkTag = `[${page.name}](/#!/apis/${that.$state.params.apiId}/documentation/${page.id})`;
+              that.tuiEditor.insertText(pageLinkTag);
+            } else {
+              const pageLinkTag = `[${page.name}](/#!/settings/pages/${page.id})`;
+              that.tuiEditor.insertText(pageLinkTag);
+            }
+          }
+        });
+    });
+
   }
 }
 
@@ -118,7 +161,8 @@ const PageEditorMarkdownComponent: ng.IComponentOptions = {
   template: require('./page-editormarkdown.html'),
   bindings: {
     page: '<',
-    options: '<'
+    options: '<',
+    pagesToLink: '<'
   },
   controller: ComponentCtrl
 };

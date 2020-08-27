@@ -17,10 +17,10 @@
 import NotificationService from '../../services/notification.service';
 import DocumentationService, { FolderSituation, SystemFolderName } from '../../services/documentation.service';
 import PortalConfigService from '../../services/portalConfig.service';
-import {StateService} from '@uirouter/core';
-import {IScope} from 'angular';
-import _ = require('lodash');
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import UserService from '../../services/user.service';
+import _ = require('lodash');
 
 interface IPageScope extends IScope {
   fetcherJsonSchema: string;
@@ -34,6 +34,7 @@ const EditPageComponent: ng.IComponentOptions = {
     resolvedPage: '<',
     resolvedGroups: '<',
     resolvedFetchers: '<',
+    pagesToLink: '<',
     folders: '<',
     systemFolders: '<',
     pageResources: '<',
@@ -66,8 +67,8 @@ const EditPageComponent: ng.IComponentOptions = {
 
       this.foldersById = _.keyBy(this.folders, 'id');
       this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
-      this.pageList = this.buildPageList(this.pageResources);
-
+      this.pageList = this.buildPageList(this.pageResources, true);
+      this.pagesToLink = this.buildPageList(this.pagesToLink);
       if ( DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
         $state.go('management.settings.documentation');
       }
@@ -206,7 +207,7 @@ const EditPageComponent: ng.IComponentOptions = {
       console.debug('impossible to determine folder situation : ' + folderId);
     };
 
-    this.buildPageList = (pagesToFilter: any[]) => {
+    this.buildPageList = (pagesToFilter: any[], withRootFolder?: boolean) => {
       let pageList = _
         .filter(pagesToFilter, (p) => p.type === 'MARKDOWN' || p.type === 'SWAGGER' || (p.type === 'FOLDER' && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
         .map((page) => { return {
@@ -225,7 +226,9 @@ const EditPageComponent: ng.IComponentOptions = {
         return comparison;
       });
 
-      pageList.unshift( {id: 'root', name: '', type: 'FOLDER', fullPath: ''});
+      if (withRootFolder) {
+        pageList.unshift({ id: 'root', name: '', type: 'FOLDER', fullPath: '' });
+      }
       return pageList;
     };
 

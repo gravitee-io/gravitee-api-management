@@ -25,14 +25,14 @@ import ApiService from '../../services/api.service';
 import DictionaryService from '../../services/dictionary.service';
 import ApiHeaderService from '../../services/apiHeader.service';
 import IdentityProviderService from '../../services/identityProvider.service';
-import DocumentationService, {DocumentationQuery} from '../../services/documentation.service';
+import DocumentationService, { DocumentationQuery } from '../../services/documentation.service';
 import FetcherService from '../../services/fetcher.service';
-import {StateParams} from '@uirouter/core';
+import { StateParams } from '@uirouter/core';
 import EntrypointService from '../../services/entrypoint.service';
 import ClientRegistrationProviderService from '../../services/clientRegistrationProvider.service';
-import _ = require('lodash');
 import QualityRuleService from '../../services/qualityRule.service';
 import DashboardService from '../../services/dashboard.service';
+import _ = require('lodash');
 
 export default configurationRouterConfig;
 
@@ -310,6 +310,14 @@ function configurationRouterConfig($stateProvider) {
             return response.data;
           });
         },
+        pagesToLink: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN') {
+            const q = new DocumentationQuery();
+            q.homepage = false;
+            return DocumentationService.search(q)
+              .then(response => response.data.filter(page => page.published === true && (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER')));
+          }
+        },
         folders: (DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'FOLDER';
@@ -397,6 +405,14 @@ function configurationRouterConfig($stateProvider) {
           return FetcherService.list().then(response => {
             return response.data;
           });
+        },
+        pagesToLink: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN') {
+            const q = new DocumentationQuery();
+            q.homepage = false;
+            return DocumentationService.search(q)
+              .then(response => response.data.filter(page => page.published === true && (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER') && page.id !== $stateParams.pageId));
+          }
         },
         folders: (DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
