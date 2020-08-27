@@ -295,11 +295,12 @@ export class ApiSubscribeComponent implements OnInit {
             subscriptionId: subscription.id,
             include: ['keys']
           }).toPromise();
-          let currentPlan = this.getCurrentPlan();
+          const currentPlan = this.getCurrentPlan();
           if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.APIKEY) {
             const apikeyHeader = this.configurationService.get('portal.apikeyHeader');
             this.apiSample += ` -H "${apikeyHeader}:${subscription.keys[0].id}"`;
-          } else if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 || currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT) {
+          } else if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 ||
+            currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT) {
             this.apiSample += ` -H "Authorization: Bearer xxxx-xxxx-xxxx-xxxx"`;
           } else {
             this.apiSample = null;
@@ -463,7 +464,7 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   goToCategory(category: string) {
-    this.router.navigate(['/catalog/categories', category])
+    this.router.navigate(['/catalog/categories', category]);
   }
 
   goToSearch(tag: string) {
