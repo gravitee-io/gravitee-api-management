@@ -30,7 +30,7 @@
     "@formatjs/intl-relativetimeformat": "^4.5.11",
     "@gravitee/ng-portal-webclient": "^1.0.6",
     "@gravitee/ui-components": "^1.0.7",
-    "@ibm/plex": "^4.0.2",
+    "@ibm/plex": "^5.1.0",
     "@ngx-translate/core": "^12.1.2",
     "@ngx-translate/http-loader": "^4.0.0",
     "angular-oauth2-oidc": "^9.2.0",
@@ -43,7 +43,7 @@
     "messageformat": "^2.3.0",
     "ngx-cookie-service": "^3.0.4",
     "ngx-translate-messageformat-compiler": "^4.6.0",
-    "redoc": "^2.0.0-rc.26",
+    "redoc": "^2.0.0-rc.40",
     "resize-observer-polyfill": "^1.5.1",
     "rxjs": "6.5.5",
     "swagger-ui-dist": "^3.25.0",
@@ -51,7 +51,7 @@
     "zone.js": "~0.10.2"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^0.901.7",
+    "@angular-devkit/build-angular": "^0.901.12",
     "@angular/cli": "^9.1.0",
     "@angular/compiler-cli": "^9.1.1",
     "@angular/language-service": "^9.1.1",
