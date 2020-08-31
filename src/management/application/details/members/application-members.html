@@ -103,10 +103,11 @@
                     md-min-length="0"
                     md-menu-class="autocomplete-custom-template">
               <md-item-template>
-                <md-list-item class="md-2-line contact-item">
+                <md-list-item class="contact-item">
+                  <img ng-src="{{$ctrl.getMembershipAvatar(user)}}" class="md-avatar" alt="User avatar" />
                   <div class="md-list-item-text compact">
-                    <span style="font-size: medium;">{{user.displayName}}</span>
-                    <span style="padding-left: 24px; font-size: small;" ng-if="user.email">{{user.email}}</span>
+                    <span class="contact-name">{{user.displayName}}</span>
+                    <span ng-if="user.email">{{user.email}}</span>
                   </div>
                 </md-list-item>
               </md-item-template>

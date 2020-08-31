@@ -31,10 +31,10 @@
           md-menu-class="autocomplete-search-user"
 					flex>
 				<md-item-template>
-          <md-list-item class="md-2-line contact-item">
+          <md-list-item class="contact-item">
             <img ng-src="{{getUserAvatar(user.id)}}" class="md-avatar" alt="User avatar" />
             <div class="md-list-item-text compact">
-              <h3>{{user.displayName}}</h3>
+              <span class="contact-name">{{user.displayName}}</span>
               <span ng-if="user.email">{{user.email}}</span>
             </div>
           </md-list-item>
@@ -48,10 +48,10 @@
 
       <md-list class="fixedRows" ng-show="usersSelected.length > 0">
         <md-subheader class="md-no-sticky">Selected users</md-subheader>
-        <md-list-item class="md-2-line contact-item" ng-repeat="(index, user) in usersSelected">
+        <md-list-item class="contact-item" ng-repeat="(index, user) in usersSelected">
           <img ng-src="{{getUserAvatar(user.id)}}" class="md-avatar" alt="{{user.displayName}}" />
           <div class="md-list-item-text compact">
-            <h3>{{user.displayName}}</h3>
+            <span class="contact-name">{{user.displayName}}</span>
           </div>
         </md-list-item>
       </md-list>
