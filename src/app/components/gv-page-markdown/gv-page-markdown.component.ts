@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input, HostListener, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import * as marked from 'marked';
 import * as hljs from 'highlight.js';
 import { PageService } from 'src/app/services/page.service';
 import { Router } from '@angular/router';
 import { ScrollService } from 'src/app/services/scroll.service';
+import '@gravitee/ui-components/wc/gv-button';
 
 @Component({
   selector: 'app-gv-page-markdown',
@@ -43,6 +44,28 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     const page = this.pageService.getCurrentPage();
     if (page && page.content) {
+      const defaultRenderer = new marked.Renderer();
+
+      const renderer = {
+        link( href, title, text ) {
+          // is it a portal page URL ?
+          let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
+          if (!parsedURL) {
+            // is it a API page URL ?
+            parsedURL = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
+          }
+
+          if (parsedURL) {
+            const pageId = parsedURL[1];
+            return `<gv-button link data-page-id="${pageId}">${text}</gv-button>`;
+          }
+
+          return defaultRenderer.link(href, title, text);
+        }
+      };
+
+      marked.use({ renderer });
+
       marked.setOptions({
         highlight: (code, language) => {
           const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';

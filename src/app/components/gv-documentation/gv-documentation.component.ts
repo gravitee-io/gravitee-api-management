@@ -220,6 +220,9 @@ export class GvDocumentationComponent implements AfterViewInit {
       GvDocumentationComponent.reset(this.treeMenu.nativeElement);
     });
     this.currentPage = page;
+    if (this.menu) {
+      this.currentMenuItem = this.menu.find(item => item.value === page);
+    }
   }
 
   @HostListener(':gv-tree:toggle', ['$event.detail.closed'])
@@ -253,4 +256,9 @@ export class GvDocumentationComponent implements AfterViewInit {
     return this.isLoaded && (!this.menu || this.menu.length === 0);
   }
 
+  @HostListener(':gv-button:click', ['$event.srcElement.dataset.pageId'])
+  onInternalLinkClick(pageId: string) {
+    const pageToDisplay = this._pages.find((page) => page.id === pageId);
+    this.onPageChange(pageToDisplay);
+  }
 }

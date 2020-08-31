@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { PortalService, Page } from '@gravitee/ng-portal-webclient';
+import { Component, HostListener, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Page, PortalService } from '@gravitee/ng-portal-webclient';
 
 @Component({
   selector: 'app-single-page',
@@ -28,14 +28,21 @@ export class SinglePageComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private portalService: PortalService
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     this.route.params.subscribe(params => {
       if (params.pageId) {
-        this.portalService.getPageByPageId({ pageId: params.pageId }).subscribe(response => this.singlePage = response );
+        this.portalService.getPageByPageId({ pageId: params.pageId }).subscribe(response => this.singlePage = response);
       }
     });
+  }
+
+  @HostListener(':gv-button:click', ['$event.srcElement.dataset.pageId'])
+  onInternalLinkClick(pageId: string) {
+    this.router.navigate(['/documentation/root'], { queryParams: { page: pageId } });
   }
 }
