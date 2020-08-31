@@ -30,7 +30,6 @@ export class ApisController {
   private apisProvider: any;
   private apis: any;
   private graviteeUIVersion: string;
-  private apisScrollAreaHeight: number;
   private isAPIsHome: boolean;
   private createMode: boolean;
   private devMode: boolean;
@@ -70,7 +69,6 @@ export class ApisController {
       UserService.current();
     }
 
-    this.apisScrollAreaHeight = this.$state.current.name === 'apis.list' ? 195 : 90;
     this.isAPIsHome = this.$state.includes('apis');
 
     this.createMode = !Constants.portal.devMode.enabled;
