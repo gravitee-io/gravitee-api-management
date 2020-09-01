@@ -110,7 +110,7 @@ public class UpdateApiEntity {
     @ApiModelProperty(
             value = "API's groups. Used to add team in your API.",
             dataType = "java.util.List",
-            example = "MY_GROUP1, MY_GROUP2")
+            example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     @JsonProperty(value = "path_mappings")
