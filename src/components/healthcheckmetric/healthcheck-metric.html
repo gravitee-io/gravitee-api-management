@@ -15,12 +15,12 @@
     limitations under the License.
 
 -->
-<div>
+<div ng-if="$ctrl.availability >= 0">
     <progress-bar value="$ctrl.availability | floor  "></progress-bar>
     <md-tooltip md-direction="top">
         {{$ctrl.availability | number: 3}}%
     </md-tooltip>
 </div>
-<span class="label label-primary" style="font-weight: bold;font-size: 10.5px">
+<span ng-if="$ctrl.responsetime >= 0" class="label label-primary" style="font-weight: bold;font-size: 10.5px">
     {{$ctrl.responsetime | number: 0 }}ms
 </span>
