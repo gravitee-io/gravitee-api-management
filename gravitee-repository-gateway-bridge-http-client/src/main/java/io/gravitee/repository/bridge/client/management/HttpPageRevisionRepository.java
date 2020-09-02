@@ -15,12 +15,10 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PageRevisionRepository;
-import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PageRevision;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -38,13 +36,12 @@ public class HttpPageRevisionRepository extends AbstractRepository implements Pa
         throw new IllegalStateException();
     }
 
-    @Override
-    public PageRevision create(PageRevision item) throws TechnicalException {
+    public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public void deleteAllByPageId(String pageId) throws TechnicalException {
+    public PageRevision create(PageRevision item) throws TechnicalException {
         throw new IllegalStateException();
     }
 

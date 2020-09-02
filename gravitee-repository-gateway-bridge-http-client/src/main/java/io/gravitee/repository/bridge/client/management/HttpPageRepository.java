@@ -18,11 +18,11 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,6 +61,11 @@ public class HttpPageRepository extends AbstractRepository implements PageReposi
     @Override
     public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
             throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) {
         throw new IllegalStateException();
     }
 }
