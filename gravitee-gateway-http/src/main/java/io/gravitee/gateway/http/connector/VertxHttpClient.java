@@ -55,6 +55,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
@@ -115,7 +116,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         this.endpoint = endpoint;
     }
 
-    private final Map<Context, HttpClient> httpClients = new HashMap<>();
+    private final Map<Context, HttpClient> httpClients = new ConcurrentHashMap<>();
 
     @Override
     public ProxyConnection request(ProxyRequest proxyRequest) {
