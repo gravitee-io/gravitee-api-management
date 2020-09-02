@@ -1,0 +1,4 @@
+title:  New user created!
+message: |
+  "${user.firstname} ${user.lastname}" is now created.
+
