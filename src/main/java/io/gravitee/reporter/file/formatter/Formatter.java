@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.reporter.file.config;
+package io.gravitee.reporter.file.formatter;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.gravitee.reporter.api.Reportable;
+import io.vertx.core.buffer.Buffer;
 
-@Configuration
-public class ReporterConfiguration {
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface Formatter<T extends Reportable> {
 
-    @Bean 
-    public Config configuration(){
-    	return new Config();
-    }
+    Buffer format(T data);
 }

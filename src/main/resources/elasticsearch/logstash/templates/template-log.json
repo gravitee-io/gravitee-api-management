@@ -1,0 +1,50 @@
+{
+    "index_patterns": ["gravitee-log-*"],
+    "settings": {
+        "index.number_of_shards": 1,
+        "index.number_of_replicas": 1,
+        "index.refresh_interval": "5s"
+    },
+    "mappings": {
+        "properties": {
+                "@timestamp": {
+                    "type": "date"
+                },
+                "api": {
+                    "type": "keyword"
+                },
+                "client-request": {
+                    "type": "object",
+                    "properties": {
+                        "body":{
+                            "type": "text"
+                        }
+                    }
+                },
+                "client-response": {
+                    "type": "object",
+                    "properties": {
+                        "body":{
+                            "type": "text"
+                        }
+                    }
+                },
+                "proxy-request": {
+                    "type": "object",
+                    "properties": {
+                        "body":{
+                            "type": "text"
+                        }
+                    }
+                },
+                "proxy-response": {
+                    "type": "object",
+                    "properties": {
+                        "body":{
+                            "type": "text"
+                        }
+                    }
+                }
+            }
+    }
+}

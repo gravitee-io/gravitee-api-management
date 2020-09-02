@@ -1,0 +1,39 @@
+{
+    "index_patterns": ["gravitee-monitor-*"],
+    "settings": {
+        "index.number_of_shards": 1,
+        "index.number_of_replicas": 1,
+        "index.refresh_interval": "5s"
+    },
+    "mappings": {
+            "properties": {
+                "os": {
+                    "properties": {
+                        "cpu": {
+                            "properties": {
+                                "load_average": {
+                                    "properties": {
+                                        "1m": {
+                                            "type": "float"
+                                        },
+                                        "5m": {
+                                            "type": "float"
+                                        },
+                                        "15m": {
+                                            "type": "float"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "gateway": {
+                    "type": "keyword"
+                },
+                "hostname": {
+                    "type": "keyword"
+                }
+            }
+    }
+}

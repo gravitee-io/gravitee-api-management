@@ -1,0 +1,43 @@
+{
+    "index_patterns": ["gravitee-health-*"],
+    "settings": {
+        "index.number_of_shards": 1,
+        "index.number_of_replicas": 1,
+        "index.refresh_interval": "5s"
+    },
+    "mappings": {
+            "properties": {
+                "api": {
+                    "type": "keyword"
+                },
+                "available": {
+                    "type": "boolean",
+                    "index": false
+                },
+                "endpoint": {
+                    "type": "keyword"
+                },
+                "gateway": {
+                    "type": "keyword"
+                },
+                "response-time": {
+                    "type": "integer"
+                },
+                "state": {
+                    "type": "integer",
+                    "index": false
+                },
+                "transition": {
+                    "type": "boolean"
+                },
+                "steps": {
+                    "type": "object",
+                    "enabled": false
+                },
+                "success": {
+                    "type": "boolean",
+                    "index": false
+                }
+            }
+    }
+}
