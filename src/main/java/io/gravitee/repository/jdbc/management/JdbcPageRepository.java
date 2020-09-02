@@ -20,12 +20,12 @@ import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -385,8 +385,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                     "pc.k as pc_k, pc.v as pc_v " +
                     "from pages p " +
                     "left join page_configuration pc on p.id = pc.page_id " +
-                    "left join page_metadata pm on p.id = pm.page_id " +
-                    "where";
+                    "left join page_metadata pm on p.id = pm.page_id ";
             StringJoiner where = new StringJoiner(" and ", " ", " ");
             List<Object> params = new ArrayList<>();
 
@@ -422,6 +421,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                     where.add("p.type = ?");
                     params.add(criteria.getType());
                 }
+            }
+
+            if (where.toString().trim().length() > 0) {
+                select += " where ";
             }
 
             jdbcTemplate.query(select + where.toString() + "order by " + ESCAPED_ORDER_COLUMN_NAME, rowMapper, params.toArray());
