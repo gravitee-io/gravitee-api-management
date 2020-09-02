@@ -55,6 +55,7 @@ public class JdbcCategoryRepository implements CategoryRepository {
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("background", Types.NVARCHAR, String.class)
+            .addColumn("page", Types.NVARCHAR, String.class)
             .build();
 
     @Override
@@ -117,6 +118,7 @@ public class JdbcCategoryRepository implements CategoryRepository {
                                         + " , highlight_api = ?"
                                         + " , picture = ?"
                                         + " , background = ?"
+                                        + " , page = ?"
                                         + " , created_at = ? "
                                         + " , updated_at = ? "
                                         + " where "
@@ -133,6 +135,7 @@ public class JdbcCategoryRepository implements CategoryRepository {
                                 , item.getHighlightApi()
                                 , item.getPicture()
                                 , item.getBackground()
+                                , item.getPage()
                                 , item.getCreatedAt()
                                 , item.getUpdatedAt()
                                 , item.getId()
@@ -187,6 +190,21 @@ public class JdbcCategoryRepository implements CategoryRepository {
             final String error = "Failed to find category by key " + key;
             LOGGER.error(error, ex);
             throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public Set<Category> findByPage(String page) throws TechnicalException {
+        LOGGER.debug("JdbcCategoryRepository.findByPage()");
+        try {
+            List<Category> categories = jdbcTemplate.query("select * from categories where page = ?"
+                    , ORM.getRowMapper()
+                    , page
+            );
+            return new HashSet<>(categories);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find categories by page:", ex);
+            throw new TechnicalException("Failed to find categories by page", ex);
         }
     }
 }

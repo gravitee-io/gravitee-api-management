@@ -45,3 +45,11 @@ databaseChangeLog:
                   type: int
                   constraints:
                     nullable: true
+        - addColumn:
+            tableName: categories
+            columns:
+              - column:
+                  name: page
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
