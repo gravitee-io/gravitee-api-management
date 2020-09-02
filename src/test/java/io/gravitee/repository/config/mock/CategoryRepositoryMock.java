@@ -17,6 +17,7 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
+import org.mockito.internal.util.collections.Sets;
 
 import java.util.Date;
 import java.util.Set;
@@ -51,11 +52,13 @@ public class CategoryRepositoryMock extends AbstractRepositoryMock<CategoryRepos
         when(newCategory.getOrder()).thenReturn(1);
         when(newCategory.getPicture()).thenReturn("New picture");
         when(newCategory.getBackground()).thenReturn("New background");
+        when(newCategory.getPage()).thenReturn("documentationPageId");
 
         final Category categoryProducts = new Category();
         categoryProducts.setId("category");
         categoryProducts.setEnvironmentId("DEFAULT");
         categoryProducts.setName("Products");
+        categoryProducts.setPage("documentationPageId");
         categoryProducts.setCreatedAt(new Date(1000000000000L));
         categoryProducts.setUpdatedAt(new Date(1111111111111L));
         categoryProducts.setHidden(false);
@@ -72,6 +75,7 @@ public class CategoryRepositoryMock extends AbstractRepositoryMock<CategoryRepos
         when(categoryProductsUpdated.getHighlightApi()).thenReturn("new Highlighted API");
         when(categoryProductsUpdated.getPicture()).thenReturn("New picture");
         when(categoryProductsUpdated.getBackground()).thenReturn("New background");
+        when(categoryProductsUpdated.getPage()).thenReturn("documentationPageId");
 
         final Category myCategory = new Category();
         myCategory.setId("123");
@@ -95,6 +99,7 @@ public class CategoryRepositoryMock extends AbstractRepositoryMock<CategoryRepos
         when(categoryRepository.findById("unknown")).thenReturn(empty());
         when(categoryRepository.findById("products")).thenReturn(of(categoryProducts), of(categoryProductsUpdated));
         when(categoryRepository.findByKey("my-category", "DEFAULT")).thenReturn(of(myCategory));
+        when(categoryRepository.findByPage("documentationPageId")).thenReturn(Sets.newSet(newCategory, categoryProducts, categoryProductsUpdated));
 
         when(categoryRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }

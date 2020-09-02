@@ -20,7 +20,9 @@ import io.gravitee.repository.management.model.Category;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
@@ -41,6 +43,14 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         final Optional<Category> optionalCategory = categoryRepository.findByKey("my-category", "DEFAULT");
         assertTrue(optionalCategory.isPresent());
         assertEquals("123", optionalCategory.get().getId());
+    }
+
+    @Test
+    public void shouldFindByPage() throws Exception {
+        final Set<Category> categories = categoryRepository.findByPage("documentationPageId");
+        assertNotNull(categories);
+        assertFalse(categories.isEmpty());
+        assertEquals(3, categories.size());
     }
 
     @Test
@@ -73,6 +83,7 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         category.setOrder(1);
         category.setPicture("New picture");
         category.setBackground("New background");
+        category.setPage("documentationPageId");
 
         int nbCategorysBeforeCreation = categoryRepository.findAll().size();
         categoryRepository.create(category);
@@ -95,6 +106,7 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid category order.", category.getOrder(), categorySaved.getOrder());
         Assert.assertEquals("Invalid category picture.", "New picture", categorySaved.getPicture());
         Assert.assertEquals("Invalid category background.", "New background", categorySaved.getBackground());
+        Assert.assertEquals("Invalid category page.", "documentationPageId", categorySaved.getPage());
     }
 
     @Test
@@ -113,6 +125,7 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         category.setHighlightApi("new Highlighted API");
         category.setPicture("New picture");
         category.setBackground("New background");
+        category.setPage("documentationPageId");
 
         int nbCategorysBeforeUpdate = categoryRepository.findAll().size();
         categoryRepository.update(category);
@@ -134,6 +147,7 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid category highlight API.", category.getHighlightApi(), categoryUpdated.getHighlightApi());
         Assert.assertEquals("Invalid category picture.", "New picture", categoryUpdated.getPicture());
         Assert.assertEquals("Invalid category background.", "New background", categoryUpdated.getBackground());
+        Assert.assertEquals("Invalid category page.", "documentationPageId", categoryUpdated.getPage());
     }
 
     @Test
