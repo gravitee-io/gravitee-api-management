@@ -46,29 +46,69 @@
         <label>Management URL</label>
         <input type="text" ng-model="$ctrl.settings.management.url">
       </md-input-container>
-      <h6>Security plans type available</h6>
+      <h3>Security plans type available</h3>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.plan.security.keyless.enabled" aria-label="A">
+        <md-checkbox ng-model="$ctrl.settings.plan.security.keyless.enabled" aria-label="keyless">
           Keyless plans
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.plan.security.apikey.enabled" aria-label="A">
+        <md-checkbox ng-model="$ctrl.settings.plan.security.apikey.enabled" aria-label="apikey">
           Api-key plans
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.plan.security.oauth2.enabled" aria-label="A">
+        <md-checkbox ng-model="$ctrl.settings.plan.security.oauth2.enabled" aria-label="oauth2">
           Oauth2 plans
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.plan.security.jwt.enabled" aria-label="A">
+        <md-checkbox ng-model="$ctrl.settings.plan.security.jwt.enabled" aria-label="jwt">
           JWT plans
         </md-checkbox>
       </md-input-container>
 
-      <h6>Theme</h6>
+      <h3>OpenAPI viewers</h3>
+      <table md-table class="gv-table-dense" style="width: auto">
+        <tr>
+          <td>
+            <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled" aria-label="swagger"
+                       ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled"
+                       ng-change="$ctrl.toggleDocType()">
+              Swagger-UI
+            </md-switch>
+          </td>
+          <td>
+            <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
+              <md-radio-button value="Swagger" class="md-primary"
+                               ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled"
+                               style="margin-bottom: 0px;"
+              >Set as default
+              </md-radio-button>
+            </md-radio-group>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled" aria-label="swagger"
+                       ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled"
+                       ng-change="$ctrl.toggleDocType()">
+              Redoc
+            </md-switch>
+          </td>
+          <td>
+            <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
+              <md-radio-button value="Redoc" class="md-primary"
+                               ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled"
+                               style="margin-bottom: 0px;">Set as default
+              </md-radio-button>
+            </md-radio-group>
+          </td>
+        </tr>
+      </table>
+
+
+      <h3>Theme</h3>
       <md-input-container class="md-block" flex-gt-xs>
         <label>Name</label>
         <input ng-model="$ctrl.settings.theme.name">
@@ -95,7 +135,8 @@
       </md-input-container>
       <md-input-container class="md-block" flex-gt-xs>
         <label>Api-key Header
-          <small>(Used by portal to display the CURL command, change the YAML configuration to impact the gateway)</small>
+          <small>(Used by portal to display the CURL command, change the YAML configuration to impact the
+            gateway)</small>
         </label>
         <input ng-model="$ctrl.settings.portal.apikeyHeader">
       </md-input-container>
@@ -125,7 +166,9 @@
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.portal.userCreation.automaticValidation.enabled" ng-disabled="!$ctrl.settings.portal.userCreation.enabled" aria-label="Enable auto validation of creation">
+        <md-checkbox ng-model="$ctrl.settings.portal.userCreation.automaticValidation.enabled"
+                     ng-disabled="!$ctrl.settings.portal.userCreation.enabled"
+                     aria-label="Enable auto validation of creation">
           Enable automatic validation of registration requests.
         </md-checkbox>
       </md-input-container>
@@ -191,11 +234,15 @@
   </div>
 
   <md-card-actions>
-    <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
-               permission permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Save
+    <md-button type="submit" class="md-raised md-primary"
+               ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+               permission
+               permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Save
     </md-button>
-    <md-button type="button" class="md-raised" ng-click="$ctrl.reset()" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
-               permission permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Reset
+    <md-button type="button" class="md-raised" ng-click="$ctrl.reset()"
+               ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+               permission
+               permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']">Reset
     </md-button>
   </md-card-actions>
 </form>

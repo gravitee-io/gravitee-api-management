@@ -56,6 +56,15 @@ const PortalSettingsComponent: ng.IComponentOptions = {
        this.settings.authentication.github.clientId ||
        this.settings.authentication.oauth2.clientId;
     };
+
+    this.toggleDocType = () => {
+      if (!this.settings.openAPIDocViewer.openAPIDocType.swagger.enabled) {
+        this.settings.openAPIDocViewer.openAPIDocType.defaultType = 'Redoc';
+      }
+      if (!this.settings.openAPIDocViewer.openAPIDocType.redoc.enabled) {
+        this.settings.openAPIDocViewer.openAPIDocType.defaultType = 'Swagger';
+      }
+    };
   }
 };
 

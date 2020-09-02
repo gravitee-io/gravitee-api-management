@@ -16,6 +16,7 @@
 
 import NotificationService from '../../services/notification.service';
 import DocumentationService, { FolderSituation, SystemFolderName } from '../../services/documentation.service';
+import PortalConfigService from '../../services/portalConfig.service';
 import {StateService} from '@uirouter/core';
 import {IScope} from 'angular';
 import _ = require('lodash');
@@ -43,6 +44,7 @@ const EditPageComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
     UserService: UserService,
+    PortalConfigService: PortalConfigService,
     $mdDialog: angular.material.IDialogService,
     $state: StateService,
     $scope: IPageScope
@@ -53,6 +55,7 @@ const EditPageComponent: ng.IComponentOptions = {
     const indexOfTab = this.tabs.indexOf($state.params.tab);
     this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
     this.currentTab = this.tabs[this.selectedTab];
+    this.shouldShowOpenApiDocFormat = false;
 
     $scope.rename = false;
 
@@ -98,10 +101,22 @@ const EditPageComponent: ng.IComponentOptions = {
         if (!this.page.configuration) {
           this.page.configuration = {};
         }
-        if (!this.page.configuration.viewer) {
-          this.page.configuration.viewer = 'Swagger';
-        }
       }
+
+      PortalConfigService.get().then((response) => {
+        this.settings = response.data;
+        this.shouldShowOpenApiDocFormat = this.settings &&
+          this.settings.openAPIDocViewer &&
+          this.settings.openAPIDocViewer.openAPIDocType.swagger.enabled &&
+          this.settings.openAPIDocViewer.openAPIDocType.redoc.enabled;
+
+        if (this.page.type === 'SWAGGER' && !this.page.configuration.viewer) {
+          if (this.settings && this.settings.openAPIDocViewer) {
+            this.page.configuration.viewer = this.settings.openAPIDocViewer.openAPIDocType.defaultType;
+          }
+        }
+
+      });
     };
 
     this.selectTranslation = (translation: any) => {
@@ -401,6 +416,14 @@ const EditPageComponent: ng.IComponentOptions = {
       }
       if ( this.currentTranslation.configuration.inheritContent === 'true') {
         delete this.currentTranslation.content;
+      }
+    };
+
+    this.openApiFormatLabel = (format) => {
+      if (this.settings && this.settings.openAPIDocViewer && format === this.settings.openAPIDocViewer.openAPIDocType.defaultType) {
+        return `${format} (Default)`;
+      } else {
+        return format;
       }
     };
   },

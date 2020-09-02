@@ -16,6 +16,7 @@
 
 import NotificationService from '../../services/notification.service';
 import DocumentationService, { DocumentationQuery, FolderSituation, SystemFolderName } from '../../services/documentation.service';
+import PortalConfigService from '../../services/portalConfig.service';
 import {StateService} from '@uirouter/core';
 import _ = require('lodash');
 import {IScope} from 'angular';
@@ -37,6 +38,7 @@ const NewPageComponent: ng.IComponentOptions = {
   controller: function (
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
+    PortalConfigService: PortalConfigService,
     $state: StateService,
     $scope: IPageScope
   ) {
@@ -77,6 +79,17 @@ const NewPageComponent: ng.IComponentOptions = {
       };
       $scope.fetcherJsonSchema = this.emptyFetcher;
       this.fetcherJsonSchemaForm = ['*'];
+
+      PortalConfigService.get().then((response) => {
+        let settings = response.data;
+
+        if (this.page.type === 'SWAGGER' && settings && settings.openAPIDocViewer) {
+          this.page.configuration = {
+            viewer: settings.openAPIDocViewer.openAPIDocType.defaultType
+          };
+        }
+      });
+
     };
 
     this.buildPageList = (pagesToFilter: any[]) => {
