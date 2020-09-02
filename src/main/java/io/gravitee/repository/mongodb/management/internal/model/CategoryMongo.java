@@ -38,6 +38,7 @@ public class CategoryMongo extends Auditable{
 	private String highlightApi;
 	private String picture;
 	private String background;
+	private String page;
 
 	public String getId() {
 		return id;
@@ -113,6 +114,14 @@ public class CategoryMongo extends Auditable{
 		this.background = background;
 	}
 
+	public String getPage() {
+		return page;
+	}
+
+	public void setPage(String page) {
+		this.page = page;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -137,6 +146,7 @@ public class CategoryMongo extends Auditable{
 				", hidden='" + hidden + '\'' +
 				", order='" + order + '\'' +
 				", highlightApi='" + highlightApi + '\'' +
+				", page='" + page + '\'' +
 				'}';
 	}
 }

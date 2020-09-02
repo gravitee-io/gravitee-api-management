@@ -15,13 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
-import java.util.List;
-
 import io.gravitee.repository.mongodb.management.internal.model.CategoryMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -36,6 +35,9 @@ public interface CategoryMongoRepository extends MongoRepository<CategoryMongo, 
 
     @Query("{ 'environmentId': ?1, 'key': ?0 }")
     Optional<CategoryMongo> findByKeyAndEnvironment(String key, String environment);
+
+    @Query("{ 'page': ?0 }")
+    List<CategoryMongo> findByPage(String page);
 }
 
 

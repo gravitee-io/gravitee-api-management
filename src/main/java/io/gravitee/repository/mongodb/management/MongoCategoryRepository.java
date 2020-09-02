@@ -67,6 +67,16 @@ public class MongoCategoryRepository implements CategoryRepository {
     }
 
     @Override
+    public Set<Category> findByPage(String page) throws TechnicalException {
+        LOGGER.debug("Find categories by page [{}]", page);
+
+        final List<CategoryMongo> categories = internalCategoryRepo.findByPage(page);
+        return categories.stream()
+                .map(categoryMongo -> mapper.map(categoryMongo, Category.class))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public Category create(Category category) throws TechnicalException {
         LOGGER.debug("Create category [{}]", category.getName());
 
