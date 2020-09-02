@@ -40,6 +40,8 @@ public interface CategoryRepository {
     Set<Category> findAll() throws TechnicalException;
 
     Optional<Category> findByKey(String key, String environment) throws TechnicalException;
-    
+
+    Set<Category> findByPage(String page) throws TechnicalException;
+
     Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException;
 }

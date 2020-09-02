@@ -37,6 +37,7 @@ public class Category {
     private String highlightApi;
     private String picture;
     private String background;
+    private String page;
     private Date createdAt;
     private Date updatedAt;
 
@@ -136,6 +137,14 @@ public class Category {
         this.background = background;
     }
 
+    public String getPage() {
+        return page;
+    }
+
+    public void setPage(String page) {
+        this.page = page;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -163,6 +172,7 @@ public class Category {
                 ", hidden='" + hidden + '\'' +
                 ", order='" + order + '\'' +
                 ", highlightApi='" + highlightApi + '\'' +
+                ", page='" + page + '\'' +
                 ", updatedAt='" + updatedAt + '\'' +
                 ", createdAt='" + createdAt + '\'' +
                 '}';
