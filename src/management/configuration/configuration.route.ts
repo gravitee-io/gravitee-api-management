@@ -80,6 +80,14 @@ function configurationRouterConfig($stateProvider) {
     .state('management.settings.categorynew', {
       url: '/categories/new',
       component: 'category',
+      resolve: {
+        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'MARKDOWN';
+          q.published = true;
+          return DocumentationService.search(q).then(response => response.data);
+        }
+      },
       data: {
         menu: null,
         docs: {
@@ -95,7 +103,13 @@ function configurationRouterConfig($stateProvider) {
       component: 'category',
       resolve: {
         category: (CategoryService: CategoryService, $stateParams) => CategoryService.get($stateParams.categoryId).then(response => response.data),
-        categoryApis: (ApiService: ApiService, $stateParams) => ApiService.list($stateParams.categoryId).then(response => response.data)
+        categoryApis: (ApiService: ApiService, $stateParams) => ApiService.list($stateParams.categoryId).then(response => response.data),
+        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'MARKDOWN';
+          q.published = true;
+          return DocumentationService.search(q).then(response => response. data);
+        }
       },
       data: {
         menu: null,

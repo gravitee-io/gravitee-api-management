@@ -17,7 +17,7 @@
 -->
 <div class="gv-forms" layout="column">
   <div class="gv-forms-header">
-  <h1>{{$ctrl.createMode ? 'New' : 'Edit'}} category</h1>
+    <h1>{{$ctrl.createMode ? 'New' : 'Edit'}} category</h1>
     <a ui-sref="management.settings.categories">Back to categories</a>
   </div>
   <div class="gv-form">
@@ -53,6 +53,22 @@
                 <label>Visibility</label>
                 <ng-md-icon icon="visibility{{$ctrl.category.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility()"></ng-md-icon>
                 <div class="hint" ng-if="$ctrl.categoryForm.name.$valid || $ctrl.categoryForm.name.$pristine">Choose to display or hide the category</div>
+              </md-input-container>
+            </div>
+
+            <div layout-gt-sm="row">
+              <md-input-container class="md-block" flex-gt-xs>
+                <label>Documentation page</label>
+                <md-select ng-model="$ctrl.category.page">
+                  <md-option  ng-repeat="resource in $ctrl.pages"
+                              ng-value="resource.id">
+                    <md-icon md-svg-src="assets/logo_{{resource.type | lowercase}}.svg"></md-icon>
+                    <span style="font-style: italic; opacity: 0.5;">{{ resource.parentPath }}</span>/{{ resource.name }}
+                  </md-option>
+                </md-select>
+                <div class="hint">
+                  Provide a documentation page for your category
+                </div>
               </md-input-container>
             </div>
           </div>

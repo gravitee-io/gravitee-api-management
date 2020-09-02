@@ -107,7 +107,7 @@
                                             ng-value="resource.id"
                                             ng-click="$ctrl.updateLinkName(resource.name)">
                                     <md-icon md-svg-src="assets/logo_{{resource.type | lowercase}}.svg"></md-icon>
-                                    <span style="font-style: italic; opacity: 0.5;">{{ resource.fullPath }}</span>/{{ resource.name }}
+                                    <span style="font-style: italic; opacity: 0.5;">{{ resource.parentPath }}</span>/{{ resource.name }}
                                 </md-option>
                             </md-select>
                         </md-input-container>

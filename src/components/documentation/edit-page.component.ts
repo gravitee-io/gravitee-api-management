@@ -214,21 +214,17 @@ const EditPageComponent: ng.IComponentOptions = {
     this.buildPageList = (pagesToFilter: any[], withRootFolder?: boolean) => {
       let pageList = _
         .filter(pagesToFilter, (p) => p.type === 'MARKDOWN' || p.type === 'SWAGGER' || (p.type === 'FOLDER' && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
-        .map((page) => { return {
-          id: page.id,
-          name: page.name,
-          type: page.type,
-          fullPath: this.getFolderPath(page.parentId)
-        };
-      }).sort((a, b) => {
-        let comparison = 0;
-        if (a.fullPath > b.fullPath) {
-          comparison = 1;
-        } else if (a.fullPath < b.fullPath) {
-          comparison = -1;
-        }
-        return comparison;
-      });
+        .sort((a, b) => {
+          let comparison = 0;
+          const aFullPath = a.parentPath + '/' + a.name;
+          const bFullPath = b.parentPath + '/' + b.name;
+          if (aFullPath > bFullPath) {
+            comparison = 1;
+          } else if (aFullPath < bFullPath) {
+            comparison = -1;
+          }
+          return comparison;
+        });
 
       if (withRootFolder) {
         pageList.unshift({ id: 'root', name: '', type: 'FOLDER', fullPath: '' });

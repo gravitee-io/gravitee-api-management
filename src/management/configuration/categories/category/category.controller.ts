@@ -18,7 +18,7 @@ import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 
 class CategoryController {
   public searchText: string = '';
@@ -27,6 +27,7 @@ class CategoryController {
   private allApis: any[];
   private category: any;
   private categoryApis: any[];
+  private pages: any[];
   private selectedAPIs: any[];
   private addedAPIs: any[];
   private formChanged: boolean = false;
@@ -55,6 +56,17 @@ class CategoryController {
     this.$scope.$on('categoryBackgroundChangeSuccess', (event, args) => {
       this.category.background = args.image;
       this.formChanged = true;
+    });
+    this.pages = this.pages.sort((a, b) => {
+      let comparison = 0;
+      const aFullPath = a.parentPath + '/' + a.name;
+      const bFullPath = b.parentPath + '/' + b.name;
+      if (aFullPath > bFullPath) {
+        comparison = 1;
+      } else if (aFullPath < bFullPath) {
+        comparison = -1;
+      }
+      return comparison;
     });
   }
 

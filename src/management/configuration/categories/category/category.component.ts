@@ -16,7 +16,8 @@
 const CategoryComponent: ng.IComponentOptions = {
   bindings: {
     category: '<',
-    categoryApis: '<'
+    categoryApis: '<',
+    pages: '<'
   },
   controller: 'CategoryController',
   template: require('./category.html')
