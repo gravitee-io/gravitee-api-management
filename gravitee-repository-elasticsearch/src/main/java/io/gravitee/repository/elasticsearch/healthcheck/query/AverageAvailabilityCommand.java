@@ -133,7 +133,7 @@ public class AverageAvailabilityCommand extends AbstractElasticsearchQueryComman
 				}
 
 				double total = successCount + failureCount;
-				double percent = (total == 0) ? 100 : (successCount / total) * 100;
+				double percent = (total == 0) ? -1 : (successCount / total) * 100;
 
 				Bucket<Double> availability = new Bucket<>();
 				availability.setFrom(from);
