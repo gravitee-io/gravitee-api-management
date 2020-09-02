@@ -71,6 +71,10 @@ public enum Key {
     PLAN_SECURITY_APIKEY_ENABLED("plan.security.apikey.enabled", "true"),
     PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true"),
 
+    OPEN_API_DOC_TYPE_SWAGGER_ENABLED("open.api.doc.type.swagger.enabled", "true"),
+    OPEN_API_DOC_TYPE_REDOC_ENABLED("open.api.doc.type.redoc.enabled", "true"),
+    OPEN_API_DOC_TYPE_DEFAULT("open.api.doc.type.default", "Swagger"),
+
     API_QUALITY_METRICS_ENABLED("api.quality.metrics.enabled", "false"),
     API_QUALITY_METRICS_FUNCTIONAL_DOCUMENTATION_WEIGHT("api.quality.metrics.functional.documentation.weight", "0"),
     API_QUALITY_METRICS_TECHNICAL_DOCUMENTATION_WEIGHT("api.quality.metrics.technical.documentation.weight", "0"),

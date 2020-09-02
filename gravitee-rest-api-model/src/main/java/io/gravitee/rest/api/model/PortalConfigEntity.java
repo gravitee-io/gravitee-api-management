@@ -37,6 +37,7 @@ public class PortalConfigEntity {
     private Documentation documentation;
     private Theme theme;
     private Plan plan;
+    private OpenAPIDocViewer openAPIDocViewer;
     private ApiQualityMetrics apiQualityMetrics;
     private ApiReview apiReview;
     private Logging logging;
@@ -56,6 +57,7 @@ public class PortalConfigEntity {
         documentation = new Documentation();
         theme = new Theme();
         plan = new Plan();
+        openAPIDocViewer = new OpenAPIDocViewer();
         apiQualityMetrics = new ApiQualityMetrics();
         apiReview = new ApiReview();
         logging = new Logging();
@@ -129,6 +131,14 @@ public class PortalConfigEntity {
 
     public void setPlan(Plan plan) {
         this.plan = plan;
+    }
+
+    public OpenAPIDocViewer getOpenAPIDocViewer() {
+        return openAPIDocViewer;
+    }
+
+    public void setOpenAPIDocViewer(OpenAPIDocViewer openAPIDocViewer) {
+        this.openAPIDocViewer = openAPIDocViewer;
     }
 
     public ApiQualityMetrics getApiQualityMetrics() {
@@ -763,6 +773,53 @@ public class PortalConfigEntity {
 
         public void setUrl(String url) {
             this.url = url;
+        }
+    }
+
+    public class OpenAPIDocViewer {
+        private OpenAPIDocType openAPIDocType;
+
+        public OpenAPIDocViewer() { openAPIDocType = new OpenAPIDocType(); }
+
+        public OpenAPIDocType getOpenAPIDocType() { return openAPIDocType; }
+
+        public void setOpenAPIDocType(OpenAPIDocType openAPIDocType) {
+            this.openAPIDocType = openAPIDocType;
+        }
+    }
+
+    public static class OpenAPIDocType {
+        @ParameterKey(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED)
+        private Enabled swagger;
+
+        @ParameterKey(Key.OPEN_API_DOC_TYPE_REDOC_ENABLED)
+        private Enabled redoc;
+
+        @ParameterKey(Key.OPEN_API_DOC_TYPE_DEFAULT)
+        private String defaultType;
+
+        public Enabled getSwagger() {
+            return swagger;
+        }
+
+        public void setSwagger(Enabled swagger) {
+            this.swagger = swagger;
+        }
+
+        public Enabled getRedoc() {
+            return redoc;
+        }
+
+        public void setRedoc(Enabled redoc) {
+            this.redoc = redoc;
+        }
+
+        public String getDefaultType() {
+            return defaultType;
+        }
+
+        public void setDefaultType(String defaultType) {
+            this.defaultType = defaultType;
         }
     }
 

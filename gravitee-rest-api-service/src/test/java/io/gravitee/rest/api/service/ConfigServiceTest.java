@@ -68,6 +68,8 @@ public class ConfigServiceTest {
         params.put(Key.AUTHENTICATION_OAUTH2_SCOPE.key(), Arrays.asList("scope1", "scope2"));
         params.put(Key.SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
+        params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
+
         when(mockParameterService.findAll(any(List.class))).thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
@@ -82,6 +84,9 @@ public class ConfigServiceTest {
         assertEquals("analytics", Boolean.TRUE, portalConfig.getPortal().getAnalytics().isEnabled());
         assertEquals("recaptcha siteKey", "my-site-key", portalConfig.getReCaptcha().getSiteKey());
         assertEquals("recaptcha enabled", Boolean.TRUE, portalConfig.getReCaptcha().getEnabled());
+        assertEquals("plan security keyless", Boolean.TRUE, portalConfig.getPlan().getSecurity().getKeyless().isEnabled());
+        assertEquals("open api swagger enabled", Boolean.TRUE, portalConfig.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled());
+        assertEquals("open api swagger default", "Swagger", portalConfig.getOpenAPIDocViewer().getOpenAPIDocType().getDefaultType());
     }
 
     @Test
