@@ -64,4 +64,9 @@ public class HttpCategoryRepository extends AbstractRepository implements Catego
     public Optional<Category> findByKey(String key, String environment) throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Set<Category> findByPage(String page) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }
