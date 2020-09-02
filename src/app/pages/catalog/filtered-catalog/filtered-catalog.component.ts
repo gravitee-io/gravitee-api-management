@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Api, ApiMetrics, ApiService, Category, FilterApiQuery } from '@gravitee/ng-portal-webclient';
+import {
+  Api,
+  ApiMetrics,
+  ApiService,
+  Category,
+  FilterApiQuery,
+  Page,
+  PortalService
+} from '@gravitee/ng-portal-webclient';
 import '@gravitee/ui-components/wc/gv-promote';
 import '@gravitee/ui-components/wc/gv-card-list';
 import '@gravitee/ui-components/wc/gv-card-full';
@@ -52,6 +60,7 @@ export class FilteredCatalogComponent implements OnInit {
   filterApiQuery: FilterApiQuery;
   categories: Array<string>;
   currentCategory: string;
+  currentCategoryDocumentationPage: Page;
   paginationData: any;
   options: any[];
   currentDisplay: string;
@@ -64,6 +73,7 @@ export class FilteredCatalogComponent implements OnInit {
   private defaultCategory: { value, label };
   emptyIcon: string;
   emptyMessage: any;
+  isDocHidden = true;
 
   constructor(private apiService: ApiService,
               private translateService: TranslateService,
@@ -72,6 +82,7 @@ export class FilteredCatalogComponent implements OnInit {
               private apiStates: ApiStatesPipe,
               private apiLabels: ApiLabelsPipe,
               private config: ConfigurationService,
+              private portalService: PortalService,
   ) {
     this.allApis = [];
   }
@@ -109,6 +120,11 @@ export class FilteredCatalogComponent implements OnInit {
           this.size = size;
           this._load();
         }
+      }
+
+      if (this.category && this.category.page) {
+        this.portalService.getPageByPageId({ pageId: this.category.page }).toPromise()
+          .then(docPage => this.currentCategoryDocumentationPage = docPage);
       }
     });
   }
@@ -289,6 +305,9 @@ export class FilteredCatalogComponent implements OnInit {
 
   get canFilter() {
     return !this.inCategory() && this.hasCategoryMode() && this.categories && this.categories.length > 0;
+  }
+  toggleDocumentationPage($event: any) {
+    $event.target.closest('.catalog__category__documentation').classList.toggle('hidden');
   }
 
   @HostListener(':gv-card-full:click', ['$event.detail'])

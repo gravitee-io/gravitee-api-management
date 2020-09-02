@@ -13,6 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.catalog__category__documentation {
+  width: 100%
+}
+
+.catalog__category__documentation.hidden {
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  height: 5em;
+  padding-bottom: 3rem;
+}
+
+.catalog__category__documentation.hidden .hideDoc, .catalog__category__documentation:not(.hidden) .showDoc {
+  display: none;
+}
+
+.catalog__category__documentation.hidden .showDoc, .catalog__category__documentation:not(.hidden) .hideDoc {
+  display: block;
+}
+
+.catalog__category__documentation gv-button {
+  width: 100%;
+  margin: 0.2rem 0;
+  direction: rtl;
+}
 
 .catalog__section__top {
   display: flex;
@@ -20,7 +44,7 @@
   flex: 1;
 }
 
-gv-promote {
+gv-promote, app-gv-page {
   flex: 1 1 auto;
 }
 
@@ -86,7 +110,7 @@ gv-row {
     margin-top: 1rem;
   }
 
-  gv-promote-api {
+  gv-promote-api, app-gv-page {
     display: none;
   }
 

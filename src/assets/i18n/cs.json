@@ -509,6 +509,12 @@
     "categories": {
       "emptyMessage": "Kategorie neobsahuje žádné API"
     },
+    "category": {
+      "documentation": {
+        "hide": "Skrýt dokumentaci",
+        "show": "Zobrazit dokumentaci"
+      }
+    },
     "defaultCategory": "Všechna API",
     "display": {
       "cards": "Zobrazovací karty",

@@ -509,6 +509,12 @@
     "categories": {
       "emptyMessage": "Category does not contain any API"
     },
+    "category": {
+      "documentation": {
+        "hide": "Hide documentation",
+        "show": "Show documentation"
+      }
+    },
     "defaultCategory": "All the APIs",
     "display": {
       "cards": "Display cards",

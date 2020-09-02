@@ -17,9 +17,10 @@
 -->
 <div class="page__content">
   <h1 class="title" *ngIf="!inCategory() && !this.empty">{{getRouteTitle() | translate}}</h1>
+
   <h3 class="title" *ngIf="inCategory() && !this.empty">{{category.description}}</h3>
 
-  <section *ngIf="empty">
+  <section *ngIf="empty && !currentCategoryDocumentationPage">
     <gv-message class="message-empty">
       <gv-icon [shape]="emptyIcon"></gv-icon>
       <div class="title" [innerHTML]="emptyMessage"></div>
@@ -41,6 +42,17 @@
         <gv-card *ngFor="let api of randomList" [item]="api" (click)="goToApi(api)"></gv-card>
       </div>
     </article>
+
+  </section>
+
+  <section class="catalog__section__top" *ngIf="inCategory() && currentCategoryDocumentationPage">
+    <div class="catalog__category__documentation" [ngClass]="{'hidden': (allApis.length > 0 && isDocHidden)}">
+      <gv-button *ngIf="allApis.length > 0" link (click)="toggleDocumentationPage($event)">
+        <span class="hideDoc">{{'catalog.category.documentation.hide' | translate}}</span>
+        <span class="showDoc">{{'catalog.category.documentation.show' | translate}}</span>
+      </gv-button>
+      <app-gv-page [page]="currentCategoryDocumentationPage" class="page__box"></app-gv-page>
+    </div>
   </section>
 
   <section class="catalog__section__content">

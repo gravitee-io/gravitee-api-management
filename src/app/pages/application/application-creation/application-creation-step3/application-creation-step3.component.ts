@@ -17,11 +17,10 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, View
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { Api, ApiService, ApisResponse, Plan, Page } from '@gravitee/ng-portal-webclient';
+import { Api, ApiService, ApisResponse, Page, Plan } from '@gravitee/ng-portal-webclient';
 import { TranslateService } from '@ngx-translate/core';
 import { SearchRequestParams } from '../../../../utils/search-query-param.enum';
 import { distinctUntilChanged } from 'rxjs/operators';
-import { PageService } from 'src/app/services/page.service';
 
 @Component({
   selector: 'app-application-creation-step3',
@@ -78,7 +77,6 @@ export class ApplicationCreationStep3Component implements OnInit {
     this.planForm.valueChanges
     .pipe(distinctUntilChanged((prev, curr) => prev.planId === curr.planId))
     .subscribe(() => {
-      console.info("In SUbscribe test planId");
       if (this.hasGeneralConditions) {
 
         this.planForm.get('general_conditions_accepted').setValidators(Validators.requiredTrue);
@@ -114,7 +112,6 @@ export class ApplicationCreationStep3Component implements OnInit {
     this.planForm.valueChanges
     .pipe(distinctUntilChanged((prev, curr) => prev.general_conditions_accepted === curr.general_conditions_accepted))
     .subscribe(() => {
-      console.info("In SUbscribe test Accepted");
       this._generalConditionsAccepted = this.planForm.get('general_conditions_accepted').value;
       this.ref.detectChanges();
     });
