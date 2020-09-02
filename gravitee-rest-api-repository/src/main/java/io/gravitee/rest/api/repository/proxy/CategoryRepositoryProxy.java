@@ -41,6 +41,11 @@ public class CategoryRepositoryProxy extends AbstractProxy<CategoryRepository> i
     }
 
     @Override
+    public Set<Category> findByPage(String page) throws TechnicalException {
+        return target.findByPage(page);
+    }
+
+    @Override
     public Category create(Category item) throws TechnicalException {
         return target.create(item);
     }

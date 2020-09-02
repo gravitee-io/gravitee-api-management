@@ -108,6 +108,7 @@ public class PortalPagesResource extends AbstractResource {
     public List<PageEntity> listPages(
             @HeaderParam("Accept-Language") String acceptLang,
             @QueryParam("homepage") Boolean homepage,
+            @QueryParam("published") Boolean published,
             @QueryParam("type") PageType type,
             @QueryParam("parent") String parent,
             @QueryParam("name") String name,
@@ -117,6 +118,7 @@ public class PortalPagesResource extends AbstractResource {
         return pageService
                 .search(new PageQuery.Builder()
                         .homepage(homepage)
+                        .published(published)
                         .type(type)
                         .parent(parent)
                         .name(name)

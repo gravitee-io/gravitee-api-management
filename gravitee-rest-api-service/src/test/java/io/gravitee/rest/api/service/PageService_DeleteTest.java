@@ -19,6 +19,9 @@ import com.google.common.collect.Sets;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.service.exceptions.PageActionException;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PlanEntity;
@@ -33,6 +36,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -63,6 +67,9 @@ public class PageService_DeleteTest {
     private SearchEngineService searchEngineService;
 
     @Mock
+    private CategoryService categoryService;
+
+    @Mock
     private PageRevisionService pageRevisionService;
 
     @Mock
@@ -85,6 +92,21 @@ public class PageService_DeleteTest {
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
         doThrow(TechnicalException.class).when(pageRepository).delete(PAGE_ID);
 
+        pageService.delete(PAGE_ID);
+    }
+
+    @Test(expected = PageActionException.class)
+    public void shouldNotDeletePageBecauseUsedInCategory() throws TechnicalException {
+        Page page = mock(Page.class);
+        when(page.getType()).thenReturn(PageType.MARKDOWN.name());
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
+
+        CategoryEntity category1 = new CategoryEntity();
+        category1.setKey("cat_1");
+
+        CategoryEntity category2 = new CategoryEntity();
+        category2.setKey("cat_2");
+        doReturn(Arrays.asList(category1, category2)).when(categoryService).findByPage(PAGE_ID);
         pageService.delete(PAGE_ID);
     }
 

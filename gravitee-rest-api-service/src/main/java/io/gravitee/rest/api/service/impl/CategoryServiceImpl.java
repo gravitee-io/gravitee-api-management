@@ -81,6 +81,19 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
+    public List<CategoryEntity> findByPage(String page) {
+        try {
+            LOGGER.debug("Find all categories by page");
+            return categoryRepository.findByPage(page)
+                    .stream()
+                    .map(this::convert).collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all categories by page", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all categories by page", ex);
+        }
+    }
+
+    @Override
     public CategoryEntity findById(final String id) {
         try {
             LOGGER.debug("Find category by id : {}", id);
@@ -109,10 +122,10 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
     
     @Override
-    public CategoryEntity create(NewCategoryEntity Entity) {
+    public CategoryEntity create(NewCategoryEntity newCategory) {
         // First we prevent the duplicate category name
         final Optional<CategoryEntity> optionalCategory = findAll().stream()
-                .filter(v -> v.getName().equals((Entity.getName())))
+                .filter(v -> v.getName().equals((newCategory.getName())))
                 .findAny();
 
         if (optionalCategory.isPresent()) {
@@ -124,7 +137,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             String environment = GraviteeContext.getCurrentEnvironment();
             this.environmentService.findById(environment);
             
-            Category category = convert(Entity);
+            Category category = convert(newCategory);
             category.setEnvironmentId(environment);
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
             auditService.createPortalAuditLog(
@@ -136,8 +149,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
             return createdCategory;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to create category {}", Entity.getName(), ex);
-            throw new TechnicalManagementException("An error occurs while trying to create category " + Entity.getName(), ex);
+            LOGGER.error("An error occurs while trying to create category {}", newCategory.getName(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to create category " + newCategory.getName(), ex);
         }
     }
 
@@ -262,6 +275,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         category.setHighlightApi(categoryEntity.getHighlightApi());
         category.setPicture(categoryEntity.getPicture());
         category.setBackground(categoryEntity.getBackground());
+        category.setPage(categoryEntity.getPage());
         return category;
     }
 
@@ -277,6 +291,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         category.setHighlightApi(categoryEntity.getHighlightApi());
         category.setPicture(categoryEntity.getPicture());
         category.setBackground(categoryEntity.getBackground());
+        category.setPage(categoryEntity.getPage());
         return category;
     }
 
@@ -291,6 +306,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         categoryEntity.setHighlightApi(category.getHighlightApi());
         categoryEntity.setPicture(category.getPicture());
         categoryEntity.setBackground(category.getBackground());
+        categoryEntity.setPage(category.getPage());
         categoryEntity.setUpdatedAt(category.getUpdatedAt());
         categoryEntity.setCreatedAt(category.getCreatedAt());
         return categoryEntity;

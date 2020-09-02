@@ -40,6 +40,7 @@ public class UpdateCategoryEntity {
     private String highlightApi;
     private String picture;
     private String background;
+    private String page;
 
     public String getId() {
         return id;
@@ -113,6 +114,14 @@ public class UpdateCategoryEntity {
         this.background = background;
     }
 
+    public String getPage() {
+        return page;
+    }
+
+    public void setPage(String page) {
+        this.page = page;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -135,6 +144,7 @@ public class UpdateCategoryEntity {
                 ", defaultCategory='" + defaultCategory + '\'' +
                 ", hidden='" + hidden + '\'' +
                 ", order='" + order + '\'' +
+                ", page='" + page + '\'' +
                 '}';
     }
 }

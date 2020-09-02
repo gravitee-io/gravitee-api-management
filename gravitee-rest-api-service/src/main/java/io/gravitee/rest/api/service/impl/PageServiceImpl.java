@@ -131,6 +131,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
     private PageRevisionService pageRevisionService;
     @Autowired
     private GraviteeDescriptorService graviteeDescriptorService;
+    @Autowired
+    private CategoryService categoryService;
 
     @Autowired
     private ImportConfiguration importConfiguration;
@@ -450,7 +452,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         try {
             Optional<Page> optTranslation = this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(PageType.TRANSLATION.name()).build())
                     .stream()
-                    .filter(t -> acceptedLocale.equals(t.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG)))
+                    .filter(t -> acceptedLocale.equalsIgnoreCase(t.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG)))
                     .findFirst();
             if (optTranslation.isPresent()) {
                 return optTranslation.get();
@@ -1441,6 +1443,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 throw new TechnicalManagementException("Unable to remove the folder. It must be empty before being removed.");
             }
 
+            // if the page is used as a category documentation, throw an exception
+            final List<CategoryEntity> categories = categoryService.findByPage(pageId);
+            if (categories != null && !categories.isEmpty()) {
+                String categoriesKeys = categories.stream().map(CategoryEntity::getKey).collect(Collectors.joining(","));
+                throw new PageActionException(PageType.valueOf(page.getType()), "be deleted since it is used in categories [" + categoriesKeys + "]");
+            }
+
             // if the page is used as general condition for a plan,
             // we can't remove it until the plan is closed
             if (page.getReferenceType() != null && page.getReferenceType().equals(PageReferenceType.API)) {
@@ -1696,7 +1705,26 @@ public class PageServiceImpl extends TransactionalService implements PageService
         pageEntity.setParentId("".equals(page.getParentId()) ? null : page.getParentId());
         pageEntity.setMetadata(page.getMetadata());
 
+        pageEntity.setParentPath(this.computeParentPath(page, ""));
+
         return pageEntity;
+    }
+
+    private String computeParentPath(Page page, String suffix) {
+        final String path = suffix;
+        final String parentId = page.getParentId();
+        if (!StringUtils.isEmpty(parentId)) {
+            try {
+                final Optional<Page> optParent = pageRepository.findById(parentId);
+                if (optParent.isPresent()) {
+                    return this.computeParentPath(optParent.get(), "/" + optParent.get().getName() + path );
+                }
+            } catch (TechnicalException ex) {
+                logger.error("An error occurs while trying to find a page using its ID {}", parentId, ex);
+            }
+        }
+        return path;
+
     }
 
     private List<Page> getTranslations(String pageId) {

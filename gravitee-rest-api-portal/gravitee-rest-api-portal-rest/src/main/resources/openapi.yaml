@@ -3498,6 +3498,9 @@ components:
           type: string
         order:
           type: integer
+        page:
+          description: id of the page used for category documentation.
+          type: string
         total_apis:
           type: integer
           format: int64

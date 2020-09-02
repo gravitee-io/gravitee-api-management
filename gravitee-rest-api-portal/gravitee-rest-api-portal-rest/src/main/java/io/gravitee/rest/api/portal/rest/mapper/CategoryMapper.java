@@ -40,6 +40,7 @@ public class CategoryMapper {
         category.setId(categoryEntity.getKey());
         category.setName(categoryEntity.getName());
         category.setOrder(categoryEntity.getOrder());
+        category.setPage(categoryEntity.getPage());
         category.setTotalApis(categoryEntity.getTotalApis());
         
         CategoryLinks categoryLinks = new CategoryLinks();

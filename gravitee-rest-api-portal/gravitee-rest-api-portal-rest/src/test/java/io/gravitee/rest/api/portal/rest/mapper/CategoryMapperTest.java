@@ -42,6 +42,7 @@ public class CategoryMapperTest {
     private static final String CATEGORY_HIGHLIGHT_API = "my-category-highlight-api";
     private static final String CATEGORY_KEY = "my-category-key";
     private static final String CATEGORY_NAME = "my-category-name";
+    private static final String CATEGORY_PAGE = "my-category-page";
     private static final String CATEGORY_PICTURE = "my-category-picture";
     private static final String CATEGORY_PICTURE_URL = "my-category-picture-url";
     private static final String CATEGORY_BACKGROUND = "my-category-background";
@@ -66,6 +67,7 @@ public class CategoryMapperTest {
         categoryEntity.setKey(CATEGORY_KEY);
         categoryEntity.setName(CATEGORY_NAME);
         categoryEntity.setOrder(11);
+        categoryEntity.setPage(CATEGORY_PAGE);
         categoryEntity.setPicture(CATEGORY_PICTURE);
         categoryEntity.setPictureUrl(CATEGORY_PICTURE_URL);
         categoryEntity.setTotalApis(42);
@@ -78,6 +80,7 @@ public class CategoryMapperTest {
         assertEquals(CATEGORY_DESCRIPTION, category.getDescription());
         assertEquals(CATEGORY_KEY, category.getId());
         assertEquals(CATEGORY_NAME, category.getName());
+        assertEquals(CATEGORY_PAGE, category.getPage());
         assertEquals(11, category.getOrder().intValue());
         assertEquals(42, category.getTotalApis().longValue());
         CategoryLinks links = category.getLinks();

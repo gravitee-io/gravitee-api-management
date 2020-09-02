@@ -46,6 +46,7 @@ public class CategoryEntity {
     private String background;
     @JsonProperty(value = "background_url")
     private String backgroundUrl;
+    private String page;
 
     public String getId() {
         return id;
@@ -159,6 +160,14 @@ public class CategoryEntity {
         this.backgroundUrl = backgroundUrl;
     }
 
+    public String getPage() {
+        return page;
+    }
+
+    public void setPage(String page) {
+        this.page = page;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -184,6 +193,7 @@ public class CategoryEntity {
                 ", description='" + description + '\'' +
                 ", order='" + order + '\'' +
                 ", hidden='" + hidden + '\'' +
+                ", page='" + page + '\'' +
                 ", updatedAt='" + updatedAt + '\'' +
                 ", createdAt='" + createdAt + '\'' +
                 '}';

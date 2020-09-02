@@ -40,4 +40,5 @@ public interface CategoryService {
     long getTotalApisByCategory(Set<ApiEntity> apis, CategoryEntity category);
     InlinePictureEntity getPicture(String categoryId);
     InlinePictureEntity getBackground(String categoryId);
+    List<CategoryEntity> findByPage(String pageId);
 }

@@ -43,6 +43,7 @@ public class PageEntity implements Indexable {
     private Map<String, String> configuration;
     private boolean homepage;
     private String parentId;
+    private String parentPath;
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
     private Map<String, String> metadata;
@@ -57,10 +58,12 @@ public class PageEntity implements Indexable {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private PageRevisionId contentRevisionId;
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public void setId(String id) {
         this.id = id;
     }
@@ -170,6 +173,14 @@ public class PageEntity implements Indexable {
         this.parentId = parentId;
     }
 
+    public String getParentPath() {
+        return parentPath;
+    }
+
+    public void setParentPath(String parentPath) {
+        this.parentPath = parentPath;
+    }
+
     public Map<String, String> getMetadata() {
         return metadata;
     }
@@ -202,6 +213,7 @@ public class PageEntity implements Indexable {
         this.contentRevisionId = contentRevisionId;
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -213,6 +225,7 @@ public class PageEntity implements Indexable {
         return Objects.equals(id, that.id);
     }
 
+    @Override
     public int hashCode() {
         return Objects.hash(id);
     }
@@ -233,9 +246,10 @@ public class PageEntity implements Indexable {
 				", configuration=" + configuration +
 				", homepage=" + homepage +
 				", parentId='" + parentId + '\'' +
-				", excludedGroups=" + excludedGroups +
-				", metadata='" + metadata + '\'' +
-				", translations='" + translations + '\'' +
+                ", parentPath='" + parentPath + '\'' +
+                ", excludedGroups=" + excludedGroups +
+                ", metadata='" + metadata + '\'' +
+                ", translations='" + translations + '\'' +
 				", generalConditions='" + generalConditions + '\'' +
 				", contentRevisionId='" + contentRevisionId + '\'' +
 				'}';

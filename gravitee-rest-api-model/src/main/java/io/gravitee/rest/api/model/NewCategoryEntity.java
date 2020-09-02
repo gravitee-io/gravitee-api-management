@@ -34,6 +34,7 @@ public class NewCategoryEntity {
     private String highlightApi;
     private String picture;
     private String background;
+    private String page;
 
     public String getName() {
         return name;
@@ -91,6 +92,14 @@ public class NewCategoryEntity {
         this.background = background;
     }
 
+    public String getPage() {
+        return page;
+    }
+
+    public void setPage(String page) {
+        this.page = page;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -112,6 +121,7 @@ public class NewCategoryEntity {
                 ", description='" + description + '\'' +
                 ", order='" + order + '\'' +
                 ", hidden='" + hidden + '\'' +
+                ", page='" + page + '\'' +
                 '}';
     }
 }
