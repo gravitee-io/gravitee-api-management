@@ -86,7 +86,6 @@ export class AuthService {
       if (this.getProviderId()) {
         this._fetchProviderAndConfigure().finally(() => {
           this._logout(resolve);
-          this.removeProviderId();
         });
       } else {
         this._logout(resolve);
@@ -99,6 +98,7 @@ export class AuthService {
       this.currentUserService.revokeUser();
       if (this.getProviderId()) {
         this.oauthService.logOut();
+        this.removeProviderId();
       }
       this.router.navigate(['']);
     })
@@ -114,7 +114,7 @@ export class AuthService {
       tokenEndpoint: this.configurationService.get('baseURL') + '/auth/oauth2/' + provider.id,
       requireHttps: false,
       issuer: provider.tokenIntrospectionEndpoint,
-      logoutUrl: provider.userLogoutEndpoint,
+      logoutUrl: provider.userLogoutEndpoint + redirectUri,
       scope: provider.scopes.join(' '),
       responseType: 'code',
       redirectUri,
