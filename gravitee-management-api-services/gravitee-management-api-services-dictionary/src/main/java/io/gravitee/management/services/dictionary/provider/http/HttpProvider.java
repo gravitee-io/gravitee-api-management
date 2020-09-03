@@ -109,6 +109,9 @@ public class HttpProvider implements Provider {
                     });
                 } else {
                     future.complete(null);
+
+                    // Close client
+                    httpClient.close();
                 }
             });
 
@@ -127,6 +130,9 @@ public class HttpProvider implements Provider {
         } catch (Exception ex) {
             logger.error("Unable to look for dynamic properties", ex);
             future.completeExceptionally(ex);
+
+            // Close client
+            httpClient.close();
         }
 
         return future.thenApply(buffer -> {

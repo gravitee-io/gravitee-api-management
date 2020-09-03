@@ -91,7 +91,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                 .setKeepAlive(false)
                 .setTcpKeepAlive(false)
                 .setConnectTimeout(httpClientTimeout);
-        
+
         if ((useSystemProxy != null && useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured)) {
             ProxyOptions proxyOptions = new ProxyOptions();
             proxyOptions.setType(ProxyType.valueOf(httpClientProxyType));
@@ -108,7 +108,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             }
             options.setProxyOptions(proxyOptions);
         }
-        
+
         return vertx.createHttpClient(options);
     }
 
@@ -159,6 +159,9 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                 });
             } else {
                 future.completeExceptionally(new TechnicalManagementException(" Error on url '" + uri + "'. Status code: " + response.statusCode() + ". Message: " + response.statusMessage(), null));
+
+                // Close client
+                httpClient.close();
             }
         });
         request.exceptionHandler(event -> {
@@ -181,6 +184,4 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             throw new TechnicalManagementException(e.getMessage(), e);
         }
     }
-
-
 }
