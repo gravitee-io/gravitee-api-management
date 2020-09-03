@@ -162,7 +162,7 @@ const UserDetailComponent: ng.IComponentOptions = {
         }
       }).then((response) => {
         if (response) {
-          UserService.resetPassword(this.selectedUser.id, window.location.origin + '/#!/resetPassword/').then(() => {
+          UserService.resetPassword(this.selectedUser.id).then(() => {
             NotificationService.show('The password of user "' + this.selectedUser.displayName + '" has been successfully reset');
           });
         }
