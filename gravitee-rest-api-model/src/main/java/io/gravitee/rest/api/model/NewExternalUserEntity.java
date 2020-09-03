@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import javax.validation.constraints.NotNull;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -55,6 +56,8 @@ public class NewExternalUserEntity {
     private String sourceId;
 
     private Boolean newsletter;
+
+    private Map<String, Object> customFields;
 
     public String getSource() {
         return source;
@@ -112,6 +115,14 @@ public class NewExternalUserEntity {
         this.newsletter = newsletter;
     }
 
+    public Map<String, Object> getCustomFields() {
+        return customFields;
+    }
+
+    public void setCustomFields(Map<String, Object> customFields) {
+        this.customFields = customFields;
+    }
+
     @Override
     public String toString() {
         return "NewExternalUserEntity{" +
@@ -122,6 +133,7 @@ public class NewExternalUserEntity {
                 ", picture='" + picture + '\'' +
                 ", sourceId='" + sourceId + '\'' +
                 ", newsletter=" + newsletter +
+                ", customFields=" + customFields +
                 '}';
     }
 }

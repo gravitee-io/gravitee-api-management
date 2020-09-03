@@ -17,10 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
-import io.gravitee.rest.api.model.NewExternalUserEntity;
-import io.gravitee.rest.api.model.RegisterUserEntity;
-import io.gravitee.rest.api.model.UrlPictureEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import org.junit.Before;
@@ -28,18 +25,18 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
-
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

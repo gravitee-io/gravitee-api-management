@@ -20,9 +20,10 @@ package io.gravitee.rest.api.model.permissions;
  * @author GraviteeSource Team
  */
 public enum OrganizationPermission implements Permission {
-    USER           (   "USER",        1000    ),
-    ENVIRONMENT    (   "ENVIRONMENT", 1100    ),
-    ROLE           (   "ROLE",        1200    );
+    USER                (   "USER",        1000    ),
+    ENVIRONMENT         (   "ENVIRONMENT", 1100    ),
+    ROLE                (   "ROLE",        1200    ),
+    CUSTOM_USER_FIELDS  (   "CUSTOM_USER_FIELDS",1300    );
 
     String name;
     int mask;

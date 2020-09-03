@@ -235,6 +235,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.DELETE, uriOrgPrefix + "/users/**").authenticated()
 
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/rolescopes/**").permitAll()
+                .antMatchers(HttpMethod.GET,uriOrgPrefix + "/configuration/custom-user-fields").permitAll()
                 .antMatchers(uriOrgPrefix + "/configuration/**").authenticated()
 
                 // environments resources
@@ -266,6 +267,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.GET, uriPrefix + "/platform/**").authenticated()
 
                 // User management
+                .antMatchers(HttpMethod.GET,uriPrefix + "/users/custom-fields").permitAll()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/users").authenticated()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/users/**").authenticated()
@@ -286,6 +288,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                 // Configuration role scopes
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**").permitAll()
+
+                // Configuration CustomUserFields
+                .antMatchers(HttpMethod.GET,uriPrefix + "/configuration/custom-user-fields").permitAll()
 
                 // Configuration
                 .antMatchers(uriPrefix + "/configuration/**").authenticated()

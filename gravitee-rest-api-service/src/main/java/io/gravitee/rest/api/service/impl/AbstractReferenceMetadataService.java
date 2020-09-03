@@ -15,7 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.common.util.Maps;
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.MetadataRepository;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Metadata;
+import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
@@ -23,10 +29,6 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.MetadataRepository;
-import io.gravitee.repository.management.model.Metadata;
-import io.gravitee.repository.management.model.MetadataReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,9 @@ import java.util.*;
 import java.util.function.Function;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
+import static io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer.formatKeyValue;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -47,7 +51,7 @@ public abstract class AbstractReferenceMetadataService {
     private final Logger LOGGER = LoggerFactory.getLogger(io.gravitee.rest.api.service.impl.AbstractReferenceMetadataService.class);
 
     @Autowired
-    private MetadataRepository metadataRepository;
+    protected MetadataRepository metadataRepository;
     @Autowired
     private MetadataService metadataService;
     @Autowired
@@ -186,6 +190,9 @@ public abstract class AbstractReferenceMetadataService {
                 final ApplicationEntity applicationEntity = applicationService.findById(referenceId);
                 metadataService.checkMetadataFormat(format, value, referenceType, applicationEntity);
                 break;
+            case USER:
+                // do nothing for User, currently on String is used without templating
+                break;
         }
     }
 
@@ -207,6 +214,17 @@ public abstract class AbstractReferenceMetadataService {
                 auditService.createApplicationAuditLog(
                         referenceId,
                         Collections.singletonMap(METADATA, key),
+                        auditEvent,
+                        updatedAt,
+                        oldMetadata,
+                        metadata);
+                break;
+            case USER:
+                auditService.createPortalAuditLog(
+                        Maps.<Audit.AuditProperties, String>builder()
+                                .put(USER, referenceId)
+                                .put(METADATA, key)
+                                .build(),
                         auditEvent,
                         updatedAt,
                         oldMetadata,
@@ -295,7 +313,11 @@ public abstract class AbstractReferenceMetadataService {
     private Metadata convertForReference(final NewReferenceMetadataEntity metadataEntity,
                                          final MetadataReferenceType referenceType, final String referenceId) {
         final Metadata metadata = new Metadata();
-        metadata.setKey(IdGenerator.generate(metadataEntity.getName()));
+        if (referenceType.equals(MetadataReferenceType.USER)) {
+            metadata.setKey(formatKeyValue(metadataEntity.getName()));
+        } else {
+            metadata.setKey(IdGenerator.generate(metadataEntity.getName()));
+        }
         metadata.setName(metadataEntity.getName());
         metadata.setFormat(io.gravitee.repository.management.model.MetadataFormat.valueOf(metadataEntity.getFormat().name()));
 

@@ -181,4 +181,10 @@ public class ConfigurationResource {
     public ThemesResource getThemesResource() {
         return resourceContext.getResource(ThemesResource.class);
     }
+
+    @Path("custom-user-fields")
+    public CustomUserFieldsResource getCustomUserFields() {
+        return resourceContext.getResource(CustomUserFieldsResource.class);
+    }
+
 }

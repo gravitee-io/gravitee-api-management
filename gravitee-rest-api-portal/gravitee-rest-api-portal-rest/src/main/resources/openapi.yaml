@@ -1741,6 +1741,7 @@ paths:
                 $ref: '#/components/schemas/User'
         500:
           $ref: '#/components/responses/InternalServerError'
+
   /users/registration/_finalize:
     post:
       tags:
@@ -2221,6 +2222,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConfigurationApplicationRolesResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /configuration/users/custom-fields:
+    get:
+      tags:
+        - Users
+      summary: List all the Custom User Fields.
+      description: |
+        Provide the list of custom user fields asked to the new users.
+      operationId: listCustomUserFields
+      responses:
+        200:
+          description: The list of custom user fields
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomUserFields'
         500:
           $ref: '#/components/responses/InternalServerError'
   /info:
@@ -3675,6 +3695,10 @@ components:
           type: string
         email:
           type: string
+        customFields:
+          type: object
+          description: Values for CustomUserFields
+          additionalProperties: true
         config:
           $ref: '#/components/schemas/UserConfig'
         _links:
@@ -4214,6 +4238,10 @@ components:
         confirmation_page_url:
           description: URL of the confirmation page to be used in the 'User Registration' email.
           type: string
+        customFields:
+          type: object
+          description: Values for CustomUserFields
+          additionalProperties: true
     FinalizeRegistrationInput:
       required:
         - token
@@ -4236,7 +4264,6 @@ components:
     UserInput:
       required:
         - id
-        - avatar
       properties:
         id:
           description: Unique identifier of a user.
@@ -4245,6 +4272,10 @@ components:
           description: Avatar of the user.
           type: string
           writeOnly: true
+        customFields:
+          type: object
+          description: Values for CustomUserFields
+          additionalProperties: true
     ResetUserPasswordInput:
       required:
         - username
@@ -4620,7 +4651,23 @@ components:
           type: string
         background:
           type: string
-
+    CustomUserFields:
+      description: Definition of addition user registration fields
+      properties:
+        key:
+          description: The field identifier.
+          type: string
+        label:
+          description: The default field label.
+          type: string
+        required:
+          description: The field is mandatory
+          type: boolean
+        values:
+          description: List of authorized values for the field
+          type: array
+          items:
+            type: string
   responses:
     InternalServerError:
       description: Internal Server Error

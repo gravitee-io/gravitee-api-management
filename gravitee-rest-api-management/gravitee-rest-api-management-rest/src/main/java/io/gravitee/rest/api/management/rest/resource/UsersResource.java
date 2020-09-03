@@ -16,13 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.NewExternalUserEntity;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.NewExternalUserEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.UserService;
 import io.swagger.annotations.*;
 
@@ -55,6 +56,9 @@ public class UsersResource extends AbstractResource {
 
     @Inject
     private UserService userService;
+
+    @Inject
+    private CustomUserFieldService customUserFieldService;
 
     @GET
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ))

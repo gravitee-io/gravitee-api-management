@@ -24,6 +24,7 @@ import io.gravitee.rest.api.portal.rest.model.UserConfig;
 import io.gravitee.rest.api.portal.rest.model.UserInput;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.UserMetadataService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -39,6 +40,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.List;
 
 import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.userURL;
 import static javax.ws.rs.core.Response.status;
@@ -69,7 +71,6 @@ public class UserResource extends AbstractResource {
         try {
             UserEntity userEntity = userService.findById(authenticatedUser);
             User currentUser = userMapper.convert(userEntity);
-
             boolean withManagement = (authenticatedUser != null && permissionService.hasManagementRights(authenticatedUser));
             if (withManagement) {
                 Management managementConfig = this.configService.getPortalConfig().getManagement();
@@ -100,7 +101,10 @@ public class UserResource extends AbstractResource {
         userService.findById(getAuthenticatedUser());
 
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
-        updateUserEntity.setPicture(checkAndScaleImage(user.getAvatar()));
+        if (user.getAvatar() != null) {
+            updateUserEntity.setPicture(checkAndScaleImage(user.getAvatar()));
+        }
+        updateUserEntity.setCustomFields(user.getCustomFields());
 
         UserEntity updatedUser = userService.update(user.getId(), updateUserEntity);
 

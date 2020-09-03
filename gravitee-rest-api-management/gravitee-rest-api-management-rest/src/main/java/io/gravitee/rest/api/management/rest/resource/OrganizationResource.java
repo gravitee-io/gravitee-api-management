@@ -91,7 +91,7 @@ public class OrganizationResource extends AbstractResource {
     public RoleUsersResource getRoleUsersResource() {
         return resourceContext.getResource(RoleUsersResource.class);
     }
-    
+
     @Path("environments")
     public EnvironmentsResource getEnvironmentsResource() {
         return resourceContext.getResource(EnvironmentsResource.class);

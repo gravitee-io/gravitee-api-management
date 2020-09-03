@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -110,6 +111,8 @@ public class UserEntity implements Indexable {
     private int nbActiveTokens;
 
     private Boolean newsletterSubscribed;
+
+    private Map<String, Object> customFields;
 
     public String getId() {
         return id;
@@ -271,6 +274,14 @@ public class UserEntity implements Indexable {
 
     public void setNewsletterSubscribed(Boolean newsletterSubscribed) {
         this.newsletterSubscribed = newsletterSubscribed;
+    }
+
+    public Map<String, Object> getCustomFields() {
+        return customFields;
+    }
+
+    public void setCustomFields(Map<String, Object> customFields) {
+        this.customFields = customFields;
     }
 
     @Override

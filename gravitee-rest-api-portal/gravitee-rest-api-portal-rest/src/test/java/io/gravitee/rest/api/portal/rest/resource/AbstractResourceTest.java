@@ -108,6 +108,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(filteringService);
         reset(applicationMetadataService);
         reset(referenceMetadataMapper);
+        reset(customUserFieldService);
     }
 
     public AbstractResourceTest() {
@@ -127,6 +128,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     public AbstractResourceTest(AuthenticationProviderManager authenticationProviderManager) {
         super(authenticationProviderManager);
     }
+
+    @Autowired
+    protected CustomUserFieldService customUserFieldService;
 
     @Autowired
     protected ApiService apiService;
@@ -592,6 +596,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ReferenceMetadataMapper referenceMetadataMapper() {
             return mock(ReferenceMetadataMapper.class);
+        }
+
+        @Bean
+        public CustomUserFieldService customUserFieldService() {
+            return mock(CustomUserFieldService.class);
         }
     }
 }

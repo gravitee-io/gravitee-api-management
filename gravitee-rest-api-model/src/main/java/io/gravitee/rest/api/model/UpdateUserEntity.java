@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
+import java.util.Map;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -33,6 +35,8 @@ public class UpdateUserEntity {
 	private String status;
 
 	private Boolean newsletter;
+
+	private Map<String, Object> customFields;
 
 	public String getStatus() {
 		return status;
@@ -90,6 +94,18 @@ public class UpdateUserEntity {
 
 	public void setNewsletter(Boolean newsletter) {
 		this.newsletter = newsletter;
+	}
+
+	public Boolean getNewsletter() {
+		return newsletter;
+	}
+
+	public Map<String, Object> getCustomFields() {
+		return customFields;
+	}
+
+	public void setCustomFields(Map<String, Object> customFields) {
+		this.customFields = customFields;
 	}
 
 	@Override

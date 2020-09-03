@@ -158,7 +158,9 @@ public class CurrentUserResource extends AbstractResource {
                     }).collect(Collectors.toList()));
 
             userDetails.setFirstLogin(1 == userEntity.getLoginCount());
-
+            if (userEntity.getCustomFields() != null) {
+                userDetails.setCustomFields(userEntity.getCustomFields());
+            }
             return ok(userDetails, MediaType.APPLICATION_JSON).build();
         } else {
             return ok().build();

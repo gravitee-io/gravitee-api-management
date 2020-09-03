@@ -22,6 +22,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.util.Maps;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.spel.function.JsonPathFunction;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -138,6 +139,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
     @Autowired
     private IdentityProviderService identityProviderService;
 
+    @Autowired
+    private UserMetadataService userMetadataService;
+
     @Value("${user.login.defaultApplication:true}")
     private boolean defaultApplicationForFirstConnection;
 
@@ -227,7 +231,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             Optional<User> optionalUser = userRepository.findById(id);
 
             if (optionalUser.isPresent()) {
-                return convert(optionalUser.get(), false);
+                return convert(optionalUser.get(), false, userMetadataService.findAllByUserId(id));
             }
             //should never happen
             throw new UserNotFoundException(id);
@@ -245,7 +249,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             Optional<User> optionalUser = userRepository.findById(id);
 
             if (optionalUser.isPresent()) {
-                UserEntity userEntity = convert(optionalUser.get(), true);
+                UserEntity userEntity = convert(optionalUser.get(), true, userMetadataService.findAllByUserId(id));
 
                 populateUserFlags(Collections.singletonList(userEntity));
 
@@ -285,7 +289,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             Set<User> users = userRepository.findByIds(ids);
 
             if (!users.isEmpty()) {
-                return users.stream().map(u -> this.convert(u, false)).collect(Collectors.toSet());
+                return users.stream().map(u -> this.convert(u, false, userMetadataService.findAllByUserId(u.getId()))).collect(Collectors.toSet());
             }
 
             Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);
@@ -483,11 +487,24 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     null,
                     user);
 
+
+            List<UserMetadataEntity> metadata = new ArrayList<>();
+            if (newExternalUserEntity.getCustomFields() != null) {
+                for (Map.Entry<String, Object> entry : newExternalUserEntity.getCustomFields().entrySet()) {
+                    NewUserMetadataEntity metadataEntity = new NewUserMetadataEntity();
+                    metadataEntity.setName(entry.getKey());
+                    metadataEntity.setUserId(createdUser.getId());
+                    metadataEntity.setFormat(MetadataFormat.STRING);
+                    metadataEntity.setValue(String.valueOf(entry.getValue()));
+                    metadata.add(userMetadataService.create(metadataEntity));
+                }
+            }
+
             if (addDefaultRole) {
                 addDefaultMembership(createdUser);
             }
 
-            final UserEntity userEntity = convert(createdUser, true);
+            final UserEntity userEntity = convert(createdUser, true, metadata);
             searchEngineService.index(userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
@@ -764,7 +781,34 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     user.getUpdatedAt(),
                     previousUser,
                     user);
-            return convert(updatedUser, true);
+
+            List<UserMetadataEntity> updatedMetadata = new ArrayList<>();
+            if (updateUserEntity.getCustomFields() != null && !updateUserEntity.getCustomFields().isEmpty()) {
+                List<UserMetadataEntity> metadata = userMetadataService.findAllByUserId(user.getId());
+                for (Map.Entry<String, Object> entry : updateUserEntity.getCustomFields().entrySet()) {
+                    Optional<UserMetadataEntity> existingMeta =metadata.stream().filter((meta) -> meta.getKey().equals(entry.getKey())).findFirst();
+                    if (existingMeta.isPresent()) {
+                        UserMetadataEntity meta = existingMeta.get();
+                        UpdateUserMetadataEntity metadataEntity = new UpdateUserMetadataEntity();
+                        metadataEntity.setName(meta.getName());
+                        metadataEntity.setKey(meta.getKey());
+                        metadataEntity.setValue(String.valueOf(entry.getValue()));
+                        metadataEntity.setUserId(meta.getUserId());
+                        metadataEntity.setFormat(meta.getFormat());
+                        updatedMetadata.add(userMetadataService.update(metadataEntity));
+                    } else {
+                        // some additional fields may have been added after the user registration
+                        NewUserMetadataEntity metadataEntity = new NewUserMetadataEntity();
+                        metadataEntity.setName(entry.getKey());
+                        metadataEntity.setValue(String.valueOf(entry.getValue()));
+                        metadataEntity.setUserId(user.getId());
+                        metadataEntity.setFormat(MetadataFormat.STRING);
+                        updatedMetadata.add(userMetadataService.create(metadataEntity));
+                    }
+                }
+            }
+
+            return convert(updatedUser, true, updatedMetadata);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update {}", updateUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying update " + updateUserEntity, ex);
@@ -1013,6 +1057,10 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     private UserEntity convert(User user, boolean loadRoles) {
+        return convert(user, loadRoles, Collections.emptyList());
+    }
+
+    private UserEntity convert(User user, boolean loadRoles, List<UserMetadataEntity> customUserFields) {
         if (user == null) {
             return null;
         }
@@ -1060,6 +1108,13 @@ public class UserServiceImpl extends AbstractService implements UserService {
         userEntity.setLoginCount(user.getLoginCount());
         userEntity.setNewsletterSubscribed(user.getNewsletterSubscribed());
 
+        if (customUserFields != null && !customUserFields.isEmpty()) {
+            Maps.MapBuilder builder = Maps.builder();
+            for(UserMetadataEntity meta :customUserFields ) {
+                builder.put(meta.getKey(), meta.getValue());
+            }
+            userEntity.setCustomFields(builder.build());
+        }
         return userEntity;
     }
 

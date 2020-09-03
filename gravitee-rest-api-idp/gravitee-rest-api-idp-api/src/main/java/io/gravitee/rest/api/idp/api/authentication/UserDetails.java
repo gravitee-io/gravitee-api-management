@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -41,6 +42,7 @@ public class UserDetails extends User implements org.springframework.security.co
     private byte[] picture;
     private boolean firstLogin;
     private boolean displayNewsletterSubscription;
+    private Map<String, Object> customFields;
 
     public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
@@ -181,6 +183,14 @@ public class UserDetails extends User implements org.springframework.security.co
 
     public boolean isDisplayNewsletterSubscription() {
         return displayNewsletterSubscription;
+    }
+
+    public Map<String, Object> getCustomFields() {
+        return customFields;
+    }
+
+    public void setCustomFields(Map<String, Object> customFields) {
+        this.customFields = customFields;
     }
 
     @Override

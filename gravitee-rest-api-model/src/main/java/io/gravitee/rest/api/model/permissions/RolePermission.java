@@ -81,7 +81,7 @@ public enum RolePermission {
     ORGANIZATION_USERS                      (RoleScope.ORGANIZATION, OrganizationPermission.USER),
     ORGANIZATION_ROLE                       (RoleScope.ORGANIZATION, OrganizationPermission.ROLE),
     ORGANIZATION_ENVIRONMENT                (RoleScope.ORGANIZATION, OrganizationPermission.ENVIRONMENT),
-    ;
+    ORGANIZATION_CUSTOM_USER_FIELDS         (RoleScope.ORGANIZATION, OrganizationPermission.CUSTOM_USER_FIELDS);
 
     RoleScope scope;
     Permission permission;

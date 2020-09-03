@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import io.gravitee.common.util.Maps;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
@@ -36,6 +37,8 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.UserServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.apache.commons.io.IOUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -47,6 +50,7 @@ import org.springframework.expression.spel.SpelEvaluationException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
@@ -57,8 +61,7 @@ import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAUL
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
@@ -135,6 +138,8 @@ public class UserServiceTest {
     private OrganizationService organizationService;
     @Mock
     private TokenService tokenService;
+    @Mock
+    private UserMetadataService userMetadataService;
 
     @Test
     public void shouldFindByUsername() throws TechnicalException {
@@ -171,6 +176,22 @@ public class UserServiceTest {
 
     @Test
     public void shouldCreate() throws TechnicalException {
+        innerShoudCreate(null);
+    }
+
+    @Test
+    public void shouldCreateWithCustomFields() throws TechnicalException {
+        Map<String, Object> customFields = Maps.<String, Object>builder()
+                .put("md1", "value1")
+                .put("md2", "value2").build();
+        innerShoudCreate(customFields);
+    }
+
+    protected void innerShoudCreate(Map<String, Object> customFields) throws TechnicalException {
+        if (customFields != null) {
+            when(newUser.getCustomFields()).thenReturn(customFields);
+        }
+
         when(newUser.getEmail()).thenReturn(EMAIL);
         when(newUser.getFirstname()).thenReturn(FIRST_NAME);
         when(newUser.getLastname()).thenReturn(LAST_NAME);
@@ -203,19 +224,23 @@ public class UserServiceTest {
                 "DEFAULT",
                 MembershipMemberType.USER,
                 user.getId())).thenReturn(new HashSet<>(Arrays.asList(roleOrg)));
-        
+
         when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+
+        if (customFields != null) {
+            when(userMetadataService.create(any())).thenAnswer((x) -> convertNewUserMetadataEntity(x.getArgument(0)));
+        }
 
         final UserEntity createdUserEntity = userService.create(newUser, false);
 
         verify(userRepository).create(argThat(userToCreate -> USER_NAME.equals(userToCreate.getSourceId()) &&
-            USER_SOURCE.equals(userToCreate.getSource()) &&
-            EMAIL.equals(userToCreate.getEmail()) &&
-            FIRST_NAME.equals(userToCreate.getFirstname()) &&
-            LAST_NAME.equals(userToCreate.getLastname()) &&
-            userToCreate.getCreatedAt() != null &&
-            userToCreate.getUpdatedAt() != null &&
-            userToCreate.getCreatedAt().equals(userToCreate.getUpdatedAt())));
+                USER_SOURCE.equals(userToCreate.getSource()) &&
+                EMAIL.equals(userToCreate.getEmail()) &&
+                FIRST_NAME.equals(userToCreate.getFirstname()) &&
+                LAST_NAME.equals(userToCreate.getLastname()) &&
+                userToCreate.getCreatedAt() != null &&
+                userToCreate.getUpdatedAt() != null &&
+                userToCreate.getCreatedAt().equals(userToCreate.getUpdatedAt())));
 
         assertEquals(USER_NAME, createdUserEntity.getId());
         assertEquals(FIRST_NAME, createdUserEntity.getFirstname());
@@ -225,6 +250,27 @@ public class UserServiceTest {
         assertEquals(ROLES, createdUserEntity.getRoles());
         assertEquals(date, createdUserEntity.getCreatedAt());
         assertEquals(date, createdUserEntity.getUpdatedAt());
+
+        if (customFields != null) {
+            verify(userMetadataService, times(2)).create(any());
+            assertFalse(createdUserEntity.getCustomFields().isEmpty());
+
+            assertEquals(customFields.size(), createdUserEntity.getCustomFields().size());
+            assertTrue(createdUserEntity.getCustomFields().keySet().containsAll(customFields.keySet()));
+            assertTrue(createdUserEntity.getCustomFields().values().containsAll(customFields.values()));
+        } else {
+            assertTrue(createdUserEntity.getCustomFields() == null || createdUserEntity.getCustomFields().isEmpty());
+        }
+    }
+
+    private UserMetadataEntity convertNewUserMetadataEntity(NewUserMetadataEntity entity) {
+        UserMetadataEntity metadata = new UserMetadataEntity();
+        metadata.setFormat(entity.getFormat());
+        metadata.setKey(entity.getName());
+        metadata.setName(entity.getName());
+        metadata.setValue(entity.getValue());
+        metadata.setUserId(entity.getUserId());
+        return metadata;
     }
 
     @Test(expected = OrganizationNotFoundException.class)
@@ -467,6 +513,50 @@ public class UserServiceTest {
     }
 
     @Test
+    public void shouldUpdateUser_UpdateFields_And_CreateFields() throws Exception {
+        final String USER_ID = "userid";
+        User user = new User();
+        user.setId(USER_ID);
+        user.setSourceId("sourceId");
+        Date updatedAt = new Date(1234567890L);
+        user.setUpdatedAt(updatedAt);
+        user.setFirstname("john");
+        user.setLastname("doe");
+        user.setEmail("john.doe@mail.domain");
+
+        when(userRepository.findById(USER_ID)).thenReturn(of(user));
+
+        UpdateUserEntity toUpdate = new UpdateUserEntity();
+        toUpdate.setEmail(user.getEmail());
+        toUpdate.setFirstname(user.getFirstname());
+        toUpdate.setLastname(user.getLastname());
+        toUpdate.setCustomFields(Maps.<String, Object>builder()
+                .put("fieldToUpdate", "valueUpdated")
+                .put("fieldToCreate", "newValue").build());
+
+        UserMetadataEntity existingField = new UserMetadataEntity();
+        existingField.setValue("value1");
+        existingField.setUserId(USER_ID);
+        existingField.setFormat(MetadataFormat.STRING);
+        existingField.setName("fieldToUpdate");
+        existingField.setKey("fieldToUpdate");
+
+        when(userMetadataService.findAllByUserId(USER_ID)).thenReturn(Arrays.asList(existingField));
+
+        userService.update(USER_ID, toUpdate);
+
+        verify(userMetadataService).update(argThat(entity -> entity.getKey().equals(existingField.getKey()) &&
+                    entity.getName().equals(existingField.getName()) &&
+                    entity.getUserId().equals(existingField.getUserId()) &&
+                    entity.getValue().equals(toUpdate.getCustomFields().get(existingField.getKey()))));
+
+
+        verify(userMetadataService).create(argThat(entity -> entity.getName().equals("fieldToCreate") &&
+                entity.getUserId().equals(existingField.getUserId()) &&
+                entity.getValue().equals(toUpdate.getCustomFields().get("fieldToCreate"))));
+    }
+
+    @Test
     public void shouldNotDeleteIfAPIPO() throws TechnicalException {
         ApiEntity apiEntity = mock(ApiEntity.class);
         PrimaryOwnerEntity primaryOwnerEntity = mock(PrimaryOwnerEntity.class);
@@ -483,7 +573,6 @@ public class UserServiceTest {
             verify(userRepository, never()).update(any());
             verify(searchEngineService, never()).delete(any(), eq(false));
         }
-
     }
 
     @Test

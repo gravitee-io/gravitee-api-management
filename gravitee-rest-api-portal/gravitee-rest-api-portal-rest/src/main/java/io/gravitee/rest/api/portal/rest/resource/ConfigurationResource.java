@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.CustomUserFieldEntity;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
@@ -30,11 +31,13 @@ import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.*;
@@ -58,11 +61,29 @@ public class ConfigurationResource extends AbstractResource {
     private IdentityProviderMapper identityProviderMapper;
     @Autowired
     private ApplicationTypeService applicationTypeService;
+    @Inject
+    private CustomUserFieldService customUserFieldService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalConfiguration() {
         return Response.ok(configMapper.convert(configService.getPortalConfig())).build();
+    }
+
+    @GET
+    @Path("users/custom-fields")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listCustomUserFields() {
+        List<CustomUserFieldEntity> fields = customUserFieldService.listAllFields();
+        if (fields != null) {
+            return Response
+                    .ok()
+                    .entity(fields)
+                    .build();
+        }
+
+        return Response.serverError().build();
     }
 
     @GET

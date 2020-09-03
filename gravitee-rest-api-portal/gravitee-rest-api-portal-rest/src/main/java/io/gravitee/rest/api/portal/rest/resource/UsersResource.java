@@ -22,7 +22,10 @@ import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
-import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
+import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
+import io.gravitee.rest.api.portal.rest.model.ResetUserPasswordInput;
+import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
@@ -38,7 +41,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-
 import java.net.URI;
 import java.util.Comparator;
 import java.util.List;
@@ -60,7 +62,8 @@ public class UsersResource extends AbstractResource {
 
     @Inject
     private IdentityService identityService;
-    
+
+
     /**
      * Register a new user. Generate a token and send it in an email to allow a user
      * to create an account.

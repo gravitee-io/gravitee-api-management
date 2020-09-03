@@ -41,6 +41,7 @@ public class UserMapper {
         userItem.setLastName(user.getLastname());
         userItem.setDisplayName(user.getDisplayName());    
         userItem.setId(user.getId());
+        userItem.setCustomFields(user.getCustomFields());
         return userItem;
     }
 
@@ -60,6 +61,9 @@ public class UserMapper {
         newExternalUserEntity.setEmail(input.getEmail());
         newExternalUserEntity.setFirstname(input.getFirstname());
         newExternalUserEntity.setLastname(input.getLastname());
+        if (input.getCustomFields() != null) {
+            newExternalUserEntity.setCustomFields(input.getCustomFields());
+        }
         return newExternalUserEntity;
     }
 
