@@ -24,6 +24,7 @@ class ApiLoggingConfigurationController {
   private api: any;
   private formLogging: any;
   private maxDuration: any;
+  private loggingMode: any;
 
   constructor(
     private ApiService: ApiService,
@@ -38,6 +39,7 @@ class ApiLoggingConfigurationController {
 
     this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
+    this.initLoggingMode();
     this.maxDuration = Constants.logging.maxDurationMillis;
 
     this.$scope.loggingModes = [
@@ -61,9 +63,13 @@ class ApiLoggingConfigurationController {
   }
 
   update() {
+    if (this.loggingMode === 'ON') {
+      this.api.proxy.logging.condition = 'true';
+    }
     this.ApiService.update(this.api).then((updatedApi) => {
       this.NotificationService.show('Logging configuration has been updated');
       this.api = updatedApi.data;
+      this.initLoggingMode();
       this.api.etag = updatedApi.headers('etag');
       this.initialApi = _.cloneDeep(updatedApi.data);
       this.$scope.formLogging.$setPristine();
@@ -73,10 +79,22 @@ class ApiLoggingConfigurationController {
 
   reset() {
     this.api = _.cloneDeep(this.initialApi);
+    this.initLoggingMode();
 
     if (this.$scope.formLogging) {
       this.$scope.formLogging.$setPristine();
       this.$scope.formLogging.$setUntouched();
+    }
+  }
+
+  initLoggingMode() {
+    if (_.isUndefined(this.api.proxy.logging) ||
+      _.isUndefined(this.api.proxy.logging.condition) ||
+      this.api.proxy.logging.condition === 'true') {
+
+      this.loggingMode = 'ON';
+    } else {
+      this.loggingMode = 'CONDITION';
     }
   }
 

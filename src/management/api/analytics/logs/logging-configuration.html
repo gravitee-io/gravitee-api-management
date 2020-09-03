@@ -32,6 +32,7 @@
             A maximum duration of <code>{{loggingCtrl.maxDuration}}</code>milliseconds will be applied to your condition.
           </div>
         </p>
+
         <div layout="column" layout-wrap layout-gt-sm="row">
             <div flex-xs flex="50">
               <div layout-xs="column" flex-xs="50">
@@ -44,7 +45,15 @@
                   </md-select>
                 </md-input-container>
 
-                <div layout="row" flex-xs="50">
+                <md-input-container class="md-block" flex-gt-sm ng-if="loggingCtrl.api.proxy.logging.mode !== 'NONE'">
+                  <md-radio-group ng-model="loggingCtrl.loggingMode" layout="row"
+                                  ng-required="loggingCtrl.api.proxy.logging.mode !== 'NONE'">
+                    <md-radio-button value="ON">Logging enabled</md-radio-button>
+                    <md-radio-button value="CONDITION">Conditional logging</md-radio-button>
+                  </md-radio-group>
+                </md-input-container>
+
+                <div layout="row" flex-xs="50" ng-if="loggingCtrl.api.proxy.logging.mode !== 'NONE' && loggingCtrl.loggingMode === 'CONDITION'">
                   <md-input-container class="md-block" flex-gt-sm>
                     <label>Condition</label>
                     <input ng-model="loggingCtrl.api.proxy.logging.condition"
