@@ -144,7 +144,7 @@ const ImportComponent: ng.IComponentOptions = {
       } else {
         return false;
       }
-    }
+    };
 
     this.importAPI = () => {
       if (this.importFileMode) {
