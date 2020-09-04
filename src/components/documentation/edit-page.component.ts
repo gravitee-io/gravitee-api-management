@@ -38,7 +38,8 @@ const EditPageComponent: ng.IComponentOptions = {
     folders: '<',
     systemFolders: '<',
     pageResources: '<',
-    categoryResources: '<'
+    categoryResources: '<',
+    attachedResources: '<'
   },
   template: require('./edit-page.html'),
   controller: function (
@@ -48,11 +49,13 @@ const EditPageComponent: ng.IComponentOptions = {
     PortalConfigService: PortalConfigService,
     $mdDialog: angular.material.IDialogService,
     $state: StateService,
-    $scope: IPageScope
+    $scope: IPageScope,
+    $http: ng.IHttpService,
+    Constants: any,
   ) {
     'ngInject';
     this.apiId = $state.params.apiId;
-    this.tabs = ['content', 'translations', 'config', 'fetchers', 'access-control'];
+    this.tabs = ['content', 'translations', 'config', 'fetchers', 'access-control', 'attached-resources'];
     const indexOfTab = this.tabs.indexOf($state.params.tab);
     this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
     this.currentTab = this.tabs[this.selectedTab];
@@ -414,10 +417,10 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.updateTranslationContent = () => {
-      if ( this.currentTranslation.configuration.inheritContent === 'false' && (!this.currentTranslation.content || this.currentTranslation.content === '')) {
+      if (this.currentTranslation.configuration.inheritContent === 'false' && (!this.currentTranslation.content || this.currentTranslation.content === '')) {
         this.currentTranslation.content = this.page.content;
       }
-      if ( this.currentTranslation.configuration.inheritContent === 'true') {
+      if (this.currentTranslation.configuration.inheritContent === 'true') {
         delete this.currentTranslation.content;
       }
     };
@@ -429,6 +432,67 @@ const EditPageComponent: ng.IComponentOptions = {
         return format;
       }
     };
+
+    this.addAttachedResource = () => {
+      let that = this;
+      $mdDialog.show({
+        controller: 'FileChooserDialogController',
+        controllerAs: 'ctrl',
+        template: require('../dialog/fileChooser.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Select a file to attach',
+          confirmButton: 'Add'
+        }
+      }).then(function (response: any) {
+        if (response.file) {
+          // upload new media to portal or api
+          let fd = new FormData();
+          let fileName = response.file.name;
+          if (response.filename) {
+            fileName = response.filename;
+          }
+          fd.append('file', response.file);
+          fd.append('fileName', fileName);
+
+          DocumentationService.addMedia(fd, that.page.id, that.apiId)
+            .then(
+              response => that.reset()
+            )
+            .then(
+              () => NotificationService.show(fileName + ' has been attached')
+            )
+          ;
+        }
+      });
+    };
+
+    this.removeAttachedResource = (resource: any) => {
+      let that = this;
+      $mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Would you like to remove "' + resource.fileName + '"?',
+          confirmButton: 'Remove'
+        }
+      }).then(function (response) {
+        if (response) {
+          that.page.attached_media = that.page.attached_media.filter(media => !(media.mediaHash === resource.id && media.mediaName === resource.fileName && media.attachedAt === resource.createAt));
+          DocumentationService.update(that.page, that.apiId)
+            .then(
+              response => that.reset()
+            )
+            .then(
+              () => NotificationService.show(resource.fileName + ' has been removed from page')
+            )
+          ;
+        }
+      });
+    };
+
   },
 };
 

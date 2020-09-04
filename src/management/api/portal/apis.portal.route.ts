@@ -509,6 +509,11 @@ function apisPortalRouterConfig($stateProvider) {
             return DocumentationService.search(q, $stateParams.apiId)
               .then(response => response.data.filter(page => (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER') && page.id !== $stateParams.pageId));
           }
+        },
+        attachedResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN') {
+            return DocumentationService.getMedia($stateParams.pageId, $stateParams.apiId).then(response => response.data);
+          }
         }
       },
       data: {

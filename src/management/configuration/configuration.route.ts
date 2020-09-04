@@ -453,6 +453,11 @@ function configurationRouterConfig($stateProvider) {
           if ($stateParams.type === 'LINK') {
             return CategoryService.list().then(response => response.data);
           }
+        },
+        attachedResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN') {
+            return DocumentationService.getMedia($stateParams.pageId, null).then(response => response.data);
+          }
         }
       },
       data: {

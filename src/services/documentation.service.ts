@@ -131,6 +131,7 @@ class DocumentationService {
         homepage: page.homepage,
         configuration: page.configuration,
         excluded_groups: page.excluded_groups,
+        attached_media: page.attached_media,
         parentId: page.parentId
       }
     );
@@ -186,6 +187,14 @@ class DocumentationService {
 
   fetchAll = (apiId: string): IHttpPromise<any> => {
     return this.$http.post(this.url(apiId) + '_fetch', null, { timeout: 30000 });
+  }
+
+  addMedia = (media: any, pageId: string, apiId?: string): IHttpPromise<any> => {
+    return this.$http.post(this.url(apiId, pageId) + '/media', media, { headers: { 'Content-Type': undefined } });
+  }
+
+  getMedia = (pageId: string, apiId?: string): IHttpPromise<any> => {
+    return this.$http.get(this.url(apiId, pageId) + '/media');
   }
 }
 

@@ -28,26 +28,26 @@
             <a ng-click="$ctrl.cancel()">Back to Documentation</a>
         </div>
         <div ng-if="$ctrl.canUpdate">
-          <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.page.source" ng-click="$ctrl.fetch()">
-            Fetch
-          </md-button>
-          <md-button type="button"
-                     class="md-raised md-primary"
-                     ng-click="$ctrl.toggleRename()"
-                     aria-label="Rename"
-                     ng-if="'LINK' !== $ctrl.page.type || ('LINK' === $ctrl.page.type && (!$ctrl.page.configuration.inherit || $ctrl.page.configuration.inherit === 'false')) ">
-            Rename
-          </md-button>
-          <md-button ng-if="$ctrl.page.metadata.edit_url" type="button" style="padding: 0 6px;"
-                     target="_blank" href="{{$ctrl.page.metadata.edit_url}}"
-                     aria-label="Edit">
-              <md-icon md-svg-icon="assets/logo_{{$ctrl.page.metadata.provider_name | lowercase}}-fetcher.svg"
-                       style="height:24px; padding:0; vertical-align:inherit;"></md-icon>
-            Edit on {{$ctrl.page.metadata.provider_name}}
-          </md-button>
+            <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.page.source" ng-click="$ctrl.fetch()">
+                Fetch
+            </md-button>
+            <md-button type="button"
+                       class="md-raised md-primary"
+                       ng-click="$ctrl.toggleRename()"
+                       aria-label="Rename"
+                       ng-if="'LINK' !== $ctrl.page.type || ('LINK' === $ctrl.page.type && (!$ctrl.page.configuration.inherit || $ctrl.page.configuration.inherit === 'false')) ">
+                Rename
+            </md-button>
+            <md-button ng-if="$ctrl.page.metadata.edit_url" type="button" style="padding: 0 6px;"
+                       target="_blank" href="{{$ctrl.page.metadata.edit_url}}"
+                       aria-label="Edit">
+                <md-icon md-svg-icon="assets/logo_{{$ctrl.page.metadata.provider_name | lowercase}}-fetcher.svg"
+                         style="height:24px; padding:0; vertical-align:inherit;"></md-icon>
+                Edit on {{$ctrl.page.metadata.provider_name}}
+            </md-button>
         </div>
     </div>
-    <div ng-if="$ctrl.usedAsGeneralConditions()" class="page-as-general-conditions" >
+    <div ng-if="$ctrl.usedAsGeneralConditions()" class="page-as-general-conditions">
         This page is used as general conditions, if you change the content please remember to notify you API subscribers
     </div>
     <div class="gv-forms-header" layout="row" layout-align="space-between end" ng-if="rename">
@@ -60,7 +60,8 @@
                        class="md-raised md-primary"
                        ng-click="$ctrl.rename()"
                        aria-label="Edit">
-                Save</md-button>
+                Save
+            </md-button>
             <md-button class="md-raised" type="button" ng-click="$ctrl.toggleRename()">
                 Cancel
             </md-button>
@@ -99,9 +100,10 @@
                                 <md-input-container ng-if="'category' === $ctrl.page.configuration.resourceType" class="md-block" flex-gt-xs>
                                     <label>Target</label>
                                     <md-select ng-model="$ctrl.page.content" required>
-                                        <md-option  ng-repeat="resource in $ctrl.categoryResources"
-                                                    ng-value="resource.key"
-                                                    ng-click="$ctrl.updateLinkName(resource.name)">{{ resource.name }}</md-option>
+                                        <md-option ng-repeat="resource in $ctrl.categoryResources"
+                                                   ng-value="resource.key"
+                                                   ng-click="$ctrl.updateLinkName(resource.name)">{{ resource.name }}
+                                        </md-option>
                                     </md-select>
                                 </md-input-container>
 
@@ -126,9 +128,9 @@
                                 <md-input-container ng-if="'page' === $ctrl.page.configuration.resourceType" class="md-block" flex-gt-xs>
                                     <label>Target</label>
                                     <md-select ng-model="$ctrl.page.content" required ng-change="$ctrl.checkIfFolder()">
-                                        <md-option  ng-repeat="resource in $ctrl.pageList"
-                                                    ng-value="resource.id"
-                                                    ng-click="$ctrl.updateLinkName(resource.name)">
+                                        <md-option ng-repeat="resource in $ctrl.pageList"
+                                                   ng-value="resource.id"
+                                                   ng-click="$ctrl.updateLinkName(resource.name)">
                                             <md-icon md-svg-src="assets/logo_{{resource.type | lowercase}}.svg"></md-icon>
                                             <span style="font-style: italic; opacity: 0.5;">{{ resource.parentPath }}</span>/{{ resource.name }}
                                         </md-option>
@@ -169,45 +171,45 @@
                         <md-table-container>
                             <table md-table class="gv-table-dense">
                                 <thead md-head>
-                                    <tr md-row>
-                                        <th md-column width="48px">Language</th>
-                                        <th md-column>Name</th>
-                                        <th md-column ng-if="$ctrl.page.configuration.resourceType === 'external'">URL</th>
-                                        <th md-column width="1%" nowrap>Last Update</th>
-                                        <th md-column width="48px"></th>
-                                    </tr>
+                                <tr md-row>
+                                    <th md-column width="48px">Language</th>
+                                    <th md-column>Name</th>
+                                    <th md-column ng-if="$ctrl.page.configuration.resourceType === 'external'">URL</th>
+                                    <th md-column width="1%" nowrap>Last Update</th>
+                                    <th md-column width="48px"></th>
+                                </tr>
                                 </thead>
                                 <tbody md-body>
-                                    <tr ng-if="!$ctrl.page.translations.length || $ctrl.page.translations.length <= 0">
-                                        <td md-cell colspan="5"><span>No translation available</span></td>
-                                    </tr>
-                                    <tr md-row ng-repeat="translation in $ctrl.page.translations">
-                                        <td md-cell width="48px">
+                                <tr ng-if="!$ctrl.page.translations.length || $ctrl.page.translations.length <= 0">
+                                    <td md-cell colspan="5"><span>No translation available</span></td>
+                                </tr>
+                                <tr md-row ng-repeat="translation in $ctrl.page.translations">
+                                    <td md-cell width="48px">
                                             <span>
                                                 <a ng-click="$ctrl.selectTranslation(translation)">{{translation.configuration.lang}}</a>
                                             </span>
-                                        </td>
-                                        <td md-cell>{{translation.name}}</td>
-                                        <td md-cell ng-if="$ctrl.page.configuration.resourceType === 'external'">{{translation.content}}</td>
-                                        <td md-cell width="1%" nowrap>{{translation.lastModificationDate | date:'medium'}}</td>
-                                        <td md-cell width="48px">
-                                            <ng-md-icon icon="delete" ng-click="$ctrl.remove(translation)"
-                                                        style="font-size: 24px; height: 24px;"
-                                                        permission permission-only="['environment-documentation-u', 'api-documentation-u']">
-                                                <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
-                                            </ng-md-icon>
-                                        </td>
-                                    </tr>
+                                    </td>
+                                    <td md-cell>{{translation.name}}</td>
+                                    <td md-cell ng-if="$ctrl.page.configuration.resourceType === 'external'">{{translation.content}}</td>
+                                    <td md-cell width="1%" nowrap>{{translation.lastModificationDate | date:'medium'}}</td>
+                                    <td md-cell width="48px">
+                                        <ng-md-icon icon="delete" ng-click="$ctrl.remove(translation)"
+                                                    style="font-size: 24px; height: 24px;"
+                                                    permission permission-only="['environment-documentation-u', 'api-documentation-u']">
+                                            <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
+                                        </ng-md-icon>
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
                         </md-table-container>
 
                         <div style="text-align: right">
                             <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
-                                type="button"
-                                aria-label="Add translation"
-                                class="md-raised md-primary"
-                                ng-click="$ctrl.addTranslation()">
+                                       type="button"
+                                       aria-label="Add translation"
+                                       class="md-raised md-primary"
+                                       ng-click="$ctrl.addTranslation()">
                                 Add a translation
                             </md-button>
                         </div>
@@ -233,11 +235,11 @@
 
             <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate && $ctrl.currentTab === 'translations' && $ctrl.currentTranslation">
                 <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
-                    type="button"
-                    aria-label="Save translation"
-                    class="md-raised md-primary"
-                    ng-click="$ctrl.saveTranslation()"
-                    ng-disabled="!$ctrl.currentTranslation.configuration.lang || !$ctrl.currentTranslation.name">
+                           type="button"
+                           aria-label="Save translation"
+                           class="md-raised md-primary"
+                           ng-click="$ctrl.saveTranslation()"
+                           ng-disabled="!$ctrl.currentTranslation.configuration.lang || !$ctrl.currentTranslation.name">
                     Save translation
                 </md-button>
                 <md-button class="md-raised" type="button" ng-click="$ctrl.reset()">
@@ -254,7 +256,8 @@
 
             <div ng-if="editorReadonly && $ctrl.canUpdate" class="gv-page-draft-banner">
                 <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
-                Page's content is retrieved from an external source. If you want to edit content manually, <a ng-click="$ctrl.goToExternalSource()">please change the configuration</a>.
+                Page's content is retrieved from an external source. If you want to edit content manually,
+                <a ng-click="$ctrl.goToExternalSource()">please change the configuration</a>.
             </div>
             <md-tabs md-dynamic-height md-selected="$ctrl.selectedTab">
                 <!-- page -->
@@ -290,7 +293,7 @@
                             <!-- import file -->
                             <div style="display: inline-block;" ng-if="$ctrl.canUpdate">
                                 <h4>Select a file to import:</h4>
-                                <input type="file" filecontent="$ctrl.page.content" filename="pageContentFile.name" >
+                                <input type="file" filecontent="$ctrl.page.content" filename="pageContentFile.name">
                             </div>
                         </div>
                     </md-tab-body>
@@ -303,43 +306,43 @@
                         <md-table-container>
                             <table md-table class="gv-table-dense">
                                 <thead md-head>
-                                    <tr md-row>
-                                        <th md-column width="48px">Language</th>
-                                        <th md-column>Name</th>
-                                        <th md-column width="1%" nowrap>Last Update</th>
-                                        <th md-column width="48px"></th>
-                                    </tr>
+                                <tr md-row>
+                                    <th md-column width="48px">Language</th>
+                                    <th md-column>Name</th>
+                                    <th md-column width="1%" nowrap>Last Update</th>
+                                    <th md-column width="48px"></th>
+                                </tr>
                                 </thead>
                                 <tbody md-body>
-                                    <tr md-row ng-if="!$ctrl.page.translations.length || $ctrl.page.translations.length <= 0">
-                                        <td md-cell colspan="5"><span>No translation available</span></td>
-                                    </tr>
-                                    <tr md-row ng-repeat="translation in $ctrl.page.translations">
-                                        <td md-cell width="48px">
+                                <tr md-row ng-if="!$ctrl.page.translations.length || $ctrl.page.translations.length <= 0">
+                                    <td md-cell colspan="4"><span>No translation available</span></td>
+                                </tr>
+                                <tr md-row ng-repeat="translation in $ctrl.page.translations">
+                                    <td md-cell width="48px">
                                             <span>
                                                 <a ng-click="$ctrl.selectTranslation(translation)">{{translation.configuration.lang}}</a>
                                             </span>
-                                        </td>
-                                        <td md-cell>{{translation.name}}</td>
-                                        <td md-cell width="1%" nowrap>{{translation.lastModificationDate | date:'medium'}}</td>
-                                        <td md-cell width="48px">
-                                            <ng-md-icon icon="delete" ng-click="$ctrl.remove(translation)"
-                                                        style="font-size: 24px; height: 24px;"
-                                                        permission permission-only="['environment-documentation-u', 'api-documentation-u']">
-                                                <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
-                                            </ng-md-icon>
-                                        </td>
-                                    </tr>
+                                    </td>
+                                    <td md-cell>{{translation.name}}</td>
+                                    <td md-cell width="1%" nowrap>{{translation.lastModificationDate | date:'medium'}}</td>
+                                    <td md-cell width="48px">
+                                        <ng-md-icon icon="delete" ng-click="$ctrl.remove(translation)"
+                                                    style="font-size: 24px; height: 24px;"
+                                                    permission permission-only="['environment-documentation-u', 'api-documentation-u']">
+                                            <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
+                                        </ng-md-icon>
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
                         </md-table-container>
 
                         <div style="text-align: right">
                             <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
-                                type="button"
-                                aria-label="Add translation"
-                                class="md-raised md-primary"
-                                ng-click="$ctrl.addTranslation()">
+                                       type="button"
+                                       aria-label="Add translation"
+                                       class="md-raised md-primary"
+                                       ng-click="$ctrl.addTranslation()">
                                 Add a translation
                             </md-button>
                         </div>
@@ -388,8 +391,8 @@
                                 <!-- edit MARKDOWN inline -->
                                 <div ng-if="'MARKDOWN' === $ctrl.page.type" style="display: inline-block; width: 100%;">
                                     <md-input-container class="md-block">
-                                    <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.currentTranslation"></gv-page-editor-markdown>
-                                    <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.currentTranslation"></gv-page-markdown>
+                                        <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.currentTranslation"></gv-page-editor-markdown>
+                                        <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.currentTranslation"></gv-page-markdown>
                                     </md-input-container>
                                 </div>
 
@@ -423,21 +426,21 @@
                         <!-- SWAGGER Configuration -->
                         <div ng-if="$ctrl.page.type === 'SWAGGER'" layout="column">
 
-                          <div ng-if="$ctrl.shouldShowOpenApiDocFormat">
-                            <h3>OpenAPI documentation viewer: </h3>
-                            <md-radio-group ng-model="$ctrl.page.configuration.viewer">
-                                <md-radio-button value="Swagger" class="md-primary">{{ $ctrl.openApiFormatLabel('Swagger') }}</md-radio-button>
-                                <md-radio-button value="Redoc">{{ $ctrl.openApiFormatLabel('Redoc') }}</md-radio-button>
-                            </md-radio-group>
-                          </div>
+                            <div ng-if="$ctrl.shouldShowOpenApiDocFormat">
+                                <h3>OpenAPI documentation viewer: </h3>
+                                <md-radio-group ng-model="$ctrl.page.configuration.viewer">
+                                    <md-radio-button value="Swagger" class="md-primary">{{ $ctrl.openApiFormatLabel('Swagger') }}</md-radio-button>
+                                    <md-radio-button value="Redoc">{{ $ctrl.openApiFormatLabel('Redoc') }}</md-radio-button>
+                                </md-radio-group>
+                            </div>
 
                             <div ng-if="$ctrl.page.configuration.viewer === 'Swagger'" layout="column">
                                 <h3>Swagger</h3>
                                 <md-checkbox ng-model="$ctrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
-                                Enable "Try it!" mode. Perhaps you will have to configure the CORS in the proxy section.
+                                    Enable "Try it!" mode. Perhaps you will have to configure the CORS in the proxy section.
                                 </md-checkbox>
                                 <md-checkbox ng-model="$ctrl.page.configuration.tryItAnonymous" ng-true-value="'true'" ng-false-value="'false'">
-                                Allow "Try it!" for anonymous users
+                                    Allow "Try it!" for anonymous users
                                 </md-checkbox>
                                 <md-input-container class="md-block">
                                     <label>Base URL</label>
@@ -445,10 +448,10 @@
                                     <div class="hint">Base URL used to try the API</div>
                                 </md-input-container>
                                 <md-checkbox ng-model="$ctrl.page.configuration.entrypointsAsServers" ng-true-value="'true'" ng-false-value="'false'" ng-click="$ctrl.toggleEntrypointAsServer()">
-                                  Swagger servers URL are based on the entrypoints of the API (in that case, the base URL is no more used).
+                                    Swagger servers URL are based on the entrypoints of the API (in that case, the base URL is no more used).
                                 </md-checkbox>
                                 <md-checkbox ng-model="$ctrl.page.configuration.entrypointAsBasePath" ng-true-value="'true'" ng-false-value="'false'" ng-disabled="$ctrl.page.configuration.entrypointsAsServers === undefined || $ctrl.page.configuration.entrypointsAsServers === 'false'">
-                                  Swagger servers URL contains the context-path of the API as the base path
+                                    Swagger servers URL contains the context-path of the API as the base path
                                 </md-checkbox>
                                 <md-checkbox ng-model="$ctrl.page.configuration.showURL" ng-true-value="'true'" ng-false-value="'false'">
                                     Show the URL to download the content
@@ -519,19 +522,66 @@
                         </md-input-container>
                     </md-tab-body>
                 </md-tab>
+
+                <!-- Attached resources -->
+                <md-tab md-on-select="$ctrl.selectTab(5)" ng-if="$ctrl.canUpdate && $ctrl.page.type === 'MARKDOWN'">
+                    <md-tab-label>Attached resources</md-tab-label>
+                    <md-tab-body>
+                        <md-table-container>
+                            <table md-table class="gv-table-dense">
+                                <thead md-head>
+                                <tr md-row>
+                                    <th md-column>Name</th>
+                                    <th md-column>Type</th>
+                                    <th md-column width="1%" nowrap>Created at</th>
+                                    <th md-column width="48px"></th>
+                                </tr>
+                                </thead>
+                                <tbody md-body>
+                                <tr md-row ng-if="!$ctrl.attachedResources || !$ctrl.attachedResources.length || $ctrl.attachedResources.length <= 0">
+                                    <td md-cell colspan="4"><span>No attached resources</span></td>
+                                </tr>
+                                <tr md-row ng-if="$ctrl.attachedResources && $ctrl.attachedResources.length && $ctrl.attachedResources.length > 0"
+                                    ng-repeat="resource in $ctrl.attachedResources">
+                                    <td md-cell>{{resource.fileName}}</td>
+                                    <td md-cell>{{resource.mimeType}}</td>
+                                    <td md-cell width="1%" nowrap>{{resource.createAt | date:'medium'}}</td>
+                                    <td md-cell width="48px">
+                                    <ng-md-icon icon="delete" ng-click="$ctrl.removeAttachedResource(resource)"
+                                                    style="font-size: 24px; height: 24px;"
+                                                    permission permission-only="['environment-documentation-u', 'api-documentation-u']">
+                                            <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
+                                        </ng-md-icon>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </md-table-container>
+
+                        <div style="text-align: right">
+                            <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
+                                       type="button"
+                                       aria-label="Add new resource"
+                                       class="md-raised md-primary"
+                                       ng-click="$ctrl.addAttachedResource()">
+                                Add a new resource
+                            </md-button>
+                        </div>
+                    </md-tab-body>
+                </md-tab>
             </md-tabs>
 
-            <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate">
+            <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate && $ctrl.currentTab !== 'attached-resources'">
                 <md-button class="md-raised md-primary" type="submit" ng-click="$ctrl.save()" ng-disabled="!$ctrl.page.name" ng-if="$ctrl.currentTab !== 'translations' || !$ctrl.currentTranslation">
                     Save
                 </md-button>
                 <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
-                    type="button"
-                    aria-label="Save translation"
-                    class="md-raised md-primary"
-                    ng-click="$ctrl.saveTranslation()"
-                    ng-if="$ctrl.currentTab === 'translations' && $ctrl.currentTranslation"
-                    ng-disabled="!$ctrl.currentTranslation.configuration.lang || !$ctrl.currentTranslation.name">
+                           type="button"
+                           aria-label="Save translation"
+                           class="md-raised md-primary"
+                           ng-click="$ctrl.saveTranslation()"
+                           ng-if="$ctrl.currentTab === 'translations' && $ctrl.currentTranslation"
+                           ng-disabled="!$ctrl.currentTranslation.configuration.lang || !$ctrl.currentTranslation.name">
                     Save translation
                 </md-button>
                 <md-button class="md-raised" type="button" ng-click="$ctrl.reset()">

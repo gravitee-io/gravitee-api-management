@@ -58,6 +58,8 @@ import DialogApiKeyExpirationController
   from '../management/api/portal/subscriptions/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
+import FileLoaderDirective from '../components/fileloader/fileloader.directive';
+
 import DocumentationService from '../services/documentation.service';
 import NotificationService from '../services/notification.service';
 
@@ -220,6 +222,7 @@ import NewMetadataDialogController from '../components/metadata/dialog/new.metad
 import UpdateMetadataDialogController from '../components/metadata/dialog/update.metadata.dialog.controller';
 import ChartDirective from '../components/chart/chart.directive';
 import UserAvatarDirective from '../components/avatar/user-avatar.directive';
+import FileChooserDialogController from '../components/dialog/fileChooserDialog.controller';
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from '../components/dialog/confirmAndValidateDialog.controller';
 import DialogDynamicProviderHttpController
@@ -432,7 +435,6 @@ import ApiResponseTemplateTypeComponent
 import ApiResponseTemplateComponent
   from '../management/api/proxy/general/response-templates/response-template.component';
 import AnalyticsSettingsComponent from './configuration/analytics/analytics.component';
-
 // Settings - Client Registration
 import ClientRegistrationProviderService from '../services/clientRegistrationProvider.service';
 import ClientRegistrationProvidersComponent
@@ -711,6 +713,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DeleteFieldDialogController', DeleteFieldDialogController)
   .controller('NewFieldDialogController', NewFieldDialogController)
   .controller('UpdateFieldDialogController', UpdateFieldDialogController)
+  .controller('FileChooserDialogController', FileChooserDialogController)
   .controller('DialogConfirmController', DialogConfirmController)
   .controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController)
   .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
@@ -764,6 +767,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogGenerateTokenController', DialogGenerateTokenController)
 
   .directive('filecontent', () => FileContentDirective)
+  .directive('fileloader', () => FileLoaderDirective)
   .directive('noDirtyCheck', () => new FormDirective())
   .directive('autofocus', () => new AutofocusDirective())
   .directive('graviteeDiff', () => DiffDirective)
