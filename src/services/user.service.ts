@@ -32,6 +32,7 @@ class UserService {
   private usersURL: string;
   private userURL: string;
   private searchUsersURL: string;
+  private customUserFieldsURL: string;
   private routerInitialized: boolean = false;
   private isLogout: boolean = false;
 
@@ -52,6 +53,7 @@ class UserService {
     this.searchUsersURL = `${Constants.baseURL}/search/users/`;
     this.usersURL = `${Constants.baseURL}/users/`;
     this.userURL = `${Constants.baseURL}/user/`;
+    this.customUserFieldsURL = `${Constants.baseURL}/configuration/custom-user-fields`;
   }
 
   list(query?: string, page = 1, size = 10): ng.IPromise<any> {
@@ -82,6 +84,10 @@ class UserService {
 
   register(user): ng.IPromise<any> {
     return this.$http.post(`${this.usersURL}registration`, user);
+  }
+
+  customUserFieldsToRegister(): ng.IPromise<any> {
+    return this.$http.get(this.customUserFieldsURL);
   }
 
   finalizeRegistration(user): ng.IPromise<any> {
@@ -240,6 +246,7 @@ class UserService {
       picture: user.picture,
       newsletter: user.newsletter,
       email: user.email,
+      customFields: user.customFields
     });
   }
 

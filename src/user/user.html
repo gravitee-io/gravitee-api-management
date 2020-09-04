@@ -45,6 +45,17 @@
         </ng-md-icon>
         <label ng-repeat="role in $ctrl.user.roles">{{"[" + role.scope + "]&nbsp;" + role.name}}{{$last ? '' : '&nbsp;-&nbsp;'}}</label>
       </div>
+
+      <div layout="row" ng-if="$ctrl.fields && $ctrl.fields.length > 0" ng-repeat="field in $ctrl.fields">
+        <label flex="10" class="field-label">{{field.label}}</label>
+        <md-input-container class="field-input-container">
+          <input ng-if="!field.values || field.values.length == 0"  ng-model="$ctrl.user.customFields[field.key]" type="text" ng-required="field.required">
+          <md-select style="padding-bottom: 2em" ng-if="field.values && field.values.length > 0" ng-model="$ctrl.user.customFields[field.key]" ng-required="field.required">
+            <md-option ng-value="value" ng-repeat="value in field.values">{{ value }}</md-option>
+          </md-select >
+        </md-input-container>
+      </div>
+
     </md-card-content>
     <div>
       <md-button class="md-raised" ng-click="$ctrl.generateToken()">

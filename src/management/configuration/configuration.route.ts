@@ -32,6 +32,7 @@ import EntrypointService from '../../services/entrypoint.service';
 import ClientRegistrationProviderService from '../../services/clientRegistrationProvider.service';
 import QualityRuleService from '../../services/qualityRule.service';
 import DashboardService from '../../services/dashboard.service';
+import CustomUserFieldsService from '../../services/custom-user-fields.service';
 import _ = require('lodash');
 
 export default configurationRouterConfig;
@@ -565,6 +566,24 @@ function configurationRouterConfig($stateProvider) {
         )
       }
     })
+    .state('management.settings.customUserFields', {
+      url: '/custom-user-fields',
+      component: 'customUserFields',
+      resolve: {
+        fields: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.list().then(response => response.data),
+        fieldFormats: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listFormats(),
+        predefinedKeys: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.listPredefinedKeys()
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-custom-user-fields'
+        },
+        perms: {
+          only: ['organization-custom_user_fields-r']
+        }
+      }
+    })
     .state('management.settings.theme', {
       url: '/theme',
       component: 'theme',
@@ -646,7 +665,8 @@ function configurationRouterConfig($stateProvider) {
         applicationRoles: (RoleService: RoleService) =>
           RoleService.list('APPLICATION').then( (roles) =>
             [{'scope': 'APPLICATION', 'name': '', 'system': false}].concat(roles)
-          )
+          ),
+        customUserFields: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.list().then(response => response.data)
       },
       data: {
         menu: null,

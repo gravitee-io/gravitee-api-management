@@ -35,7 +35,8 @@ const UserDetailComponent: ng.IComponentOptions = {
     organizationRoles: '<',
     environmentRoles: '<',
     apiRoles: '<',
-    applicationRoles: '<'
+    applicationRoles: '<',
+    customUserFields: '<'
   },
   template: require('./user.html'),
   controller: function (
@@ -56,6 +57,60 @@ const UserDetailComponent: ng.IComponentOptions = {
       $scope.selectedEnvironmentRole = _.map(_.filter(this.selectedUser.roles, role => role.scope === 'environment'), role => role.id);
       $scope.userApis = [];
       $scope.userApplications = [];
+    };
+
+    this.selectUserCustomFields  = [];
+
+    this.getUserCustomFieldsPairs = () => {
+      if (this.selectUserCustomFields.length > 0) {
+        return this.selectUserCustomFields ;
+      }
+
+      if (this.selectedUser && this.selectedUser.customFields) {
+        let item = {
+          key1: null,
+          value1: null,
+          key2: null,
+          value2: null,
+        };
+
+        let counter = 0;
+        for (const key of Object.keys(this.selectedUser.customFields)) {
+          let value =  this.selectedUser.customFields[key];
+          if (counter % 2 === 0) {
+            item.key1 = key;
+            item.value1 = value;
+          } else {
+            item.key2 = key;
+            item.value2 = value;
+
+            this.selectUserCustomFields.push(item);
+
+            item = {
+              key1: null,
+              value1: null,
+              key2: null,
+              value2: null,
+            };
+          }
+          counter = counter + 1 ;
+        }
+
+        if (item.key1 !== null && item.key2 === null) {
+          this.selectUserCustomFields.push(item);
+        }
+      }
+      return this.selectUserCustomFields;
+    };
+
+    this.getCustomFieldLabel = (key) => {
+      if (this.customUserFields) {
+        const label: string = this.customUserFields.filter(bean => bean.key === key).map(bean => bean.label).shift();
+        if (label) {
+          return label;
+        }
+      }
+      return key;
     };
 
     this.getUserPicture = () => {

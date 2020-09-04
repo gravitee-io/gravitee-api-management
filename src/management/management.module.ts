@@ -473,6 +473,12 @@ import ThemeService from '../services/theme.service';
 
 import authenticationConfig from '../authentication/authentication.config';
 import ConfirmProfileController from '../user/confirmProfile/confirmProfile.controller';
+import CustomUserFieldsComponent from './configuration/custom-user-fields/custom-user-fields.component';
+import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
+import CustomUserFieldsService from '../services/custom-user-fields.service';
+import NewFieldDialogController from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
+import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
+import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 
 (<any>window).jQuery = jQuery;
 
@@ -702,6 +708,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DeleteMetadataDialogController', DeleteMetadataDialogController)
   .controller('NewMetadataDialogController', NewMetadataDialogController)
   .controller('UpdateMetadataDialogController', UpdateMetadataDialogController)
+  .controller('DeleteFieldDialogController', DeleteFieldDialogController)
+  .controller('NewFieldDialogController', NewFieldDialogController)
+  .controller('UpdateFieldDialogController', UpdateFieldDialogController)
   .controller('DialogConfirmController', DialogConfirmController)
   .controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController)
   .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
@@ -710,6 +719,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('AuditController', AuditController)
   .controller('ApiAuditController', ApiAuditController)
   .controller('ThemeController', ThemeController)
+  .controller('CustomUserFieldsController', CustomUserFieldsController)
   .controller('TopApisController', TopApisController)
   .controller('AddTopApiDialogController', AddTopApiDialogController)
   .controller('DeleteTopApiDialogController', DeleteTopApiDialogController)
@@ -737,6 +747,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('SubscriptionService', SubscriptionService)
   .service('TagService', TagService)
   .service('MetadataService', MetadataService)
+  .service('CustomUserFieldsService', CustomUserFieldsService)
   .service('TenantService', TenantService)
   .service('StringService', StringService)
   .service('AuthenticationService', AuthenticationService)
@@ -788,6 +799,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('portalSettings', PortalSettingsComponent)
   .component('analyticsSettings', AnalyticsSettingsComponent)
   .directive('gvMetadataValidator', () => MetadataValidatorDirective)
+  .component('customUserFields', CustomUserFieldsComponent)
 
   .component('instances', InstancesComponent)
   .component('instance', InstanceComponent)

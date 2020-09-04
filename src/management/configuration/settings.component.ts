@@ -133,6 +133,11 @@ const SettingsComponent: ng.IComponentOptions = {
           ['organization-role-c', 'organization-role-u', 'organization-role-d']),
         goTo: 'management.settings.roles'
       },
+      customUserFields: {
+        perm: UserService.isUserHasPermissions(
+          ['organization-custom_user_fields-r']),
+        goTo: 'management.settings.customUserFields'
+      },
 
       // ALERT
       notifications: {

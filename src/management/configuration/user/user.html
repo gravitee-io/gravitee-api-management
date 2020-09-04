@@ -43,6 +43,12 @@
             <td md-cell width="15%"><span style="font-weight: bold">Source</span></td>
             <td md-cell width="35%">{{$ctrl.selectedUser.source}}</td>
           </tr>
+          <tr md-row  ng-if="$ctrl.selectedUser.customFields" ng-repeat="item in $ctrl.getUserCustomFieldsPairs()">
+            <td md-cell width="15%"><span style="font-weight: bold">{{$ctrl.getCustomFieldLabel(item.key1)}}</span></td>
+            <td md-cell width="35%">{{item.value1}}</td>
+            <td md-cell width="15%"><span style="font-weight: bold">{{$ctrl.getCustomFieldLabel(item.key2)}}</span></td>
+            <td md-cell width="35%">{{item.value2}}</td>
+          </tr>
           <tr md-row style="background-color: white; height: 30px;">
             <td md-cell><span style="font-weight: bold">Created at</span></td>
             <td md-cell>{{$ctrl.selectedUser.created_at | date:'MMM d, y h:mm:ss a'}}</td>

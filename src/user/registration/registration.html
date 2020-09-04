@@ -37,6 +37,15 @@
           <input ng-model="$ctrl.user.email" type="email" required>
         </md-input-container>
 
+        <md-input-container class="md-icon-float" ng-if="$ctrl.fields && $ctrl.fields.length > 0" ng-repeat="field in $ctrl.fields">
+          <label>{{field.label}}</label>
+          <input ng-if="!field.values || field.values.length == 0" 
+                  ng-model="$ctrl.user.customFields[field.key]" type="text" ng-required="field.required">
+          <md-select style="padding-bottom: 2em" ng-if="field.values && field.values.length > 0" ng-model="$ctrl.user.customFields[field.key]" ng-required="field.required">
+            <md-option ng-value="value" ng-repeat="value in field.values">{{ value }}</md-option>
+          </md-select >
+        </md-input-container>
+
         <md-button type="submit" class="md-raised md-primary"
                    ng-disabled="formRegistration.$invalid || formRegistration.$pristine || isLoading">
           Sign up

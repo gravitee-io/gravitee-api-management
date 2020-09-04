@@ -29,6 +29,8 @@ class UserController {
   private user: User;
   private tokens: Array<any>;
 
+  private fields: any[] = [];
+
   constructor(
     private UserService: UserService,
     private NotificationService: NotificationService,
@@ -41,6 +43,7 @@ class UserController {
   }
 
   $onInit() {
+    this.UserService.customUserFieldsToRegister().then((resp) => this.fields = resp.data);
     if (! this.user || (this.user && this.user.id === undefined)) {
       this.$state.go('login', {}, {reload: true, inherit: false});
     } else {

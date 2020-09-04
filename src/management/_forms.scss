@@ -91,3 +91,13 @@
 .gv-forms.gv-forms-fluid {
     max-width: 100%;
 }
+
+.custom-user-fields-values {
+  overflow-y: scroll; 
+  max-height: max-content;
+}
+.custom-user-fields-values-help {
+  font-style: italic;
+  font-size: 12px;
+  color: gray; 
+}
