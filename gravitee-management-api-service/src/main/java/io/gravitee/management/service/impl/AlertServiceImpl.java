@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -58,7 +59,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -90,7 +90,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Value("${notifiers.email.subject:[Gravitee.io] %s}")
     private String subject;
-    @Value("${notifiers.email.host}")
+    @Value("${notifiers.email.host:#{null}}")
     private String host;
     @Value("${notifiers.email.port}")
     private String port;
@@ -108,6 +108,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private String sslKeyStore;
     @Value("${notifiers.email.ssl.keyStorePassword:#{null}}")
     private String sslKeyStorePassword;
+
+    @Autowired
+    private ConfigurableEnvironment environment;
 
     @Autowired
     private ObjectMapper mapper;
@@ -451,14 +454,26 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private void setDefaultEmailNotifier(Notification notification) {
         EmailNotifierConfiguration configuration = new EmailNotifierConfiguration();
 
-        configuration.setHost(host);
-        configuration.setPort(Integer.parseInt(port));
-        configuration.setUsername(username);
-        configuration.setPassword(password);
-        configuration.setStartTLSEnabled(startTLSEnabled);
-        configuration.setSslKeyStore(sslKeyStore);
-        configuration.setSslKeyStorePassword(sslKeyStorePassword);
-        configuration.setSslTrustAll(sslTrustAll);
+        if (host == null) {
+            configuration.setPassword(environment.getProperty("email.subject"));
+            configuration.setHost(environment.getProperty("email.host"));
+            final String emailPort = environment.getProperty("email.port");
+            if (emailPort != null) {
+                configuration.setPort(Integer.parseInt(emailPort));
+            }
+            configuration.setUsername(environment.getProperty("email.username"));
+            configuration.setPassword(environment.getProperty("email.password"));
+            configuration.setStartTLSEnabled(environment.getProperty("email.properties.starttls.enable", Boolean.class, false));
+        } else {
+            configuration.setHost(host);
+            configuration.setPort(Integer.parseInt(port));
+            configuration.setUsername(username);
+            configuration.setPassword(password);
+            configuration.setStartTLSEnabled(startTLSEnabled);
+            configuration.setSslKeyStore(sslKeyStore);
+            configuration.setSslKeyStorePassword(sslKeyStorePassword);
+            configuration.setSslTrustAll(sslTrustAll);
+        }
 
         try {
             JsonNode emailNode = mapper.readTree(notification.getConfiguration());
