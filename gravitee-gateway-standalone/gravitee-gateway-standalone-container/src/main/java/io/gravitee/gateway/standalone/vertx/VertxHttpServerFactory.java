@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.ArrayList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -115,6 +116,9 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
 
         // Configure websocket
         System.setProperty("vertx.disableWebsockets", Boolean.toString(!httpServerConfiguration.isWebsocketEnabled()));
+        if (httpServerConfiguration.isWebsocketEnabled() && httpServerConfiguration.getWebsocketSubProtocols() != null) {
+            options.setWebSocketSubProtocols(new ArrayList<>(Arrays.asList(httpServerConfiguration.getWebsocketSubProtocols().split("\\s*,\\s*"))));
+        }
 
         return vertx.createHttpServer(options);
     }

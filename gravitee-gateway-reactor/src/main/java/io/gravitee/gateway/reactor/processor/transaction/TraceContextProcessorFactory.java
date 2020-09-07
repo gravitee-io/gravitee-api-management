@@ -13,31 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
+package io.gravitee.gateway.reactor.processor.transaction;
 
-import io.gravitee.policy.api.PolicyConfiguration;
-import io.gravitee.policy.api.PolicyContext;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.core.processor.Processor;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Eric Leleu (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyMetadata {
+public class TraceContextProcessorFactory {
 
-    String id();
-
-    Class<?> policy();
-
-    Class<? extends PolicyConfiguration> configuration();
-
-    ClassLoader classloader();
-
-    PolicyContext context();
-
-    Method method(Class<? extends Annotation> type);
-
-    boolean accept(StreamType stream);
+    public Processor<ExecutionContext> create() {
+        return new TraceContextProcessor();
+    }
 }

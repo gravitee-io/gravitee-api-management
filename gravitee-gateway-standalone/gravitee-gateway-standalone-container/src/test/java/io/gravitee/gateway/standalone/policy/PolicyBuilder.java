@@ -18,6 +18,7 @@ package io.gravitee.gateway.standalone.policy;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.policy.api.PolicyContext;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -42,6 +43,11 @@ public class PolicyBuilder {
             @Override
             public Class configuration() {
                 return policyConfiguration;
+            }
+
+            @Override
+            public Class<? extends PolicyContext> context() {
+                return null;
             }
 
             @Override

@@ -63,7 +63,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
     private void handlePreflightRequest(Request request, Response response) {
         // In case of pre-flight request, we are not able to define what is the calling application.
         // Define it as unknown
-        request.metrics().setApplication( "1");
+        request.metrics().setApplication("1");
 
         // 1. If the Origin header is not present terminate this set of steps. The request is outside the scope of
         //  this specification.
@@ -72,6 +72,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         String originHeader = request.headers().getFirst(HttpHeaders.ORIGIN);
         if (! isOriginAllowed(originHeader)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
+            request.metrics().setMessage(String.format("Origin '%s' is not allowed", originHeader));
             return;
         }
 
@@ -81,6 +82,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         String accessControlRequestMethod = request.headers().getFirst(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
         if (! isRequestMethodsValid(accessControlRequestMethod)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
+            request.metrics().setMessage(String.format("Request method '%s' is not allowed", accessControlRequestMethod));
             return;
         }
 
@@ -88,6 +90,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         String accessControlRequestHeaders = request.headers().getFirst(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
         if (! isRequestHeadersValid(accessControlRequestHeaders)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
+            request.metrics().setMessage(String.format("Request headers '%s' are not valid", accessControlRequestHeaders));
             return;
         }
 

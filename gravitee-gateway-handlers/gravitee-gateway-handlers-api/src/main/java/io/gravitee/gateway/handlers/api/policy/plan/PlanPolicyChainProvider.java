@@ -35,6 +35,8 @@ import java.util.List;
 public class PlanPolicyChainProvider extends AbstractPolicyChainProvider {
 
     private static final String GATEWAY_MISSING_SECURED_REQUEST_PLAN_KEY = "GATEWAY_MISSING_SECURED_REQUEST_PLAN";
+    private static final String APPLICATION_NAME_ANONYMOUS = "1";
+    private static final String PLAN_NAME_ANONYMOUS = "1";
 
     private final StreamType streamType;
 
@@ -67,11 +69,29 @@ public class PlanPolicyChainProvider extends AbstractPolicyChainProvider {
                                 "Unauthorized"), context);
             } else if (policies.isEmpty()) {
                 return new NoOpPolicyChain(context);
+            } else {
+                // Fix consuming application and subscription which are data that can be used by policies (ie. rate-limit).
+                context.setAttribute(ExecutionContext.ATTR_APPLICATION, APPLICATION_NAME_ANONYMOUS);
+                context.setAttribute(ExecutionContext.ATTR_PLAN, PLAN_NAME_ANONYMOUS);
+                context.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, context.request().remoteAddress());
+
+                context.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
+                context.request().metrics().setPlan(PLAN_NAME_ANONYMOUS);
+                context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
             }
 
             return (streamType == StreamType.ON_REQUEST) ?
                     RequestPolicyChain.create(policies, context) :
                     ResponsePolicyChain.create(policies, context);
+        } else {
+            // Fix consuming application and subscription which are data that can be used by policies (ie. rate-limit).
+            context.setAttribute(ExecutionContext.ATTR_APPLICATION, APPLICATION_NAME_ANONYMOUS);
+            context.setAttribute(ExecutionContext.ATTR_PLAN, PLAN_NAME_ANONYMOUS);
+            context.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, context.request().remoteAddress());
+
+            context.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
+            context.request().metrics().setPlan(PLAN_NAME_ANONYMOUS);
+            context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
         }
 
         return new NoOpPolicyChain(context);
