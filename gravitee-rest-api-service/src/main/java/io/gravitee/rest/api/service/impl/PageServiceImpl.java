@@ -29,11 +29,12 @@ import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
@@ -530,9 +531,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
     private void createPageRevision(Page page) {
         try {
+            if(PageType.valueOf(page.getType()) == PageType.TRANSLATION
+                    && page.getConfiguration() != null && !page.getConfiguration().isEmpty()
+                    && page.getConfiguration().get(PageConfigurationKeys.TRANSLATION_INHERIT_CONTENT).equalsIgnoreCase("true")) {
+                String translatedPageId = page.getParentId();
+                this.pageRepository.findById(translatedPageId).ifPresent(translatedPage -> page.setContent(translatedPage.getContent()));
+            }
+
             pageRevisionService.create(page);
-        } catch (TechnicalManagementException ex) {
-            logger.info("Creation of page revision has failed");
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to create a revision for {}", page, ex);
+            throw new TechnicalManagementException("An error occurs while trying create a revision for " + page, ex);
         }
     }
 

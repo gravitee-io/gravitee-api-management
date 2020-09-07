@@ -108,6 +108,7 @@ public class PageService_ImportDirectoryTest {
         when(newPage.getId()).thenReturn(RandomString.generate());
         when(newPage.isPublished()).thenReturn(Boolean.TRUE);
         when(newPage.getSource()).thenReturn(ps);
+        when(newPage.getType()).thenReturn("MARKDOWN");
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
 

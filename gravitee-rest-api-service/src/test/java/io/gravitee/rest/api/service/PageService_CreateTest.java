@@ -41,7 +41,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
@@ -407,6 +406,7 @@ public class PageService_CreateTest {
 
         Page createdPage = new Page();
         createdPage.setId("NEW_TRANSLATION");
+        createdPage.setType("TRANSLATION");
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         doReturn(createdPage).when(pageRepository).create(any());
