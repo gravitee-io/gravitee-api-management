@@ -63,6 +63,7 @@
             <exclude>**/*.eot</exclude>
             <exclude>package-json.lock</exclude>
             <exclude>.tmp/**</exclude>
+            <exclude>.vscode/**</exclude>
             <exclude>dist/**</exclude>
           </excludes>
         </configuration>

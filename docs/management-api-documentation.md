@@ -12,7 +12,7 @@ To make documentation visible for all users, you can switch on the *published* b
 
 You can set a page to be a *homepage* by clicking on the *house* button. API homepage will be visible in the Portal main page of the API.
 
-You can also configure a page by clicking on the *settings* button. Page's configuration let you fetch page's content from an external resource such as Git repositories, or HTTP urls. 
+You can also configure a page by clicking on the *settings* button. Page's configuration let you fetch page's content from an external resource such as Git repositories, or HTTP urls. In this case, you can configure an automatic fetch to refresh your pages periodically (see Auto Fetch here after).   
 
 (+) button let you create a new documentation page.
 
@@ -40,3 +40,16 @@ Here is a descriptor sample :
   }
 }
 ```
+
+## Auto Fetch
+
+To fetch periodically your documentation from external source, you can enable the 'Auto Fetch' option and specify the fetch frequency.
+
+This frequency definition uses a __cron expression__ that is a string consisting of six fields that describe the schedule representing second, minute, hour, day, month and weekday. 
+
+Here is some examples :
+
+* Fetch every hour: `* * */1 * * *` 
+* At 00:00 on Saturday : `0 0 0 * * SAT`
+
+__Note__: Platform administrator may have configure a max frequency that you cannot exceed. For example, if you configure a refresh every minutes and the platform administrator configure a maximum perdiod of 5 minutes, the refresh will be applied every 5 minutes.
