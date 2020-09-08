@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageMedia;
 import io.gravitee.repository.management.model.PageReferenceType;
 import org.junit.Test;
 
@@ -118,6 +119,15 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
 
         assertTrue("homepage", page.isHomepage());
         assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
+
+        final List<PageMedia> attachedMedia = page.getAttachedMedia();
+        assertNotNull(attachedMedia);
+        assertEquals("attachedMedia", 2, attachedMedia.size());
+        assertEquals("attachedMedia", Arrays.asList(
+                new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
+                new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L)))
+                , attachedMedia);
+
         assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
         assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
         assertTrue("no autofetch",page.getUseAutoFetch().booleanValue());
@@ -303,6 +313,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setParentId("parent-123");
         page.setHomepage(true);
         page.setExcludedGroups(Collections.singletonList("excluded"));
+        page.setAttachedMedia(Collections.singletonList(new PageMedia("media_id", "media_name", new Date(1586771200000L))));
         page.setLastContributor("me");
         page.setPublished(true);
         page.setConfiguration(new HashMap<>());
@@ -337,7 +348,8 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Invalid createdAt.", compareDate(new Date(1486772200000L), updatedPage.getCreatedAt()));
         assertEquals("Invalid parent id.", "parent-123", updatedPage.getParentId());
         assertTrue("Invalid homepage.", updatedPage.isHomepage());
-        assertTrue("Invalid excluded groups.", updatedPage.isHomepage());
+        assertTrue("Invalid excluded groups.", !updatedPage.getExcludedGroups().isEmpty());
+        assertTrue("Invalid attached media.", !updatedPage.getAttachedMedia().isEmpty());
         assertEquals("Invalid last contributor.", "me", updatedPage.getLastContributor());
         assertTrue("Invalid published.", updatedPage.isPublished());
 

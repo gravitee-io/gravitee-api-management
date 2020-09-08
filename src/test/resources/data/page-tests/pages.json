@@ -30,6 +30,18 @@
       },
       "homepage": true,
       "excludedGroups": [ "grp1", "grp2" ],
+      "attachedMedia": [
+         {
+            "mediaHash": "media_id_1",
+            "mediaName": "media_name_1",
+            "attachedAt": 1586771200000
+         },
+         {
+            "mediaHash": "media_id_2",
+            "mediaName": "media_name_2",
+            "attachedAt": 1587771200000
+         }
+      ],
       "createdAt": 1486771200000,
       "updatedAt": 1486771200000,
       "useAutoFetch": true

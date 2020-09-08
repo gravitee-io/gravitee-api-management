@@ -17,10 +17,6 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
-import org.aopalliance.intercept.Invocation;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.mockito.stubbing.OngoingStubbing;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,6 +48,7 @@ public class MediaRepositoryMock extends AbstractRepositoryMock<MediaRepository>
         when(mediaData.getSubType()).thenReturn("gif");
         when(mediaData.getHash()).thenReturn("4692FBACBEF919061ECF328CA543E028");
         when(mediaData.getCreatedAt()).thenReturn(new Date());
+        when(mediaData.getData()).thenReturn(new byte[] { 'd' });
 
         final Media mediaData2 = mock(Media.class);
         when(mediaData2.getId()).thenReturn("556677");
@@ -59,6 +56,7 @@ public class MediaRepositoryMock extends AbstractRepositoryMock<MediaRepository>
         when(mediaData2.getSize()).thenReturn(85361L);
         when(mediaData2.getApi()).thenReturn("123456");
         when(mediaData2.getHash()).thenReturn("1BC5D9656D860DE678CBEF5C169D8B15");
+        when(mediaData2.getData()).thenReturn(new byte[] { 'd' });
 
         final Media mediaData3 = mock(Media.class);
         when(mediaData3.getId()).thenReturn("22334455");
@@ -68,20 +66,34 @@ public class MediaRepositoryMock extends AbstractRepositoryMock<MediaRepository>
         when(mediaData3.getSubType()).thenReturn("png");
         when(mediaData3.getHash()).thenReturn("77C921AB285376AFF72FBDD2D0784E0B");
         when(mediaData3.getCreatedAt()).thenReturn(new Date());
+        when(mediaData3.getData()).thenReturn(new byte[] { 'd' });
+
+        final Media mediaData4 = mock(Media.class);
+        when(mediaData4.getId()).thenReturn("2233445566");
+        when(mediaData4.getFileName()).thenReturn("stars.png");
+        when(mediaData4.getSize()).thenReturn(4370L);
+        when(mediaData4.getType()).thenReturn("image");
+        when(mediaData4.getSubType()).thenReturn("png");
+        when(mediaData4.getHash()).thenReturn("77C921AB285376AFF72FBDD2D0784E0B");
+        when(mediaData4.getCreatedAt()).thenReturn(new Date());
 
         when(mediaRepository.create(any(Media.class))).thenReturn(mediaData);
 
-        when(mediaRepository.findByHash("4692FBACBEF919061ECF328CA543E028", "image"))
-            .thenReturn(of(mediaData));
+        when(mediaRepository.findByHashAndType("4692FBACBEF919061ECF328CA543E028", "image"))
+                .thenReturn(of(mediaData));
+        when(mediaRepository.findByHash("4692FBACBEF919061ECF328CA543E028"))
+                .thenReturn(of(mediaData));
 
-        when(mediaRepository.findByHashAndApi("77C921AB285376AFF72FBDD2D0784E0B", "apiId", "image"))
-            .thenReturn(of(mediaData3));
+        when(mediaRepository.findByHashAndApiAndType("77C921AB285376AFF72FBDD2D0784E0B", "apiId","image"))
+                .thenReturn(of(mediaData3));
+        when(mediaRepository.findByHashAndApi("77C921AB285376AFF72FBDD2D0784E0B", "apiId"))
+                .thenReturn(of(mediaData3));
 
-        when(mediaRepository.findByHash("1BC5D9656D860DE678CBEF5C169D8B15", "image"))
-            .thenReturn(of(mediaData2), empty());
+        when(mediaRepository.findByHashAndType("1BC5D9656D860DE678CBEF5C169D8B15", "image"))
+                .thenReturn(of(mediaData2), empty());
 
-        when(mediaRepository.findByHash("1BC5D9656D860DE678CBEF5C169D8B152", "image"))
-            .thenReturn(of(mediaData2), empty());
+        when(mediaRepository.findByHashAndType("1BC5D9656D860DE678CBEF5C169D8B152", "image"))
+                .thenReturn(of(mediaData2), empty());
 
         List<Media> all = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
@@ -95,5 +107,7 @@ public class MediaRepositoryMock extends AbstractRepositoryMock<MediaRepository>
         }
 
         when(mediaRepository.findAllByApi("myApi")).thenReturn(all);
+
+        when(mediaRepository.findByHash("77C921AB285376AFF72FBDD2D0784E0B", false)).thenReturn(of(mediaData4));
     }
 }

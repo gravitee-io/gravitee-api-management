@@ -18,6 +18,7 @@ package io.gravitee.repository.config.mock;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageMedia;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
 import org.mockito.invocation.InvocationOnMock;
@@ -83,6 +84,9 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
 
         when(findApiPage.isHomepage()).thenReturn(true);
         when(findApiPage.getExcludedGroups()).thenReturn(asList("grp1", "grp2"));
+        when(findApiPage.getAttachedMedia()).thenReturn(asList(
+                new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
+                new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L))));
         when(findApiPage.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(findApiPage.getUpdatedAt()).thenReturn(new Date(1486771200000L));
 
@@ -167,6 +171,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(updatePageAfter.getParentId()).thenReturn("parent-123");
         when(updatePageAfter.isHomepage()).thenReturn(true);
         when(updatePageAfter.getExcludedGroups()).thenReturn(Collections.singletonList("excluded"));
+        when(updatePageAfter.getAttachedMedia()).thenReturn(Collections.singletonList(new PageMedia("media_id", "media_name", new Date(1586771200000L))));
         when(updatePageAfter.getLastContributor()).thenReturn("me");
         when(updatePageAfter.isPublished()).thenReturn(true);
         Map<String, String> pageConfigurationMock = mock(HashMap.class);
