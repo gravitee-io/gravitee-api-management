@@ -141,6 +141,8 @@ public abstract class AbstractRepositoryTest {
     protected ThemeRepository themeRepository;
     @Inject
     protected TokenRepository tokenRepository;
+    @Inject
+    protected CustomUserFieldsRepository customUserFieldsRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -289,6 +291,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if( object instanceof PageRevision) {
             pageRevisionRepository.create((PageRevision) object);
+        }
+        else if( object instanceof CustomUserField) {
+            customUserFieldsRepository.create((CustomUserField) object);
         }
     }
 

@@ -231,4 +231,9 @@ public class MockTestRepositoryConfiguration {
     public TokenRepositoryMock tokenRepositoryMock() {
         return new TokenRepositoryMock();
     }
+
+    @Bean
+    public CustomUserFieldsRepositoryMock customUserFieldsRepositoryMock() {
+        return new CustomUserFieldsRepositoryMock();
+    }
 }
