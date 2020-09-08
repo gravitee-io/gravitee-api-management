@@ -48,6 +48,7 @@ public class Page {
 	private List<String> excludedGroups;
 	private Map<String, String> metadata;
 	private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
+	private List<PageMedia> attachedMedia;
 
 	public String getId() {
 		return id;
@@ -187,6 +188,14 @@ public class Page {
 
 	public void setUseAutoFetch(Boolean useAutoFetch) {
 		this.useAutoFetch = useAutoFetch;
+    }
+
+	public List<PageMedia> getAttachedMedia() {
+		return attachedMedia;
+	}
+
+	public void setAttachedMedia(List<PageMedia> attachedMedia) {
+		this.attachedMedia = attachedMedia;
 	}
 
 	@Override
@@ -224,6 +233,7 @@ public class Page {
 				", parentId='" + parentId + '\'' +
 				", excludedGroups=" + excludedGroups +
 				", metadata=" + metadata +
+				", attachedMedia=" + attachedMedia +
 				'}';
 	}
 }

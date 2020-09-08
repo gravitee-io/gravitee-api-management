@@ -27,9 +27,21 @@ import java.util.Optional;
  */
 public interface MediaRepository {
 
-    Optional<Media> findByHash(String hash, String mediaType);
+    Optional<Media> findByHash(String hash);
 
-    Optional<Media> findByHashAndApi(String hash, String api, String mediaType);
+    Optional<Media> findByHash(String hash, boolean withContent);
+
+    Optional<Media> findByHashAndApi(String hash, String api);
+
+    Optional<Media> findByHashAndApi(String hash, String api, boolean withContent);
+
+    Optional<Media> findByHashAndType(String hash, String mediaType);
+
+    Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent);
+
+    Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType);
+
+    Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent);
 
     List<Media> findAllByApi(String api);
 
