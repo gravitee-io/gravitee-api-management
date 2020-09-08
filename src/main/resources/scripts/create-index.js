@@ -108,3 +108,8 @@ db.alert_events.dropIndexes();
 db.alert_events.createIndex( { "alert": 1 } );
 db.alert_events.createIndex( { "createdAt": 1 } );
 db.alert_events.reIndex();
+
+// "customUserFields" collection
+db.custom_user_fields.dropIndexes();
+db.custom_user_fields.createIndex( {"_id.referenceId":1, "_id.referenceType":1}, { unique: false } );
+db.custom_user_fields.reIndex();

@@ -63,7 +63,7 @@ public class MongoCommandRepository implements CommandRepository {
 
         Command res = mapper.map(createdMsgMongo, Command.class);
 
-        logger.debug("Create tag [{}] - Done", res.getId());
+        logger.debug("Create Command [{}] - Done", res.getId());
 
         return res;
     }

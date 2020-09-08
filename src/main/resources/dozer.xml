@@ -41,4 +41,21 @@
             <b>generalConditionsContentRevision.revision</b>
         </field>
     </mapping>
+
+    <mapping >
+        <class-a>io.gravitee.repository.management.model.CustomUserField</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.CustomUserFieldMongo</class-b>
+        <field>
+            <a>key</a>
+            <b>id.key</b>
+        </field>
+        <field>
+            <a>referenceId</a>
+            <b>id.referenceId</b>
+        </field>
+        <field>
+            <a>referenceType</a>
+            <b>id.referenceType</b>
+        </field>
+    </mapping>
 </mappings>
