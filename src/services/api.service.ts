@@ -396,6 +396,10 @@ class ApiService {
     return this.$http.delete(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/keys/' + apiKey);
   }
 
+  reactivateApiKey(apiId, subscriptionId, apiKey): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/keys/' + apiKey + '/_reactivate', '');
+  }
+
   renewApiKey(apiId, subscriptionId): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId);
   }
