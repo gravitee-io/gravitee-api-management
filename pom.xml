@@ -36,7 +36,7 @@
         <gravitee-repository-test.version>3.3.0-SNAPSHOT</gravitee-repository-test.version>
         <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
         <HikariCP.version>3.4.1</HikariCP.version>
-        <liquibase.version>3.8.0</liquibase.version>
+        <liquibase.version>3.8.1</liquibase.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
         <mysql-connector-java.version>8.0.17</mysql-connector-java.version>
         <postgresql.version>42.2.16</postgresql.version>
