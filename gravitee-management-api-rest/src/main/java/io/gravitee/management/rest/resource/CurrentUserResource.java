@@ -133,6 +133,7 @@ public class CurrentUserResource extends AbstractResource {
             userDetails.setLastname(details.getLastname());
             userDetails.setSource(userEntity.getSource());
             userDetails.setSourceId(userEntity.getSourceId());
+            userDetails.setPrimaryOwner(userEntity.isPrimaryOwner());
 
             //convert UserEntityRoles to UserDetailsRoles
             userDetails.setRoles(userEntity.getRoles().
@@ -148,6 +149,23 @@ public class CurrentUserResource extends AbstractResource {
             return ok(userDetails, MediaType.APPLICATION_JSON).build();
         } else {
             return ok().build();
+        }
+    }
+
+    @DELETE
+    @ApiOperation(value = "Delete the current logged user")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Current user successfully deleted"),
+            @ApiResponse(code = 401, message = "Unauthorized"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response deleteCurrentUser() {
+
+        if (isAuthenticated()) {
+            userService.delete(getAuthenticatedUser());
+            logout();
+            return Response.noContent().build();
+        } else {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
 

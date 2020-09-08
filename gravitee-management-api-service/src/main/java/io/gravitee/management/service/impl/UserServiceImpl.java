@@ -217,7 +217,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
             Optional<User> optionalUser = userRepository.findById(id);
 
             if (optionalUser.isPresent()) {
-                return convert(optionalUser.get(), true);
+                UserEntity userEntity = convert(optionalUser.get(), true);
+
+                populateUserFlags(Collections.singletonList(userEntity));
+
+                return userEntity;
             }
             //should never happen
             throw new UserNotFoundException(id);

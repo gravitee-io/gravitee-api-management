@@ -25,9 +25,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import org.junit.AfterClass;
 import org.mockito.Mockito;
 
@@ -83,6 +83,23 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+    }
+
+    @Test
+    public void shouldBeAbleToDeleteCurrentUser() {
+        Mockito.reset(userService);
+
+        final Authentication authentication = mock(Authentication.class);
+        final UserDetails userDetails = new UserDetails(USER_NAME, "PASSWORD", Collections.emptyList());
+
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+
+        final Response response = target().request().delete();
+
+        verify(userService, times(1)).delete(USER_NAME);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 
     private void setCurrentUserDetails(final UserDetails userDetails) {
