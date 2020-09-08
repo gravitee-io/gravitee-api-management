@@ -49,6 +49,7 @@ public class PageResourceTest extends AbstractResourceTest {
     private static final String UNKNOWN_PAGE = "unknown-page";
     private static final String PAGE_CONTENT = "my-page-content";
 
+    @Override
     protected String contextPath() {
         return "pages/";
     }
@@ -81,6 +82,10 @@ public class PageResourceTest extends AbstractResourceTest {
 
         doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE, null);
 
+        doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
+        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
+        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
+
     }
 
     @Test
@@ -102,10 +107,6 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPage() {
-        doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-
         final Response response = target(PUBLISHED_PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -117,10 +118,6 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPageWithInclude() {
-        doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-
         final Response response = target(PUBLISHED_PAGE).queryParam("include", "content").request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -140,17 +137,12 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetUnpublishedPage() {
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-
         Response response = target(UNPUBLISHED_PAGE).request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
 
     @Test
     public void shouldNotHaveMetadataCleared() {
-        doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-
         Response response = target(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -179,8 +171,6 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPageContent() {
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-
         final Response response = target(PUBLISHED_PAGE).path("content").request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -198,8 +188,6 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetUnpublishedPageContent() {
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-
         Response response = target(UNPUBLISHED_PAGE).path("content").request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }

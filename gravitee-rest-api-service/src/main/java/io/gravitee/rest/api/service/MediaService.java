@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.MediaEntity;
+import io.gravitee.rest.api.model.PageMediaEntity;
 
 import java.util.List;
 
@@ -29,8 +30,12 @@ public interface MediaService {
     String saveApiMedia(String api, MediaEntity imageEntity);
 
     MediaEntity findByHash(String hash);
-
     MediaEntity findByHashAndApiId(String hash, String apiId);
+    MediaEntity findByHash(String id, boolean ignoreType);
+    MediaEntity findByHashAndApi(String id, String api, boolean ignoreType);
+
+    List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities);
+    List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities, String api);
 
     Long getMediaMaxSize();
 

@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-import java.util.Map;
-
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -96,4 +96,6 @@ public interface PageService {
 	boolean isPageUsedAsGeneralConditions(PageEntity page, String apiId);
 
 	boolean shouldHaveRevision(String pageType);
+
+	void attachMedia(String pageId, String mediaId, String mediaName);
 }

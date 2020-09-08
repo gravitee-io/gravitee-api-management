@@ -21,8 +21,12 @@ import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Page.TypeEnum;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.DocExpansionEnum;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.ViewerEnum;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
+import io.gravitee.rest.api.service.MediaService;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
+import javax.ws.rs.core.UriBuilder;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +40,14 @@ import java.util.stream.Collectors;
 @Component
 public class PageMapper {
 
+    @Inject
+    MediaService mediaService;
+
     public Page convert(PageEntity page) {
+        return convert(null, null, page);
+    }
+
+    public Page convert(UriBuilder baseUriBuilder, String apiId, PageEntity page) {
         final Page pageItem = new Page();
 
         if (page.getConfiguration() != null) {
@@ -63,6 +74,18 @@ public class PageMapper {
         }
         if (page.getLastModificationDate() != null) {
             pageItem.setUpdatedAt(page.getLastModificationDate().toInstant().atOffset(ZoneOffset.UTC));
+        }
+
+        if (page.getAttachedMedia() != null && !page.getAttachedMedia().isEmpty() && baseUriBuilder != null) {
+            final String mediaUrl = PortalApiLinkHelper.mediaURL(baseUriBuilder, apiId);
+            final List<PageMedia> pageMedia = mediaService.findAllWithoutContent(page.getAttachedMedia(), apiId).stream()
+                    .map(media -> new PageMedia()
+                            .name(media.getFileName())
+                            .link(mediaUrl + "/" + media.getId())
+                            .type(media.getType())
+                    )
+                    .collect(Collectors.toList());
+            pageItem.setMedia(pageMedia);
         }
 
         if (page.getContentRevisionId() != null) {

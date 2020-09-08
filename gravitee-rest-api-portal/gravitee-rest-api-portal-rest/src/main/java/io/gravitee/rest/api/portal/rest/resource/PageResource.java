@@ -28,7 +28,6 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-
 import java.util.List;
 
 /**
@@ -63,7 +62,7 @@ public class PageResource extends AbstractResource {
             }
             pageService.transformWithTemplate(pageEntity, null);
             
-            Page page = pageMapper.convert(pageEntity);
+            Page page = pageMapper.convert(uriInfo.getBaseUriBuilder(), null, pageEntity);
             
             if (include.contains(INCLUDE_CONTENT)) {
                 page.setContent(pageEntity.getContent());

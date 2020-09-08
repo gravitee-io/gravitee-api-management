@@ -15,35 +15,28 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
-
-import java.io.IOException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Page;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Before;
+import org.junit.Test;
 
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.*;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
-
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Page;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -114,7 +107,7 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
         mockAnotherPage.setMetadata(metadataMap);
         doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE, null);
 
-        doReturn(new Page()).when(pageMapper).convert(any());
+        doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
     }
 
     @Test

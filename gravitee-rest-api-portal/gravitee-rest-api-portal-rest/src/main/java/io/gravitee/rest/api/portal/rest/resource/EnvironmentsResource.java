@@ -34,19 +34,29 @@ public class EnvironmentsResource extends AbstractResource {
         return resourceContext.getResource(ApisResource.class);
     }
 
-    @Path("auth")
-    public AuthResource getAuthResource() {
-        return resourceContext.getResource(AuthResource.class);
-    }
-
     @Path("applications")
     public ApplicationsResource getApplicationsResource() {
         return resourceContext.getResource(ApplicationsResource.class);
     }
 
+    @Path("auth")
+    public AuthResource getAuthResource() {
+        return resourceContext.getResource(AuthResource.class);
+    }
+
+    @Path("categories")
+    public CategoriesResource getCategoriesResource() {
+        return resourceContext.getResource(CategoriesResource.class);
+    }
+
     @Path("configuration")
     public ConfigurationResource getConfigurationResource() {
         return resourceContext.getResource(ConfigurationResource.class);
+    }
+
+    @Path("dashboards")
+    public DashboardsResource getDashboardsResource() {
+        return resourceContext.getResource(DashboardsResource.class);
     }
 
     @Path("groups")
@@ -57,6 +67,11 @@ public class EnvironmentsResource extends AbstractResource {
     @Path("info")
     public InfoResource getInfoResource() {
         return resourceContext.getResource(InfoResource.class);
+    }
+
+    @Path("media")
+    public MediaResource getMediaResource() {
+        return resourceContext.getResource(MediaResource.class);
     }
 
     @Path("pages")
@@ -84,24 +99,13 @@ public class EnvironmentsResource extends AbstractResource {
         return resourceContext.getResource(TicketsResource.class);
     }
 
-
-    @Path("users")
-    public UsersResource getUsersResource() {
-        return resourceContext.getResource(UsersResource.class);
-    }
-
     @Path("user")
     public UserResource getUserResource() {
         return resourceContext.getResource(UserResource.class);
     }
 
-    @Path("categories")
-    public CategoriesResource getCategoriesResource() {
-        return resourceContext.getResource(CategoriesResource.class);
-    }
-
-    @Path("dashboards")
-    public DashboardsResource getDashboardsResource() {
-        return resourceContext.getResource(DashboardsResource.class);
+    @Path("users")
+    public UsersResource getUsersResource() {
+        return resourceContext.getResource(UsersResource.class);
     }
 }

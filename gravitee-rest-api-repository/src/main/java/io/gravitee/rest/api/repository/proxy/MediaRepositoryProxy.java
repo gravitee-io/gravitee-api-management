@@ -41,13 +41,43 @@ public class MediaRepositoryProxy extends AbstractProxy<MediaRepository> impleme
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, String mediaType) {
-        return target.findByHash(hash, mediaType);
+    public Optional<Media> findByHash(String hash) {
+        return target.findByHash(hash);
     }
 
     @Override
-    public Optional<Media> findByHashAndApi(String hash, String api, String mediaType) {
-        return target.findByHashAndApi(hash, api, mediaType);
+    public Optional<Media> findByHash(String hash, boolean withContent) {
+        return target.findByHash(hash, withContent);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApi(String hash, String api) {
+        return target.findByHashAndApi(hash, api);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) {
+        return target.findByHashAndApi(hash, api, withContent);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndType(String hash, String mediaType) {
+        return target.findByHashAndType(hash, mediaType);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) {
+        return target.findByHashAndType(hash, mediaType, withContent);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) {
+        return target.findByHashAndApiAndType(hash, api, mediaType);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent) {
+        return target.findByHashAndApiAndType(hash, api, mediaType, withContent);
     }
 
     @Override

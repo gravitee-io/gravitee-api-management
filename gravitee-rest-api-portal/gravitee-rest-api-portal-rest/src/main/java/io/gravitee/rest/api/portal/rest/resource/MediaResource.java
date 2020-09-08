@@ -17,10 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.MediaEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.MediaService;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -30,32 +27,23 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
 
-public class ApiMediaResource extends AbstractResource {
-
-    @Inject
-    private ApiService apiService;
+public class MediaResource extends AbstractResource {
 
     @Inject
     private MediaService mediaService;
 
     @GET
     @Path("{mediaHash}")
-    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-    public Response getApiMedia(@Context Request request, @PathParam("apiId") String apiId, @PathParam("mediaHash") String mediaHash) {
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
+    public Response getPortalMedia(@Context Request request, @PathParam("mediaHash") String mediaHash) {
+        MediaEntity mediaEntity = mediaService.findByHash(mediaHash, true);
 
-            MediaEntity mediaEntity = mediaService.findByHashAndApi(mediaHash, apiId, true);
-
-            if (mediaEntity == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
-            }
-
-            return createMediaResponse(request, mediaHash, mediaEntity);
+        if (mediaEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
-        throw new ApiNotFoundException(apiId);
+
+        return createMediaResponse(request, mediaHash, mediaEntity);
     }
 
 }

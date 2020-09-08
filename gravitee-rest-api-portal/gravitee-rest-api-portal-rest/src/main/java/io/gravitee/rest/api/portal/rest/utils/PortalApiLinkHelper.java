@@ -80,6 +80,14 @@ public final class PortalApiLinkHelper {
         return resourcesURL(baseUriBuilder, categoryId, "categories");
     }
 
+    public static String mediaURL(UriBuilder baseUriBuilder, String apiId) {
+        if (apiId != null) {
+            return resourcesURL(baseUriBuilder, apiId, "apis", null, "media");
+        } else {
+            return resourcesURL(baseUriBuilder, null, "media");
+        }
+    }
+
     private static String resourcesURL(UriBuilder baseUriBuilder, String resourceId, String resourceName) {
         return resourcesURL(baseUriBuilder, resourceId, resourceName, null, null);
     }

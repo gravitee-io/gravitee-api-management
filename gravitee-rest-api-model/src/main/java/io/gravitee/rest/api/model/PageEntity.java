@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
 
@@ -46,6 +45,8 @@ public class PageEntity implements Indexable {
     private String parentPath;
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
+    @JsonProperty("attached_media")
+    private List<PageMediaEntity> attachedMedia;
     private Map<String, String> metadata;
     private List<PageEntity> translations;
 
@@ -213,6 +214,14 @@ public class PageEntity implements Indexable {
         this.contentRevisionId = contentRevisionId;
     }
 
+    public List<PageMediaEntity> getAttachedMedia() {
+        return attachedMedia;
+    }
+
+    public void setAttachedMedia(List<PageMediaEntity> attachedMedia) {
+        this.attachedMedia = attachedMedia;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -248,6 +257,7 @@ public class PageEntity implements Indexable {
 				", parentId='" + parentId + '\'' +
                 ", parentPath='" + parentPath + '\'' +
                 ", excludedGroups=" + excludedGroups +
+                ", attachedMedia=" + attachedMedia +
                 ", metadata='" + metadata + '\'' +
                 ", translations='" + translations + '\'' +
 				", generalConditions='" + generalConditions + '\'' +

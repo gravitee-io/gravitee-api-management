@@ -1433,6 +1433,22 @@ paths:
           $ref: '#/components/responses/GroupNotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /media/{mediaHash}:
+    parameters:
+      - $ref: '#/components/parameters/mediaHashParam'
+    get:
+      tags:
+        - Portal
+      summary: Get the media of the portal.
+      operationId: getPortalMedia
+      description: |
+        Get portal media.
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/MediaSuccess'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /pages:
     get:
       tags:
@@ -3316,6 +3332,11 @@ components:
           format: date-time
         configuration:
           $ref: '#/components/schemas/PageConfiguration'
+        media:
+          description: list of media hash, attached to this page
+          type: array
+          items:
+            $ref: '#/components/schemas/PageMedia'
         metadata:
           description: Array of metadata about the page. This array is filled when the page has been fetched from a distant source (GitHub, GitLab, etc...).
           type: array
@@ -3338,6 +3359,23 @@ components:
           description:
             The page revision used to fill the content.
           $ref: '#/components/schemas/PageRevisionId'
+
+    PageMedia:
+      required:
+        - name
+        - link
+        - type
+      properties:
+        name:
+          description: the name of the media.
+          type: string
+        link:
+          description: link to download the media.
+          type: string
+        type:
+          description: type of the media.
+          type: string
+
     Plan:
       required:
         - id
@@ -4739,7 +4777,7 @@ components:
     MediaSuccess:
       description: A media
       content:
-        'image/*':
+        '*':
           schema:
             type: string
             format: binary

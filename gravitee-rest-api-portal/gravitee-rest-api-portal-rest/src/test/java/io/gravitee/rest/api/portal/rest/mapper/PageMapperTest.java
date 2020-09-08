@@ -15,27 +15,31 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.portal.rest.model.Metadata;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.Page.TypeEnum;
+import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.DocExpansionEnum;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.ViewerEnum;
-import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
+import io.gravitee.rest.api.service.MediaService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import javax.ws.rs.core.UriBuilder;
 import java.time.Instant;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -65,7 +69,10 @@ public class PageMapperTest {
 
     @InjectMocks
     private PageMapper pageMapper;
-    
+
+    @Mock
+    MediaService mediaService;
+
     @Test
     public void testConvert() {
         //init
@@ -96,13 +103,21 @@ public class PageMapperTest {
         pageEntity.setOrder(1);
         pageEntity.setParentId(PAGE_PARENT);
         pageEntity.setType(PAGE_TYPE);
-        
+        PageMediaEntity pme1 = new PageMediaEntity();
+        pme1.setMediaHash("media_id_1");
+        pme1.setMediaName("media_name_1");
+        PageMediaEntity pme2 = new PageMediaEntity();
+        pme2.setMediaHash("media_id_2");
+        pme2.setMediaName("media_name_2");
+        final List<PageMediaEntity> attachedMedia = Arrays.asList(pme1, pme2);
+        pageEntity.setAttachedMedia(attachedMedia);
         Instant now = Instant.now();
         pageEntity.setLastModificationDate(Date.from(now));
         
-        
+        when(mediaService.findAllWithoutContent(attachedMedia, null)).thenReturn(Arrays.asList(mock(MediaEntity.class),mock(MediaEntity.class)));
+
         //Test
-        Page responsePage = pageMapper.convert(pageEntity);
+        Page responsePage = pageMapper.convert(UriBuilder.fromPath("/"), null, pageEntity);
         assertNotNull(responsePage);
         
         PageConfiguration pageConfiguration = responsePage.getConfiguration(); 
@@ -132,7 +147,10 @@ public class PageMapperTest {
         assertEquals(PAGE_NAME, responsePage.getName());
         assertEquals(Integer.valueOf(1), responsePage.getOrder());
         assertEquals(PAGE_PARENT, responsePage.getParent());
-        
+
+        assertNotNull(responsePage.getMedia());
+        assertEquals(2, responsePage.getMedia().size());
+
         assertEquals(TypeEnum.SWAGGER, responsePage.getType());
         assertEquals(now.toEpochMilli(), responsePage.getUpdatedAt().toInstant().toEpochMilli());
     }
@@ -160,7 +178,7 @@ public class PageMapperTest {
     }
 
     @Test
-    public void testApiLinks() {
+    public void testPageLinks() {
         String basePath = "/"+PAGE_ID;
         String parentPath = "/"+PAGE_PARENT;
         

@@ -22,11 +22,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import io.gravitee.rest.api.model.MediaEntity;
+import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,10 +35,10 @@ import org.springframework.stereotype.Component;
 import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -74,9 +74,9 @@ public class MediaServiceImpl implements MediaService {
             Optional<Media> checkMedia = null;
 
             if (api != null) {
-                checkMedia = mediaRepository.findByHashAndApi(hashString, api, mediaEntity.getType());
+                checkMedia = mediaRepository.findByHashAndApiAndType(hashString, api, mediaEntity.getType());
             } else {
-                checkMedia = mediaRepository.findByHash(hashString, mediaEntity.getType());
+                checkMedia = mediaRepository.findByHashAndType(hashString, mediaEntity.getType());
             }
 
 
@@ -102,16 +102,62 @@ public class MediaServiceImpl implements MediaService {
 
     @Override
     public MediaEntity findByHash(String hash) {
-        Optional<Media> mediaData = mediaRepository.findByHash(hash, "image");
+        Optional<Media> mediaData = mediaRepository.findByHashAndType(hash, "image");
         return mediaData.isPresent() ? convert(mediaData.get()) : null;
     }
 
     @Override
     public MediaEntity findByHashAndApiId(String hash, String apiId) {
-        Optional<Media> mediaData = mediaRepository.findByHashAndApi(hash, apiId, "image");
+        Optional<Media> mediaData = mediaRepository.findByHashAndApiAndType(hash, apiId, "image");
         return mediaData.isPresent() ? convert(mediaData.get()) : null;
     }
 
+    @Override
+    public MediaEntity findByHash(String id, boolean ignoreType) {
+        Optional<Media> mediaData;
+        if (ignoreType) {
+            mediaData = mediaRepository.findByHash(id);
+        } else {
+            mediaData = mediaRepository.findByHashAndType(id, "image");
+        }
+        return mediaData.isPresent() ? convert(mediaData.get()) : null;
+    }
+
+    @Override
+    public MediaEntity findByHashAndApi(String id, String api, boolean ignoreType) {
+        Optional<Media> mediaData;
+        if (ignoreType) {
+            mediaData = mediaRepository.findByHashAndApi(id, api);
+        } else {
+            mediaData = mediaRepository.findByHashAndApiAndType(id, api, "image");
+        }
+        return mediaData.isPresent() ? convert(mediaData.get()): null;
+    }
+
+    @Override
+    public List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities) {
+        return this.findAllWithoutContent(pageMediaEntities, null);
+    }
+
+    @Override
+    public List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities, String api) {
+        List<MediaEntity> result = new ArrayList<>();
+        if (pageMediaEntities != null && !pageMediaEntities.isEmpty()) {
+            for(PageMediaEntity pme : pageMediaEntities) {
+                final Optional<Media> foundMedia = mediaRepository.findByHashAndApi(pme.getMediaHash(), api, false);
+                if (foundMedia.isPresent()) {
+                    MediaEntity me = this.convert(foundMedia.get());
+                    me.setFileName(pme.getMediaName());
+                    me.setUploadDate(pme.getAttachedAt());
+                    result.add(me);
+                }
+            }
+        }
+        return result;
+
+    }
+
+    @Override
     public Long getMediaMaxSize() {
         return Long.valueOf(configService.getPortalConfig().getPortal().getUploadMedia().getMaxSizeInOctet());
     }
@@ -166,6 +212,7 @@ public class MediaServiceImpl implements MediaService {
         mediaEntity.setFileName(media.getFileName());
         mediaEntity.setSize(media.getSize());
         mediaEntity.setUploadDate(media.getCreatedAt());
+        mediaEntity.setId(media.getHash());
         return mediaEntity;
     }
 }

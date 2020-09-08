@@ -54,6 +54,9 @@ public class PortalApiLinkHelperTest {
     private static final String BASE_URL_CATEGORIES = BASE_URL + "/environments/DEFAULT" + "/categories";
     private static final String BASE_URL_CATEGORIES_CATEGORYID = BASE_URL_CATEGORIES + "/" + CATEGORY;
 
+    private static final String BASE_URL_PORTAL_MEDIA = BASE_URL + "/environments/DEFAULT" + "/media";
+    private static final String BASE_URL_API_MEDIA = BASE_URL_APIS_APIID + "/media";
+
     @Test
     public void testApisLink() {
         String apis = PortalApiLinkHelper.apisURL(UriBuilder.fromPath(BASE_URL));
@@ -102,5 +105,13 @@ public class PortalApiLinkHelperTest {
         String category = PortalApiLinkHelper.categoriesURL(UriBuilder.fromPath(BASE_URL), CATEGORY);
         assertEquals(BASE_URL_CATEGORIES, categories);
         assertEquals(BASE_URL_CATEGORIES_CATEGORYID, category);
+    }
+
+    @Test
+    public void testMediaLink() {
+        String portalMediaLink = PortalApiLinkHelper.mediaURL(UriBuilder.fromPath(BASE_URL), null);
+        String apiMediaLink = PortalApiLinkHelper.mediaURL(UriBuilder.fromPath(BASE_URL), API);
+        assertEquals(BASE_URL_PORTAL_MEDIA, portalMediaLink);
+        assertEquals(BASE_URL_API_MEDIA, apiMediaLink);
     }
 }

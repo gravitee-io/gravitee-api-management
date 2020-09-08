@@ -33,6 +33,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
@@ -51,6 +53,9 @@ public class PortalPagesResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
+
+    @Context
+    private ResourceContext resourceContext;
 
     @GET
     @Path("/{page}")
@@ -134,7 +139,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create a page",
-            notes = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service")
+            notes = "User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -165,7 +170,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update a page",
-            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
+            notes = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -188,7 +193,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update a page",
-            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
+            notes = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -210,7 +215,7 @@ public class PortalPagesResource extends AbstractResource {
     @Path("/{page}/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Refresh page by calling the associated fetcher",
-            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
+            notes = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully refreshed", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -229,7 +234,7 @@ public class PortalPagesResource extends AbstractResource {
     @Path("/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Refresh all pages by calling their associated fetcher",
-            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
+            notes = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Pages successfully refreshed", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -245,7 +250,7 @@ public class PortalPagesResource extends AbstractResource {
     @DELETE
     @Path("/{page}")
     @ApiOperation(value = "Delete a page",
-            notes = "User must have the PORTAL_DOCUMENTATION[DELETE] permission to use this service")
+            notes = "User must have the ENVIRONMENT_DOCUMENTATION[DELETE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Page successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -266,7 +271,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Import pages",
-            notes = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service")
+            notes = "User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully created", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -284,7 +289,7 @@ public class PortalPagesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Import pages",
-            notes = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service")
+            notes = "User must have the ENVIRONMENT_DOCUMENTATION[CREATE] permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
@@ -301,4 +306,10 @@ public class PortalPagesResource extends AbstractResource {
         return (isAuthenticated() && hasPermission(RolePermission.ENVIRONMENT_DOCUMENTATION, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE)) ||
                 (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull()));
     }
+
+    @Path("/{page}/media")
+    public PortalPageMediaResource getPortalPageMediaResource() {
+        return resourceContext.getResource(PortalPageMediaResource.class);
+    }
+
 }

@@ -52,7 +52,7 @@ public class MediaEntity {
     }
 
     public void setSubType(String subType) {
-        this.subType = type;
+        this.subType = subType;
     }
 
     public String getFileName() {
@@ -104,6 +104,7 @@ public class MediaEntity {
         return Objects.hash(id);
     }
 
+    @Override
     public String toString() {
         return "MediaEntity{" +
             "id='" + id + '\'' +

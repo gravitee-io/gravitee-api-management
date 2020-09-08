@@ -16,13 +16,20 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.UpdatePageEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -34,6 +41,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -50,6 +59,9 @@ public class ApiPageResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
+
+    @Context
+    private ResourceContext resourceContext;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -201,4 +213,10 @@ public class ApiPageResource extends AbstractResource {
                         groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull()));
 
     }
+
+    @Path("media")
+    public ApiPageMediaResource getApiPageMediaResource() {
+        return resourceContext.getResource(ApiPageMediaResource.class);
+    }
+
 }

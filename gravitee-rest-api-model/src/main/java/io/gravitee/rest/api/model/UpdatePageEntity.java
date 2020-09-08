@@ -49,6 +49,9 @@ public class UpdatePageEntity {
 	@JsonProperty("excluded_groups")
 	private List<String> excludedGroups;
 
+	@JsonProperty("attached_media")
+	private List<PageMediaEntity> attachedMedia;
+
     private String parentId;
 
 	public String getName() {
@@ -126,4 +129,12 @@ public class UpdatePageEntity {
     public String getParentId() { return parentId; }
 
     public void setParentId(String parentId) { this.parentId = parentId; }
+
+	public List<PageMediaEntity> getAttachedMedia() {
+		return attachedMedia;
+	}
+
+	public void setAttachedMedia(List<PageMediaEntity> attachedMedia) {
+		this.attachedMedia = attachedMedia;
+	}
 }

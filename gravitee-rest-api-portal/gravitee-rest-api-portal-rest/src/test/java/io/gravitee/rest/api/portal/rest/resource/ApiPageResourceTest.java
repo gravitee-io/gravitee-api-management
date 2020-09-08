@@ -48,6 +48,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     private static final String ANOTHER_PAGE = "another-page";
     private static final String PAGE_CONTENT = "my-page-content";
 
+    @Override
     protected String contextPath() {
         return "apis/";
     }
@@ -68,6 +69,10 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         page1.setExcludedGroups(new ArrayList<String>());
         page1.setContent(PAGE_CONTENT);
         doReturn(page1).when(pageService).findById(PAGE, null);
+
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
+        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
     }
 
     @Test
@@ -112,10 +117,6 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApiPage() {
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
-
         final Response response = target(API).path("pages").path(PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -127,10 +128,6 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApiPageWithInclude() {
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
-
         final Response response = target(API).path("pages").path(PAGE).queryParam("include", "content").request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -143,16 +140,9 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetApiPage() {
         final Builder request = target(API).path("pages").path(PAGE).request();
-        // case 1
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
 
         Response response = request.get();
-        assertEquals(UNAUTHORIZED_401, response.getStatus());
-
-        // case 2
-        doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-
-        response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
 
@@ -165,9 +155,6 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
         doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE, null);
-
-        doReturn(new Page()).when(pageMapper).convert(any());
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
 
         Response response = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, response.getStatus());
@@ -220,8 +207,6 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApiPageContent() {
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-
         final Response response = target(API).path("pages").path(PAGE).path("content").request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -232,16 +217,9 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetApiPageContent() {
         final Builder request = target(API).path("pages").path(PAGE).path("content").request();
-        // case 1
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
 
         Response response = request.get();
-        assertEquals(UNAUTHORIZED_401, response.getStatus());
-
-        // case 2
-        doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-
-        response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
 }
