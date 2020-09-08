@@ -31,6 +31,8 @@ public interface ApiKeyService {
 
     void revoke(String apiKey, boolean notify);
 
+    ApiKeyEntity reactivate(String apiKey);
+
     Set<ApiKeyEntity> findBySubscription(String subscription);
 
     ApiKeyEntity findByKey(String apiKey);

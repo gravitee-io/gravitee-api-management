@@ -214,7 +214,7 @@ public class ApiSubscriptionResource extends AbstractResource {
     @Path("/keys/{key}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Revoke an API key",
-            notes = "User must have the MANAGE_API_KEYS permission to use this service")
+            notes = "User must have the API_SUBSCRIPTION permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "API key successfully revoked"),
             @ApiResponse(code = 400, message = "API Key does not correspond to the subscription"),
@@ -238,6 +238,37 @@ public class ApiSubscriptionResource extends AbstractResource {
 
         return Response
                 .status(Response.Status.NO_CONTENT)
+                .build();
+    }
+
+    @POST
+    @Path("/keys/{key}/_reactivate")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Reactivate an API key",
+            notes = "User must have the API_SUBSCRIPTION permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "API key successfully reactivated"),
+            @ApiResponse(code = 400, message = "API Key does not correspond to the subscription"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
+    })
+    public Response reactivateApiKey(
+            @PathParam("api") String api,
+            @PathParam("subscription") String subscription,
+            @PathParam("key") String apiKey) {
+        ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(apiKey);
+        if (apiKeyEntity.getSubscription() != null && ! subscription.equals(apiKeyEntity.getSubscription())) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("'key' parameter does not correspond to the subscription")
+                    .build();
+        }
+
+        ApiKeyEntity reactivated = apiKeyService.reactivate(apiKey);
+
+        return Response.ok()
+                .entity(reactivated)
                 .build();
     }
 
