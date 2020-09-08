@@ -21,6 +21,7 @@ export class User {
   public displayName: string;
   public email: string;
   public roles: any[];
+  public primaryOwner: boolean;
   public userPermissions: string[];
   public userApiPermissions: string[];
   public userApplicationPermissions: string[];

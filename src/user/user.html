@@ -15,68 +15,98 @@
     limitations under the License.
 
 -->
-<form name="formUser" ng-submit="$ctrl.save()" novalidate>
-  <md-card class="gravitee-user-container">
-    <md-card-title>
-      <md-card-title-text>
-        <span class="md-headline">User information</span>
-        <span class="md-subhead" ng-bind="$ctrl.user.displayName"></span>
-      </md-card-title-text>
-      <md-card-title-media style="text-align: center;">
-        <gravitee-image image="$ctrl.user.picture" image-url="$ctrl.getUserPicture()" image-border-radius="true"
-            image-form="formUser"></gravitee-image>
-      </md-card-title-media>
-    </md-card-title>
-    <md-card-content>
-      <div layout="row">
-        <ng-md-icon flex="10" icon="person"></ng-md-icon>
-        <label>{{$ctrl.user.lastname || '-'}} {{$ctrl.user.firstname || '-'}}</label>
-      </div>
-      <div layout="row">
-        <ng-md-icon flex="10" icon="contact_mail"></ng-md-icon>
-        <label>{{$ctrl.user.email || '-'}}</label>
-      </div>
-      <div layout="row">
-        <ng-md-icon flex="10" icon="lock">
-          <md-tooltip>
-            <span ng-repeat="auth in $ctrl.user.authorities">{{auth.authority}}{{$last ? '' : ',&nbsp'}}</span>
-          </md-tooltip>
-        </ng-md-icon>
-        <label ng-repeat="role in $ctrl.user.roles">{{"[" + role.scope + "]&nbsp;" + role.name}}{{$last ? '' : '&nbsp;-&nbsp;'}}</label>
-      </div>
-    </md-card-content>
-    <div>
-      <md-button class="md-raised" ng-click="$ctrl.generateToken()">
-        Generate new personal access token
-      </md-button>
-      <div class="gravitee-user-token">Tokens you have generated that can be used to access the Gravitee.io management API.</div>
+<div flex class="gv-sub-content">
+  <form name="formUser" ng-submit="$ctrl.save()" novalidate>
+    <div class="gv-forms" layout="column">
+      <h1>My account</h1>
 
-      <md-table-container ng-show="$ctrl.tokens.length">
-        <table md-table>
-          <thead md-head>
-          <tr md-row>
-            <th md-column>Name</th>
-            <th md-column>Created</th>
-            <th md-column>Last use</th>
-            <th md-column></th>
-          </tr>
-          </thead>
-          <tbody md-body>
-            <tr md-row ng-repeat="token in $ctrl.tokens">
-              <td md-cell><span><b>{{token.name}}</b></span></td>
-              <td md-cell><span><b>{{token.created_at | datetimeFilter}}</b></span></td>
-              <td md-cell><span><b>{{token.last_use_at? (token.last_use_at | humanDateFilter) : 'never'}}</b></span></td>
-              <td md-cell>
-                <ng-md-icon ng-click="$ctrl.revoke(token)" icon="delete" size="24" title="Revoke token '{{token.name}}'"></ng-md-icon>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </md-table-container>
+      <div class="gv-form">
+        <h2>Account information{{ctrl.user.displayName}}</h2>
+        <div class="gv-form-content" layout="column">
+          <div layout="row">
+            <div flex>
+              <div layout="row">
+                <ng-md-icon flex="10" icon="person"></ng-md-icon>
+                <label>{{$ctrl.user.lastname || '-'}} {{$ctrl.user.firstname || '-'}}</label>
+              </div>
+              <div layout="row">
+                <ng-md-icon flex="10" icon="contact_mail"></ng-md-icon>
+                <label>{{$ctrl.user.email || '-'}}</label>
+              </div>
+              <div layout="row">
+                <ng-md-icon flex="10" icon="lock">
+                  <md-tooltip>
+                    <span ng-repeat="auth in $ctrl.user.authorities">{{auth.authority}}{{$last ? '' : ',&nbsp'}}</span>
+                  </md-tooltip>
+                </ng-md-icon>
+                <label ng-repeat="role in $ctrl.user.roles">{{"[" + role.scope + "]&nbsp;" + role.name}}{{$last ? '' : '&nbsp;-&nbsp;'}}</label>
+              </div>
+            </div>
+            <div>
+              <gravitee-image image="$ctrl.user.picture" image-url="$ctrl.getUserPicture()" image-border-radius="true"
+                              image-form="formUser"></gravitee-image>
+            </div>
+          </div>
+
+          <div class="md-actions gravitee-api-save-button" layout="row">
+            <md-button class="md-raised md-primary" type="submit" ng-disabled="formUser.$pristine">Update</md-button>
+            <md-button class="md-raised" type="button" ng-click="$ctrl.cancel()" ng-disabled="formUser.$pristine">Cancel</md-button>
+          </div>
+        </div>
+      </div>
+
+      <div class="gv-form">
+        <div class="gv-forms-header">
+          <h2>Personal access tokens</h2>
+          <div class="ipsum">Tokens you have generated that can be used to access the Gravitee.io management API.</div>
+        </div>
+
+        <div class="gv-form-content" layout="column">
+          <md-table-container ng-show="$ctrl.tokens.length">
+            <table md-table>
+              <thead md-head>
+              <tr md-row>
+                <th md-column>Name</th>
+                <th md-column>Created</th>
+                <th md-column>Last use</th>
+                <th md-column></th>
+              </tr>
+              </thead>
+              <tbody md-body>
+              <tr md-row ng-repeat="token in $ctrl.tokens">
+                <td md-cell><span><b>{{token.name}}</b></span></td>
+                <td md-cell><span><b>{{token.created_at | datetimeFilter}}</b></span></td>
+                <td md-cell><span><b>{{token.last_use_at? (token.last_use_at | humanDateFilter) : 'never'}}</b></span></td>
+                <td md-cell>
+                  <ng-md-icon ng-click="$ctrl.revoke(token)" icon="delete" size="24" title="Revoke token '{{token.name}}'"></ng-md-icon>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+
+          <div class="md-actions gravitee-api-save-button" layout="row">
+            <md-button class="md-raised" ng-click="$ctrl.generateToken()">
+              Generate Token
+            </md-button>
+          </div>
+        </div>
+      </div>
+
+      <div class="gv-form gv-form-danger">
+        <h2>Danger Zone</h2>
+        <div class="gv-form-content" layout="column">
+          <div layout="row" layout-align="space-between center" ng-if="!$ctrl.canDeleteMyAccount()">
+            <div class="gv-form-danger-text">Please transfer ownership of your APIs and applications or delete them before deleting your account</div>
+            <div><md-button class="md-flat md-warn" type="button" ng-disabled="true">Delete my account</md-button></div>
+          </div>
+
+          <div layout="row" layout-align="space-between center" ng-if="$ctrl.canDeleteMyAccount()">
+            <div class="gv-form-danger-text">Please transfer ownership of your APIs and applications or delete them before deleting your account</div>
+            <div><md-button class="md-flat md-warn" type="button" ng-click="$ctrl.deleteMyAccount()">Delete my account</md-button></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <md-card-actions layout="row" layout-align="end center">
-      <md-button type="submit" ng-disabled="formUser.$pristine">Update</md-button>
-      <md-button ng-click="$ctrl.cancel()" ng-disabled="formUser.$pristine">Cancel</md-button>
-    </md-card-actions>
-  </md-card>
-</form>
+  </form>
+</div>
