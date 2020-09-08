@@ -16,9 +16,11 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum MetadataReferenceType {
-    DEFAULT, API, APPLICATION, USER
+public enum CustomUserFieldReferenceType {
+
+    ENVIRONMENT,
+    ORGANIZATION
 }
