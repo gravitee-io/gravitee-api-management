@@ -106,6 +106,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(applicationTypeService);
         reset(identityService);
         reset(filteringService);
+        reset(applicationMetadataService);
+        reset(referenceMetadataMapper);
     }
 
     public AbstractResourceTest() {
@@ -291,6 +293,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected FilteringService filteringService;
+
+    @Autowired
+    protected ApplicationMetadataService applicationMetadataService;
+
+    @Autowired
+    protected ReferenceMetadataMapper referenceMetadataMapper;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
@@ -574,6 +582,16 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public FilteringService filteringService() {
             return mock(FilteringService.class);
+        }
+
+        @Bean
+        public ApplicationMetadataService applicationMetadataService() {
+            return mock(ApplicationMetadataService.class);
+        }
+
+        @Bean
+        public ReferenceMetadataMapper referenceMetadataMapper() {
+            return mock(ReferenceMetadataMapper.class);
         }
     }
 }

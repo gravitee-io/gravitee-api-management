@@ -1752,6 +1752,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiModelEntity.setProperties(apiEntity.getProperties());
         apiModelEntity.setProxy(convert(apiEntity.getProxy()));
         apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
+        apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
 
         final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
 
@@ -1930,6 +1931,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setVisibility(apiEntity.getVisibility());
         updateApiEntity.setPaths(apiEntity.getPaths());
         updateApiEntity.setPathMappings(apiEntity.getPathMappings());
+        updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
         return updateApiEntity;
     }
 
@@ -2120,6 +2122,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setDeployedAt(api.getDeployedAt());
         apiEntity.setCreatedAt(api.getCreatedAt());
         apiEntity.setGroups(api.getGroups());
+        apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
 
         if (api.getDefinition() != null) {
             try {
@@ -2222,6 +2225,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         api.setGroups(updateApiEntity.getGroups());
+        api.setDisableMembershipNotifications(updateApiEntity.isDisableMembershipNotifications());
 
         try {
             io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();

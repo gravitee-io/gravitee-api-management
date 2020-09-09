@@ -90,7 +90,7 @@ public class UpdateApiEntity {
             dataType = "java.util.List",
             example = "public, private")
     private Set<String> tags;
-    
+
     @ApiModelProperty(
             value = "the API logo encoded in base64")
     private String picture;
@@ -129,6 +129,9 @@ public class UpdateApiEntity {
 
     @JsonProperty(value = "lifecycle_state")
     private ApiLifecycleState lifecycleState;
+
+    @JsonProperty("disable_membership_notifications")
+    private boolean disableMembershipNotifications;
 
     @ApiModelProperty(
             value = "the API background encoded in base64")
@@ -276,6 +279,14 @@ public class UpdateApiEntity {
 
     public void setLifecycleState(ApiLifecycleState lifecycleState) {
         this.lifecycleState = lifecycleState;
+    }
+
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
     }
 
     public String getBackground() {

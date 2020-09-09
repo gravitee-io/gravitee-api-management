@@ -75,6 +75,7 @@ public class ApiService_EnumValueWittenLowercaseTest {
                 "  \"visibility\" : \"PUBLIC\",\n" +
                 "  \"paths\" : { },\n" +
                 "  \"resources\" : [ ],\n" +
+                "  \"properties\" : [ ],\n" +
                 "  \"path_mappings\" : [ ]\n" +
                 "}");
     }

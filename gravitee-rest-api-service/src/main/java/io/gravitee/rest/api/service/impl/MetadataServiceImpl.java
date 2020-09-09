@@ -101,6 +101,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                 throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
             }
 
+            checkMetadataValue(metadataEntity.getValue());
             checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue());
             final Metadata metadata = convert(metadataEntity);
             final Date now = new Date();
@@ -133,6 +134,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                 throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
             }
 
+            checkMetadataValue(metadataEntity.getValue());
             checkMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue());
 
             final Metadata metadata = convert(metadataEntity);
@@ -150,6 +152,13 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to update metadata {}", metadataEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurred while trying to update metadata " + metadataEntity.getName(), ex);
+        }
+    }
+
+    private void checkMetadataValue(String value) {
+        if (value == null || isBlank(value)) {
+            LOGGER.error("Error occurred while trying to validate null or empty value");
+            throw new TechnicalManagementException("Metadata value is required");
         }
     }
 

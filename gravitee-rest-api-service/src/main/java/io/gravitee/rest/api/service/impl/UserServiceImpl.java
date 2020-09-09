@@ -693,9 +693,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
             registrationUrl += token;
         } else if (!StringUtils.isEmpty(managementURL)) {
-            registrationUrl = managementURL + managementUri + token;
+            String managementUrl = parameterService.find(Key.MANAGEMENT_URL);
+            if (managementUrl != null && managementUrl.endsWith("/")) {
+                managementUrl = managementUrl.substring(0, managementUrl.length() - 1);
+            }
+            registrationUrl = managementUrl + managementUri + token;
         }
-
 
         // send a confirm email with the token
         return new NotificationParamsBuilder()

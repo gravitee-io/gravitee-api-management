@@ -199,6 +199,11 @@ public class ApplicationResource extends AbstractResource {
         return resourceContext.getResource(ApplicationMembersResource.class);
     }
 
+    @Path("metadata")
+    public ApplicationMetadataResource getApplicationMetadataResource() {
+        return resourceContext.getResource(ApplicationMetadataResource.class);
+    }
+
     @Path("notifications")
     public ApplicationNotificationResource getApplicationNotificationResource() {
         return resourceContext.getResource(ApplicationNotificationResource.class);
