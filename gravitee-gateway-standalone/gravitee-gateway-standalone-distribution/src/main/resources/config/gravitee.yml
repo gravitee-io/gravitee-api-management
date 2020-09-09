@@ -128,6 +128,13 @@ reporters:
     enabled: true # Is the reporter enabled or not (default to true)
     endpoints:
       - http://${ds.elastic.host}:${ds.elastic.port}
+#    lifecyle:
+#      policy_property_name: index.lifecycle.name   #for openDistro, use 'opendistro.index_state_management.policy_id' instead of 'index.lifecycle.name'
+#      policies:
+#        monitor: my_policy ## ILM policy for the gravitee-monitor-* indexes
+#        request: my_policy ## ILM policy for the gravitee-request-* indexes
+#        health: my_policy ## ILM policy for the gravitee-health-* indexes
+#        log: my_policy ## ILM policy for the gravitee-log-* indexes
 #    index: gravitee
 #    index_per_type: true
 #    bulk:

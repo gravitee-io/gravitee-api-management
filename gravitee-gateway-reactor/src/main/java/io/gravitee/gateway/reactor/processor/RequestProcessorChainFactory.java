@@ -50,11 +50,13 @@ public class RequestProcessorChainFactory implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         providers.add(new ProcessorSupplier<>(XForwardForProcessor::new));
-        providers.add(new ProcessorSupplier<>(() -> transactionHandlerFactory.create()));
 
+        // Trace context is executed before the transaction to ensure that we can use the traceparent span value as the
+        // transaction ID
         if (traceContext) {
             providers.add(new ProcessorSupplier<>(() -> traceContextHandlerFactory.create()));
         }
+        providers.add(new ProcessorSupplier<>(() -> transactionHandlerFactory.create()));
     }
 
     public Processor<ExecutionContext> create() {
