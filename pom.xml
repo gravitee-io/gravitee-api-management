@@ -42,7 +42,7 @@
 		<gravitee-repository.version>3.0.6</gravitee-repository.version>
 		<gravitee-node.version>1.6.6</gravitee-node.version>
 		<freemarker.version>2.3.26-incubating</freemarker.version>
-		<commons-validator.version>1.6</commons-validator.version>
+		<commons-validator.version>1.7</commons-validator.version>
 	</properties>
 
 	<modules>
