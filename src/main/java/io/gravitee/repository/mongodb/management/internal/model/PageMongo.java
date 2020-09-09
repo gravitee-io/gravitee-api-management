@@ -44,6 +44,7 @@ public class PageMongo extends Auditable {
 	private Map<String, String> configuration;
 	private boolean homepage;
 	private List<String> excludedGroups;
+	private List<PageMediaMongo> attachedMedia;
     private String parentId;
 	private Map<String, String> metadata;
 	private Boolean useAutoFetch;  // use Boolean to avoid default value of primitive type
@@ -180,6 +181,14 @@ public class PageMongo extends Auditable {
 		this.useAutoFetch = useAutoFetch;
 	}
 
+	public List<PageMediaMongo> getAttachedMedia() {
+		return attachedMedia;
+	}
+
+	public void setAttachedMedia(List<PageMediaMongo> attachedMedia) {
+		this.attachedMedia = attachedMedia;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -210,6 +219,7 @@ public class PageMongo extends Auditable {
 				", configuration=" + configuration +
 				", homepage=" + homepage +
 				", excludedGroups=" + excludedGroups +
+				", attachedMedia=" + attachedMedia +
 				", parentId='" + parentId + '\'' +
 				", metadata=" + metadata +
 				", useAutoFetch=" + useAutoFetch +

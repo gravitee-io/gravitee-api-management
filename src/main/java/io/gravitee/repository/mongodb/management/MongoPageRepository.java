@@ -20,8 +20,10 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageMedia;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
+import io.gravitee.repository.mongodb.management.internal.model.PageMediaMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
 import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -109,6 +112,11 @@ public class MongoPageRepository implements PageRepository {
             pageMongo.setPublished(page.isPublished());
             pageMongo.setHomepage(page.isHomepage());
             pageMongo.setExcludedGroups(page.getExcludedGroups());
+            if (page.getAttachedMedia() != null) {
+                pageMongo.setAttachedMedia(convert(page.getAttachedMedia()));
+            } else {
+                pageMongo.setAttachedMedia(null);
+            }
             pageMongo.setParentId(page.getParentId());
             if (page.getSource() != null) {
                 pageMongo.setSource(convert(page.getSource()));
@@ -166,5 +174,17 @@ public class MongoPageRepository implements PageRepository {
         pageSourceMongo.setType(pageSource.getType());
         pageSourceMongo.setConfiguration(pageSource.getConfiguration());
         return pageSourceMongo;
+    }
+
+    private List<PageMediaMongo> convert(List<PageMedia> attachedMedia) {
+        return attachedMedia.stream()
+                .map(pageMedia -> {
+                    PageMediaMongo pmm = new PageMediaMongo();
+                    pmm.setMediaHash(pageMedia.getMediaHash());
+                    pmm.setMediaName(pageMedia.getMediaName());
+                    pmm.setAttachedAt(pageMedia.getAttachedAt());
+                    return pmm;
+                })
+                .collect(Collectors.toList());
     }
 }

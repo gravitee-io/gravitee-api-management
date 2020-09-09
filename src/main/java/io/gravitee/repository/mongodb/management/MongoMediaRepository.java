@@ -21,7 +21,6 @@ import com.mongodb.client.gridfs.GridFSBuckets;
 import com.mongodb.client.gridfs.GridFSFindIterable;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import org.bson.BsonString;
@@ -40,10 +39,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.exists;
-import static com.mongodb.client.model.Filters.not;
+import static com.mongodb.client.model.Filters.*;
 
 /**
  * @author Guillaume GILLON
@@ -81,14 +77,45 @@ public class MongoMediaRepository implements MediaRepository {
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, String mediaType) {
-        return this.findByHashAndApi(hash, null, mediaType);
+    public Optional<Media> findByHash(String hash) {
+        return this.findByHashAndApiAndType(hash, null, null, true);
     }
 
     @Override
-    public Optional<Media> findByHashAndApi(String hash, String api, String mediaType) {
-        return this.findFirst(this.getQueryFindMedia(hash, api, mediaType));
+    public Optional<Media> findByHash(String hash, boolean withContent) {
+        return this.findByHashAndApiAndType(hash, null, null, withContent);
     }
+
+    @Override
+    public Optional<Media> findByHashAndApi(String hash, String api) {
+        return this.findByHashAndApiAndType(hash, api, null, true);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) {
+        return this.findByHashAndApiAndType(hash, api, null, withContent);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndType(String hash, String mediaType) {
+        return this.findByHashAndApiAndType(hash, null, mediaType, true);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) {
+        return this.findByHashAndApiAndType(hash, null, mediaType, withContent);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) {
+        return this.findByHashAndApiAndType(hash, api, mediaType, true);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent) {
+        return this.findFirst(this.getQueryFindMedia(hash, api, mediaType), withContent);
+    }
+
 
     @Override
     public List<Media> findAllByApi(String api) {
@@ -103,7 +130,7 @@ public class MongoMediaRepository implements MediaRepository {
         GridFSFindIterable files = getGridFs().find(query);
         ArrayList<Media> all = new ArrayList<>();
         files.forEach((Consumer<GridFSFile>) file -> {
-            Media convert = convert(file);
+            Media convert = convert(file, true);
             if (convert != null) {
                 all.add(convert);
             }
@@ -111,13 +138,13 @@ public class MongoMediaRepository implements MediaRepository {
         return all;
     }
 
-    private Optional<Media> findFirst(Bson query) {
+    private Optional<Media> findFirst(Bson query, boolean withContent) {
         GridFSFile file = getGridFs().find(query).first();
-        Media imageData = convert(file);
+        Media imageData = convert(file, withContent);
         return Optional.ofNullable(imageData);
     }
 
-    private Media convert(GridFSFile file) {
+    private Media convert(GridFSFile file, boolean withContent) {
         Media imageData = null;
         if (file != null) {
             InputStream inputStream = getGridFs().openDownloadStream(file.getId());
@@ -132,33 +159,42 @@ public class MongoMediaRepository implements MediaRepository {
             imageData.setFileName(file.getFilename());
             imageData.setHash((String) metadata.get("hash"));
 
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            if (withContent) {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                byte[] result = null;
+                try {
 
-            byte[] result = null;
-            try {
-                int next = inputStream.read();
+                    int next = inputStream.read();
 
-                while (next > -1) {
-                    bos.write(next);
-                    next = inputStream.read();
+                    while (next > -1) {
+                        bos.write(next);
+                        next = inputStream.read();
+                    }
+                    bos.flush();
+                    result = bos.toByteArray();
+                    bos.close();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                bos.flush();
-                result = bos.toByteArray();
-                bos.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
+                imageData.setData(result);
             }
-            imageData.setData(result);
         }
         return imageData;
     }
 
     private Bson getQueryFindMedia(String hash, String api, String mediaType) {
         Bson addQuery = api == null ? not(exists("metadata.api")) : eq("metadata.api", api);
+        if (mediaType == null) {
+            return and(eq("metadata.hash", hash), addQuery);
+        }
         return and(eq("metadata.type", mediaType), eq("metadata.hash", hash), addQuery);
     }
 
+    private Bson getQueryFindMedia(List<String> hashList, String api) {
+        Bson addQuery = api == null ? not(exists("metadata.api")) : eq("metadata.api", api);
+        return and(in("metadata.hash", hashList), addQuery);
+    }
     private GridFSBucket getGridFs() {
         MongoDatabase db = mongoFactory.getDb();
         String bucketName = "media";
