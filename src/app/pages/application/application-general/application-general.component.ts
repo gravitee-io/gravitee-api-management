@@ -23,10 +23,9 @@ import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import {
   Application,
   ApplicationService,
-  ApiService,
-  SubscriptionService,
-  PermissionsService,
-  PermissionsResponse, Subscription, ApplicationType
+  ApplicationType,
+  PermissionsResponse,
+  Subscription
 } from '@gravitee/ng-portal-webclient';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -103,37 +102,39 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   }
 
   isOAuth() {
-    return this.application.settings.oauth != null;
+    return this.application && this.application.settings.oauth != null;
   }
 
   initForm() {
     let settings;
-    if (this.isOAuth()) {
-      settings = this.formBuilder.group({
-        oauth: this.formBuilder.group({
-          client_secret: new FormControl(this.application.settings.oauth.client_secret, null),
-          client_id: new FormControl(this.application.settings.oauth.client_id, null),
-          redirect_uris: new FormArray([]),
-          grant_types: new FormArray([]),
-        })
-      });
-    } else {
-      settings = this.formBuilder.group({
-        app: this.formBuilder.group({
-          type: new FormControl(this.application.settings.app.type, null),
-          client_id: new FormControl(this.application.settings.app.client_id, null),
-        })
+    if (this.application) {
+      if (this.isOAuth()) {
+        settings = this.formBuilder.group({
+          oauth: this.formBuilder.group({
+            client_secret: new FormControl(this.application.settings.oauth.client_secret, null),
+            client_id: new FormControl(this.application.settings.oauth.client_id, null),
+            redirect_uris: new FormArray([]),
+            grant_types: new FormArray([]),
+          })
+        });
+      } else {
+        settings = this.formBuilder.group({
+          app: this.formBuilder.group({
+            type: new FormControl(this.application.settings.app.type, null),
+            client_id: new FormControl(this.application.settings.app.client_id, null),
+          })
+        });
+      }
+
+      this.applicationForm = this.formBuilder.group({
+        id: this.application.id,
+        name: new FormControl(this.application.name, [Validators.required]),
+        description: new FormControl(this.application.description, [Validators.required]),
+        picture: new FormControl(this.application.picture),
+        background: new FormControl(this.application.background),
+        settings
       });
     }
-
-    this.applicationForm = this.formBuilder.group({
-      id: this.application.id,
-      name: new FormControl(this.application.name, [Validators.required]),
-      description: new FormControl(this.application.description, [Validators.required]),
-      picture: new FormControl(this.application.picture),
-      background: new FormControl(this.application.background),
-      settings
-    });
   }
 
   onSwitchGrant(event, grantType) {

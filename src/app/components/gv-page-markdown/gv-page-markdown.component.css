@@ -13,6 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.attached-resources {
+  display: flex;
+  align-items: stretch; /* Default */
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.attached-resources li{
+  list-style: none;
+}
 
 .markdown {
   overflow: auto;

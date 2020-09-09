@@ -16,6 +16,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import * as marked from 'marked';
 import * as hljs from 'highlight.js';
+import { Page } from '@gravitee/ng-portal-webclient';
 import { PageService } from 'src/app/services/page.service';
 import { Router } from '@angular/router';
 import { ScrollService } from 'src/app/services/scroll.service';
@@ -33,6 +34,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
   pageContent: string;
   pageElementsPosition: any[];
+  page: Page;
 
   @ViewChild('mdContent', { static: false }) mdContent: ElementRef;
 
@@ -43,8 +45,8 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    const page = this.pageService.getCurrentPage();
-    if (page && page.content) {
+    this.page = this.pageService.getCurrentPage();
+    if (this.page && this.page.content) {
       const defaultRenderer = new marked.Renderer();
 
       const renderer = {
@@ -77,7 +79,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
           return hljs.highlight(validLanguage, code).value;
         },
       });
-      this.pageContent = marked(page.content);
+      this.pageContent = marked(this.page.content);
     }
   }
 
@@ -127,5 +129,9 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         queryParamsHandling: 'preserve',
       });
     }
+  }
+
+  openMedia(link: string) {
+    window.open(link, '_blank');
   }
 }
