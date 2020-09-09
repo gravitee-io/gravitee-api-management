@@ -31,18 +31,21 @@ git checkout -b issue/#<issue-id>-my-fix-branch master
 
 * Create your patch, **including appropriate test cases**.
 * Update the documentation if you create new features or think the documentation needs to be updated/completed.
+* Build your changes locally to **ensure all the tests pass**:
+
+```shell
+npm run serve
+npm run lint:fix
+npm run test:ci
+npm run build:prod
+```
+
+or if you have MAVEN and docker installed you can run `mvn clean install`
+
 * Commit your changes using a descriptive commit message.
 
 ```shell
  git commit -a
-```
-
-* Build your changes locally to **ensure all the tests pass**:
-
-```shell
-npm run dev
-npm run lint
-npm run generate:dist
 ```
 
 * Push your branch to GitHub:

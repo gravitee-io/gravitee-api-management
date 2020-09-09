@@ -85,8 +85,8 @@ export class AuthService {
     return new Promise((resolve) => {
       if (this.getProviderId()) {
         this._fetchProviderAndConfigure().finally(() => {
-          this.removeProviderId();
           this._logout(resolve);
+          this.removeProviderId();
         });
       } else {
         this._logout(resolve);

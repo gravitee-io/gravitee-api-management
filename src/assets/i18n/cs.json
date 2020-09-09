@@ -92,7 +92,8 @@
       "subscriptionAccepted": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je přijato!",
       "subscriptionKey": "Zde je váš osobní klíč pro přístup k API",
       "subscriptionPending": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> se ověřuje.",
-      "subscriptionRejected": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je odmítnuto."
+      "subscriptionRejected": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je odmítnuto.",
+      "oauth2": "Je potřeba si opatřit access_token z autorizačního serveru před tím než budete schopni konzumovat toto API."
     },
     "validate": {
       "askConfirmation": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> bude dokončeno.",
@@ -252,6 +253,33 @@
         "title": "Změnit vlastníka",
         "transfer": "Převod"
       }
+    },
+    "metadata": {
+      "add": {
+        "success": "Byla přidána metadata \"{key}\""
+      },
+      "format": "Formát",
+      "key": "Klíč",
+      "list": {
+        "add": {
+          "title": "Přidat"
+        },
+        "remove": {
+          "message": "Opravdu chcete tato metadata odstranit?",
+          "success": "Metadata \"{key}\" byla odstraněna",
+          "title": "Odstranit"
+        },
+        "title": "Seznam metadat"
+      },
+      "name": "Název",
+      "reset": {
+        "title": "Resetovat"
+      },
+      "update": {
+        "success": "Aktualizace byla úspěšně dokončena",
+        "title": "Aktualizace"
+      },
+      "value": "Hodnota"
     },
     "name": {
       "label": "Název aplikace",
@@ -616,6 +644,9 @@
       "required": "Pro použití kontaktního formuláře si prosím vytvořte e-mail"
     },
     "forbidden": "Nemáte dostatečná práva pro přístup k tomuto prostředku",
+    "metadata": {
+      "exists": "Metadata '{{metadata}}' již existují"
+    },
     "passwordFormat": {
       "invalid": "Heslo není platné podle platných pravidel\n"
     },
@@ -623,6 +654,7 @@
       "general_conditions_accept": "Plán {plan} vyžadoval přijetí obecných podmínek.",
       "general_conditions_status": "Plan {plan} odkazuje na nezveřejněnou stránku jako obecné podmínky.",
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
+      "otherOAuth2OrJWTSubscribed": "Jiný plán OAuth2 nebo JWT je již přihlášen stejnou aplikací.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
     },
     "server": {
@@ -912,6 +944,7 @@
     "logsApplication": "Protokoly",
     "management": "Administrace",
     "members": "Členové",
+    "metadata": "Metadata",
     "myApplications": "Moje aplikace",
     "mySubscriptions": "Moje předplatné",
     "notFound": "Stránka nebyla nalezena",

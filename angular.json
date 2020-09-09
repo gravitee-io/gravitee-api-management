@@ -41,7 +41,6 @@
               }
             ],
             "styles": [
-              "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
               "node_modules/highlight.js/styles/a11y-light.css",
               {
@@ -131,7 +130,6 @@
               }
             ],
             "styles": [
-              "node_modules/@ibm/plex/scss/ibm-plex.scss",
               "src/styles.scss",
               "node_modules/highlight.js/styles/a11y-light.css",
               {

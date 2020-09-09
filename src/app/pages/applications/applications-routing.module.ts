@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { GvButtonCreateApplicationComponent } from '../../components/gv-button-create-application/gv-button-create-application.component';
 import { GvHeaderItemComponent } from '../../components/gv-header-item/gv-header-item.component';
 import { GvSelectDashboardComponent } from '../../components/gv-select-dashboard/gv-select-dashboard.component';
@@ -29,6 +29,7 @@ import { ApplicationCreationComponent } from '../application/application-creatio
 import { ApplicationGeneralComponent } from '../application/application-general/application-general.component';
 import { ApplicationLogsComponent } from '../application/application-logs/application-logs.component';
 import { ApplicationMembersComponent } from '../application/application-members/application-members.component';
+import { ApplicationMetadataComponent } from '../application/application-metadata/application-metadata.component';
 import { ApplicationNotificationsComponent } from '../application/application-notifications/application-notifications.component';
 import { ApplicationSubscriptionsComponent } from '../application/application-subscriptions/application-subscriptions.component';
 import { SubscriptionsComponent } from '../subscriptions/subscriptions.component';
@@ -95,12 +96,21 @@ const routes: Routes = [
         }
       },
       {
+        path: 'metadata',
+        component: ApplicationMetadataComponent,
+        data: {
+          icon: 'home:book-open',
+          title: i18n('route.metadata'),
+          animation: { type: 'slide', group: 'app', index: 2 },
+        }
+      },
+      {
         path: 'subscriptions',
         component: ApplicationSubscriptionsComponent,
         data: {
           icon: 'home:key',
           title: i18n('route.subscriptions'),
-          animation: { type: 'slide', group: 'app', index: 2 }
+          animation: { type: 'slide', group: 'app', index: 3 }
         }
       },
       {
@@ -109,7 +119,7 @@ const routes: Routes = [
         data: {
           icon: 'communication:group',
           title: i18n('route.members'),
-          animation: { type: 'slide', group: 'app', index: 3 }
+          animation: { type: 'slide', group: 'app', index: 4 }
         }
       },
       {
@@ -119,7 +129,7 @@ const routes: Routes = [
           icon: 'shopping:chart-line#1',
           menu: { slots: { right: GvSelectDashboardComponent } },
           title: i18n('route.analyticsApplication'),
-          animation: { type: 'slide', group: 'app', index: 4 }
+          animation: { type: 'slide', group: 'app', index: 5 }
         },
         resolve: {
           dashboards: DashboardsResolver
@@ -131,7 +141,7 @@ const routes: Routes = [
         data: {
           icon: 'communication:clipboard-list',
           title: i18n('route.logsApplication'),
-          animation: { type: 'slide', group: 'app', index: 5 }
+          animation: { type: 'slide', group: 'app', index: 6 }
         }
       },
       {
@@ -141,7 +151,7 @@ const routes: Routes = [
         data: {
           icon: 'general:notifications#2',
           title: i18n('route.notifications'),
-          animation: { type: 'slide', group: 'app', index: 6 },
+          animation: { type: 'slide', group: 'app', index: 7 },
           expectedPermissions: ['NOTIFICATION-R'],
         }
       },

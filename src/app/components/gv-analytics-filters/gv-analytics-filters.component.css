@@ -26,8 +26,12 @@
   flex-direction: row;
 }
 
-.timepicker gv-date-picker {
+.timepicker > div {
   flex: 1;
+}
+
+.timepicker gv-date-picker {
+  width: 350px;
 }
 
 .grid-filters {
