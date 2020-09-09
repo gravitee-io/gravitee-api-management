@@ -110,3 +110,16 @@ databaseChangeLog:
             constraintName: pk_custom_user_fields_values
             columnNames: key, reference_id, reference_type, value
             tableName: custom_user_fields_values
+
+        - createTable:
+            tableName: page_attached_media
+            columns:
+              - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: media_hash, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: media_name, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: attached_at, type: timestamp(6), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_page_attached_media
+            columnNames: page_id, media_hash, media_name, attached_at
+            tableName: page_attached_media

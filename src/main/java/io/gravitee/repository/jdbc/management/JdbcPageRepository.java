@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageMedia;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
@@ -104,6 +105,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 page.setSource(pageSource);
             }
             addExcludedGroups(page);
+            addAttachedMedia(page);
             return page;
         }
     }
@@ -213,6 +215,41 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         return new Psc(INSERT_SQL, page);
     }
 
+    private void addAttachedMedia(Page page) {
+        List<PageMedia> attachedMedia = getAttachedMedia(page.getId());
+        page.setAttachedMedia(attachedMedia);
+    }
+
+    private List<PageMedia> getAttachedMedia(String pageId) {
+        return jdbcTemplate.query("select media_hash, media_name, attached_at from page_attached_media where page_id = ?"
+                , (ResultSet rs, int rowNum) -> new PageMedia(rs.getString(1), rs.getString(2), rs.getDate(3))
+                , pageId);
+    }
+
+    private void storeAttachedMedia(Page page, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update("delete from page_attached_media where page_id = ?", page.getId());
+        }
+        final List<PageMedia> attachedMedia = page.getAttachedMedia();
+        if (attachedMedia != null && !attachedMedia.isEmpty()) {
+            jdbcTemplate.batchUpdate("insert into page_attached_media ( page_id, media_hash, media_name, attached_at ) values ( ?, ?, ?, ? )"
+                    , new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setString(1, page.getId());
+                            ps.setString(2, attachedMedia.get(i).getMediaHash());
+                            ps.setString(3, attachedMedia.get(i).getMediaName());
+                            ps.setDate(4, new java.sql.Date(attachedMedia.get(i).getAttachedAt().toInstant().toEpochMilli()));
+                        }
+
+                        @Override
+                        public int getBatchSize() {
+                            return attachedMedia.size();
+                        }
+                    });
+        }
+    }
+
     private void addExcludedGroups(Page page) {
         List<String> excludedGroups = getExcludedGroups(page.getId());
         page.setExcludedGroups(excludedGroups);
@@ -308,7 +345,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                     , id
             );
             Optional<Page> result = rowMapper.getRows().stream().findFirst();
-            result.ifPresent(this::addExcludedGroups);
+            result.ifPresent( page -> {
+                this.addExcludedGroups(page);
+                this.addAttachedMedia(page);
+            });
             LOGGER.debug("JdbcPageRepository.findById({}) = {}", id, result);
             return result;
         } catch (final Exception ex) {
@@ -331,7 +371,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                             "left join page_metadata pm on p.id = pm.page_id"
                     , rowMapper
             );
-            List<Page> result = rowMapper.getRows().stream().limit(pageable.pageSize()).map(p -> {addExcludedGroups(p); return p;}).collect(Collectors.toList());
+            List<Page> result = rowMapper.getRows().stream().limit(pageable.pageSize()).map(p -> {addExcludedGroups(p); addAttachedMedia(p); return p;}).collect(Collectors.toList());
             LOGGER.debug("JdbcPageRepository.findAll() = {} result",  result.size());
             return new io.gravitee.common.data.domain.Page<>(result, pageable.pageNumber(), result.size(), totalPages);
         } catch (final Exception ex) {
@@ -354,6 +394,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         try {
             jdbcTemplate.update(buildInsertPreparedStatementCreator(item));
             storeExcludedGroups(item, false);
+            storeAttachedMedia(item, false);
             storeConfiguration(item, false);
             storeMetadata(item, false);
             return findById(item.getId()).orElse(null);
@@ -372,6 +413,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         try {
             jdbcTemplate.update(buildUpdatePreparedStatementCreator(page));
             storeExcludedGroups(page, true);
+            storeAttachedMedia(page, true);
             storeConfiguration(page, true);
             storeMetadata(page, true);
             return findById(page.getId()).orElseThrow(() ->
@@ -462,6 +504,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             List<Page> items = rowMapper.getRows();
             for (Page page : items) {
                 addExcludedGroups(page);
+                addAttachedMedia(page);
             }
             return items;
         } catch (final Exception ex) {

@@ -29,10 +29,13 @@ import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 /**
  * @author Guillaume GILLON
@@ -56,12 +59,6 @@ public class JdbcMediaRepository implements MediaRepository {
             .addColumn("api", Types.NVARCHAR, String.class)
             .addColumn("hash", Types.NVARCHAR, String.class)
             .build();
-
-    @Override
-    public Optional<Media> findByHash(String hash, String mediaType) {
-        LOGGER.debug("JdbcMediaRepository.findMediaBy({},{})", hash, mediaType);
-        return this.findByHashAndApi(hash, null, mediaType);
-    }
 
     @Override
     public List<Media> findAllByApi(String api) {
@@ -103,22 +100,76 @@ public class JdbcMediaRepository implements MediaRepository {
     }
 
     @Override
-    public Optional<Media> findByHashAndApi(String hash, String api, String mediaType) {
-        LOGGER.debug("JdbcMediaRepository.findByHashAndApi({},{},{})", hash, mediaType, api);
+    public Optional<Media> findByHash(String hash) {
+        LOGGER.debug("JdbcMediaRepository.findByHash({})", hash);
+        return this.findByHashAndApiAndType(hash, null, null, true);
+    }
 
-        String sql;
+    @Override
+    public Optional<Media> findByHash(String hash, boolean withContent) {
+        LOGGER.debug("JdbcMediaRepository.findByHash({})", hash);
+
+        return this.findByHashAndApiAndType(hash, null, null, withContent);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApi(String hash, String api) {
+        LOGGER.debug("JdbcMediaRepository.findByHash({},{})", hash, api);
+
+        return this.findByHashAndApiAndType(hash, api, null, true);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApi(String hash, String api, boolean withContent) {
+        LOGGER.debug("JdbcMediaRepository.findByHash({},{}, {})", hash, api, withContent);
+
+        return this.findByHashAndApiAndType(hash, api, null, withContent);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndType(String hash, String mediaType) {
+        LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{})", hash, mediaType);
+
+        return this.findByHashAndApiAndType(hash, null, mediaType, true);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndType(String hash, String mediaType, boolean withContent) {
+        LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{})", hash, mediaType, withContent);
+
+        return this.findByHashAndApiAndType(hash, null, mediaType, withContent);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType) {
+        LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{})", hash, api, mediaType);
+        return this.findByHashAndApiAndType(hash, api, mediaType, true);
+    }
+
+    @Override
+    public Optional<Media> findByHashAndApiAndType(String hash, String api, String mediaType, boolean withContent) {
+        LOGGER.debug("JdbcMediaRepository.findByHashAndType({},{},{}, {})", hash, mediaType, api, withContent);
+
+        String select = "select id, type, sub_type, file_name, size, created_at, api, hash";
+        if (withContent) {
+            select += ", data";
+        }
+        String sql = select + " from "+ escapeReservedWord("media")+" where hash = ?";
+        List<Object> paramList = new ArrayList<>();
+        paramList.add(hash);
         Object[] param;
         if (api != null) {
-            sql = "select * from media where hash = ? and type = ? and api = ?";
-            param = new Object[]{hash, mediaType, api};
-        } else {
-            sql = "select * from media where hash = ? and type = ?";
-            param = new Object[]{hash, mediaType};
+            sql += " and api = ?";
+            paramList.add(api);
+        }
+        if (mediaType != null) {
+            sql += " and type = ?";
+            paramList.add(mediaType);
         }
 
         List<Media> mediaList = jdbcTemplate.query(sql,
-            ORM.getRowMapper(),
-            param);
+                ORM.getRowMapper(),
+                paramList.toArray());
 
         return mediaList.stream().findFirst();
     }

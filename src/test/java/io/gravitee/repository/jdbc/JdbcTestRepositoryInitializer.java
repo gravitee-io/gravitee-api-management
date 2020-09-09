@@ -84,6 +84,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "parameters",
             "pages",
             "page_excluded_groups",
+            "page_attached_media",
             "page_configuration",
             "page_revisions",
             "plans",
