@@ -254,8 +254,15 @@ public class PageServiceImpl extends TransactionalService implements PageService
             }
         } else if (PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
             // If swagger page, let's try to apply transformations
-            SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
-
+            SwaggerDescriptor<?> descriptor;
+            try {
+                descriptor = swaggerService.parse(pageEntity.getContent());
+            } catch (SwaggerDescriptorException sde) {
+                if (apiId != null) {
+                    logger.error("Parsing error for API: {}", apiId);
+                }
+                throw sde;
+            }
             if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
                 Collection<SwaggerTransformer<SwaggerV2Descriptor>> transformers = new ArrayList<>();
                 transformers.add(new PageConfigurationSwaggerV2Transformer(pageEntity));
