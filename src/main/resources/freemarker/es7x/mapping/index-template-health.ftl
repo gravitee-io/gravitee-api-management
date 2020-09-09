@@ -2,7 +2,7 @@
 {
     "index_patterns": ["${indexName}-*"],
     "settings": {
-        <#if indexLifecyclePolicyHealth??>"index.lifecycle.name": "${indexLifecyclePolicyHealth}",</#if>
+        <#if indexLifecyclePolicyHealth??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyHealth}",</#if>
         "index.number_of_shards":${numberOfShards},
         "index.number_of_replicas":${numberOfReplicas},
         "index.refresh_interval": "${refreshInterval}"
