@@ -15,26 +15,20 @@
  */
 package io.gravitee.repository;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderReferenceType;
 import io.gravitee.repository.management.model.IdentityProviderType;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,6 +47,13 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(identityProviders);
         assertEquals(3, identityProviders.size());
+        for (IdentityProvider idp: identityProviders) {
+            final Map<String, String[]> groupMappings = idp.getGroupMappings();
+            assertNotNull(groupMappings);
+            for (Map.Entry<String, String[]> gm : groupMappings.entrySet()) {
+                assertNotNull(gm.getValue());
+            }
+        }
     }
 
     @Test
