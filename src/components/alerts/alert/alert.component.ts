@@ -54,7 +54,7 @@ const AlertComponent: ng.IComponentOptions = {
         this.titlePrefix = $scope.$parent.$resolve.resolvedApplication.data.name;
       } else {
         referenceType = Scope.PLATFORM;
-        this.groups = ['Node', 'API metrics'];
+        this.groups = ['Node', 'API metrics', 'Health-check'];
         this.titlePrefix = 'Platform';
       }
 
@@ -151,7 +151,8 @@ const AlertComponent: ng.IComponentOptions = {
       }
       this.alert.description = rule.description;
       // Template is a feature only available at platform level
-      this.template = this.alert.reference_type === 2 && rule.category === 'API metrics';
+      this.template = this.alert.reference_type === 2
+        && ( rule.category === 'API metrics' || rule.category === 'Health-check' );
     };
 
     this.backToAlerts = () => {
