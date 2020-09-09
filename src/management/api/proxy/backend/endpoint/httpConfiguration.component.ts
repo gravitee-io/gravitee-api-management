@@ -139,6 +139,10 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
         this.form.$setDirty();
       }
     }
+
+    isUserDefinedProxy(): boolean {
+      return this.httpConfiguration.proxy.enabled && this.httpConfiguration.proxy.useSystemProxy === false
+    }
   },
   template: require('./httpConfiguration.html')
 };
