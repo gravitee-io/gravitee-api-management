@@ -36,6 +36,7 @@ public class HttpProxySerializer extends StdScalarSerializer<HttpProxy> {
     public void serialize(HttpProxy httpProxy, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         jgen.writeBooleanField("enabled", httpProxy.isEnabled());
+        jgen.writeBooleanField("useSystemProxy", httpProxy.isUseSystemProxy());
         jgen.writeStringField("host", httpProxy.getHost());
         jgen.writeNumberField("port", httpProxy.getPort());
         if (httpProxy.getUsername() != null) {
