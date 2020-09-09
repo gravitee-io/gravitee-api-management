@@ -24,14 +24,14 @@
     <parent>
         <groupId>io.gravitee.gateway</groupId>
         <artifactId>gravitee-gateway</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
+        <version>3.2.0-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.gateway.standalone</groupId>
     <artifactId>gravitee-gateway-standalone</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Standalone</name>
-    
+
     <modules>
         <module>gravitee-gateway-standalone-container</module>
         <module>gravitee-gateway-standalone-distribution</module>

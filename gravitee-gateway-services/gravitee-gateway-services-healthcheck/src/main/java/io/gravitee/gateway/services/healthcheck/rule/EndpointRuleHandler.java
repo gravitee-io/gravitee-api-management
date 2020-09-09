@@ -278,7 +278,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                 logger.error("An error occurs while configuring the endpoint " + endpoint.getName() +
                         ". Healthcheck is skipped for this endpoint.", ee);
             } catch (Exception ex) {
-                logger.error("An unexpected error occurs", ex);
+                logger.error("An unexpected error has occurred while configuring Healthcheck for API : {}", rule.api(), ex);
             }
     }
 

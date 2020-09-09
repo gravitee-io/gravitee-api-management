@@ -114,6 +114,8 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         System.setProperty("vertx.disableWebsockets", Boolean.toString(!httpServerConfiguration.isWebsocketEnabled()));
         if (httpServerConfiguration.isWebsocketEnabled() && httpServerConfiguration.getWebsocketSubProtocols() != null) {
             options.setWebSocketSubProtocols(new ArrayList<>(Arrays.asList(httpServerConfiguration.getWebsocketSubProtocols().split("\\s*,\\s*"))));
+            options.setPerMessageWebSocketCompressionSupported(httpServerConfiguration.isPerMessageWebSocketCompressionSupported());
+            options.setPerFrameWebSocketCompressionSupported(httpServerConfiguration.isPerFrameWebSocketCompressionSupported());
         }
 
         return vertx.createHttpServer(options);
