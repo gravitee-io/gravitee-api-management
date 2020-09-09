@@ -132,7 +132,8 @@ class ApiService {
         'labels': api.labels,
         'path_mappings': api.path_mappings,
         'response_templates': api.response_templates,
-        'lifecycle_state': api.lifecycle_state
+        'lifecycle_state': api.lifecycle_state,
+        'disable_membership_notifications': api.disable_membership_notifications
       }, { headers: { 'If-Match': api.etag } }
     );
   }
