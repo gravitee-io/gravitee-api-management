@@ -328,8 +328,9 @@ function configurationRouterConfig($stateProvider) {
           if ($stateParams.type === 'MARKDOWN') {
             const q = new DocumentationQuery();
             q.homepage = false;
+            q.published = true;
             return DocumentationService.search(q)
-              .then(response => response.data.filter(page => page.published === true && (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER')));
+              .then(response => response.data.filter(page => page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER'));
           }
         },
         folders: (DocumentationService: DocumentationService) => {
@@ -424,8 +425,9 @@ function configurationRouterConfig($stateProvider) {
           if ($stateParams.type === 'MARKDOWN') {
             const q = new DocumentationQuery();
             q.homepage = false;
+            q.published = true;
             return DocumentationService.search(q)
-              .then(response => response.data.filter(page => page.published === true && (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER') && page.id !== $stateParams.pageId));
+              .then(response => response.data.filter(page => (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER') && page.id !== $stateParams.pageId));
           }
         },
         folders: (DocumentationService: DocumentationService) => {

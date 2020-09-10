@@ -408,8 +408,9 @@ function apisPortalRouterConfig($stateProvider) {
           if ($stateParams.type === 'MARKDOWN') {
             const q = new DocumentationQuery();
             q.homepage = false;
+            q.published = true;
             return DocumentationService.search(q, $stateParams.apiId)
-              .then(response => response.data.filter(page => page.published === true && (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER')));
+              .then(response => response.data.filter(page => page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER'));
           }
         },
       },
@@ -504,8 +505,9 @@ function apisPortalRouterConfig($stateProvider) {
           if ($stateParams.type === 'MARKDOWN') {
             const q = new DocumentationQuery();
             q.homepage = false;
+            q.published = true;
             return DocumentationService.search(q, $stateParams.apiId)
-              .then(response => response.data.filter(page => page.published === true && (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER') && page.id !== $stateParams.pageId));
+              .then(response => response.data.filter(page => (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER') && page.id !== $stateParams.pageId));
           }
         }
       },
