@@ -605,7 +605,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     @Override
     public UserEntity processRegistration(String userId, boolean accepted) {
         UserEntity userToProcess = findById(userId);
-        UserEntity processedUser = this.changeUserStatus(userId, accepted ? UserStatus.ACTIVE : UserStatus.DISABLED);
+        UserEntity processedUser = this.changeUserStatus(userId, accepted ? UserStatus.ACTIVE : UserStatus.REJECTED);
         final Map<String, Object> params = new NotificationParamsBuilder().user(processedUser).build();
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userToProcess.getEmail())
@@ -631,7 +631,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 final User user = optionalUser.get();
                 user.setStatus(newStatus);
                 user.setUpdatedAt(new Date());
-                if (newStatus == UserStatus.DISABLED) {
+                if (newStatus == UserStatus.REJECTED) {
                     //so a new registration can be requested with the same email
                     user.setSourceId("disabled-" + user.getSourceId());
                 }
@@ -773,7 +773,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         LOGGER.debug("search users");
 
         if (query == null || query.isEmpty()) {
-            return search(new UserCriteria.Builder().statuses(UserStatus.ACTIVE, UserStatus.PENDING, UserStatus.DISABLED).build(), pageable);
+            return search(new UserCriteria.Builder().statuses(UserStatus.ACTIVE, UserStatus.PENDING, UserStatus.REJECTED).build(), pageable);
         }
 
         Query<UserEntity> userQuery = QueryBuilder.create(UserEntity.class)
