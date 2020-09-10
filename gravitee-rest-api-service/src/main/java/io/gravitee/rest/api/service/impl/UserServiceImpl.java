@@ -633,7 +633,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 user.setUpdatedAt(new Date());
                 if (newStatus == UserStatus.REJECTED) {
                     //so a new registration can be requested with the same email
-                    user.setSourceId("disabled-" + user.getSourceId());
+                    user.setSourceId(newStatus.name().toLowerCase() + "-" + user.getSourceId());
                 }
                 return convert(this.userRepository.update(user), true);
             }
