@@ -262,7 +262,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 descriptor = swaggerService.parse(pageEntity.getContent());
             } catch (SwaggerDescriptorException sde) {
                 if (apiId != null) {
-                    logger.error("Parsing error for API: {}", apiId);
+                    LOGGER.error("Parsing error for API: {}", apiId);
                 }
                 throw sde;
             }
