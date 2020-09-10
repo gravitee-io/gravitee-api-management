@@ -64,6 +64,7 @@ const RoleComponent: ng.IComponentOptions = {
         that._modelToView();
         that.formRole.$setPristine();
         NotificationService.show(`Role ${that.editMode ? 'updated' : 'created'} with success`);
+        $state.go('management.settings.roleedit', {roleScope: that.role.scope, role: that.role.name});
       });
     };
 
