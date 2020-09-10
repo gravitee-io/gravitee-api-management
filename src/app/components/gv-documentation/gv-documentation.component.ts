@@ -220,9 +220,7 @@ export class GvDocumentationComponent implements AfterViewInit {
       GvDocumentationComponent.reset(this.treeMenu.nativeElement);
     });
     this.currentPage = page;
-    if (this.menu) {
-      this.currentMenuItem = this.menu.find(item => item.value === page);
-    }
+    this.currentMenuItem = this.findMenuItem(this.menu, page);
   }
 
   @HostListener(':gv-tree:toggle', ['$event.detail.closed'])
@@ -260,5 +258,22 @@ export class GvDocumentationComponent implements AfterViewInit {
   onInternalLinkClick(pageId: string) {
     const pageToDisplay = this._pages.find((page) => page.id === pageId);
     this.onPageChange(pageToDisplay);
+  }
+
+  private findMenuItem(menu: TreeItem[], pageToFind: any) {
+    if (menu) {
+      for(const item of menu) {
+        if(item.value === pageToFind) {
+          return item;
+        }
+        if(item.children && item.children.length > 0) {
+          const foundItem = this.findMenuItem(item.children, pageToFind);
+          if (foundItem) {
+            return foundItem;
+          }
+        }
+      }
+    }
+    return null;
   }
 }
