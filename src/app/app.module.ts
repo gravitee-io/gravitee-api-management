@@ -40,7 +40,6 @@ import { GvContactComponent } from './components/gv-contact/gv-contact.component
 import { GvCookieConsentComponent } from './components/gv-cookie-consent/gv-cookie-consent.component';
 import { GvDocumentationComponent } from './components/gv-documentation/gv-documentation.component';
 import { GvHeaderItemComponent } from './components/gv-header-item/gv-header-item.component';
-import { GvMarkdownTocComponent } from './components/gv-markdown-toc/gv-markdown-toc.component';
 import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.directive';
 import { GvMenuRightTransitionSlotDirective } from './directives/gv-menu-right-transition-slot.directive';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
@@ -68,7 +67,6 @@ import { UserContactComponent } from './pages/user/user-contact/user-contact.com
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { ViewportScroller } from '@angular/common';
 import { ReCaptchaService } from './services/recaptcha.service';
-import { GvCheckboxControlValueAccessorDirective } from './directives/gv-checkbox-control-value-accessor.directive';
 
 @NgModule({
   declarations: [
@@ -104,7 +102,6 @@ import { GvCheckboxControlValueAccessorDirective } from './directives/gv-checkbo
     UserAccountComponent,
     UserContactComponent,
     UserNotificationComponent,
-    GvMarkdownTocComponent,
   ],
   entryComponents: [GvSearchApiComponent, GvHeaderItemComponent],
   imports: [
