@@ -40,19 +40,21 @@
         <input ng-model="$ctrl.user.email" type="email" required>
       </md-input-container>
 
-      <md-input-container class="md-block" ng-if="$ctrl.identityProviders && $ctrl.identityProviders.length > 1">
-        <label>Identity provider</label>
-        <md-select ng-model="$ctrl.user.source">
-          <md-option ng-repeat="idp in $ctrl.identityProviders" value="{{idp.id}}">
-            {{idp.name}}
-          </md-option>
-        </md-select>
-      </md-input-container>
+      <div ng-if="$ctrl.identityProviders && $ctrl.identityProviders.length > 1" layout="column">
+        <md-input-container class="md-block">
+          <label>Identity provider</label>
+          <md-select ng-model="$ctrl.user.source">
+            <md-option ng-repeat="idp in $ctrl.identityProviders" value="{{idp.id}}">
+              {{idp.name}}
+            </md-option>
+          </md-select>
+        </md-input-container>
 
-      <md-input-container class="md-icon-float" ng-if="$ctrl.user.source !== 'gravitee'">
-        <label>Identity provider identifier</label>
-        <input ng-model="$ctrl.user.sourceId" type="text" required>
-      </md-input-container>
+        <md-input-container class="md-icon-float" ng-if="$ctrl.user.source !== 'gravitee'">
+          <label>Identity provider identifier</label>
+          <input ng-model="$ctrl.user.sourceId" type="text" required>
+        </md-input-container>
+      </div>
 
       <div class="md-actions" layout="row">
         <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formCreation.$invalid || $ctrl.formCreation.$pristine">
