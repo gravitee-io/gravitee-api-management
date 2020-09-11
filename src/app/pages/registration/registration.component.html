@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form class="page__content form" [formGroup]="registrationForm" (ngSubmit)="onSubmitRegistration()">
+<form *ngIf="canDisplayForm" class="page__content form" [formGroup]="registrationForm" (ngSubmit)="onSubmitRegistration()">
 
   <ng-container *ngIf="!isSubmitted">
     <div class="page__box">
@@ -57,6 +57,34 @@
             ngDefaultControl
             gvControl>
         </gv-input>
+        <div *ngFor="let field of customUserFields">
+
+          <gv-input *ngIf="!field.values"
+            large
+            class="form__control"
+            type="text"
+            label="{{ ('register.field.'+field.key | translate) === 'register.field.'+field.key ? field.label : ('register.field.'+field.key | translate)}}"
+            [formControlName]="field.key"
+            [name]="field.key"
+            autocomplete="on"
+            [required]="field.required"
+            ngDefaultControl
+            gvControl>
+          </gv-input>
+
+          <gv-select *ngIf="field.values"
+            large
+            [options]="field.values"
+            class="form__control"
+            type="text"
+            label="{{ ('register.field.'+field.key | translate) === 'register.field.'+field.key ? field.label : ('register.field.'+field.key | translate)}}"
+            [formControlName]="field.key"
+            [name]="field.key"
+            [required]="field.required"
+            ngDefaultControl
+            gvControl>
+          </gv-select>
+        </div>
       </div>
 
       <div class="page__box-footer form__actions form__actions-column">

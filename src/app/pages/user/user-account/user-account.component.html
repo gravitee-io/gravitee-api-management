@@ -16,7 +16,7 @@
 
 -->
 
-<form class="page__content page__content-with-aside form" [formGroup]="userForm" (ngSubmit)="submit()">
+<form *ngIf="canDisplayForm" class="page__content page__content-with-aside form" [formGroup]="userForm" (ngSubmit)="submit()">
 
     <div class="main">
       <div class="page__box">
@@ -49,8 +49,36 @@
                       formControlName="email"
                       name="email"
                       ngDefaultControl></gv-input>
-              </div>
+                      <div *ngFor="let field of customUserFields">
 
+                        <gv-input *ngIf="!field.values"
+                          large
+                          class="form__control"
+                          type="text"
+                          label="{{ ('register.field.'+field.key | translate) === 'register.field.'+field.key ? field.label : ('register.field.'+field.key | translate)}}"
+                          [formControlName]="field.key"
+                          [name]="field.key"
+                          autocomplete="on"
+                          [required]="field.required"
+                          ngDefaultControl
+                          gvControl>
+                        </gv-input>
+              
+                        <gv-select *ngIf="field.values"
+                          large
+                          [options]="field.values"
+                          class="form__control"
+                          type="text"
+                          label="{{ ('register.field.'+field.key | translate) === 'register.field.'+field.key ? field.label : ('register.field.'+field.key | translate)}}"
+                          [formControlName]="field.key"
+                          [name]="field.key"
+                          [required]="field.required"
+                          ngDefaultControl
+                          gvControl>
+                        </gv-select>
+                      </div>
+              </div>
+             
           </div>
       </div>
   </div>

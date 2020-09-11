@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { RegisterUserInput, UsersService } from '@gravitee/ng-portal-webclient';
+import { RegisterUserInput, UsersService, CustomUserFields } from '@gravitee/ng-portal-webclient';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { ReCaptchaService } from '../../services/recaptcha.service';
 
@@ -27,6 +27,10 @@ import { ReCaptchaService } from '../../services/recaptcha.service';
 export class RegistrationComponent implements OnInit {
   isSubmitted: boolean;
   registrationForm: FormGroup;
+  customUserFields: Array<CustomUserFields>;
+
+  // boolean used to display the form only once the FormGroup is completed using the CustomUserFields.
+  canDisplayForm = false;
 
   constructor(
     private usersService: UsersService,
@@ -37,11 +41,33 @@ export class RegistrationComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.registrationForm = this.formBuilder.group({
+
+    const formDescriptor: any = {
       firstname: new FormControl('', Validators.required),
       lastname: new FormControl('', Validators.required),
-      email: new FormControl('', [Validators.required, Validators.email]),
-    });
+      email: new FormControl('', [Validators.required, Validators.email])
+    };
+
+    this.usersService.listCustomUserFields().toPromise().then((response) => {
+      this.customUserFields = response;
+
+      if (this.customUserFields) {
+        this.customUserFields.forEach((field) => {
+          formDescriptor[field.key] = new FormControl('', field.required ? Validators.required : null);
+        });
+      }
+
+      this.registrationForm = this.formBuilder.group(formDescriptor);
+
+    }).catch((error) => {
+      // in case of error load the minimal form
+      // user will be able to complete information through the account page
+      // or admin will reject the registration
+      this.registrationForm = this.formBuilder.group(formDescriptor);
+    }).finally(() => {
+      this.canDisplayForm = true;
+     })
+
     this.reCaptchaService.displayBadge();
   }
 
@@ -53,6 +79,14 @@ export class RegistrationComponent implements OnInit {
         lastname: this.registrationForm.value.lastname,
         confirmation_page_url: window.location.href + '/confirm'
       };
+
+      if (this.customUserFields) {
+        input.customFields = {};
+        this.customUserFields.forEach((field) => {
+          input.customFields[field.key] = this.registrationForm.get(field.key).value;
+        });
+      }
+
       this.reCaptchaService.execute('registration').then(() => {
         this.usersService.registerNewUser({ RegisterUserInput: input })
           .toPromise()

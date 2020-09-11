@@ -862,6 +862,17 @@
     "message": "The page you are looking for does not seem / no longer exist. No worries, nothing is lost yet!",
     "title": "Page not found"
   },
+  "register": {
+    "field": {
+      "address": "Address",
+      "city": "City",
+      "country": "Country",
+      "job_position": "Position",
+      "organization": "Company",
+      "telephone_number": "Phone Number",
+      "zip_code": "Zip Code"
+    }
+  },
   "registration": {
     "backHome": "Back to portal",
     "backLogin": "Back to Sign in",

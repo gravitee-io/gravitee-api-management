@@ -19,7 +19,7 @@ import '@gravitee/ui-components/wc/gv-file-upload';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { AppComponent } from '../../../app.component';
 import { CurrentUserService } from '../../../services/current-user.service';
-import { User, UserService } from '@gravitee/ng-portal-webclient';
+import { CustomUserFields, User, UserService, UsersService } from '@gravitee/ng-portal-webclient';
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
 
@@ -34,11 +34,20 @@ export class UserAccountComponent implements OnInit, OnDestroy {
   private subscription: any;
   public currentUser: User;
   public userForm: FormGroup;
+  customUserFields: Array<CustomUserFields>;
+
+  fields: any = {};
+
   isSaving: boolean;
+
+  // boolean used to display the form only once the FormGroup is completed using the CustomUserFields.
+  canDisplayForm = false;
+  avatarHasChanged = false;
 
   constructor(
     private currentUserService: CurrentUserService,
     private userService: UserService,
+    private usersService: UsersService,
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
     private eventService: EventService
@@ -46,17 +55,49 @@ export class UserAccountComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+
     this.subscription = this.currentUserService.get().subscribe((user) => {
       this.currentUser = user;
-      this.userForm = this.formBuilder.group({
+      const formDescriptor: any = {
         display_name: new FormControl( { value: this.displayName, disabled: true }, Validators.required),
         email: new FormControl({ value: this.email, disabled: true }, Validators.required),
         avatar: new FormControl(this.avatar, Validators.required)
-      });
+      };
 
-      this.userForm.get('avatar').valueChanges.subscribe((avatar) => {
-        this.eventService.dispatch(new GvEvent(AppComponent.UPDATE_USER_AVATAR, { data: avatar }));
-      });
+      if (this.currentUser.customFields) {
+        this.usersService.listCustomUserFields().toPromise().then((respo) => {
+            this.customUserFields = respo;
+
+            if (this.customUserFields) {
+              this.customUserFields.forEach((field) => {
+                const controlField = new FormControl('', field.required ? Validators.required : null);
+                controlField.setValue(this.currentUser.customFields[field.key]);
+                formDescriptor[field.key] = controlField;
+              });
+            }
+
+            this.userForm = this.formBuilder.group(formDescriptor);
+
+            this.userForm.get('avatar').valueChanges.subscribe((avatar) => {
+              this.eventService.dispatch(new GvEvent(AppComponent.UPDATE_USER_AVATAR, { data: avatar }));
+              this.avatarHasChanged = true;
+            });
+
+            this.canDisplayForm = true;
+
+          }
+        );
+      } else {
+
+        this.userForm = this.formBuilder.group(formDescriptor);
+
+        this.userForm.get('avatar').valueChanges.subscribe((avatar) => {
+          this.eventService.dispatch(new GvEvent(AppComponent.UPDATE_USER_AVATAR, { data: avatar }));
+          this.avatarHasChanged = true;
+        });
+
+        this.canDisplayForm = true;
+      }
     });
   }
 
@@ -85,11 +126,35 @@ export class UserAccountComponent implements OnInit, OnDestroy {
 
   reset() {
     this.userForm.get('avatar').patchValue(this.avatar);
+
+    if (this.customUserFields) {
+      this.customUserFields.forEach((field) => {
+        this.userForm.get(field.key).setValue(this.currentUser.customFields[field.key]);
+      });
+    }
+
     this.userForm.markAsPristine();
   }
 
   submit() {
-    const UserInput = { id:  this.currentUser.id, avatar: this.userForm.get('avatar').value };
+    const UserInput: any = {
+      id:  this.currentUser.id
+    };
+
+    if (this.avatarHasChanged) {
+      const avatarProp = 'avatar';
+      UserInput[avatarProp] = this.userForm.get(avatarProp).value;
+    }
+
+    if (this.customUserFields && this.customUserFields.length >0 ) {
+      const customFields : any = {}
+      this.customUserFields.forEach((field) => {
+        customFields[field.key] = this.userForm.get(field.key).value;
+      });
+      const customFieldsProp = 'customFields';
+      UserInput[customFieldsProp] = customFields;
+    }
+
     this.isSaving = true;
     this.userService.updateCurrentUser({ UserInput })
       .toPromise()

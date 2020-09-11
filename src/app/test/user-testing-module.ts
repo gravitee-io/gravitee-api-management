@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 import { Injectable, NgModule, Pipe, PipeTransform } from '@angular/core';
-import { User, UserService } from '@gravitee/ng-portal-webclient';
+import { User, UserService, UsersService } from '@gravitee/ng-portal-webclient';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { CurrentUserService } from '../services/current-user.service';
 
 @Injectable()
 export class UserServiceStub {
+}
+
+@Injectable()
+export class UsersServiceStub {
 }
 
 @Injectable()
@@ -36,6 +40,7 @@ export class CurrentUserServiceStub {
   ],
   providers: [
     { provide: UserService, useClass: UserServiceStub },
+    { provide: UsersService, useClass: UsersServiceStub },
     { provide: CurrentUserService, useClass: CurrentUserServiceStub },
   ],
 })

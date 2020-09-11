@@ -862,6 +862,17 @@
     "message": "Hledaná stránka se nezdá / již neexistuje. Žádné starosti, zatím nic není ztraceno!",
     "title": "Stránka nebyla nalezena"
   },
+  "register": {
+    "field": {
+      "address": "Adresa",
+      "city": "Město",
+      "country": "Země",
+      "job_position": "Funkce",
+      "organization": "Organizace",
+      "telephone_number": "Telefonní číslo",
+      "zip_code": "Poštovní směrovací číslo"
+    }
+  },
   "registration": {
     "backHome": "Zpátky na portal",
     "backLogin": "Zpátky na přihlášení",

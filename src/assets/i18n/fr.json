@@ -862,6 +862,17 @@
     "message": "La page que vous recherchez ne semble pas / plus exister. Pas d'inquiétude, rien n'est encore perdu !",
     "title": "Oups, page introuvable"
   },
+  "register": {
+    "field": {
+      "address": "Adresse",
+      "city": "Ville",
+      "country": "Pays",
+      "job_position": "Fonction",
+      "organization": "Société",
+      "telephone_number": "Téléphone",
+      "zip_code": "Code Postal"
+    }
+  },
   "registration": {
     "backHome": "Retour au portail",
     "backLogin": "Retour à la page d'identification",
