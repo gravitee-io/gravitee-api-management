@@ -66,7 +66,7 @@
             <td md-cell width="15%" nowrap>
               <span ng-if="user.status === 'ACTIVE'" style="color: green">{{user.status}}</span>
               <span ng-if="user.status === 'PENDING'" style="color: orange">{{user.status}}</span>
-              <span ng-if="user.status === 'DISABLED'" style="color: red">{{user.status}}</span>
+              <span ng-if="user.status === 'REJECTED'" style="color: red">{{user.status}}</span>
             </td>
             <td md-cell width="15%" nowrap>{{user.email}}</td>
             <td md-cell width="15%" nowrap>{{user.source}}</td>
