@@ -563,9 +563,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             throw new TechnicalManagementException(e.getMessage(), e);
         }
 
-        newExternalUserEntity.setSource(IDP_SOURCE_GRAVITEE);
-        newExternalUserEntity.setSourceId(newExternalUserEntity.getEmail());
-
         final UserEntity userEntity = create(newExternalUserEntity, true);
 
         if (IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
