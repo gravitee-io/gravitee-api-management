@@ -75,8 +75,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.USER
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.*;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -693,11 +692,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
             registrationUrl += token;
         } else if (!StringUtils.isEmpty(managementURL)) {
-            String managementUrl = parameterService.find(Key.MANAGEMENT_URL);
-            if (managementUrl != null && managementUrl.endsWith("/")) {
-                managementUrl = managementUrl.substring(0, managementUrl.length() - 1);
-            }
-            registrationUrl = managementUrl + managementUri + token;
+            registrationUrl = managementURL + managementUri + token;
+        } else {
+            // This value is used as a fallback when no Management URL has been configured by the platform admin.
+            registrationUrl = DEFAULT_MANAGEMENT_URL + managementUri + token;
+            LOGGER.warn("An email has been sent with a default '" + managementUri.substring(4, managementUri.indexOf('/', 4)) + "' link. You may want to change this default configuration of the 'Management URL' in the Settings.");
         }
 
         // send a confirm email with the token

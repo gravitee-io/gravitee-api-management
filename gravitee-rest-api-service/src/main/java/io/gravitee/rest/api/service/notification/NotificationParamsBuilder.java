@@ -48,6 +48,8 @@ public class NotificationParamsBuilder {
     public static final String REGISTRATION_PATH = "/#!/registration/confirm/";
     public static final String RESET_PASSWORD_PATH = "/#!/resetPassword/";
 
+    // This value is used as a fallback when no Management URL has been configured by the platform admin. It is used for registration links in email.
+    public static final String DEFAULT_MANAGEMENT_URL = "http://localhost:3000";
 
     public Map<String, Object> build() {
         return params;

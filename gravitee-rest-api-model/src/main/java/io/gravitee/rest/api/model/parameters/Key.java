@@ -40,10 +40,10 @@ public enum Key {
     PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER("portal.apis.apiheader.showcategories.enabled", "true"),
     PORTAL_UPLOAD_MEDIA_ENABLED("portal.uploadMedia.enabled", "false"),
     PORTAL_UPLOAD_MEDIA_MAXSIZE("portal.uploadMedia.maxSizeInOctet", "1000000"),
-    PORTAL_URL("portal.url", "http://localhost:4100"),
+    PORTAL_URL("portal.url"),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management"),
-    MANAGEMENT_URL("management.url", "http://localhost:3000"),
+    MANAGEMENT_URL("management.url"),
 
     THEME_NAME("theme.name", "default"),
     THEME_LOGO("theme.logo", "themes/assets/GRAVITEE_LOGO1-01.png"),
