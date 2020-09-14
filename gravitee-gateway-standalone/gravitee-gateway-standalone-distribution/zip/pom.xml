@@ -37,7 +37,7 @@
     </properties>
 
     <dependencies>
-    
+
         <!-- Gravitee dependencies on distribution -->
         <dependency>
             <groupId>io.gravitee.gateway.standalone</groupId>
@@ -45,7 +45,7 @@
             <version>${project.version}</version>
             <type>pom</type>
         </dependency>
-        
+
     </dependencies>
 
 	<build>

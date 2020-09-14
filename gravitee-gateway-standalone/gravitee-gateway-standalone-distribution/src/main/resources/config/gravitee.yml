@@ -258,6 +258,15 @@ ds:
     host: localhost
     port: 9200
 
+#system:
+#  # Proxy configuration that can be used to proxy request to api endpoints (see endpoint http configuration -> Use system proxy).
+#  proxy:
+#    type: HTTP #HTTP, SOCK4, SOCK5
+#    host: localhost
+#    port: 3128
+#    username: user
+#    password: secret
+
 # Sharding tags configuration
 # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
 #tags: products,stocks,!international

@@ -18,8 +18,11 @@ package io.gravitee.gateway.handlers.api.processor.pathmapping;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import static java.util.Comparator.comparing;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,9 +47,13 @@ public class PathMappingProcessor extends AbstractProcessor<ExecutionContext> {
         mapping.entrySet().stream()
                 .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
                 .map(Map.Entry::getKey)
-                .findFirst()
+                .min(comparing(o -> countOccurrencesOf(o, ":")))
                 .ifPresent(resolvedMappedPath -> result.request().metrics().setMappedPath(resolvedMappedPath));
 
         next.handle(null);
+    }
+
+    private Integer countOccurrencesOf(String str, String sub) {
+        return str.length() - str.replace(sub, "").length();
     }
 }

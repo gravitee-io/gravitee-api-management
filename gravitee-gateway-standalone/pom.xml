@@ -31,7 +31,7 @@
     <artifactId>gravitee-gateway-standalone</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway - Standalone</name>
-    
+
     <modules>
         <module>gravitee-gateway-standalone-container</module>
         <module>gravitee-gateway-standalone-distribution</module>

@@ -51,12 +51,14 @@ import io.vertx.core.net.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
@@ -106,6 +108,9 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
     @Autowired
     private Vertx vertx;
 
+    @Autowired
+    private Environment environment;
+
     private final HttpEndpoint endpoint;
 
     private HttpClientOptions httpClientOptions;
@@ -115,7 +120,7 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         this.endpoint = endpoint;
     }
 
-    private final Map<Context, HttpClient> httpClients = new HashMap<>();
+    private final Map<Context, HttpClient> httpClients = new ConcurrentHashMap<>();
 
     @Override
     public ProxyConnection request(ProxyRequest proxyRequest) {
@@ -311,20 +316,27 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         httpClientOptions.setTryUsePerFrameWebSocketCompression(true);
         httpClientOptions.setTryUsePerMessageWebSocketCompression(true);
 
+        URI target = URI.create(endpoint.getTarget());
+
         // Configure proxy
         HttpProxy proxy = endpoint.getHttpProxy();
         if (proxy != null && proxy.isEnabled()) {
-            ProxyOptions proxyOptions = new ProxyOptions();
-            proxyOptions.setHost(proxy.getHost());
-            proxyOptions.setPort(proxy.getPort());
-            proxyOptions.setUsername(proxy.getUsername());
-            proxyOptions.setPassword(proxy.getPassword());
-            proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
+            ProxyOptions proxyOptions;
 
+            if (proxy.isUseSystemProxy()) {
+                proxyOptions = getSystemProxyOptions();
+            } else {
+                proxyOptions = new ProxyOptions();
+                proxyOptions.setHost(proxy.getHost());
+                proxyOptions.setPort(proxy.getPort());
+                proxyOptions.setUsername(proxy.getUsername());
+                proxyOptions.setPassword(proxy.getPassword());
+                proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
+
+            }
             httpClientOptions.setProxyOptions(proxyOptions);
         }
 
-        URI target = URI.create(endpoint.getTarget());
         HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
 
         if (HTTPS_SCHEME.equalsIgnoreCase(target.getScheme()) || WSS_SCHEME.equalsIgnoreCase(target.getScheme())) {
@@ -473,6 +485,42 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                     ", Port='" + httpClientOptions.getProxyOptions().getPort() + '\'' +
                     ", Username='" + httpClientOptions.getProxyOptions().getUsername() + '\'' +
                     '}');
+        }
+    }
+
+    private ProxyOptions getSystemProxyOptions() {
+
+        StringBuilder errors = new StringBuilder();
+        ProxyOptions proxyOptions = new ProxyOptions();
+
+        // System proxy must be well configured. Check that this is the case.
+        if (environment.containsProperty("system.proxy.host")) {
+            proxyOptions.setHost(environment.getProperty("system.proxy.host"));
+        } else {
+            errors.append("'system.proxy.host' ");
+        }
+
+        try {
+            proxyOptions.setPort(Integer.parseInt(Objects.requireNonNull(environment.getProperty("system.proxy.port"))));
+        } catch (Exception e) {
+            errors.append("'system.proxy.port' [").append(environment.getProperty("system.proxy.port")).append("] ");
+        }
+
+        try {
+            proxyOptions.setType(ProxyType.valueOf(environment.getProperty("system.proxy.type")));
+        } catch (Exception e) {
+            errors.append("'system.proxy.type' [").append(environment.getProperty("system.proxy.type")).append("] ");
+        }
+
+        proxyOptions.setUsername(environment.getProperty("system.proxy.username"));
+        proxyOptions.setPassword(environment.getProperty("system.proxy.password"));
+
+        if (errors.length() == 0) {
+            return proxyOptions;
+        } else {
+            LOGGER.warn("An api endpoint (name[{}] type[{}] target[{}]) requires a system proxy to be defined but some configurations are missing or not well defined: {}", endpoint.getName(), endpoint.getType(), endpoint.getTarget(), errors);
+            LOGGER.warn("Ignoring system proxy");
+            return null;
         }
     }
 }
