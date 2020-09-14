@@ -20,12 +20,9 @@
 
 .autocomplete-search-user .contact-item {
   box-sizing: border-box; }
-.autocomplete-search-user .contact-item.selected {
-  opacity: 0.5; }
-.autocomplete-search-user .contact-item.selected h3 {
-  opacity: 0.5; }
-.autocomplete-search-user .contact-item .md-list-item-text {
-  padding: 14px 0;
+.autocomplete-search-user .contact-item.selected,
+.autocomplete-search-user .contact-item.selected .contact-name {
+  opacity: 0.5;
 }
 .autocomplete-search-user .contact-item .md-list-item-text h3 {
   margin: 0 !important;
@@ -33,7 +30,17 @@
   line-height: 1.2em !important;
   text-overflow: ellipsis;
   white-space: nowrap;
-  overflow: hidden; }
+  overflow: hidden;
+}
+
+.md-list-item.md-2-line.contact-item {
+  min-height: 48px;
+}
+
+.contact-item .md-avatar {
+  height: 32px;
+  width: 32px;
+}
 
 @media (min-width: 960px) {
   .autocomplete-search-user .contact-item {

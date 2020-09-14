@@ -154,9 +154,20 @@
     </md-subheader>
     <div layout="column" layout-wrap layout-gt-sm="row">
       <div flex-xs flex="50">
+        <md-checkbox
+          ng-model="$ctrl.httpConfiguration.proxy.useSystemProxy"
+          aria-label="Use system proxy"
+          class="md-align-top-left" flex>
+          Use system proxy<br/>
+          <span class="ipsum">
+            Use proxy configured at system level
+          </span>
+        </md-checkbox>
+      </div>
+      <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Proxy type</label>
-          <md-select ng-model="$ctrl.httpConfiguration.proxy.type" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+          <md-select ng-model="$ctrl.httpConfiguration.proxy.type" ng-required="$ctrl.isUserDefinedProxy()" ng-disabled="!$ctrl.isUserDefinedProxy()">
             <md-option ng-repeat="proxy in $ctrl.proxies" value="{{proxy.value}}">
               {{proxy.name}}
             </md-option>
@@ -164,33 +175,31 @@
           <div class="hint">Type of the TCP proxy server</div>
         </md-input-container>
       </div>
-    </div>
-    <div layout="column" layout-wrap layout-gt-sm="row">
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Host</label>
-          <input ng-model="$ctrl.httpConfiguration.proxy.host" type="text" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+          <input ng-model="$ctrl.httpConfiguration.proxy.host" type="text" ng-required="$ctrl.isUserDefinedProxy()" ng-disabled="!$ctrl.isUserDefinedProxy()">
           <div class="hint">Proxy host to connect to</div>
         </md-input-container>
       </div>
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Port</label>
-          <input ng-model="$ctrl.httpConfiguration.proxy.port" type="number" min="0" max="65536" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+          <input ng-model="$ctrl.httpConfiguration.proxy.port" type="number" min="0" max="65536" ng-required="$ctrl.httpConfiguration.proxy.enabled" ng-disabled="!$ctrl.isUserDefinedProxy()">
           <div class="hint">Proxy port to connect to</div>
         </md-input-container>
       </div>
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Username</label>
-          <input ng-model="$ctrl.httpConfiguration.proxy.username" type="text" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+          <input ng-model="$ctrl.httpConfiguration.proxy.username" type="text" ng-disabled="!$ctrl.isUserDefinedProxy()">
           <div class="hint">Optional proxy username</div>
         </md-input-container>
       </div>
       <div flex-xs flex="50">
         <md-input-container class="md-block" flex-gt-sm>
           <label>Password</label>
-          <input ng-model="$ctrl.httpConfiguration.proxy.password" type="password" autocomplete="new-password" ng-disabled="!$ctrl.httpConfiguration.proxy.enabled">
+          <input ng-model="$ctrl.httpConfiguration.proxy.password" type="password" autocomplete="new-password" ng-disabled="!$ctrl.isUserDefinedProxy()">
           <div class="hint">Optional proxy password</div>
         </md-input-container>
       </div>
