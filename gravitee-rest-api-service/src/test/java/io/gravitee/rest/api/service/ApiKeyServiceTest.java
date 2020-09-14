@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyActivatedException;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExpiredException;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -205,6 +206,100 @@ public class ApiKeyServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotRevokeBecauseTechnicalException() throws TechnicalException {
+        when(apiKeyRepository.findById(API_KEY)).thenThrow(TechnicalException.class);
+
+        apiKeyService.revoke(API_KEY, true);
+    }
+
+    @Test
+    public void shouldReactivateRevoked() throws Exception {
+        apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setPlan(PLAN_ID);
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setRevoked(true);
+        final ApiModelEntity api = new ApiModelEntity();
+        api.setId("123");
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setApi(api.getId());
+
+        // Stub
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
+        when(subscriptionService.findById(apiKey.getSubscription())).thenReturn(subscription);
+        when(apiKeyRepository.update(any())).thenAnswer(i -> i.getArgument(0));
+
+        // Run
+        apiKeyService.reactivate(API_KEY);
+
+        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
+        verify(auditService).createApiAuditLog(any(), argument.capture(), any(), any(), any(), any());
+        Map<Audit.AuditProperties, String> properties = argument.getValue();
+        assertEquals(3, properties.size());
+        assertTrue(properties.containsKey(Audit.AuditProperties.API));
+        assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
+        assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+    }
+
+    @Test
+    public void shouldReactivateExpired() throws Exception {
+        apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setPlan(PLAN_ID);
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setExpireAt(new Date(System.currentTimeMillis() - 10000));
+        final ApiModelEntity api = new ApiModelEntity();
+        api.setId("123");
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setApi(api.getId());
+
+        // Stub
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
+        when(subscriptionService.findById(apiKey.getSubscription())).thenReturn(subscription);
+        when(apiKeyRepository.update(any())).thenAnswer(i -> i.getArgument(0));
+
+        // Run
+        apiKeyService.reactivate(API_KEY);
+
+        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
+        verify(auditService).createApiAuditLog(any(), argument.capture(), any(), any(), any(), any());
+        Map<Audit.AuditProperties, String> properties = argument.getValue();
+        assertEquals(3, properties.size());
+        assertTrue(properties.containsKey(Audit.AuditProperties.API));
+        assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
+        assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+    }
+
+    @Test(expected = ApiKeyAlreadyActivatedException.class)
+    public void shouldNotReactivateBecauseOfAlreadyActivated() throws Exception {
+        apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setPlan(PLAN_ID);
+        apiKey.setApplication(APPLICATION_ID);
+
+        // Stub
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
+
+        // Run
+        apiKeyService.reactivate(API_KEY);
+    }
+
+    @Test(expected = ApiKeyNotFoundException.class)
+    public void shouldNotReactivateBeacauseOfApiKeyNotFound() throws TechnicalException {
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.empty());
+
+        apiKeyService.reactivate(API_KEY);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldNotReactivate_technicalException() throws TechnicalException {
         when(apiKeyRepository.findById(API_KEY)).thenThrow(TechnicalException.class);
 
         apiKeyService.revoke(API_KEY, true);

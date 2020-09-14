@@ -35,6 +35,7 @@ public class UserDetails extends User implements org.springframework.security.co
     private String lastname;
     private String source;
     private String sourceId;
+    private boolean isPrimaryOwner;
     private List<UserDetailRole> roles;
     private String username;
     private byte[] picture;
@@ -136,7 +137,7 @@ public class UserDetails extends User implements org.springframework.security.co
 
         return displayName;
     }
-    
+
     public void setLastname(String lastname) {
         this.lastname = lastname;
     }
@@ -194,5 +195,13 @@ public class UserDetails extends User implements org.springframework.security.co
 
     public void setPassword(String password) {
         throw new UnsupportedOperationException();
+    }
+
+    public boolean isPrimaryOwner() {
+        return isPrimaryOwner;
+    }
+
+    public void setPrimaryOwner(boolean primaryOwner) {
+        isPrimaryOwner = primaryOwner;
     }
 }
