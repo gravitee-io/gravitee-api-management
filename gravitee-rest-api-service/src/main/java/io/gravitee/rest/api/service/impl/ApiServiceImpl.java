@@ -1072,6 +1072,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 eventService.search(query)
                     .forEach(event -> eventService.delete(event.getId()));
 
+                // https://github.com/gravitee-io/issues/issues/4130
+                // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and
+                // all its relative events) have been deleted.
+                Map<String, String> properties = new HashMap<>(2);
+                properties.put(Event.EventProperties.API_ID.getValue(), apiId);
+                properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
+                eventService.create(EventType.UNPUBLISH_API, null, properties);
+
                 // Delete pages
                 pageService.deleteAllByApi(apiId);
 
