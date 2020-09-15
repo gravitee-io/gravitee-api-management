@@ -197,6 +197,12 @@ public class ReporterConfiguration {
 	@Value("${reporters.elasticsearch.lifecycle.policies.log:#{null}}")
 	private String indexLifecyclePolicyLog;
 
+	/**
+	 * Policy name Property name
+	 */
+	@Value("${reporters.elasticsearch.lifecycle.policy_property_name:'index.lifecycle.name'}")
+	private String indexLifecyclePolicyPropertyName;
+
 	public List<Endpoint> getEndpoints() {
 		if(endpoints == null){
 			endpoints = initializeEndpoints();
@@ -394,6 +400,14 @@ public class ReporterConfiguration {
 
 	public void setIndexLifecyclePolicyLog(String indexLifecyclePolicyLog) {
 		this.indexLifecyclePolicyLog = indexLifecyclePolicyLog;
+	}
+
+	public String getIndexLifecyclePolicyPropertyName() {
+		return indexLifecyclePolicyPropertyName;
+	}
+
+	public void setIndexLifecyclePolicyPropertyName(String indexLifecyclePolicyPropertyName) {
+		this.indexLifecyclePolicyPropertyName = indexLifecyclePolicyPropertyName;
 	}
 
 	public String getProxyType() {
