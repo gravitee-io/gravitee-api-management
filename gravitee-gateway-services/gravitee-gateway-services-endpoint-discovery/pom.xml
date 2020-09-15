@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.gateway.services</groupId>
         <artifactId>gravitee-gateway-services</artifactId>
-        <version>3.0.8-SNAPSHOT</version>
+        <version>3.0.8</version>
     </parent>
 
     <artifactId>gravitee-gateway-services-endpoint-discovery</artifactId>
