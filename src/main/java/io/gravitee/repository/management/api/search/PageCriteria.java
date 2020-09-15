@@ -15,8 +15,10 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import java.util.Objects;
+
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PageCriteria {
@@ -28,7 +30,7 @@ public class PageCriteria {
     private Boolean published;
     private String parent;
     private Boolean rootParent;
-    
+
 
     private PageCriteria() {}
 
@@ -84,6 +86,26 @@ public class PageCriteria {
         this.rootParent = rootParent;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PageCriteria that = (PageCriteria) o;
+        return Objects.equals(referenceId, that.referenceId) &&
+            Objects.equals(referenceType, that.referenceType) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(type, that.type) &&
+            Objects.equals(homepage, that.homepage) &&
+            Objects.equals(published, that.published) &&
+            Objects.equals(parent, that.parent) &&
+            Objects.equals(rootParent, that.rootParent);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(referenceId, referenceType, name, type, homepage, published, parent, rootParent);
+    }
+
     public static class Builder {
 
         private PageCriteria query;
@@ -105,7 +127,7 @@ public class PageCriteria {
             this.query.setReferenceType(referenceType);
             return this;
         }
-        
+
         public Builder name(String name) {
             this.query.setName(name);
             return this;

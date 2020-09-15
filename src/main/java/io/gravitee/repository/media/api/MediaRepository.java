@@ -18,6 +18,7 @@ package io.gravitee.repository.media.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.model.Media;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,8 +27,13 @@ import java.util.Optional;
  */
 public interface MediaRepository {
 
-    String save(Media media) throws TechnicalException;
-
     Optional<Media> findByHash(String hash, String mediaType);
-    Optional<Media> findByHash(String hash, String api, String mediaType);
+
+    Optional<Media> findByHashAndApi(String hash, String api, String mediaType);
+
+    List<Media> findAllByApi(String api);
+
+    Media create(Media media) throws TechnicalException;
+
+    void deleteAllByApi(String api);
 }
