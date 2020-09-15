@@ -63,6 +63,7 @@ public class GroupInvitationsResource extends AbstractResource {
             notes = "User must have the GROUP_INVITATION[READ] permission to use this service")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = {READ, CREATE, UPDATE, DELETE}),
             @Permission(value = GROUP_INVITATION, acls = READ)
     })
     public List<InvitationEntity> list(@PathParam("group") String group) {
@@ -75,7 +76,8 @@ public class GroupInvitationsResource extends AbstractResource {
     @ApiOperation(value = "Create an invitation to join a group",
             notes = "User must have the GROUP_INVITATION[CREATE] permission to use this service")
     @Permissions({
-            @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.CREATE)
+            @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = {UPDATE, CREATE})
     })
     public InvitationEntity create(@PathParam("group") String group, @Valid @NotNull final NewInvitationEntity invitationEntity) {
         // Check that group exists
@@ -104,6 +106,7 @@ public class GroupInvitationsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = {UPDATE, CREATE}),
             @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.UPDATE)
     })
     public InvitationEntity update(@PathParam("group") String group, @PathParam("invitation") String invitation,
@@ -120,6 +123,7 @@ public class GroupInvitationsResource extends AbstractResource {
             notes = "User must have the GROUP_INVITATION[DELETE] permission to use this service")
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({
+            @Permission(value = RolePermission.MANAGEMENT_GROUP, acls = {UPDATE, CREATE}),
             @Permission(value = RolePermission.GROUP_INVITATION, acls = RolePermissionAction.DELETE)
     })
     public void delete(@PathParam("group") String group, @PathParam("invitation") String invitation) {
