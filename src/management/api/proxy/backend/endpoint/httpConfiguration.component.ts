@@ -155,6 +155,7 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
       }
       if (!this.httpConfiguration.proxy) {
         this.httpConfiguration.proxy = {};
+        this.httpConfiguration.proxy.useSystemProxy = false;
       }
       if (!this.httpConfiguration.headers) {
         this.httpConfiguration.headers = {};
@@ -176,6 +177,10 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
         this.httpConfiguration.headers.splice(idx, 1);
         this.form.$setDirty();
       }
+    }
+
+    isUserDefinedProxy(): boolean {
+      return this.httpConfiguration.proxy.enabled && this.httpConfiguration.proxy.useSystemProxy === false;
     }
   },
   template: require('./httpConfiguration.html')

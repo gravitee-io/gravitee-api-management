@@ -72,6 +72,10 @@ class UserService {
     return this.$http.delete(this.usersURL + userId);
   }
 
+  removeCurrentUser(): ng.IPromise<any> {
+    return this.$http.delete(this.userURL);
+  }
+
   create(user): ng.IPromise<any> {
     return this.$http.post(this.usersURL, user);
   }

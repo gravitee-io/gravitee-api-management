@@ -199,9 +199,9 @@
             <!-- edit MARKDOWN inline -->
             <div ng-if="'inline' === getContentMode && 'MARKDOWN' === $ctrl.page.type" style="display: inline-block; width: 100%;">
                 <h3>Type your documentation here:</h3>
-                <md-input-container class="md-block">
+                <div class="md-block">
                     <gv-page-editor-markdown page="$ctrl.page"></gv-page-editor-markdown>
-                </md-input-container>
+                </div>
             </div>
 
             <!-- import file -->

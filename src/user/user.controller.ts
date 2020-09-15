@@ -60,6 +60,35 @@ class UserController {
     });
   }
 
+  canDeleteMyAccount(): boolean {
+    return !this.user.primaryOwner;
+  }
+
+  deleteMyAccount() {
+    let that = this;
+    return this.$mdDialog.show({
+      controller: 'DialogConfirmAndValidateController',
+      controllerAs: 'ctrl',
+      template: require('../components/dialog/confirmAndValidate.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: 'Are you sure you want to delete your account ?',
+        warning: 'This operation is irreversible.',
+        msg: 'After removing your account, you will be automatically logout.',
+        validationMessage: 'Please, type in your username <code>' + this.user.displayName + '</code> to confirm.',
+        validationValue: this.user.displayName,
+        confirmButton: 'Yes, delete my account.'
+      }
+    }).then(function (response) {
+      if (response) {
+        return that.UserService.removeCurrentUser().then((response) => {
+          that.$state.go('logout');
+          that.NotificationService.show('You have been successfully deleted');
+        });
+      }
+    });
+  }
+
   cancel() {
     delete this.user.picture;
     this.$state.reload();

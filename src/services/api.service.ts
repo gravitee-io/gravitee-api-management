@@ -107,7 +107,7 @@ class ApiService {
     // clean endpoint http proxy
     if (api.proxy && api.proxy.endpoints) {
       _.forEach(api.proxy.endpoints, (endpoint) => {
-        if (endpoint.proxy && (!endpoint.proxy.host || !endpoint.proxy.port)) {
+        if (endpoint.proxy && !endpoint.proxy.useSystemProxy && (!endpoint.proxy.host || !endpoint.proxy.port)) {
           delete endpoint.proxy;
         }
       });
@@ -159,7 +159,10 @@ class ApiService {
   }
 
   import(apiId: string, apiDefinition: string): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + (apiId ? apiId + '/' : '') + 'import', apiDefinition);
+    if (apiId) {
+      return this.$http.put(this.apisURL + apiId + '/import', apiDefinition);
+    }
+    return this.$http.post(this.apisURL + 'import', apiDefinition);
   }
 
   importSwagger(apiId: string, swaggerDescriptor: string): ng.IPromise<any> {
@@ -385,6 +388,10 @@ class ApiService {
 
   revokeApiKey(apiId, subscriptionId, apiKey): ng.IPromise<any> {
     return this.$http.delete(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/keys/' + apiKey);
+  }
+
+  reactivateApiKey(apiId, subscriptionId, apiKey): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/keys/' + apiKey + '/_reactivate', '');
   }
 
   renewApiKey(apiId, subscriptionId): ng.IPromise<any> {

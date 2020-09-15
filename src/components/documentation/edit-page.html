@@ -73,7 +73,7 @@
                 <md-tab md-on-select="$ctrl.changeTab(0)">
                     <md-tab-label>Page</md-tab-label>
                     <md-tab-body>
-                        <form name="$ctrl.formNewLink" ng-submit="$ctrl.save()" novalidate>   
+                        <form name="$ctrl.formNewLink" ng-submit="$ctrl.save()" novalidate>
                             <md-input-container class="md-block">
                                 <label>Type of link</label>
                                 <md-select ng-model="$ctrl.page.configuration.resourceType" required ng-change="$ctrl.onChangeLinkType()">
@@ -103,8 +103,8 @@
                                 </md-input-container>
 
                                 <div ng-if="$ctrl.page.content">
-                                    <md-switch 
-                                        ng-model="$ctrl.page.configuration.inherit" 
+                                    <md-switch
+                                        ng-model="$ctrl.page.configuration.inherit"
                                         ng-true-value="'true'"
                                         ng-false-value="'false'"
                                         aria-label="Inherit from related category"
@@ -127,14 +127,14 @@
                                                     ng-value="resource.id"
                                                     ng-click="$ctrl.updateLinkName(resource.name)">
                                             <md-icon md-svg-src="assets/logo_{{resource.type | lowercase}}.svg"></md-icon>
-                                            <span style="font-style: italic; opacity: 0.5;">{{ resource.fullPath }}</span>/{{ resource.name }} 
+                                            <span style="font-style: italic; opacity: 0.5;">{{ resource.fullPath }}</span>/{{ resource.name }}
                                         </md-option>
                                     </md-select>
                                 </md-input-container>
 
                                 <div ng-if="$ctrl.page.content && $ctrl.page.content !== 'root'">
-                                    <md-switch 
-                                        ng-model="$ctrl.page.configuration.inherit" 
+                                    <md-switch
+                                        ng-model="$ctrl.page.configuration.inherit"
                                         ng-true-value="'true'"
                                         ng-false-value="'false'"
                                         aria-label="Inherit from related page"
@@ -198,7 +198,7 @@
                                 </tbody>
                             </table>
                         </md-table-container>
-                        
+
                         <div style="text-align: right">
                             <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
                                 type="button"
@@ -223,7 +223,7 @@
                                 <input type="text" ng-model="$ctrl.currentTranslation.content" style="font-size: large" required>
                             </md-input-container>
                         </div>
-                        
+
                     </md-tab-body>
                 </md-tab>
             </md-tabs>
@@ -243,7 +243,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- SWAGGER or MARKDOWN-->
     <div class="gv-form" ng-if="'FOLDER' !== $ctrl.page.type && 'LINK' !== $ctrl.page.type">
         <h2></h2>
@@ -278,10 +278,10 @@
 
                             <!-- edit MARKDOWN inline -->
                             <div ng-if="'MARKDOWN' === $ctrl.page.type" style="display: inline-block; width: 100%;">
-                                <md-input-container class="md-block">
-                                <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.page"></gv-page-editor-markdown>
-                                <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.page"></gv-page-markdown>
-                                </md-input-container>
+                                <div class="md-block">
+                                  <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.page"></gv-page-editor-markdown>
+                                  <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.page"></gv-page-markdown>
+                                </div>
                             </div>
 
                             <!-- import file -->
@@ -330,7 +330,7 @@
                                 </tbody>
                             </table>
                         </md-table-container>
-                        
+
                         <div style="text-align: right">
                             <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
                                 type="button"
@@ -349,9 +349,9 @@
                                 <label>Translated title</label>
                                 <input type="text" ng-model="$ctrl.currentTranslation.name" style="font-size: large" required>
                             </md-input-container>
-                            
+
                             <md-input-container class="gv-input-container-dense">
-                                <md-switch 
+                                <md-switch
                                     ng-model="$ctrl.currentTranslation.configuration.inheritContent"
                                     ng-true-value="'true'"
                                     ng-false-value="'false'"
@@ -422,7 +422,7 @@
                             <h3>OpenAPI documentation viewer: </h3>
                             <md-radio-group ng-model="$ctrl.page.configuration.viewer">
                                 <md-radio-button value="Swagger" class="md-primary">Swagger-UI (Default)</md-radio-button>
-                                <md-radio-button value="Redoc">Redoc</md-radio-button>          
+                                <md-radio-button value="Redoc">Redoc</md-radio-button>
                             </md-radio-group>
 
                             <div ng-if="$ctrl.page.configuration.viewer === 'Swagger'" layout="column">

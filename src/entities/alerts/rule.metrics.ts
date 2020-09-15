@@ -49,7 +49,7 @@ export class Rule {
       'ENDPOINT_HEALTH_CHECK',
     'API_HC_ENDPOINT_STATUS_CHANGED',
     'Alert when the health status of an endpoint has changed',
-    [Scope.API],
+    [Scope.API, Scope.PLATFORM],
     'Health-check');
 
   static APPLICATION_QUOTA: Rule = new Rule(
