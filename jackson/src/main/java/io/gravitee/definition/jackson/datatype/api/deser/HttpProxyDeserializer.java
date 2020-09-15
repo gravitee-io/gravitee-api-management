@@ -47,6 +47,12 @@ public class HttpProxyDeserializer extends StdScalarDeserializer<HttpProxy> {
             httpProxy.setEnabled(enabled);
         }
 
+        JsonNode useSystemProxyNode = node.get("useSystemProxy");
+        if (useSystemProxyNode != null) {
+            boolean useSystemProxy = useSystemProxyNode.asBoolean(false);
+            httpProxy.setUseSystemProxy(useSystemProxy);
+        }
+
         httpProxy.setHost(readStringValue(node, "host"));
 
         String sPort = readStringValue(node, "port");
