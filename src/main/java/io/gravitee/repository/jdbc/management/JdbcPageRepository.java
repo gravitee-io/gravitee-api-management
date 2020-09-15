@@ -380,7 +380,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
 
-            String select = "select p.*, " +
+            String select = "select distinct p.*, " +
                     "pm.k as pm_k, pm.v as pm_v, " +
                     "pc.k as pc_k, pc.v as pc_v " +
                     "from pages p " +
