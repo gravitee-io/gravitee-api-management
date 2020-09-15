@@ -58,6 +58,10 @@ public class WeightedRandomLoadBalancer extends WeightedLoadBalancer {
             return null;
         }
 
+        if (endpoints.size() != getRuntimeRatios().size()) {
+            refresh();
+        }
+
         int index = selectProcessIndex();
         lastIndex = index;
         return endpoints.get(index);
