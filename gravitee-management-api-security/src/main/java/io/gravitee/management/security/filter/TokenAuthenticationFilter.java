@@ -24,16 +24,24 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.management.idp.api.authentication.UserDetails;
+import io.gravitee.management.model.RoleEntity;
 import io.gravitee.management.model.TokenEntity;
 import io.gravitee.management.model.UserEntity;
 import io.gravitee.management.security.cookies.CookieGenerator;
+import io.gravitee.management.security.utils.AuthoritiesProvider;
+import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.TokenService;
 import io.gravitee.management.service.UserService;
 import io.gravitee.management.service.common.JWTHelper;
 import io.gravitee.management.service.common.JWTHelper.Claims;
+import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
+import io.gravitee.repository.management.model.MembershipReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.management.model.Token;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -54,6 +62,7 @@ import java.util.stream.Collectors;
 
 import static java.net.URLDecoder.decode;
 import static java.nio.charset.Charset.defaultCharset;
+import static java.util.Collections.singleton;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
 import static org.springframework.security.core.context.SecurityContextHolder.getContext;
@@ -73,14 +82,16 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
     private CookieGenerator cookieGenerator;
     private UserService userService;
     private TokenService tokenService;
+    private AuthoritiesProvider authoritiesProvider;
 
     public TokenAuthenticationFilter(final String jwtSecret, final CookieGenerator cookieGenerator,
-                                     final UserService userService, final TokenService tokenService) {
+                                     final UserService userService, final TokenService tokenService, final MembershipService membershipService) {
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
         jwtVerifier = JWT.require(algorithm).build();
         this.cookieGenerator = cookieGenerator;
         this.userService = userService;
         this.tokenService = tokenService;
+        this.authoritiesProvider = new AuthoritiesProvider(membershipService);
     }
 
     @Override
@@ -137,7 +148,10 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         userDetails.setEmail(user.getEmail());
                         userDetails.setSource("token");
                         userDetails.setSourceId(token.getName());
-                        getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+
+                        final Set<GrantedAuthority> authorities = this.authoritiesProvider.retrieveAuthorities(user.getId());
+
+                        getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     }
                 } else {
                     LOGGER.debug("Authorization schema not found");

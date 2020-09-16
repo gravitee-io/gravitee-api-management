@@ -27,6 +27,7 @@ import io.gravitee.management.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.management.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.management.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.management.rest.utils.BlindTrustManager;
+import io.gravitee.management.security.utils.AuthoritiesProvider;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.MembershipService;
 import io.gravitee.management.service.RoleService;
@@ -315,15 +316,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     MembershipReferenceType.MANAGEMENT, MembershipReferenceType.PORTAL);
         }
 
-        final Set<RoleEntity> roles =
-                membershipService.getRoles(MembershipReferenceType.PORTAL, singleton(MembershipDefaultReferenceId.DEFAULT.name()), user.getId(), RoleScope.PORTAL);
-        roles.addAll(membershipService.getRoles(MembershipReferenceType.MANAGEMENT, singleton(MembershipDefaultReferenceId.DEFAULT.name()), user.getId(), RoleScope.MANAGEMENT));
-
-        final Set<GrantedAuthority> authorities = new HashSet<>();
-        if (!roles.isEmpty()) {
-            authorities.addAll(commaSeparatedStringToAuthorityList(roles.stream()
-                    .map(r -> r.getScope().name() + ':' + r.getName()).collect(Collectors.joining(","))));
-        }
+        final Set<GrantedAuthority> authorities = new AuthoritiesProvider(this.membershipService).retrieveAuthorities(user.getId());
 
         //set user to Authentication Context
         UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
