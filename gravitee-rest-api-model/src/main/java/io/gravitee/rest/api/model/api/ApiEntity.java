@@ -25,10 +25,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
-import io.gravitee.rest.api.model.DeploymentRequired;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.swagger.annotations.ApiModelProperty;
@@ -74,7 +71,7 @@ public class ApiEntity implements Indexable, FilterableItem {
     @ApiModelProperty(
             value = "API's groups. Used to add team in your API.",
             dataType = "java.util.List",
-            example = "MY_GROUP1, MY_GROUP2")
+            example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     @JsonProperty(value = "context_path")

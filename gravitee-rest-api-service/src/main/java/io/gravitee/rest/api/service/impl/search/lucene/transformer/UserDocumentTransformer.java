@@ -22,6 +22,8 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,6 +43,8 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
     private final static String FIELD_EMAIL = "email";
     private final static String FIELD_SOURCE = "source";
     private final static String FIELD_REFERENCE = "reference";
+
+    private final Logger logger = LoggerFactory.getLogger(UserDocumentTransformer.class);
 
     @Override
     public Document transform(UserEntity user) {
@@ -75,8 +79,12 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
         }
 
         if (user.getEmail() != null) {
-            // For security reasons, we remove the domain part of the email
-            doc.add(new StringField(FIELD_EMAIL, user.getEmail().substring(0, user.getEmail().indexOf('@')), Field.Store.NO));
+            if (user.getEmail().indexOf('@') < 0) {
+                logger.warn("Email of the user {} is not valid", user.getId());
+            } else {
+                // For security reasons, we remove the domain part of the email
+                doc.add(new StringField(FIELD_EMAIL, user.getEmail().substring(0, user.getEmail().indexOf('@')), Field.Store.NO));
+            }
         }
 
         return doc;

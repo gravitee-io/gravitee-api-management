@@ -20,6 +20,7 @@ import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,9 +29,15 @@ import java.util.Optional;
  */
 @Component
 public class MediaRepositoryProxy extends AbstractProxy<MediaRepository> implements MediaRepository {
+
     @Override
-    public String save(Media media) throws TechnicalException {
-        return target.save(media);
+    public Media create(Media media) throws TechnicalException {
+        return target.create(media);
+    }
+
+    @Override
+    public void deleteAllByApi(String api) {
+        target.deleteAllByApi(api);
     }
 
     @Override
@@ -39,7 +46,13 @@ public class MediaRepositoryProxy extends AbstractProxy<MediaRepository> impleme
     }
 
     @Override
-    public Optional<Media> findByHash(String hash, String api, String mediaType) {
-        return target.findByHash(hash, api, mediaType);
+    public Optional<Media> findByHashAndApi(String hash, String api, String mediaType) {
+        return target.findByHashAndApi(hash, api, mediaType);
     }
+
+    @Override
+    public List<Media> findAllByApi(String api) {
+        return target.findAllByApi(api);
+    }
+
 }

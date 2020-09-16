@@ -30,20 +30,27 @@ import static java.util.Collections.unmodifiableList;
  */
 public enum PageType {
 
-	MARKDOWN(unmodifiableList(asList("md", "markdown"))),
-	SWAGGER(unmodifiableList(asList("json", "yaml", "yml"))),
-	FOLDER(emptyList()),
-    LINK(emptyList()),
-    ROOT(emptyList()),
-    SYSTEM_FOLDER(emptyList()),
-    TRANSLATION(emptyList());
+	MARKDOWN(unmodifiableList(asList("md", "markdown")), 200),
+	SWAGGER(unmodifiableList(asList("json", "yaml", "yml")), 200),
+	FOLDER(emptyList(), 300),
+    LINK(emptyList(), 100),
+    ROOT(emptyList(), 500),
+    SYSTEM_FOLDER(emptyList(), 400),
+    TRANSLATION(emptyList(), 0);
 
 	List<String> extensions;
-	PageType(List<String> extensions) {
+	Integer removeOrder;
+
+	PageType(List<String> extensions, Integer removeOrder) {
 		this.extensions = extensions;
+		this.removeOrder = removeOrder;
 	}
 
 	public List<String> extensions() {
 		return extensions;
+	}
+
+	public Integer getRemoveOrder() {
+		return removeOrder;
 	}
 }

@@ -242,4 +242,9 @@ public class ApiResource extends AbstractResource {
     public ApiSubscribersResource getApiSubscribersResource() {
         return resourceContext.getResource(ApiSubscribersResource.class);
     }
+
+    @Path("media")
+    public ApiMediaResource getApiMediaResource() {
+        return resourceContext.getResource(ApiMediaResource.class);
+    }
 }

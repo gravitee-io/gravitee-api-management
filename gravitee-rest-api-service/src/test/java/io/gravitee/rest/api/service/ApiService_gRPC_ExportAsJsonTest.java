@@ -92,6 +92,8 @@ public class ApiService_gRPC_ExportAsJsonTest {
     private ParameterService parameterService;
     @Mock
     private ApiMetadataService apiMetadataService;
+    @Mock
+    private MediaService mediaService;
 
     @Before
     public void setUp() throws TechnicalException {
@@ -106,6 +108,7 @@ public class ApiService_gRPC_ExportAsJsonTest {
         when(applicationContext.getBean(GroupService.class)).thenReturn(groupService);
         when(applicationContext.getBean(UserService.class)).thenReturn(userService);
         when(applicationContext.getBean(ApiMetadataService.class)).thenReturn(apiMetadataService);
+        when(applicationContext.getBean(MediaService.class)).thenReturn(mediaService);
         ApiCompositeSerializer apiCompositeSerializer = new ApiCompositeSerializer();
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
         apiDefaultSerializer.setApplicationContext(applicationContext);

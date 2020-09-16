@@ -246,7 +246,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
             Optional<User> optionalUser = userRepository.findById(id);
 
             if (optionalUser.isPresent()) {
-                return convert(optionalUser.get(), true);
+                UserEntity userEntity = convert(optionalUser.get(), true);
+
+                populateUserFlags(Collections.singletonList(userEntity));
+
+                return userEntity;
             }
             //should never happen
             throw new UserNotFoundException(id);
@@ -566,9 +570,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             LOGGER.error("An error occurs while trying to create user {} / {}", newExternalUserEntity.getSource(), newExternalUserEntity.getSourceId(), e);
             throw new TechnicalManagementException(e.getMessage(), e);
         }
-
-        newExternalUserEntity.setSource(IDP_SOURCE_GRAVITEE);
-        newExternalUserEntity.setSourceId(newExternalUserEntity.getEmail());
 
         final UserEntity userEntity = create(newExternalUserEntity, true);
 

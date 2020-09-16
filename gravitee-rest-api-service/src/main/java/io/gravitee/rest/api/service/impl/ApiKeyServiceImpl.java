@@ -21,10 +21,7 @@ import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExpiredException;
-import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
-import io.gravitee.rest.api.service.exceptions.SubscriptionClosedException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import org.slf4j.Logger;
@@ -248,6 +245,54 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to revoke a key {}", apiKey, ex);
             throw new TechnicalManagementException("An error occurs while trying to revoke a key " + apiKey, ex);
+        }
+    }
+
+    @Override
+    public ApiKeyEntity reactivate(String apiKey) {
+
+        try {
+            LOGGER.debug("Reactivate API Key {}", apiKey);
+            Optional<ApiKey> optKey = apiKeyRepository.findById(apiKey);
+            if (!optKey.isPresent()) {
+                throw new ApiKeyNotFoundException();
+            }
+
+            ApiKey key = optKey.get();
+
+            if (!key.isRevoked() && !convert(key).isExpired()) {
+                throw new ApiKeyAlreadyActivatedException("The API key is already activated");
+            }
+
+            ApiKey previousApiKey = new ApiKey(key);
+            key.setRevoked(false);
+            key.setUpdatedAt(new Date());
+            key.setRevokedAt(null);
+
+            // Get the subscription to get ending date and set key expiration date.
+            SubscriptionEntity subscription = subscriptionService.findById(key.getSubscription());
+            key.setExpireAt(subscription.getEndingAt());
+
+            ApiKey updated = apiKeyRepository.update(key);
+
+            // Audit
+            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+            properties.put(API_KEY, key.getKey());
+            properties.put(API, subscription.getApi());
+            properties.put(APPLICATION, key.getApplication());
+
+            auditService.createApiAuditLog(
+                    subscription.getApi(),
+                    properties,
+                    APIKEY_REACTIVATED,
+                    key.getUpdatedAt(),
+                    previousApiKey,
+                    key);
+
+            return convert(updated);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to reactivate a key {}", apiKey, ex);
+            throw new TechnicalManagementException("An error occurs while trying to reactivate a key " + apiKey, ex);
         }
     }
 

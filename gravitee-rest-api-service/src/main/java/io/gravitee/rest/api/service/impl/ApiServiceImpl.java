@@ -27,6 +27,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -112,7 +113,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final static Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
-
+    private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$");
     private static final String URI_PATH_SEPARATOR = "/";
 
     @Autowired
@@ -181,6 +182,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private ImportConfiguration importConfiguration;
     @Autowired
     private PolicyService policyService;
+    @Autowired
+    private MediaService mediaService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -281,9 +284,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private void createOrUpdateDocumentation(final ImportSwaggerDescriptorEntity swaggerDescriptor,
                                              final ApiEntity api, boolean isForCreation) {
         List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder()
-                .api(api.getId())
-                .type(PageType.SWAGGER)
-                .build());
+            .api(api.getId())
+            .type(PageType.SWAGGER)
+            .build());
 
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
             if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
@@ -323,14 +326,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
-        return this.create0(api, userId, true);
+        return this.create0(api, userId, true, null);
     }
 
     private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder) throws ApiAlreadyExistsException {
+        return this.create0(api, userId, createSystemFolder, null);
+    }
+
+    private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder, String apiId) throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for user {}", api, userId);
 
-            String id = RandomString.generate();
+            String id = apiId != null && UUID.fromString(apiId) != null ? apiId : RandomString.generate();
+
             Optional<Api> checkApi = apiRepository.findById(id);
             if (checkApi.isPresent()) {
                 throw new ApiAlreadyExistsException(id);
@@ -375,9 +383,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 // Add Default groups
                 Set<String> defaultGroups = groupService.findByEvent(GroupEvent.API_CREATE).
-                        stream().
-                        map(GroupEntity::getId).
-                        collect(toSet());
+                    stream().
+                    map(GroupEntity::getId).
+                    collect(toSet());
                 if (!defaultGroups.isEmpty() && repoApi.getGroups() == null) {
                     repoApi.setGroups(defaultGroups);
                 } else if (!defaultGroups.isEmpty()) {
@@ -392,30 +400,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 Api createdApi = apiRepository.create(repoApi);
 
                 if (createSystemFolder) {
-                    //Create SystemFolder
-                    NewPageEntity asideSystemFolder = new NewPageEntity();
-                    asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
-                    asideSystemFolder.setPublished(true);
-                    asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
-                    pageService.createPage(createdApi.getId(), asideSystemFolder);
+                    createSystemFolder(createdApi.getId());
                 }
 
                 // Audit
                 auditService.createApiAuditLog(
-                        createdApi.getId(),
-                        Collections.emptyMap(),
-                        API_CREATED,
-                        createdApi.getCreatedAt(),
-                        null,
-                        createdApi);
+                    createdApi.getId(),
+                    Collections.emptyMap(),
+                    API_CREATED,
+                    createdApi.getCreatedAt(),
+                    null,
+                    createdApi);
 
                 // Add the primary owner of the newly created API
                 UserEntity primaryOwner = userService.findById(userId);
                 if (primaryOwner != null) {
                     membershipService.addRoleToMemberOnReference(
-                            new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
-                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
+                        new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
+                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
 
                     // create the default mail notification
                     final String emailMetadataValue = "${(api.primaryOwner.email)!''}";
@@ -440,6 +443,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                     //TODO add membership log
                     ApiEntity apiEntity = convert(createdApi, primaryOwner, null);
+
                     searchEngineService.index(apiEntity, false);
                     return apiEntity;
                 } else {
@@ -454,6 +458,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
         }
+    }
+
+    private void createSystemFolder(String apiId) {
+        NewPageEntity asideSystemFolder = new NewPageEntity();
+        asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
+        asideSystemFolder.setPublished(true);
+        asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
+        pageService.createPage(apiId, asideSystemFolder);
     }
 
     private void checkEndpointsName(UpdateApiEntity api) {
@@ -471,7 +483,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void checkEndpointsExists(UpdateApiEntity api) {
         if (api.getProxy().getGroups() == null
-                || api.getProxy().getGroups().isEmpty()) {
+            || api.getProxy().getGroups().isEmpty()) {
             throw new EndpointMissingException();
         }
 
@@ -479,7 +491,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         //Is service discovery enabled ?
         EndpointDiscoveryService endpointDiscoveryService = endpointGroup.getServices() == null ? null : endpointGroup.getServices().get(EndpointDiscoveryService.class);
         if ((endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
-                (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())) {
+            (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())) {
             throw new EndpointMissingException();
         }
     }
@@ -624,16 +636,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     if (tagEntrypoints.size() == entrypoint.getTags().length) {
                         api.getProxy().getVirtualHosts().forEach(virtualHost -> {
                             String targetHost = (virtualHost.getHost() == null || !virtualHost.isOverrideEntrypoint()) ?
-                                    entrypoint.getValue() : virtualHost.getHost();
+                                entrypoint.getValue() : virtualHost.getHost();
                             if (!targetHost.toLowerCase().startsWith("http")) {
                                 targetHost = scheme + "://" + targetHost;
                             }
                             apiEntrypoints.add(new ApiEntrypointEntity(
-                                    tagEntrypoints,
-                                    DUPLICATE_SLASH_REMOVER
-                                            .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
-                                            .replaceAll(URI_PATH_SEPARATOR),
-                                    virtualHost.getHost())
+                                tagEntrypoints,
+                                DUPLICATE_SLASH_REMOVER
+                                    .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                    .replaceAll(URI_PATH_SEPARATOR),
+                                virtualHost.getHost())
                             );
                         });
                     }
@@ -644,14 +656,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (apiEntrypoints.isEmpty()) {
                 api.getProxy().getVirtualHosts().forEach(virtualHost -> {
                     String targetHost = (virtualHost.getHost() == null || !virtualHost.isOverrideEntrypoint()) ?
-                            defaultEntrypoint : virtualHost.getHost();
+                        defaultEntrypoint : virtualHost.getHost();
                     if (!targetHost.toLowerCase().startsWith("http")) {
                         targetHost = scheme + "://" + targetHost;
                     }
                     apiEntrypoints.add(new ApiEntrypointEntity(
-                            DUPLICATE_SLASH_REMOVER
-                                    .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
-                                    .replaceAll(URI_PATH_SEPARATOR), virtualHost.getHost())
+                        DUPLICATE_SLASH_REMOVER
+                            .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
+                            .replaceAll(URI_PATH_SEPARATOR), virtualHost.getHost())
                     );
                 });
             }
@@ -699,7 +711,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Find all APIs without some fields (definition, picture...)");
             return convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
-                    new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()));
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs light", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs light", ex);
@@ -727,19 +739,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (userId != null) {
                 // get user apis
                 final String[] userApiIds = membershipService
-                        .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API).stream()
-                        .map(MembershipEntity::getReferenceId)
-                        .toArray(String[]::new);
+                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API).stream()
+                    .map(MembershipEntity::getReferenceId)
+                    .toArray(String[]::new);
                 if (userApiIds.length > 0) {
                     userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
                 }
 
                 // get user groups apis
                 final String[] groupIds = membershipService
-                        .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP).stream()
-                        .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.API))
-                        .map(MembershipEntity::getReferenceId)
-                        .toArray(String[]::new);
+                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP).stream()
+                    .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.API))
+                    .map(MembershipEntity::getReferenceId)
+                    .toArray(String[]::new);
                 if (groupIds.length > 0 && groupIds[0] != null) {
                     groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
                 }
@@ -747,15 +759,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members
                 if (portal) {
                     final Set<String> applications =
-                            applicationService.findByUser(userId).stream().map(ApplicationListItem::getId).collect(toSet());
+                        applicationService.findByUser(userId).stream().map(ApplicationListItem::getId).collect(toSet());
                     if (!applications.isEmpty()) {
                         final SubscriptionQuery query = new SubscriptionQuery();
                         query.setApplications(applications);
                         final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
                         if (subscriptions != null && !subscriptions.isEmpty()) {
                             subscribedApis = apiRepository
-                                    .search(queryToCriteria(apiQuery).ids(subscriptions.stream()
-                                            .map(SubscriptionEntity::getApi).distinct().toArray(String[]::new)).build());
+                                .search(queryToCriteria(apiQuery).ids(subscriptions.stream()
+                                    .map(SubscriptionEntity::getApi).distinct().toArray(String[]::new)).build());
                         }
                     }
                 }
@@ -793,9 +805,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return apiEntityStream;
         }
         return apiEntityStream
-                .filter(api -> query.getTag() == null || (api.getTags() != null && api.getTags().contains(query.getTag())))
-                .filter(api -> query.getContextPath() == null || api.getProxy().getVirtualHosts().stream().anyMatch(
-                        virtualHost -> query.getContextPath().equals(virtualHost.getPath())));
+            .filter(api -> query.getTag() == null || (api.getTags() != null && api.getTags().contains(query.getTag())))
+            .filter(api -> query.getContextPath() == null || api.getProxy().getVirtualHosts().stream().anyMatch(
+                virtualHost -> query.getContextPath().equals(virtualHost.getPath())));
     }
 
     @Override
@@ -843,6 +855,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // check HC inheritance
             checkHealthcheckInheritance(updateApiEntity);
+
+            // check CORS Allow-origin format
+            checkAllowOriginFormat(updateApiEntity);
 
             addLoggingMaxDuration(updateApiEntity.getProxy().getLogging());
 
@@ -914,22 +929,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         }
                     });
                     notifierService.trigger(ApiHook.API_DEPRECATED, apiId,
-                            new NotificationParamsBuilder()
-                                    .api(apiToCheck)
-                                    .user(userService.findById(getAuthenticatedUsername()))
-                                    .build());
+                        new NotificationParamsBuilder()
+                            .api(apiToCheck)
+                            .user(userService.findById(getAuthenticatedUsername()))
+                            .build());
                 }
 
                 Api updatedApi = apiRepository.update(api);
 
                 // Audit
                 auditService.createApiAuditLog(
-                        updatedApi.getId(),
-                        Collections.emptyMap(),
-                        API_UPDATED,
-                        updatedApi.getUpdatedAt(),
-                        apiToUpdate,
-                        updatedApi);
+                    updatedApi.getId(),
+                    Collections.emptyMap(),
+                    API_UPDATED,
+                    updatedApi.getUpdatedAt(),
+                    apiToUpdate,
+                    updatedApi);
 
                 if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED)) {
                     // Audit API logging if option is enabled
@@ -946,6 +961,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to update API " + apiId, ex);
+        }
+    }
+
+    private void checkAllowOriginFormat(UpdateApiEntity updateApiEntity) {
+        if (updateApiEntity.getProxy() != null && updateApiEntity.getProxy().getCors() != null) {
+            final Set<String> accessControlAllowOrigin = updateApiEntity.getProxy().getCors().getAccessControlAllowOrigin();
+            if (accessControlAllowOrigin != null && !accessControlAllowOrigin.isEmpty()) {
+                for (String allowOriginItem : accessControlAllowOrigin) {
+                    if (! CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
+                        throw new AllowOriginNotAllowedException(allowOriginItem);
+                    }
+                }
+            }
         }
     }
 
@@ -1043,9 +1071,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Delete plans
                 Set<PlanEntity> plans = planService.findByApi(apiId);
                 Set<String> plansNotClosed = plans.stream()
-                        .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
-                        .map(PlanEntity::getName)
-                        .collect(toSet());
+                    .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
+                    .map(PlanEntity::getName)
+                    .collect(toSet());
 
                 if (!plansNotClosed.isEmpty()) {
                     throw new ApiNotDeletableException(plansNotClosed);
@@ -1062,19 +1090,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 final EventQuery query = new EventQuery();
                 query.setApi(apiId);
                 eventService.search(query)
-                        .forEach(event -> eventService.delete(event.getId()));
+                    .forEach(event -> eventService.delete(event.getId()));
 
                 // https://github.com/gravitee-io/issues/issues/4130
                 // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and
                 // all its relative events) have been deleted.
                 Map<String, String> properties = new HashMap<>(2);
                 properties.put(Event.EventProperties.API_ID.getValue(), apiId);
-                properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
+                if (getAuthenticatedUser() != null) {
+                    properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
+                }
                 eventService.create(EventType.UNPUBLISH_API, null, properties);
 
                 // Delete pages
-                final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build());
-                pages.forEach(pageEntity -> pageService.delete(pageEntity.getId()));
+                pageService.deleteAllByApi(apiId);
 
                 // Delete top API
                 topApiService.delete(apiId);
@@ -1092,14 +1121,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiQualityRuleRepository.deleteByApi(apiId);
                 // Audit
                 auditService.createApiAuditLog(
-                        apiId,
-                        Collections.emptyMap(),
-                        API_DELETED,
-                        new Date(),
-                        optApi.get(),
-                        null);
+                    apiId,
+                    Collections.emptyMap(),
+                    API_DELETED,
+                    new Date(),
+                    optApi.get(),
+                    null);
                 // remove from search engine
                 searchEngineService.delete(convert(optApi.get()), false);
+
+                mediaService.deleteAllByApi(apiId);
+
+                apiMetadataService.deleteAllByApi(apiId);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete API {}", apiId, ex);
@@ -1113,12 +1146,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.debug("Start API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(apiId, LifecycleState.STARTED, userId);
             notifierService.trigger(
-                    ApiHook.API_STARTED,
-                    apiId,
-                    new NotificationParamsBuilder()
-                            .api(apiEntity)
-                            .user(userService.findById(userId))
-                            .build());
+                ApiHook.API_STARTED,
+                apiId,
+                new NotificationParamsBuilder()
+                    .api(apiEntity)
+                    .user(userService.findById(userId))
+                    .build());
             return apiEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to start API {}", apiId, ex);
@@ -1132,12 +1165,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.debug("Stop API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(apiId, LifecycleState.STOPPED, userId);
             notifierService.trigger(
-                    ApiHook.API_STOPPED,
-                    apiId,
-                    new NotificationParamsBuilder()
-                            .api(apiEntity)
-                            .user(userService.findById(userId))
-                            .build());
+                ApiHook.API_STOPPED,
+                apiId,
+                new NotificationParamsBuilder()
+                    .api(apiEntity)
+                    .user(userService.findById(userId))
+                    .build());
             return apiEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to stop API {}", apiId, ex);
@@ -1155,8 +1188,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             properties.put(Event.EventProperties.API_ID.getValue(), apiId);
 
             io.gravitee.common.data.domain.Page<EventEntity> events =
-                    eventService.search(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API),
-                            properties, 0, 0, 0, 1);
+                eventService.search(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API),
+                    properties, 0, 0, 0, 1);
 
             if (!events.getContent().isEmpty()) {
                 // According to page size, we know that we have only one element in the list
@@ -1180,8 +1213,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (sync) {
                     Set<PlanEntity> plans = planService.findByApi(api.getId());
                     sync = plans.stream()
-                            .filter(plan -> (plan.getStatus() != PlanStatus.STAGING))
-                            .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt())).count() == 0;
+                        .filter(plan -> (plan.getStatus() != PlanStatus.STAGING))
+                        .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt())).count() == 0;
                 }
 
                 return sync;
@@ -1222,12 +1255,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             // Audit
             auditService.createApiAuditLog(
-                    apiId,
-                    Collections.emptyMap(),
-                    API_ROLLBACKED,
-                    new Date(),
-                    null,
-                    null);
+                apiId,
+                Collections.emptyMap(),
+                API_ROLLBACKED,
+                new Date(),
+                null,
+                null);
 
             return update(apiId, api);
         } catch (Exception ex) {
@@ -1276,7 +1309,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         query.setTypes(singleton(PUBLISH_API));
 
         final Optional<EventEntity> optEvent =
-                eventService.search(query).stream().max(comparing(EventEntity::getCreatedAt));
+            eventService.search(query).stream().max(comparing(EventEntity::getCreatedAt));
         try {
             if (optEvent.isPresent()) {
                 EventEntity event = optEvent.get();
@@ -1309,7 +1342,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public String exportAsJson(final String apiId, String exportVersion, String... filteredFields) {
         ApiEntity apiEntity = findById(apiId);
-
         // set metadata for serialize process
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, exportVersion);
@@ -1325,238 +1357,284 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity createOrUpdateWithDefinition(final ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
-
-        String apiDefinition = apiDefinitionOrURL;
-        if (apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
-            apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
-        }
-
+    public ApiEntity createWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
+        String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
-            final UpdateApiEntity importedApi = objectMapper
-                    // because definition could contains other values than the api itself (pages, members)
-                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                    .readValue(apiDefinition, UpdateApiEntity.class);
-
-            // Initialize with a default path
-            if (importedApi.getPaths() == null || importedApi.getPaths().isEmpty()) {
-                Path path = new Path();
-                path.setPath("/");
-                importedApi.setPaths(Collections.singletonMap("/", path));
-            }
-
-            //create group if not exist & replace groupName by groupId
-            if (importedApi.getGroups() != null) {
-                Set<String> groupNames = new HashSet<>(importedApi.getGroups());
-                importedApi.getGroups().clear();
-                for (String name : groupNames) {
-                    List<GroupEntity> groupEntities = groupService.findByName(name);
-                    GroupEntity group;
-                    if (groupEntities.isEmpty()) {
-                        NewGroupEntity newGroupEntity = new NewGroupEntity();
-                        newGroupEntity.setName(name);
-                        group = groupService.create(newGroupEntity);
-                    } else {
-                        group = groupEntities.get(0);
-                    }
-                    importedApi.getGroups().add(group.getId());
-                }
-            }
-
             // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
-
-            // Views & Categories
-            // Before 3.0.2, API 'categories' were called 'views'. This is for compatibility.
-            final JsonNode viewsDefinition = jsonNode.path("views");
-            if (viewsDefinition != null && viewsDefinition.isArray()) {
-                Set<String> categories = new HashSet<>();
-                for (JsonNode viewNode : viewsDefinition) {
-                    categories.add(viewNode.asText());
-                }
-                importedApi.setCategories(categories);
-            }
-
-            ApiEntity createdOrUpdatedApiEntity;
-            if (apiEntity == null || apiEntity.getId() == null) {
-                createdOrUpdatedApiEntity = create0(importedApi, userId);
-            } else {
-                createdOrUpdatedApiEntity = update(apiEntity.getId(), importedApi);
-            }
-
-
-            // Members
-            final JsonNode membersToImport = jsonNode.path("members");
-            if (membersToImport != null && membersToImport.isArray()) {
-                // get current members of the api
-                Set<MemberToImport> membersAlreadyPresent = membershipService
-                        .getMembersByReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId())
-                        .stream()
-                        .map(member -> {
-                            UserEntity userEntity = userService.findById(member.getId());
-                            return new MemberToImport(userEntity.getSource(), userEntity.getSourceId(), member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()), null);
-                        }).collect(toSet());
-                // get the current PO
-                Optional<RoleEntity> optPoRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
-                if (optPoRole.isPresent()) {
-                    String poRoleId = optPoRole.get().getId();
-                    MemberToImport currentPo = membersAlreadyPresent.stream()
-                            .filter(memberToImport -> memberToImport.getRoles().contains(poRoleId))
-                            .findFirst()
-                            .orElse(new MemberToImport());
-
-                    List<String> roleUsedInTransfert = null;
-                    MemberToImport futurePO = null;
-
-
-                    // upsert members
-                    for (final JsonNode memberNode : membersToImport) {
-                        MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
-                        String roleToAdd = memberToImport.getRole();
-                        List<String> rolesToImport = memberToImport.getRoles();
-                        if (roleToAdd != null && !roleToAdd.isEmpty()) {
-                            if (rolesToImport == null) {
-                                rolesToImport = new ArrayList<>();
-                                memberToImport.setRoles(rolesToImport);
-                            }
-                            Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(RoleScope.API, roleToAdd);
-                            if (optRoleToAddEntity.isPresent()) {
-                                rolesToImport.add(optRoleToAddEntity.get().getId());
-                            } else {
-                                LOGGER.warn("Role {} does not exist", roleToAdd);
-                            }
-                        }
-                        if (rolesToImport != null) {
-                            rolesToImport.sort(Comparator.naturalOrder());
-                        }
-                        boolean presentWithSameRole = memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && membersAlreadyPresent
-                                .stream()
-                                .anyMatch(m -> {
-                                    m.getRoles().sort(Comparator.naturalOrder());
-                                    return
-                                            m.getRoles().equals(memberToImport.getRoles())
-                                                    && (m.getSourceId().equals(memberToImport.getSourceId())
-                                                    && m.getSource().equals(memberToImport.getSource()));
-                                });
-
-                        // add/update members if :
-                        //  - not already present with the same role
-                        //  - not the new PO
-                        //  - not the current PO
-                        if (!presentWithSameRole
-                                && (memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && !memberToImport.getRoles().contains(poRoleId))
-                                && !(memberToImport.getSourceId().equals(currentPo.getSourceId())
-                                && memberToImport.getSource().equals(currentPo.getSource()))) {
-                            try {
-                                UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
-
-                                rolesToImport.forEach(role ->
-                                        membershipService.addRoleToMemberOnReference(
-                                                MembershipReferenceType.API,
-                                                createdOrUpdatedApiEntity.getId(),
-                                                MembershipMemberType.USER,
-                                                userEntity.getId(),
-                                                role)
-                                );
-                            } catch (UserNotFoundException unfe) {
-
-                            }
-                        }
-
-                        // get the future role of the current PO
-                        if (currentPo.getSourceId().equals(memberToImport.getSourceId())
-                                && currentPo.getSource().equals(memberToImport.getSource())
-                                && !rolesToImport.contains(poRoleId)) {
-                            roleUsedInTransfert = rolesToImport;
-                        }
-
-                        if (rolesToImport.contains(poRoleId)) {
-                            futurePO = memberToImport;
-                        }
-                    }
-
-                    // transfer the ownership
-                    if (futurePO != null
-                            && !(currentPo.getSource().equals(futurePO.getSource())
-                            && currentPo.getSourceId().equals(futurePO.getSourceId()))) {
-                        try {
-                            UserEntity userEntity = userService.findBySource(futurePO.getSource(), futurePO.getSourceId(), false);
-                            List<RoleEntity> roleEntity = null;
-                            if (roleUsedInTransfert != null && !roleUsedInTransfert.isEmpty()) {
-                                roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(Collectors.toList());
-                            }
-                            membershipService.transferApiOwnership(
-                                    createdOrUpdatedApiEntity.getId(),
-                                    new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
-                                    roleEntity);
-                        } catch (UserNotFoundException unfe) {
-
-                        }
-                    }
-                }
-            }
-
-            //Pages
-            final JsonNode pagesDefinition = jsonNode.path("pages");
-            if (pagesDefinition != null && pagesDefinition.isArray()) {
-                List<PageEntity> pagesList = objectMapper.readValue(pagesDefinition.toString(),
-                        objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class));
-                PageEntityTreeNode documentationTree = new PageEntityTreeNode(new PageEntity());
-                documentationTree.appendListToTree(pagesList);
-                createOrUpdateChildrenPages(createdOrUpdatedApiEntity.getId(), null, documentationTree.children);
-            }
-
-            //Plans
-            final JsonNode plansDefinition = jsonNode.path("plans");
-            if (plansDefinition != null && plansDefinition.isArray()) {
-                for (JsonNode planNode : plansDefinition) {
-                    PlanQuery query = new PlanQuery.Builder().
-                            api(createdOrUpdatedApiEntity.getId()).
-                            name(planNode.get("name").asText()).
-                            security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase())).
-                            build();
-                    List<PlanEntity> planEntities = planService.search(query).stream()
-                            .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
-                            .collect(toList());
-                    if (planEntities.isEmpty()) {
-                        NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
-                        newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
-                        planService.create(newPlanEntity);
-                    } else if (planEntities.size() == 1) {
-                        UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
-                        updatePlanEntity.setId(planEntities.iterator().next().getId());
-                        planService.update(updatePlanEntity);
-                    } else {
-                        LOGGER.error("Not able to identify the plan to update: {}. Too much plan with the same name", planNode.get("name").asText());
-                        throw new TechnicalManagementException("Not able to identify the plan to update: " + planNode.get("name").asText() + ". Too much plan with the same name");
-                    }
-                }
-            }
-            // Metadata
-            final JsonNode metadataDefinition = jsonNode.path("metadata");
-            if (metadataDefinition != null && metadataDefinition.isArray()) {
-                try {
-                    for (JsonNode metadataNode : metadataDefinition) {
-                        UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(metadataNode.toString(), UpdateApiMetadataEntity.class);
-                        updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
-                        apiMetadataService.update(updateApiMetadataEntity);
-                    }
-                } catch (Exception ex) {
-                    LOGGER.error("An error occurs while creating API metadata", ex);
-                    throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
-                }
-            }
-            return createdOrUpdatedApiEntity;
-        } catch (final IOException e) {
+            String apiId = jsonNode.has("id") ? jsonNode.get("id").asText() : null;
+            UpdateApiEntity importedApi = this.convertToEntity(apiDefinition, jsonNode, apiId);
+            ApiEntity createdApiEntity = create0(importedApi, userId, false, apiId);
+            createPageAndMedia(createdApiEntity, jsonNode);
+            updateApiReferences(createdApiEntity, jsonNode);
+            return createdApiEntity;
+        } catch (JsonProcessingException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
     }
 
+    private void createPageAndMedia(ApiEntity createdApiEntity, JsonNode jsonNode) {
+        final JsonNode apiMedia = jsonNode.path("apiMedia");
+        if (apiMedia != null && apiMedia.isArray()) {
+            for (JsonNode media : apiMedia) {
+                mediaService.createWithDefinition(createdApiEntity.getId(), media.toString());
+            }
+        }
+
+        final JsonNode pages = jsonNode.path("pages");
+        if (pages != null && pages.isArray()) {
+            for (JsonNode page : pages) {
+                pageService.createWithDefinition(createdApiEntity.getId(), page.toString());
+            }
+        }
+
+        List<PageEntity> search = pageService
+            .search(new PageQuery.Builder().api(createdApiEntity.getId())
+                .name(SystemFolderType.ASIDE.folderName())
+                .type(PageType.SYSTEM_FOLDER).build());
+        if (search.isEmpty()) {
+            createSystemFolder(createdApiEntity.getId());
+        }
+    }
+
+    @Override
+    public ApiEntity updateWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
+        String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
+        try {
+            // Read the whole definition
+            final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+            UpdateApiEntity importedApi = this.convertToEntity(apiDefinition, jsonNode);
+            ApiEntity updatedApiEntity = update(apiEntity.getId(), importedApi);
+            updateApiReferences(updatedApiEntity, jsonNode);
+            return updatedApiEntity;
+        } catch (JsonProcessingException e) {
+            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
+            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+        }
+    }
+
+    private UpdateApiEntity convertToEntity(String apiDefinition, JsonNode jsonNode) throws JsonProcessingException {
+        return convertToEntity(apiDefinition, jsonNode, null);
+    }
+
+    private UpdateApiEntity convertToEntity(String apiDefinition, JsonNode jsonNode, String apiId) throws JsonProcessingException {
+        final UpdateApiEntity importedApi = objectMapper
+            // because definition could contains other values than the api itself (pages, members)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .readValue(apiDefinition, UpdateApiEntity.class);
+
+        // Initialize with a default path
+        if (importedApi.getPaths() == null || importedApi.getPaths().isEmpty()) {
+            Path path = new Path();
+            path.setPath("/");
+            importedApi.setPaths(Collections.singletonMap("/", path));
+        }
+
+        //create group if not exist & replace groupName by groupId
+        if (importedApi.getGroups() != null) {
+            Set<String> groupNames = new HashSet<>(importedApi.getGroups());
+            importedApi.getGroups().clear();
+            for (String name : groupNames) {
+                List<GroupEntity> groupEntities = groupService.findByName(name);
+                GroupEntity group;
+                if (groupEntities.isEmpty()) {
+                    NewGroupEntity newGroupEntity = new NewGroupEntity();
+                    newGroupEntity.setName(name);
+                    group = groupService.create(newGroupEntity);
+                } else {
+                    group = groupEntities.get(0);
+                }
+                importedApi.getGroups().add(group.getId());
+            }
+        }
+
+        // Views & Categories
+        // Before 3.0.2, API 'categories' were called 'views'. This is for compatibility.
+        final JsonNode viewsDefinition = jsonNode.path("views");
+        if (viewsDefinition != null && viewsDefinition.isArray()) {
+            Set<String> categories = new HashSet<>();
+            for (JsonNode viewNode : viewsDefinition) {
+                categories.add(viewNode.asText());
+            }
+            importedApi.setCategories(categories);
+        }
+
+        return importedApi;
+    }
+
+    private void updateApiReferences(ApiEntity createdOrUpdatedApiEntity, JsonNode jsonNode) throws JsonProcessingException {
+
+        // Members
+        final JsonNode membersToImport = jsonNode.path("members");
+        if (membersToImport != null && membersToImport.isArray()) {
+            // get current members of the api
+            Set<MemberToImport> membersAlreadyPresent = membershipService
+                .getMembersByReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId())
+                .stream()
+                .map(member -> {
+                    UserEntity userEntity = userService.findById(member.getId());
+                    return new MemberToImport(userEntity.getSource(), userEntity.getSourceId(), member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()), null);
+                }).collect(toSet());
+            // get the current PO
+            Optional<RoleEntity> optPoRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
+            if (optPoRole.isPresent()) {
+                String poRoleId = optPoRole.get().getId();
+                MemberToImport currentPo = membersAlreadyPresent.stream()
+                    .filter(memberToImport -> memberToImport.getRoles().contains(poRoleId))
+                    .findFirst()
+                    .orElse(new MemberToImport());
+
+                List<String> roleUsedInTransfert = null;
+                MemberToImport futurePO = null;
+
+
+                // upsert members
+                for (final JsonNode memberNode : membersToImport) {
+                    MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
+                    String roleToAdd = memberToImport.getRole();
+                    List<String> rolesToImport = memberToImport.getRoles();
+                    if (roleToAdd != null && !roleToAdd.isEmpty()) {
+                        if (rolesToImport == null) {
+                            rolesToImport = new ArrayList<>();
+                            memberToImport.setRoles(rolesToImport);
+                        }
+                        Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(RoleScope.API, roleToAdd);
+                        if (optRoleToAddEntity.isPresent()) {
+                            rolesToImport.add(optRoleToAddEntity.get().getId());
+                        } else {
+                            LOGGER.warn("Role {} does not exist", roleToAdd);
+                        }
+                    }
+                    if (rolesToImport != null) {
+                        rolesToImport.sort(Comparator.naturalOrder());
+                    }
+                    boolean presentWithSameRole = memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && membersAlreadyPresent
+                        .stream()
+                        .anyMatch(m -> {
+                            m.getRoles().sort(Comparator.naturalOrder());
+                            return
+                                m.getRoles().equals(memberToImport.getRoles())
+                                    && (m.getSourceId().equals(memberToImport.getSourceId())
+                                    && m.getSource().equals(memberToImport.getSource()));
+                        });
+
+                    // add/update members if :
+                    //  - not already present with the same role
+                    //  - not the new PO
+                    //  - not the current PO
+                    if (!presentWithSameRole
+                        && (memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && !memberToImport.getRoles().contains(poRoleId))
+                        && !(memberToImport.getSourceId().equals(currentPo.getSourceId())
+                        && memberToImport.getSource().equals(currentPo.getSource()))) {
+                        try {
+                            UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
+
+                            rolesToImport.forEach(role ->
+                                membershipService.addRoleToMemberOnReference(
+                                    MembershipReferenceType.API,
+                                    createdOrUpdatedApiEntity.getId(),
+                                    MembershipMemberType.USER,
+                                    userEntity.getId(),
+                                    role)
+                            );
+                        } catch (UserNotFoundException unfe) {
+
+                        }
+                    }
+
+                    // get the future role of the current PO
+                    if (currentPo.getSourceId().equals(memberToImport.getSourceId())
+                        && currentPo.getSource().equals(memberToImport.getSource())
+                        && !rolesToImport.contains(poRoleId)) {
+                        roleUsedInTransfert = rolesToImport;
+                    }
+
+                    if (rolesToImport.contains(poRoleId)) {
+                        futurePO = memberToImport;
+                    }
+                }
+
+                // transfer the ownership
+                if (futurePO != null
+                    && !(currentPo.getSource().equals(futurePO.getSource())
+                    && currentPo.getSourceId().equals(futurePO.getSourceId()))) {
+                    try {
+                        UserEntity userEntity = userService.findBySource(futurePO.getSource(), futurePO.getSourceId(), false);
+                        List<RoleEntity> roleEntity = null;
+                        if (roleUsedInTransfert != null && !roleUsedInTransfert.isEmpty()) {
+                            roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(Collectors.toList());
+                        }
+                        membershipService.transferApiOwnership(
+                            createdOrUpdatedApiEntity.getId(),
+                            new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
+                            roleEntity);
+                    } catch (UserNotFoundException unfe) {
+
+                    }
+                }
+            }
+        }
+
+        //Pages
+        final JsonNode pagesDefinition = jsonNode.path("pages");
+        if (pagesDefinition != null && pagesDefinition.isArray()) {
+            List<PageEntity> pagesList = objectMapper.readValue(pagesDefinition.toString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class));
+            PageEntityTreeNode documentationTree = new PageEntityTreeNode(new PageEntity());
+            documentationTree.appendListToTree(pagesList);
+            createOrUpdateChildrenPages(createdOrUpdatedApiEntity.getId(), null, documentationTree.children);
+        }
+
+        //Plans
+        final JsonNode plansDefinition = jsonNode.path("plans");
+        if (plansDefinition != null && plansDefinition.isArray()) {
+            for (JsonNode planNode : plansDefinition) {
+                PlanQuery query = new PlanQuery.Builder().
+                    api(createdOrUpdatedApiEntity.getId()).
+                    name(planNode.get("name").asText()).
+                    security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase())).
+                    build();
+                List<PlanEntity> planEntities = planService.search(query).stream()
+                    .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
+                    .collect(toList());
+                if (planEntities.isEmpty()) {
+                    NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
+                    newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
+                    planService.create(newPlanEntity);
+                } else if (planEntities.size() == 1) {
+                    UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
+                    updatePlanEntity.setId(planEntities.iterator().next().getId());
+                    planService.update(updatePlanEntity);
+                } else {
+                    LOGGER.error("Not able to identify the plan to update: {}. Too much plan with the same name", planNode.get("name").asText());
+                    throw new TechnicalManagementException("Not able to identify the plan to update: " + planNode.get("name").asText() + ". Too much plan with the same name");
+                }
+            }
+        }
+        // Metadata
+        final JsonNode metadataDefinition = jsonNode.path("metadata");
+        if (metadataDefinition != null && metadataDefinition.isArray()) {
+            try {
+                for (JsonNode metadataNode : metadataDefinition) {
+                    UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(metadataNode.toString(), UpdateApiMetadataEntity.class);
+                    updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
+                    apiMetadataService.update(updateApiMetadataEntity);
+                }
+            } catch (Exception ex) {
+                LOGGER.error("An error occurs while creating API metadata", ex);
+                throw new TechnicalManagementException("An error occurs while creating API Metadata", ex);
+            }
+        }
+    }
+
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
-        UrlSanitizerUtils.checkAllowed(apiDefinitionOrURL, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
-        Buffer buffer = httpClientService.request(HttpMethod.GET, apiDefinitionOrURL, null, null, null);
-        return buffer.toString();
+        if (apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
+            UrlSanitizerUtils.checkAllowed(apiDefinitionOrURL, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
+            Buffer buffer = httpClientService.request(HttpMethod.GET, apiDefinitionOrURL, null, null, null);
+            return buffer.toString();
+        }
+        return apiDefinitionOrURL;
     }
 
     class PageEntityTreeNode {
@@ -1615,15 +1693,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
 
-            PageQuery query = new PageQuery.Builder().
-                    api(apiId).
-                    name(pageEntityToImport.getName()).
-                    type(PageType.valueOf(pageEntityToImport.getType())).
-                    build();
-            List<PageEntity> pageEntities = pageService.search(query);
+            PageEntity createdOrUpdatedPage = pageEntityToImport.getId() != null ? pageService.findById(pageEntityToImport.getId()) : null;
 
-            PageEntity createdOrUpdatedPage = null;
-            if (pageEntities == null || pageEntities.isEmpty()) {
+            if (createdOrUpdatedPage == null) {
                 NewPageEntity newPage = new NewPageEntity();
                 newPage.setConfiguration(pageEntityToImport.getConfiguration());
                 newPage.setContent(pageEntityToImport.getContent());
@@ -1638,7 +1710,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 newPage.setType(PageType.valueOf(pageEntityToImport.getType()));
 
                 createdOrUpdatedPage = pageService.createPage(apiId, newPage);
-            } else if (pageEntities.size() == 1) {
+            } else {
                 UpdatePageEntity updatePageEntity = new UpdatePageEntity();
                 updatePageEntity.setConfiguration(pageEntityToImport.getConfiguration());
                 updatePageEntity.setContent(pageEntityToImport.getContent());
@@ -1651,10 +1723,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updatePageEntity.setPublished(pageEntityToImport.isPublished());
                 updatePageEntity.setSource(pageEntityToImport.getSource());
 
-                createdOrUpdatedPage = pageService.update(pageEntities.get(0).getId(), updatePageEntity);
-            } else {
-                LOGGER.error("Not able to identify the page to update: {}. Too much page with the same name", pageEntityToImport.getName());
-                throw new TechnicalManagementException("Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much page with the same name");
+                createdOrUpdatedPage = pageService.update(pageEntityToImport.getId(), updatePageEntity);
             }
 
             if (child.children != null && !child.children.isEmpty()) {
@@ -1711,12 +1780,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiRepository.update(api);
                 // Audit
                 auditService.createApiAuditLog(
-                        apiId,
-                        Collections.emptyMap(),
-                        API_UPDATED,
-                        api.getUpdatedAt(),
-                        previousApi,
-                        api);
+                    apiId,
+                    Collections.emptyMap(),
+                    API_UPDATED,
+                    api.getUpdatedAt(),
+                    previousApi,
+                    api);
             } else {
                 throw new ApiNotFoundException(apiId);
             }
@@ -1767,16 +1836,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (metadataList != null) {
             final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
             metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(),
-                    metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
+                metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
             apiModelEntity.setMetadata(mapMetadata);
             if (decodeTemplate) {
                 try {
                     Template apiMetadataTemplate = new Template(apiModelEntity.getId(), new StringReader(mapMetadata.toString()), freemarkerConfiguration);
                     String decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(apiMetadataTemplate, Collections.singletonMap("api", apiModelEntity));
                     Map<String, String> metadataDecoded = Arrays
-                            .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                            .map(entry -> entry.split("="))
-                            .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+                        .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                        .map(entry -> entry.split("="))
+                        .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
                     apiModelEntity.setMetadata(metadataDecoded);
                 } catch (Exception ex) {
                     throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
@@ -1814,7 +1883,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Search APIs by {}", query);
             return filterApiByQuery(this.convert(apiRepository.search(queryToCriteria(query).build())).stream(), query)
-                    .collect(toList());
+                .collect(toList());
         } catch (TechnicalException ex) {
             final String errorMessage = "An error occurs while trying to search for APIs: " + query;
             LOGGER.error(errorMessage, ex);
@@ -1825,9 +1894,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Collection<ApiEntity> search(String query, Map<String, Object> filters) {
         Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class)
-                .setQuery(query)
-                .setFilters(filters)
-                .build();
+            .setQuery(query)
+            .setFilters(filters)
+            .build();
 
         SearchResult matchApis = searchEngineService.search(apiQuery);
         return matchApis.getDocuments().stream().map(this::findById).collect(toList());
@@ -1851,8 +1920,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
         });
         return entities.stream()
-                .filter(apiHeaderEntity -> apiHeaderEntity.getValue() != null && !apiHeaderEntity.getValue().isEmpty())
-                .collect(Collectors.toList());
+            .filter(apiHeaderEntity -> apiHeaderEntity.getValue() != null && !apiHeaderEntity.getValue().isEmpty())
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -1893,7 +1962,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         if (!duplicateApiEntity.getFilteredFields().contains("members")) {
             final Set<MembershipEntity> membershipsToDuplicate =
-                    membershipService.getMembershipsByReference(io.gravitee.rest.api.model.MembershipReferenceType.API, apiId);
+                membershipService.getMembershipsByReference(io.gravitee.rest.api.model.MembershipReferenceType.API, apiId);
             Optional<RoleEntity> optPrimaryOwnerRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
             if (optPrimaryOwnerRole.isPresent()) {
                 String primaryOwnerRoleId = optPrimaryOwnerRole.get().getId();
@@ -1950,10 +2019,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setWorkflowState(workflowState);
 
         notifierService.trigger(hook, apiId,
-                new NotificationParamsBuilder()
-                        .api(apiEntity)
-                        .user(userService.findById(userId))
-                        .build());
+            new NotificationParamsBuilder()
+                .api(apiEntity)
+                .user(userService.findById(userId))
+                .build());
         return apiEntity;
     }
 
@@ -1963,8 +2032,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return builder;
         }
         builder.label(query.getLabel())
-                .name(query.getName())
-                .version(query.getVersion());
+            .name(query.getName())
+            .version(query.getVersion());
 
         if (!isBlank(query.getCategory())) {
             builder.category(categoryService.findById(query.getCategory()).getId());
@@ -1980,8 +2049,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
         if (query.getLifecycleStates() != null) {
             builder.lifecycleStates(query.getLifecycleStates().stream()
-                    .map(apiLifecycleState -> ApiLifecycleState.valueOf(apiLifecycleState.name()))
-                    .collect(toList()));
+                .map(apiLifecycleState -> ApiLifecycleState.valueOf(apiLifecycleState.name()))
+                .collect(toList()));
         }
 
         return builder;
@@ -2008,12 +2077,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             ApiEntity apiEntity = convert(apiRepository.update(api), getPrimaryOwner(api), null);
             // Audit
             auditService.createApiAuditLog(
-                    apiId,
-                    Collections.emptyMap(),
-                    API_UPDATED,
-                    api.getUpdatedAt(),
-                    previousApi,
-                    api);
+                apiId,
+                Collections.emptyMap(),
+                API_UPDATED,
+                api.getUpdatedAt(),
+                previousApi,
+                api);
 
             EventType eventType = null;
             switch (lifecycleState) {
@@ -2048,9 +2117,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // no changes for logging configuration, continue
             if (loggingToUpdate == loggingUpdated ||
-                    (loggingToUpdate != null && loggingUpdated != null
-                            && Objects.equals(loggingToUpdate.getMode(), loggingUpdated.getMode())
-                            && Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition()))) {
+                (loggingToUpdate != null && loggingUpdated != null
+                    && Objects.equals(loggingToUpdate.getMode(), loggingUpdated.getMode())
+                    && Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition()))) {
                 return;
             }
 
@@ -2066,12 +2135,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Audit
             auditService.createApiAuditLog(
-                    apiUpdated.getId(),
-                    Collections.emptyMap(),
-                    auditEvent,
-                    new Date(),
-                    loggingToUpdate,
-                    loggingUpdated);
+                apiUpdated.getId(),
+                Collections.emptyMap(),
+                auditEvent,
+                new Date(),
+                loggingToUpdate,
+                loggingUpdated);
         } catch (Exception ex) {
             LOGGER.error("An error occurs while auditing API logging configuration for API: {}", apiUpdated.getId(), ex);
             throw new TechnicalManagementException("An error occurs while auditing API logging configuration for API: " + apiUpdated.getId(), ex);
@@ -2110,12 +2179,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
         userService.findByIds(memberships.stream().map(MemberEntity::getId).collect(toList()))
-                .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
+            .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         final List<CategoryEntity> categories = categoryService.findAll();
         return streamApis
-                .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), categories))
-                .collect(toSet());
+            .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), categories))
+            .collect(toSet());
     }
 
     private ApiEntity convert(Api api) {
@@ -2135,7 +2204,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (api.getDefinition() != null) {
             try {
                 io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(api.getDefinition(),
-                        io.gravitee.definition.model.Api.class);
+                    io.gravitee.definition.model.Api.class);
 
                 apiEntity.setProxy(apiDefinition.getProxy());
                 apiEntity.setPaths(apiDefinition.getPaths());
@@ -2146,7 +2215,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 // Issue https://github.com/gravitee-io/issues/issues/3356
                 if (apiDefinition.getProxy().getVirtualHosts() != null &&
-                        !apiDefinition.getProxy().getVirtualHosts().isEmpty()) {
+                    !apiDefinition.getProxy().getVirtualHosts().isEmpty()) {
                     apiEntity.setContextPath(apiDefinition.getProxy().getVirtualHosts().get(0).getPath());
                 }
 
@@ -2222,7 +2291,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
             for (final String apiCategory : apiCategories) {
                 final Optional<CategoryEntity> optionalCategory =
-                        categories.stream().filter(c -> apiCategory.equals(c.getKey()) || apiCategory.equals(c.getId())).findAny();
+                    categories.stream().filter(c -> apiCategory.equals(c.getKey()) || apiCategory.equals(c.getId())).findAny();
                 optionalCategory.ifPresent(category -> newApiCategories.add(category.getId()));
             }
             api.setCategories(newApiCategories);
@@ -2245,7 +2314,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiDefinition.setPaths(updateApiEntity.getPaths());
             if (updateApiEntity.getPathMappings() != null) {
                 apiDefinition.setPathMappings(updateApiEntity.getPathMappings().stream()
-                        .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
+                    .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
             }
 
             apiDefinition.setServices(updateApiEntity.getServices());

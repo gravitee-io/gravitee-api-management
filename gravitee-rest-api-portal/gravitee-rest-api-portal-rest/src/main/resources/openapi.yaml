@@ -585,6 +585,25 @@ paths:
           $ref: '#/components/responses/APINotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /apis/{apiId}/media/{mediaHash}:
+    parameters:
+      - $ref: '#/components/parameters/apiIdParam'
+      - $ref: '#/components/parameters/mediaHashParam'
+    get:
+      tags:
+        - Api
+      summary: Get the api media.
+      operationId: getApiMedia
+      description: |
+        Get api media.
+      security: []
+      responses:
+        200:
+          $ref: '#/components/responses/MediaSuccess'
+        404:
+          $ref: '#/components/responses/APINotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
 
   /applications:
     get:
@@ -2455,6 +2474,13 @@ components:
       in: path
       required: true
       description: Id of a user
+      schema:
+        type: string
+    mediaHashParam:
+      name: mediaHash
+      in: path
+      required: true
+      description: Hash of media
       schema:
         type: string
     ###############
@@ -4636,6 +4662,13 @@ components:
             $ref: '#/components/schemas/PagesResponse'
     PictureSuccess:
       description: A picture
+      content:
+        'image/*':
+          schema:
+            type: string
+            format: binary
+    MediaSuccess:
+      description: A media
       content:
         'image/*':
           schema:

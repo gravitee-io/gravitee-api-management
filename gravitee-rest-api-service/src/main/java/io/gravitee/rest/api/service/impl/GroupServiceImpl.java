@@ -80,6 +80,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     private PageRepository pageRepository;
     @Autowired
     private PlanRepository planRepository;
+    @Autowired
+    private IdentityProviderRepository identityProviderRepository;
     
     @Override
     public List<GroupEntity> findAll() {
@@ -388,6 +390,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
                 //remove from API pages
                 removeGroupFromPages(groupId, updatedDate, api.getId());
+
+                //remove idp group mapping using this group
+                removeIDPGroupMapping(groupId, updatedDate);
             });
             applicationRepository.findByGroups(Collections.singletonList(groupId)).forEach(application -> {
                 application.getGroups().remove(groupId);
@@ -421,11 +426,45 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
     }
 
+    private void removeIDPGroupMapping(String groupId, Date updatedDate) {
+        try {
+            final Set<IdentityProvider> allIdp = this.identityProviderRepository.findAll();
+            boolean idpHasBeenModified;
+            for(IdentityProvider idp : allIdp) {
+                idpHasBeenModified = false;
+                Map<String, String[]> groupMappings = idp.getGroupMappings();
+                if (groupMappings != null && !groupMappings.isEmpty()) {
+                    for (Map.Entry<String, String[]> mapping : groupMappings.entrySet()) {
+                        if (mapping.getValue() != null && mapping.getValue().length > 0) {
+                            List<String> groups = new ArrayList<>(Arrays.asList(mapping.getValue()));
+                            if (groups.contains(groupId)) {
+                                groups.remove(groupId);
+                                if (groups.isEmpty()) {
+                                    groupMappings.remove(mapping.getKey());
+                                } else {
+                                    groupMappings.put(mapping.getKey(), groups.toArray(new String[groups.size()]));
+                                }
+                                idpHasBeenModified = true;
+                            }
+                        }
+                    }
+                    if (idpHasBeenModified) {
+                        idp.setUpdatedAt(updatedDate);
+                        this.identityProviderRepository.update(idp);
+                    }
+                }
+            }
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to delete a group", ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+        }
+    }
+
     private void removeFromAPIPlans(String groupId, Date updatedDate, String apiId) {
         try {
             final Set<Plan> apiPlans = this.planRepository.findByApi(apiId);
             for (Plan plan : apiPlans) {
-                if (plan.getExcludedGroups().contains(groupId)) {
+                if (plan.getExcludedGroups() != null && plan.getExcludedGroups().contains(groupId)) {
                     plan.getExcludedGroups().remove(groupId);
                     plan.setUpdatedAt(updatedDate);
                     this.planRepository.update(plan);
@@ -445,7 +484,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             final List<Page> apiPages = this.pageRepository.search(criteriaBuilder.build());
             for (Page page : apiPages) {
-                if (page.getExcludedGroups().contains(groupId)) {
+                if (page.getExcludedGroups() != null && page.getExcludedGroups().contains(groupId)) {
                     page.getExcludedGroups().remove(groupId);
                     page.setUpdatedAt(updatedDate);
                     this.pageRepository.update(page);

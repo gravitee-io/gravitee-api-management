@@ -23,11 +23,12 @@ import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Workflow;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -235,6 +236,9 @@ public class ApiService_UpdateTest {
         Endpoint endpoint = new HttpEndpoint(null, null);
         endpointGroup.setEndpoints(singleton(endpoint));
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
+        Cors cors = mock(Cors.class);
+        when(cors.getAccessControlAllowOrigin()).thenReturn(Sets.newSet("http://example.com", "localhost", "https://10.140.238.25:8080", "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}"));
+        when(proxy.getCors()).thenReturn(cors);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
@@ -421,6 +425,13 @@ public class ApiService_UpdateTest {
         assertUpdate(ApiLifecycleState.CREATED, PUBLISHED, true);
         assertUpdate(ApiLifecycleState.CREATED, UNPUBLISHED, true);
         assertUpdate(ApiLifecycleState.CREATED, DEPRECATED, true);
+    }
+
+    @Test(expected = AllowOriginNotAllowedException.class)
+    public void shouldHaveAllowOriginNotAllowed() throws TechnicalException {
+        prepareUpdate();
+        existingApi.getProxy().getCors().getAccessControlAllowOrigin().add("/test^");
+        apiService.update(API_ID, existingApi);
     }
 
     private void assertUpdate(final ApiLifecycleState fromLifecycleState,
