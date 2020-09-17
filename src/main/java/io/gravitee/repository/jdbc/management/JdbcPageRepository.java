@@ -406,13 +406,12 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
 
-            String select = "select p.*, " +
+            String select = "select distinct p.*, " +
                     "pm.k as pm_k, pm.v as pm_v, " +
                     "pc.k as pc_k, pc.v as pc_v " +
                     "from pages p " +
                     "left join page_configuration pc on p.id = pc.page_id " +
-                    "left join page_metadata pm on p.id = pm.page_id " +
-                    "where";
+                    "left join page_metadata pm on p.id = pm.page_id ";
             StringJoiner where = new StringJoiner(" and ", " ", " ");
             List<Object> params = new ArrayList<>();
 
@@ -452,6 +451,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                     where.add("p.use_auto_fetch = ?");
                     params.add(criteria.getUseAutoFetch().booleanValue());
                 }
+            }
+
+            if (where.toString().trim().length() > 0) {
+                select += " where ";
             }
 
             jdbcTemplate.query(select + where.toString() + "order by " + ESCAPED_ORDER_COLUMN_NAME, rowMapper, params.toArray());
