@@ -50,6 +50,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         group.setSystemInvitation(true);
         group.setEmailInvitation(true);
         group.setMaxInvitation(10);
+        group.setDisableMembershipNotifications(true);
 
         Group group1 = groupRepository.create(group);
 
@@ -63,6 +64,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertEquals(group.isSystemInvitation(), group1.isSystemInvitation());
         assertEquals(group.isEmailInvitation(), group1.isEmailInvitation());
         assertEquals(group.getMaxInvitation(), group1.getMaxInvitation());
+        assertEquals(group.isDisableMembershipNotifications(), group1.isDisableMembershipNotifications());
     }
 
     @Test
@@ -78,6 +80,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertTrue(group.get().isLockApplicationRole());
         assertTrue(group.get().isSystemInvitation());
         assertTrue(group.get().isEmailInvitation());
+        assertTrue(group.get().isDisableMembershipNotifications());
         assertEquals(99, group.get().getMaxInvitation().intValue());
         assertEquals(2, group.get().getEventRules().size());
     }
@@ -101,7 +104,8 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         group.setLockApplicationRole(true);
         group.setSystemInvitation(true);
         group.setEmailInvitation(true);
-        group.setMaxInvitation(1000);
+        group.setDisableMembershipNotifications(false);
+        group.setMaxInvitation(99);
 
         Group update = groupRepository.update(group);
 
@@ -109,11 +113,12 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertEquals(group.getEnvironmentId(), update.getEnvironmentId());
         assertEquals(group.getName(), update.getName());
         assertTrue(compareDate(new Date(1000000000000L), update.getUpdatedAt()));
-        assertTrue(group.isLockApiRole());
-        assertTrue(group.isLockApplicationRole());
-        assertTrue(group.isSystemInvitation());
-        assertTrue(group.isEmailInvitation());
-        assertEquals(1000, group.getMaxInvitation().intValue());
+        assertTrue(update.isLockApiRole());
+        assertTrue(update.isLockApplicationRole());
+        assertTrue(update.isSystemInvitation());
+        assertTrue(update.isEmailInvitation());
+        assertFalse(update.isDisableMembershipNotifications());
+        assertEquals(99, update.getMaxInvitation().intValue());
     }
 
     @Test

@@ -89,6 +89,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(newApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(newApplication.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(newApplication.getUpdatedAt()).thenReturn(parse("12/02/2016"));
+        when(newApplication.isDisableMembershipNotifications()).thenReturn(true);
         Map<String, String> createMetadata = new HashMap<>();
         createMetadata.put("type", "app-type");
         when(newApplication.getMetadata()).thenReturn(createMetadata);
@@ -106,6 +107,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(updatedApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(updatedApplication.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(updatedApplication.getUpdatedAt()).thenReturn(parse("22/02/2016"));
+        when(updatedApplication.isDisableMembershipNotifications()).thenReturn(true);
         Map<String, String> updateMetadata = new HashMap<>();
         updateMetadata.put("type", "update-type");
         when(updatedApplication.getMetadata()).thenReturn(updateMetadata);

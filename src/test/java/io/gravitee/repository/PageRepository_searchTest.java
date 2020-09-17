@@ -124,4 +124,11 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
         assertEquals(1, pages.size());
         assertEquals("FindPortalPage-homepage", pages.iterator().next().getId());
     }
+
+    @Test
+    public void shouldFindPortalPageWithoutCriteria() throws Exception {
+        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().build());
+        assertNotNull(pages);
+        assertEquals(11, pages.size());
+    }
 }

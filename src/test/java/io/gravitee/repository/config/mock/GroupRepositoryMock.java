@@ -53,6 +53,7 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
         createGroup.setSystemInvitation(true);
         createGroup.setEmailInvitation(true);
         createGroup.setMaxInvitation(10);
+        createGroup.setDisableMembershipNotifications(true);
         when(groupRepository.create(any())).thenReturn(createGroup);
 
         final Group group_application_1 = new Group();
@@ -63,6 +64,7 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
         group_application_1.setLockApplicationRole(true);
         group_application_1.setSystemInvitation(true);
         group_application_1.setEmailInvitation(true);
+        group_application_1.setDisableMembershipNotifications(true);
         group_application_1.setMaxInvitation(99);
         GroupEventRule eventRule1 = new GroupEventRule();
         eventRule1.setEvent(GroupEvent.API_CREATE);
@@ -78,7 +80,13 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
         group_updated.setName("Modified Name");
         group_updated.setEnvironmentId("new_DEFAULT");
         group_updated.setUpdatedAt(new Date(1000000000000L));
-        
+        group_updated.setLockApiRole(true);
+        group_updated.setLockApplicationRole(true);
+        group_updated.setSystemInvitation(true);
+        group_updated.setEmailInvitation(true);
+        group_updated.setDisableMembershipNotifications(false);
+        group_updated.setMaxInvitation(99);
+
         when(groupRepository.findAll()).thenReturn(newSet(group_application_1, group_api_to_delete));
         when(groupRepository.findAllByEnvironment("DEFAULT")).thenReturn(newSet(createGroup));
         when(groupRepository.findById("group-application-1")).thenReturn(of(group_application_1));
