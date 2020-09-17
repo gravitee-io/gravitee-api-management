@@ -39,7 +39,8 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   constructor(
     private pageService: PageService,
     private router: Router,
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     const page = this.pageService.getCurrentPage();
@@ -61,6 +62,10 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
           }
 
           return defaultRenderer.link(href, title, text);
+        },
+        image(href, title, text) {
+          const portalHref = href.replace(/\/management\/organizations\/[A-Za-z0-9-]*/g, '/portal');
+          return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
         }
       };
 
@@ -72,7 +77,6 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
           return hljs.highlight(validLanguage, code).value;
         },
       });
-
       this.pageContent = marked(page.content);
     }
   }
@@ -111,7 +115,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
       const currentYPosition = window.pageYOffset;
       for (let index = 0; index < this.pageElementsPosition.length && !anchor; index++) {
         const item = this.pageElementsPosition[index];
-        const nextItem = this.pageElementsPosition[index+1];
+        const nextItem = this.pageElementsPosition[index + 1];
         if (currentYPosition < item.offsetTop) {
           anchor = null;
         } else if (currentYPosition >= item.offsetTop && (!nextItem || (nextItem && currentYPosition < nextItem.offsetTop))) {
