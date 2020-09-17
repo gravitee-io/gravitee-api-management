@@ -39,6 +39,10 @@ public class ApiDefaultSerializer extends ApiSerializer {
     public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         super.serialize(apiEntity, jsonGenerator, serializerProvider);
 
+        if (apiEntity.getId() != null) {
+            jsonGenerator.writeStringField("id", apiEntity.getId());
+        }
+
         // path mappings part
         if (apiEntity.getPathMappings() != null) {
             jsonGenerator.writeArrayFieldStart("path_mappings");
@@ -60,9 +64,9 @@ public class ApiDefaultSerializer extends ApiSerializer {
         // response templates
         if (apiEntity.getResponseTemplates() != null) {
             jsonGenerator.writeObjectFieldStart("response_templates");
-            for(Map.Entry<String, ResponseTemplates> rt : apiEntity.getResponseTemplates().entrySet()) {
+            for (Map.Entry<String, ResponseTemplates> rt : apiEntity.getResponseTemplates().entrySet()) {
                 jsonGenerator.writeObjectFieldStart(rt.getKey());
-                for(Map.Entry<String, ResponseTemplate> entry : rt.getValue().getTemplates().entrySet()) {
+                for (Map.Entry<String, ResponseTemplate> entry : rt.getValue().getTemplates().entrySet()) {
                     jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
                 }
                 jsonGenerator.writeEndObject();

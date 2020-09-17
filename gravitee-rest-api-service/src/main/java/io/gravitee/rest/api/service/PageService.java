@@ -51,13 +51,15 @@ public interface PageService {
 	PageEntity createPage(String apiId, NewPageEntity page);
 
 	PageEntity createPage(NewPageEntity page);
-	
+
 	PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
 
 	PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial);
 
 	void delete(String pageId);
-	
+
+	void deleteAllByApi(String apiId);
+
 	int findMaxApiPageOrderByApi(String apiId);
 
 	int findMaxPortalPageOrder();
@@ -67,7 +69,7 @@ public interface PageService {
 	void fetchAll(PageQuery query, String contributor);
 
 	long execAutoFetch();
-	
+
 	PageEntity fetch(String pageId, String contributor);
 
 	List<PageEntity> importFiles(ImportPageEntity pageEntity);
@@ -81,6 +83,8 @@ public interface PageService {
 	Map<SystemFolderType, String> initialize(String environmentId);
 
 	PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId);
+
+    PageEntity createWithDefinition(String apiId, String toString);
 
 	/**
 	 * Check if the page is used as GeneralCondition by an active Plan for the given ApiID

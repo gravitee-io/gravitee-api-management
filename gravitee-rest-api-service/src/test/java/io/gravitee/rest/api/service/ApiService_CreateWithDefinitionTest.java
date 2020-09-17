@@ -127,7 +127,7 @@ public class ApiService_CreateWithDefinitionTest {
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
 
-        
+
         MemberEntity po = new MemberEntity();
         po.setId("admin");
         po.setReferenceId(API_ID);
@@ -140,7 +140,7 @@ public class ApiService_CreateWithDefinitionTest {
         owner.setRoles(Arrays.asList(ownerRoleEntity));
         when(membershipService.getMembersByReference(any(), any())).thenReturn(Collections.singleton(po));
 
-        
+
         UserEntity admin = new UserEntity();
         admin.setId(po.getId());
         admin.setSource(SOURCE);
@@ -159,9 +159,9 @@ public class ApiService_CreateWithDefinitionTest {
         when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
         when(userService.findById(memberEntity.getId())).thenReturn(admin);
 
-        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+        apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
-        verify(pageService, times(3)).createPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(2)).createWithDefinition(eq(API_ID), anyString());
         verify(membershipService, times(1)).addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
                 new MembershipService.MembershipMember(admin.getId(), null, MembershipMemberType.USER),
@@ -200,7 +200,7 @@ public class ApiService_CreateWithDefinitionTest {
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
 
-        
+
         MemberEntity po = new MemberEntity();
         po.setId("admin");
         po.setReferenceId(API_ID);
@@ -219,7 +219,7 @@ public class ApiService_CreateWithDefinitionTest {
         memberEntity.setRoles(Collections.singletonList(poRoleEntity));
         when(membershipService.addRoleToMemberOnReference(any(), any(), any())).thenReturn(memberEntity);
 
-        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+        apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
         verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addRoleToMemberOnReference(
@@ -253,9 +253,9 @@ public class ApiService_CreateWithDefinitionTest {
         user.setSourceId("ref-user");
         when(userService.findById(admin.getId())).thenReturn(admin);
 
-        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+        apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
-        verify(pageService, times(3)).createPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(2)).createWithDefinition(eq(API_ID), anyString());
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
@@ -281,9 +281,9 @@ public class ApiService_CreateWithDefinitionTest {
         user.setSourceId(API_ID);
         when(userService.findById(admin.getId())).thenReturn(admin);
 
-        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+        apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
-        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class));
+        verify(pageService, times(1)).createPage(any(), any(NewPageEntity.class));
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
@@ -305,7 +305,7 @@ public class ApiService_CreateWithDefinitionTest {
         admin.setSourceId(API_ID);
         when(userService.findById(admin.getId())).thenReturn(admin);
 
-        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+        apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
         verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, times(1)).addRoleToMemberOnReference(
@@ -335,7 +335,7 @@ public class ApiService_CreateWithDefinitionTest {
         user.setSourceId(API_ID);
         when(userService.findById(admin.getId())).thenReturn(admin);
 
-        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+        apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
         verify(planService, times(2)).create(any(NewPlanEntity.class));
         verify(apiRepository, never()).update(any());
@@ -359,7 +359,7 @@ public class ApiService_CreateWithDefinitionTest {
         admin.setSourceId(API_ID);
         when(userService.findById(admin.getId())).thenReturn(admin);
 
-        apiService.createOrUpdateWithDefinition(null, toBeImport, "admin");
+        apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
         verify(apiMetadataService, times(1)).create(any(NewApiMetadataEntity.class));
         verify(apiMetadataService, times(2)).update(any(UpdateApiMetadataEntity.class));

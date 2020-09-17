@@ -62,6 +62,7 @@
       "comment_required": false
     }
   ],
+  "id": "id-api",
   "path_mappings": [],
   "proxy": {
     "virtual_hosts": [

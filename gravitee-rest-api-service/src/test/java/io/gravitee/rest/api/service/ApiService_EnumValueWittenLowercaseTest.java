@@ -47,7 +47,7 @@ public class ApiService_EnumValueWittenLowercaseTest {
         ServiceConfiguration serviceConfiguration = new ServiceConfiguration();
         objectMapper = serviceConfiguration.objectMapper();
 
-        ApiCompositeSerializer apiSerializer = (ApiCompositeSerializer)serviceConfiguration.apiSerializer();
+        ApiCompositeSerializer apiSerializer = (ApiCompositeSerializer) serviceConfiguration.apiSerializer();
         apiSerializer.afterPropertiesSet();
 
         SimpleModule module = new SimpleModule();
@@ -65,31 +65,32 @@ public class ApiService_EnumValueWittenLowercaseTest {
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, ApiSerializer.Version.DEFAULT.getVersion());
-        metadata.put(ApiSerializer.METADATA_FILTERED_FIELDS_LIST, Arrays.asList("groups","members","pages", "plans","metadata"));
+        metadata.put(ApiSerializer.METADATA_FILTERED_FIELDS_LIST, Arrays.asList("groups", "members", "pages", "plans", "metadata", "media"));
         apiEntity.setMetadata(metadata);
 
         String result = objectMapper.writeValueAsString(apiEntity);
         assertThat(result).isEqualTo("{\n" +
-                "  \"name\" : \"test\",\n" +
-                "  \"description\" : \"Gravitee.io\",\n" +
-                "  \"visibility\" : \"PUBLIC\",\n" +
-                "  \"paths\" : { },\n" +
-                "  \"resources\" : [ ],\n" +
-                "  \"properties\" : [ ],\n" +
-                "  \"path_mappings\" : [ ]\n" +
-                "}");
+            "  \"name\" : \"test\",\n" +
+            "  \"description\" : \"Gravitee.io\",\n" +
+            "  \"visibility\" : \"PUBLIC\",\n" +
+            "  \"paths\" : { },\n" +
+            "  \"resources\" : [ ],\n" +
+            "  \"properties\" : [ ],\n" +
+            "  \"id\" : \"id-api\",\n" +
+            "  \"path_mappings\" : [ ]\n" +
+            "}");
     }
 
     @Test
     public void shouldConvertAsObjectForImportWithLowercaseEnum() throws IOException {
         final String lowercaseApiDefinition = "{\n" +
-                "  \"name\" : \"test\",\n" +
-                "  \"description\" : \"Gravitee.io\",\n" +
-                "  \"visibility\" : \"public\",\n" +
-                "  \"paths\" : { },\n" +
-                "  \"resources\" : [ ],\n" +
-                "  \"path_mappings\" : [ ]\n" +
-                "}";
+            "  \"name\" : \"test\",\n" +
+            "  \"description\" : \"Gravitee.io\",\n" +
+            "  \"visibility\" : \"public\",\n" +
+            "  \"paths\" : { },\n" +
+            "  \"resources\" : [ ],\n" +
+            "  \"path_mappings\" : [ ]\n" +
+            "}";
 
         final ApiEntity apiEntity = objectMapper.readValue(lowercaseApiDefinition, ApiEntity.class);
         assertEquals(Visibility.PUBLIC, apiEntity.getVisibility());
@@ -98,13 +99,13 @@ public class ApiService_EnumValueWittenLowercaseTest {
     @Test
     public void shouldConvertAsObjectForImportWithUppercaseEnum() throws IOException {
         final String lowercaseApiDefinition = "{\n" +
-                "  \"name\" : \"test\",\n" +
-                "  \"description\" : \"Gravitee.io\",\n" +
-                "  \"visibility\" : \"PUBLIC\",\n" +
-                "  \"paths\" : { },\n" +
-                "  \"resources\" : [ ],\n" +
-                "  \"path_mappings\" : [ ]\n" +
-                "}";
+            "  \"name\" : \"test\",\n" +
+            "  \"description\" : \"Gravitee.io\",\n" +
+            "  \"visibility\" : \"PUBLIC\",\n" +
+            "  \"paths\" : { },\n" +
+            "  \"resources\" : [ ],\n" +
+            "  \"path_mappings\" : [ ]\n" +
+            "}";
 
         final ApiEntity apiEntity = objectMapper.readValue(lowercaseApiDefinition, ApiEntity.class);
         assertEquals(Visibility.PUBLIC, apiEntity.getVisibility());

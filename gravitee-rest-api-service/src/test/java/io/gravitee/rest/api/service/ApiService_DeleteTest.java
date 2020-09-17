@@ -100,6 +100,10 @@ public class ApiService_DeleteTest {
     private CategoryService categoryService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private MediaService mediaService;
+    @Mock
+    private ApiMetadataService apiMetadataService;
 
     @Before
     public void setUp() {
@@ -123,7 +127,8 @@ public class ApiService_DeleteTest {
 
         apiService.delete(API_ID);
         verify(membershipService, times(1)).deleteReference(MembershipReferenceType.API, API_ID);
-
+        verify(mediaService, times(1)).deleteAllByApi(API_ID);
+        verify(apiMetadataService, times(1)).deleteAllByApi(API_ID);
     }
 
     @Test(expected = ApiNotDeletableException.class)
@@ -135,7 +140,6 @@ public class ApiService_DeleteTest {
 
         apiService.delete(API_ID);
         verify(membershipService, times(1)).deleteReference(MembershipReferenceType.API, API_ID);
-
     }
 
     @Test
@@ -150,8 +154,6 @@ public class ApiService_DeleteTest {
 
         verify(planService, times(1)).delete(PLAN_ID);
         verify(membershipService, times(1)).deleteReference(MembershipReferenceType.API, API_ID);
-
-
     }
 
     @Test
@@ -167,6 +169,8 @@ public class ApiService_DeleteTest {
         verify(planService, times(1)).delete(PLAN_ID);
         verify(apiQualityRuleRepository, times(1)).deleteByApi(API_ID);
         verify(membershipService, times(1)).deleteReference(MembershipReferenceType.API, API_ID);
-
+        verify(mediaService, times(1)).deleteAllByApi(API_ID);
+        verify(apiMetadataService, times(1)).deleteAllByApi(API_ID);
     }
+
 }

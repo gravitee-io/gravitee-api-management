@@ -36,6 +36,10 @@ public class PolicyCleaner {
     }
 
     public static String clearNullValues(String jsonPayload){
+        if (jsonPayload == null) {
+            return jsonPayload;
+        }
+
         try {
             // #4087 - ugly fix to remove null entries in the PolicyConfiguration
             // otherwise updating the API is impossible.

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
@@ -38,6 +39,7 @@ import java.util.Optional;
 import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -72,7 +74,9 @@ public class RoleService_UpdateTest {
         when(roleMock.getName()).thenReturn("new mock role");
         when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleMock.getPermissions()).thenReturn(new int[]{3008});
-        when(mockRoleRepository.update(any())).thenReturn(roleMock);
+        when(roleMock.getReferenceType()).thenReturn(RoleReferenceType.ORGANIZATION);
+        when(roleMock.getReferenceId()).thenReturn("orga#1");
+        when(mockRoleRepository.update(argThat(role -> role.getReferenceId().equals("orga#1") && role.getReferenceType() == RoleReferenceType.ORGANIZATION))).thenReturn(roleMock);
         when(mockRoleRepository.findById("updated_mock_role")).thenReturn(Optional.of(roleMock));
 
         RoleEntity entity = roleService.update(updateRoleEntityMock);

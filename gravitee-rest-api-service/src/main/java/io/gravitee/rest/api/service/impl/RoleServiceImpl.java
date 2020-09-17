@@ -147,6 +147,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             Role role = optRole.get();
             Role updatedRole = convert(roleEntity);
             updatedRole.setCreatedAt(role.getCreatedAt());
+            updatedRole.setReferenceId(role.getReferenceId());
+            updatedRole.setReferenceType(role.getReferenceType());
             RoleEntity entity = convert(roleRepository.update(updatedRole));
             auditService.createPortalAuditLog(
                     Collections.singletonMap(ROLE, role.getScope()+":"+role.getName()),

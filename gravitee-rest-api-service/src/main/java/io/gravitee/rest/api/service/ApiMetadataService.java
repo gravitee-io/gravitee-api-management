@@ -34,4 +34,6 @@ public interface ApiMetadataService {
     ApiMetadataEntity update(UpdateApiMetadataEntity metadata);
 
     void delete(String metadataId, String api);
+
+    void deleteAllByApi(String apiId);
 }
