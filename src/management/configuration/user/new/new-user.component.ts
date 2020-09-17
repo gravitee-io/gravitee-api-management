@@ -42,6 +42,14 @@ const NewUserComponent: ng.IComponentOptions = {
         $state.go('management.settings.users');
       });
     };
+
+    this.displayProviders = () => {
+      return this.identityProviders && this.identityProviders.length > 1;
+    }
+
+    this.displayProviderIdentifier = () => {
+      return this.displayProviders() && this.user.source !== 'gravitee';
+    }
   }
 };
 
