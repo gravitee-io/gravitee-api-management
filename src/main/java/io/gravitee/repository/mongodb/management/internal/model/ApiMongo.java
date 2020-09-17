@@ -26,7 +26,7 @@ import java.util.Set;
 
 /**
  * Mongo model for Api
- * 
+ *
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -41,7 +41,7 @@ public class ApiMongo extends Auditable {
     private String name;
 
     private String environmentId;
-    
+
     private String version;
 
     private String description;
@@ -49,11 +49,11 @@ public class ApiMongo extends Auditable {
     private String definition;
 
     private String lifecycleState;
-    
+
     private String visibility;
 
     private Date deployedAt;
-    
+
     private String picture;
 
     private Set<String> groups;
@@ -65,6 +65,8 @@ public class ApiMongo extends Auditable {
     private List<ApiMetadataMongo> metadatas;
 
     private String apiLifecycleState;
+
+    private boolean disableMembershipNotifications;
 
     private String background;
 
@@ -139,7 +141,7 @@ public class ApiMongo extends Auditable {
     public void setDeployedAt(Date deployedAt) {
         this.deployedAt = deployedAt;
     }
-    
+
     public String getPicture() {
         return picture;
     }
@@ -188,6 +190,14 @@ public class ApiMongo extends Auditable {
         this.apiLifecycleState = apiLifecycleState;
     }
 
+    public boolean isDisableMembershipNotifications() {
+        return disableMembershipNotifications;
+    }
+
+    public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
+        this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
     public String getBackground() {
         return background;
     }
@@ -221,6 +231,7 @@ public class ApiMongo extends Auditable {
         sb.append(", groups='").append(groups).append('\'');
         sb.append(", metadatas='").append(metadatas).append('\'');
         sb.append(", apiLifecycleState='").append(apiLifecycleState).append('\'');
+        sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications).append('\'');
         sb.append('}');
         return sb.toString();
     }

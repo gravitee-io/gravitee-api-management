@@ -24,11 +24,6 @@ db.plans.dropIndexes();
 db.plans.createIndex( { "api" : 1 } );
 db.plans.reIndex();
 
-// "environments" collection
-db.environments.dropIndexes();
-db.environments.createIndex( { "id" : 1 } );
-db.environments.reIndex();
-
 // "subscriptions" collection
 db.subscriptions.dropIndexes();
 db.subscriptions.createIndex( { "plan" : 1 } );
@@ -52,7 +47,6 @@ db.pages.reIndex();
 
 // "memberships" collection
 db.memberships.dropIndexes();
-db.memberships.createIndex( { "id" : 1 }, { unique : true } );
 db.memberships.createIndex( { "memberId" : 1 } );
 db.memberships.createIndex( { "member" : 1 } );
 db.memberships.createIndex( { "referenceId" : 1 } );
@@ -69,7 +63,6 @@ db.memberships.reIndex();
 
 // "roles" collection
 db.roles.dropIndexes();
-db.roles.createIndex( {"id": 1 } );
 db.roles.createIndex( {"scope": 1 } );
 db.roles.reIndex();
 
