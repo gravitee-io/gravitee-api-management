@@ -221,7 +221,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(pageRepository.search(argThat(o -> o == null || "DEFAULT".equals(o.getReferenceId())  && "ENVIRONMENT".equals(o.getReferenceType())))).thenReturn(asList(portalHomepage, portalNotHomepage));
         when(pageRepository.search(argThat(o -> o == null || "DEFAULT".equals(o.getReferenceId()) && "ENVIRONMENT".equals(o.getReferenceType()) && o.getHomepage() != null && o.getHomepage().equals(Boolean.TRUE)))).thenReturn(singletonList(portalHomepage));
         when(pageRepository.search(argThat(o -> o == null || "DEFAULT".equals(o.getReferenceId()) && "ENVIRONMENT".equals(o.getReferenceType()) && o.getHomepage() != null && o.getHomepage().equals(Boolean.FALSE)))).thenReturn(singletonList(portalNotHomepage));
-        when(pageRepository.search(argThat(o -> o.getReferenceId() == null && o.getReferenceType() == null && o.getHomepage() == null)))
+        when(pageRepository.search(argThat(o -> o != null && o.getReferenceId() == null && o.getReferenceType() == null && o.getHomepage() == null)))
                 .thenReturn(asList(findApiPage, mock(Page.class), mock(Page.class), mock(Page.class), mock(Page.class), mock(Page.class),
                         mock(Page.class), mock(Page.class), mock(Page.class), mock(Page.class), mock(Page.class)));
 
