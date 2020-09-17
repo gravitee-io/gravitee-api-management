@@ -718,7 +718,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                         i.setHomepage(false);
                         pageRepository.update(i);
                     } catch (TechnicalException e) {
-                        LOGGER.error("An error occurs while trying update homepage attribute from {}", page, e);
+                        logger.error("An error occurs while trying update homepage attribute from {}", page, e);
                     }
                 });
         }
@@ -1095,7 +1095,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             applicationContext.getAutowireCapableBeanFactory().autowireBean(fetcher);
             return fetcher;
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
             throw new FetcherException(e.getMessage(), e);
         }
     }
@@ -2181,7 +2181,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             JsonNode jsonNode = objectMapper.readTree(pageDefinition);
             return createPage(apiId, newPage, GraviteeContext.getCurrentEnvironment(), jsonNode.get("id").asText());
         } catch (JsonProcessingException e) {
-            LOGGER.error("An error occurs while trying to JSON deserialize the Page {}", pageDefinition, e);
+            logger.error("An error occurs while trying to JSON deserialize the Page {}", pageDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the Page definition.");
         }
     }
