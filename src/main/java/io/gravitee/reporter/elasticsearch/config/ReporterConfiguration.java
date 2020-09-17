@@ -200,7 +200,7 @@ public class ReporterConfiguration {
 	/**
 	 * Policy name Property name
 	 */
-	@Value("${reporters.elasticsearch.lifecycle.policy_property_name:'index.lifecycle.name'}")
+	@Value("${reporters.elasticsearch.lifecycle.policy_property_name:index.lifecycle.name}")
 	private String indexLifecyclePolicyPropertyName;
 
 	public List<Endpoint> getEndpoints() {
