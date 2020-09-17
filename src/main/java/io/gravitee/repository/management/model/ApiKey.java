@@ -24,7 +24,7 @@ import java.util.Objects;
  */
 public class ApiKey {
 	public enum AuditEvent implements Audit.ApiAuditEvent {
-		APIKEY_CREATED, APIKEY_RENEWED, APIKEY_REVOKED, APIKEY_EXPIRED
+		APIKEY_CREATED, APIKEY_RENEWED, APIKEY_REVOKED, APIKEY_EXPIRED, APIKEY_REACTIVATED
 	}
 
 	/**
