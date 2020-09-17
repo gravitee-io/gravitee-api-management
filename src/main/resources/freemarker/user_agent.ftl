@@ -1,7 +1,8 @@
 <@compress single_line=true>
 {
   "user_agent" : {
-    "field" : "user-agent"
+    <#if userAgentRegexFile??>"regex_file": "${userAgentRegexFile}",</#if>
+    "field": "user-agent"
   }
 },
 {

@@ -2,7 +2,7 @@
 {
     "index_patterns": ["${indexName}-*"],
     "settings": {
-        <#if indexLifecyclePolicyRequest??>"index.lifecycle.name": "${indexLifecyclePolicyRequest}",</#if>
+        <#if indexLifecyclePolicyRequest??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyRequest}",</#if>
         "index.number_of_shards":${numberOfShards},
         "index.number_of_replicas":${numberOfReplicas},
         "index.refresh_interval": "${refreshInterval}"
@@ -40,9 +40,8 @@
                 "plan": {
                     "type": "keyword"
                 },
-                    "proxy-latency": {
-                    "type": "integer",
-                    "index": false
+                "proxy-latency": {
+                    "type": "integer"
                 },
                 "remote-address": {
                     "type": "ip"
@@ -107,13 +106,41 @@
                 },
                 "user_agent": {
                     "properties": {
+                        "device": {
+                            "properties": {
+                                "name": {
+                                    "type": "keyword"
+                                }
+                            }
+                        },
                         "name": {
                             "type": "keyword",
                             "index": true
                         },
+                        "original": {
+                            "type": "text"
+                        },
+                        "os": {
+                            "properties": {
+                                "full": {
+                                    "type": "text"
+                                },
+                                "name": {
+                                    "type": "keyword",
+                                    "index": true
+                                },
+                                "version": {
+                                    "type": "keyword",
+                                    "index": true
+                                }
+                            }
+                        },
                         "os_name": {
                             "type": "keyword",
                             "index": true
+                        },
+                        "version": {
+                            "type": "text"
                         }
                     }
                 },

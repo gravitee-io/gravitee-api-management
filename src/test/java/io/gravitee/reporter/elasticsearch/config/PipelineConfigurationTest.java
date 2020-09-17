@@ -24,9 +24,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,11 +52,9 @@ public class PipelineConfigurationTest {
     @Before
     public void init() {
         //MockitoAnnotations.initMocks(this);
-
-        when(freeMarkerComponent.generateFromTemplate("geoip.ftl"))
-                .thenReturn("{\"geoip\" : {\"field\" : \"remote-address\"}}");
+        when(freeMarkerComponent.generateFromTemplate(eq("geoip.ftl"), anyMap())).thenReturn("{\"geoip\" : {\"field\" : \"remote-address\"}}");
         Map<String,Object> processorsMap = new HashMap<>(1);
-        processorsMap.put("processors", freeMarkerComponent.generateFromTemplate("geoip.ftl"));
+        processorsMap.put("processors", freeMarkerComponent.generateFromTemplate("geoip.ftl", Collections.emptyMap()));
         when(freeMarkerComponent.generateFromTemplate("pipeline.ftl",processorsMap)).thenReturn("{\"description\":\"Gravitee pipeline\",\"processors\":[{\"geoip\":{\"field\":\"remote-address\"}}]}");
     }
 

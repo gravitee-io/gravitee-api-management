@@ -36,6 +36,9 @@ public class PipelineConfiguration {
     @Value("${reporters.elasticsearch.pipeline.plugins.ingest:#{null}}")
     private String ingestorPlugins;
 
+    @Value("${reporters.elasticsearch.user_agent.regex_file:#{null}}")
+    private String userAgentRegexFile;
+
     /**
      * Templating tool.
      */
@@ -51,10 +54,13 @@ public class PipelineConfiguration {
             final Set<String> configuredPlugin = Stream.of(ingestorPlugins.split(",")).map(String::trim).collect(toSet());
             configuredPlugin.retainAll(INGEST_PLUGINS);
 
+            final Map<String, Object> data = new HashMap<>();
+            data.put("userAgentRegexFile", userAgentRegexFile);
+
             final String processors =
                     configuredPlugin
                             .stream()
-                            .map(ingestPlug -> this.freeMarkerComponent.generateFromTemplate(ingestPlug + ".ftl"))
+                            .map(ingestPlug -> this.freeMarkerComponent.generateFromTemplate(ingestPlug + ".ftl", data))
                             .collect(Collectors.joining(","));
 
             final Map<String,Object> processorsMap = new HashMap<>(1);
