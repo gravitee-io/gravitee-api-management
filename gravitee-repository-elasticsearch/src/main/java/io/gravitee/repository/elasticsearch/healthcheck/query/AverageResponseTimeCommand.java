@@ -115,7 +115,12 @@ public class AverageResponseTimeCommand extends AbstractElasticsearchQueryComman
 				Bucket<Long> responseTime = new Bucket<>();
 				responseTime.setFrom(dateRange.get("from").asLong());
 				responseTime.setKey(dateRange.get("key").asText());
-				responseTime.setValue(dateRange.get("results").get("value").asLong());
+				final JsonNode value = dateRange.get("results").get("value");
+				if (value.isNull()) {
+					responseTime.setValue(-1L);
+				} else {
+					responseTime.setValue(value.asLong());
+				}
 
 				responseTimes.add(responseTime);
 			}

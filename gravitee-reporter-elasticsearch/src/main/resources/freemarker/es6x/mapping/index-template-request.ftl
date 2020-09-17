@@ -40,9 +40,8 @@
                 "plan": {
                     "type": "keyword"
                 },
-                    "proxy-latency": {
-                    "type": "integer",
-                    "index": false
+                "proxy-latency": {
+                    "type": "integer"
                 },
                 "remote-address": {
                     "type": "ip"
@@ -107,13 +106,41 @@
                 },
                 "user_agent": {
                     "properties": {
+                        "device": {
+                            "properties": {
+                                "name": {
+                                    "type": "keyword"
+                                }
+                            }
+                        },
                         "name": {
                             "type": "keyword",
                             "index": true
                         },
+                        "original": {
+                            "type": "text"
+                        },
+                        "os": {
+                            "properties": {
+                                "full": {
+                                    "type": "text"
+                                },
+                                "name": {
+                                    "type": "keyword",
+                                    "index": true
+                                },
+                                "version": {
+                                    "type": "keyword",
+                                    "index": true
+                                }
+                            }
+                        },
                         "os_name": {
                             "type": "keyword",
                             "index": true
+                        },
+                        "version": {
+                            "type": "text"
                         }
                     }
                 },
