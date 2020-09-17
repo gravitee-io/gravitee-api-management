@@ -189,10 +189,11 @@ const ImportComponent: ng.IComponentOptions = {
       var apiDefinition = (this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL);
       var isUpdate = this.isForUpdate();
       ApiService.import(id, apiDefinition).then(function (api) {
-        NotificationService.show('API updated');
         if (isUpdate) {
+          NotificationService.show('API updated');
           $state.reload();
         } else {
+          NotificationService.show('API created');
           $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
         }
       });

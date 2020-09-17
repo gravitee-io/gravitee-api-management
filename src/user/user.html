@@ -79,5 +79,21 @@
       <md-button type="submit" ng-disabled="formUser.$pristine">Update</md-button>
       <md-button ng-click="$ctrl.cancel()" ng-disabled="formUser.$pristine">Cancel</md-button>
     </md-card-actions>
+    <div class="gv-forms" style="max-width: 100%; padding: 10px; margin-bottom: 0px;">
+      <div class="gv-form gv-form-danger">
+        <h2>Danger Zone</h2>
+        <div class="gv-form-content" layout="column">
+          <div layout="row" layout-align="space-between center" ng-if="!$ctrl.canDeleteMyAccount()">
+            <div class="gv-form-danger-text">Please transfer ownership of your APIs and applications or delete them before deleting your account</div>
+            <div><md-button class="md-flat md-warn" type="button" ng-disabled="true">Delete my account</md-button></div>
+          </div>
+
+          <div layout="row" layout-align="space-between center" ng-if="$ctrl.canDeleteMyAccount()">
+            <div class="gv-form-danger-text">Please transfer ownership of your APIs and applications or delete them before deleting your account</div>
+            <div><md-button class="md-flat md-warn" type="button" ng-click="$ctrl.deleteMyAccount()">Delete my account</md-button></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </md-card>
 </form>

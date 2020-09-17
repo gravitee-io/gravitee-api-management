@@ -36,6 +36,7 @@ class ApiProxyController {
   private headers: string[];
   private discovery: any;
   private virtualHostModeEnabled: boolean;
+  private allowOriginPattern = '^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$';
 
   constructor(
     private ApiService: ApiService,
@@ -323,6 +324,20 @@ class ApiProxyController {
           this.api.proxy.cors.allowOrigin.splice(index, 1);
         }
       });
+    } else {
+      let validator = new RegExp(this.allowOriginPattern, 'ig');
+
+      if (!validator.test(chip)) {
+        this.$mdDialog.show(
+          this.$mdDialog.alert({
+            title: 'Invalid regex',
+            textContent: `${chip} is not a valid origin`,
+            ok: 'Close'
+          })
+        ).then((response) => {
+          this.api.proxy.cors.allowOrigin.splice(index, 1);
+        });
+      }
     }
   }
 

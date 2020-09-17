@@ -31,8 +31,8 @@
         md-menu-class="autocomplete-search-user"
         flex>
         <md-item-template>
-          <md-list-item class="md-2-line contact-item">
-            <gravitee-identity-picture 
+          <md-list-item class="contact-item">
+            <gravitee-identity-picture
               image-id="user.id"
               image-url="getUserAvatar(user.id)"
               image-name="user.displayName"
@@ -41,7 +41,7 @@
               class="md-avatar"
             ></gravitee-identity-picture>
             <div class="md-list-item-text compact">
-              <h3>{{user.displayName}}</h3>
+              <span class="contact-name">{{user.displayName}}</span>
               <span ng-if="user.email">{{user.email}}</span>
             </div>
           </md-list-item>
@@ -55,8 +55,8 @@
 
       <md-list class="fixedRows" ng-show="usersSelected.length > 0">
         <md-subheader class="md-no-sticky">Selected users</md-subheader>
-        <md-list-item class="md-2-line contact-item" ng-repeat="(index, user) in usersSelected">
-          <gravitee-identity-picture 
+        <md-list-item class="contact-item" ng-repeat="(index, user) in usersSelected">
+          <gravitee-identity-picture
             image-id="user.id"
             image-url="getUserAvatar(user.id)"
             image-name="user.displayName"
@@ -65,7 +65,7 @@
             class="md-avatar"
           ></gravitee-identity-picture>
           <div class="md-list-item-text compact">
-            <h3>{{user.displayName}}</h3>
+            <span class="contact-name">{{user.displayName}}</span>
           </div>
         </md-list-item>
       </md-list>

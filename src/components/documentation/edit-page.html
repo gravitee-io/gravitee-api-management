@@ -281,10 +281,10 @@
 
                             <!-- edit MARKDOWN inline -->
                             <div ng-if="'MARKDOWN' === $ctrl.page.type" style="display: inline-block; width: 100%;">
-                                <md-input-container class="md-block">
-                                <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.page" pages-to-link="$ctrl.pagesToLink"></gv-page-editor-markdown>
-                                <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.page"></gv-page-markdown>
-                                </md-input-container>
+                                <div class="md-block">
+                                  <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.page" pages-to-link="$ctrl.pagesToLink"></gv-page-editor-markdown>
+                                  <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.page"></gv-page-markdown>
+                                </div>
                             </div>
 
                             <!-- import file -->

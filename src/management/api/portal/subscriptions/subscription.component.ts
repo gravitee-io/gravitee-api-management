@@ -253,6 +253,26 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       });
     }
 
+    reactivateApiKey(apiKey) {
+      this.$mdDialog.show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirm.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to reactivate API Key \'' + apiKey + '\'?',
+          confirmButton: 'Reactivate'
+        }
+      }).then( (response) => {
+        if (response) {
+          this.ApiService.reactivateApiKey(this.api.id, this.subscription.id, apiKey).then(() => {
+            this.NotificationService.show('API Key ' + apiKey + ' has been reactivated!');
+            this.listApiKeys();
+          });
+        }
+      });
+    }
+
     onCopyApiKeySuccess(e) {
       this.NotificationService.show('API Key has been copied to clipboard');
       e.clearSelection();

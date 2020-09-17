@@ -16,16 +16,16 @@
 import RoleService from '../../../../services/role.service';
 import NotificationService from '../../../../services/notification.service';
 import _ = require('lodash');
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
 
 const RoleComponent: ng.IComponentOptions = {
   bindings: {
     roleScopes: '<'
   },
   template: require('./role.html'),
-  controller: function ( RoleService: RoleService,
-                         NotificationService: NotificationService,
-                         $state: StateService) {
+  controller: function (RoleService: RoleService,
+                        NotificationService: NotificationService,
+                        $state: StateService) {
     'ngInject';
     this.$onInit = () => {
       this.editMode = !!$state.params.role;
@@ -64,6 +64,9 @@ const RoleComponent: ng.IComponentOptions = {
         that._modelToView();
         that.formRole.$setPristine();
         NotificationService.show(`Role ${that.editMode ? 'updated' : 'created'} with success`);
+        if (!that.editMode) {
+          $state.go('management.settings.roleedit', {roleScope: that.role.scope, role: that.role.name});
+        }
       });
     };
 
