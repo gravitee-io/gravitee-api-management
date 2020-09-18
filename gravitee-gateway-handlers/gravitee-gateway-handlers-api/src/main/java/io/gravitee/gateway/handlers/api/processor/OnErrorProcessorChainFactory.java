@@ -15,21 +15,10 @@
  */
 package io.gravitee.gateway.handlers.api.processor;
 
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.core.processor.StreamableProcessor;
-import io.gravitee.gateway.core.processor.StreamableProcessorDecorator;
-import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
-import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
-import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
-import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.handlers.api.processor.error.templates.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,30 +26,20 @@ import java.util.List;
  */
 public class OnErrorProcessorChainFactory extends ApiProcessorChainFactory {
 
-    private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
-
+    @Override
     public void afterPropertiesSet() {
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
-            providers.add(new ProcessorSupplier<>(() ->
-                    new StreamableProcessorDecorator<>(new CorsSimpleRequestProcessor(api.getProxy().getCors()))));
+            add(() -> new CorsSimpleRequestProcessor(api.getProxy().getCors()));
         }
 
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
-            providers.add(new ProcessorSupplier<>(() ->
-                    new StreamableProcessorDecorator<>(new PathMappingProcessor(api.getPathMappings()))));
+            add(() -> new PathMappingProcessor(api.getPathMappings()));
         }
 
         if (api.getResponseTemplates() != null && ! api.getResponseTemplates().isEmpty()) {
-            providers.add(new ProcessorSupplier<>(() ->
-                    new StreamableProcessorDecorator<>(new ResponseTemplateBasedFailureProcessor(api.getResponseTemplates()))));
+            add(() -> new ResponseTemplateBasedFailureProcessor(api.getResponseTemplates()));
         } else {
-            providers.add(new ProcessorSupplier<>(() ->
-                    new StreamableProcessorDecorator<>(new SimpleFailureProcessor())));
+            add(SimpleFailureProcessor::new);
         }
-    }
-
-    @Override
-    public StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>> create() {
-        return new StreamableProcessorProviderChain<>(providers);
     }
 }

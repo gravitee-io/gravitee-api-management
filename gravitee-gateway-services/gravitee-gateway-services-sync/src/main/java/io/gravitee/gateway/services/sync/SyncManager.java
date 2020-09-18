@@ -17,11 +17,12 @@ package io.gravitee.gateway.services.sync;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -301,13 +302,22 @@ public class SyncManager {
 
     private void enhanceWithData(Api definition) {
         try {
-            // Deploy only published plan
-            definition.setPlans(planRepository.findByApi(definition.getId())
-                    .stream()
-                    .filter(plan -> io.gravitee.repository.management.model.Plan.Status.PUBLISHED.equals(plan.getStatus())
-                                 || io.gravitee.repository.management.model.Plan.Status.DEPRECATED.equals(plan.getStatus()))
-                    .map(this::convert)
-                    .collect(Collectors.toList()));
+            // for v2, plans are already part of the api definition
+            if (definition.getDefinitionVersion() == DefinitionVersion.V1) {
+                // Deploy only published plan
+                definition.setPlans(planRepository.findByApi(definition.getId())
+                        .stream()
+                        .filter(plan -> io.gravitee.repository.management.model.Plan.Status.PUBLISHED.equals(plan.getStatus())
+                                || io.gravitee.repository.management.model.Plan.Status.DEPRECATED.equals(plan.getStatus()))
+                        .map(this::convert)
+                        .collect(Collectors.toList()));
+            } else if (definition.getDefinitionVersion() == DefinitionVersion.V2) {
+                definition.setPlans(definition.getPlans()
+                        .stream()
+                        .filter(plan -> "published".equalsIgnoreCase(plan.getStatus())
+                                || "deprecated".equalsIgnoreCase(plan.getStatus()))
+                        .collect(Collectors.toList()));
+            }
         } catch (TechnicalException te) {
             logger.error("Unexpected error while adding plan to the API: {} [{}]", definition.getName(),
                     definition.getId(), te);
@@ -319,7 +329,6 @@ public class SyncManager {
 
         plan.setId(repoPlan.getId());
         plan.setName(repoPlan.getName());
-        plan.setApi(repoPlan.getApi());
         plan.setSecurityDefinition(repoPlan.getSecurityDefinition());
         plan.setSelectionRule(repoPlan.getSelectionRule());
         plan.setTags(repoPlan.getTags());

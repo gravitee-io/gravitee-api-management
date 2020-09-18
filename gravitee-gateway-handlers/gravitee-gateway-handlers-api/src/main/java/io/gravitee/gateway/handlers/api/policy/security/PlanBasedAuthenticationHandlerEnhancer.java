@@ -22,7 +22,6 @@ import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationHandlerEnhancer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +35,11 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
 
     private final Logger logger = LoggerFactory.getLogger(PlanBasedAuthenticationHandlerEnhancer.class);
 
-    @Autowired
-    private Api api;
+    private final Api api;
+
+    public PlanBasedAuthenticationHandlerEnhancer(Api api) {
+        this.api = api;
+    }
 
     @Override
     public List<AuthenticationHandler> filter(List<AuthenticationHandler> authenticationHandlers) {
@@ -76,9 +78,5 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
         }
 
         return providers;
-    }
-
-    public void setApi(Api api) {
-        this.api = api;
     }
 }

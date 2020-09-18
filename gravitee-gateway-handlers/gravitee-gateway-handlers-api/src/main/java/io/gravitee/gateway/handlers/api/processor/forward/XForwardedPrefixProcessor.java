@@ -19,8 +19,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 
-import java.util.Collections;
-
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
@@ -29,7 +27,6 @@ public class XForwardedPrefixProcessor extends AbstractProcessor<ExecutionContex
 
     @Override
     public void handle(ExecutionContext context) {
-
         // Override the X-Forwarded-Prefix with context path
         context.request().headers().set(
                 HttpHeaders.X_FORWARDED_PREFIX,

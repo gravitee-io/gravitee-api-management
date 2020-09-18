@@ -23,16 +23,16 @@ import java.util.function.Supplier;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ProcessorSupplier<T, P extends Processor<T>> implements ProcessorProvider<T, P> {
+public class ProcessorSupplier<T> implements ProcessorProvider<T, Processor<T>> {
 
-    private final Supplier<P> supplier;
+    private final Supplier<Processor<T>> supplier;
 
-    public ProcessorSupplier(Supplier<P> supplier) {
+    public ProcessorSupplier(Supplier<Processor<T>> supplier) {
         this.supplier = supplier;
     }
 
     @Override
-    public P provide(T data) {
+    public Processor<T> provide(T data) {
         return supplier.get();
     }
 }

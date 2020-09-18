@@ -21,11 +21,12 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.map.impl.MapListenerAdapter;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.node.api.cluster.ClusterManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -54,6 +55,9 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
     @Autowired
     private HazelcastInstance hzInstance;
 
+    @Autowired
+    private ClusterManager clusterManager;
+
     private Map<String, Api> apis;
 
     @Override
@@ -64,14 +68,17 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
 
     @Override
     public void onEntryEvent(EntryEvent<String, Api> event) {
-        if (event.getEventType() == EntryEventType.ADDED) {
-            register(event.getValue());
-        } else if (event.getEventType() == EntryEventType.UPDATED){
-            register(event.getValue());
-        } else if (event.getEventType() == EntryEventType.REMOVED ||
-                event.getEventType() == EntryEventType.EVICTED ||
-                event.getEventType() == EntryEventType.EXPIRED) {
-            unregister(event.getKey());
+        // Replication is only done for secondary nodes
+        if (! clusterManager.isMasterNode()) {
+            if (event.getEventType() == EntryEventType.ADDED) {
+                register(event.getValue());
+            } else if (event.getEventType() == EntryEventType.UPDATED) {
+                register(event.getValue());
+            } else if (event.getEventType() == EntryEventType.REMOVED ||
+                    event.getEventType() == EntryEventType.EVICTED ||
+                    event.getEventType() == EntryEventType.EXPIRED) {
+                unregister(event.getKey());
+            }
         }
     }
 

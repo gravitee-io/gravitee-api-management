@@ -33,8 +33,10 @@ public class SecurityPolicyChainProvider extends AbstractPolicyChainProvider {
 
     static final String PLAN_UNRESOLVABLE = "GATEWAY_PLAN_UNRESOLVABLE";
 
+    private final PolicyResolver policyResolver;
+
     public SecurityPolicyChainProvider(final PolicyResolver policyResolver) {
-        super(policyResolver);
+        this.policyResolver = policyResolver;
     }
 
     @Override

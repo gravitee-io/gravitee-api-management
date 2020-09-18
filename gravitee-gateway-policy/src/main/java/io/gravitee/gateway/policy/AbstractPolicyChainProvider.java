@@ -25,10 +25,4 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractPolicyChainProvider implements PolicyChainProvider {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    protected final PolicyResolver policyResolver;
-
-    protected AbstractPolicyChainProvider(final PolicyResolver policyResolver) {
-        this.policyResolver = policyResolver;
-    }
 }

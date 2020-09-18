@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.standalone;
 
-import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.Plan;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.standalone.policy.ApiKeyPolicy;
 import io.gravitee.gateway.standalone.policy.KeylessPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
@@ -61,6 +61,10 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderIn
     public void before(Api api) {
         this.api = api;
 
+        this.overridePlans();
+    }
+
+    protected void overridePlans() {
         // By default, add a keyless plan to the API
         Plan plan = new Plan();
         plan.setId("default_plan");

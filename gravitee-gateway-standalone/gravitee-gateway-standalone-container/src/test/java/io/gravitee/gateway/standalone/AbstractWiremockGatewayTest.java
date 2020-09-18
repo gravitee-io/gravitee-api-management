@@ -17,8 +17,8 @@ package io.gravitee.gateway.standalone;
 
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;

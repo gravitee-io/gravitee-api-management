@@ -56,6 +56,7 @@ public class RequestProcessorChainFactory implements InitializingBean {
         if (traceContext) {
             providers.add(new ProcessorSupplier<>(() -> traceContextHandlerFactory.create()));
         }
+
         providers.add(new ProcessorSupplier<>(() -> transactionHandlerFactory.create()));
     }
 

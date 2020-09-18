@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.policy.security;
 
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,8 +45,7 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        authenticationHandlerEnhancer = new PlanBasedAuthenticationHandlerEnhancer();
-        authenticationHandlerEnhancer.setApi(api);
+        authenticationHandlerEnhancer = new PlanBasedAuthenticationHandlerEnhancer(api);
 
         when(api.getName()).thenReturn("My API");
         when(api.getVersion()).thenReturn("v1");

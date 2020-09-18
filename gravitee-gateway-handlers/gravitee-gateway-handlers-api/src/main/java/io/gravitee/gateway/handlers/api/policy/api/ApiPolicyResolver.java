@@ -17,11 +17,8 @@ package io.gravitee.gateway.handlers.api.policy.api;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.handlers.api.path.Path;
-import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.policy.RuleBasedPolicyResolver;
-import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.StreamType;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -39,18 +36,12 @@ public class ApiPolicyResolver extends RuleBasedPolicyResolver {
 
     public final static String API_RESOLVED_PATH = ExecutionContext.ATTR_PREFIX + "api-policy-path";
 
-    @Autowired
-    private PathResolver pathResolver;
-
     @Override
     public List<Policy> resolve(StreamType streamType, ExecutionContext context) {
         // Has been registered in path parameters processor
-        Path path = (Path) context.getAttribute(API_RESOLVED_PATH);
-
-        // TODO: optimization: get the policy according to the stream type
-        // It must be pre-computed for the Path
+        final Path path = (Path) context.getAttribute(API_RESOLVED_PATH);
 
         // Get the policy according to the resolved path
-        return resolve(streamType, context, path.getRules());
+        return resolve(context, path.getRules());
     }
 }

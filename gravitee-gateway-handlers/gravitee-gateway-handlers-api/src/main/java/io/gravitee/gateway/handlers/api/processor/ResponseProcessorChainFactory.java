@@ -15,25 +15,24 @@
  */
 package io.gravitee.gateway.handlers.api.processor;
 
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.core.processor.StreamableProcessor;
-import io.gravitee.gateway.core.processor.StreamableProcessorDecorator;
-import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
-import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
-import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
-import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.gateway.handlers.api.flow.FlowProvider;
+import io.gravitee.gateway.handlers.api.flow.SimpleFlowPolicyChainProvider;
+import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
+import io.gravitee.gateway.handlers.api.flow.condition.CompositeConditionEvaluator;
+import io.gravitee.gateway.handlers.api.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.handlers.api.flow.condition.evaluation.HttpMethodConditionEvaluator;
+import io.gravitee.gateway.handlers.api.flow.condition.evaluation.PathBasedConditionEvaluator;
+import io.gravitee.gateway.handlers.api.flow.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
+import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
+import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
-import io.gravitee.gateway.policy.PolicyChainProvider;
 import io.gravitee.gateway.policy.StreamType;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,33 +40,27 @@ import java.util.List;
  */
 public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
 
-    private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
-
+    @Override
     public void afterPropertiesSet() {
-        ApiPolicyResolver apiPolicyResolver = new ApiPolicyResolver();
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPolicyResolver);
-        PolicyChainProvider apiPolicyChainProvider = new ApiPolicyChainProvider(StreamType.ON_RESPONSE, apiPolicyResolver);
+        if (api.getDefinitionVersion() == DefinitionVersion.V1) {
+            add(new ApiPolicyChainProvider(StreamType.ON_RESPONSE, new ApiPolicyResolver(), chainFactory));
+            add(new PlanPolicyChainProvider(StreamType.ON_RESPONSE, new PlanPolicyResolver(api), chainFactory));
+        } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+            final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
+                    new HttpMethodConditionEvaluator(),
+                    new PathBasedConditionEvaluator(),
+                    new ExpressionLanguageBasedConditionEvaluator());
 
-        PlanPolicyResolver planPolicyResolver = new PlanPolicyResolver();
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyResolver);
-        PolicyChainProvider planPolicyChainProvider = new PlanPolicyChainProvider(StreamType.ON_RESPONSE, planPolicyResolver);
-
-        providers.add(apiPolicyChainProvider);
-        providers.add(planPolicyChainProvider);
+            add(new SimpleFlowPolicyChainProvider(new FlowProvider(StreamType.ON_REQUEST, new ApiFlowResolver(api, evaluator), chainFactory)));
+            add(new PlanFlowPolicyChainProvider(new FlowProvider(StreamType.ON_REQUEST, new PlanFlowResolver(api, evaluator), chainFactory)));
+        }
 
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
-            providers.add(new ProcessorSupplier<>(() ->
-                    new StreamableProcessorDecorator<>(new CorsSimpleRequestProcessor(api.getProxy().getCors()))));
+            add(() -> new CorsSimpleRequestProcessor(api.getProxy().getCors()));
         }
 
         if (api.getPathMappings() != null && !api.getPathMappings().isEmpty()) {
-            providers.add(new ProcessorSupplier<>(() ->
-                    new StreamableProcessorDecorator<>(new PathMappingProcessor(api.getPathMappings()))));
+            add(() -> new PathMappingProcessor(api.getPathMappings()));
         }
-    }
-
-    @Override
-    public StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>> create() {
-        return new StreamableProcessorProviderChain<>(providers);
     }
 }

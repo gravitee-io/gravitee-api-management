@@ -56,13 +56,16 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Autowired
     private PolicyFactory policyFactory;
 
     @Autowired
     private PolicyConfigurationFactory policyConfigurationFactory;
 
     private final Map<String, PolicyMetadata> policies = new HashMap<>();
+
+    public DefaultPolicyManager(PolicyFactory policyFactory) {
+        this.policyFactory = policyFactory;
+    }
 
     @Override
     protected void doStart() throws Exception {

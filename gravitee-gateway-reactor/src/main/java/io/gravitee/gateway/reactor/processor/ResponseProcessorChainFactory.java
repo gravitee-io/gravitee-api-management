@@ -47,18 +47,11 @@ public class ResponseProcessorChainFactory {
     @Value("${http.port:8082}")
     private String port;
 
-    //TODO: apply alert processor only if one plugin is installed
-    /*
-    if (! alertEventProducer.isEmpty()) {
-            AlertProcessorSupplier supplier = new AlertProcessorSupplier();
-            applicationContext.getAutowireCapableBeanFactory().autowireBean(supplier);
-            providers.add(new ProcessorSupplier<>(() -> new StreamableProcessorDecorator<>(supplier.get())));
-        }
-     */
     public Processor<ExecutionContext> create() {
         return new DefaultProcessorChain<>(Arrays.asList(
                 new ResponseTimeProcessor(),
                 new ReporterProcessor(reporterService),
+                //TODO: apply alert processor only if one plugin is installed
                 new AlertProcessor(eventProducer, node, port)
         ));
     }

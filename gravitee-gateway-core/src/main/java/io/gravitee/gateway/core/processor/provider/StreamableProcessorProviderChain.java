@@ -41,7 +41,6 @@ public class StreamableProcessorProviderChain<T, S> extends AbstractStreamablePr
     @Override
     public boolean hasNext() {
         return ite.hasNext();
-
     }
 
     @Override

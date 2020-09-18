@@ -17,12 +17,11 @@ package io.gravitee.gateway.handlers.api.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -299,7 +298,7 @@ public class ApiManagerTest {
 
         final Api api2 = new Api(api);
         api2.setDeployedAt(new Date());
-        api2.setPlans(Collections.emptyList());
+        api2.setPlans(Collections.<Plan>emptyList());
 
         apiManager.register(api2);
 
