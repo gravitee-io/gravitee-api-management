@@ -243,8 +243,8 @@
           "name": "--gv-user-menu-link-a--ph",
           "description": "Link horizontal padding",
           "type": "length",
-          "default": "0",
-          "value": "0"
+          "default": "0px",
+          "value": "0px"
         },
         {
           "name": "--gv-user-menu-link--ta",
@@ -292,25 +292,25 @@
           "value": ""
         },
         {
-          "name": "--gv-menu-link-active--bdbc",
+          "name": "--gv-menu-link-active--bdc",
           "description": "Border bottom color of active link.",
           "type": "color",
           "default": "var(--gv-theme-color-light, #86c3d0)",
           "value": ""
         },
         {
-          "name": "--gv-menu-link-active--bdbs",
+          "name": "--gv-menu-link-active--bds",
           "description": "Border bottom style of active link.",
           "type": "string",
           "default": "solid",
           "value": "solid"
         },
         {
-          "name": "--gv-menu-link-active--bdbw",
+          "name": "--gv-menu-link-active--bdw",
           "description": "Border bottom width of active link.",
           "type": "length",
-          "default": "3px",
-          "value": "3px"
+          "default": "0 0 3px 0",
+          "value": "0 0 3px 0"
         },
         {
           "name": "--gv-menu-link-active--bgc",
@@ -330,8 +330,8 @@
           "name": "--gv-menu-link-a--pv",
           "description": "Link vertical padding",
           "type": "length",
-          "default": "0",
-          "value": "0"
+          "default": "0px",
+          "value": "0px"
         }
       ]
     },
@@ -522,9 +522,9 @@
         {
           "name": "--gv-row-hover--trf-ty",
           "description": "Hoover transform translateY",
-          "type": "string",
-          "default": "0",
-          "value": "0"
+          "type": "length",
+          "default": "0px",
+          "value": "0px"
         },
         {
           "name": "--gv-row-image--h",
@@ -1283,22 +1283,22 @@
           "value": ""
         },
         {
-          "name": "--gv-link-active--bdbc",
-          "description": "Active border bottom color",
+          "name": "--gv-link-active--bdc",
+          "description": "Active border color",
           "type": "color",
           "default": "none",
           "value": "none"
         },
         {
-          "name": "--gv-link-active--bdbs",
-          "description": "Active border bottom style",
+          "name": "--gv-link-active--bds",
+          "description": "Active border style",
           "type": "string",
           "default": "none",
           "value": "none"
         },
         {
-          "name": "--gv-link-active--bdbw",
-          "description": "Active border bottom width",
+          "name": "--gv-link-active--bdw",
+          "description": "Active border width",
           "type": "length",
           "default": "none",
           "value": "none"
