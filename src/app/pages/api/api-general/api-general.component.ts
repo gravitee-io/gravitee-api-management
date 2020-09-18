@@ -385,4 +385,8 @@ export class ApiGeneralComponent implements OnInit {
     this._updateRatings();
   }
 
+  @HostListener(':gv-button:click', ['$event.srcElement.dataset.pageId'])
+  onInternalLinkClick(pageId: string) {
+    this.router.navigate(['/catalog/api/' + this.currentApi.id + '/doc'], { queryParams: { page: pageId } });
+  }
 }

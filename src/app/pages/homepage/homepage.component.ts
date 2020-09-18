@@ -61,4 +61,8 @@ export class HomepageComponent implements OnInit {
     });
   }
 
+  @HostListener(':gv-button:click', ['$event.srcElement.dataset.pageId'])
+  onInternalLinkClick(pageId: string) {
+    this.router.navigate(['/documentation/root'], { queryParams: { page: pageId } });
+  }
 }
