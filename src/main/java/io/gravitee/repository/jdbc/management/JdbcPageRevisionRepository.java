@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
+
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
@@ -61,9 +63,7 @@ public class JdbcPageRevisionRepository implements PageRevisionRepository {
                         rowCountSql,
                         (rs, rowNum) -> rs.getInt(1));
 
-        String querySql = "SELECT * FROM page_revisions " +
-                "LIMIT " + pageable.pageSize() + " " +
-                "OFFSET " + pageable.from();
+        String querySql = "SELECT * FROM page_revisions ORDER BY page_id, revision " + createPagingClause(pageable.pageSize(), pageable.from());
         List<PageRevision> revisions = jdbcTemplate.query(
                 querySql,
                 ORM.getRowMapper()
@@ -119,7 +119,7 @@ public class JdbcPageRevisionRepository implements PageRevisionRepository {
     public Optional<PageRevision> findLastByPageId(String pageId) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.findLastByPageId({})", pageId);
         try {
-            List<PageRevision> rows = jdbcTemplate.query("select p.* from page_revisions p where p.page_id = ? order by revision desc limit 1"
+            List<PageRevision> rows = jdbcTemplate.query("select p.* from page_revisions p where p.page_id = ? order by revision desc " + createPagingClause(1,0)
                     , ORM.getRowMapper()
                     , pageId);
             Optional<PageRevision> result = rows.stream().findFirst();

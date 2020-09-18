@@ -64,8 +64,21 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     private static final String POSTGRESQL_DRIVER_TYPE = "postgresql";
     private static final String SQLSERVER_DRIVER_TYPE = "sqlserver";
 
+    private static final String DEFAULT_PAGING_QUERY = "LIMIT %d OFFSET %d ";
+    private static final String MSSQL_PAGING_QUERY = "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY ";
+
+    private static String pagingQuery = DEFAULT_PAGING_QUERY;
+
     public static String escapeReservedWord(final String word) {
         return escapeReservedWordsPrefixChar + word + escapeReservedWordsSufixChar;
+    }
+
+    public static String createPagingClause(final int limit, final int offset) {
+        if (pagingQuery.startsWith("OFFSET")) {
+            return String.format(pagingQuery, offset, limit);
+        } else {
+            return String.format(pagingQuery, limit, offset);
+        }
     }
 
     @Override
@@ -135,6 +148,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
                 case SQLSERVER_DRIVER_TYPE:
                     escapeReservedWordsPrefixChar = '[';
                     escapeReservedWordsSufixChar = ']';
+                    pagingQuery = MSSQL_PAGING_QUERY;
                     break;
             }
         }

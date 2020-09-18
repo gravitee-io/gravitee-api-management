@@ -87,7 +87,7 @@ public class JdbcCustomUserFieldsRepository  implements CustomUserFieldsReposito
 
     private void deleteValues(String key, String refId, CustomUserFieldReferenceType refType) {
         jdbcTemplate.update("delete from custom_user_fields_values where " +
-                "key = ? and reference_id = ? and reference_type = ?",
+                        escapeReservedWord("key")  + " = ? and reference_id = ? and reference_type = ?",
                 key, refId, refType.name());
     }
 
@@ -98,7 +98,7 @@ public class JdbcCustomUserFieldsRepository  implements CustomUserFieldsReposito
 
         if (field.getValues() != null && !field.getValues().isEmpty()) {
             List<String> entries = field.getValues();
-            jdbcTemplate.batchUpdate("insert into custom_user_fields_values ( key, reference_id, reference_type, value ) values ( ?, ?, ?, ? )"
+            jdbcTemplate.batchUpdate("insert into custom_user_fields_values ( " + escapeReservedWord("key") + ", reference_id, reference_type, value ) values ( ?, ?, ?, ? )"
                     , new BatchPreparedStatementSetter() {
                         @Override
                         public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -123,8 +123,8 @@ public class JdbcCustomUserFieldsRepository  implements CustomUserFieldsReposito
             JdbcHelper.CollatingRowMapper<CustomUserField> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "key");
             jdbcTemplate.query("select c.*, cv.value from "+TABLE_NAME+" c " +
                             " left join custom_user_fields_values cv on " +
-                            " c.key = cv.key and c.reference_id = cv.reference_id and c.reference_type = cv.reference_type " +
-                            " where c.key = ? AND c.reference_id = ? AND c.reference_type = ?"
+                            " c."+ escapeReservedWord("key") +" = cv."+ escapeReservedWord("key") +" and c.reference_id = cv.reference_id and c.reference_type = cv.reference_type " +
+                            " where c."+ escapeReservedWord("key") +" = ? AND c.reference_id = ? AND c.reference_type = ?"
                     , rowMapper
                     , key
                     , refId
@@ -143,7 +143,7 @@ public class JdbcCustomUserFieldsRepository  implements CustomUserFieldsReposito
         try {
             JdbcHelper.CollatingRowMapper<CustomUserField> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "key");
             jdbcTemplate.query("select c.*, cValues.value from "+TABLE_NAME+" c " +
-                            " left join custom_user_fields_values cValues on c.key = cValues.key and " +
+                            " left join custom_user_fields_values cValues on c."+ escapeReservedWord("key") +" = cValues."+ escapeReservedWord("key") +" and " +
                             " c.reference_id = cValues.reference_id and c.reference_type = cValues.reference_type " +
                             " where c.reference_id = ? and  c.reference_type = ? "
                     , rowMapper
@@ -162,7 +162,7 @@ public class JdbcCustomUserFieldsRepository  implements CustomUserFieldsReposito
         LOGGER.debug("JdbcCustomUserFieldsRepository.delete({}, {}, {})", key, refId, refType);
         try {
             deleteValues(key, refId, refType);
-            jdbcTemplate.update("delete from "+TABLE_NAME+" c where c.key = ? AND c.reference_id = ? AND c.reference_type = ?"
+            jdbcTemplate.update("delete from "+TABLE_NAME+" where " + escapeReservedWord("key") + " = ? AND reference_id = ? AND reference_type = ?"
                     , key
                     , refId
                     , refType.name());

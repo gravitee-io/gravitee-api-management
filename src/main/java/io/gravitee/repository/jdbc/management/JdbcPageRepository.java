@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
 import static java.lang.String.format;
@@ -362,11 +363,11 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         LOGGER.debug("JdbcPageRepository.findAll()", pageable);
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            Integer totalPages = jdbcTemplate.queryForObject("select count(p.*) from pages p", Integer.class);
+            Integer totalPages = jdbcTemplate.queryForObject("select count(*) from pages p", Integer.class);
             jdbcTemplate.query("select p.*, " +
                             "pm.k as pm_k, pm.v as pm_v, " +
                             "pc.k as pc_k, pc.v as pc_v " +
-                            "from ( select * from pages limit " + pageable.pageSize() + " OFFSET "+ pageable.from() +") as p " +
+                            "from ( select * from pages ORDER BY id "+createPagingClause(pageable.pageSize(), pageable.from()) + ") as p " +
                             "left join page_configuration pc on p.id = pc.page_id " +
                             "left join page_metadata pm on p.id = pm.page_id"
                     , rowMapper

@@ -84,11 +84,11 @@ databaseChangeLog:
 
         - addPrimaryKey:
             constraintName: pk_custom_user_fields
-            columnNames: key, reference_id, reference_type
+            columnNames: key, reference_type, reference_id
             tableName: custom_user_fields
 
         - createIndex:
-            constraintName: idx_custom_user_fields_by_ref
+            indexName: idx_custom_user_fields_by_ref
             columns:
               - column:
                   name: reference_id
@@ -106,9 +106,18 @@ databaseChangeLog:
               - column: { name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
               - column: { name: value, type: nvarchar(1024), constraints: { nullable: false } }
 
-        - addPrimaryKey:
-            constraintName: pk_custom_user_fields_values
-            columnNames: key, reference_id, reference_type, value
+        - createIndex:
+            indexName: idx_custom_user_fields_values
+            columns:
+              - column:
+                  name: key
+                  type: nvarchar(64)
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
             tableName: custom_user_fields_values
 
         - createTable:
@@ -123,3 +132,4 @@ databaseChangeLog:
             constraintName: pk_page_attached_media
             columnNames: page_id, media_hash, media_name, attached_at
             tableName: page_attached_media
+

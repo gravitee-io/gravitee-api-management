@@ -39,7 +39,7 @@
         <liquibase.version>3.8.0</liquibase.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
         <mysql-connector-java.version>8.0.17</mysql-connector-java.version>
-        <postgresql.version>42.2.8</postgresql.version>
+        <postgresql.version>42.2.16</postgresql.version>
         <mariaDB.version>2.4.0</mariaDB.version>
         <wix-embedded-mysql.version>4.6.0</wix-embedded-mysql.version>
         <postgresql-embedded.version>2.10</postgresql-embedded.version>
