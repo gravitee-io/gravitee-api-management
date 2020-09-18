@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.flow.policy;
+package io.gravitee.gateway.standalone.flow;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
+import io.gravitee.gateway.standalone.flow.policy.MyPolicy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -32,26 +33,17 @@ import static org.junit.Assert.assertEquals;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor("/io/gravitee/gateway/standalone/flow/simple-flow.json")
-public class DisabledPolicyFlowTest extends AbstractWiremockGatewayTest {
+@ApiDescriptor("/io/gravitee/gateway/standalone/flow/post-only-flow.json")
+public class PostOnlyFlowTest extends AbstractWiremockGatewayTest {
 
     @Test
-    public void shouldRunFlows_getMethod() throws Exception {
+    public void shouldRunPolicies() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         final HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
-        assertEquals("2", response.getFirstHeader("my-counter").getValue());
-        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withHeader("my-counter", equalTo("1")));
-    }
-
-    @Test
-    public void shouldNotRunFlows_deleteMethod() throws Exception {
-        wireMockRule.stubFor(delete("/team/my_team").willReturn(ok()));
-
-        final HttpResponse response = Request.Delete("http://localhost:8082/test/my_team").execute().returnResponse();
-        assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
-        wireMockRule.verify(deleteRequestedFor(urlPathEqualTo("/team/my_team")).withoutHeader("my-counter"));
+        assertEquals("1", response.getFirstHeader("my-counter").getValue());
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withoutHeader("my-counter"));
     }
 
     @Override
@@ -59,13 +51,7 @@ public class DisabledPolicyFlowTest extends AbstractWiremockGatewayTest {
         super.register(policyPluginManager);
 
         PolicyPlugin myPolicy = PolicyBuilder.build("my-policy", MyPolicy.class);
+        MyPolicy.clear();
         policyPluginManager.register(myPolicy);
     }
-
-    /*
-    @Override
-    public Object create(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
-        return policies.get(policyMetadata.policy());
-    }
-     */
 }
