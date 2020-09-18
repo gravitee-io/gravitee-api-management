@@ -19,35 +19,17 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
-import io.gravitee.policy.api.annotations.OnResponse;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class MyPolicy {
-
-    static int counter = 0;
+public class OnRequestPolicy {
 
     @OnRequest
     public void onRequest(Request request, Response response, PolicyChain policyChain) {
-        // Backend must receive a "my_counter" header with a value of 1
-        request.headers().set("my-counter", Integer.toString(++counter));
-        response.headers().set("my-counter", Integer.toString(counter));
-        // Consumer must receive a "my_counter" header with a value of 2
-        policyChain.doNext(request, response);
-    }
+        request.headers().set("on-request-policy", "invoked");
 
-    @OnResponse
-    public void onResponse(Request request, Response response, PolicyChain policyChain) {
-        // Backend must receive a "my_counter" header with a value of 1
-        request.headers().set("my-counter", Integer.toString(++counter));
-        response.headers().set("my-counter", Integer.toString(counter));
-        // Consumer must receive a "my_counter" header with a value of 2
         policyChain.doNext(request, response);
-    }
-
-    public static void clear() {
-        counter = 0;
     }
 }

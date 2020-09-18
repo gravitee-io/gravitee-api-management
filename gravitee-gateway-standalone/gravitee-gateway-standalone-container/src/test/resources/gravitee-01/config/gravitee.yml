@@ -1,6 +1,6 @@
 
 http:
-  instances: 1
+  instances: 0
 
 plugins:
     path: ${gravitee.home}/plugins

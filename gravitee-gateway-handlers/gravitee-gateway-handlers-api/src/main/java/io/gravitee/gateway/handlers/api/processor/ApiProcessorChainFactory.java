@@ -22,7 +22,6 @@ import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.chain.ProcessorChainFactory;
 import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
 import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
-import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
 import io.gravitee.gateway.handlers.api.definition.Api;

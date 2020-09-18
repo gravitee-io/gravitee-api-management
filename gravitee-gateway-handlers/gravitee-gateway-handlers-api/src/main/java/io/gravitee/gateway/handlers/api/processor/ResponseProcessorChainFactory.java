@@ -51,8 +51,8 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
                     new PathBasedConditionEvaluator(),
                     new ExpressionLanguageBasedConditionEvaluator());
 
-            add(new SimpleFlowPolicyChainProvider(new FlowProvider(StreamType.ON_REQUEST, new ApiFlowResolver(api, evaluator), chainFactory)));
-            add(new PlanFlowPolicyChainProvider(new FlowProvider(StreamType.ON_REQUEST, new PlanFlowResolver(api, evaluator), chainFactory)));
+            add(new SimpleFlowPolicyChainProvider(new FlowProvider(StreamType.ON_RESPONSE, new ApiFlowResolver(api, evaluator), chainFactory)));
+            add(new PlanFlowPolicyChainProvider(new FlowProvider(StreamType.ON_RESPONSE, new PlanFlowResolver(api, evaluator), chainFactory)));
         }
 
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
