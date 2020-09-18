@@ -16,7 +16,7 @@
 package io.gravitee.gateway.standalone.http;
 
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.DynamicRoutingPolicy;

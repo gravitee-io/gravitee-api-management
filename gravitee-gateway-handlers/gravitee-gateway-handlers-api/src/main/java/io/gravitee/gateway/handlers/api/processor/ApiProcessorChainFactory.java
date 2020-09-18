@@ -17,15 +17,26 @@ package io.gravitee.gateway.handlers.api.processor;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.chain.ProcessorChainFactory;
 import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
+import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
+import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
+import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
+import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.policy.PolicyChainFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,10 +50,28 @@ public abstract class ApiProcessorChainFactory implements
     @Autowired
     protected Api api;
 
-    protected ApplicationContext applicationContext;
+    @Inject
+    protected PolicyChainFactory chainFactory;
+
+    private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
+
+    ApplicationContext applicationContext;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    protected void add(ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> provider) {
+        this.providers.add(provider);
+    }
+
+    protected void add(Supplier<Processor<ExecutionContext>> supplier) {
+        add(new StreamableProcessorSupplier<>(supplier));
+    }
+
+    @Override
+    public StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>> create() {
+        return new StreamableProcessorProviderChain<>(providers);
     }
 }

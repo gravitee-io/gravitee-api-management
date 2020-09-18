@@ -16,16 +16,20 @@
 package io.gravitee.gateway.standalone.junit.stmt;
 
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.repository.management.api.ApiKeyRepository;
 import org.junit.runners.model.Statement;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
 
 import java.net.URL;
@@ -63,6 +67,19 @@ public class ApiDeployerStatement extends Statement {
             ((PolicyRegister) target).register(ppm);
         }
 
+        if (target instanceof PolicyFactory) {
+            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) ((ConfigurableApplicationContext) container.applicationContext()).getBeanFactory();
+            String [] beanNames = container.applicationContext().getBeanNamesForType(PolicyFactory.class);
+            String oldBeanName = beanNames[0];
+
+            beanFactory.destroyBean(oldBeanName, beanFactory.getBean(oldBeanName));
+            beanFactory.destroySingleton(oldBeanName);
+
+            beanFactory.removeBeanDefinition(oldBeanName);
+
+            beanFactory.registerSingleton(oldBeanName, target);
+        }
+
         container.start();
         Thread.sleep(1000);
         
@@ -70,7 +87,7 @@ public class ApiDeployerStatement extends Statement {
         Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 
         try {
-            apiManager.register(api);
+            apiManager.register(new io.gravitee.gateway.handlers.api.definition.Api(api));
             base.evaluate();
         } finally {
             apiManager.unregister(api.getId());

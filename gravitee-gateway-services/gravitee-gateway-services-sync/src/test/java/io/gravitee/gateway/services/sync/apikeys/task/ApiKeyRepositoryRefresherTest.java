@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.services.sync.apikeys.task;
 
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;

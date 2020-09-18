@@ -23,13 +23,13 @@ import io.gravitee.gateway.api.stream.WriteStream;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class StreamableProcessorDecorator<T, S> extends AbstractStreamableProcessor<T, S> {
+public final class StreamableProcessorDecorator<T, S> extends AbstractStreamableProcessor<T, S> {
 
     private final Processor<T> processor;
     private Handler<Void> endHandler;
     private Handler<S> bodyHandler;
 
-    public StreamableProcessorDecorator(Processor<T> processor) {
+    StreamableProcessorDecorator(Processor<T> processor) {
         this.processor = processor;
     }
 

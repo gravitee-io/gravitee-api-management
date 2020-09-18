@@ -49,12 +49,12 @@ public class ProcessorProviderChain<T> extends AbstractProcessorChain<T, Process
         boolean hasNext = ite.hasNext();
         if (! hasNext && iteProcessor == null) {
             iteProcessor = processors.iterator();
-            return hasNext;
+            return false;
         } else if (!hasNext) {
             return iteProcessor.hasNext();
         }
 
-        return hasNext;
+        return true;
     }
 
     @Override

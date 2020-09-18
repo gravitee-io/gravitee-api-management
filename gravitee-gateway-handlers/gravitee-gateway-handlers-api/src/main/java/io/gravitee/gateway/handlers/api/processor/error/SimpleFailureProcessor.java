@@ -29,6 +29,10 @@ import io.gravitee.gateway.core.processor.ProcessorFailure;
 
 import java.util.List;
 
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> {
 
     /**

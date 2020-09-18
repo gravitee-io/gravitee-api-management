@@ -53,7 +53,9 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
     }
 
     public void setMaxSizeLogMessage(int maxSizeLogMessage) {
-        this.maxSizeLogMessage = maxSizeLogMessage;
+        // log max size limit is in MB format
+        // -1 means no limit
+        this.maxSizeLogMessage = (maxSizeLogMessage <= -1) ? -1 : maxSizeLogMessage * (1024 * 1024);
     }
 
     public void setExcludedResponseTypes(String excludedResponseTypes) {

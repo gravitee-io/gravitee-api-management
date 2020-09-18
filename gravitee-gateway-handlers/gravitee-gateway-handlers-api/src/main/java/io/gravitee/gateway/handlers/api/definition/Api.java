@@ -17,6 +17,8 @@ package io.gravitee.gateway.handlers.api.definition;
 
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
@@ -24,6 +26,8 @@ import io.gravitee.gateway.reactor.handler.VirtualHost;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +38,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
 
     private boolean enabled = true;
     private Date deployedAt;
-    private final Map<String, Plan> plans = new HashMap<>();
 
     public Api() {
     }
@@ -52,6 +55,9 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         this.setServices(definition.getServices());
         this.setTags(definition.getTags());
         this.setVersion(definition.getVersion());
+        this.setPlans(definition.getPlans());
+        this.setDefinitionVersion(definition.getDefinitionVersion());
+        this.setFlows(definition.getFlows());
     }
 
     public Api(final Api definition) {
@@ -67,7 +73,9 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         this.setServices(definition.getServices());
         this.setTags(definition.getTags());
         this.setVersion(definition.getVersion());
-        this.setPlans(new ArrayList<>(definition.getPlans()));
+        this.setPlans(definition.getPlans());
+        this.setDefinitionVersion(definition.getDefinitionVersion());
+        this.setFlows(definition.getFlows());
     }
 
     public boolean isEnabled() {
@@ -84,21 +92,6 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
 
     public void setDeployedAt(Date deployedAt) {
         this.deployedAt = deployedAt;
-    }
-
-    public Plan getPlan(String plan) {
-        return plans.get(plan);
-    }
-
-    public Collection<Plan> getPlans() {
-        return plans.values();
-    }
-
-    public void setPlans(List<Plan> plans) {
-        this.plans.clear();
-        for(Plan plan : plans) {
-            this.plans.put(plan.getId(), plan);
-        }
     }
 
     @Override
@@ -118,19 +111,18 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
     }
 
     private Set<Policy> policies() {
-        if (getPaths() == null)
-            return Collections.emptySet();
-
         Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
 
         // Load policies from the API
-        getPaths().values()
-                .forEach(path -> policies.addAll(
-                        path.getRules()
-                                .stream()
-                                .filter(Rule::isEnabled)
-                                .map(Rule::getPolicy)
-                                .collect(Collectors.toSet())));
+        if (getPaths() != null) {
+            getPaths().values()
+                    .forEach(path -> policies.addAll(
+                            path.getRules()
+                                    .stream()
+                                    .filter(Rule::isEnabled)
+                                    .map(Rule::getPolicy)
+                                    .collect(Collectors.toSet())));
+        }
 
         // Load policies from Plans
         getPlans().forEach(plan -> {
@@ -165,9 +157,47 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
                                         .filter(Rule::isEnabled)
                                         .map(Rule::getPolicy)
                                         .collect(Collectors.toSet())));
-            }});
+            }
+
+            if (plan.getFlows() != null) {
+                plan.getFlows().forEach(new Consumer<Flow>() {
+                    @Override
+                    public void accept(Flow flow) {
+                        policies.addAll(getPolicies(flow.getPre()));
+                        policies.addAll(getPolicies(flow.getPost()));
+                    }
+                });
+            }
+        });
+
+        // Load policies from flows
+        if (getFlows() != null) {
+            getFlows().forEach(new Consumer<Flow>() {
+                @Override
+                public void accept(Flow flow) {
+                    policies.addAll(getPolicies(flow.getPre()));
+                    policies.addAll(getPolicies(flow.getPost()));
+                }
+            });
+        }
 
         return policies;
+    }
+
+    private Collection<Policy> getPolicies(List<Step> flowStep) {
+        if (flowStep == null || flowStep.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return flowStep.stream().map(new Function<Step, Policy>() {
+            @Override
+            public Policy apply(Step step) {
+                Policy policy = new Policy();
+                policy.setName(step.getPolicy());
+                policy.setConfiguration(step.getConfiguration());
+                return policy;
+            }
+        }).collect(Collectors.toList());
     }
 
     @Override

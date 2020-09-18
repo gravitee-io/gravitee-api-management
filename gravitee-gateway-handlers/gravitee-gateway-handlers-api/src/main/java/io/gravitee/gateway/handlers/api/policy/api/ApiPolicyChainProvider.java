@@ -18,9 +18,10 @@ package io.gravitee.gateway.handlers.api.policy.api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
-import io.gravitee.gateway.policy.*;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
-import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
+import io.gravitee.gateway.handlers.api.processor.policy.AbstractPolicyChainProvider;
+import io.gravitee.gateway.handlers.api.policy.PolicyChainFactory;
+import io.gravitee.gateway.handlers.api.policy.PolicyResolver;
+import io.gravitee.gateway.policy.StreamType;
 
 import java.util.List;
 
@@ -34,22 +35,19 @@ public class ApiPolicyChainProvider extends AbstractPolicyChainProvider {
 
     private final StreamType streamType;
 
-    public ApiPolicyChainProvider(final StreamType streamType, final PolicyResolver policyResolver) {
+    private final PolicyChainFactory policyChainFactory;
+
+    public ApiPolicyChainProvider(final StreamType streamType, final PolicyResolver policyResolver, final PolicyChainFactory policyChainFactory) {
         super(policyResolver);
         this.streamType = streamType;
+        this.policyChainFactory = policyChainFactory;
     }
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
         // Calculate the list of policies to apply under this policy chain
-        List<Policy> policies = policyResolver.resolve(streamType, context);
+        List<PolicyResolver.Policy> policies = policyResolver.resolve(streamType, context);
 
-        if (policies.isEmpty()) {
-            return new NoOpPolicyChain(context);
-        }
-
-        return (streamType == StreamType.ON_REQUEST) ?
-                RequestPolicyChain.create(policies, context) :
-                ResponsePolicyChain.create(policies, context);
+        return policyChainFactory.create(policies, streamType, context);
     }
 }

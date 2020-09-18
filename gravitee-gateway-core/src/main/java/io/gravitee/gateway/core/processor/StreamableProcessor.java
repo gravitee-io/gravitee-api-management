@@ -34,4 +34,8 @@ public interface StreamableProcessor<T, S> extends Processor<T>, ReadWriteStream
 
     @Override
     StreamableProcessor<T, S> exitHandler(Handler<Void> handler);
+
+    static <T, S> StreamableProcessor<T, S> toStreamable(Processor<T> processor) {
+        return new StreamableProcessorDecorator<>(processor);
+    }
 }

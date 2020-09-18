@@ -20,6 +20,8 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
+import io.gravitee.gateway.policy.PolicyFactory;
+import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -48,5 +50,10 @@ public class ApiHandlerConfiguration {
     @Bean
     public NodeApisEndpointInitializer nodeApisEndpointInitializer() {
         return new NodeApisEndpointInitializer();
+    }
+
+    @Bean
+    public PolicyFactory policyFactory() {
+        return new PolicyFactoryImpl();
     }
 }

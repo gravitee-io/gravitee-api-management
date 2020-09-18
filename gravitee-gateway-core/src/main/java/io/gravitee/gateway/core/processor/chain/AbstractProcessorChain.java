@@ -27,7 +27,6 @@ import java.util.Iterator;
  */
 public abstract class AbstractProcessorChain<T, P extends Processor<T>> implements ProcessorChain<T, P>, Iterator<P> {
 
-    P last;
     protected Handler<T> resultHandler;
     protected Handler<Void> exitHandler;
     protected Handler<ProcessorFailure> errorHandler;
@@ -36,7 +35,6 @@ public abstract class AbstractProcessorChain<T, P extends Processor<T>> implemen
     public void handle(T data) {
         if (hasNext()) {
             P processor = next(data);
-            last = processor;
             processor
                     .handler(__ -> handle(data))
                     .errorHandler(failure -> errorHandler.handle(failure))

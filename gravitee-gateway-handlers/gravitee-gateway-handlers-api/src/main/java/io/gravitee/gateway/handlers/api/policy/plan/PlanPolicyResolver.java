@@ -16,13 +16,13 @@
 package io.gravitee.gateway.handlers.api.policy.plan;
 
 import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.handlers.api.policy.RuleBasedPolicyResolver;
-import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.StreamType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,10 +36,15 @@ import java.util.Map;
  */
 public class PlanPolicyResolver extends RuleBasedPolicyResolver {
 
+    private final Logger logger = LoggerFactory.getLogger(PlanPolicyResolver.class);
+
     private final static String DEFAULT_PLAN_PATH = "/";
 
-    @Autowired
-    protected Api api;
+    private final Api api;
+
+    public PlanPolicyResolver(Api api) {
+        this.api = api;
+    }
 
     @Override
     public List<Policy> resolve(StreamType streamType, ExecutionContext context) {
@@ -48,14 +53,14 @@ public class PlanPolicyResolver extends RuleBasedPolicyResolver {
         // No plan is matching the plan associated to the secured request
         // The call is probably not relative to the same API.
         if (apiPlan != null) {
-            Map<String, io.gravitee.definition.model.Path> paths = apiPlan.getPaths();
+            Map<String, Path> paths = apiPlan.getPaths();
 
             if (paths != null && ! paths.isEmpty()) {
                 // For 1.0.0, there is only a single root path defined
                 // Must be reconsidered when user will be able to manage policies at the plan level by himself
                 Path rootPath = paths.get(DEFAULT_PLAN_PATH);
 
-                return resolve(streamType, context, rootPath.getRules());
+                return resolve(context, rootPath.getRules());
             }
         } else {
             logger.warn("No plan has been selected to process request {}. Returning an unauthorized HTTP status (401)",
