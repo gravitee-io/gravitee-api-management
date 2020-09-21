@@ -121,15 +121,8 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                     if (tokenValue.contains(".")) {
                         final DecodedJWT jwt = jwtVerifier.verify(tokenValue);
 
-                        Claim permissionsClaim = jwt.getClaim(Claims.PERMISSIONS);
-
-                        List<SimpleGrantedAuthority> authorities;
-
-                        if (permissionsClaim != null) {
-                            authorities = permissionsClaim.asList(Map.class).stream().map(o -> new SimpleGrantedAuthority((String) o.get("authority"))).collect(Collectors.toList());
-                        } else {
-                            authorities = Collections.emptyList();
-                        }
+                        final Set<GrantedAuthority> authorities =
+                                this.authoritiesProvider.retrieveAuthorities(jwt.getClaim(Claims.SUBJECT).asString());
 
                         final UserDetails userDetails = new UserDetails(getStringValue(jwt.getSubject()), "",
                                 authorities);
@@ -137,19 +130,19 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
                         userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
 
-                        getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+                        getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     } else {
                         final Token token = tokenService.findByToken(tokenValue);
                         final UserEntity user = userService.findById(token.getReferenceId());
 
-                        final UserDetails userDetails = new UserDetails(user.getId(), "", Collections.emptyList());
+                        final Set<GrantedAuthority> authorities = this.authoritiesProvider.retrieveAuthorities(user.getId());
+
+                        final UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
                         userDetails.setFirstname(user.getFirstname());
                         userDetails.setLastname(user.getLastname());
                         userDetails.setEmail(user.getEmail());
                         userDetails.setSource("token");
                         userDetails.setSourceId(token.getName());
-
-                        final Set<GrantedAuthority> authorities = this.authoritiesProvider.retrieveAuthorities(user.getId());
 
                         getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     }

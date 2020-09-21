@@ -15,6 +15,8 @@
  */
 package io.gravitee.management.service.impl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.api.ApiQuery;
@@ -40,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static io.gravitee.management.model.permissions.SystemRole.PRIMARY_OWNER;
@@ -85,6 +88,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private NotifierService notifierService;
     @Autowired
     private InvitationService invitationService;
+
+    private final Cache<String, Set<RoleEntity>> roles = CacheBuilder
+            .newBuilder()
+            .expireAfterWrite(10, TimeUnit.SECONDS)
+            .build();
 
     @Override
     public Set<MemberEntity> getMembers(MembershipReferenceType referenceType, String referenceId, RoleScope roleScope) {
@@ -156,20 +164,24 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             if (referenceIds == null) {
                 throw new IllegalArgumentException("You must provide referenceIds !");
             }
-            LOGGER.debug("Get role for {} {} and user {}", referenceType, referenceIds, username);
+            LOGGER.debug("Get role for {} {} and user {} and scope {}", referenceType, referenceIds, username, roleScope);
 
-            Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByIds(username, referenceType, referenceIds);
+            return roles.get(referenceType.name() + referenceIds.toString() + username + roleScope.toString(), () -> {
+                Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByIds(username, referenceType, referenceIds);
 
-            return memberships == null ? Collections.emptySet() :
-                    memberships.
-                            stream().
-                            filter(m -> m.getRoles().get(roleScope.getId()) != null).
-                            map(m -> roleService.findById(roleScope, m.getRoles().get(roleScope.getId()))).
-                            collect(Collectors.toSet());
+                return memberships == null ? Collections.emptySet() :
+                        memberships.
+                                stream().
+                                filter(m -> m.getRoles().get(roleScope.getId()) != null).
+                                map(m -> roleService.findById(roleScope, m.getRoles().get(roleScope.getId()))).
+                                collect(Collectors.toSet());
+            });
 
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get membership for {} {} and user", referenceType, referenceIds, username, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referenceIds + " and user " + username, ex);
+        } catch (Exception ex) {
+            final String message = "An error occurs while trying to get members for " + referenceType + " " + referenceIds
+                    + " and user " + username + " and scope " + roleScope;
+            LOGGER.error(message, ex);
+            throw new TechnicalManagementException(message, ex);
         }
     }
 
