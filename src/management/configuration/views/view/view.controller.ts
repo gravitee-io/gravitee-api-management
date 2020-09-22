@@ -23,6 +23,7 @@ import {IScope} from "angular";
 class ViewController {
   private createMode: boolean = false;
   private allApis: any[];
+  private initialView: any;
   private view: any;
   private viewApis: any[];
   private selectedAPIs: any[];
@@ -43,6 +44,7 @@ class ViewController {
     private $scope: IScope) {
     'ngInject';
     this.createMode = $location.path().endsWith('new');
+
   }
 
   $onInit() {
@@ -53,6 +55,17 @@ class ViewController {
       self.view.picture = args.image;
       self.formChanged = true;
     });
+    this.initialView = _.cloneDeep(this.view);
+
+  }
+
+  reset() {
+    this.view = _.cloneDeep(this.initialView);
+    this.formChanged = false;
+    if (this.viewForm) {
+      this.viewForm.$setPristine();
+      this.viewForm.$setUntouched();
+    }
   }
 
   save() {

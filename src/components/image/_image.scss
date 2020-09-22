@@ -8,6 +8,30 @@
   img {
     width: 110px;
     display: inline-block !important;
+    transition: opacity 0.5s ease;
+  }
+
+  .background {
+    position: absolute;
+    width: 110px;
+    text-align: center;
+
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s ease-in-out;
+  }
+}
+
+.gravitee-upload-image:hover {
+  cursor: pointer;
+
+  img {
+    opacity: 0.10;
+  }
+
+  .background {
+    visibility: visible;
+    opacity: 1;
   }
 }
 

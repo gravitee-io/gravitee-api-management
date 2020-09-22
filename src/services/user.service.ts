@@ -226,6 +226,10 @@ class UserService {
     }
   }
 
+  defaultPicture(): string {
+    return `${this.userURL}default_avatar`;
+  }
+
   getUserAvatar(id: string): string {
     return `${this.usersURL}` + id + '/avatar';
   }

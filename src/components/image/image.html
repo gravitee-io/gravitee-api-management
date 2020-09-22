@@ -15,13 +15,16 @@
     limitations under the License.
 
 -->
-<div class="gravitee-upload-image">
+<div class="gravitee-upload-image" ngf-select="imgCtrl.selectImage($file)" ngf-pattern="'image/*'"
+     ngf-accept="'image/*'" ngf-max-size="1MB">
+  <div class="background">
+    Change picture
+  </div>
   <img ng-class="imageClass" ngf-no-object-url="true" ngf-src="imgCtrl.getSource()"
        ng-style="imageBorderRadius?{'border-radius': '100px'}:''" />
 </div>
-<div class="gravitee-upload-image-button" ngf-select="imgCtrl.selectImage($file)" ngf-pattern="'image/*'"
-     ngf-accept="'image/*'" ngf-max-size="1MB">
+<div class="gravitee-upload-image-button" ng-click="imgCtrl.deleteImage()">
   <p>
-    <a>Change picture</a>
+    <a>Set to default</a>
   </p>
 </div>

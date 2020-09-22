@@ -28,6 +28,8 @@ export class User {
   public tasks: PagedResult;
   public notifications: PagedResult;
   public authenticated: boolean = false;
+  public picture: string;
+  public picture_url: string;
 
   constructor() {
     'ngInject';

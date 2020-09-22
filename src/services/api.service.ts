@@ -115,7 +115,7 @@ class ApiService {
     return this.$http.put(this.apisURL + api.id,
       {'version': api.version, 'description': api.description, 'proxy': api.proxy, 'paths': api.paths, 'private': api.private,
         'visibility': api.visibility, 'name': api.name, 'services': api.services, 'properties': api.properties, 'tags': api.tags,
-        'picture': api.picture, 'resources': api.resources, 'views': api.views, 'groups': api.groups,
+        'picture': api.picture, 'picture_url': api.picture_url, 'resources': api.resources, 'views': api.views, 'groups': api.groups,
         'labels': api.labels, 'path_mappings': api.path_mappings, 'response_templates': api.response_templates, 'lifecycle_state': api.lifecycle_state,
         'disable_membership_notifications': api.disable_membership_notifications
       }, {headers: {'If-Match': api.etag}}

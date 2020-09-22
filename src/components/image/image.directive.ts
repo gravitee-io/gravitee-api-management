@@ -22,7 +22,7 @@ class ImageDirective {
       scope: {
         image: '=',
         imageClass: '@',
-        imageDefault: '@',
+        imageDefault: '=',
         imageOriginal: '=?',
         imageForm: '=',
         imageUrl: '=',
@@ -57,6 +57,18 @@ class ImageController {
         }
       });
     }
+  }
+
+  deleteImage() {
+    if (!this.$scope.imageOriginal) {
+      this.$scope.imageOriginal = this.$scope.image;
+    }
+    delete this.$scope.image;
+    delete this.$scope.imageUrl;
+    if (this.$scope.imageForm) {
+      this.$scope.imageForm.$setDirty();
+    }
+    this.$rootScope.$broadcast("apiPictureChangeSuccess", { image: null });
   }
 
   getSource() {
