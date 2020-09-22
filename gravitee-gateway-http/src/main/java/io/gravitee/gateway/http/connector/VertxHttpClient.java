@@ -57,7 +57,9 @@ import java.net.*;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -115,6 +117,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
 
     private HttpClientOptions httpClientOptions;
 
+    private AtomicInteger runningRequests = new AtomicInteger(0);
+
     @Autowired
     public VertxHttpClient(HttpEndpoint endpoint) {
         this.endpoint = endpoint;
@@ -125,6 +129,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
     @Override
     public ProxyConnection request(ProxyRequest proxyRequest) {
         HttpClient httpClient = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
+
+        runningRequests.incrementAndGet();
 
         // Remove hop-by-hop headers.
         if (! proxyRequest.isWebSocket()) {
@@ -186,7 +192,10 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                     // From client to server
                     event.frameHandler(frame -> wsProxyRequest.write(new VertxWebSocketFrame(frame)));
 
-                    event.closeHandler(event1 -> wsProxyRequest.close());
+                    event.closeHandler(event1 -> {
+                        wsProxyRequest.close();
+                        runningRequests.decrementAndGet();
+                    });
 
                     event.exceptionHandler(new Handler<Throwable>() {
                         @Override
@@ -196,6 +205,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
 
                             clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
                             webSocketProxyConnection.handleResponse(clientResponse);
+
+                            runningRequests.decrementAndGet();
                         }
                     });
 
@@ -216,6 +227,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                     clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
                     webSocketProxyConnection.handleResponse(clientResponse);
                 }
+
+                runningRequests.decrementAndGet();
             });
 
             return webSocketProxyConnection;
@@ -258,6 +271,8 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
                         proxyConnection.handleResponse(clientResponse);
                     }
                 }
+
+                runningRequests.decrementAndGet();
             });
 
             return proxyConnection;
@@ -279,12 +294,16 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
         clientResponse.handler(event -> proxyClientResponse.bodyHandler().handle(Buffer.buffer(event.getBytes())));
 
         // Signal end of the response
-        clientResponse.endHandler(v -> proxyClientResponse.endHandler().handle(null));
+        clientResponse.endHandler(v -> {
+            proxyClientResponse.endHandler().handle(null);
+            runningRequests.decrementAndGet();
+        });
 
         clientResponse.exceptionHandler(throwable -> {
             LOGGER.error("Unexpected error while handling backend response for request {} {} - {}",
                     clientRequest.method(), clientRequest.absoluteURI(), throwable.getMessage());
             proxyClientResponse.endHandler().handle(null);
+            runningRequests.decrementAndGet();
         });
 
         proxyConnection.handleResponse(proxyClientResponse);
@@ -428,7 +447,16 @@ public class VertxHttpClient extends AbstractLifecycleComponent<Connector> imple
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("Closing HTTP Client for '{}' endpoint [{}]", endpoint.getName(), endpoint.getTarget());
+        LOGGER.info("Graceful shutdown of HTTP Client for endpoint[{}] target[{}] requests[{}]", endpoint.getName(), endpoint.getTarget(), runningRequests.get());
+        long shouldEndAt = System.currentTimeMillis() + endpoint.getHttpClientOptions().getReadTimeout();
+
+        while (runningRequests.get() != 0 && System.currentTimeMillis() <= shouldEndAt) {
+            TimeUnit.MILLISECONDS.sleep(100);
+        }
+
+        if (runningRequests.get() > 0) {
+            LOGGER.warn("Cancel requests[{}] for endpoint[{}] target[{}]", runningRequests.get(), endpoint.getName(), endpoint.getTarget());
+        }
 
         httpClients.values().forEach(httpClient -> {
             try {
