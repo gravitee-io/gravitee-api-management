@@ -27,6 +27,8 @@ import io.gravitee.definition.jackson.datatype.api.ser.ssl.*;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
 import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
 import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
@@ -74,6 +76,8 @@ public class ApiModule extends GraviteeModule {
         addDeserializer(ResponseTemplates.class, new ResponseTemplatesDeserializer(ResponseTemplates.class));
         addDeserializer(ResponseTemplate.class, new ResponseTemplateDeserializer(ResponseTemplate.class));
         addDeserializer(VirtualHost.class, new VirtualHostDeserializer(VirtualHost.class));
+        addDeserializer(Flow.class, new FlowDeserializer());
+        addDeserializer(Step.class, new StepDeserializer());
 
         // then serializers:
         addSerializer(Api.class, new ApiSerializer(Api.class));
@@ -103,5 +107,7 @@ public class ApiModule extends GraviteeModule {
         addSerializer(ResponseTemplates.class, new ResponseTemplatesSerializer(ResponseTemplates.class));
         addSerializer(ResponseTemplate.class, new ResponseTemplateSerializer(ResponseTemplate.class));
         addSerializer(VirtualHost.class, new VirtualHostSerializer(VirtualHost.class));
+        addSerializer(Flow.class, new FlowSerializer());
+        addSerializer(Step.class, new StepSerializer());
     }
 }

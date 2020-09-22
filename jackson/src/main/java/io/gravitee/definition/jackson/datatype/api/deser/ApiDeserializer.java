@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
@@ -27,10 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.util.Comparator.reverseOrder;
@@ -50,7 +49,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
 
     @Override
     public Api deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException {
+        throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
         Api api = new Api();
@@ -96,7 +95,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
             if (discoveryService != null) {
                 api.getServices().remove(EndpointDiscoveryService.class);
                 Set<EndpointGroup> endpointGroups = api.getProxy().getGroups();
-                if (endpointGroups != null && ! endpointGroups.isEmpty()) {
+                if (endpointGroups != null && !endpointGroups.isEmpty()) {
                     EndpointGroup defaultGroup = endpointGroups.iterator().next();
                     defaultGroup.getServices().put(EndpointDiscoveryService.class, discoveryService);
                 }
@@ -108,7 +107,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
             resourcesNode.elements().forEachRemaining(resourceNode -> {
                 try {
                     Resource resource = resourceNode.traverse(jp.getCodec()).readValueAs(Resource.class);
-                    if (! api.getResources().contains(resource)) {
+                    if (!api.getResources().contains(resource)) {
                         api.getResources().add(resource);
                     } else {
                         logger.error("A resource already exists with name {}", resource.getName());
@@ -120,20 +119,63 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
             });
         }
 
-        JsonNode pathsNode = node.get("paths");
-        if (pathsNode != null) {
-            final Map<String, Path> paths = new TreeMap<>(reverseOrder());
-            pathsNode.fields().forEachRemaining(jsonNode -> {
-                try {
-                    Path path = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(Path.class);
-                    path.setPath(jsonNode.getKey());
-                    paths.put(jsonNode.getKey(), path);
-                } catch (IOException e) {
-                    logger.error("Path {} can not be de-serialized", jsonNode.getKey());
-                }
-            });
+        // If no version provided, defaults to 1.0.0
+        api.setDefinitionVersion(DefinitionVersion.valueOfLabel(node.path("gravitee").asText(DefinitionVersion.V1.getLabel())));
 
-            api.setPaths(paths);
+        if (api.getDefinitionVersion() == DefinitionVersion.V1) {
+            if (node.get("flows") != null) {
+                throw ctxt.mappingException("Flows are only available for definition >= 2.x.x ");
+            }
+
+            JsonNode pathsNode = node.get("paths");
+            if (pathsNode != null) {
+                final Map<String, Path> paths = new TreeMap<>(reverseOrder());
+                pathsNode.fields().forEachRemaining(jsonNode -> {
+                    try {
+                        Path path = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(Path.class);
+                        path.setPath(jsonNode.getKey());
+                        paths.put(jsonNode.getKey(), path);
+                    } catch (IOException e) {
+                        logger.error("Path {} can not be de-serialized", jsonNode.getKey());
+                    }
+                });
+
+                api.setPaths(paths);
+            }
+        }
+
+        if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+            if (node.get("paths") != null) {
+                throw ctxt.mappingException("Paths are only available for definition 1.x.x ");
+            }
+
+            JsonNode flowsNode = node.get("flows");
+            if (flowsNode != null) {
+                final List<Flow> flows = new ArrayList<>();
+                flowsNode.elements().forEachRemaining(jsonNode -> {
+                    try {
+                        Flow flow = jsonNode.traverse(jp.getCodec()).readValueAs(Flow.class);
+                        flows.add(flow);
+                    } catch (IOException e) {
+                        logger.error("Flow {} can not be de-serialized", jsonNode.asText());
+                    }
+                });
+                api.setFlows(flows);
+            }
+
+            JsonNode plansNode = node.get("plans");
+            if (plansNode != null) {
+                final List<Plan> plans = new ArrayList<>();
+                plansNode.elements().forEachRemaining(jsonNode -> {
+                    try {
+                        Plan plan = jsonNode.traverse(jp.getCodec()).readValueAs(Plan.class);
+                        plans.add(plan);
+                    } catch (IOException e) {
+                        logger.error("Plan {} can not be de-serialized", jsonNode.asText());
+                    }
+                });
+                api.setPlans(plans);
+            }
         }
 
         JsonNode propertiesNode = node.get("properties");
@@ -153,7 +195,7 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
             pathMappingsNode.elements().forEachRemaining(jsonNode -> {
                 final String pathMapping = jsonNode.asText();
                 api.getPathMappings().put(pathMapping,
-                        Pattern.compile(pathMapping.replaceAll(":\\w*", "[^\\/]*") + "/*"));
+                    Pattern.compile(pathMapping.replaceAll(":\\w*", "[^\\/]*") + "/*"));
             });
         }
 

@@ -19,7 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.flow.Step;
 
 import java.io.IOException;
 
@@ -27,24 +27,23 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyDeserializer extends StdScalarDeserializer<Policy> {
+public class StepDeserializer extends StdScalarDeserializer<Step> {
 
-    public PolicyDeserializer(Class<Policy> vc) {
-        super(vc);
+    public StepDeserializer() {
+        super(Step.class);
     }
 
     @Override
-    public Policy deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException {
+    public Step deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        Policy policy = new Policy();
-        node.fieldNames().forEachRemaining(field -> {
-            JsonNode subNode = node.findValue(field);
-            policy.setName(field);
-            policy.setConfiguration(subNode.toString());
-        });
+        Step step = new Step();
+        step.setName(node.path("name").asText());
+        step.setDescription(node.path("description").asText());
+        step.setPolicy(node.get("policy").asText());
+        step.setConfiguration(node.get("configuration").toString());
+        step.setEnabled(node.path("enabled").asBoolean(true));
 
-        return policy;
+        return step;
     }
 }

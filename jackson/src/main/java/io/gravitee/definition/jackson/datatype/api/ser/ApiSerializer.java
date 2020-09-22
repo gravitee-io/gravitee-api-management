@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.plugins.resources.Resource;
 
 import java.io.IOException;
@@ -41,21 +42,35 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
         jgen.writeStringField("name", api.getName());
         jgen.writeObjectField("version", api.getVersion());
 
+        if (api.getDefinitionVersion() != null) {
+            jgen.writeObjectField("gravitee", api.getDefinitionVersion().getLabel());
+        }
+
         if (api.getProxy() != null) {
             jgen.writeObjectField("proxy", api.getProxy());
         }
 
-        if (api.getPaths() != null) {
-            jgen.writeObjectFieldStart("paths");
-            api.getPaths().forEach((s, path) -> {
-                try {
-                    jgen.writeObjectField(s, path);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+        if (api.getDefinitionVersion() == DefinitionVersion.V1) {
+            if (api.getPaths() != null) {
+                jgen.writeObjectFieldStart("paths");
+                api.getPaths().forEach((s, path) -> {
+                    try {
+                        jgen.writeObjectField(s, path);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
 
-            jgen.writeEndObject();
+                jgen.writeEndObject();
+            }
+        } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+            if (api.getFlows() != null && !api.getFlows().isEmpty()) {
+                jgen.writeObjectField("flows", api.getFlows());
+            }
+
+            if (api.getPlans() != null && !api.getPlans().isEmpty()) {
+                jgen.writeObjectField("plans", api.getPlans());
+            }
         }
 
         if (api.getServices() != null && ! api.getServices().isEmpty()) {

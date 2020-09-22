@@ -1,0 +1,43 @@
+{
+  "gravitee": "2.0.0",
+  "id": "my-api",
+  "name": "my-api",
+  "proxy": {
+    "context_path": "/my-api",
+    "endpoint": "http://localhost:1234",
+    "strip_context_path": false
+  },
+
+  "paths": {
+    "/*": [
+      {
+        "methods": ["GET", "POST"],
+        "enabled": false,
+        "access-control": {
+        }
+      },
+      {
+        "methods": ["GET", "POST"],
+        "enabled": true,
+        "cors": {
+        }
+      },
+      {
+        "methods": ["GET"],
+        "rate-limit": {
+          "periodTime": 60,
+          "limit": 20,
+          "periodTimeUnit": "SECONDS"
+        }
+      },
+      {
+        "methods": ["GET"],
+        "rate-limit": {
+          "periodTime": 1,
+          "limit": 200,
+          "periodTimeUnit": "HOURS"
+        }
+      }
+    ]
+  }
+}

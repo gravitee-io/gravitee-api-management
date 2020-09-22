@@ -20,7 +20,10 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.ssl.KeyStoreType;
 import io.gravitee.definition.model.ssl.TrustStoreType;
 import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
@@ -28,10 +31,7 @@ import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -309,7 +309,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_withclientoptions_nooptions() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withclientoptions-nooptions.json", Api.class);
 
-        HttpEndpoint  endpoint = (HttpEndpoint) api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
+        HttpEndpoint endpoint = (HttpEndpoint) api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertNotNull(endpoint.getHttpClientOptions());
         Assert.assertNull(endpoint.getHttpClientSslOptions());
 
@@ -408,7 +408,7 @@ public class ApiDeserializerTest extends AbstractTest {
     @Test
     public void definition_multiTenants_enable() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-multitenants.json", Api.class);
-        
+
         List<String> tenants = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTenants();
         Assert.assertEquals("europe", tenants.get(0));
         Assert.assertEquals("asie", tenants.get(1));
@@ -689,4 +689,50 @@ public class ApiDeserializerTest extends AbstractTest {
         Endpoint endpoint = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next();
         Assert.assertEquals(EndpointType.HTTP, endpoint.getType());
     }
+
+    @Test
+    public void definition_defaultFlow() throws Exception {
+        Assert.assertNotNull(DefinitionVersion.valueOfLabel("2.0.0"));
+        Api api = load("/io/gravitee/definition/jackson/api-defaultflow.json", Api.class);
+
+        Assert.assertNotNull(api.getDefinitionVersion());
+        Assert.assertEquals(DefinitionVersion.V2, api.getDefinitionVersion());
+        Assert.assertNotNull(api.getFlows());
+        List<Flow> flows = api.getFlows();
+        Assert.assertEquals(1, flows.size());
+        Flow flow = flows.get(0);
+        Assert.assertEquals(3, flow.getPre().size());
+        Assert.assertEquals(2, flow.getPost().size());
+        Assert.assertEquals(3, flow.getMethods().size());
+        Assert.assertTrue(flow.getMethods().containsAll(Arrays.asList(HttpMethod.POST, HttpMethod.PUT, HttpMethod.GET)));
+        Assert.assertEquals("/", flow.getPath());
+
+        Step rule = flow.getPre().get(0);
+        Assert.assertNotNull(rule);
+        Assert.assertEquals("Rate Limit", rule.getName());
+        Assert.assertEquals("rate-limit", rule.getPolicy());
+        Assert.assertNotNull(rule.getConfiguration());
+        Assert.assertTrue(rule.isEnabled());
+
+        Collection<Plan> plans = api.getPlans();
+        Assert.assertNotNull(plans);
+        Assert.assertEquals(2, plans.size());
+        Assert.assertNotNull(api.getPlan("plan-1"));
+        Assert.assertEquals(2, api.getPlan("plan-1").getFlows().size());
+        Assert.assertEquals("#context.attributes['jwt'].claims['iss'] == 'toto'", api.getPlan("plan-1").getSelectionRule());
+        Assert.assertEquals("OAUTH2", api.getPlan("plan-1").getSecurity());
+        Assert.assertEquals(2, api.getPlan("plan-1").getTags().size());
+        Assert.assertEquals("PUBLISHED", api.getPlan("plan-1").getStatus());
+    }
+
+    @Test(expected = JsonMappingException.class)
+    public void definition_v2_withPath() throws Exception {
+        load("/io/gravitee/definition/jackson/api-v2-withpath.json", Api.class);
+    }
+
+    @Test(expected = JsonMappingException.class)
+    public void definition_v1_withFlow() throws Exception {
+        load("/io/gravitee/definition/jackson/api-v1-withflow.json", Api.class);
+    }
+
 }
