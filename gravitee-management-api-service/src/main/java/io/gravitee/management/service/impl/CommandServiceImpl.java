@@ -114,7 +114,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
                 Command msg = optMsg.get();
                 if (msg.getAcknowledgments() == null) {
                     msg.setAcknowledgments(Collections.singletonList(node.id()));
-                } else {
+                } else if (!msg.getAcknowledgments().contains(node.id())){
                     msg.getAcknowledgments().add(node.id());
                 }
                 commandRepository.update(msg);
