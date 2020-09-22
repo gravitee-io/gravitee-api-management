@@ -16,6 +16,7 @@
 package io.gravitee.management.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -39,6 +40,8 @@ public class UpdateViewEntity {
     private int order;
     private String highlightApi;
     private String picture;
+    @JsonProperty("picture_url")
+    private String pictureUrl;
 
     public String getId() {
         return id;
@@ -104,6 +107,14 @@ public class UpdateViewEntity {
         this.picture = picture;
     }
 
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -126,6 +137,7 @@ public class UpdateViewEntity {
                 ", defaultView='" + defaultView + '\'' +
                 ", hidden='" + hidden + '\'' +
                 ", order='" + order + '\'' +
+                ", pictureUrl='" + pictureUrl + '\'' +
                 '}';
     }
 }

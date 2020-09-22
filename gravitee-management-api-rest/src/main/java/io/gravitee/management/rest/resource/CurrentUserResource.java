@@ -182,10 +182,12 @@ public class CurrentUserResource extends AbstractResource {
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
         UserEntity userEntity = userService.findById(getAuthenticatedUser());
 
-        try {
-            user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
-        } catch (InvalidImageException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+        if (user.getPicture() != null ) {
+            try {
+                user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
+            } catch (InvalidImageException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Invalid image format").build();
+            }
         }
 
         return ok(userService.update(userEntity.getId(), user)).build();
@@ -209,6 +211,35 @@ public class CurrentUserResource extends AbstractResource {
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }
+
+        InlinePictureEntity image = (InlinePictureEntity) picture;
+
+        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+
+        if (builder != null) {
+            return builder.build();
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(image.getContent(), 0, image.getContent().length);
+
+        return ok()
+                .entity(baos)
+                .tag(etag)
+                .type(image.getType())
+                .build();
+    }
+
+    @GET
+    @Path("default_avatar")
+    @ApiOperation(value = "Get default avatar for users")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User default avatar"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response getCurrentUserDefaultPicture(@Context Request request) {
+        PictureEntity picture = userService.getDefaultAvatar();
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
 

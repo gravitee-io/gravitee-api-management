@@ -142,7 +142,8 @@ public class ViewServiceImpl extends TransactionalService implements ViewService
             View view = convert(viewEntity);
 
             // check if picture has been set
-            if (viewEntity.getPicture() == null) {
+            // If no new picture and the current picture url is not the default one, keep the current picture
+            if (viewEntity.getPicture() == null && viewEntity.getPictureUrl() != null && viewEntity.getPictureUrl().indexOf("?hash") > 0) {
                 view.setPicture(optViewToUpdate.get().getPicture());
             }
 

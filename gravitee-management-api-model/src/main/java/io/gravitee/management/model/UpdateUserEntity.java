@@ -33,7 +33,6 @@ public class UpdateUserEntity {
 	@JsonIgnore
 	private String email;
 
-	@NotNull
 	private String picture;
 
 	private String status;

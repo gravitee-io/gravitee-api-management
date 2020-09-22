@@ -47,6 +47,7 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -405,6 +406,12 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
 
         // Return default inline user avatar
+        return getDefaultAvatar();
+    }
+
+    @NotNull
+    @Override
+    public PictureEntity getDefaultAvatar() {
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         imageEntity.setType("image/png");
         try {
@@ -604,10 +611,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
             // Set date fields
             user.setUpdatedAt(new Date());
 
+            user.setPicture(updateUserEntity.getPicture());
+
             // Set variant fields
-            if (updateUserEntity.getPicture() != null) {
-                user.setPicture(updateUserEntity.getPicture());
-            }
             if (updateUserEntity.getFirstname() != null) {
                 user.setFirstname(updateUserEntity.getFirstname());
             }

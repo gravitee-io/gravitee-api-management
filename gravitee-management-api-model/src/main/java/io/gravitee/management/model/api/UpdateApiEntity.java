@@ -95,6 +95,11 @@ public class UpdateApiEntity {
             value = "the API logo encoded in base64")
     private String picture;
 
+    @JsonProperty("picture_url")
+    @ApiModelProperty(
+            value = "the API logo encoded in base64")
+    private String pictureUrl;
+
     @ApiModelProperty(
             value = "the list of views associated with this API",
             dataType = "java.util.List",
@@ -283,5 +288,13 @@ public class UpdateApiEntity {
 
     public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
         this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 }

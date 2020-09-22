@@ -45,6 +45,7 @@ public interface UserService {
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
     UserEntity finalizeRegistration(RegisterUserEntity registerUserEntity);
     PictureEntity getPicture(String id);
+    PictureEntity getDefaultAvatar();
     void delete(String id);
     void resetPassword(String id);
     Map<String, Object> getTokenRegistrationParams(UserEntity userEntity, String portalUri, ACTION action);
