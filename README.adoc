@@ -27,7 +27,9 @@ You can also use `ng generate directive|pipe|service|class|guard|interface|enum|
 == Build
 
 Run `npm run build` to build the project.
-The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+The build artifacts will be stored in the `dist/` directory.
+Use the `npm run build:prod` for a production build.
+Use the `npm run serve:prod` to test a production build.
 
 == Running unit tests
 
@@ -80,8 +82,6 @@ for automatic installation of branch with same name.
 Don't forget to reset your package.json and package-lock.json after reviewing.
 
 
-```
-```
 == i18n
 
 This project use the internationalization (i18n) library for Angular http://www.ngx-translate.com
