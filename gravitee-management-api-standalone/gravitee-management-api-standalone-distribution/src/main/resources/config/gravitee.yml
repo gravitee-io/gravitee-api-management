@@ -395,7 +395,6 @@ notifiers:
     host: ${email.host}
     subject: ${email.subject}
     port: ${email.port}
-    from: ${email.from}
     username: ${email.username}
     password: ${email.password}
 #    starttls.enabled: false

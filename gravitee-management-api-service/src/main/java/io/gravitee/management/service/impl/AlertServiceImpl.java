@@ -98,8 +98,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private String username;
     @Value("${notifiers.email.password:#{null}}")
     private String password;
-    @Value("${notifiers.email.from}")
-    private String defaultFrom;
     @Value("${notifiers.email.starttls.enabled:false}")
     private boolean startTLSEnabled;
     @Value("${notifiers.email.ssl.trustAll:false}")
@@ -455,7 +453,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         EmailNotifierConfiguration configuration = new EmailNotifierConfiguration();
 
         if (host == null) {
-            configuration.setPassword(environment.getProperty("email.subject"));
             configuration.setHost(environment.getProperty("email.host"));
             final String emailPort = environment.getProperty("email.port");
             if (emailPort != null) {
@@ -479,7 +476,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             JsonNode emailNode = mapper.readTree(notification.getConfiguration());
             configuration.setFrom(emailNode.path("from").asText());
             configuration.setTo(emailNode.path("to").asText());
-            configuration.setSubject(emailNode.path("subject").asText());
+            configuration.setSubject(String.format(subject, emailNode.path("subject").asText()));
             configuration.setBody(emailNode.path("body").asText());
 
             notification.setConfiguration(mapper.writeValueAsString(configuration));
