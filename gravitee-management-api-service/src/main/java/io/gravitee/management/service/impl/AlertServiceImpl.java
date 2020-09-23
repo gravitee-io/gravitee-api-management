@@ -27,10 +27,7 @@ import io.gravitee.alert.api.trigger.command.Handler;
 import io.gravitee.alert.api.trigger.command.ResolvePropertyCommand;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.management.model.AlertEventQuery;
-import io.gravitee.management.model.AlertEventRuleEntity;
-import io.gravitee.management.model.ApplicationEntity;
-import io.gravitee.management.model.PlanEntity;
+import io.gravitee.management.model.*;
 import io.gravitee.management.model.alert.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.parameters.Key;
@@ -139,6 +136,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Autowired
     private ApiRepository apiRepository;
+
+    @Autowired
+    private ApiMetadataService apiMetadataService;
 
     @Override
     public AlertStatusEntity getStatus() {
@@ -640,6 +640,11 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     metadata.remove("resources");
                     metadata.remove("response_templates");
                     metadata.remove("path_mappings");
+
+                    final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(api);
+                    final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
+                    metadataList.forEach(m -> mapMetadata.put(m.getKey(), m.getValue() == null ? m.getDefaultValue() : m.getValue()));
+                    metadata.put("metadata",  mapper.convertValue(mapMetadata, Map.class));
                 }
             } catch (ApiNotFoundException anfe) {
                 metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
