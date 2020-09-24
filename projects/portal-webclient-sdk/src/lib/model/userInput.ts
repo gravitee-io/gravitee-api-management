@@ -19,6 +19,6 @@ export interface UserInput {
     /**
      * Avatar of the user.
      */
-    avatar: string;
+    avatar?: string;
 }
 

@@ -51,7 +51,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
       this.userForm = this.formBuilder.group({
         display_name: new FormControl( { value: this.displayName, disabled: true }, Validators.required),
         email: new FormControl({ value: this.email, disabled: true }, Validators.required),
-        avatar: new FormControl(this.avatar, Validators.required)
+        avatar: new FormControl(this.avatar)
       });
 
       this.userForm.get('avatar').valueChanges.subscribe((avatar) => {
