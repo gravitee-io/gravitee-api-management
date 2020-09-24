@@ -20,6 +20,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.elasticsearch.client.Client;
+import io.gravitee.elasticsearch.config.ElasticsearchClient;
 import io.gravitee.elasticsearch.config.Endpoint;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.model.CountResponse;
@@ -29,7 +30,11 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.SingleSource;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -44,10 +49,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -80,10 +89,12 @@ public class HttpClient implements Client {
      */
     private HttpClientConfiguration configuration;
 
+    private final static ElasticsearchInfo DUMMY_INFO = new ElasticsearchInfo();
+
     /**
-     * HTTP client.
+     * HTTP clients.
      */
-    private WebClient httpClient;
+    private List<ElasticsearchClient> httpClients;
 
     /**
      * Authorization header if Elasticsearch is protected.
@@ -91,6 +102,8 @@ public class HttpClient implements Client {
     private String authorizationHeader;
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    private final AtomicInteger counter = new AtomicInteger(0);
 
     public HttpClient() {
         this(new HttpClientConfiguration());
@@ -102,65 +115,76 @@ public class HttpClient implements Client {
 
     @PostConstruct
     public void initialize() {
-        if (! configuration.getEndpoints().isEmpty()) {
-            final Endpoint endpoint = configuration.getEndpoints().get(0);
-            final URI elasticEdpt = URI.create(endpoint.getUrl());
-            initializePaths(elasticEdpt);
+        final List<Endpoint> endpoints = configuration.getEndpoints();
+        if (!endpoints.isEmpty()) {
+            httpClients = new ArrayList<>(endpoints.size());
+            initializePaths(URI.create(endpoints.get(0).getUrl()));
+            endpoints.forEach(endpoint -> {
+                final URI elasticEdpt = URI.create(endpoint.getUrl());
 
-            WebClientOptions options = new WebClientOptions()
-                    .setDefaultHost(elasticEdpt.getHost())
-                    .setDefaultPort(elasticEdpt.getPort() != -1 ? elasticEdpt.getPort() :
-                            (HTTPS_SCHEME.equalsIgnoreCase(elasticEdpt.getScheme()) ? 443 : 80));
+                WebClientOptions options = new WebClientOptions()
+                        .setDefaultHost(elasticEdpt.getHost())
+                        .setDefaultPort(elasticEdpt.getPort() != -1 ? elasticEdpt.getPort() :
+                                (HTTPS_SCHEME.equalsIgnoreCase(elasticEdpt.getScheme()) ? 443 : 80));
 
-            if (HTTPS_SCHEME.equalsIgnoreCase(elasticEdpt.getScheme())) {
-                options
-                    .setSsl(true)
-                    .setTrustAll(true);
-
-                if (this.configuration.getSslConfig() != null) {
-                    options.setKeyCertOptions(this.configuration.getSslConfig().getVertxWebClientSslKeystoreOptions());
-                }
-            }
-
-            if (configuration.isProxyConfigured()) {
-                ProxyOptions proxyOptions = new ProxyOptions();
-                proxyOptions.setType(ProxyType.valueOf(configuration.getProxyType()));
                 if (HTTPS_SCHEME.equalsIgnoreCase(elasticEdpt.getScheme())) {
-                    proxyOptions.setHost(configuration.getProxyHttpsHost());
-                    proxyOptions.setPort(configuration.getProxyHttpsPort());
-                    proxyOptions.setUsername(configuration.getProxyHttpsUsername());
-                    proxyOptions.setPassword(configuration.getProxyHttpsPassword());
-                } else {
-                    proxyOptions.setHost(configuration.getProxyHttpHost());
-                    proxyOptions.setPort(configuration.getProxyHttpPort());
-                    proxyOptions.setUsername(configuration.getProxyHttpUsername());
-                    proxyOptions.setPassword(configuration.getProxyHttpPassword());
-                }
-                options.setProxyOptions(proxyOptions);
-            }
+                    options
+                            .setSsl(true)
+                            .setTrustAll(true);
 
-            this.httpClient = WebClient.create(vertx, options);
-
-            // Read configuration to authenticate calls to Elasticsearch (basic authentication only)
-            if (this.configuration.getUsername() != null) {
-                this.authorizationHeader = this.initEncodedAuthorization(this.configuration.getUsername(),
-                        this.configuration.getPassword());
-            }
-
-            ((WebClientInternal) this.httpClient.getDelegate()).addInterceptor(context -> {
-                context.request()
-                        .timeout(configuration.getRequestTimeout())
-                        .putHeader(HttpHeaders.ACCEPT, CONTENT_TYPE)
-                        .putHeader(HttpHeaders.ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
-
-                // Basic authentication
-                if (authorizationHeader != null) {
-                    context.request().putHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
+                    if (this.configuration.getSslConfig() != null) {
+                        options.setKeyCertOptions(this.configuration.getSslConfig().getVertxWebClientSslKeystoreOptions());
+                    }
                 }
 
-                context.next();
+                if (configuration.isProxyConfigured()) {
+                    ProxyOptions proxyOptions = new ProxyOptions();
+                    proxyOptions.setType(ProxyType.valueOf(configuration.getProxyType()));
+                    if (HTTPS_SCHEME.equalsIgnoreCase(elasticEdpt.getScheme())) {
+                        proxyOptions.setHost(configuration.getProxyHttpsHost());
+                        proxyOptions.setPort(configuration.getProxyHttpsPort());
+                        proxyOptions.setUsername(configuration.getProxyHttpsUsername());
+                        proxyOptions.setPassword(configuration.getProxyHttpsPassword());
+                    } else {
+                        proxyOptions.setHost(configuration.getProxyHttpHost());
+                        proxyOptions.setPort(configuration.getProxyHttpPort());
+                        proxyOptions.setUsername(configuration.getProxyHttpUsername());
+                        proxyOptions.setPassword(configuration.getProxyHttpPassword());
+                    }
+                    options.setProxyOptions(proxyOptions);
+                }
+
+                final WebClient httpClient = WebClient.create(vertx, options);
+
+                // Read configuration to authenticate calls to Elasticsearch (basic authentication only)
+                if (this.configuration.getUsername() != null) {
+                    this.authorizationHeader = this.initEncodedAuthorization(this.configuration.getUsername(),
+                            this.configuration.getPassword());
+                }
+
+                ((WebClientInternal) httpClient.getDelegate()).addInterceptor(context -> {
+                    context.request()
+                            .timeout(configuration.getRequestTimeout())
+                            .putHeader(HttpHeaders.ACCEPT, CONTENT_TYPE)
+                            .putHeader(HttpHeaders.ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
+
+                    // Basic authentication
+                    if (authorizationHeader != null) {
+                        context.request().putHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
+                    }
+
+                    context.next();
+                });
+
+                final ElasticsearchClient client = new ElasticsearchClient(httpClient);
+                httpClients.add(client);
+
+                // Health check
+                Observable
+                        .interval(5, TimeUnit.SECONDS)
+                        .flatMapSingle((Function<Long, SingleSource<ElasticsearchInfo>>) aLong -> getInfo(client).onErrorReturnItem(DUMMY_INFO))
+                        .subscribe(info -> client.setAvailable(!info.equals(DUMMY_INFO)));
             });
-
         }
     }
 
@@ -176,13 +200,33 @@ public class HttpClient implements Client {
         URL_COUNT = urlPrefix + "/_count?ignore_unavailable=true";
     }
 
-    @Override
-    public Single<ElasticsearchInfo> getInfo() throws ElasticsearchException {
-        return httpClient
+    private List<ElasticsearchClient> clients() {
+        return httpClients
+                .stream()
+                .filter(ElasticsearchClient::isAvailable)
+                .collect(toList());
+    }
+
+    private ElasticsearchClient nextClient() {
+        final List<ElasticsearchClient> clients = clients();
+        int size = clients.size();
+        if (size == 0) {
+            throw new IllegalStateException("No endpoint available");
+        }
+        return clients.get(Math.abs(counter.getAndIncrement() % size));
+    }
+
+    private Single<ElasticsearchInfo> getInfo(final ElasticsearchClient client) throws ElasticsearchException {
+        return client.getClient()
                 .get(URL_ROOT)
                 .rxSend()
-                .doOnError(throwable -> logger.error("Unable to get a connection to Elasticsearch", throwable))
+                .doOnError(throwable -> logger.error("Unable to get a connection to Elasticsearch: {}", throwable.getMessage()))
                 .map(response -> mapper.readValue(response.bodyAsString(), ElasticsearchInfo.class));
+    }
+
+    @Override
+    public Single<ElasticsearchInfo> getInfo() throws ElasticsearchException {
+        return getInfo(nextClient());
     }
 
     /**
@@ -193,7 +237,7 @@ public class HttpClient implements Client {
      */
     @Override
     public Single<Health> getClusterHealth() {
-        return httpClient
+        return nextClient().getClient()
                 .get(URL_STATE_CLUSTER)
                 .rxSend()
                 .map(response -> mapper.readValue(response.bodyAsString(), Health.class));
@@ -205,7 +249,7 @@ public class HttpClient implements Client {
         Buffer payload = Buffer.buffer();
         data.forEach(buffer -> payload.appendBuffer(Buffer.newInstance(buffer)));
 
-        return httpClient
+        return nextClient().getClient()
                 .post(URL_BULK)
                 .putHeader(HttpHeaders.CONTENT_TYPE, "application/x-ndjson")
                 .rxSendBuffer(payload)
@@ -232,7 +276,7 @@ public class HttpClient implements Client {
 
     @Override
     public Completable putTemplate(String templateName, String template) {
-        return httpClient
+        return nextClient().getClient()
                 .put(URL_TEMPLATE + '/' + templateName)
                 .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .rxSendBuffer(Buffer.buffer(template))
@@ -265,7 +309,7 @@ public class HttpClient implements Client {
         }
 
         url.append(URL_COUNT);
-        return httpClient
+        return nextClient().getClient()
                 .post(url.toString())
                 .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .rxSendBuffer(Buffer.buffer(query))
@@ -298,7 +342,7 @@ public class HttpClient implements Client {
         }
 
         url.append(URL_SEARCH);
-        return httpClient
+        return nextClient().getClient()
                 .post(url.toString())
                 .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .rxSendBuffer(Buffer.buffer(query))
@@ -320,7 +364,7 @@ public class HttpClient implements Client {
      * @return elasticsearch response
      */
     public Single<Response> count(final String url, final String query) {
-        return httpClient
+        return nextClient().getClient()
                 .post(url)
                 .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .rxSendBuffer(Buffer.buffer(query))
@@ -337,7 +381,7 @@ public class HttpClient implements Client {
 
     @Override
     public Completable putPipeline(String pipelineName, String pipeline) {
-        return httpClient
+        return nextClient().getClient()
                 .put(URL_INGEST + '/' + pipelineName)
                 .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                 .rxSendBuffer(Buffer.buffer(pipeline))
