@@ -57,7 +57,8 @@
             </div>
           </div>
           <div>
-            <gravitee-image image-id="'category'" image="$ctrl.category.picture" image-url="$ctrl.category.picture_url" image-name="$ctrl.category.name"></gravitee-image>
+            <gravitee-image image-id="'category'" image="$ctrl.category.picture" image-url="$ctrl.category.picture_url"
+                            image-name="$ctrl.category.name" can-delete="true" delete-label="Use default"></gravitee-image>
           </div>
         </div>
       </form>
@@ -136,6 +137,12 @@
                    permission permission-only="['environment-category-c', 'environment-category-u']"
                    class="md-raised md-primary">
           Save
+        </md-button>
+        <md-button ng-disabled="$ctrl.categoryForm.$invalid || $ctrl.categoryForm.$pristine && !$ctrl.formChanged"
+                   ng-click="$ctrl.reset()"
+                   permission permission-only="['environment-category-c', 'environment-category-u']"
+                   class="md-raised">
+          Reset
         </md-button>
       </div>
     </div>

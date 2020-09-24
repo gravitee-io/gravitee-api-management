@@ -62,11 +62,7 @@ class ApiAdminController {
   }
 
   init() {
-    var self = this;
-    this.$scope.$on('apiPictureChangeSuccess', function (event, args) {
-      self.api.picture = args.image;
-      self.updatePicture(self.api);
-    });
+    const self = this;
     this.$scope.$on('apiChangeSuccess', function (event, args) {
       self.api = args.api;
       self.checkAPISynchronization(self.api);

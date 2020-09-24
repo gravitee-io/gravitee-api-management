@@ -87,9 +87,17 @@ class ImageController {
 
   onDelete() {
     this.$scope.image = null;
+    this.$scope.imageUrl = null;
     this.$rootScope.$broadcast('apiPictureChangeSuccess', { image: this.$scope.image });
     if (this.$scope.imageForm) {
       this.$scope.imageForm.$setDirty();
+    }
+  }
+
+  isDefaultImage() {
+    const jdenticonElement = document.querySelector('#jdenticon_' + this.$scope.imageId);
+    if (jdenticonElement) {
+      return jdenticonElement.classList.contains('show');
     }
   }
 }

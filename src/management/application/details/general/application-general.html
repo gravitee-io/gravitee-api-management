@@ -55,7 +55,11 @@
               </div>
             </md-input-container>
           </div>
-          <gravitee-image image-id="$ctrl.application.id" image="$ctrl.application.picture" image-url="$ctrl.application.picture_url" image-name="$ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"></gravitee-image>
+          <gravitee-image image-id="$ctrl.application.id" image="$ctrl.application.picture"
+                          image-url="$ctrl.application.picture_url"
+                          image-name="$ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
+                          can-delete="true" delete-label="Use default">
+          </gravitee-image>
         </div>
         <div layout="row">
           <md-input-container class="md-block" flex>

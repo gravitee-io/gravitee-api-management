@@ -45,6 +45,7 @@ class UserController {
       this.$state.go('login', {}, {reload: true, inherit: false});
     } else {
       this.originalPicture = this.getUserPicture();
+      this.user.picture_url = this.getUserPicture();
       this.TokenService.list().then(response => {
         this.tokens = response.data;
       });
@@ -54,6 +55,7 @@ class UserController {
   save() {
     this.UserService.save(this.user).then((response) => {
       this.user = response.data;
+      this.user.picture_url = this.getUserPicture();
       this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : this.user, 'refresh': true});
       this.$scope.formUser.$setPristine();
       this.NotificationService.show('User has been updated successfully');
@@ -91,6 +93,7 @@ class UserController {
 
   cancel() {
     delete this.user.picture;
+    delete this.user.picture_url;
     this.$state.reload();
   }
 

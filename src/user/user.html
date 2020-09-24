@@ -23,9 +23,11 @@
         <span class="md-subhead" ng-bind="$ctrl.user.displayName"></span>
       </md-card-title-text>
       <md-card-title-media style="text-align: center;">
-        <gravitee-image image-id="$ctrl.user.id" image="$ctrl.user.picture" image-url="$ctrl.getUserPicture()" image-border-radius="true"
-            image-name="$ctrl.user.displayName"
-            image-form="formUser"></gravitee-image>
+        <gravitee-image image-id="$ctrl.user.id" image="$ctrl.user.picture" image-url="$ctrl.user.picture_url"
+                        image-border-radius="true"
+                        image-name="$ctrl.user.displayName"
+                        image-form="formUser"
+                        can-delete="true" delete-label="Use default"></gravitee-image>
       </md-card-title-media>
     </md-card-title>
     <md-card-content>
