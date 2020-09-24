@@ -4150,7 +4150,6 @@ components:
     UserInput:
       required:
         - id
-        - avatar
       properties:
         id:
           description: Unique identifier of a user.

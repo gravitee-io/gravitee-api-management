@@ -47,6 +47,9 @@ public class UpdateApplicationEntity {
 
     private String picture;
 
+    @JsonProperty("picture_url")
+    private String pictureUrl;
+
     @NotNull(message = "Application's settings must not be null")
     private ApplicationSettings settings;
 
@@ -138,6 +141,14 @@ public class UpdateApplicationEntity {
 
     public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
         this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 
     @Override
