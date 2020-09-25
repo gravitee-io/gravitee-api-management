@@ -45,6 +45,7 @@
       <section class="application__log__infos__section">
         <h3 class="title">{{'application.log.request' | translate}}</h3>
         <h3 class="title">{{'application.log.response' | translate}}</h3>
+
         <div>
           <div class="application__log__infos__block">
             <label>{{'application.log.requestId' | translate}}</label>
@@ -59,7 +60,6 @@
             <div>{{selectedLog.requestContentLength}}</div>
           </div>
         </div>
-
         <div>
           <div class="application__log__infos__block">
             <label>{{'application.log.transactionId' | translate}}</label>
@@ -84,7 +84,6 @@
             <div>{{header[1]}}</div>
           </div>
         </div>
-
         <div>
           <div class="application__log__infos__block" *ngFor="let header of responseHeaders">
             <label>{{header[0]}}</label>
@@ -96,13 +95,15 @@
         <h3 *ngIf="selectedLog.response"  class="title">{{'application.log.responseBody' | translate}}</h3>
 
         <div *ngIf="selectedLog.request && !selectedLog.request.body"></div>
-        <gv-code *ngIf="selectedLog.request && selectedLog.request.body"
-                 [options]="{mode:getLang(selectedLog.request.headers), lineNumbers: true, lineWrapping: true}"
-                 [value]="selectedLog.request.body" readonly clipboard></gv-code>
+        <div *ngIf="selectedLog.request && selectedLog.request.body">
+          <gv-code [options]="{mode:getLang(selectedLog.request.headers), lineNumbers: true, lineWrapping: true}"
+                   [value]="selectedLog.request.body" readonly clipboard></gv-code>
+        </div>
         <div *ngIf="selectedLog.response && !selectedLog.response.body"></div>
-        <gv-code *ngIf="selectedLog.response && selectedLog.response.body"
-                 [options]="{mode:getLang(selectedLog.response.headers), lineNumbers: true, lineWrapping: true}"
-                 [value]="selectedLog.response.body" readonly clipboard></gv-code>
+        <div *ngIf="selectedLog.response && selectedLog.response.body">
+          <gv-code [options]="{mode:getLang(selectedLog.response.headers), lineNumbers: true, lineWrapping: true}"
+                   [value]="selectedLog.response.body" readonly clipboard></gv-code>
+        </div>
 
       </section>
 
