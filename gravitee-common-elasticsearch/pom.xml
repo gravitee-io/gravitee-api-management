@@ -23,11 +23,11 @@
 	<parent>
 		<groupId>io.gravitee.elasticsearch</groupId>
 		<artifactId>gravitee-elasticsearch</artifactId>
-		<version>1.30.12-SNAPSHOT</version>
+		<version>1.30.12</version>
 	</parent>
 
 	<artifactId>gravitee-common-elasticsearch</artifactId>
-	<version>1.30.12-SNAPSHOT</version>
+	<version>1.30.12</version>
 
 	<name>Gravitee.io APIM - Elasticsearch - Common</name>
 
