@@ -45,13 +45,11 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
 
     @Override
     public OpenAPI parse(String content) {
-        return this.parse(content, true);
+        return this.parse(content, true, null);
     }
 
-    private OpenAPI parse(String content, boolean reparse) {
+    private OpenAPI parse(String content, boolean reparse, ParseOptions options) {
         OpenAPIParser parser = new OpenAPIParser();
-        ParseOptions options = new ParseOptions();
-        options.setResolveFully(true);
         SwaggerParseResult parseResult;
         String path = content;
         File temp = null;
@@ -83,9 +81,14 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
 
 
         if (parseResult != null && parseResult.getOpenAPI() != null && parseResult.getOpenAPI().getInfo() != null) {
-            // ugly hack for swagger v2 $ref resolving
+            /* ugly hack for swagger v2 $ref resolving & avoid NPE in resolveFully
+             * See https://github.com/swagger-api/swagger-parser/issues/1455
+             */
             if (reparse) {
-                return this.parse(Yaml.pretty(parseResult.getOpenAPI()), false);
+                ParseOptions reparseOptions = new ParseOptions();
+                reparseOptions.setResolveFully(true);
+
+                return this.parse(Yaml.pretty(parseResult.getOpenAPI()), false, reparseOptions);
             }
             return parseResult.getOpenAPI();
         }

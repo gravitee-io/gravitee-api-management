@@ -15,12 +15,15 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
-import io.gravitee.repository.exceptions.TechnicalException;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,10 +46,10 @@ public interface ApiService {
     Set<ApiEntity> findByVisibility(Visibility visibility);
 
     ApiEntity create(NewApiEntity api, String userId);
-    ApiEntity create(SwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
+    ApiEntity createFromSwagger(SwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     ApiEntity update(String apiId, UpdateApiEntity api);
-    ApiEntity update(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor);
+    ApiEntity updateFromSwagger(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     void delete(String apiId);
 

@@ -22,9 +22,11 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -33,9 +35,6 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,6 +106,12 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
     @Mock
     private VirtualHostService virtualHostService;
+
+    @Mock
+    private GroupService groupService;
+
+    @Mock
+    private ApiMetadataService apiMetadataService;
 
     @Before
     public void setUp()  throws TechnicalException {

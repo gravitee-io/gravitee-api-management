@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Format;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIConverter;
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,6 +65,9 @@ public class SwaggerServiceImpl implements SwaggerService {
     @Autowired
     private ImportConfiguration importConfiguration;
 
+    @Autowired
+    private GroupService groupService;
+
     @Override
     public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
         boolean wsdlImport = Format.WSDL.equals(swaggerDescriptor.getFormat());
@@ -73,13 +78,15 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
 
         if (descriptor != null) {
-            List<OAIOperationVisitor> visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
-                    .filter(operationVisitor -> swaggerDescriptor.getWithPolicies() != null
-                            && swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
-                    .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
-                    .collect(Collectors.toList());
-
-            return new OAIToAPIConverter(visitors)
+            List<OAIOperationVisitor> visitors = new ArrayList<>();
+            if (swaggerDescriptor.isWithPolicyPaths()) {
+                visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
+                        .filter(operationVisitor -> swaggerDescriptor.getWithPolicies() != null
+                                && swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
+                        .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
+                        .collect(Collectors.toList());
+            }
+            return new OAIToAPIConverter(visitors, groupService)
                     .convert((OAIDescriptor) descriptor);
 
         }

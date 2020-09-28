@@ -18,27 +18,23 @@ package io.gravitee.rest.api.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.net.URL;
@@ -102,13 +98,6 @@ public class ApiService_CreateWithDefinitionTest {
     private AlertService alertService;
     @Spy
     private PolicyService policyService;
-
-    @Before
-    public void init() {
-        final SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
-        SecurityContextHolder.setContext(securityContext);
-    }
 
     @Test
     public void shouldCreateImportApiWithMembersAndPages() throws IOException, TechnicalException {

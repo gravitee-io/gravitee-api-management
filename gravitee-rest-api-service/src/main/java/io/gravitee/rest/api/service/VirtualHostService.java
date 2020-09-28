@@ -46,4 +46,11 @@ public interface VirtualHostService {
      * @param api
      */
     void validate(Collection<VirtualHost> virtualHosts, String api);
+
+    /**
+     * this method sanitizes the path of the virtual host.
+     * @param virtualHost
+     * @return virtualHost sanitized
+     */
+    VirtualHost sanitize(VirtualHost virtualHost);
 }

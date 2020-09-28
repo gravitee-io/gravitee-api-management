@@ -111,6 +111,7 @@ public class PoliciesResource {
                     item.setName(operationVisitor.getName());
                     return item;
                 })
+                .sorted(Comparator.comparing(PolicyListItem::getName))
                 .collect(Collectors.toList());
     }
 

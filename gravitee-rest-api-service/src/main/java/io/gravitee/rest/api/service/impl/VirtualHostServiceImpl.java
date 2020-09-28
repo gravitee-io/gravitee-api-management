@@ -17,11 +17,11 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,11 +108,15 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         }
     }
 
-
-    private VirtualHost sanitize(VirtualHost virtualHost) {
+    @Override
+    public VirtualHost sanitize(VirtualHost virtualHost) {
         String path = virtualHost.getPath();
         if (path == null || path.isEmpty()) {
             path = URI_PATH_SEPARATOR;
+        }
+
+        if (!path.startsWith(URI_PATH_SEPARATOR)) {
+            path = URI_PATH_SEPARATOR + path;
         }
 
         if (path.lastIndexOf(URI_PATH_SEPARATOR_CHAR) != path.length() - 1) {
@@ -122,7 +126,7 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         path = DUPLICATE_SLASH_REMOVER.matcher(path).replaceAll(URI_PATH_SEPARATOR);
 
         // Create a copy of the virtual host to avoid any change into the initial one
-        return new VirtualHost(virtualHost.getHost(), path);
+        return new VirtualHost(virtualHost.getHost(), path, virtualHost.isOverrideEntrypoint());
     }
 
     private void compare(String path, List<String> paths) {

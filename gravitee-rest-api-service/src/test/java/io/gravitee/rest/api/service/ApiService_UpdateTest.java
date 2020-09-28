@@ -109,6 +109,10 @@ public class ApiService_UpdateTest {
     private CategoryService categoryService;
     @Mock
     private PolicyService policyService;
+    @Mock
+    private GroupService groupService;
+    @Mock
+    private ApiMetadataService apiMetadataService;
 
     @Before
     public void setUp() {

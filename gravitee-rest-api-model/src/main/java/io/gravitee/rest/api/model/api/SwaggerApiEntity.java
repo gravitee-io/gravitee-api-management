@@ -15,104 +15,11 @@
  */
 package io.gravitee.rest.api.model.api;
 
-import io.gravitee.definition.model.Path;
-
-import javax.validation.constraints.NotNull;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SwaggerApiEntity {
+public class SwaggerApiEntity extends UpdateApiEntity {
 
-    @NotNull
-    private String name;
 
-    @NotNull
-    private String version;
-
-    @NotNull
-    private String description;
-
-    @NotNull
-    private String contextPath;
-
-    @NotNull
-    private List<String> endpoint;
-
-    private Map<String, Path> paths = new HashMap<>();
-
-    private Set<String> pathMappings;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
-
-    public List<String> getEndpoint() {
-        return endpoint;
-    }
-
-    public void setEndpoint(List<String> endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public Map<String, Path> getPaths() {
-        return paths;
-    }
-
-    public void setPaths(Map<String, Path> paths) {
-        this.paths = paths;
-    }
-
-    public Set<String> getPathMappings() {
-        return pathMappings;
-    }
-
-    public void setPathMappings(Set<String> pathMappings) {
-        this.pathMappings = pathMappings;
-    }
-
-    @Override
-    public String toString() {
-        return "SwaggerApiEntity{" +
-                "name='" + name + '\'' +
-                ", version='" + version + '\'' +
-                ", description='" + description + '\'' +
-                ", contextPath='" + contextPath + '\'' +
-                ", endpoint='" + endpoint + '\'' +
-                ", paths=" + paths +
-                '}';
-    }
 }

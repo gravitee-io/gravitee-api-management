@@ -17,6 +17,12 @@ package io.gravitee.rest.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
@@ -24,22 +30,12 @@ import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Visibility;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -101,13 +97,6 @@ public class ApiService_CreateTest {
     @Mock
     private AlertService alertService;
 
-    @Before
-    public void init() {
-        final SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
-        SecurityContextHolder.setContext(securityContext);
-    }
-
     @Test
     public void shouldCreateForUser() throws TechnicalException {
         when(api.getId()).thenReturn(API_ID);
@@ -123,7 +112,6 @@ public class ApiService_CreateTest {
         when(newApi.getDescription()).thenReturn("Ma description");
         when(newApi.getContextPath()).thenReturn("/context");
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
-        when(pageService.search(any())).thenReturn(null);
 
         when(groupService.findByEvent(any())).thenReturn(Collections.emptySet());
 

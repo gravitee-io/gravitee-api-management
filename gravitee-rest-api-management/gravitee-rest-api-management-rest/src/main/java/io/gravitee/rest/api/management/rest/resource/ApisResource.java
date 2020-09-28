@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.management.rest.resource.param.VerifyApiParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
@@ -33,7 +34,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -196,7 +196,8 @@ public class ApisResource extends AbstractResource {
     })
     public Response importSwagger(
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        final ApiEntity api = apiService.create(swaggerService.createAPI(swaggerDescriptor), getAuthenticatedUser(), swaggerDescriptor);
+        final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor);
+        final ApiEntity api = apiService.createFromSwagger(swaggerApiEntity, getAuthenticatedUser(), swaggerDescriptor);
         return Response
                 .created(URI.create("/apis/" + api.getId()))
                 .entity(api)
