@@ -36,10 +36,8 @@
         <module>gravitee-gateway-services-localregistry</module>
         <module>gravitee-gateway-services-sync</module>
         <module>gravitee-gateway-services-healthcheck</module>
-        <module>gravitee-gateway-services-apikeyscache</module>
         <module>gravitee-gateway-services-heartbeat</module>
         <module>gravitee-gateway-services-endpoint-discovery</module>
-        <module>gravitee-gateway-services-subscriptions-cache</module>
     </modules>
 
     <dependencyManagement>

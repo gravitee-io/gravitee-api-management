@@ -35,12 +35,14 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RepositoryPluginHandler implements PluginHandler, InitializingBean {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(RepositoryPluginHandler.class);
+
+    private final static String PLUGIN_TYPE = "repository";
 
     @Autowired
     private Environment environment;
@@ -70,7 +72,7 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
 
     @Override
     public boolean canHandle(Plugin plugin) {
-        return plugin.type() == PluginType.REPOSITORY;
+        return PLUGIN_TYPE.equalsIgnoreCase(plugin.type());
     }
 
     @Override

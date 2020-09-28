@@ -169,6 +169,10 @@ reporters:
 #    template_mapping:
 #      path: ${gravitee.home}/config/reporter/elasticsearch/templates
 #      extended_request_mapping: request.ftl
+  file:
+    enabled: false # Is the reporter enabled or not (default to false)
+#    fileName: ${gravitee.home}/metrics/%s-yyyy_mm_dd
+#    output: json # Can be csv, json, elasticsearch or message_pack
 
 # Gateway service configurations. Provided values are default values.
 # All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
@@ -194,6 +198,7 @@ services:
   sync:
     # Synchronization is done each 5 seconds
     cron: '*/5 * * * * *'
+    distributed: false # By enabling this mode, data synchronization process is distributed over clustered API gateways.
 
   # Service used to store and cache api-keys from the management repository to avoid direct repository communication
   # while serving requests.
@@ -201,6 +206,13 @@ services:
     delay: 10000
     unit: MILLISECONDS
     threads: 3 # Threads core size used to retrieve api-keys from repository.
+
+  # Service used to store and cache subscriptions from the management repository to avoid direct repository communication
+  # while serving requests.
+  subscriptions:
+    delay: 10000
+    unit: MILLISECONDS
+    threads: 3 # Threads core size used to retrieve subscriptions from repository.
 
   # Local registry service.
   # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
@@ -323,3 +335,12 @@ ds:
       # - field java.lang.Integer MAX_VALUE
       # Ex: allow usage of @Override annotation
       # - annotation java.lang.Override
+
+# If you want to create cluster of nodes, you can change the Hazelcast file to configure the Hz network
+# Clustering capabilities can be used for:
+#   - Distributed sync process
+#   - Distributed rate-limiting / quota counters
+#cluster:
+#  hazelcast:
+#    config:
+#      path: ${gravitee.home}/config/hazelcast.xml

@@ -67,6 +67,12 @@
 
             <dependency>
                 <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-cluster</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
                 <artifactId>gravitee-node-vertx</artifactId>
                 <version>${gravitee-node.version}</version>
             </dependency>
@@ -237,16 +243,16 @@
     </dependencies>
 
     <properties>
-        <gravitee-node.version>1.6.6</gravitee-node.version>
-        <gravitee-definition.version>1.23.3</gravitee-definition.version>
+        <gravitee-node.version>1.10.0-SNAPSHOT</gravitee-node.version>
+        <gravitee-definition.version>1.24.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.18.0</gravitee-common.version>
         <gravitee-expression-language.version>1.4.1</gravitee-expression-language.version>
-        <gravitee-repository.version>3.2.0</gravitee-repository.version>
-        <gravitee-plugin-resource.version>1.13.0</gravitee-plugin-resource.version>
-        <gravitee-plugin-core.version>1.13.0</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>1.13.0</gravitee-plugin-policy.version>
-        <gravitee-plugin-alert.version>1.13.0</gravitee-plugin-alert.version>
-        <gravitee-plugin-service-discovery.version>1.13.0</gravitee-plugin-service-discovery.version>
+        <gravitee-repository.version>3.4.0-SNAPSHOT</gravitee-repository.version>
+        <gravitee-plugin-resource.version>1.15.1-SNAPSHOT</gravitee-plugin-resource.version>
+        <gravitee-plugin-core.version>1.15.1-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>1.15.1-SNAPSHOT</gravitee-plugin-policy.version>
+        <gravitee-plugin-alert.version>1.15.1-SNAPSHOT</gravitee-plugin-alert.version>
+        <gravitee-plugin-service-discovery.version>1.15.1-SNAPSHOT</gravitee-plugin-service-discovery.version>
         <gravitee-gateway-api.version>1.21.1</gravitee-gateway-api.version>
         <gravitee-policy-api.version>1.9.0</gravitee-policy-api.version>
         <gravitee-alert-api.version>1.5.0</gravitee-alert-api.version>
@@ -265,6 +271,7 @@
         <nimbus-jwt.version>8.19</nimbus-jwt.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <protobuf-java.version>3.12.2</protobuf-java.version>
+        <hazelcast.version>3.12.9</hazelcast.version>
     </properties>
 
     <build>

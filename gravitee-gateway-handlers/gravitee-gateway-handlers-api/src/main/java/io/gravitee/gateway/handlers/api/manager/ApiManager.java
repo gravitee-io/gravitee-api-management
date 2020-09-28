@@ -31,22 +31,16 @@ import java.util.Collection;
 public interface ApiManager {
 
     /**
-     * Deploy an API definition.
-     * @param api API definition to deploy.
+     * Register an API definition. It is a "create or update" operation, if the api was previously existing, the
+     * definition is updated accordingly.
+     * @param api
+     * @return
      */
-    void deploy(Api api);
+    boolean register(Api api);
 
-    /**
-     * Update an API definition already registered.
-     * @param api API definition to update.
-     */
-    void update(Api api);
+    void unregister(String apiId);
 
-    /**
-     * Undeploy an API from the {@link io.gravitee.gateway.reactor.Reactor}.
-     * @param apiId The ID of the API to undeploy.
-     */
-    void undeploy(String apiId);
+    void refresh();
 
     /**
      * Returns a collection of deployed {@link Api}s.

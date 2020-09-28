@@ -88,14 +88,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-apikeyscache</artifactId>
-            <version>${project.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
             <groupId>io.gravitee.node.services</groupId>
             <artifactId>gravitee-node-services-healthcheck</artifactId>
             <version>${gravitee-node.version}</version>
@@ -122,14 +114,6 @@
         <dependency>
             <groupId>io.gravitee.gateway.services</groupId>
             <artifactId>gravitee-gateway-services-endpoint-discovery</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-            <type>zip</type>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-subscriptions-cache</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
@@ -173,12 +157,6 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>io.gravitee.gateway.services</groupId>
-                                    <artifactId>gravitee-gateway-services-apikeyscache</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>io.gravitee.gateway.services</groupId>
                                     <artifactId>gravitee-gateway-services-heartbeat</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
@@ -186,12 +164,6 @@
                                 <artifactItem>
                                     <groupId>io.gravitee.gateway.services</groupId>
                                     <artifactId>gravitee-gateway-services-endpoint-discovery</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>zip</type>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>io.gravitee.gateway.services</groupId>
-                                    <artifactId>gravitee-gateway-services-subscriptions-cache</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                 </artifactItem>

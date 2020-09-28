@@ -16,8 +16,12 @@
 package io.gravitee.gateway.services.sync.spring;
 
 import io.gravitee.gateway.services.sync.SyncManager;
+import io.gravitee.gateway.services.sync.apikeys.spring.ApiKeysConfiguration;
+import io.gravitee.gateway.services.sync.cache.CacheManager;
+import io.gravitee.gateway.services.sync.subscriptions.spring.SubscriptionsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -27,6 +31,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author GraviteeSource Team
  */
 @Configuration
+@Import({
+        ApiKeysConfiguration.class,
+        SubscriptionsConfiguration.class
+})
 public class SyncConfiguration {
 
     @Bean
@@ -37,7 +45,12 @@ public class SyncConfiguration {
     @Bean
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setThreadNamePrefix("sync-");
+        scheduler.setThreadNamePrefix("gio.sync-");
         return scheduler;
+    }
+
+    @Bean
+    public CacheManager cacheManager() {
+        return new CacheManager();
     }
 }

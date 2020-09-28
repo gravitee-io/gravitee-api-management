@@ -33,6 +33,12 @@
     <dependencies>
         <!-- Gravitee.io dependencies -->
         <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-cluster</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
             <version>${gravitee-common.version}</version>
@@ -56,6 +62,14 @@
         <dependency>
             <groupId>io.gravitee.repository</groupId>
             <artifactId>gravitee-repository</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Hazelcast -->
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${hazelcast.version}</version>
             <scope>provided</scope>
         </dependency>
 

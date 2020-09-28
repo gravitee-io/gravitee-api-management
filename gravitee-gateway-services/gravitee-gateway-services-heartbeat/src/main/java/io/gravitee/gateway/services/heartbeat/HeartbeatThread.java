@@ -15,11 +15,10 @@
  */
 package io.gravitee.gateway.services.heartbeat;
 
-import io.gravitee.repository.management.api.EventRepository;
+import com.hazelcast.core.IQueue;
 import io.gravitee.repository.management.model.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 
@@ -31,13 +30,12 @@ public class HeartbeatThread implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatThread.class);
 
-    @Autowired
-    private EventRepository eventRepository;
+    private final IQueue<Event> queue;
+    private final Event event;
 
-    private Event heartbeatEvent;
-
-    HeartbeatThread(Event heartbeatEvent) {
-        this.heartbeatEvent = heartbeatEvent;
+    HeartbeatThread(IQueue<Event> queue, Event event) {
+        this.queue = queue;
+        this.event = event;
     }
 
     @Override
@@ -46,11 +44,10 @@ public class HeartbeatThread implements Runnable {
 
         try {
             // Update heartbeat timestamp
-            heartbeatEvent.setUpdatedAt(new Date());
-            heartbeatEvent.getProperties().put("last_heartbeat_at",
-                    Long.toString(heartbeatEvent.getUpdatedAt().getTime()));
-            LOGGER.debug("Sending an heartbeat event");
-            eventRepository.update(heartbeatEvent);
+            event.setUpdatedAt(new Date());
+            event.getProperties().put(HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY,
+                    Long.toString(event.getUpdatedAt().getTime()));
+            queue.add(event);
         } catch (Exception ex) {
             LOGGER.error("An unexpected error occurs while monitoring the gateway", ex);
         }
