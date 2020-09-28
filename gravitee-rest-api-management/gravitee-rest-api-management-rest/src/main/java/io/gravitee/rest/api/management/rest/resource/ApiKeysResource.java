@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -96,5 +97,27 @@ public class ApiKeysResource extends AbstractResource {
 
         ApiKeyEntity keyEntity = apiKeyService.update(apiKeyEntity);
         return Response.ok(keyEntity).build();
+    }
+
+    @POST
+    @Path("_verify")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Check if an API key is available",
+            notes = "User must have the API_SUBSCRIPTION:READ permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API Key successfully checked", response = Boolean.class),
+            @ApiResponse(code = 400, message = "Bad API Key parameter"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
+    })
+    public Response verifyApiKeyAvailability(
+            @ApiParam(name = "apiKey", required = true)
+            @CustomApiKey @NotNull @QueryParam("apiKey") String apiKey) {
+
+        return Response
+                .ok(!apiKeyService.exists(apiKey))
+                .build();
     }
 }

@@ -27,7 +27,11 @@ public interface ApiKeyService {
 
     ApiKeyEntity generate(String subscription);
 
+    ApiKeyEntity generate(String subscription, String customApiKey);
+
     ApiKeyEntity renew(String subscription);
+
+    ApiKeyEntity renew(String subscription, String customApiKey);
 
     void revoke(String apiKey, boolean notify);
 
@@ -40,4 +44,6 @@ public interface ApiKeyService {
     void delete(String apiKey);
 
     ApiKeyEntity update(ApiKeyEntity apiKeyEntity);
+
+    boolean exists(String apiKey);
 }

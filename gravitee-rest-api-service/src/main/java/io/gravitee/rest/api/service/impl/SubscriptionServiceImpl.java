@@ -156,6 +156,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Override
     public SubscriptionEntity create(NewSubscriptionEntity newSubscriptionEntity) {
+        return create(newSubscriptionEntity, null);
+    }
+
+    @Override
+    public SubscriptionEntity create(NewSubscriptionEntity newSubscriptionEntity, String customApiKey) {
         String plan = newSubscriptionEntity.getPlan();
         String application = newSubscriptionEntity.getApplication();
         try {
@@ -315,6 +320,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 process.setId(subscription.getId());
                 process.setAccepted(true);
                 process.setStartingAt(new Date());
+                process.setCustomApiKey(customApiKey);
                 // Do process
                 return process(process, SUBSCRIPTION_SYSTEM_VALIDATOR);
             } else {
@@ -469,7 +475,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (plan.getSecurity() == PlanSecurityType.API_KEY &&
                     subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                apiKeyService.generate(subscription.getId());
+                if (StringUtils.isNotEmpty(processSubscription.getCustomApiKey())) {
+                    if (apiKeyService.exists(processSubscription.getCustomApiKey())) {
+                        throw new ApiKeyAlreadyActivatedException("The API key is already activated");
+                    }
+                    apiKeyService.generate(subscription.getId(), processSubscription.getCustomApiKey());
+                } else {
+                    apiKeyService.generate(subscription.getId());
+                }
             }
 
             return subscriptionEntity;

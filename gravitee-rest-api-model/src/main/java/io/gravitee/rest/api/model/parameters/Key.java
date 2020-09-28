@@ -69,6 +69,7 @@ public enum Key {
     PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled", "true"),
     PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled", "true"),
     PLAN_SECURITY_APIKEY_ENABLED("plan.security.apikey.enabled", "true"),
+    PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED("plan.security.apikey.allowCustom.enabled", "false"),
     PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true"),
 
     OPEN_API_DOC_TYPE_SWAGGER_ENABLED("open.api.doc.type.swagger.enabled", "true"),

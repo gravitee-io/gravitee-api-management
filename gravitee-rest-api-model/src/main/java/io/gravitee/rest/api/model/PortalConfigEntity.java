@@ -420,6 +420,9 @@ public class PortalConfigEntity {
         @ParameterKey(Key.PLAN_SECURITY_APIKEY_ENABLED)
         private Enabled apikey;
 
+        @ParameterKey(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED)
+        private Enabled customApiKey;
+
         @ParameterKey(Key.PLAN_SECURITY_OAUTH2_ENABLED)
         private Enabled oauth2;
 
@@ -435,6 +438,14 @@ public class PortalConfigEntity {
 
         public void setApikey(Enabled apikey) {
             this.apikey = apikey;
+        }
+
+        public Enabled getCustomApiKey() {
+            return customApiKey;
+        }
+
+        public void setCustomApiKey(Enabled customApiKey) {
+            this.customApiKey = customApiKey;
         }
 
         public Enabled getOauth2() {

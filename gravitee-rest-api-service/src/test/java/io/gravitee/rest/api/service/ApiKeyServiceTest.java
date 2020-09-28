@@ -132,6 +132,43 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
     }
 
+    @Test
+    public void shouldGenerateWithCustomApiKey() throws TechnicalException {
+        final String customApiKey = "customApiKey";
+
+        // Prepare subscription
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        PlanEntity planEntity = mock(PlanEntity.class);
+        when(planEntity.getApi()).thenReturn("apiId");
+        when(planService.findById(any())).thenReturn(planEntity);
+
+        // Stub API Key creation
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+
+        // Run
+        final ApiKeyEntity apiKey = apiKeyService.generate(SUBSCRIPTION_ID, customApiKey);
+
+        // Verify
+        verify(apiKeyRepository, times(1)).create(any());
+        assertFalse(apiKey.isRevoked());
+        assertEquals(subscription.getEndingAt(), apiKey.getExpireAt());
+        assertEquals(subscription.getId(), apiKey.getSubscription());
+
+        ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
+        verify(auditService).createApiAuditLog(any(),argument.capture(), any(), any(), any(), any());
+        Map<Audit.AuditProperties, String> properties = argument.getValue();
+        assertEquals(3, properties.size());
+        assertTrue(properties.containsKey(Audit.AuditProperties.API));
+        assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
+        assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+
+        verify(apiKeyGenerator, times(0)).generate();
+        assertEquals(customApiKey, apiKey.getKey());
+    }
+
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotGenerateBecauseTechnicalException() {
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenThrow(TechnicalManagementException.class);

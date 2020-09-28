@@ -46,6 +46,8 @@ public interface SubscriptionService {
 
     SubscriptionEntity create(NewSubscriptionEntity newSubscriptionEntity);
 
+    SubscriptionEntity create(NewSubscriptionEntity newSubscriptionEntity, String customApiKey);
+
     SubscriptionEntity update(UpdateSubscriptionEntity subscription);
 
     SubscriptionEntity update(UpdateSubscriptionEntity subscription, String clientId);

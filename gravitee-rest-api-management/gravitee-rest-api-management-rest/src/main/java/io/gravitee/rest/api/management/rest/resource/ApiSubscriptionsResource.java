@@ -25,11 +25,14 @@ import io.gravitee.rest.api.management.rest.resource.param.ListSubscriptionStatu
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -71,6 +74,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private ApiKeyService apiKeyService;
+
+    @Inject
+    private ParameterService parameterService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
@@ -127,6 +133,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             notes = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Subscription successfully created", response = Subscription.class),
+            @ApiResponse(code = 400, message = "Bad custom API Key format or custom API Key definition disabled"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.CREATE)
@@ -135,15 +142,28 @@ public class ApiSubscriptionsResource extends AbstractResource {
             @ApiParam(name = "application", required = true)
             @NotNull @QueryParam("application") String application,
             @ApiParam(name = "plan", required = true)
-            @NotNull @QueryParam("plan") String plan) {
+            @NotNull @QueryParam("plan") String plan,
+            @ApiParam(name = "customApiKey")
+            @CustomApiKey @QueryParam("customApiKey") String customApiKey) {
+
+        if (StringUtils.isNotEmpty(customApiKey)  &&
+                !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("You are not allowed to provide a custom API Key")
+                    .build();
+        }
+
+        NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(plan, application);
+
         // Create subscription
-        SubscriptionEntity subscription = subscriptionService.create(new NewSubscriptionEntity(plan, application));
+        SubscriptionEntity subscription = subscriptionService.create(newSubscriptionEntity, customApiKey);
 
         if (subscription.getStatus() == SubscriptionStatus.PENDING) {
             ProcessSubscriptionEntity process = new ProcessSubscriptionEntity();
             process.setId(subscription.getId());
             process.setAccepted(true);
             process.setStartingAt(new Date());
+            process.setCustomApiKey(customApiKey);
             subscription = subscriptionService.process(process, getAuthenticatedUser());
         }
 

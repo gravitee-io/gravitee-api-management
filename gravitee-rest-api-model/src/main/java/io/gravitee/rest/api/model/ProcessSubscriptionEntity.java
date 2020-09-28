@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.validator.CustomApiKey;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -38,6 +39,9 @@ public class ProcessSubscriptionEntity {
 
     @JsonProperty("ending_at")
     private Date endingAt;
+
+    @CustomApiKey
+    private String customApiKey;
 
     public String getId() {
         return id;
@@ -77,6 +81,14 @@ public class ProcessSubscriptionEntity {
 
     public void setEndingAt(Date endingAt) {
         this.endingAt = endingAt;
+    }
+
+    public String getCustomApiKey() {
+        return customApiKey;
+    }
+
+    public void setCustomApiKey(String customApiKey) {
+        this.customApiKey = customApiKey;
     }
 
     @Override

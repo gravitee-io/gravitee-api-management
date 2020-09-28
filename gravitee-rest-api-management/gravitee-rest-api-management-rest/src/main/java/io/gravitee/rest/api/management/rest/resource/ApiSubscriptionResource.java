@@ -20,10 +20,13 @@ import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -57,6 +60,9 @@ public class ApiSubscriptionResource extends AbstractResource {
 
     @Inject
     private UserService userService;
+
+    @Inject
+    private ParameterService parameterService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
@@ -193,16 +199,27 @@ public class ApiSubscriptionResource extends AbstractResource {
             notes = "User must have the MANAGE_API_KEYS permission to use this service")
     @ApiResponses({
             @ApiResponse(code = 201, message = "A new API Key", response = ApiKeyEntity.class),
+            @ApiResponse(code = 400, message = "Bad custom API Key format or custom API Key definition disabled"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
     })
     public Response renewApiKey(
-            @PathParam("subscription") String subscription) {
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription);
+            @PathParam("subscription") String subscription,
+            @ApiParam(name = "customApiKey")
+            @CustomApiKey @QueryParam("customApiKey") String customApiKey) {
+
+        if (StringUtils.isNotEmpty(customApiKey)
+                && !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("You are not allowed to provide a custom API Key")
+                    .build();
+        }
+
+        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription, customApiKey);
         return Response
                 .created(URI.create("/apis/" + api + "/subscriptions/" + subscription +
-                        "/keys" + apiKeyEntity.getKey()))
+                        "/keys/" + apiKeyEntity.getKey()))
                 .entity(apiKeyEntity)
                 .build();
     }
