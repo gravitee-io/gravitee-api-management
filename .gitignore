@@ -26,3 +26,4 @@ admin/console/dist
 
 gravitee-gateway-standalone/gravitee-gateway-standalone-distribution/src/main/resources/plugins/*
 gravitee-gateway-standalone/gravitee-gateway-standalone-distribution/src/main/resources/logs/*
+gravitee-gateway-standalone/gravitee-gateway-standalone-distribution/src/main/resources/metrics/*

@@ -18,7 +18,9 @@ package io.gravitee.gateway.handlers.api.definition;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Path;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,7 +28,7 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Plan {
+public class Plan implements Serializable {
 
     private String id;
     private String name;
@@ -41,6 +43,8 @@ public class Plan {
     private String api;
 
     private String selectionRule;
+
+    private Set<String> tags;
 
     public String getId() {
         return id;
@@ -96,6 +100,14 @@ public class Plan {
 
     public void setSelectionRule(String selectionRule) {
         this.selectionRule = selectionRule;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     @Override

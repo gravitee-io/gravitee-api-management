@@ -34,7 +34,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class LocalApiDefinitionRegistry extends AbstractService {
 
@@ -97,7 +98,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
         for(File definitionFile : definitionFiles) {
             try {
                 Api api = loadDefinition(definitionFile);
-                apiManager.deploy(api);
+                apiManager.register(api);
                 definitions.put(Paths.get(definitionFile.toURI()), api);
             } catch (IOException e) {
                 LOGGER.error("Unable to load API definition from {}", definitionFile, e);
@@ -155,27 +156,23 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                                 Api existingDefinition = definitions.get(fileName);
                                 if (existingDefinition != null) {
                                     if (apiManager.get(existingDefinition.getId()) != null) {
-                                        apiManager.update(loadedDefinition);
+                                        apiManager.register(loadedDefinition);
                                     } else {
-                                        apiManager.undeploy(existingDefinition.getId());
+                                        apiManager.unregister(existingDefinition.getId());
                                         definitions.remove(fileName);
-                                        apiManager.deploy(loadedDefinition);
                                         definitions.put(fileName, loadedDefinition);
                                     }
                                 }
                             } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
                                 Api loadedDefinition = loadDefinition(fileName.toFile());
-                                Api existingDefinition = apiManager.get(loadedDefinition.getId());
-                                if (existingDefinition != null) {
-                                    apiManager.update(loadedDefinition);
-                                } else {
-                                    apiManager.deploy(loadedDefinition);
+                                boolean registered = apiManager.register(loadedDefinition);
+                                if (registered) {
                                     definitions.put(fileName, loadedDefinition);
                                 }
                             } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                                 Api existingDefinition = definitions.get(fileName);
                                 if (existingDefinition != null && apiManager.get(existingDefinition.getId()) != null) {
-                                    apiManager.undeploy(existingDefinition.getId());
+                                    apiManager.unregister(existingDefinition.getId());
                                     definitions.remove(fileName);
                                 }
                             }

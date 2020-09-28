@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hazelcast xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.hazelcast.com/schema/config
+           http://www.hazelcast.com/schema/config/hazelcast-config-3.12.xsd">
+
+    <network>
+        <join>
+            <!-- Multicast is disabled by default to avoid latency when starting gateway -->
+            <multicast enabled="false" />
+        </join>
+    </network>
+
+    <map name="apikeys">
+        <!-- Eviction is managed programmatically-->
+        <eviction-policy>NONE</eviction-policy>
+        <max-size>0</max-size>
+    </map>
+
+    <map name="subscriptions">
+        <!-- Eviction is managed programmatically-->
+        <eviction-policy>NONE</eviction-policy>
+        <max-size>0</max-size>
+    </map>
+
+    <map name="apis">
+        <!-- Eviction is managed programmatically-->
+        <eviction-policy>NONE</eviction-policy>
+        <!-- no restriction on the number of API to share -->
+        <max-size>0</max-size>
+    </map>
+</hazelcast>

@@ -17,14 +17,16 @@ package io.gravitee.gateway.services.sync;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -32,7 +34,6 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -60,10 +61,16 @@ public class SyncManagerTest {
     private SyncManager syncManager = new SyncManager();
 
     @Mock
+    private ClusterManager clusterManager;
+
+    @Mock
     private ApiRepository apiRepository;
 
     @Mock
     private PlanRepository planRepository;
+
+    @Mock
+    private DictionaryRepository dictionaryRepository;
 
     @Mock
     private EventRepository eventRepository;
@@ -74,12 +81,31 @@ public class SyncManagerTest {
     @Mock
     private ObjectMapper objectMapper;
 
-    @Mock
-    private GatewayConfiguration gatewayConfiguration;
-
     @Before
     public void setUp() {
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
+        when(clusterManager.isMasterNode()).thenReturn(true);
+    }
+
+    @Test
+    public void shouldNotSync_notMasterNode() throws TechnicalException {
+        when(clusterManager.isMasterNode()).thenReturn(false);
+        syncManager.setDistributed(true);
+
+        syncManager.refresh();
+
+        verify(apiRepository, never()).search(any(ApiCriteria.class), any(ApiFieldExclusionFilter.class));
+    }
+
+    @Test
+    public void shouldSync_notMasterNode_notDistributed() throws TechnicalException {
+        when(clusterManager.isMasterNode()).thenReturn(false);
+        syncManager.setDistributed(false);
+
+        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(emptyList());
+
+        syncManager.refresh();
+
+        verify(apiRepository, times(1)).search(eq(null), any(ApiFieldExclusionFilter.class));
     }
 
     @Test
@@ -88,9 +114,8 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, never()).deploy(any(Api.class));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
+        verify(apiManager, never()).register(any(Api.class));
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     @Test
@@ -99,7 +124,7 @@ public class SyncManagerTest {
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
         final io.gravitee.definition.model.Api mockApi = mockApi(api);
-        
+
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
                 any(EventCriteria.class),
@@ -110,9 +135,8 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
+        verify(apiManager).register(new Api(mockApi));
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     @Test
@@ -129,7 +153,6 @@ public class SyncManagerTest {
         )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
         when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-        when(apiManager.get(api.getId())).thenReturn(null);
 
         syncManager.refresh();
 
@@ -139,9 +162,8 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
+        verify(apiManager).register(new Api(mockApi));
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     @Test
@@ -177,9 +199,8 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, times(2)).deploy(argThat(api1 -> api1.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId())));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
+        verify(apiManager, times(2)).register(argThat(api1 -> api1.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId())));
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     @Test
@@ -211,10 +232,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, times(2)).deploy(argThat(api1 -> api1.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId())));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(api.getId());
-        verify(apiManager, never()).undeploy(api2.getId());
+        verify(apiManager, times(2)).register(argThat(api1 -> api1.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId())));
+        verify(apiManager, never()).unregister(api.getId());
+        verify(apiManager, never()).unregister(api2.getId());
     }
 
     @Test
@@ -252,13 +272,12 @@ public class SyncManagerTest {
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
         apiDefinition.setDeployedAt(api.getDeployedAt());
-        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(apiDefinition);
-        verify(apiManager).update(apiDefinition);
-        verify(apiManager, never()).undeploy(any(String.class));
+        // First time for creation, second to update the API
+        verify(apiManager, times(2)).register(apiDefinition);
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     @Test
@@ -293,161 +312,8 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, times(2)).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
-    }
-
-    @Test
-    public void test_deployApiWithTag() throws Exception {
-        shouldDeployApiWithTags("test,toto", new String[]{"test"});
-    }
-
-    @Test
-    public void test_deployApiWithUpperCasedTag() throws Exception {
-        shouldDeployApiWithTags("test,toto", new String[]{"Test"});
-    }
-
-    @Test
-    public void test_deployApiWithAccentTag() throws Exception {
-        shouldDeployApiWithTags("test,toto", new String[]{"tést"});
-    }
-
-    @Test
-    public void test_deployApiWithUpperCasedAndAccentTag() throws Exception {
-        shouldDeployApiWithTags("test", new String[]{"Tést"});
-    }
-
-    @Test
-    public void test_deployApiWithTagExclusion() throws Exception {
-        shouldDeployApiWithTags("test,!toto", new String[]{"test"});
-    }
-
-    @Test
-    public void test_deployApiWithSpaceAfterComma() throws Exception {
-        shouldDeployApiWithTags("test, !toto", new String[]{"test"});
-    }
-
-    @Test
-    public void test_deployApiWithSpaceBeforeComma() throws Exception {
-        shouldDeployApiWithTags("test ,!toto", new String[]{"test"});
-    }
-
-    @Test
-    public void test_deployApiWithSpaceBeforeTag() throws Exception {
-        shouldDeployApiWithTags(" test,!toto", new String[]{"test"});
-    }
-
-    public void shouldDeployApiWithTags(final String tags, final String[] apiTags) throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-
-        final io.gravitee.definition.model.Api mockApi = mockApi(api, apiTags);
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(tags.split(","))));
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(any(EventCriteria.class), any(Pageable.class)))
-                .thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        syncManager.refresh();
-
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
-    }
-
-    @Test
-    public void test_not_deployApiWithTagExclusion() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-        mockApi.setTags(new HashSet<>(Arrays.asList(new String[]{"test"})));
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("!test")));
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        syncManager.refresh();
-
-        verify(apiManager, never()).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-    }
-
-    @Test
-    public void test_deployApiWithTagInclusionExclusion() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-//        api.setTags(new HashSet<>(Arrays.asList(new String[]{"test", "toto"})));
-
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("!test", "toto")));
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        syncManager.refresh();
-
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
-    }
-
-    @Test
-    public void test_not_deployApiWithoutTag() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "toto")));
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(
-                any(EventCriteria.class),
-                any(Pageable.class)
-        )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        syncManager.refresh();
-
-        verify(apiManager, never()).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    @Ignore
-    public void shouldNotDeployBecauseWrongConfiguration() throws Exception {
-        io.gravitee.repository.management.model.Api api =
-                new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
-
-        final io.gravitee.definition.model.Api mockApi = mockApi(api);
-
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("test", "!test")));
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
-        when(apiManager.apis()).thenReturn(Collections.singleton(new Api(mockApi)));
-
-        final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
-        when(eventRepository.search(
-                eq(new EventCriteria.Builder()
-                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
-                        .property(Event.EventProperties.API_ID.getValue(), api.getId())
-                        .build()), any()
-        )).thenReturn((new Page(singletonList(mockEvent), 0, 0, 0)));
-
-        syncManager.refresh();
+        verify(apiManager, times(2)).register(new Api(mockApi));
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     @Test
@@ -465,9 +331,8 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager, never()).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
+        verify(apiManager, never()).register(new Api(mockApi));
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     @Test
@@ -493,9 +358,8 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(argThat(api1 -> api1.getId().equals(mockApi.getId())));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager, never()).undeploy(any(String.class));
+        verify(apiManager).register(argThat(api1 -> api1.getId().equals(mockApi.getId())));
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     @Test
@@ -522,9 +386,8 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager, never()).update(any(Api.class));
-        verify(apiManager).undeploy(mockApi.getId());
+        verify(apiManager).register(new Api(mockApi));
+        verify(apiManager).unregister(mockApi.getId());
     }
 
 
@@ -566,7 +429,6 @@ public class SyncManagerTest {
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
         apiDefinition.setDeployedAt(api.getDeployedAt());
-        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
 
         when(eventRepository.search(
                 any(EventCriteria.class)
@@ -574,9 +436,9 @@ public class SyncManagerTest {
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager).update(new Api(mockApi));
-        verify(apiManager, never()).undeploy(any(String.class));
+        // First time for creation, second to update the API
+        verify(apiManager, times(2)).register(new Api(mockApi));
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     @Test
@@ -621,13 +483,12 @@ public class SyncManagerTest {
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
         apiDefinition.setDeployedAt(api.getDeployedAt());
-        when(apiManager.get(api.getId())).thenReturn(apiDefinition);
 
         syncManager.refresh();
 
-        verify(apiManager).deploy(new Api(mockApi));
-        verify(apiManager).update(new Api(mockApi));
-        verify(apiManager, never()).undeploy(any(String.class));
+        // First time for creation, second to update the API
+        verify(apiManager, times(2)).register(new Api(mockApi));
+        verify(apiManager, never()).unregister(any(String.class));
     }
 
     private io.gravitee.definition.model.Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {

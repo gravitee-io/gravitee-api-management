@@ -20,10 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Path;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
-import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.definition.Plan;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -38,14 +38,13 @@ import io.gravitee.repository.management.model.LifecycleState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
-import java.text.Collator;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
@@ -85,35 +84,43 @@ public class SyncManager {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private GatewayConfiguration gatewayConfiguration;
+    private ClusterManager clusterManager;
+
+    @Value("${services.sync.distributed:false}")
+    private boolean distributed;
 
     private final AtomicLong counter = new AtomicLong(0);
 
     private long lastRefreshAt = -1;
 
-    public void refresh() {
-        logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
-        logger.debug("Refreshing gateway state...");
-
+    void refresh() {
         long nextLastRefreshAt = System.currentTimeMillis();
 
-        try {
-            synchronizeApis(nextLastRefreshAt);
-        } catch (Exception ex) {
-            logger.error("An error occurs while synchronizing APIs", ex);
+        if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
+            logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
+            logger.debug("Refreshing gateway state...");
+
+            try {
+                synchronizeApis(nextLastRefreshAt);
+            } catch (Exception ex) {
+                logger.error("An error occurs while synchronizing APIs", ex);
+            }
+
+            try {
+                synchronizeDictionaries(nextLastRefreshAt);
+            } catch (Exception ex) {
+                logger.error("An error occurs while synchronizing dictionaries", ex);
+            }
+
+            logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
         }
 
-        try {
-            synchronizeDictionaries(nextLastRefreshAt);
-        } catch (Exception ex) {
-            logger.error("An error occurs while synchronizing dictionaries", ex);
-        }
-
+        // We refresh the date even if process did not run (not a master node) to ensure that we sync the same way as
+        // soon as the node is becoming the master later.
         lastRefreshAt = nextLastRefreshAt;
-        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 
-    private void synchronizeApis(long nextLastRefreshAt) {//} throws Exception {
+    private void synchronizeApis(long nextLastRefreshAt) {
         Map<String, Event> apiEvents;
 
         // Initial synchronization
@@ -214,7 +221,7 @@ public class SyncManager {
                 switch (apiEvent.getType()) {
                     case UNPUBLISH_API:
                     case STOP_API:
-                        apiManager.undeploy(apiId);
+                        apiManager.unregister(apiId);
                         break;
                     case START_API:
                     case PUBLISH_API:
@@ -231,29 +238,9 @@ public class SyncManager {
                             api.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);
                             api.setDeployedAt(eventPayload.getDeployedAt());
 
-                            // Get deployed API
-                            Api deployedApi = apiManager.get(api.getId());
+                            enhanceWithData(api);
 
-                            // Does the API have a matching sharding tags ?
-                            if (hasMatchingTags(api.getTags())) {
-                                // API to deploy
-                                enhanceWithData(api);
-
-                                // API is not yet deployed, so let's do it !
-                                if (deployedApi == null) {
-                                    apiManager.deploy(api);
-                                } else if (deployedApi.getDeployedAt().before(api.getDeployedAt())) {
-                                    apiManager.update(api);
-                                }
-                            } else {
-                                logger.debug("The API {} has been ignored because not in configured tags {}", api.getName(), api.getTags());
-
-                                // Check that the API was not previously deployed with other tags
-                                // In that case, we must undeploy it
-                                if (deployedApi != null) {
-                                    apiManager.undeploy(apiId);
-                                }
-                            }
+                            apiManager.register(api);
                         } catch (Exception e) {
                             logger.error("Error while determining deployed APIs store into events payload", e);
                         }
@@ -263,53 +250,6 @@ public class SyncManager {
                 logger.error("An unexpected error occurs while managing the deployment of API id[{}]", apiId, t);
             }
         });
-    }
-
-    private boolean hasMatchingTags(Set<String> tags) {
-        final Optional<List<String>> optTagList = gatewayConfiguration.shardingTags();
-
-        if (optTagList.isPresent()) {
-            List<String> tagList = optTagList.get();
-            if (tags != null) {
-                final List<String> inclusionTags = tagList.stream()
-                        .map(String::trim)
-                        .filter(tag -> !tag.startsWith("!"))
-                        .collect(Collectors.toList());
-
-                final List<String> exclusionTags = tagList.stream()
-                        .map(String::trim)
-                        .filter(tag -> tag.startsWith("!"))
-                        .map(tag -> tag.substring(1))
-                        .collect(Collectors.toList());
-
-                if (inclusionTags.stream().anyMatch(exclusionTags::contains)) {
-                    throw new IllegalArgumentException("You must not configure a tag to be included and excluded");
-                }
-
-                final boolean hasMatchingTags =
-                        inclusionTags.stream()
-                                .anyMatch(tag -> tags.stream()
-                                        .anyMatch(crtTag -> {
-                                            final Collator collator = Collator.getInstance();
-                                            collator.setStrength(Collator.NO_DECOMPOSITION);
-                                            return collator.compare(tag, crtTag) == 0;
-                                        })
-                                ) || (!exclusionTags.isEmpty() &&
-                                exclusionTags.stream()
-                                        .noneMatch(tag -> tags.stream()
-                                                .anyMatch(crtTag -> {
-                                                    final Collator collator = Collator.getInstance();
-                                                    collator.setStrength(Collator.NO_DECOMPOSITION);
-                                                    return collator.compare(tag, crtTag) == 0;
-                                                })
-                                        ));
-                return hasMatchingTags;
-            }
-        //    logger.debug("Tags {} are configured on gateway instance but not found on the API {}", tagList, api.getName());
-            return false;
-        }
-        // no tags configured on this gateway instance
-        return true;
     }
 
     private Event getLastDictionaryEvent(final String dictionary) {
@@ -361,18 +301,6 @@ public class SyncManager {
                     .stream()
                     .filter(plan -> io.gravitee.repository.management.model.Plan.Status.PUBLISHED.equals(plan.getStatus())
                                  || io.gravitee.repository.management.model.Plan.Status.DEPRECATED.equals(plan.getStatus()))
-                    .filter(new Predicate<io.gravitee.repository.management.model.Plan>() {
-                        @Override
-                        public boolean test(io.gravitee.repository.management.model.Plan plan) {
-                            if (plan.getTags() != null && ! plan.getTags().isEmpty()) {
-                                boolean hasMatchingTags = hasMatchingTags(plan.getTags());
-                                logger.debug("Plan name[{}] api[{}] has been ignored because not in configured sharding tags {}", plan.getName(), definition.getName());
-                                return hasMatchingTags;
-                            }
-
-                            return true;
-                        }
-                    })
                     .map(this::convert)
                     .collect(Collectors.toList()));
         } catch (TechnicalException te) {
@@ -389,6 +317,7 @@ public class SyncManager {
         plan.setApi(repoPlan.getApi());
         plan.setSecurityDefinition(repoPlan.getSecurityDefinition());
         plan.setSelectionRule(repoPlan.getSelectionRule());
+        plan.setTags(repoPlan.getTags());
 
         if (repoPlan.getSecurity() != null) {
             plan.setSecurity(repoPlan.getSecurity().name());
@@ -422,6 +351,10 @@ public class SyncManager {
 
     public void setApiManager(ApiManager apiManager) {
         this.apiManager = apiManager;
+    }
+
+    public void setDistributed(boolean distributed) {
+        this.distributed = distributed;
     }
 
     public long getLastRefreshAt() {

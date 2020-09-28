@@ -17,6 +17,10 @@ package io.gravitee.gateway.services.heartbeat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IQueue;
+import com.hazelcast.core.ItemEvent;
+import com.hazelcast.core.ItemListener;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUID;
@@ -24,12 +28,15 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.services.heartbeat.event.InstanceEventPayload;
 import io.gravitee.gateway.services.heartbeat.event.Plugin;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.plugin.core.api.PluginRegistry;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -47,9 +54,15 @@ import java.util.stream.Collectors;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HeartbeatService extends AbstractService {
+public class HeartbeatService extends AbstractService implements ItemListener<Event>, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatService.class);
+
+    final static String EVENT_LAST_HEARTBEAT_PROPERTY = "last_heartbeat_at";
+    final static String EVENT_STARTED_AT_PROPERTY = "started_at";
+    final static String EVENT_STOPPED_AT_PROPERTY = "stopped_at";
+    final static String EVENT_ID_PROPERTY = "id";
+    final static String EVENT_STATE_PROPERTY = "create";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -85,29 +98,72 @@ public class HeartbeatService extends AbstractService {
     @Autowired
     private GatewayConfiguration gatewayConfiguration;
 
+    @Autowired
+    private ClusterManager clusterManager;
+
+    @Autowired
+    private HazelcastInstance hzInstance;
+
+    // How to avoid duplicate
+    private IQueue<Event> queue;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        queue = hzInstance.getQueue("heartbeats");
+        queue.addItemListener(this, true);
+    }
+
     @Override
     protected void doStart() throws Exception {
         if (enabled) {
             super.doStart();
-            LOGGER.info("Start gateway monitor");
+            LOGGER.info("Start gateway heartbeat");
 
-            Event evt = prepareEvent();
-            LOGGER.debug("Sending a {} event", evt.getType());
-            heartbeatEvent = eventRepository.create(evt);
+            heartbeatEvent = prepareEvent();
+            queue.add(heartbeatEvent);
+
+            // Remove the state to not include it in the underlying repository as it's just used for internal
+            // purpose
+            heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
 
             executorService = Executors.newSingleThreadScheduledExecutor(
-                    r -> new Thread(r, "gateway-monitor"));
+                    r -> new Thread(r, "gio-heartbeat"));
 
-            HeartbeatThread monitorThread = new HeartbeatThread(heartbeatEvent);
-            this.applicationContext.getAutowireCapableBeanFactory().autowireBean(monitorThread);
+            HeartbeatThread monitorThread = new HeartbeatThread(queue, heartbeatEvent);
 
             LOGGER.info("Monitoring scheduled with fixed delay {} {} ", delay, unit.name());
 
             ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
                     monitorThread, 0, delay, unit);
 
-            LOGGER.info("Start gateway monitor : DONE");
+            LOGGER.info("Start gateway heartbeat : DONE");
         }
+    }
+
+    @Override
+    public void itemAdded(ItemEvent<Event> item) {
+        // Writing event to the repository is the responsibility of the master node
+        if (clusterManager.isMasterNode()) {
+            Event event = item.getItem();
+
+            try {
+                String state = event.getProperties().get(EVENT_STATE_PROPERTY);
+                if (state != null) {
+                    eventRepository.create(event);
+                } else {
+                    eventRepository.update(event);
+                }
+            } catch (Exception ex) {
+                LOGGER.error("An error occurs while pushing heartbeat event id[{}] type[{}]", event.getId(), event.getType(), ex);
+                // Push back the event into the queue in case of error
+                queue.add(event);
+            }
+        }
+    }
+
+    @Override
+    public void itemRemoved(ItemEvent<Event> item) {
+        // Nothing to do here
     }
 
     @Override
@@ -121,9 +177,10 @@ public class HeartbeatService extends AbstractService {
             }
 
             heartbeatEvent.setType(EventType.GATEWAY_STOPPED);
-            heartbeatEvent.getProperties().put("stopped_at", Long.toString(new Date().getTime()));
+            heartbeatEvent.getProperties().put(EVENT_STOPPED_AT_PROPERTY, Long.toString(new Date().getTime()));
             LOGGER.debug("Sending a {} event", heartbeatEvent.getType());
-            eventRepository.update(heartbeatEvent);
+
+            queue.add(heartbeatEvent);
 
             super.doStop();
             LOGGER.info("Stop gateway monitor : DONE");
@@ -137,11 +194,13 @@ public class HeartbeatService extends AbstractService {
         event.setCreatedAt(new Date());
         event.setEnvironmentId("DEFAULT");
         event.setUpdatedAt(event.getCreatedAt());
-        Map<String, String> properties = new HashMap<>();
-        properties.put("id", node.id());
+        final Map<String, String> properties = new HashMap<>();
+        properties.put(EVENT_STATE_PROPERTY, "create");
+        properties.put(EVENT_ID_PROPERTY, node.id());
+
         final String now = Long.toString(event.getCreatedAt().getTime());
-        properties.put("started_at", now);
-        properties.put("last_heartbeat_at", now);
+        properties.put(EVENT_STARTED_AT_PROPERTY, now);
+        properties.put(EVENT_LAST_HEARTBEAT_PROPERTY, now);
         event.setProperties(properties);
 
         InstanceEventPayload instance = createInstanceInfo();
@@ -181,14 +240,14 @@ public class HeartbeatService extends AbstractService {
         return instanceInfo;
     }
 
-    public Set<Plugin> plugins() {
+    private Set<Plugin> plugins() {
         return pluginRegistry.plugins().stream().map(regPlugin -> {
             Plugin plugin = new Plugin();
             plugin.setId(regPlugin.id());
             plugin.setName(regPlugin.manifest().name());
             plugin.setDescription(regPlugin.manifest().description());
             plugin.setVersion(regPlugin.manifest().version());
-            plugin.setType(regPlugin.type().name().toLowerCase());
+            plugin.setType(regPlugin.type().toLowerCase());
             plugin.setPlugin(regPlugin.clazz());
             return plugin;
         }).collect(Collectors.toSet());
@@ -207,6 +266,7 @@ public class HeartbeatService extends AbstractService {
                     .filter(entry -> !entry.getKey().toString().toUpperCase().startsWith("GRAVITEE"))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
+
         return Collections.emptyMap();
     }
 }

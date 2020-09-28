@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.Entrypoint;
 import io.gravitee.gateway.reactor.handler.VirtualHost;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Api extends io.gravitee.definition.model.Api implements Reactable {
+public class Api extends io.gravitee.definition.model.Api implements Reactable, Serializable {
 
     private boolean enabled = true;
     private Date deployedAt;
@@ -51,6 +52,22 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable {
         this.setServices(definition.getServices());
         this.setTags(definition.getTags());
         this.setVersion(definition.getVersion());
+    }
+
+    public Api(final Api definition) {
+        this.setId(definition.getId());
+        this.setName(definition.getName());
+        this.setPathMappings(definition.getPathMappings());
+        this.setPaths(definition.getPaths());
+        this.setProperties(definition.getProperties());
+        this.setProxy(definition.getProxy());
+        this.setPathMappings(definition.getPathMappings());
+        this.setResponseTemplates(definition.getResponseTemplates());
+        this.setResources(definition.getResources());
+        this.setServices(definition.getServices());
+        this.setTags(definition.getTags());
+        this.setVersion(definition.getVersion());
+        this.setPlans(new ArrayList<>(definition.getPlans()));
     }
 
     public boolean isEnabled() {
@@ -78,6 +95,7 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable {
     }
 
     public void setPlans(List<Plan> plans) {
+        this.plans.clear();
         for(Plan plan : plans) {
             this.plans.put(plan.getId(), plan);
         }

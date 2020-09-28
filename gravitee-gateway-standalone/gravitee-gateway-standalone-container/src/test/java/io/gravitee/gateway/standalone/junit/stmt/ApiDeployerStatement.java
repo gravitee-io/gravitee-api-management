@@ -70,10 +70,10 @@ public class ApiDeployerStatement extends Statement {
         Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 
         try {
-            apiManager.deploy(api);
+            apiManager.register(api);
             base.evaluate();
         } finally {
-            apiManager.undeploy(api.getId());
+            apiManager.unregister(api.getId());
             container.stop();
         }
     }

@@ -48,6 +48,15 @@
             </excludes>
         </fileSet>
 
+        <!-- Just to create an empty metrics directory -->
+        <fileSet>
+            <directory>src/main/assembly</directory>
+            <outputDirectory>/metrics</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+        </fileSet>
+
         <fileSet>
             <directory>src/main/assembly</directory>
             <outputDirectory>/apis</outputDirectory>

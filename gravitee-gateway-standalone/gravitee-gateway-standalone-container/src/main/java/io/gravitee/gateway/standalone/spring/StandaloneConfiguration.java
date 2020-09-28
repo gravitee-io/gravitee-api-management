@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactor.spring.ReactorConfiguration;
 import io.gravitee.gateway.report.spring.ReporterConfiguration;
 import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
+import io.gravitee.node.cluster.spring.ClusterConfiguration;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
@@ -49,6 +50,7 @@ import java.io.IOException;
  */
 @Configuration
 @Import({
+        ClusterConfiguration.class,
         VertxConfiguration.class,
         ReactorConfiguration.class,
         VertxReactorConfiguration.class,
