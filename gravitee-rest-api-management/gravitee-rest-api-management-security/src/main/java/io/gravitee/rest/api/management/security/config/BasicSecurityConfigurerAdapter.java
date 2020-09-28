@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
@@ -92,6 +93,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private UserService userService;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private MembershipService membershipService;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -203,7 +206,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         csrf(http);
         cors(http);
 
-        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService), BasicAuthenticationFilter.class);
+        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, membershipService), BasicAuthenticationFilter.class);
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
     }
 

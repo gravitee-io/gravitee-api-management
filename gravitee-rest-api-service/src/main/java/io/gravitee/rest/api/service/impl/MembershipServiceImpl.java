@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -39,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_CREATED;
@@ -84,6 +87,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     @Autowired
     private NotifierService notifierService;
 
+    private final Cache<String, Set<RoleEntity>> roles = CacheBuilder
+            .newBuilder()
+            .expireAfterWrite(10, TimeUnit.SECONDS)
+            .build();
 
     @Override
     public MemberEntity addRoleToMemberOnReference(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId, String role) {
@@ -715,15 +722,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     public Set<RoleEntity> getRoles(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType,
             String memberId) {
         try {
-            return membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(memberId, convert(memberType), convert(referenceType), referenceId)
-                    .stream()
-                    .map(io.gravitee.repository.management.model.Membership::getRoleId)
-                    .map(roleService::findById)
-                    .collect(Collectors.toSet())
-                    ;
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get roles for {} {} {} {}", referenceType, referenceId, memberType, memberId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get roles for " + referenceType + " " + referenceId + " " + memberType + " " + memberId, ex);
+            LOGGER.debug("Get role for {} {} and member {} {}", referenceType, referenceId, memberType, memberId);
+
+            return roles.get(referenceType.name() + referenceId + memberType + memberId, () ->
+                    membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(memberId, convert(memberType), convert(referenceType), referenceId)
+                        .stream()
+                        .map(io.gravitee.repository.management.model.Membership::getRoleId)
+                        .map(roleService::findById)
+                        .collect(Collectors.toSet()));
+        } catch (Exception ex) {
+            final String message = "An error occurs while trying to get roles for " + referenceType + " " + referenceId + " " + memberType + " " + memberId;
+            LOGGER.error(message, ex);
+            throw new TechnicalManagementException(message, ex);
         }
     }
     

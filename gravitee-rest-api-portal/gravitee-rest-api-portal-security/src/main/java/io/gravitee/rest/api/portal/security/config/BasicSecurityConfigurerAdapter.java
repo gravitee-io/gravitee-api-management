@@ -29,6 +29,7 @@ import io.gravitee.rest.api.security.filter.RecaptchaFilter;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +89,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private ReCaptchaService reCaptchaService;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private MembershipService membershipService;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -199,7 +202,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         csrf(http);
         cors(http);
 
-        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null), BasicAuthenticationFilter.class);
+        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, membershipService), BasicAuthenticationFilter.class);
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
     }
 
