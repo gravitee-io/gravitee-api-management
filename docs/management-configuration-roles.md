@@ -21,3 +21,7 @@ CRUD operations on : DEFINITION, GATEWAY_DEFINITION, PLAN, SUBSCRIPTION, MEMBER,
 * APPLICATION role
 
 CRUD operations on : DEFINITION, MEMBER, ANALYTICS, LOG, SUBSCRIPTION, NOTIFICATION, ALERT.
+
+## Note
+
+Granting a GROUP permission for MANAGEMENT role will also require the READ operation for the ROLE permission in order to see which roles are provided by a group.
