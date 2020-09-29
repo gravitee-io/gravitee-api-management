@@ -1,0 +1,220 @@
+# Machine executor, set the machine key to true in .circleci/config.yml:
+version: 2.1
+parameters:
+  gio_action:
+    type: enum
+    enum: [product_release, product_release_dry_run, lts_support_release, sts_support_release, dev_pr_review, support_pr_review, build, pull_requests_bot]
+    # the [default:] clause is required : without it, a Circle CI error will occur
+    # default: none
+    # the [default:] clause must have a valid value : without a valid value, a Circle CI error will occur
+    default: pull_requests_bot
+  pull_req_bot_image_tag:
+    type: string
+    default: 'stable-latest' # stable -latest is not understood by docker, as "latest" of all tags. So we will use this docker tag to automatically updae / upgrade the Pull Request Bot
+    # default: '3.0.76' # we dpo not use explicit version number for docker tag, for us not to be doomed to update a lot of [.circleci/config.yml]
+    # default : 'latest' # we never ever use 'latest', but stable-latest
+  is_triggered_from_pr:
+    type: boolean
+    default: true
+orbs:
+  secrethub: secrethub/cli@1.0.0
+jobs:
+  pull_requests_bot_exec:
+    machine:
+      image: 'ubuntu-1604:201903-01'    # recommended linux image - includes Ubuntu 16.04, docker 18.09.3, docker-compose 1.23.1
+      # resource_class: medium
+      # docker_layer_caching: true    # default - false # requires a Circle CI plan that includes [Docker layer caching feature]
+    environment:
+      DESIRED_DOCKER_TAG: stable-latest
+      PIPELINE_PARAM_GIO_ACTION: << pipeline.parameters.gio_action >>
+      PIPELINE_PARAM_PR_BOT_IMAGE_TAG: << pipeline.parameters.pull_req_bot_image_tag >>
+      PIPELINE_PARAM_IS_TRIGGERED_FROM_PR: << pipeline.parameters.is_triggered_from_pr >>
+    steps:
+      - checkout
+      - secrethub/install
+      - run:
+          name: "Running Pull Request Bot"
+          command: |
+                    echo "This job will run the pull request bot, in its docker image "
+                    echo " ---"
+                    echo "Here are the values of the Circle CI Pipeline Parameters : "
+                    echo " ---"
+                    echo "PIPELINE_PARAM_GIO_ACTION=[${PIPELINE_PARAM_GIO_ACTION}] "
+                    echo "PIPELINE_PARAM_PR_BOT_IMAGE_TAG=[${PIPELINE_PARAM_PR_BOT_IMAGE_TAG}] "
+                    echo "PIPELINE_PARAM_IS_TRIGGERED_FROM_PR=[${PIPELINE_PARAM_IS_TRIGGERED_FROM_PR}]"
+                    echo " ---"
+                    echo "Here are the values of the Circle CI pull requests related native env. var. : "
+                    echo " ---"
+                    echo "CIRCLE_PULL_REQUEST=[${CIRCLE_PULL_REQUEST}] "
+                    echo "CIRCLE_PULL_REQUESTS=[${CIRCLE_PULL_REQUESTS}] "
+                    echo "Those env.var. are not set empty (do not know why yet: are they set only on Pull request creation events ?)"
+                    echo "CIRCLE_PR_NUMBER=[${CIRCLE_PR_NUMBER}] "
+                    echo "CIRCLE_PR_REPONAME=[${CIRCLE_PR_REPONAME}] "
+                    echo "CIRCLE_PR_USERNAME=[${CIRCLE_PR_USERNAME}] "
+                    echo " ---"
+                    echo "Here are the values infered from Circle CI env. var., releated to the checked out git branch, and the last commit that branch : "
+                    echo " ---"
+                    echo "CHECKED OUT GIT BRANCH IS : [${CIRCLE_BRANCH}] "
+                    echo "LAST COMMIT ON THIS BRANCH IS : [$(git rev-parse ${CIRCLE_BRANCH})] "
+                    echo "Circle CI [CIRCLE_SHA1] value is [${CIRCLE_SHA1}]"
+                    echo " ---"
+                    docker pull quay.io/gravitee-lab/cicd-orchestrator:stable-latest
+                    # checking docker image pulled in previous step is there
+                    docker images
+                    # --> .secrets.json is used by Gravitee CI CD Orchestrator to authenticate to Circle CI
+                    CCI_SECRET_FILE=$PWD/.secrets.json
+                    secrethub read --out-file ${CCI_SECRET_FILE} gravitee-lab/cicd-orchestrator/dev/cci/botuser/.secret.json
+                    ls -allh ${CCI_SECRET_FILE}
+                    # Docker volumes to map pipeline checked out git tree, .env file and .secrets.json files inside the docker container
+                    # export DOCKER_VOLUMES="-v $PWD:/graviteeio/cicd/pipeline -v $PWD/.secrets.json:/graviteeio/cicd/.secrets.json"
+                    export DOCKER_VOLUMES="-v $PWD:/graviteeio/cicd/pipeline -v $PWD/.secrets.json:/graviteeio/cicd/.secrets.json"
+                    docker run --name orchestrator ${DOCKER_VOLUMES} --restart no -itd quay.io/gravitee-lab/cicd-orchestrator:stable-latest -s pull_req --dry-run false
+                    docker logs -f orchestrator
+
+  mvn_verify:
+    machine:
+      image: 'ubuntu-1604:201903-01'    # recommended linux image - includes Ubuntu 16.04, docker 18.09.3, docker-compose 1.23.1
+      # resource_class: medium
+      # docker_layer_caching: true    # default - false # requires a Circle CI plan that includes [Docker layer caching feature]
+    environment:
+      DESIRED_MAVEN_VERSION: 3.6.3
+    steps:
+      - checkout
+      - secrethub/install
+      - run:
+          name: "Simple Maven Build for the component"
+          command: |
+                    echo "This job will execute the maven build for the Gravitee IO Component"
+                    echo "This job will be triggered for any PR on the github git repo of the Gravitee Component."
+                    echo "Never the less, there might be just any"
+                    echo "Run Maven Package"
+                    export MVN_DOCKER="maven:${DESIRED_MAVEN_VERSION}-openjdk-16 "
+                    export MAVEN_COMMAND="mvn clean verify"
+                    echo "Run Maven Tests MAVEN_COMMAND=[${MAVEN_COMMAND}]"
+                    docker run -it --rm -v "$PWD":/usr/src/mymaven -v "$HOME/.m2":/root/.m2 -w /usr/src/mymaven ${MVN_DOCKER} ${MAVEN_COMMAND}
+
+  product_release_job1:
+    machine:
+      image: 'ubuntu-1604:201903-01'    # recommended linux image - includes Ubuntu 16.04, docker 18.09.3, docker-compose 1.23.1
+      # resource_class: medium
+      # docker_layer_caching: true    # default - false # requires a Circle CI plan that includes [Docker layer caching feature]
+    environment:
+      DESIRED_DOCKER_TAG: 5.27.1
+    steps:
+      - checkout
+      - secrethub/install
+      - run:
+          name: "First WORKFLOW for Product Release"
+          command: |
+               echo "First WORKFLOW for Product Release"
+  product_release_dry_job1:
+    machine:
+      image: 'ubuntu-1604:201903-01'    # recommended linux image - includes Ubuntu 16.04, docker 18.09.3, docker-compose 1.23.1
+      # resource_class: medium
+      # docker_layer_caching: true    # default - false # requires a Circle CI plan that includes [Docker layer caching feature]
+    environment:
+      DESIRED_DOCKER_TAG: 5.27.1
+    steps:
+      - checkout
+      - secrethub/install
+      - run:
+          name: "[DRY RUN] First WORKFLOW for Product Release Dry Run"
+          command: |
+                    echo "[DRY RUN] First WORKFLOW for Product Release Dry Run"
+                    echo "Here what will be done is just echoing all Product Release Shell commands, to check their paramters /optionsvalues, the git branch etc..."
+
+
+  dev_pr_job1:
+    machine:
+      image: 'ubuntu-1604:201903-01'    # recommended linux image - includes Ubuntu 16.04, docker 18.09.3, docker-compose 1.23.1
+      # resource_class: medium
+      # docker_layer_caching: true    # default - false # requires a Circle CI plan that includes [Docker layer caching feature]
+    environment:
+      DESIRED_DOCKER_TAG: 5.27.1
+    steps:
+      - checkout
+      - secrethub/install
+      - run:
+          name: "A FIRST TEST JOB for Dev Pull Request Review"
+          command: |
+               echo "A FIRST TEST JOB for Dev Pull Request Review"
+  support_pr_job1:
+    machine:
+      image: 'ubuntu-1604:201903-01'    # recommended linux image - includes Ubuntu 16.04, docker 18.09.3, docker-compose 1.23.1
+      # resource_class: medium
+      # docker_layer_caching: true    # default - false # requires a Circle CI plan that includes [Docker layer caching feature]
+    environment:
+      DESIRED_DOCKER_TAG: 5.27.1
+    steps:
+      - checkout
+      - secrethub/install
+      - run:
+          name: "A FIRST TEST JOB for Support Pull Request Review"
+          command: |
+               echo "A FIRST TEST JOB for Support Pull Request Review"
+  support_release_job1:
+    machine:
+      image: 'ubuntu-1604:201903-01'    # recommended linux image - includes Ubuntu 16.04, docker 18.09.3, docker-compose 1.23.1
+      # resource_class: medium
+      # docker_layer_caching: true    # default - false # requires a Circle CI plan that includes [Docker layer caching feature]
+    environment:
+      DESIRED_DOCKER_TAG: 5.27.1
+    steps:
+      - checkout
+      - secrethub/install
+      - run:
+          name: "A FIRST TEST JOB for Support Release"
+          command: |
+               echo "A FIRST TEST JOB for Support Release"
+
+workflows:
+  version: 2.1
+  pull_requests_bot:
+    when:
+      equal: [ pull_requests_bot, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - pull_requests_bot_exec:
+          context: cicd-orchestrator
+  product_release_dry_run:
+    when:
+      equal: [ product_release_dry_run, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - product_release_dry_job1:
+          context: gravitee-lab
+  product_release:
+    when:
+      equal: [ product_release, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - product_release_job1:
+          context: gravitee-lab
+  lts_support_release:
+    when:
+      equal: [ lts_support_release, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - support_release_job1:
+          context: gravitee-lab
+  sts_support_release:
+    when:
+      equal: [ sts_support_release, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - support_release_job1:
+          context: gravitee-lab
+
+  support_pr_review:
+    when:
+      equal: [ support_pr_review, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - support_pr_job1:
+          context: gravitee-lab
+  dev_pr_review:
+    when:
+      equal: [ dev_pr_review, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - dev_pr_job1:
+          context: gravitee-lab
+  build:
+    when:
+      equal: [ build, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - mvn_verify:
+          context: cicd-orchestrator
