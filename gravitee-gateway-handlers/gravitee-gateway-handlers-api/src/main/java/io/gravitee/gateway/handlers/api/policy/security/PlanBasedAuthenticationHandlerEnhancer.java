@@ -79,4 +79,8 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
 
         return providers;
     }
+
+    protected Api getApi() {
+        return this.api;
+    }
 }

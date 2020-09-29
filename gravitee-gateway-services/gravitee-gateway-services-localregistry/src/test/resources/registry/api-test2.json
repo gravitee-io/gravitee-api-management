@@ -1,10 +1,83 @@
 {
   "name": "my-api-test2",
 
+  "planRequired": false,
+  "security" : "jwt",
+  "securityDefinition" : "{\"extractClaims\":false,\"propagateAuthHeader\":true,\"publicKeyResolver\":\"GIVEN_KEY\",\"resolverParameter\":\"ae0368e97a7574a05995c0bf535fa395776f2e941715870cf5dfab3be6868364\",\"signature\":\"HMAC_HS256\",\"useSystemProxy\":false,\"userClaim\":\"aud\"}",
+
   "proxy": {
-    "context_path": "/my-api",
-    "endpoint": "http://localhost:1234",
-    "strip_context_path": false
+    "virtual_hosts": [
+      {
+        "path": "/toto"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": false,
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "http://localhost:8080/",
+            "weight": 1,
+            "backup": false,
+            "type": "HTTP",
+            "inherit": false,
+            "http": {
+              "connectTimeout": 5000,
+              "idleTimeout": 60000,
+              "keepAlive": true,
+              "readTimeout": 10000,
+              "pipelining": false,
+              "maxConcurrentConnections": 100,
+              "useCompression": true,
+              "followRedirects": false
+            },
+            "proxy": {
+              "enabled": false,
+              "useSystemProxy": false,
+              "host": "null",
+              "port": 0,
+              "type": "HTTP"
+            },
+            "ssl": {
+              "trustAll": false,
+              "hostnameVerifier": false,
+              "trustStore": {
+                "type": "PEM",
+                "path": "ggg"
+              },
+              "keyStore": {
+                "type": "PEM",
+                "certPath": "gggggggg",
+                "keyPath": "gggggggg"
+              }
+            }
+          }
+        ],
+        "load_balancing": {
+          "type": "ROUND_ROBIN"
+        },
+        "http": {
+          "connectTimeout": 5000,
+          "idleTimeout": 60000,
+          "keepAlive": true,
+          "readTimeout": 10000,
+          "pipelining": false,
+          "maxConcurrentConnections": 100,
+          "useCompression": true,
+          "followRedirects": false
+        }
+      }
+    ],
+    "failover": {
+      "maxAttempts": 2,
+      "retryTimeout": 2000,
+      "cases": [
+        "TIMEOUT"
+      ]
+    }
   },
 
   "paths": {
