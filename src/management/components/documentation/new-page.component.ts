@@ -36,7 +36,7 @@ const NewPageComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
     this.apiId = $state.params.apiId;
-
+    this.error = null;
     this.page = {
       name: "",
       type: $state.params.type,
@@ -83,7 +83,8 @@ const NewPageComponent: ng.IComponentOptions = {
     };
 
     this.save = () => {
-      DocumentationService.create(this.page, this.apiId)
+      this.error = null;
+      DocumentationService.create(this.page, this.apiId, { silentCall: true })
         .then( (response: any) => {
           const page = response.data;
           NotificationService.show("'" + page.name + "' has been created");
@@ -92,7 +93,10 @@ const NewPageComponent: ng.IComponentOptions = {
           } else {
             this.gotoEdit(page.id);
           }
-      });
+      })
+        .catch((err) => {
+          this.error = { ...err.data, title: 'Sorry, unable to create page' }
+        });
     };
 
     this.changeContentMode = (newMode) => {
@@ -103,6 +107,7 @@ const NewPageComponent: ng.IComponentOptions = {
       } else {
         delete this.page.source;
       }
+      this.error = null;
     };
 
     this.cancel = () => {

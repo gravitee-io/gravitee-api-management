@@ -48,7 +48,7 @@ const EditPageComponent: ng.IComponentOptions = {
     const indexOfTab = this.tabs.indexOf($state.params.tab);
     this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
     this.currentTab = this.tabs[this.selectedTab];
-
+    this.error = null;
     $scope.rename = false;
 
     this.$onInit = () => {
@@ -115,7 +115,8 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.save = () => {
-      DocumentationService.update(this.page, this.apiId)
+      this.error = null;
+      DocumentationService.update(this.page, this.apiId, { silentCall: true })
         .then( (response) => {
           NotificationService.show("'" + this.page.name + "' has been updated");
           if (this.apiId) {
@@ -123,7 +124,10 @@ const EditPageComponent: ng.IComponentOptions = {
           } else {
             $state.go("management.settings.editdocumentation", {pageId: this.page.id, tab: this.currentTab}, {reload: true});
           }
-      });
+      })
+        .catch((err) => {
+          this.error = { ...err.data, title: 'Sorry, unable to update page' }
+        });
     };
 
     this.changeContentMode = (newMode) => {

@@ -170,6 +170,9 @@ import ApiLoggingConfigurationController from '../management/api/analytics/logs/
 import DialogConfigureLoggingEditorController
   from '../management/api/analytics/logs/configure-logging-editor.dialog.controller';
 // Others
+
+import ErrorComponent from '../components/error/error.component';
+import ErrorController from '../components/error/error.controller';
 import ImageDirective from '../components/image/image.directive';
 import EventsService from '../services/events.service';
 import AnalyticsService from '../services/analytics.service';
@@ -696,6 +699,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .directive('autofocus', () => new AutofocusDirective())
   .directive('graviteeDiff', () => DiffDirective)
   .directive('graviteeImage', () => new ImageDirective())
+  .directive('graviteeError', () => new ErrorComponent())
   .directive('graviteeEmptyState', () => new EmptyStateDirective())
   .directive('graviteeChart', () => new ChartDirective())
   .directive('graviteeUserAvatar', () => new UserAvatarDirective())
@@ -757,6 +761,9 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('planWizardSecurity', ApiEditPlanWizardSecurityComponent)
   .component('planWizardPolicies', ApiEditPlanWizardPoliciesComponent)
   .component('planWizardRestrictions', ApiEditPlanWizardRestrictionsComponent)
+
+  .component('gvError', ErrorComponent)
+  .controller('errorCtrl', ErrorController)
 
   // API subscriptions
   .component('apiSubscriptions', ApiSubscriptionsComponent)
