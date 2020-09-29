@@ -23,14 +23,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  */
 public interface SwaggerDescriptor<T> {
 
-    enum Version {
-        SWAGGER_V1,
-        SWAGGER_V2,
-        OAI_V3
-    }
-
-    Version getVersion();
-
     T getSpecification();
 
     String toYaml() throws JsonProcessingException;

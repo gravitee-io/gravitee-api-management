@@ -30,11 +30,6 @@ public final class OAIDescriptor extends AbstractDescriptor<OpenAPI> {
     }
 
     @Override
-    public Version getVersion() {
-        return Version.OAI_V3;
-    }
-
-    @Override
     public OpenAPI getSpecification() {
         return oai;
     }

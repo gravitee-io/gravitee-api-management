@@ -16,15 +16,16 @@
 package io.gravitee.management.service.impl.swagger.parser;
 
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
+import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.parser.OpenAPIV3Parser;
-import io.swagger.v3.parser.core.models.AuthorizationValue;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,22 +41,55 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
 
     @Override
     public OpenAPI parse(String content) {
-        OpenAPIV3Parser parser = new OpenAPIV3Parser();
+        OpenAPIParser parser = new OpenAPIParser();
         SwaggerParseResult parseResult;
-
+        String path = content;
         if (!isLocationUrl(content)) {
-            parseResult = parser.readContents(content);
-        } else {
-            parseResult = parser.readWithInfo(content, (List<AuthorizationValue>) null);
+            // Swagger v1 supports only a URL to read swagger: create temporary file for Swagger parser
+            File temp = createTempFile(content);
+            path = temp.getAbsolutePath();
         }
+
+        parseResult = parser.readLocation(path, null, null);
 
         if (parseResult != null && parseResult.getOpenAPI() != null &&
                 (parseResult.getMessages() != null && !parseResult.getMessages().isEmpty())) {
-            logger.error("Error while parsing OpenAPI descriptor: {}", parseResult.getMessages().get(0));
-            throw new SwaggerDescriptorException();
+            throw new SwaggerDescriptorException(parseResult.getMessages());
         }
 
         return (parseResult != null && parseResult.getOpenAPI() != null && parseResult.getOpenAPI().getInfo() != null)
                 ? parseResult.getOpenAPI() : null;
     }
+
+
+    private File createTempFile(String content) {
+        File temp = null;
+        String fileName = "gio_swagger_" + System.currentTimeMillis();
+        BufferedWriter bw = null;
+        FileWriter out = null;
+        try {
+            temp = File.createTempFile(fileName, ".tmp");
+            out = new FileWriter(temp);
+            bw = new BufferedWriter(out);
+            bw.write(content);
+            bw.close();
+        } catch (IOException ioe) {
+            // Fallback to the new parser
+        } finally {
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (IOException e) {
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+        return temp;
+    }
+
 }

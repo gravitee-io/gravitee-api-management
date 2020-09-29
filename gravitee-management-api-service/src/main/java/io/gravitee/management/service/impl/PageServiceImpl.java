@@ -36,18 +36,16 @@ import io.gravitee.management.model.permissions.ApiPermission;
 import io.gravitee.management.model.permissions.RolePermissionAction;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.exceptions.*;
+import io.gravitee.management.service.impl.swagger.parser.OAIParser;
 import io.gravitee.management.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.management.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
-import io.gravitee.management.service.impl.swagger.transformer.entrypoints.EntrypointsSwaggerV2Transformer;
 import io.gravitee.management.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
-import io.gravitee.management.service.impl.swagger.transformer.page.PageConfigurationSwaggerV2Transformer;
 import io.gravitee.management.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.management.service.sanitizer.HtmlSanitizer;
 import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.management.service.spring.ImportConfiguration;
 import io.gravitee.management.service.swagger.OAIDescriptor;
 import io.gravitee.management.service.swagger.SwaggerDescriptor;
-import io.gravitee.management.service.swagger.SwaggerV2Descriptor;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -178,27 +176,16 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 }
                 throw sde;
             }
-			if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
-				Collection<SwaggerTransformer<SwaggerV2Descriptor>> transformers = new ArrayList<>();
-				transformers.add(new PageConfigurationSwaggerV2Transformer(pageEntity));
 
-				if (apiId != null) {
-					List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
-					transformers.add(new EntrypointsSwaggerV2Transformer(pageEntity, entrypoints));
-				}
+			Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
+			transformers.add(new PageConfigurationOAITransformer(pageEntity));
 
-				swaggerService.transform((SwaggerV2Descriptor) descriptor, transformers);
-			} else if (descriptor.getVersion() == SwaggerDescriptor.Version.OAI_V3) {
-				Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
-				transformers.add(new PageConfigurationOAITransformer(pageEntity));
-
-				if (apiId != null) {
-					List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
-					transformers.add(new EntrypointsOAITransformer(pageEntity, entrypoints));
-				}
-
-				swaggerService.transform((OAIDescriptor) descriptor, transformers);
+			if (apiId != null) {
+				List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
+				transformers.add(new EntrypointsOAITransformer(pageEntity, entrypoints));
 			}
+
+			swaggerService.transform((OAIDescriptor) descriptor, transformers);
 
 			if (pageEntity.getContentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
 				try {
@@ -1248,6 +1235,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			if(!sanitizeInfos.isSafe()) {
 				throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
 			}
+        } else if (io.gravitee.repository.management.model.PageType.SWAGGER == page.getType()) {
+            new OAIParser().parse(page.getContent());
         }
     }
 

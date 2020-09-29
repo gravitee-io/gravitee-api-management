@@ -20,31 +20,21 @@ import io.gravitee.management.model.api.SwaggerApiEntity;
 import io.gravitee.management.service.SwaggerService;
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.management.service.impl.swagger.converter.api.OAIToAPIConverter;
-import io.gravitee.management.service.impl.swagger.converter.api.SwaggerV2ToAPIConverter;
 import io.gravitee.management.service.impl.swagger.parser.OAIParser;
-import io.gravitee.management.service.impl.swagger.parser.SwaggerV1Parser;
-import io.gravitee.management.service.impl.swagger.parser.SwaggerV2Parser;
 import io.gravitee.management.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.management.service.impl.swagger.transformer.SwaggerTransformer;
-import io.gravitee.management.service.impl.swagger.visitor.v2.SwaggerOperationVisitor;
 import io.gravitee.management.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.gravitee.management.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.management.service.spring.ImportConfiguration;
 import io.gravitee.management.service.swagger.OAIDescriptor;
 import io.gravitee.management.service.swagger.SwaggerDescriptor;
-import io.gravitee.management.service.swagger.SwaggerV1Descriptor;
-import io.gravitee.management.service.swagger.SwaggerV2Descriptor;
-import io.swagger.models.Swagger;
 import io.swagger.v3.oas.models.OpenAPI;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.web.util.UrlUtils;
 import org.springframework.stereotype.Component;
 
-import javax.print.DocFlavor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
@@ -74,24 +64,15 @@ public class SwaggerServiceImpl implements SwaggerService {
     public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
         SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload());
         if (descriptor != null) {
-            if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
-                List<SwaggerOperationVisitor> visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
-                        .filter(operationVisitor -> swaggerDescriptor.getWithPolicies() != null
-                                && swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
-                        .map(operationVisitor -> policyOperationVisitorManager.getSwaggerOperationVisitor(operationVisitor.getId()))
-                        .collect(Collectors.toList());
-                return new SwaggerV2ToAPIConverter(visitors, defaultScheme)
-                        .convert((SwaggerV2Descriptor) descriptor);
-            } else if (descriptor.getVersion() == SwaggerDescriptor.Version.OAI_V3) {
-                List<OAIOperationVisitor> visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
-                        .filter(operationVisitor -> swaggerDescriptor.getWithPolicies() != null
-                                && swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
-                        .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
-                        .collect(Collectors.toList());
 
-                return new OAIToAPIConverter(visitors)
-                        .convert((OAIDescriptor) descriptor);
-            }
+            List<OAIOperationVisitor> visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
+                .filter(operationVisitor -> swaggerDescriptor.getWithPolicies() != null
+                    && swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
+                .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
+                .collect(Collectors.toList());
+
+            return new OAIToAPIConverter(visitors)
+                .convert((OAIDescriptor) descriptor);
         }
 
         throw new SwaggerDescriptorException();
@@ -106,42 +87,20 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Override
     public SwaggerDescriptor parse(String content) {
-        Object descriptor;
-
-        // try to read swagger in version 2
-        logger.debug("Trying to load a Swagger v2 descriptor");
-
-        if(isUrl(content)) {
+        if (isUrl(content)) {
             UrlSanitizerUtils.checkAllowed(content, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
         }
 
-        descriptor = new SwaggerV2Parser().parse(content);
+        OpenAPI descriptor = new OAIParser().parse(content);
 
         if (descriptor != null) {
-            return new SwaggerV2Descriptor((Swagger) descriptor);
-        }
-
-        // try to read swagger in version 3 (openAPI)
-        logger.debug("Trying to load an OpenAPI descriptor");
-        descriptor = new OAIParser().parse(content);
-
-        if (descriptor != null) {
-            return new OAIDescriptor((OpenAPI) descriptor);
-        }
-
-        // try to read swagger in version 1
-        logger.debug("Trying to load an old Swagger descriptor");
-        descriptor = new SwaggerV1Parser().parse(content);
-
-        if (descriptor != null) {
-            return new SwaggerV1Descriptor((Swagger) descriptor);
+            return new OAIDescriptor(descriptor);
         }
 
         throw new SwaggerDescriptorException();
     }
 
     private boolean isUrl(String content) {
-
         try {
             new URL(content);
             return true;
