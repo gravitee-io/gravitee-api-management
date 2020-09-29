@@ -77,7 +77,7 @@ public class SwaggerV2ToAPIConverter implements SwaggerToApiConverter<SwaggerV2D
         apiEntity.setPaths(swagger.getPaths().entrySet().stream()
                 .map(entry -> {
                     final io.gravitee.definition.model.Path path = new Path();
-                    path.setPath(entry.getKey().replaceAll("\\{(.[^/]*)\\}", ":$1"));
+                    path.setPath(entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1"));
                     List<Rule> rules = new ArrayList<>();
 
                     entry.getValue().getOperationMap().forEach(new BiConsumer<io.swagger.models.HttpMethod, io.swagger.models.Operation>() {

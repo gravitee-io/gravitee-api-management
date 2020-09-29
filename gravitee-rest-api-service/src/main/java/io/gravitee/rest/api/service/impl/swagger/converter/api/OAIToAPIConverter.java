@@ -90,7 +90,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
         apiEntity.setPaths(oai.getPaths().entrySet().stream()
                 .map(entry -> {
                     final io.gravitee.definition.model.Path path = new Path();
-                    path.setPath(entry.getKey().replaceAll("\\{(.[^/]*)\\}", ":$1"));
+                    path.setPath(entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1"));
 
                     Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
                     List<Rule> rules = new ArrayList<>();
