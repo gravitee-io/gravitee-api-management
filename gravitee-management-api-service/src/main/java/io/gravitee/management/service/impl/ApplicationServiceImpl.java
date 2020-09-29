@@ -520,7 +520,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(applicationId, null);
 
             subscriptions.forEach(subscription -> {
-                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                 apiKeys.forEach(apiKey -> {
                     try {
                         apiKeyService.delete(apiKey.getKey());

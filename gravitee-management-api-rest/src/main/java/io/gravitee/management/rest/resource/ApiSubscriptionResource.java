@@ -185,8 +185,7 @@ public class ApiSubscriptionResource extends AbstractResource {
     public List<ApiKeyEntity> listApiKeysForSubscription(
             @PathParam("api") String api,
             @PathParam("subscription") String subscription) {
-        return apiKeyService.findBySubscription(subscription)
-                .stream().sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt())).collect(Collectors.toList());
+        return apiKeyService.findBySubscription(subscription);
     }
 
     @POST

@@ -79,7 +79,7 @@ public class ApplicationService_ArchiveTest {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
         when(subscriptionService.findByApplicationAndPlan(APPLICATION_ID, null)).thenReturn(Collections.singleton(subscription));
         when(subscription.getId()).thenReturn("sub");
-        when(apiKeyService.findBySubscription("sub")).thenReturn(Collections.singleton(apiKeyEntity));
+        when(apiKeyService.findBySubscription("sub")).thenReturn(Collections.singletonList(apiKeyEntity));
         when(apiKeyEntity.getKey()).thenReturn("key");
 
         applicationService.archive(APPLICATION_ID);

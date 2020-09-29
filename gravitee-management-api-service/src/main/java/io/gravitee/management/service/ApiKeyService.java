@@ -17,6 +17,7 @@ package io.gravitee.management.service;
 
 import io.gravitee.management.model.ApiKeyEntity;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -33,7 +34,7 @@ public interface ApiKeyService {
 
     ApiKeyEntity reactivate(String apiKey);
 
-    Set<ApiKeyEntity> findBySubscription(String subscription);
+    List<ApiKeyEntity> findBySubscription(String subscription);
 
     ApiKeyEntity findByKey(String apiKey);
 
