@@ -36,7 +36,6 @@ import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.DefaultPolicyManager;
-import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.context.TemplateVariableProviderFactory;

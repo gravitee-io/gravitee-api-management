@@ -34,6 +34,7 @@ import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -82,6 +83,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     private final Map<Api, ScheduledFuture> scheduledTasks = new HashMap<>();
 
     @Autowired
+    @Qualifier("managementRouter")
     private Router router;
 
     @Autowired

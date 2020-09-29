@@ -25,6 +25,7 @@ import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -64,6 +65,7 @@ public class SyncService extends AbstractService implements Runnable {
     private SyncManager syncStateManager;
 
     @Autowired
+    @Qualifier("managementRouter")
     private Router router;
 
     @Autowired

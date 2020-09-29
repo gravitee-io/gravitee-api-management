@@ -22,6 +22,7 @@ import io.gravitee.gateway.policy.StreamType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -69,7 +70,7 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
 
                 return null;
             }
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     public void setAuthenticationHandlerSelector(AuthenticationHandlerSelector handlerSelector) {

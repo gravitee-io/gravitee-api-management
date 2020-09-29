@@ -30,6 +30,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -67,7 +69,11 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
         context.addBeanFactoryPostProcessor(configurer);
 
         context.getBeanFactory().registerSingleton("api", api);
-        context.register(ApiHandlerConfiguration.class);
+        if (planRequired(api)) {
+            context.register(ApiHandlerConfiguration.class);
+        } else {
+            context.register(FreePlanApiHandlerConfiguration.class);
+        }
         context.setId("context-api-" + api.getId());
         context.refresh();
 
