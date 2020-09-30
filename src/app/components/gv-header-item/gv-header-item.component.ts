@@ -15,7 +15,7 @@
  */
 import '@gravitee/ui-components/wc/gv-header';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Api, Application, User, PortalService } from '@gravitee/ng-portal-webclient';
+import { Api, Application, PortalService, User } from 'projects/portal-webclient-sdk/src/lib';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ApplicationResolver } from '../../resolvers/application.resolver';
 import { CurrentUserService } from '../../services/current-user.service';

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-row';
 import '@gravitee/ui-components/wc/gv-pagination';
 
-import { FormGroup, FormBuilder } from '@angular/forms';
-import { ApiService, ApisResponse, Api } from '@gravitee/ng-portal-webclient';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { Api, ApiService, ApisResponse } from 'projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
 import { ConfigurationService } from '../../../services/configuration.service';

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ActivatedRoute, ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { Api, ApiService, Application, ApplicationService } from '@gravitee/ng-portal-webclient';
+import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { Api, ApiService } from 'projects/portal-webclient-sdk/src/lib';
 
 @Injectable({ providedIn: 'root' })
 export class ApiResolver implements Resolve<Api> {

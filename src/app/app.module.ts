@@ -17,7 +17,7 @@ import '@gravitee/ui-components/wc/gv-spinner';
 import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
-import { ApiModule, BASE_PATH } from '@gravitee/ng-portal-webclient';
+import { ApiModule, BASE_PATH } from 'projects/portal-webclient-sdk/src/lib';
 import { ApiRequestInterceptor } from './interceptors/api-request.interceptor';
 import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.component';
 import { AppComponent } from './app.component';
@@ -51,11 +51,11 @@ import { GvPageRedocComponent } from './components/gv-page-redoc/gv-page-redoc.c
 import { GvPageSwaggerUIComponent } from './components/gv-page-swaggerui/gv-page-swaggerui.component';
 import { GvSearchApiComponent } from './components/gv-search-api/gv-search-api.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
-import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { LoginComponent } from './pages/login/login.component';
 import { LogoutComponent } from './pages/logout/logout.component';
-import { MESSAGE_FORMAT_CONFIG } from 'ngx-translate-messageformat-compiler';
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA, APP_INITIALIZER } from '@angular/core';
+import { MESSAGE_FORMAT_CONFIG, TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
+import { APP_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { RegistrationConfirmationComponent } from './pages/registration/registration-confirmation/registration-confirmation.component';
@@ -65,15 +65,13 @@ import { Router, Scroll } from '@angular/router';
 import { SharedModule } from './shared/shared.module';
 import { SinglePageComponent } from './pages/single-page/single-page.component';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { TranslateLoader, TranslateModule, TranslateCompiler } from '@ngx-translate/core';
-import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
+import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslationService } from './services/translation.service';
 import { UserAccountComponent } from './pages/user/user-account/user-account.component';
 import { UserContactComponent } from './pages/user/user-contact/user-contact.component';
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { ViewportScroller } from '@angular/common';
 import { ReCaptchaService } from './services/recaptcha.service';
-import { GvCheckboxControlValueAccessorDirective } from './directives/gv-checkbox-control-value-accessor.directive';
 
 @NgModule({
   declarations: [

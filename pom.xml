@@ -52,6 +52,7 @@
             <exclude>node/**</exclude>
             <exclude>node_modules/**</exclude>
             <exclude>dockerfiles/**</exclude>
+            <exclude>projects/**</exclude>
             <exclude>scripts/**</exclude>
             <exclude>coverage/**</exclude>
             <exclude>dist/**</exclude>

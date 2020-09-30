@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { User } from '@gravitee/ng-portal-webclient';
 import { BehaviorSubject } from 'rxjs';
 import { NotificationService } from './notification.service';
 

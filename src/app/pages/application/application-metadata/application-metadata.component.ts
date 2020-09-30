@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import {
   Application,
   ApplicationService,
   PermissionsService,
   ReferenceMetadata,
-  ReferenceMetadataFormatType, ReferenceMetadataInput
-} from '@gravitee/ng-portal-webclient';
+  ReferenceMetadataFormatType
+} from 'projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { Form, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { element } from 'protractor';
+import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { NotificationService } from '../../../services/notification.service';
 
 @Component({

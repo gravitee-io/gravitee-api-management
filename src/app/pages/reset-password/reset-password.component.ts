@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder } from '@angular/forms';
-import { UsersService, ResetUserPasswordInput } from '@gravitee/ng-portal-webclient';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { ResetUserPasswordInput, UsersService } from 'projects/portal-webclient-sdk/src/lib';
 import { ReCaptchaService } from '../../services/recaptcha.service';
 
 @Component({

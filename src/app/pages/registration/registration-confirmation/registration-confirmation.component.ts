@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { UsersService, FinalizeRegistrationInput } from '@gravitee/ng-portal-webclient';
+import { FinalizeRegistrationInput, UsersService } from 'projects/portal-webclient-sdk/src/lib';
 import { TokenService } from '../../../services/token.service';
 import { GvValidators } from '../../../utils/gv-validators';
 import { ReCaptchaService } from '../../../services/recaptcha.service';

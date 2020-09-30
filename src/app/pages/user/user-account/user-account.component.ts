@@ -19,7 +19,7 @@ import '@gravitee/ui-components/wc/gv-file-upload';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { AppComponent } from '../../../app.component';
 import { CurrentUserService } from '../../../services/current-user.service';
-import { User, UserService } from '@gravitee/ng-portal-webclient';
+import { User, UserService } from 'projects/portal-webclient-sdk/src/lib';
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
 

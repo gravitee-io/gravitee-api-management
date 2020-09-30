@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Application, Dashboard } from '@gravitee/ng-portal-webclient';
+import { ActivatedRoute } from '@angular/router';
+import { Application, Dashboard } from 'projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-chart-line';
 import '@gravitee/ui-components/wc/gv-chart-pie';
 import '@gravitee/ui-components/wc/gv-chart-map';

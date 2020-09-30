@@ -29,8 +29,8 @@ import {
   Rating,
   Subscription,
   User
-} from '@gravitee/ng-portal-webclient';
-import { ApiMetrics } from '@gravitee/ng-portal-webclient/model/apiMetrics';
+} from 'projects/portal-webclient-sdk/src/lib';
+import { ApiMetrics } from 'projects/portal-webclient-sdk/src/lib/model/apiMetrics';
 import '@gravitee/ui-components/wc/gv-confirm';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-rating';

@@ -15,8 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { RegisterUserInput, UsersService } from '@gravitee/ng-portal-webclient';
-import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
+import { RegisterUserInput, UsersService } from 'projects/portal-webclient-sdk/src/lib';
 import { ReCaptchaService } from '../../services/recaptcha.service';
 
 @Component({

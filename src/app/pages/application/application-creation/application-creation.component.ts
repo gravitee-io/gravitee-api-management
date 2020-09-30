@@ -13,13 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators
-} from '@angular/forms';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import '@gravitee/ui-components/wc/gv-stepper';
 import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-switch';
@@ -31,13 +26,15 @@ import { ConfigurationService } from '../../../services/configuration.service';
 
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import {
-  ApiService, Application,
+  ApiService,
+  Application,
   ApplicationInput,
   ApplicationService,
   ApplicationType,
   Plan,
-  PortalService, SubscriptionService
-} from '@gravitee/ng-portal-webclient';
+  PortalService,
+  SubscriptionService
+} from 'projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../../services/notification.service';
 
 export interface ApplicationTypeOption extends ApplicationType {

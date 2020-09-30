@@ -24,19 +24,19 @@ import {
   ApiService,
   Application,
   ApplicationService,
+  Plan,
   Subscription,
   SubscriptionService
-} from '@gravitee/ng-portal-webclient';
+} from 'projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Plan } from '@gravitee/ng-portal-webclient';
-import StatusEnum = Subscription.StatusEnum;
 import { distinctUntilChanged } from 'rxjs/operators';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { ItemResourceTypeEnum } from 'src/app/model/itemResourceType.enum';
 import { FeatureEnum } from 'src/app/model/feature.enum';
-import { getPictureDisplayName, getPicture } from '@gravitee/ui-components/src/lib/item';
+import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-api-subscribe',

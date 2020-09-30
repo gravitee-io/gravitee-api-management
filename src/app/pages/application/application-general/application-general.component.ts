@@ -23,11 +23,10 @@ import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import {
   Application,
   ApplicationService,
-  ApiService,
-  SubscriptionService,
-  PermissionsService,
-  PermissionsResponse, Subscription, ApplicationType
-} from '@gravitee/ng-portal-webclient';
+  ApplicationType,
+  PermissionsResponse,
+  Subscription
+} from 'projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';

@@ -15,8 +15,13 @@
  */
 import { Component, HostListener, OnInit } from '@angular/core';
 import { CurrentUserService } from '../../services/current-user.service';
-import { Api, Application, ApplicationService, Subscription, SubscriptionService, User } from '@gravitee/ng-portal-webclient';
-import StatusEnum = Subscription.StatusEnum;
+import {
+  Application,
+  ApplicationService,
+  Subscription,
+  SubscriptionService,
+  User
+} from 'projects/portal-webclient-sdk/src/lib';
 import { Router } from '@angular/router';
 import { FeatureEnum } from '../../model/feature.enum';
 import { ConfigurationService } from '../../services/configuration.service';
@@ -29,6 +34,7 @@ import '@gravitee/ui-components/wc/gv-stats';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { AnalyticsService } from '../../services/analytics.service';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-dashboard',

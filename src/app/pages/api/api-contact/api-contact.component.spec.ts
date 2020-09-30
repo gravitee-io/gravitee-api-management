@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { provideMock } from '../../../test/mock.helper.spec';
-import { PortalService } from '@gravitee/ng-portal-webclient';
+import { PortalService } from 'projects/portal-webclient-sdk/src/lib';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';

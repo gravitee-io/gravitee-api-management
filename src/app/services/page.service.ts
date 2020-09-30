@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Page } from '@gravitee/ng-portal-webclient';
+import { Page } from 'projects/portal-webclient-sdk/src/lib';
 
 @Injectable({
   providedIn: 'root'

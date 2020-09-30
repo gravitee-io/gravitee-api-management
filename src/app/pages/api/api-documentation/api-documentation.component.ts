@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { ApiService, Page } from '@gravitee/ng-portal-webclient';
+import { ApiService, Page } from 'projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({

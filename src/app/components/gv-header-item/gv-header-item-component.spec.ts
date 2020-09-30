@@ -22,7 +22,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { provideMock } from '../../test/mock.helper.spec';
-import { ApiService } from '@gravitee/ng-portal-webclient';
+import { ApiService } from 'projects/portal-webclient-sdk/src/lib';
 
 describe('GvHeaderItemComponent', () => {
   let component: GvHeaderItemComponent;

@@ -16,7 +16,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { Application, Plan } from '@gravitee/ng-portal-webclient';
+import { Application, Plan } from 'projects/portal-webclient-sdk/src/lib';
 import { TranslateService } from '@ngx-translate/core';
 import { ApplicationTypeOption } from '../application-creation.component';
 

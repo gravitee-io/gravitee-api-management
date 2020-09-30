@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { ApplicationService, ApplicationType } from '@gravitee/ng-portal-webclient';
+import { ApplicationService, ApplicationType } from 'projects/portal-webclient-sdk/src/lib';
 
 @Injectable({ providedIn: 'root' })
 export class ApplicationTypeResolver implements Resolve<ApplicationType> {

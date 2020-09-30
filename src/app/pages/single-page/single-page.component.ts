@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { PortalService, Page } from '@gravitee/ng-portal-webclient';
+import { Page, PortalService } from 'projects/portal-webclient-sdk/src/lib';
 
 @Component({
   selector: 'app-single-page',

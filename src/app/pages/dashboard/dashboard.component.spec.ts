@@ -18,7 +18,6 @@ import { TranslateTestingModule } from '../../test/translate-testing-module';
 import { UserTestingModule } from '../../test/user-testing-module';
 
 import { DashboardComponent } from './dashboard.component';
-import { UserService } from '@gravitee/ng-portal-webclient';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';

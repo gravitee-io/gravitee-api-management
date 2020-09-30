@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, HostListener, Input, ViewChild } from '@angular/core';
-import { Page } from '@gravitee/ng-portal-webclient';
+import { Page } from 'projects/portal-webclient-sdk/src/lib';
 import { TreeItem } from '../../model/tree-item';
 import { NotificationService } from '../../services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';

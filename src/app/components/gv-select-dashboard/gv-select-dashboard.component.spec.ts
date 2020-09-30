@@ -23,7 +23,6 @@ import { GvSelectDashboardComponent } from './gv-select-dashboard.component';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 import { provideMock } from '../../test/mock.helper.spec';
 import { CurrentUserService } from '../../services/current-user.service';
-import { PortalService } from '@gravitee/ng-portal-webclient';
 import { AnalyticsService } from '../../services/analytics.service';
 
 describe('GvSelectDashboardComponent', () => {

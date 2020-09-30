@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import {
-  ApplicationService,
-  Member,
   Application,
+  ApplicationService,
   GroupService,
-  UsersService,
-  User,
-  PortalService,
+  Member,
+  PermissionsResponse,
   PermissionsService,
+  PortalService,
   Subscription,
-  PermissionsResponse
-} from '@gravitee/ng-portal-webclient';
+  User,
+  UsersService
+} from 'projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import '@gravitee/ui-components/wc/gv-autocomplete';
@@ -39,7 +39,7 @@ import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from 'src/app/services/current-user.service';

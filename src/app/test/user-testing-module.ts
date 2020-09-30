@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable, NgModule, Pipe, PipeTransform } from '@angular/core';
-import { User, UserService } from '@gravitee/ng-portal-webclient';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { Injectable, NgModule } from '@angular/core';
+import { User, UserService } from 'projects/portal-webclient-sdk/src/lib';
+import { BehaviorSubject } from 'rxjs';
 import { CurrentUserService } from '../services/current-user.service';
 
 @Injectable()

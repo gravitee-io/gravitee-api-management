@@ -26,7 +26,7 @@ import { NotificationService } from '../../../services/notification.service';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
-import { ApiService } from '@gravitee/ng-portal-webclient';
+import { ApiService } from 'projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 
 describe('CatalogSearchComponent', () => {

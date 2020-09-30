@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed, async } from '@angular/core/testing';
+import { async, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { UserService } from '@gravitee/ng-portal-webclient';
-import { Observable, of } from 'rxjs';
+import { UserService } from 'projects/portal-webclient-sdk/src/lib';
+import { of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Title } from '@angular/platform-browser';

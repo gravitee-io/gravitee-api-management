@@ -23,7 +23,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { provideMock } from '../../../test/mock.helper.spec';
-import { UserService } from '@gravitee/ng-portal-webclient';
+import { UserService } from 'projects/portal-webclient-sdk/src/lib';
 import { Observable } from 'rxjs';
 
 describe('UserNotificationComponent', () => {

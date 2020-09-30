@@ -17,7 +17,7 @@ import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Dashboard } from '@gravitee/ng-portal-webclient';
+import { Dashboard } from 'projects/portal-webclient-sdk/src/lib';
 import { AnalyticsService } from '../../services/analytics.service';
 
 @Component({
