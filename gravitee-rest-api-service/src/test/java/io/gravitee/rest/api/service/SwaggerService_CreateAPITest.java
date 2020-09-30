@@ -27,7 +27,6 @@ import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.OAIPolicyOperationVisitor;
-import io.gravitee.rest.api.service.impl.swagger.policy.impl.SwaggerPolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,7 +74,6 @@ public class SwaggerService_CreateAPITest {
         OAIOperationVisitor op = mock(OAIPolicyOperationVisitor.class);
         when(op.visit(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(Optional.of(new Policy()));
         when(policyOperationVisitorManager.getOAIOperationVisitor(anyString())).thenReturn(op);
-        when(policyOperationVisitorManager.getSwaggerOperationVisitor(anyString())).thenReturn(mock(SwaggerPolicyOperationVisitor.class));
     }
 
     // Swagger v1

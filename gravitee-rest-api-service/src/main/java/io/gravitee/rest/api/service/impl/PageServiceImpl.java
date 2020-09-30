@@ -51,16 +51,13 @@ import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
-import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsSwaggerV2Transformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
-import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationSwaggerV2Transformer;
 import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
-import io.gravitee.rest.api.service.swagger.SwaggerV2Descriptor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -476,27 +473,16 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 }
                 throw sde;
             }
-            if (descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V1 || descriptor.getVersion() == SwaggerDescriptor.Version.SWAGGER_V2) {
-                Collection<SwaggerTransformer<SwaggerV2Descriptor>> transformers = new ArrayList<>();
-                transformers.add(new PageConfigurationSwaggerV2Transformer(pageEntity));
 
-                if (apiId != null) {
-                    List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
-                    transformers.add(new EntrypointsSwaggerV2Transformer(pageEntity, entrypoints));
-                }
+            Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
+            transformers.add(new PageConfigurationOAITransformer(pageEntity));
 
-                swaggerService.transform((SwaggerV2Descriptor) descriptor, transformers);
-            } else if (descriptor.getVersion() == SwaggerDescriptor.Version.OAI_V3) {
-                Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
-                transformers.add(new PageConfigurationOAITransformer(pageEntity));
-
-                if (apiId != null) {
-                    List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
-                    transformers.add(new EntrypointsOAITransformer(pageEntity, entrypoints));
-                }
-
-                swaggerService.transform((OAIDescriptor) descriptor, transformers);
+            if (apiId != null) {
+                List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
+                transformers.add(new EntrypointsOAITransformer(pageEntity, entrypoints));
             }
+
+            swaggerService.transform((OAIDescriptor) descriptor, transformers);
 
             if (pageEntity.getContentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
                 try {

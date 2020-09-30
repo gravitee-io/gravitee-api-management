@@ -31,7 +31,7 @@
 	<name>Gravitee.io Rest APIs - Management - Rest API</name>
 
 	<properties>
-		<swagger-jersey2-jaxrs.version>1.6.1</swagger-jersey2-jaxrs.version>
+		<swagger-jersey2-jaxrs.version>1.6.2</swagger-jersey2-jaxrs.version>
 	</properties>
 
 	<dependencies>

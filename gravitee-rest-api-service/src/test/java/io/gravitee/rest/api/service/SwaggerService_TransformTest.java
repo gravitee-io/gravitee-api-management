@@ -21,16 +21,11 @@ import com.google.common.io.Resources;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
-import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationSwaggerV2Transformer;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
-import io.gravitee.rest.api.service.swagger.SwaggerV1Descriptor;
-import io.gravitee.rest.api.service.swagger.SwaggerV2Descriptor;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,46 +69,6 @@ public class SwaggerService_TransformTest {
     }
 
     @Test
-    public void shouldTransformAPIFromSwaggerV1_json() throws IOException {
-        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON);
-
-        SwaggerV1Descriptor descriptor = (SwaggerV1Descriptor) swaggerService.parse(pageEntity.getContent());
-
-        swaggerService.transform(descriptor,
-                Collections.singleton(new PageConfigurationSwaggerV2Transformer(pageEntity)));
-
-        assertNotNull(descriptor.toJson());
-        validateV2(Json.mapper().readTree(descriptor.toJson()));
-    }
-
-    @Test
-    public void shouldTransformAPIFromSwaggerV2_json() throws IOException {
-        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v2.json", MediaType.APPLICATION_JSON);
-
-        SwaggerV2Descriptor descriptor = (SwaggerV2Descriptor) swaggerService.parse(pageEntity.getContent());
-
-        swaggerService.transform(descriptor,
-                Collections.singleton(new PageConfigurationSwaggerV2Transformer(pageEntity)));
-
-        assertNotNull(descriptor.toJson());
-        validateV2(Json.mapper().readTree(descriptor.toJson()));
-    }
-
-    @Test
-    public void shouldTransformAPIFromSwaggerV2_yaml() throws IOException {
-        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v2.yaml", MediaType.TEXT_PLAIN);
-
-        SwaggerV2Descriptor descriptor = (SwaggerV2Descriptor) swaggerService.parse(pageEntity.getContent());
-
-        swaggerService.transform(descriptor,
-                Collections.singleton(new PageConfigurationSwaggerV2Transformer(pageEntity)));
-
-        assertNotNull(descriptor.toYaml());
-        validateV2(Yaml.mapper().readTree(descriptor.toYaml()));
-    }
-
-
-    @Test
     public void shouldTransformAPIFromSwaggerV3_json() throws IOException {
         PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.json", MediaType.APPLICATION_JSON);
 
@@ -137,14 +92,6 @@ public class SwaggerService_TransformTest {
 
         assertNotNull(descriptor.toYaml());
         validateV3(Yaml.mapper().readTree(descriptor.toYaml()));
-    }
-
-    private void validateV2(JsonNode node) {
-        assertEquals("1.2.3", node.get("info").get("version").asText());
-        assertEquals("Gravitee.io Swagger API", node.get("info").get("title").asText());
-        assertEquals("https", node.get("schemes").get(0).asText());
-        assertEquals("my.domain.com", node.get("host").asText());
-        assertEquals("/v1", node.get("basePath").asText());
     }
 
     private void validateV3(JsonNode node) {
