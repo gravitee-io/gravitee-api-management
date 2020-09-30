@@ -631,6 +631,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 } else {
                     ApiEntity apiEntity = apiService.findById(api);
                     metadata = mapper.convertValue(apiEntity, Map.class);
+                    metadata.put("id", api);
                     metadata.put("primaryOwner", mapper.convertValue(apiEntity.getPrimaryOwner(), Map.class));
                     metadata.remove("picture");
                     metadata.remove("proxy");
