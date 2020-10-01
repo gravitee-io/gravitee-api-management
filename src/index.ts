@@ -74,7 +74,7 @@ function computeBaseURLs(constants: any): any {
   if (orgEnvIndex < 0) {
     basePath = constants.baseURL;
   } else {
-    basePath = constants.baseURL.substr(0, orgEnvIndex + 1);
+    basePath = constants.baseURL.substr(0, orgEnvIndex);
   }
 
   constants.orgBaseURL = `${basePath}/organizations/DEFAULT`;
