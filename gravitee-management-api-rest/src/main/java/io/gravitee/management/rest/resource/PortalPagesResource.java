@@ -167,6 +167,30 @@ public class PortalPagesResource extends AbstractResource {
         return pageService.update(page, updatePageEntity);
     }
 
+    @PUT
+    @Path("/{page}/content")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a page content",
+        notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = "Page content successfully updated"),
+        @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+        @Permission(value = RolePermission.PORTAL_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
+    public String updatePageContent(
+        @PathParam("page") String page,
+        @ApiParam(name = "content", required = true) @Valid @NotNull String content) {
+        pageService.findById(page);
+
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setContent(content);
+        PageEntity update = pageService.update(page, updatePageEntity, true);
+
+        return update.getContent();
+    }
+
     @PATCH
     @Path("/{page}")
     @Consumes(MediaType.APPLICATION_JSON)
