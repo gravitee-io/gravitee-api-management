@@ -743,7 +743,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         alert.setDescription(alertEntity.getDescription());
         alert.setReferenceId(alertEntity.getReferenceId());
         alert.setReferenceType(alertEntity.getReferenceType().name());
-        alert.setEnabled(alertEntity.isEnabled());
+        alert.setEnabled(alertEntity.isTemplate() ? alertEntity.isTemplate() : alertEntity.isEnabled());
         alert.setType(alertEntity.getType());
         alert.setSeverity(alertEntity.getSeverity().name());
         alert.setTemplate(alertEntity.isTemplate());
