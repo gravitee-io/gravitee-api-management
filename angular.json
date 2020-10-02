@@ -185,7 +185,7 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
             "tsConfig": "projects/portal-webclient-sdk/tsconfig.lib.json",
             "project": "projects/portal-webclient-sdk/ng-package.json"
