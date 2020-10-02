@@ -546,15 +546,23 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private String formatExpression(final Matcher matcher, final String group) {
-        final String matchedExpression = matcher.group(group);
+        String matchedExpression = matcher.group(group);
         final boolean expressionBlank = matchedExpression == null || "".equals(matchedExpression);
         final boolean after = "after".equals(group);
 
         String expression;
+
         if (after) {
+            if (matchedExpression.startsWith(" && (") && matchedExpression.endsWith(")")) {
+                matchedExpression = matchedExpression.substring(5, matchedExpression.length() - 1);
+            }
             expression = expressionBlank ? "" : " && (" + matchedExpression + ")";
             expression = expression.replaceAll("\\(" + LOGGING_DELIMITER_BASE, "\\(");
         } else {
+            if (matchedExpression.startsWith("(") && matchedExpression.endsWith(") && ")) {
+                matchedExpression = matchedExpression.substring(1, matchedExpression.length() - 5);
+            }
+
             expression = expressionBlank ? "" : "(" + matchedExpression + ") && ";
             expression = expression.replaceAll(LOGGING_DELIMITER_BASE + "\\)", "\\)");
         }
