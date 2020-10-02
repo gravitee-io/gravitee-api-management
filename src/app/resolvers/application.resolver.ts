@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRoute, ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { Application, ApplicationService } from 'projects/portal-webclient-sdk/src/lib';
+import { Application, ApplicationService } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Injectable({ providedIn: 'root' })
 export class ApplicationResolver implements Resolve<Application> {

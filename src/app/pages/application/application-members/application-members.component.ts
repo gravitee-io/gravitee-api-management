@@ -25,7 +25,7 @@ import {
   Subscription,
   User,
   UsersService
-} from 'projects/portal-webclient-sdk/src/lib';
+} from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import '@gravitee/ui-components/wc/gv-autocomplete';

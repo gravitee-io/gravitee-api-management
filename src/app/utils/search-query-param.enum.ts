@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SearchApisRequestParams } from 'projects/portal-webclient-sdk/src/lib';
+import { SearchApisRequestParams } from '../../../projects/portal-webclient-sdk/src/lib';
 
 export enum SearchQueryParam {
   PAGE = 'page',

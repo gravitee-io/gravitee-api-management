@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable, NgModule } from '@angular/core';
-import { User, UserService } from 'projects/portal-webclient-sdk/src/lib';
+import { User, UserService } from '../../../projects/portal-webclient-sdk/src/lib';
 import { BehaviorSubject } from 'rxjs';
 import { CurrentUserService } from '../services/current-user.service';
 

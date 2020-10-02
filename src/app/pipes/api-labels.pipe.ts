@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Pipe, PipeTransform } from '@angular/core';
-import { Api } from 'projects/portal-webclient-sdk/src/lib';
+import { Api } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Pipe({
   name: 'apiLabels'

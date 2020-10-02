@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 import { UserTestingModule } from '../../test/user-testing-module';
 
@@ -21,41 +21,33 @@ import { GvHeaderItemComponent } from './gv-header-item.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../test/mock.helper.spec';
-import { ApiService } from 'projects/portal-webclient-sdk/src/lib';
+import { ApiService } from '../../../../projects/portal-webclient-sdk/src/lib';
 
 describe('GvHeaderItemComponent', () => {
-  let component: GvHeaderItemComponent;
-  let fixture: ComponentFixture<GvHeaderItemComponent>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        TranslateTestingModule,
-        HttpClientTestingModule,
-        UserTestingModule
-      ],
-      declarations: [
-        GvHeaderItemComponent
-      ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        GvHeaderItemComponent,
-        provideMock(ApiService)
-      ]
-    }).compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(GvHeaderItemComponent);
-    component = fixture.componentInstance;
+  const createComponent = createComponentFactory({
+    component: GvHeaderItemComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+        imports: [
+          RouterTestingModule,
+          TranslateTestingModule,
+          HttpClientTestingModule,
+          UserTestingModule
+        ],
+        providers: [
+          mockProvider(ApiService)
+        ]
   });
 
+  let spectator: Spectator<GvHeaderItemComponent>;
+  let component;
+
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

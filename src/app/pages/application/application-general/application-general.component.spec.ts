@@ -13,38 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
-import { ApplicationGeneralComponent } from './application-general.component';
-import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
+
+import { ApplicationGeneralComponent } from './application-general.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApplicationGeneralComponent', () => {
-  let component: ApplicationGeneralComponent;
-  let fixture: ComponentFixture<ApplicationGeneralComponent>;
+  const createComponent = createComponentFactory({
+    component: ApplicationGeneralComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ApplicationGeneralComponent, GvPageComponent],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-      .compileComponents();
-  }));
+  let spectator: Spectator<ApplicationGeneralComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationGeneralComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'jest-preset-angular';
+import './jest-global-mocks';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { createComponentFactory, Spectator } from '@ngneat/spectator';
-import { GvPageRedocComponent } from './gv-page-redoc.component';
 
-describe('GvPageRedocComponent', () => {
-  const createComponent = createComponentFactory({
-    component: GvPageRedocComponent,
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
-  });
+import { defineGlobalsInjections } from '@ngneat/spectator';
+import { TranslateTestingModule } from './app/test/translate-testing-module'; // browser mocks globally available for every test
 
-  let spectator: Spectator<GvPageRedocComponent>;
-  let component;
-
-  beforeEach(() => {
-    spectator = createComponent();
-    component = spectator.component;
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+defineGlobalsInjections({
+  imports: [TranslateTestingModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 });

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { ApplicationService, Dashboard } from 'projects/portal-webclient-sdk/src/lib';
+import { ApplicationService, Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { AnalyticsService } from '../../services/analytics.service';

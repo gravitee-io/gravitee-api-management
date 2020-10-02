@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnInit } from '@angular/core';
-import { ApiService, ApplicationService, PortalService } from 'projects/portal-webclient-sdk/src/lib';
+import { ApiService, ApplicationService, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../services/notification.service';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { CurrentUserService } from '../../services/current-user.service';

@@ -34,7 +34,7 @@ import {
   Plan,
   PortalService,
   SubscriptionService
-} from 'projects/portal-webclient-sdk/src/lib';
+} from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../../services/notification.service';
 
 export interface ApplicationTypeOption extends ApplicationType {

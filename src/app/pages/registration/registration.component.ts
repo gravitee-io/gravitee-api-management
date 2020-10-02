@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { RegisterUserInput, UsersService } from 'projects/portal-webclient-sdk/src/lib';
+import { RegisterUserInput, UsersService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ReCaptchaService } from '../../services/recaptcha.service';
 
 @Component({

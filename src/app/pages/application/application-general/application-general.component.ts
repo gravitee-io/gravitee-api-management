@@ -26,7 +26,7 @@ import {
   ApplicationType,
   PermissionsResponse,
   Subscription
-} from 'projects/portal-webclient-sdk/src/lib';
+} from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';

@@ -15,7 +15,7 @@
  */
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 
-import { PortalNotification, UserService } from 'projects/portal-webclient-sdk/src/lib';
+import { PortalNotification, UserService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';

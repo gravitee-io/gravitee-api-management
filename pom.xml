@@ -21,9 +21,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <properties>
-    <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+    <frontend-maven-plugin.version>1.8.0</frontend-maven-plugin.version>
     <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
     <skiptTests>false</skiptTests>
+    <node.version>v12.18.4</node.version>
+    <npm.version>6.14.6</npm.version>
   </properties>
 
   <parent>
@@ -83,86 +85,57 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>${exec-maven-plugin.version}</version>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>${frontend-maven-plugin.version}</version>
         <executions>
-          <execution>
-            <id>clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>/bin/bash</executable>
-              <workingDirectory>${project.basedir}</workingDirectory>
-              <arguments>
-                <argument>./build.sh</argument>
-                <argument>gravitee_web_clean</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>build base</id>
-            <phase>initialize</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>/bin/bash</executable>
-              <workingDirectory>${project.basedir}</workingDirectory>
-              <arguments>
-                <argument>./build.sh</argument>
-                <argument>gravitee_web_init</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>install deps</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>/bin/bash</executable>
-              <workingDirectory>${project.basedir}</workingDirectory>
-              <arguments>
-                <argument>./build.sh</argument>
-                <argument>gravitee_web_deps</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>Test</id>
-            <phase>test</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>/bin/bash</executable>
-              <skip>${skipTests}</skip>
-              <workingDirectory>${project.basedir}</workingDirectory>
-              <arguments>
-                <argument>./build.sh</argument>
-                <argument>gravitee_web_test</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>package</id>
-            <phase>package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>/bin/bash</executable>
-              <workingDirectory>${project.basedir}</workingDirectory>
-              <arguments>
-                <argument>./build.sh</argument>
-                <argument>gravitee_web_package</argument>
-              </arguments>
-            </configuration>
-          </execution>
+            <execution>
+              <id>install node and npm</id>
+              <goals>
+                <goal>install-node-and-npm</goal>
+              </goals>
+              <configuration>
+                <nodeVersion>${node.version}</nodeVersion>
+                <npmVersion>${npm.version}</npmVersion>
+              </configuration>
+            </execution>
+            <execution>
+              <id>npm install</id>
+              <goals>
+                <goal>npm</goal>
+              </goals>
+              <phase>process-resources</phase>
+            </execution>
+            <execution>
+              <id>lint</id>
+              <goals>
+                <goal>npm</goal>
+              </goals>
+              <phase>test</phase>
+              <configuration>
+                <arguments>run lint</arguments>
+              </configuration>
+            </execution>
+            <execution>
+              <id>test</id>
+              <goals>
+                <goal>npm</goal>
+              </goals>
+              <phase>test</phase>
+              <configuration>
+                <arguments>run test</arguments>
+              </configuration>
+            </execution>
+            <execution>
+              <id>build</id>
+              <goals>
+                <goal>npm</goal>
+              </goals>
+              <phase>package</phase>
+              <configuration>
+                <arguments>run build:prod</arguments>
+              </configuration>
+            </execution>
         </executions>
       </plugin>
       <!--Plugin used to replace version on several files -->

@@ -13,52 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
-import { RegistrationConfirmationComponent } from './registration-confirmation.component';
-import { RouterTestingModule } from '@angular/router/testing';
-import { getTokenServiceMock } from '../../../test/helper.spec';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../../test/mock.helper.spec';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
+import { Observable } from 'rxjs';
 import { NotificationService } from '../../../services/notification.service';
 import { TokenService } from '../../../services/token.service';
 
+import { RegistrationConfirmationComponent } from './registration-confirmation.component';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
 describe('RegistrationConfirmationComponent', () => {
-  let component: RegistrationConfirmationComponent;
-  let fixture: ComponentFixture<RegistrationConfirmationComponent>;
-  let tokenService: TokenService;
 
-  beforeEach((() => {
-    TestBed.configureTestingModule({
-      declarations: [RegistrationConfirmationComponent],
-      imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(NotificationService),
-        provideMock(TokenService)
-      ]
-    })
-      .compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(RegistrationConfirmationComponent);
-    component = fixture.componentInstance;
-    tokenService = getTokenServiceMock();
+  const createComponent = createComponentFactory({
+    component: RegistrationConfirmationComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
+    providers: [
+      mockProvider(NotificationService),
+      mockProvider(TokenService, {
+        parseToken: (token) => ({
+          firstName: 'foo',
+          lastName: 'bar',
+          email: 'foo@bar'
+        })
+      })
+    ]
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  let spectator: Spectator<RegistrationConfirmationComponent>;
+  let component;
 
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 
 });

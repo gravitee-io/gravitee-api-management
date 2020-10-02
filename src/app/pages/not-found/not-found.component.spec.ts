@@ -14,47 +14,48 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { mockProvider } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
+import { TokenService } from '../../services/token.service';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { ResetPasswordComponent } from '../reset-password/reset-password.component';
 
 import { NotFoundComponent } from './not-found.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../test/mock.helper.spec';
 import { NotificationService } from '../../services/notification.service';
 import { FeatureGuardService } from '../../services/feature-guard.service';
 import { ConfigurationService } from '../../services/configuration.service';
 import { OAuthService } from 'angular-oauth2-oidc';
 
 describe('NotFoundComponent', () => {
-  let component: NotFoundComponent;
-  let fixture: ComponentFixture<NotFoundComponent>;
+  const createComponent = createComponentFactory({
+    component: NotFoundComponent,
+    imports: [
+      RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
+      mockProvider(NotificationService),
+      mockProvider(FeatureGuardService),
+      mockProvider(ConfigurationService),
+      mockProvider(OAuthService),
+    ]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [NotFoundComponent],
-      imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(NotificationService),
-        provideMock(FeatureGuardService),
-        provideMock(ConfigurationService),
-        provideMock(OAuthService),
-      ]
-    })
-      .compileComponents();
-  }));
+  let spectator: Spectator<NotFoundComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(NotFoundComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Api, ApiMetrics, ApiService, Category, FilterApiQuery } from 'projects/portal-webclient-sdk/src/lib';
+import { Api, ApiMetrics, ApiService, Category, FilterApiQuery } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-promote';
 import '@gravitee/ui-components/wc/gv-card-list';
 import '@gravitee/ui-components/wc/gv-card-full';

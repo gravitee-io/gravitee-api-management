@@ -23,7 +23,7 @@ import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.c
 import { AuthGuardService } from './services/auth-guard.service';
 import { CatalogSearchComponent } from './pages/catalog/search/catalog-search.component';
 import { CategoriesComponent } from './pages/catalog/categories/categories.component';
-import { FilterApiQuery } from 'projects/portal-webclient-sdk/src/lib';
+import { FilterApiQuery } from '../../projects/portal-webclient-sdk/src/lib';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { DocumentationComponent } from './pages/documentation/documentation.component';
 import { FeatureEnum } from './model/feature.enum';

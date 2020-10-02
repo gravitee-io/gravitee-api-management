@@ -13,48 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
+import { CurrentUserService } from '../../services/current-user.service';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
 
 import { GvSearchApiComponent } from './gv-search-api.component';
-import { RouterTestingModule } from '@angular/router/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../test/mock.helper.spec';
-import { TranslateService } from '@ngx-translate/core';
-import { CurrentUserService } from '../../services/current-user.service';
 
-describe('GvSearchInputComponent', () => {
-  let component: GvSearchApiComponent;
-  let fixture: ComponentFixture<GvSearchApiComponent>;
+describe('GvSearchApiComponent', () => {
+  const createComponent = createComponentFactory({
+    component: GvSearchApiComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+      RouterTestingModule,
+      TranslateTestingModule,
+      HttpClientTestingModule,
+    ],
+    providers: [
+      mockProvider(CurrentUserService),
+    ]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        TranslateTestingModule,
-        HttpClientTestingModule,
-      ],
-      declarations: [
-        GvSearchApiComponent
-      ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        GvSearchApiComponent,
-        provideMock(TranslateService),
-        provideMock(CurrentUserService),
-      ]
-    }).compileComponents();
-  }));
+  let spectator: Spectator<GvSearchApiComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvSearchApiComponent);
-    component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

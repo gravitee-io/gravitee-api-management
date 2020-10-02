@@ -16,7 +16,7 @@
 import * as jsyaml from 'js-yaml';
 
 import { Component, OnInit } from '@angular/core';
-import { Page, User } from 'projects/portal-webclient-sdk/src/lib';
+import { Page, User } from '../../../../projects/portal-webclient-sdk/src/lib';
 
 import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { CurrentUserService } from 'src/app/services/current-user.service';

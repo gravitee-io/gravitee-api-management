@@ -13,48 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { mockProvider } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { UserTestingModule } from '../../../test/user-testing-module';
-
 import { UserNotificationComponent } from './user-notification.component';
 import { SafePipe } from '../../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { provideMock } from '../../../test/mock.helper.spec';
-import { UserService } from 'projects/portal-webclient-sdk/src/lib';
+import { UserService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { Observable } from 'rxjs';
 
 describe('UserNotificationComponent', () => {
-  let component: UserNotificationComponent;
-  let fixture: ComponentFixture<UserNotificationComponent>;
-  let userService: UserService;
+  const createComponent = createComponentFactory({
+    component: UserNotificationComponent,
+    imports: [UserTestingModule, HttpClientTestingModule, RouterTestingModule],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    declarations: [
+      SafePipe
+    ],
+    providers: [
+      mockProvider(UserService, {
+        getCurrentUserNotifications: () => new Observable()
+      }),
+    ]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [UserNotificationComponent, SafePipe],
-      imports: [TranslateTestingModule, UserTestingModule, HttpClientTestingModule, RouterTestingModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(UserService),
-      ]
-    })
-      .compileComponents();
-  }));
+  let spectator: Spectator<UserNotificationComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(UserNotificationComponent);
-    component = fixture.componentInstance;
-
-    userService = TestBed.inject(UserService);
-    userService.getCurrentUserNotifications = jasmine.createSpy().and.returnValue(new Observable());
-    return userService;
+    spectator = createComponent( );
+    component = spectator.component;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

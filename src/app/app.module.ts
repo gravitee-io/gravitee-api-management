@@ -17,7 +17,7 @@ import '@gravitee/ui-components/wc/gv-spinner';
 import { ApiContactComponent } from './pages/api/api-contact/api-contact.component';
 import { ApiDocumentationComponent } from './pages/api/api-documentation/api-documentation.component';
 import { ApiGeneralComponent } from './pages/api/api-general/api-general.component';
-import { ApiModule, BASE_PATH } from 'projects/portal-webclient-sdk/src/lib';
+import { ApiModule, BASE_PATH } from '../../projects/portal-webclient-sdk/src/lib';
 import { ApiRequestInterceptor } from './interceptors/api-request.interceptor';
 import { ApiSubscribeComponent } from './pages/api/api-subscribe/api-subscribe.component';
 import { AppComponent } from './app.component';

@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, TestBed } from '@angular/core/testing';
+import { mockProvider } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 import { CatalogSearchComponent } from './catalog-search.component';
@@ -21,57 +22,43 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { provideMock } from '../../../test/mock.helper.spec';
 import { NotificationService } from '../../../services/notification.service';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
-import { ApiService } from 'projects/portal-webclient-sdk/src/lib';
-import { ActivatedRoute, Router } from '@angular/router';
 
 describe('CatalogSearchComponent', () => {
-  let component: CatalogSearchComponent;
-  let configService: ConfigurationService;
+  const createComponent = createComponentFactory({
+    component: CatalogSearchComponent,
+    imports: [
+      RouterTestingModule,
+      TranslateTestingModule,
+      FormsModule,
+      ReactiveFormsModule,
+      HttpClientTestingModule
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    declarations: [
+      ApiStatesPipe, ApiLabelsPipe
+    ],
+    providers: [
+      mockProvider(NotificationService),
+      mockProvider(ConfigurationService),
+    ]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        TranslateTestingModule,
-        FormsModule,
-        ReactiveFormsModule,
-        HttpClientTestingModule
-      ],
-      declarations: [
-        CatalogSearchComponent, ApiStatesPipe, ApiLabelsPipe
-      ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(NotificationService),
-        provideMock(ConfigurationService),
-        ApiStatesPipe, ApiLabelsPipe
-      ]
-    })
-      .compileComponents();
-  }));
+  let spectator: Spectator<CatalogSearchComponent>;
+  let component;
 
   beforeEach(() => {
-
-    configService = TestBed.inject(ConfigurationService);
-    configService.get = jasmine.createSpy().and.returnValue([5, 10, 15]);
-
-    component = new CatalogSearchComponent(
-      TestBed.inject(FormBuilder),
-      TestBed.inject(ApiService),
-      TestBed.inject(ActivatedRoute),
-      TestBed.inject(Router),
-      configService
-    );
+    spectator = createComponent();
+    const configService = spectator.inject(ConfigurationService);
+    configService.get.andReturn([5, 10, 15]);
+    component = spectator.component;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

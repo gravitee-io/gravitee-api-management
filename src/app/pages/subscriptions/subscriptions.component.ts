@@ -21,7 +21,7 @@ import {
   ApplicationService,
   Subscription,
   SubscriptionService
-} from 'projects/portal-webclient-sdk/src/lib';
+} from '../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';

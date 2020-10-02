@@ -13,40 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { UserTestingModule } from '../../test/user-testing-module';
-
 import { DashboardComponent } from './dashboard.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('DashboardComponent', () => {
-  let component: DashboardComponent;
-  let fixture: ComponentFixture<DashboardComponent>;
+  const createComponent = createComponentFactory({
+    component: DashboardComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+      HttpClientTestingModule,
+      RouterTestingModule,
+      UserTestingModule,
+    ],
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ DashboardComponent ],
-      imports: [TranslateTestingModule, UserTestingModule, HttpClientTestingModule, RouterTestingModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-    .compileComponents();
-  }));
+  let spectator: Spectator<DashboardComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(DashboardComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
+  it('should create', () => {
       expect(component).toBeTruthy();
-      done();
-    });
   });
+
 });

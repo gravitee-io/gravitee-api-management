@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
 import { ApiSubscribeComponent } from './api-subscribe.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -25,38 +24,32 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApiSubscribeComponent', () => {
-  let component: ApiSubscribeComponent;
-  let fixture: ComponentFixture<ApiSubscribeComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-        TranslateTestingModule,
-        FormsModule,
-        ReactiveFormsModule
-      ],
-      declarations: [ApiSubscribeComponent],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [ApiStatesPipe, ApiLabelsPipe]
-    })
-      .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: ApiSubscribeComponent,
+    imports: [
+      HttpClientTestingModule,
+      RouterTestingModule,
+      TranslateTestingModule,
+      FormsModule,
+      ReactiveFormsModule
+    ],
+    schemas: [
+      CUSTOM_ELEMENTS_SCHEMA,
+    ],
+    providers: [ApiStatesPipe, ApiLabelsPipe]
+  });
 
+  let spectator: Spectator<ApiSubscribeComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiSubscribeComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
+
 });

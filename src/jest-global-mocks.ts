@@ -13,16 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
-import { TokenService } from '../services/token.service';
+Object.defineProperty(window, 'CSS', {value: null});
+Object.defineProperty(document, 'doctype', {
+  value: '<!DOCTYPE html>'
+});
 
-export function getTokenServiceMock() {
-  let tokenService: TokenService;
-  tokenService = TestBed.inject(TokenService);
-  tokenService.isParsedTokenExpired = jasmine.createSpy().and.returnValue(true);
-  tokenService.parseToken = jasmine.createSpy().and.returnValue({
-    firstname: 'foobar'
-  });
-  return tokenService;
-}
+Object.defineProperty(window, 'getComputedStyle', {
+  value: () => ({
+    getPropertyValue: (prop) => {
+      return '';
+    }
+  })
+});
 
+Object.defineProperty(document, 'removeEventListener', {
+  value: jest.fn()
+});
+
+/**
+ * ISSUE: https://github.com/angular/material2/issues/7101
+ * Workaround for JSDOM missing transform property
+ */
+Object.defineProperty(document.body.style, 'transform', {
+  value: () => {
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  },
+});

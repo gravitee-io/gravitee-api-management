@@ -13,54 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
+import { mockProvider } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ResetPasswordConfirmationComponent } from './reset-password-confirmation.component';
 import { RouterTestingModule } from '@angular/router/testing';
-import { getTokenServiceMock } from '../../../test/helper.spec';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../../test/mock.helper.spec';
 import { NotificationService } from '../../../services/notification.service';
 import { TokenService } from '../../../services/token.service';
 
-describe('RegistrationConfirmationComponent', () => {
-  let component: ResetPasswordConfirmationComponent;
-  let fixture: ComponentFixture<ResetPasswordConfirmationComponent>;
-  let tokenService: TokenService;
+describe('ResetPasswordConfirmationComponent', () => {
+  const createComponent = createComponentFactory({
+    component: ResetPasswordConfirmationComponent,
+    imports: [
+      RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
+      mockProvider(NotificationService),
+      mockProvider(TokenService, {
+        parseToken: (token) => ({
+          firstName: 'foo',
+          lastName: 'bar',
+          email: 'foo@bar'
+        })
+      })
+    ]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ResetPasswordConfirmationComponent],
-      imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(NotificationService),
-        provideMock(TokenService),
-      ]
-    })
-      .compileComponents();
-  }));
+  let spectator: Spectator<ResetPasswordConfirmationComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ResetPasswordConfirmationComponent);
-    tokenService = getTokenServiceMock();
-
-    component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-    });
+    expect(component).toBeTruthy();
   });
 
 });

@@ -13,25 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { createComponentFactory, Spectator } from '@ngneat/spectator';
-import { GvPageRedocComponent } from './gv-page-redoc.component';
+import { TestBed } from '@angular/core/testing';
+import { TokenService } from '../services/token.service';
 
-describe('GvPageRedocComponent', () => {
-  const createComponent = createComponentFactory({
-    component: GvPageRedocComponent,
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
-  });
+export function getTokenServiceMock() {
+  let tokenService: TokenService;
+  tokenService = TestBed.inject(TokenService);
+  tokenService.isParsedTokenExpired = jest.fn(() => true);
+  tokenService.parseToken = jest.fn(() => ({
+    firstname: 'foobar'
+  }));
+  return tokenService;
+}
 
-  let spectator: Spectator<GvPageRedocComponent>;
-  let component;
-
-  beforeEach(() => {
-    spectator = createComponent();
-    component = spectator.component;
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-});

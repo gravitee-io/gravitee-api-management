@@ -18,7 +18,7 @@ import '@gravitee/ui-components/wc/gv-autocomplete';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { SearchQueryParam, SearchRequestParams } from '../../utils/search-query-param.enum';
-import { ApiService, ApisResponse } from 'projects/portal-webclient-sdk/src/lib';
+import { ApiService, ApisResponse } from '../../../../projects/portal-webclient-sdk/src/lib';
 
 @Component({
   selector: 'app-gv-search-api',

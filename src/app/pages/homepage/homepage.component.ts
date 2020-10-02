@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Api, ApiMetrics, ApiService, Page, PortalService } from 'projects/portal-webclient-sdk/src/lib';
+import { Api, ApiMetrics, ApiService, Page, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { Router } from '@angular/router';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';

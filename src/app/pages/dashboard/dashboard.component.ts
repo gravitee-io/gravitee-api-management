@@ -21,7 +21,7 @@ import {
   Subscription,
   SubscriptionService,
   User
-} from 'projects/portal-webclient-sdk/src/lib';
+} from '../../../../projects/portal-webclient-sdk/src/lib';
 import { Router } from '@angular/router';
 import { FeatureEnum } from '../../model/feature.enum';
 import { ConfigurationService } from '../../services/configuration.service';

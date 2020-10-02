@@ -17,7 +17,7 @@ import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Dashboard } from 'projects/portal-webclient-sdk/src/lib';
+import { Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { AnalyticsService } from '../../services/analytics.service';
 
 @Component({
@@ -58,4 +58,5 @@ export class GvSelectDashboardComponent implements OnInit {
       fragment: this.analyticsService.fragment
     });
   }
+
 }

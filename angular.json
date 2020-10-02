@@ -109,44 +109,13 @@
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular-builders/jest:run",
           "options": {
-            "main": "src/test.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "assets": [
-              "src/favicon.ico",
-              "src/favicon.png",
-              "src/assets",
-              {
-                "glob": "**/*.js",
-                "input": "node_modules/@webcomponents/webcomponentsjs",
-                "output": "webcomponents/"
-              },
-              {
-                "glob": "*",
-                "input": "node_modules/@gravitee/ui-components/assets/images",
-                "output": "images/"
-              }
-            ],
-            "styles": [
-              "node_modules/@ibm/plex/scss/ibm-plex.scss",
-              "src/styles.scss",
-              "node_modules/highlight.js/styles/a11y-light.css",
-              {
-                "input": "node_modules/swagger-ui-dist/swagger-ui.css",
-                "lazy": true,
-                "bundleName": "swagger-ui"
-              }
-            ],
-            "scripts": [
-              "node_modules/marked/lib/marked.js",
-              {
-                "input": "node_modules/redoc/bundles/redoc.standalone.js",
-                "lazy": true,
-                "bundleName": "redoc"
-              }
+            "testMatch": [
+              "**/__tests__/**/*.[t]s?(x)",
+              "**/?(*.)+(spec).[t]s?(x)"
             ]
           }
         },

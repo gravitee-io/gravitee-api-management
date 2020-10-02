@@ -19,7 +19,7 @@ import {
   ApplicationService,
   Subscription,
   SubscriptionService
-} from 'projects/portal-webclient-sdk/src/lib';
+} from '../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';

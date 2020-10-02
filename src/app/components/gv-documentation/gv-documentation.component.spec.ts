@@ -13,40 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { GvDocumentationComponent } from './gv-documentation.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('GvDocumentationComponent', () => {
-  let component: GvDocumentationComponent;
-  let fixture: ComponentFixture<GvDocumentationComponent>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ GvDocumentationComponent ],
-      imports: [ TranslateTestingModule, RouterTestingModule ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-    .compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(GvDocumentationComponent);
-    component = fixture.componentInstance;
-    component.pages = [];
+  const createComponent = createComponentFactory({
+    component: GvDocumentationComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [RouterTestingModule]
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  let spectator: Spectator<GvDocumentationComponent>;
+  let component;
+
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
+
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 
 });

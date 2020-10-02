@@ -17,7 +17,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { IdentityProvider, PortalService } from 'projects/portal-webclient-sdk/src/lib';
+import { IdentityProvider, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';

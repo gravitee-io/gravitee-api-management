@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { ApiService, Page } from 'projects/portal-webclient-sdk/src/lib';
+import { ApiService, Page } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Injectable({ providedIn: 'root' })
 export class ApiHomepageResolver implements Resolve<Page> {

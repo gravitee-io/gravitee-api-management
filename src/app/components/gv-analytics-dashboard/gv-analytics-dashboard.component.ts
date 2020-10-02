@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { Application, ApplicationService, Dashboard } from 'projects/portal-webclient-sdk/src/lib';
+import { Application, ApplicationService, Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 import { NavRouteService } from '../../services/nav-route.service';

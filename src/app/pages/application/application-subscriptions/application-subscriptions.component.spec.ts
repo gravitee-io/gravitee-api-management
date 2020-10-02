@@ -13,35 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
+import { LocalizedDatePipe } from '../../../pipes/localized-date.pipe';
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 import { ApplicationSubscriptionsComponent } from './application-subscriptions.component';
-import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApplicationSubscriptionsComponent', () => {
-  let component: ApplicationSubscriptionsComponent;
-  let fixture: ComponentFixture<ApplicationSubscriptionsComponent>;
+  const createComponent = createComponentFactory({
+    component: ApplicationSubscriptionsComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+    declarations:[LocalizedDatePipe]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ApplicationSubscriptionsComponent, GvPageComponent],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-      .compileComponents();
-  }));
+  let spectator: Spectator<ApplicationSubscriptionsComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationSubscriptionsComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

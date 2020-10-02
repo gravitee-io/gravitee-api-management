@@ -13,27 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 
 import { GvPageSwaggerUIComponent } from './gv-page-swaggerui.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('GvPageSwaggerUIComponent', () => {
-  let component: GvPageSwaggerUIComponent;
-  let fixture: ComponentFixture<GvPageSwaggerUIComponent>;
+  const createComponent = createComponentFactory({
+    component: GvPageSwaggerUIComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [HttpClientTestingModule],
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ GvPageSwaggerUIComponent ],
-      imports: [ HttpClientTestingModule ],
-    })
-    .compileComponents();
-  }));
+  let spectator: Spectator<GvPageSwaggerUIComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvPageSwaggerUIComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

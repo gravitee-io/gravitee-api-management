@@ -13,39 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { provideMock } from '../../../test/mock.helper.spec';
-import { PortalService } from 'projects/portal-webclient-sdk/src/lib';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { mockProvider } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { TokenService } from '../../../services/token.service';
+import { PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { ResetPasswordComponent } from '../../reset-password/reset-password.component';
 import { ApiContactComponent } from './api-contact.component';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 describe('ApiContactComponent', () => {
-  let component: ApiContactComponent;
-  let fixture: ComponentFixture<ApiContactComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ ApiContactComponent ],
-      imports: [ TranslateTestingModule, HttpClientTestingModule, RouterTestingModule ],
-      providers: [provideMock(PortalService)],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-    .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: ResetPasswordComponent,
+    imports: [
+      RouterTestingModule, HttpClientTestingModule, FormsModule, ReactiveFormsModule
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
+      mockProvider(PortalService),
+    ]
+  });
+
+  let spectator: Spectator<ResetPasswordComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiContactComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    spectator.inject(TokenService);
+    component = spectator.component;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

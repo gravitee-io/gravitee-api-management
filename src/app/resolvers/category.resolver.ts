@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { Category, PortalService } from 'projects/portal-webclient-sdk/src/lib';
+import { Category, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Injectable({ providedIn: 'root' })
 export class CategoryResolver implements Resolve<Category> {

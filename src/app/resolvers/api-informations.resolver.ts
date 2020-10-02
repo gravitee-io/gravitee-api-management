@@ -15,7 +15,7 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { ApiInformation, PortalService } from 'projects/portal-webclient-sdk/src/lib';
+import { ApiInformation, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Injectable({ providedIn: 'root' })
 export class ApiInformationsResolver implements Resolve<Array<ApiInformation>> {

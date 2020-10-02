@@ -13,65 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { UserService } from 'projects/portal-webclient-sdk/src/lib';
-import { of } from 'rxjs';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { AppComponent } from './app.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { Title } from '@angular/platform-browser';
-import { NavRouteService } from './services/nav-route.service';
-import { NotificationService } from './services/notification.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { TranslateTestingModule } from './test/translate-testing-module';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { UserTestingModule } from './test/user-testing-module';
 
 describe('AppComponent', () => {
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        HttpClientTestingModule,
-        TranslateTestingModule,
-        BrowserAnimationsModule,
-        UserTestingModule
-      ],
-      declarations: [
-        AppComponent
-      ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        AppComponent,
-      ]
-    }).compileComponents();
-  }));
 
-  let fixture;
-  let app;
-  let titleMock: Title;
-  let notificationService;
-  let navRouteService;
-  let userService;
-  beforeEach(() => {
-    titleMock = TestBed.inject(Title);
-    notificationService = TestBed.inject(NotificationService);
-    navRouteService = TestBed.inject(NavRouteService);
-    navRouteService.getUserNav = jasmine.createSpy().and.returnValue([]);
-    userService = TestBed.inject(UserService);
-    userService.getCurrentUserNotifications = jasmine.createSpy().and.returnValue(of({}));
-    fixture = TestBed.createComponent(AppComponent);
-    app = fixture.componentInstance;
+  const createComponent = createComponentFactory({
+    component: AppComponent,
+    imports: [
+      RouterTestingModule,
+      HttpClientTestingModule
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
   });
 
-  it('should create the app', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(app).toBeTruthy();
-      done();
-    });
+  let spectator: Spectator<AppComponent>;
+  let component;
+
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
+
+  it('should create the app', () => {
+    const app = spectator.component;
+    expect(app).toBeTruthy();
   });
 
 });

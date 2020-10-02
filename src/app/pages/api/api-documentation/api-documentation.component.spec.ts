@@ -13,41 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
+import { mockProvider } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ApiDocumentationComponent } from './api-documentation.component';
-import { provideMock } from '../../../test/mock.helper.spec';
-import { PortalService } from 'projects/portal-webclient-sdk/src/lib';
+import { PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { GvDocumentationComponent } from '../../../components/gv-documentation/gv-documentation.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('ApiDocumentationComponent', () => {
-  let component: ApiDocumentationComponent;
-  let fixture: ComponentFixture<ApiDocumentationComponent>;
+  const createComponent = createComponentFactory({
+    component: ApiDocumentationComponent,
+    declarations: [GvDocumentationComponent],
+    imports: [
+      RouterTestingModule, HttpClientTestingModule
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
+      mockProvider(PortalService),
+    ]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ ApiDocumentationComponent, GvDocumentationComponent ],
-      imports: [ TranslateTestingModule, HttpClientTestingModule, RouterTestingModule ],
-      providers: [provideMock(PortalService)],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-    .compileComponents();
-  }));
+  let spectator: Spectator<ApiDocumentationComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiDocumentationComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
     component.pages = [];
-    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

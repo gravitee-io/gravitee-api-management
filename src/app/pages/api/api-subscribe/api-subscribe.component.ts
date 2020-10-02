@@ -27,7 +27,7 @@ import {
   Plan,
   Subscription,
   SubscriptionService
-} from 'projects/portal-webclient-sdk/src/lib';
+} from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';

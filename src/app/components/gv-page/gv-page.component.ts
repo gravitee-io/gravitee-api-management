@@ -24,7 +24,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ApiService, Page, PageConfiguration, PortalService } from 'projects/portal-webclient-sdk/src/lib';
+import { ApiService, Page, PageConfiguration, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { GvPageContentSlotDirective } from 'src/app/directives/gv-page-content-slot.directive';
 import { ActivatedRoute } from '@angular/router';
 import { PageService } from 'src/app/services/page.service';
