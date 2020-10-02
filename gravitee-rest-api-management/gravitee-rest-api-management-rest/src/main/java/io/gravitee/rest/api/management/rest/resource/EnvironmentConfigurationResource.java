@@ -20,6 +20,8 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
 import io.gravitee.rest.api.management.rest.resource.configuration.application.registration.ClientRegistrationProvidersResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.dictionary.DictionariesResource;
+import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
+import io.gravitee.rest.api.management.rest.resource.organization.RoleScopesResource;
 import io.gravitee.rest.api.management.rest.resource.quality.QualityRulesResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -110,6 +112,12 @@ public class EnvironmentConfigurationResource {
         return resourceContext.getResource(MetadataResource.class);
     }
 
+    @Deprecated
+    @Path("rolescopes")
+    public RoleScopesResource getRoleScopesResource() {
+        return resourceContext.getResource(RoleScopesResource.class);
+    }
+
     @Path("notificationsettings")
     public PortalNotificationSettingsResource getNotificationSettingsResource() {
         return resourceContext.getResource(PortalNotificationSettingsResource.class);
@@ -133,6 +141,12 @@ public class EnvironmentConfigurationResource {
     @Path("apiheaders")
     public ApiHeadersResource getApiHeadersResource() {
         return resourceContext.getResource(ApiHeadersResource.class);
+    }
+
+    @Deprecated
+    @Path("identities")
+    public IdentityProvidersResource getAuthenticationProvidersResource() {
+        return resourceContext.getResource(IdentityProvidersResource.class);
     }
 
     @Path("applications/registration/providers")

@@ -258,6 +258,33 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 /*
                  * environments resources
                  */
+                // DEPRECATED
+                // Auth resource
+                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/**").permitAll()
+
+                // DEPRECATED
+                // Current user
+                .antMatchers(HttpMethod.POST, uriPrefix + "/user/login").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/user/**").authenticated()
+
+                // DEPRECATED
+                //Users management
+                .antMatchers(HttpMethod.GET,uriPrefix + "/users/custom-fields").permitAll()
+                .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/users").authenticated()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/users/**").authenticated()
+                .antMatchers(HttpMethod.PUT, uriPrefix + "/users/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, uriPrefix + "/users/**").authenticated()
+
+                // DEPRECATED
+                // configuration
+                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**").permitAll()
+
+                // DEPRECATED
+                //Search for users
+                .antMatchers(HttpMethod.GET, uriPrefix + "/search/users").authenticated()
+
+
                 // API requests
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks").authenticated()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()

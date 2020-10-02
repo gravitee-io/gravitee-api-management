@@ -16,6 +16,10 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationResource;
+import io.gravitee.rest.api.management.rest.resource.organization.CurrentUserResource;
+import io.gravitee.rest.api.management.rest.resource.organization.UsersResource;
+import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.swagger.annotations.*;
@@ -105,6 +109,13 @@ public class EnvironmentResource extends AbstractResource {
         return resourceContext.getResource(EnvironmentConfigurationResource.class);
     }
 
+    @Deprecated
+    @Path("user")
+    public CurrentUserResource getCurrentUserResource() {
+        return resourceContext.getResource(CurrentUserResource.class);
+    }
+
+
     @Path("subscriptions")
     public SubscriptionsResource getSubscriptionsResource() {
         return resourceContext.getResource(SubscriptionsResource.class);
@@ -118,6 +129,25 @@ public class EnvironmentResource extends AbstractResource {
     @Path("portal")
     public PortalResource getPortalResource() {
         return resourceContext.getResource(PortalResource.class);
+    }
+
+    // Dynamic authentication provider endpoints
+    @Deprecated
+    @Path("auth/oauth2/{identity}")
+    public OAuth2AuthenticationResource getOAuth2AuthenticationResource() {
+        return resourceContext.getResource(OAuth2AuthenticationResource.class);
+    }
+
+    @Deprecated
+    @Path("users")
+    public UsersResource getUsersResource() {
+        return resourceContext.getResource(UsersResource.class);
+    }
+
+    @Deprecated
+    @Path("search")
+    public SearchResource getSearchResource() {
+        return resourceContext.getResource(SearchResource.class);
     }
 
     @Path("fetchers")
