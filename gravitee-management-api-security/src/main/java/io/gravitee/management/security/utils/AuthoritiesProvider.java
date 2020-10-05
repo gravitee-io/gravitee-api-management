@@ -20,7 +20,9 @@ import io.gravitee.management.service.MembershipService;
 import io.gravitee.repository.management.model.MembershipDefaultReferenceId;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,7 +37,7 @@ import static org.springframework.security.core.authority.AuthorityUtils.commaSe
  */
 public class AuthoritiesProvider {
 
-    private MembershipService membershipService;
+    private final MembershipService membershipService;
 
     public AuthoritiesProvider(MembershipService membershipService) {
         this.membershipService = membershipService;

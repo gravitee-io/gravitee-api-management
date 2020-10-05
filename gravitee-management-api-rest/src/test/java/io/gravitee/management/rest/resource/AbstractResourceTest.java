@@ -20,6 +20,7 @@ import io.gravitee.management.rest.enhancer.ViewEnhancer;
 import io.gravitee.management.security.authentication.AuthenticationProvider;
 import io.gravitee.management.security.authentication.AuthenticationProviderManager;
 import io.gravitee.management.security.cookies.CookieGenerator;
+import io.gravitee.management.security.utils.AuthoritiesProvider;
 import io.gravitee.management.service.*;
 import io.gravitee.management.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import org.junit.runner.RunWith;
@@ -276,6 +277,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public PolicyOperationVisitorManager policyOperationVisitorManager() {
     	    return mock(PolicyOperationVisitorManager.class);
+        }
+
+        @Bean
+        public AuthoritiesProvider authoritiesProvider() {
+            return mock(AuthoritiesProvider.class);
         }
     }
 }

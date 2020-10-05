@@ -85,13 +85,13 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
     private AuthoritiesProvider authoritiesProvider;
 
     public TokenAuthenticationFilter(final String jwtSecret, final CookieGenerator cookieGenerator,
-                                     final UserService userService, final TokenService tokenService, final MembershipService membershipService) {
+                                     final UserService userService, final TokenService tokenService, final AuthoritiesProvider authoritiesProvider) {
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
         jwtVerifier = JWT.require(algorithm).build();
         this.cookieGenerator = cookieGenerator;
         this.userService = userService;
         this.tokenService = tokenService;
-        this.authoritiesProvider = new AuthoritiesProvider(membershipService);
+        this.authoritiesProvider = authoritiesProvider;
     }
 
     @Override

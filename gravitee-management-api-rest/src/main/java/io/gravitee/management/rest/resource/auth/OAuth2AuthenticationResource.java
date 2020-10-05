@@ -100,6 +100,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @Autowired
     private Environment environment;
 
+    @Autowired
+    private AuthoritiesProvider authoritiesProvider;
+
     private Client client;
 
     // Dirty hack: only used to force class loading
@@ -316,7 +319,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     MembershipReferenceType.MANAGEMENT, MembershipReferenceType.PORTAL);
         }
 
-        final Set<GrantedAuthority> authorities = new AuthoritiesProvider(this.membershipService).retrieveAuthorities(user.getId());
+        final Set<GrantedAuthority> authorities = this.authoritiesProvider.retrieveAuthorities(user.getId());
 
         //set user to Authentication Context
         UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
