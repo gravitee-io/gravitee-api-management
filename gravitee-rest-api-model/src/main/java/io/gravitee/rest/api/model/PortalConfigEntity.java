@@ -209,8 +209,6 @@ public class PortalConfigEntity {
     }
 
     public class Portal {
-        @ParameterKey(Key.PORTAL_TITLE)
-        private String title;
         @ParameterKey(Key.PORTAL_ENTRYPOINT)
         private String entrypoint;
         @ParameterKey(Key.PORTAL_APIKEY_HEADER)
@@ -269,14 +267,6 @@ public class PortalConfigEntity {
 
         public void setApis(PortalApis apis) {
             this.apis = apis;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
         }
 
         public Enabled getSupport() {

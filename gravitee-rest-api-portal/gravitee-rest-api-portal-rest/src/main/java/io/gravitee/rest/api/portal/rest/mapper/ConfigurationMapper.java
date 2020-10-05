@@ -65,7 +65,6 @@ public class ConfigurationMapper {
         configuration.setUploadMedia(convert(portal.getUploadMedia()));
         configuration.setRating(convert(portal.getRating()));
         configuration.setSupport(convert(portal.getSupport()));
-        configuration.setTitle(portal.getTitle());
         configuration.setUserCreation(convert(portal.getUserCreation()));
 
         ApplicationTypes types = application.getTypes();
