@@ -33,7 +33,7 @@ import static org.springframework.security.core.authority.AuthorityUtils.commaSe
  */
 public class AuthoritiesProvider {
 
-    private MembershipService membershipService;
+    private final MembershipService membershipService;
 
     public AuthoritiesProvider(MembershipService membershipService) {
         this.membershipService = membershipService;

@@ -104,6 +104,30 @@ public class ApiPageResource extends AbstractResource {
     }
 
     @PUT
+    @Path("/content")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Put the page's content",
+            notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Page content successfully updated"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
+    public String updatePageContent(@PathParam("api") String api,
+                                    @PathParam("page") String page,
+                                    @ApiParam(name = "content", required = true) @Valid @NotNull String content) {
+        pageService.findById(page);
+
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setContent(content);
+        PageEntity update = pageService.update(page, updatePageEntity, true);
+
+        return update.getContent();
+    }
+
+    @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Update a page",
@@ -120,9 +144,9 @@ public class ApiPageResource extends AbstractResource {
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Update"); 
+            throw new PageSystemFolderActionException("Update");
         }
-        
+
         updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity);
     }
@@ -164,7 +188,7 @@ public class ApiPageResource extends AbstractResource {
             @ApiParam(name = "page") UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Update"); 
+            throw new PageSystemFolderActionException("Update");
         }
 
         updatePageEntity.setLastContributor(getAuthenticatedUser());
@@ -185,7 +209,7 @@ public class ApiPageResource extends AbstractResource {
             @PathParam("page") String page) {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Delete"); 
+            throw new PageSystemFolderActionException("Delete");
         }
 
         pageService.delete(page);

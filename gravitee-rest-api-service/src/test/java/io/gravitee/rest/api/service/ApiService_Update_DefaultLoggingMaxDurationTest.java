@@ -129,7 +129,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         proxy.setGroups(singleton(endpointGroup));
         existingApi.setProxy(proxy);
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-        
+
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setName(SystemRole.PRIMARY_OWNER.name());
         poRoleEntity.setScope(RoleScope.API);
@@ -140,8 +140,8 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         po.setReferenceType(io.gravitee.rest.api.model.MembershipReferenceType.API);
         po.setRoles(Collections.singletonList(poRoleEntity));
         when(membershipService.getMembersByReferencesAndRole(any(), any(), any())).thenReturn(singleton(po));
-        
-        
+
+
         mockStatic(System.class);
         when(System.currentTimeMillis()).thenReturn(0L);
 
@@ -357,6 +357,90 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
 
                 return "CLIENT_PROXY".equals(mode.asText())
                         && "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l".equals(condition.asText());
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }));
+    }
+
+    @Test
+    public void shouldHandleAfter_doubleParenthesis() throws TechnicalException {
+        Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setCondition("#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')");
+        existingApi.getProxy().setLogging(logging);
+        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any())).thenReturn(singletonList(1L));
+
+        apiService.update(API_ID, existingApi);
+
+        verify(apiRepository, times(1)).update(argThat(api -> {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                JsonNode json = objectMapper.readTree(api.getDefinition());
+                JsonNode proxy = json.get("proxy");
+                JsonNode logging1 = proxy.get("logging");
+                JsonNode mode = logging1.get("mode");
+                JsonNode condition = logging1.get("condition");
+
+                return "CLIENT_PROXY".equals(mode.asText())
+                        && "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')".equals(condition.asText());
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }));
+    }
+
+    @Test
+    public void shouldHandleBefore_doubleParenthesis() throws TechnicalException {
+        Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setCondition("(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')");
+        existingApi.getProxy().setLogging(logging);
+        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any())).thenReturn(singletonList(1L));
+
+        apiService.update(API_ID, existingApi);
+
+        verify(apiRepository, times(1)).update(argThat(api -> {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                JsonNode json = objectMapper.readTree(api.getDefinition());
+                JsonNode proxy = json.get("proxy");
+                JsonNode logging1 = proxy.get("logging");
+                JsonNode mode = logging1.get("mode");
+                JsonNode condition = logging1.get("condition");
+
+                return "CLIENT_PROXY".equals(mode.asText())
+                        && "(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')".equals(condition.asText());
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }));
+    }
+
+    @Test
+    public void shouldHandleBefore_multipleParenthesis() throws TechnicalException {
+        Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT_PROXY);
+        logging.setCondition("((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')");
+        existingApi.getProxy().setLogging(logging);
+        when(parameterService.findAll(eq(Key.LOGGING_DEFAULT_MAX_DURATION), any())).thenReturn(singletonList(1L));
+
+        apiService.update(API_ID, existingApi);
+
+        verify(apiRepository, times(1)).update(argThat(api -> {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                JsonNode json = objectMapper.readTree(api.getDefinition());
+                JsonNode proxy = json.get("proxy");
+                JsonNode logging1 = proxy.get("logging");
+                JsonNode mode = logging1.get("mode");
+                JsonNode condition = logging1.get("condition");
+
+                return "CLIENT_PROXY".equals(mode.asText())
+                        && "((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')".equals(condition.asText());
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;

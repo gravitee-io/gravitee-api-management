@@ -18,11 +18,9 @@ package io.gravitee.rest.api.security.filter;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.Token;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
-import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -51,7 +49,7 @@ public class TokenAuthenticationFilterTest {
     @Mock
     private TokenService tokenService;
     @Mock
-    private MembershipService membershipService;
+    private AuthoritiesProvider authoritiesProvider;
     @Mock
     private HttpServletRequest request;
     @Mock
@@ -70,7 +68,7 @@ public class TokenAuthenticationFilterTest {
                 cookieGenerator,
                 userService,
                 tokenService,
-                membershipService);
+                authoritiesProvider);
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER);
 
@@ -84,9 +82,7 @@ public class TokenAuthenticationFilterTest {
 
         filter.doFilter(request, response, filterChain);
 
-        verify(membershipService).getRoles(MembershipReferenceType.PLATFORM, "DEFAULT", MembershipMemberType.USER, USER_ID);
-        verify(membershipService).getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, USER_ID);
-        verify(membershipService).getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, USER_ID);
+        verify(authoritiesProvider).retrieveAuthorities(USER_ID);
     }
 
     @Test
@@ -100,7 +96,7 @@ public class TokenAuthenticationFilterTest {
                 cookieGenerator,
                 userService,
                 tokenService,
-                membershipService);
+                authoritiesProvider);
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER);
 
@@ -109,9 +105,7 @@ public class TokenAuthenticationFilterTest {
         filter.doFilter(request, response, filterChain);
 
         verify(response).sendError(HttpStatusCode.UNAUTHORIZED_401);
-        verify(membershipService, never()).getRoles(MembershipReferenceType.PLATFORM, "DEFAULT", MembershipMemberType.USER, USER_ID);
-        verify(membershipService, never()).getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, USER_ID);
-        verify(membershipService, never()).getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, USER_ID);
+        verify(authoritiesProvider, never()).retrieveAuthorities(USER_ID);
     }
 
     @Test
@@ -125,7 +119,7 @@ public class TokenAuthenticationFilterTest {
                 cookieGenerator,
                 userService,
                 tokenService,
-                membershipService);
+                authoritiesProvider);
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER);
 
@@ -138,8 +132,6 @@ public class TokenAuthenticationFilterTest {
         filter.doFilter(request, response, filterChain);
 
         verify(response).sendError(HttpStatusCode.UNAUTHORIZED_401);
-        verify(membershipService, never()).getRoles(MembershipReferenceType.PLATFORM, "DEFAULT", MembershipMemberType.USER, USER_ID);
-        verify(membershipService, never()).getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, USER_ID);
-        verify(membershipService, never()).getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, USER_ID);
+        verify(authoritiesProvider, never()).retrieveAuthorities(USER_ID);
     }
 }

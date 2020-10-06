@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
- * @author Guillaume GILLON 
+ * @author Guillaume GILLON
  */
 @Api(tags = {"Portal Pages"})
 public class PortalPagesResource extends AbstractResource {
@@ -175,10 +175,34 @@ public class PortalPagesResource extends AbstractResource {
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Update"); 
+            throw new PageSystemFolderActionException("Update");
         }
         updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity);
+    }
+
+    @PUT
+    @Path("/{page}/content")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a page content",
+            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Page content successfully updated"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
+    public String updatePageContent(
+            @PathParam("page") String page,
+            @ApiParam(name = "content", required = true) @Valid @NotNull String content) {
+        pageService.findById(page);
+
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setContent(content);
+        PageEntity update = pageService.update(page, updatePageEntity, true);
+
+        return update.getContent();
     }
 
     @PATCH
@@ -254,7 +278,7 @@ public class PortalPagesResource extends AbstractResource {
             @PathParam("page") String page) {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Delete"); 
+            throw new PageSystemFolderActionException("Delete");
         }
         pageService.delete(page);
     }

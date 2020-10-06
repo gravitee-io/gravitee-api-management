@@ -65,6 +65,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @Autowired
     private SocialIdentityProviderService socialIdentityProviderService;
 
+    @Autowired
+    private AuthoritiesProvider authoritiesProvider;
+
     private Client client;
 
     private static final String ACCESS_TOKEN_PROPERTY = "access_token";
@@ -143,7 +146,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             @PathParam(value = "identity") String identity,
             @Valid @NotNull(message = "Input must not be null.") final PayloadInput payloadInput,
             @Context final HttpServletResponse servletResponse) throws IOException {
-        
+
         SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);
 
         if (identityProvider != null) {
@@ -208,7 +211,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(socialProvider, userInfo);
         String userId = user.getId();
 
-        final Set<GrantedAuthority> authorities = new AuthoritiesProvider(this.membershipService).retrieveAuthorities(user.getId());
+        final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
 
         //set user to Authentication Context
         UserDetails userDetails = new UserDetails(userId, "", authorities);

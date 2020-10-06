@@ -75,7 +75,6 @@ public class SwaggerService_CreateAPITest {
         OAIOperationVisitor op = mock(OAIPolicyOperationVisitor.class);
         when(op.visit(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(Optional.of(new Policy()));
         when(policyOperationVisitorManager.getOAIOperationVisitor(anyString())).thenReturn(op);
-        when(policyOperationVisitorManager.getSwaggerOperationVisitor(anyString())).thenReturn(mock(SwaggerPolicyOperationVisitor.class));
     }
 
     // Swagger v1

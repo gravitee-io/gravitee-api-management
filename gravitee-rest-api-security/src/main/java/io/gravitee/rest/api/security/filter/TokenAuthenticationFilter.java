@@ -27,7 +27,6 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
-import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
@@ -73,13 +72,13 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
 
     public TokenAuthenticationFilter(final String jwtSecret, final CookieGenerator cookieGenerator,
                                      final UserService userService, final TokenService tokenService,
-                                     final MembershipService membershipService) {
+                                     final AuthoritiesProvider authoritiesProvider) {
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
         jwtVerifier = JWT.require(algorithm).build();
         this.cookieGenerator = cookieGenerator;
         this.userService = userService;
         this.tokenService = tokenService;
-        this.authoritiesProvider = new AuthoritiesProvider(membershipService);
+        this.authoritiesProvider = authoritiesProvider;
     }
 
     @Override

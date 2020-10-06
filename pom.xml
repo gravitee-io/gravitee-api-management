@@ -58,7 +58,7 @@
         <lucene.version>7.5.0</lucene.version>
         <powermock.version>2.0.0</powermock.version>
         <commons-lang3.version>3.9</commons-lang3.version>
-        <swagger.version>1.6.1</swagger.version>
+        <swagger.version>1.6.2</swagger.version>
         <nimbus-jose-jwt.version>8.15</nimbus-jose-jwt.version>
         <flexmark.version>0.61.16</flexmark.version>
         <owasp-java-html-sanitizer.version>20191001.1</owasp-java-html-sanitizer.version>

@@ -20,25 +20,23 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.URL;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,13 +62,21 @@ public class SwaggerService_ParseTest {
 
     @Test
     public void shouldParseSwaggerV1_json() throws IOException {
-        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON);
-
-        SwaggerDescriptor descriptor = swaggerService.parse(pageEntity.getContent());
+        SwaggerDescriptor descriptor = swaggerService.parse("/io/gravitee/rest/api/management/service/swagger-v1.json");
 
         assertNotNull(descriptor);
-        assertEquals(SwaggerDescriptor.Version.SWAGGER_V1, descriptor.getVersion());
-        validateV2(Json.mapper().readTree(descriptor.toJson()));
+        validateV3(Json.mapper().readTree(descriptor.toJson()), false);
+    }
+
+    @Test
+    public void shouldNotParseSwaggerV1WithoutInfo_json() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v1-no-info.json", MediaType.APPLICATION_JSON);
+        try {
+            swaggerService.parse(pageEntity.getContent());
+            fail("Expected SwaggerDescriptorException");
+        } catch (SwaggerDescriptorException e) {
+            assertEquals(e.getMessage(), "[\"attribute info.title is missing\"]");
+        }
     }
 
     @Test
@@ -80,8 +86,19 @@ public class SwaggerService_ParseTest {
         SwaggerDescriptor descriptor = swaggerService.parse(pageEntity.getContent());
 
         assertNotNull(descriptor);
-        assertEquals(SwaggerDescriptor.Version.SWAGGER_V2, descriptor.getVersion());
-        validateV2(Json.mapper().readTree(descriptor.toJson()));
+        validateV3(Json.mapper().readTree(descriptor.toJson()), false);
+    }
+
+    @Test
+    public void shouldThrowSwaggerDescriptorExceptionWhenParseSwaggerV2WithoutInfo_json() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v2-no-info.json", MediaType.APPLICATION_JSON);
+
+        try {
+            swaggerService.parse(pageEntity.getContent());
+            fail("Expected SwaggerDescriptorException");
+        } catch (SwaggerDescriptorException e) {
+            assertEquals(e.getMessage(), "[\"attribute info is missing\"]");
+        }
     }
 
     @Test
@@ -91,8 +108,19 @@ public class SwaggerService_ParseTest {
         SwaggerDescriptor descriptor = swaggerService.parse(pageEntity.getContent());
 
         assertNotNull(descriptor);
-        assertEquals(SwaggerDescriptor.Version.SWAGGER_V2, descriptor.getVersion());
-        validateV2(Yaml.mapper().readTree(descriptor.toYaml()));
+        validateV3(Yaml.mapper().readTree(descriptor.toYaml()), false);
+    }
+
+    @Test
+    public void shouldThrowSwaggerDescriptorExceptionWhenParseSwaggerV2WithoutInfo_yaml() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/swagger-v2-no-info.yaml", MediaType.TEXT_PLAIN);
+
+        try {
+            swaggerService.parse(pageEntity.getContent());
+            fail("Expected SwaggerDescriptorException");
+        } catch (SwaggerDescriptorException e) {
+            assertEquals(e.getMessage(), "[\"attribute info is missing\"]");
+        }
     }
 
     @Test
@@ -102,8 +130,19 @@ public class SwaggerService_ParseTest {
         SwaggerDescriptor descriptor = swaggerService.parse(pageEntity.getContent());
 
         assertNotNull(descriptor);
-        assertEquals(SwaggerDescriptor.Version.OAI_V3, descriptor.getVersion());
         validateV3(Json.mapper().readTree(descriptor.toJson()));
+    }
+
+    @Test
+    public void shouldThrowSwaggerDescriptorExceptionWhenParseSwaggerV3WithoutInfo_json() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi-no-info.json", MediaType.APPLICATION_JSON);
+
+        try {
+            swaggerService.parse(pageEntity.getContent());
+            fail("Expected SwaggerDescriptorException");
+        } catch (SwaggerDescriptorException e) {
+            assertEquals(e.getMessage(), "[\"attribute info is missing\"]");
+        }
     }
 
     @Test
@@ -113,7 +152,6 @@ public class SwaggerService_ParseTest {
         SwaggerDescriptor descriptor = swaggerService.parse(pageEntity.getContent());
 
         assertNotNull(descriptor);
-        assertEquals(SwaggerDescriptor.Version.OAI_V3, descriptor.getVersion());
         validateV3(Yaml.mapper().readTree(descriptor.toYaml()));
     }
 
@@ -125,18 +163,29 @@ public class SwaggerService_ParseTest {
         swaggerService.parse(pageEntity.getContent());
     }
 
-    private void validateV2(JsonNode node) {
-        assertEquals("1.2.3", node.get("info").get("version").asText());
-        assertEquals("Gravitee.io Swagger API", node.get("info").get("title").asText());
-        assertEquals("https", node.get("schemes").get(0).asText());
-        assertEquals("demo.gravitee.io", node.get("host").asText());
-        assertEquals("/gateway/echo", node.get("basePath").asText());
+    @Test
+    public void shouldThrowSwaggerDescriptorExceptionWhenParseSwaggerV3WithoutInfo_yaml() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi-no-info.yaml", MediaType.TEXT_PLAIN);
+
+        try {
+            swaggerService.parse(pageEntity.getContent());
+            fail("Expected SwaggerDescriptorException");
+        } catch (SwaggerDescriptorException e) {
+            assertEquals(e.getMessage(), "[\"attribute info is missing\"]");
+        }
     }
 
     private void validateV3(JsonNode node) {
+        validateV3(node, true);
+    }
+
+    private void validateV3(JsonNode node, Boolean withOauth) {
         assertEquals("1.2.3", node.get("info").get("version").asText());
         assertEquals("Gravitee.io Swagger API", node.get("info").get("title").asText());
         assertEquals("https://demo.gravitee.io/gateway/echo", node.get("servers").get(0).get("url").asText());
-        assertEquals("oauth2", node.get("components").get("securitySchemes").get("oauth2Scheme").get("type").asText());
+        assertEquals(2, node.get("paths").size());
+        if (withOauth) {
+            assertEquals("oauth2", node.get("components").get("securitySchemes").get("oauth2Scheme").get("type").asText());
+        }
     }
 }

@@ -19,6 +19,7 @@ import io.gravitee.rest.api.management.rest.JerseySpringTest;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
@@ -145,6 +146,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected EnvironmentService environmentService;
+
+    @Autowired
+    protected AuthoritiesProvider authoritiesProvider;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -303,6 +307,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public EnvironmentService environmentService() {
             return mock(EnvironmentService.class);
+        }
+
+        @Bean
+        public AuthoritiesProvider authoritiesProvider() {
+            return mock(AuthoritiesProvider.class);
         }
     }
 }
