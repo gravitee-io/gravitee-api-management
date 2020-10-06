@@ -1,4 +1,4 @@
-<!--
+  <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
 
@@ -17,12 +17,12 @@
 -->
 <md-dialog-content>
   <md-tabs md-dynamic-height md-border-bottom >
-    <md-tab label="Import file" ng-click="$ctrl.importFileMode= true; $ctrl.importURLMode= false;">
+    <md-tab label="Import file" ng-click="$ctrl.toggleTab()">
       <div class="import-file-drop-box">
         <input type="file" filecontent="$ctrl.importAPIFile.content" filename="$ctrl.importAPIFile.name" >
       </div>
     </md-tab>
-    <md-tab label="Import from link" ng-click="$ctrl.importFileMode= false; $ctrl.importURLMode= true;">
+    <md-tab label="Import from link" ng-click="$ctrl.toggleTab()">
       <div class="input-group import-file-from-url">
         <input class="form-control" ng-model="$ctrl.apiDescriptorURL" required type="url" placeholder="{{$ctrl.placeholder()}}"/>
       </div>
@@ -31,6 +31,10 @@
         </md-radio-group>
     </md-tab>
   </md-tabs>
+
+  <div class="gv-error-container">
+    <gv-error error="$ctrl.error"></gv-error>
+  </div>
 
   <div style="margin:24px;" ng-class="{'gv-swagger-conf-update': $ctrl.isForUpdate() }" layout="column" ng-if="$ctrl.isSwaggerImport()">
     <h4>Swagger import configurations:</h4>

@@ -115,11 +115,11 @@ class DocumentationService {
     return this.$http.delete(this.url(apiId, pageId));
   }
 
-  create = (newPage: any, apiId?: string): IHttpPromise<any> => {
-    return this.$http.post(this.url(apiId), newPage);
+  create = (newPage: any, apiId?: string, config?: any): IHttpPromise<any> => {
+    return this.$http.post(this.url(apiId), newPage, config);
   }
 
-  update = (page: any, apiId?: string): IHttpPromise<any> => {
+  update = (page: any, apiId?: string, config?: any): IHttpPromise<any> => {
     return this.$http.put(this.url(apiId, page.id),
       {
         name: page.name,
@@ -132,7 +132,7 @@ class DocumentationService {
         configuration: page.configuration,
         excluded_groups: page.excluded_groups,
         parentId: page.parentId
-      }
+      }, config
     );
   }
 
