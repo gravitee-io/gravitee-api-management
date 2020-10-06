@@ -34,16 +34,16 @@
   },
   "apiGeneral": {
     "description": "Description",
-    "giveRating": "Share your opinion",
+    "giveRating": "Share your review",
     "rate": "Note",
     "rateComment": "Explain to us why",
     "rateTitle": "Would you recommend this API ?",
     "rateTitlePlaceholder": "In a word",
-    "ratingAnswerCreated": "Your response has been sent",
+    "ratingAnswerCreated": "Your answer has been sent",
     "ratingAnswerDeleted": "Your answer has been deleted",
-    "ratingCreated": "Your opinion has been sent",
+    "ratingCreated": "Your review has been sent",
     "ratingDeleted": "Your review has been deleted",
-    "ratingUpdated": "Thank you for giving your advise",
+    "ratingUpdated": "Thank you for giving your review",
     "ratingsSortOptions": {
       "answers": "Most commented",
       "best": "Best rated",
@@ -164,7 +164,7 @@
       "label": "Describe the goal of this application",
       "title": "Description"
     },
-    "general": "Général",
+    "general": "General",
     "information": {
       "createdDate": "Created",
       "lastUpdate": "Updated",
@@ -956,7 +956,7 @@
       "init": "Roll on an application to view its subscriptions",
       "navigate": "Go to the subscription",
       "plan": "Plan",
-      "start_date": "Date de début",
+      "start_date": "Start date",
       "title": "Subscriptions"
     },
     "title": "My subscriptions"
