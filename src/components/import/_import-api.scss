@@ -4,10 +4,22 @@
   line-height: 14px;
 }
 
+.policies {
+  margin-left: 20px;
+}
+
 .gv-swagger-conf-update {
-  height:330px;
+  max-height:380px;
+
+  .policies {
+    overflow-y: auto;
+  }
 }
 
 .gv-import-api-button {
   margin: 0 auto;
+}
+
+.layout-column > .flex {
+  min-height: initial;
 }
