@@ -16,12 +16,18 @@
 package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.net.InternetDomainName;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.VirtualHostService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,10 +64,17 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private EnvironmentService environmentService;
+
     @Override
-    public void validate(Collection<VirtualHost> virtualHosts, String apiId) {
+    public Collection<VirtualHost> sanitizeAndValidate(Collection<VirtualHost> virtualHosts, String apiId) {
+
         // Sanitize virtual hosts
-        virtualHosts = virtualHosts.stream().map(this::sanitize).collect(Collectors.toList());
+        Collection<VirtualHost> sanitizedVirtualHosts = virtualHosts.stream().map(this::sanitize).collect(Collectors.toList());
+
+        // validate domain restrictions
+        validateDomainRestrictions(sanitizedVirtualHosts);
 
         // Get all the API, except the one to update
         Set<ApiEntity> apis = apiRepository.search(null)
@@ -93,7 +106,7 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
 
         // Check only virtual hosts with a host and compare to registered virtual hosts
         if (! registeredVirtualHosts.isEmpty()) {
-            virtualHosts
+            sanitizedVirtualHosts
                     .stream()
                     .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
                     .forEach(virtualHost -> compare(virtualHost.getPath(), registeredVirtualHosts.get(virtualHost.getHost())));
@@ -101,11 +114,60 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
 
         // Then check remaining virtual hosts without a host and compare to registered context paths
         if (! registeredContextPaths.isEmpty()) {
-            virtualHosts
+            sanitizedVirtualHosts
                     .stream()
                     .filter(virtualHost -> virtualHost.getHost() == null)
                     .forEach(virtualHost -> compare(virtualHost.getPath(), registeredContextPaths));
         }
+        return sanitizedVirtualHosts;
+    }
+
+    private void validateDomainRestrictions(Collection<VirtualHost> virtualHosts) {
+        final EnvironmentEntity currentEnv = environmentService.findById(GraviteeContext.getCurrentEnvironment());
+        final List<String> domainRestrictions = currentEnv.getDomainRestrictions();
+        if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
+            for(VirtualHost vHost: virtualHosts) {
+                String host = vHost.getHost();
+                if (!StringUtils.isEmpty(host)) {
+                    String hostWithoutPort = host.split(":")[0];
+                    if (!isValidDomainOrSubDomain(hostWithoutPort, domainRestrictions)) {
+                        throw new InvalidVirtualHostException(hostWithoutPort, domainRestrictions);
+                    }
+                } else {
+                    throw new InvalidVirtualHostException(null, domainRestrictions);
+                }
+            }
+        }
+    }
+
+    private boolean isValidDomainOrSubDomain(String domain, List<String> domainRestrictions) {
+        boolean isSubDomain = false;
+
+        if (domainRestrictions.isEmpty()) {
+            return true;
+        }
+
+        for (String domainRestriction : domainRestrictions) {
+
+            InternetDomainName domainIDN = InternetDomainName.from(domain);
+            InternetDomainName parentIDN = InternetDomainName.from(domainRestriction);
+
+            if(domainIDN.equals(parentIDN)) {
+                return true;
+            }
+
+            while (!isSubDomain && domainIDN.hasParent()) {
+
+                isSubDomain = parentIDN.equals(domainIDN);
+                domainIDN = domainIDN.parent();
+            }
+
+            if (isSubDomain) {
+                break;
+            }
+        }
+
+        return isSubDomain;
     }
 
     @Override

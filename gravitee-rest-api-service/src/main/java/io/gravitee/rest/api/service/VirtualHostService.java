@@ -26,17 +26,18 @@ import java.util.Collection;
 public interface VirtualHostService {
 
     /**
-     * This method verifies that the given virtual hosts are valid among all the existing
+     * This method sanitizes the virtual host definitions and verifies that the given virtual hosts are valid among all the existing
      * virtual hosts for all the APIs.
      *
      * @param virtualHosts
+     * @return sanitized virtualHosts
      */
-    default void validate(Collection<VirtualHost> virtualHosts) {
-        validate(virtualHosts, null);
+    default Collection<VirtualHost> sanitizeAndValidate(Collection<VirtualHost> virtualHosts) {
+        return sanitizeAndValidate(virtualHosts, null);
     }
 
     /**
-     * This method verifies that the given virtual hosts are valid among all the existing
+     * This method sanitized the virtual host definitions verifies that the given virtual hosts are valid among all the existing
      * virtual hosts for all the APIs.
      *
      * Unlike the first method, this one must be used when validating the virtual hosts for an existing API (in the case
@@ -44,8 +45,9 @@ public interface VirtualHostService {
      *
      * @param virtualHosts
      * @param api
+     * @return sanitized virtualHosts
      */
-    void validate(Collection<VirtualHost> virtualHosts, String api);
+    Collection<VirtualHost> sanitizeAndValidate(Collection<VirtualHost> virtualHosts, String api);
 
     /**
      * this method sanitizes the path of the virtual host.

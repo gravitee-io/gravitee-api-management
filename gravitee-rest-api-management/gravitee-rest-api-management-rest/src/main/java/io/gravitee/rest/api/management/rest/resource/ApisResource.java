@@ -216,7 +216,7 @@ public class ApisResource extends AbstractResource {
     })
     public Response verify(@Valid VerifyApiParam verifyApiParam) {
         // TODO : create verify service to query repository with criteria
-        virtualHostService.validate(Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())));
         return Response.ok().entity("API context [" + verifyApiParam.getContextPath() + "] is available").build();
     }
 

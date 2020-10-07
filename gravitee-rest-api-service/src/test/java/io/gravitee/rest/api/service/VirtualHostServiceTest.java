@@ -18,10 +18,13 @@ package io.gravitee.rest.api.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
-import io.gravitee.rest.api.service.impl.VirtualHostServiceImpl;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
+import io.gravitee.rest.api.service.impl.VirtualHostServiceImpl;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -29,8 +32,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,11 +55,19 @@ public class VirtualHostServiceTest {
     @Mock
     private ApiRepository apiRepository;
 
+    @Mock
+    private EnvironmentService environmentService;
+
+    @Before
+    public void init() {
+        when(environmentService.findById(any())).thenReturn(mock(EnvironmentEntity.class));
+    }
+
     @Test
     public void shouldSucceed_create_noApi() {
         when(apiRepository.search(null)).thenReturn(Collections.emptyList());
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("/context")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("/context")));
     }
 
     @Test
@@ -62,7 +75,7 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/existing");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("/context")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("/context")));
     }
 
     @Test(expected = ApiContextPathAlreadyExistsException.class)
@@ -70,7 +83,7 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/context");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("/context")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("/context")));
     }
 
     @Test
@@ -78,7 +91,7 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/context2");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("/context")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("/context")));
     }
 
     @Test
@@ -86,7 +99,7 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/context");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("/context2")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("/context2")));
     }
 
     @Test(expected = ApiContextPathAlreadyExistsException.class)
@@ -94,7 +107,7 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/context");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("/context/")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("/context/")));
     }
 
     @Test(expected = ApiContextPathAlreadyExistsException.class)
@@ -102,7 +115,7 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/context/");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("/context")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("/context")));
     }
 
     @Test(expected = ApiContextPathAlreadyExistsException.class)
@@ -110,7 +123,7 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/context/subpath");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("/context")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("/context")));
     }
 
     @Test
@@ -118,7 +131,7 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/context", "api.gravitee.io");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("/context")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("/context")));
     }
 
     @Test(expected = ApiContextPathAlreadyExistsException.class)
@@ -126,7 +139,7 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/context", "api.gravitee.io");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("api.gravitee.io", "/context")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("api.gravitee.io", "/context")));
     }
 
     @Test(expected = ApiContextPathAlreadyExistsException.class)
@@ -134,7 +147,68 @@ public class VirtualHostServiceTest {
         Api api1 = createMock("mock1", "/context", "api.gravitee.io");
         when(apiRepository.search(null)).thenReturn(Collections.singletonList(api1));
 
-        virtualHostService.validate(Collections.singletonList(new VirtualHost("api.gravitee.io", "/context/subpath")));
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(new VirtualHost("api.gravitee.io", "/context/subpath")));
+    }
+
+    @Test
+    public void validate_hostEqualsToDomainConstraint() {
+        VirtualHost vhost = getValidVirtualHost();
+
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setDomainRestrictions(Collections.singletonList(vhost.getHost()));
+        when(environmentService.findById(any())).thenReturn(environmentEntity);
+
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(vhost));
+    }
+
+    @Test
+    public void validate_hostSubDomainOfDomainConstraint() {
+        VirtualHost vhost = getValidVirtualHost();
+        String domainConstraint = vhost.getHost();
+        vhost.setHost("level2.level1." + domainConstraint);
+
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setDomainRestrictions(Collections.singletonList(domainConstraint));
+        when(environmentService.findById(any())).thenReturn(environmentEntity);
+
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(vhost));
+    }
+
+    @Test
+    public void validate_hostSubDomainOfOneOfDomainConstraints() {
+        VirtualHost vhost = getValidVirtualHost();
+        String domainConstraint = vhost.getHost();
+        vhost.setHost("level2.level1." + domainConstraint);
+
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setDomainRestrictions(Arrays.asList("test.gravitee.io", "other.gravitee.io", domainConstraint));
+        when(environmentService.findById(any())).thenReturn(environmentEntity);
+
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(vhost));
+    }
+
+    @Test(expected = InvalidVirtualHostException.class)
+    public void validate_notASubDomain() {
+        VirtualHost vhost = getValidVirtualHost();
+
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setDomainRestrictions(Arrays.asList("test.gravitee.io", "other.gravitee.io"));
+        when(environmentService.findById(any())).thenReturn(environmentEntity);
+
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(vhost));
+    }
+
+    @Test(expected = InvalidVirtualHostException.class)
+    public void validate_nullIsNotASubDomain() {
+        VirtualHost vhost = new VirtualHost();
+        vhost.setHost(null);
+        vhost.setPath("/validVhostPath");
+
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setDomainRestrictions(Arrays.asList("test.gravitee.io", "other.gravitee.io"));
+        when(environmentService.findById(any())).thenReturn(environmentEntity);
+
+        virtualHostService.sanitizeAndValidate(Collections.singletonList(vhost));
     }
 
     private Api createMock(String api, String path) {
@@ -151,5 +225,12 @@ public class VirtualHostServiceTest {
         }
 
         return api1;
+    }
+
+    private VirtualHost getValidVirtualHost() {
+        VirtualHost vhost = new VirtualHost();
+        vhost.setHost("valid.host.gravitee.io");
+        vhost.setPath("/validVhostPath");
+        return vhost;
     }
 }
