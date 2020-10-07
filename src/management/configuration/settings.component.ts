@@ -27,7 +27,8 @@ const SettingsComponent: ng.IComponentOptions = {
     SidenavService: SidenavService,
     $state: StateService,
     UserService: UserService,
-    Constants
+    Constants,
+    $transitions,
   ) {
     'ngInject';
     this.$state = $state;
@@ -144,17 +145,28 @@ const SettingsComponent: ng.IComponentOptions = {
         goTo: 'management.settings.alerts.list'
       }};
 
+    let that = this;
+
+    function getDefaultSettingsMenu(): string {
+      for (let entry of _.keys(that.settingsMenu)) {
+        if (that.settingsMenu[entry].perm) {
+          return that.settingsMenu[entry].goTo;
+        }
+      }
+    }
+
+    $transitions.onBefore({}, function(trans) {
+      if(trans.to().name === 'management.settings') {
+        SidenavService.setCurrentResource('SETTINGS');
+        return trans.router.stateService.target(getDefaultSettingsMenu());
+      }
+    });
+
     this.$onInit = () => {
       if ($state.current.name === 'management.settings') {
         $rootScope.$broadcast('reduceSideNav');
         SidenavService.setCurrentResource('SETTINGS');
-
-        for ( let entry of _.keys(this.settingsMenu)) {
-          if (this.settingsMenu[entry].perm) {
-            $state.go(this.settingsMenu[entry].goTo);
-            break;
-          }
-        }
+        $state.go(getDefaultSettingsMenu());
       }
     };
   }
