@@ -21,11 +21,16 @@ import com.google.common.io.Resources;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
+import io.gravitee.rest.api.service.impl.swagger.SwaggerProperties;
+import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,9 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -82,6 +85,125 @@ public class SwaggerService_TransformTest {
     }
 
     @Test
+    public void shouldTransformAPIWithServerUrl() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.json", MediaType.APPLICATION_JSON);
+        Map<String, String> pageConfigurationEntity = new HashMap<>();
+        pageConfigurationEntity.put(SwaggerProperties.ENTRYPOINTS_AS_SERVERS, "true");
+        pageEntity.setConfiguration(pageConfigurationEntity);
+
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
+
+        final ApiEntity apiEntity = getApiEntity();
+
+        swaggerService.transform(descriptor,
+                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+
+        assertNotNull(descriptor.toJson());
+        final JsonNode node = Json.mapper().readTree(descriptor.toJson());
+        assertEquals("https://apis.gravitee.io", node.get("servers").get(0).get("url").asText());
+    }
+
+    @Test
+    public void shouldTransformAPIWithServerUrlAndContextPath() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.json", MediaType.APPLICATION_JSON);
+        Map<String, String> pageConfigurationEntity = new HashMap<>();
+        pageConfigurationEntity.put(SwaggerProperties.ENTRYPOINTS_AS_SERVERS, "true");
+        pageConfigurationEntity.put(SwaggerProperties.ENTRYPOINT_AS_BASEPATH, "true");
+        pageEntity.setConfiguration(pageConfigurationEntity);
+
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
+
+        final ApiEntity apiEntity = getApiEntity();
+
+        swaggerService.transform(descriptor,
+                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+
+        assertNotNull(descriptor.toJson());
+        final JsonNode node = Json.mapper().readTree(descriptor.toJson());
+        assertEquals("https://apis.gravitee.io/test", node.get("servers").get(0).get("url").asText());
+    }
+
+    @Test
+    public void shouldTransformAPIWithOriginalServer() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.json", MediaType.APPLICATION_JSON);
+        Map<String, String> pageConfigurationEntity = new HashMap<>();
+        pageConfigurationEntity.put(SwaggerProperties.ENTRYPOINTS_AS_SERVERS, "false");
+        pageConfigurationEntity.put(SwaggerProperties.ENTRYPOINT_AS_BASEPATH, "false");
+        pageEntity.setConfiguration(pageConfigurationEntity);
+
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
+
+        final ApiEntity apiEntity = getApiEntity();
+
+        swaggerService.transform(descriptor,
+                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+
+        assertNotNull(descriptor.toJson());
+        final JsonNode node = Json.mapper().readTree(descriptor.toJson());
+        assertEquals("https://demo.gravitee.io/gateway/echo", node.get("servers").get(0).get("url").asText());
+    }
+
+    @Test
+    public void shouldTransformAPIWithOriginalServerAndContextPath() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.json", MediaType.APPLICATION_JSON);
+        Map<String, String> pageConfigurationEntity = new HashMap<>();
+        pageConfigurationEntity.put(SwaggerProperties.ENTRYPOINTS_AS_SERVERS, "false");
+        pageConfigurationEntity.put(SwaggerProperties.ENTRYPOINT_AS_BASEPATH, "true");
+        pageEntity.setConfiguration(pageConfigurationEntity);
+
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
+
+        final ApiEntity apiEntity = getApiEntity();
+
+        swaggerService.transform(descriptor,
+                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+
+        assertNotNull(descriptor.toJson());
+        final JsonNode node = Json.mapper().readTree(descriptor.toJson());
+        assertEquals("https://demo.gravitee.io/test", node.get("servers").get(0).get("url").asText());
+    }
+
+    @Test
+    public void shouldTransformAPIWithCustomServerUrl() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.json", MediaType.APPLICATION_JSON);
+        Map<String, String> pageConfigurationEntity = new HashMap<>();
+        pageConfigurationEntity.put(SwaggerProperties.ENTRYPOINT_AS_BASEPATH, "false");
+        pageConfigurationEntity.put(SwaggerProperties.TRY_IT, "https://custom.gravitee.io/tryit?q=test");
+        pageEntity.setConfiguration(pageConfigurationEntity);
+
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
+
+        final ApiEntity apiEntity = getApiEntity();
+
+        swaggerService.transform(descriptor,
+                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+
+        assertNotNull(descriptor.toJson());
+        final JsonNode node = Json.mapper().readTree(descriptor.toJson());
+        assertEquals("https://custom.gravitee.io/tryit?q=test", node.get("servers").get(0).get("url").asText());
+    }
+
+    @Test
+    public void shouldTransformAPIWithCustomServerUrlAndContextPath() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.json", MediaType.APPLICATION_JSON);
+        Map<String, String> pageConfigurationEntity = new HashMap<>();
+        pageConfigurationEntity.put(SwaggerProperties.ENTRYPOINT_AS_BASEPATH, "true");
+        pageConfigurationEntity.put(SwaggerProperties.TRY_IT, "https://custom.gravitee.io/tryit?q=test");
+        pageEntity.setConfiguration(pageConfigurationEntity);
+
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
+
+        final ApiEntity apiEntity = getApiEntity();
+
+        swaggerService.transform(descriptor,
+                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+
+        assertNotNull(descriptor.toJson());
+        final JsonNode node = Json.mapper().readTree(descriptor.toJson());
+        assertEquals("https://custom.gravitee.io/test?q=test", node.get("servers").get(0).get("url").asText());
+    }
+
+    @Test
     public void shouldTransformAPIFromSwaggerV3_yaml() throws IOException {
         PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi.yaml", MediaType.TEXT_PLAIN);
 
@@ -107,5 +229,14 @@ public class SwaggerService_TransformTest {
         assertEquals("Gravitee.io Swagger API", node.get("info").get("title").asText());
         assertEquals("https://my.domain.com/v1", node.get("servers").get(0).get("url").asText());
         assertEquals("oauth2", node.get("components").get("securitySchemes").get("oauth2Scheme").get("type").asText());
+    }
+
+    private ApiEntity getApiEntity() {
+        final ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setContextPath("/test");
+        final ArrayList<ApiEntrypointEntity> entrypoints = new ArrayList<>();
+        entrypoints.add(new ApiEntrypointEntity("https://apis.gravitee.io/test"));
+        apiEntity.setEntrypoints(entrypoints);
+        return apiEntity;
     }
 }

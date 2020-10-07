@@ -266,8 +266,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
             transformers.add(new PageConfigurationOAITransformer(pageEntity));
 
             if (apiId != null) {
-                List<ApiEntrypointEntity> entrypoints = apiService.findById(apiId).getEntrypoints();
-                transformers.add(new EntrypointsOAITransformer(pageEntity, entrypoints));
+                ApiEntity api = apiService.findById(apiId);
+                transformers.add(new EntrypointsOAITransformer(pageEntity, api));
             }
 
             swaggerService.transform((OAIDescriptor) descriptor, transformers);
