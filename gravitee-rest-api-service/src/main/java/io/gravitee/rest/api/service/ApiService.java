@@ -115,6 +115,8 @@ public interface ApiService {
 
     Collection<ApiEntity> search(ApiQuery query);
 
+    Collection<String> searchIds(ApiQuery query);
+
     Collection<ApiEntity> search(String query, Map<String, Object> filters) throws TechnicalException;
 
     List<ApiHeaderEntity> getPortalHeaders(String apiId);

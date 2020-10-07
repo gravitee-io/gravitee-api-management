@@ -1865,6 +1865,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
+    public Collection<String> searchIds(ApiQuery query) {
+        try {
+            LOGGER.debug("Search API ids by {}", query);
+            return apiRepository.search(queryToCriteria(query).build()).stream().map(Api::getId).collect(toList());
+        } catch (Exception ex) {
+            final String errorMessage = "An error occurs while trying to search for API ids: " + query;
+            LOGGER.error(errorMessage, ex);
+            throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    @Override
     public Collection<ApiEntity> search(String query, Map<String, Object> filters) {
         Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class)
             .setQuery(query)
