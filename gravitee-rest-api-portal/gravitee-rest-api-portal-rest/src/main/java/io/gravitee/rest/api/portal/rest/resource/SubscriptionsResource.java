@@ -25,15 +25,14 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
+import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 
 import javax.inject.Inject;
@@ -69,7 +68,11 @@ public class SubscriptionsResource extends AbstractResource {
     @Inject
     private UserService userService;
     @Inject
+    private ApiKeyService apiKeyService;
+    @Inject
     private ApiMapper apiMapper;
+    @Inject
+    private KeyMapper keyMapper;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -83,8 +86,17 @@ public class SubscriptionsResource extends AbstractResource {
 
             SubscriptionEntity createdSubscription = subscriptionService.create(newSubscriptionEntity);
 
+            // For consumer convenience, fetch the keys just after the subscription has been created.
+            List<Key> keys = apiKeyService.findBySubscription(createdSubscription.getId()).stream()
+                    .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                    .map(keyMapper::convert)
+                    .collect(Collectors.toList());
+
+            final Subscription subscription = subscriptionMapper.convert(createdSubscription);
+            subscription.setKeys(keys);
+
             return Response
-                    .ok(subscriptionMapper.convert(createdSubscription))
+                    .ok(subscription)
                     .build();
         }
         throw new ForbiddenAccessException();
