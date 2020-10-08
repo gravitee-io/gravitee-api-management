@@ -106,6 +106,9 @@ public class WSDLToOpenAPIConverterTest {
             } else {
                 state = State.NO_ENVELOPE;
             }
+
+            assertNotNull(operation.getResponses().get("200"));
+            assertNotNull(operation.getResponses().get("200").getDescription());
         }
         return state;
     }
