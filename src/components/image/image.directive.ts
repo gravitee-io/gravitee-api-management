@@ -38,6 +38,7 @@ class ImageDirective {
         changeLabel: '@',
         deleteLabel: '@',
         canDelete: '=',
+        checkeredBackground: '<'
       },
       template: require('./image.html'),
       controller: ImageController,
