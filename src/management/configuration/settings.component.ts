@@ -156,7 +156,7 @@ const SettingsComponent: ng.IComponentOptions = {
     }
 
     $transitions.onBefore({}, function(trans) {
-      if(trans.to().name === 'management.settings') {
+      if (trans.to().name === 'management.settings') {
         SidenavService.setCurrentResource('SETTINGS');
         return trans.router.stateService.target(getDefaultSettingsMenu());
       }

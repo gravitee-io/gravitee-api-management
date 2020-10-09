@@ -375,7 +375,7 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.toggleEntrypointAsServer = () => {
-      if(this.page.configuration.entrypointsAsServers === undefined) {
+      if (this.page.configuration.entrypointsAsServers === undefined) {
         // Enable adding context-path automatically only the first time user decides to use entrypoint url.
         this.page.configuration.entrypointAsBasePath = 'true';
       }
