@@ -72,7 +72,6 @@ public class ApiEntity implements Indexable {
 
     @ApiModelProperty(
             value = "API's groups. Used to add team in your API.",
-            dataType = "java.util.List",
             example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
@@ -92,6 +91,8 @@ public class ApiEntity implements Indexable {
     @DeploymentRequired
     @JsonProperty(value = "paths", required = true)
     @ApiModelProperty(
+            // specify a type here because jackson der/ser for Path handle only array of rules
+            dataType = "io.gravitee.management.model.api.PathsSwaggerDef",
             value = "a map where you can associate a path to a configuration (the policies configuration)")
     private Map<String, Path> paths = new HashMap<>();
 
@@ -145,7 +146,6 @@ public class ApiEntity implements Indexable {
     @DeploymentRequired
     @ApiModelProperty(
             value = "the list of sharding tags associated with this API.",
-            dataType = "java.util.List",
             example = "public, private")
     private Set<String> tags;
 
@@ -167,13 +167,11 @@ public class ApiEntity implements Indexable {
 
     @ApiModelProperty(
             value = "the list of views associated with this API",
-            dataType = "java.util.List",
             example = "Product, Customer, Misc")
     private Set<String> views;
 
     @ApiModelProperty(
             value = "the free list of labels associated with this API",
-            dataType = "java.util.List",
             example = "json, read_only, awesome")
     private List<String> labels;
 
@@ -181,7 +179,6 @@ public class ApiEntity implements Indexable {
     @JsonProperty(value = "path_mappings")
     @ApiModelProperty(
             value = "A list of paths used to aggregate data in analytics",
-            dataType = "java.util.List",
             example = "/products/:productId, /products/:productId/media")
     private Set<String> pathMappings = new HashSet<>();
 
