@@ -15,17 +15,22 @@
  */
 
 class EnvironmentService {
+  private environmentsURL: string;
   private environmentURL: string;
 
   constructor(private $http, Constants, private $q) {
     'ngInject';
-    this.environmentURL = `${Constants.orgBaseURL}/environments`;
+    this.environmentsURL = `${Constants.orgBaseURL}/environments`;
+    this.environmentURL = Constants.envBaseURL;
   }
 
   list() {
-    return this.$http.get(this.environmentURL);
+    return this.$http.get(this.environmentsURL);
   }
 
+  getCurrent(): ng.IPromise<any> {
+    return this.$http.get(this.environmentURL);
+  }
 }
 
 export default EnvironmentService;

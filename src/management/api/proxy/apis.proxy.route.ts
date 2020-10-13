@@ -16,6 +16,7 @@
 import TenantService from '../../../services/tenant.service';
 import ApiService from '../../../services/api.service';
 import ServiceDiscoveryService from '../../../services/serviceDiscovery.service';
+import EnvironmentService from '../../../services/environment.service';
 
 export default apisProxyRouterConfig;
 
@@ -23,7 +24,10 @@ function apisProxyRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.proxy', {
-      template: require('./apis.proxy.route.html')
+      template: require('./apis.proxy.route.html'),
+      resolve: {
+        resolvedCurrentEnvironment: (EnvironmentService: EnvironmentService) => EnvironmentService.getCurrent()
+      }
     })
     .state('management.apis.detail.proxy.entrypoints', {
       url: '/proxy',

@@ -20,7 +20,7 @@
     <div class="gv-forms-header">
       <h1>Entrypoints</h1>
       <a ng-click="apiProxyCtrl.switchVirtualHostMode()" ng-if="!apiProxyCtrl.virtualHostModeEnabled" permission permission-only="'api-definition-u'">Switch to virtual-hosts mode</a>
-      <a ng-click="apiProxyCtrl.switchVirtualHostMode()" ng-if="apiProxyCtrl.virtualHostModeEnabled" permission permission-only="'api-definition-u'">Switch to context-path mode</a>
+      <a ng-click="apiProxyCtrl.switchVirtualHostMode()" ng-if="apiProxyCtrl.virtualHostModeEnabled && apiProxyCtrl.domainRestrictions.length === 0" permission permission-only="'api-definition-u'">Switch to context-path mode</a>
     </div>
 
     <div class="gv-form">
@@ -66,7 +66,27 @@
               </div>
 
               <md-input-container class="md-block" flex-gt-sm>
-                <input aria-label="Listening Host" name="vhost{{$index}}-host" ng-model="vHost.host" placeholder="Listening host" type="text">
+
+                <md-autocomplete
+                  aria-label="Listening host"
+                  class="gravitee-listening-host"
+                  md-autoselect="true"
+                  md-clear-button="false"
+                  md-input-id="vhost{{$index}}-host"
+                  md-input-name="vhost{{$index}}-host"
+                  md-items="computedHost in apiProxyCtrl.getHostOptions(subDomain)"
+                  md-min-length="0"
+                  md-search-text="subDomain"
+                  md-selected-item="vHost.host"
+                  md-select-on-match="true"
+                  ng-blur="apiProxyCtrl.onBlur(vHost, 'vhost'+$index+'-host')"
+                  ng-click="apiProxyCtrl.onFocus('vhost'+$index+'-host')"
+                  ng-pattern="apiProxyCtrl.hostPattern"
+                  ng-required="apiProxyCtrl.domainRestrictions.length > 0"
+                  placeholder="Listening host"
+                >
+                  <span>{{computedHost}}</span>
+                </md-autocomplete>
                 <div class="hint" ng-if="vHost.host === undefined || vHost.host === '' || apiProxyCtrl.formApi['vhost'+$index+'-host'].$dirty">
                   Host which must be set into the HTTP request to access this entrypoint.
                 </div>

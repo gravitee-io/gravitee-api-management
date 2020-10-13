@@ -37,6 +37,9 @@ class ApiProxyController {
   private discovery: any;
   private virtualHostModeEnabled: boolean;
   private allowOriginPattern = '^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$';
+  private domainRestrictions: string[];
+  private domainRegexList: RegExp[] = [];
+  private hostPattern: string;
 
   constructor(
     private ApiService: ApiService,
@@ -50,6 +53,7 @@ class ApiProxyController {
     private GroupService: GroupService,
     private SidenavService: SidenavService,
     private resolvedCategories,
+    private resolvedCurrentEnvironment,
     private resolvedGroups,
     private resolvedTags,
     private resolvedTenants,
@@ -72,12 +76,14 @@ class ApiProxyController {
     this.initialDiscovery = _.cloneDeep(this.discovery);
     this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
-
+    if (resolvedCurrentEnvironment) {
+      this.initDomainRestrictions(resolvedCurrentEnvironment.data);
+    }
     this.$scope.searchHeaders = null;
 
     this.api.labels = this.api.labels || [];
 
-    this.virtualHostModeEnabled = this.api.proxy.virtual_hosts.length > 1 || this.api.proxy.virtual_hosts[0].host !== undefined;
+    this.virtualHostModeEnabled = this.api.proxy.virtual_hosts.length > 1 || this.api.proxy.virtual_hosts[0].host !== undefined || this.domainRestrictions.length > 0;
 
     this.$scope.lbs = [
       {
@@ -403,6 +409,71 @@ class ApiProxyController {
       this.formApi.$setDirty();
     }
   }
+
+  getHostOptions(host: string): string[] {
+    let myHost = host;
+    if (myHost) {
+      this.domainRegexList.forEach(regex => myHost = myHost.replace(regex, ''));
+    }
+
+    if (myHost && myHost !== '' && !_.includes(this.domainRestrictions, myHost)) {
+      return this.domainRestrictions.map(domain => myHost + '.' + domain);
+    }
+
+    return this.domainRestrictions;
+  }
+
+  initDomainRestrictions(data: any) {
+    const domainPattern = '((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+';
+
+    this.domainRestrictions = data.domainRestrictions;
+
+    if (this.domainRestrictions === undefined) {
+      this.domainRestrictions = [];
+    }
+
+    if (this.domainRestrictions.length === 0) {
+      this.hostPattern = '^' + domainPattern + '[A-Za-z]{2,6}$';
+    } else {
+      this.hostPattern = this.domainRestrictions.map(value => '^' + domainPattern + value + '$').join('|');
+    }
+
+    // Prepare host regex (used to assist user when specifying an host).
+    this.domainRegexList = this.domainRestrictions.map(value => new RegExp('\\.?' + value, 'i'));
+  }
+
+  onFocus(inputId: string) {
+    const input: HTMLInputElement = document.querySelector('#' + inputId);
+    if (input.value) {
+      for (let domainRegex of this.domainRegexList) {
+        let match = input.value.match(domainRegex);
+
+        if (match) {
+          let index = input.value.indexOf(match[0]);
+          if (input.selectionStart > index) {
+            input.setSelectionRange(index, index);
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  onBlur(vHost: any, inputId: string) {
+    const input: HTMLInputElement = document.querySelector('#' + inputId);
+    if (input.value) {
+      if (input.value.startsWith('.')) {
+        input.value = input.value.replace('.', '');
+      }
+    }
+    if (vHost.host) {
+      if (vHost.host.startsWith('.')) {
+        vHost.host = vHost.host.replace('.', '');
+      }
+    }
+    vHost.host = input.value;
+  }
+
 }
 
 export default ApiProxyController;
