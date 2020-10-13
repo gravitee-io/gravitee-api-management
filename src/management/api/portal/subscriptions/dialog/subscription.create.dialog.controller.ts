@@ -14,19 +14,29 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import ApiService from '../../../../services/api.service';
-import ApplicationService from '../../../../services/application.service';
+import ApiService  from '../../../../../services/api.service';
+import ApplicationService from '../../../../../services/application.service';
+import PortalConfigService from '../../../../../services/portalConfig.service';
 
 function DialogSubscriptionCreateController(
-  $mdDialog: angular.material.IDialogService, plans, api,
-  ApplicationService: ApplicationService, ApiService: ApiService) {
+  $mdDialog: angular.material.IDialogService,
+  plans,
+  api,
+  ApplicationService: ApplicationService,
+  ApiService: ApiService,
+  PortalConfigService: PortalConfigService,
+  Constants: any) {
   'ngInject';
   this.api = api;
   this.plans = plans;
   this.selectedApp = null;
   this.selectedPlan = null;
+  this.selectedPlanCustomApiKey = null;
   this.plansWithSubscriptions = [];
 
+  this.$onInit = () => {
+    this.canUseCustomApiKey = Constants.plan.security.customApiKey.enabled;
+  };
 
   this.hide = function () {
     $mdDialog.cancel();
@@ -36,7 +46,8 @@ function DialogSubscriptionCreateController(
     if (this.selectedApp && this.selectedPlan) {
       $mdDialog.hide({
           applicationId: this.selectedApp.id,
-          planId: this.selectedPlan
+          planId: this.selectedPlan,
+          customApiKey: this.selectedPlanCustomApiKey
       });
     }
   };
@@ -45,8 +56,13 @@ function DialogSubscriptionCreateController(
     return _.indexOf(this.plansWithSubscriptions, planId) > -1;
   };
 
+  this.planIsApiKey = (planId) => {
+    return this.plans.find((p) => p.security === 'api_key' && p.id === planId) != null;
+  };
+
   this.selectedItemChange = function () {
     this.plansWithSubscriptions = [];
+    this.selectedPlanApiKey = null;
     if (this.selectedApp) {
       ApiService.getSubscriptions(
         this.api.id,
@@ -73,6 +89,10 @@ function DialogSubscriptionCreateController(
 
   this.atLeastOnePlanWithGeneralConditions = function () {
     return this.plans.find((p) => p.general_conditions !== undefined && p.general_conditions !== '') != null;
+  };
+
+  this.onApiKeyValueChange = (customApiKey) => {
+    this.selectedPlanCustomApiKey = customApiKey;
   };
 }
 

@@ -53,8 +53,15 @@
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.plan.security.apikey.enabled" aria-label="apikey">
+        <md-checkbox ng-model="$ctrl.settings.plan.security.apikey.enabled"
+                     ng-change="$ctrl.settings.plan.security.customApiKey.enabled = $ctrl.settings.plan.security.apikey.enabled ? $ctrl.settings.plan.security.customApiKey.enabled : false"
+                     aria-label="apikey">
           Api-key plans
+        </md-checkbox>
+      </md-input-container>
+      <md-input-container class="gv-input-container-dense  portal-component__sub-input">
+        <md-checkbox ng-disabled="!$ctrl.settings.plan.security.apikey.enabled" ng-model="$ctrl.settings.plan.security.customApiKey.enabled" aria-label="apikeyCustom">
+          Allow custom Api-key
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">

@@ -18,7 +18,6 @@ import _ = require('lodash');
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import moment = require('moment');
 
 const ApiSubscriptionComponent: ng.IComponentOptions = {
   bindings: {
@@ -32,14 +31,17 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     private keys: any[];
     private api: any;
     private plans: any[];
+    private transferablePlans: any[];
     private backStateParams: any;
+    private canUseCustomApiKey: boolean;
 
     constructor(
       private $rootScope: ng.IRootScopeService,
       private $mdDialog: angular.material.IDialogService,
       private NotificationService: NotificationService,
       private ApiService: ApiService,
-      private $state: StateService
+      private $state: StateService,
+      private Constants: any
     ) {
       'ngInject';
 
@@ -54,6 +56,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     }
 
     $onInit() {
+      this.canUseCustomApiKey = this.Constants.plan.security.customApiKey.enabled;
       this.listApiKeys();
       this.getApiPlans();
     }
@@ -153,7 +156,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       this.$mdDialog.show({
         controller: 'DialogSubscriptionRejectController',
         controllerAs: 'dialogSubscriptionRejectController',
-        template: require('./subscription.reject.dialog.html'),
+        template: require('./dialog/subscription.reject.dialog.html'),
         clickOutsideToClose: true
       }).then( (reason) => {
         this.process({accepted: false, reason: reason});
@@ -164,8 +167,12 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       this.$mdDialog.show({
         controller: 'DialogSubscriptionAcceptController',
         controllerAs: 'dialogSubscriptionAcceptController',
-        template: require('./subscription.accept.dialog.html'),
-        clickOutsideToClose: true
+        template: require('./dialog/subscription.accept.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          apiId: this.api.id,
+          canUseCustomApiKey: this.canUseCustomApiKey
+        }
       }).then( (subscription) => {
         subscription.accepted = true;
         this.process(subscription);
@@ -195,18 +202,20 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
 
     renewApiKey() {
       this.$mdDialog.show({
-        controller: 'DialogConfirmController',
+        controller: 'DialogSubscriptionRenewController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('./dialog/subscription.renew.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to renew your API Key?',
           msg: 'Your previous API Key will be no longer valid in 2 hours!',
-          confirmButton: 'Renew'
+          customMessage: this.canUseCustomApiKey ? 'You can provide a custom API key here' : null,
+          confirmButton: 'Renew',
+          apiId: this.api.id
         }
       }).then( (response) => {
-        if (response) {
-          this.ApiService.renewApiKey(this.api.id, this.subscription.id).then(() => {
+        if (response && response.confirmed) {
+          this.ApiService.renewApiKey(this.api.id, this.subscription.id, response.customValue).then(() => {
             this.NotificationService.show('A new API Key has been generated');
             this.listApiKeys();
           });
@@ -238,7 +247,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       this.$mdDialog.show({
         controller: 'DialogApiKeyExpirationController',
         controllerAs: 'dialogApiKeyExpirationController',
-        template: require('./apikey.expiration.dialog.html'),
+        template: require('./dialog/apikey.expiration.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           maxEndDate: this.subscription.ending_at
@@ -282,10 +291,10 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       this.$mdDialog.show({
         controller: 'DialogSubscriptionTransferController',
         controllerAs: '$ctrl',
-        template: require('./subscription.transfer.dialog.html'),
+        template: require('./dialog/subscription.transfer.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          plans: this.plans
+          plans: this.transferablePlans
         }
       }).then(plan => {
         this.subscription.plan = plan;
@@ -297,7 +306,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
       this.$mdDialog.show({
         controller: 'DialogSubscriptionChangeEndDateController',
         controllerAs: '$ctrl',
-        template: require('./subscription.change.end.date.dialog.html'),
+        template: require('./dialog/subscription.change.end.date.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           subscription: this.subscription
@@ -319,7 +328,8 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
 
     private getApiPlans() {
       this.ApiService.getApiPlans(this.api.id, 'published', this.subscription.plan.security).then(response => {
-        this.plans = _.filter(response.data, plan => plan.id !== this.subscription.plan.id);
+        this.plans = response.data;
+        this.transferablePlans = _.filter(response.data, plan => plan.id !== this.subscription.plan.id);
       });
     }
   }

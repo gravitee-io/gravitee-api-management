@@ -204,7 +204,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
         this.$mdDialog.show({
           controller: 'DialogSubscriptionCreateController',
           controllerAs: 'dialogSubscriptionCreateController',
-          template: require('./subscription.create.dialog.html'),
+          template: require('./dialog/subscription.create.dialog.html'),
           clickOutsideToClose: true,
           locals: {
             api: this.api,
@@ -212,7 +212,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
           }
         }).then((data) => {
           if (data && data.applicationId && data.planId) {
-            this.ApiService.subscribe(this.api.id, data.applicationId, data.planId).then((response) => {
+            this.ApiService.subscribe(this.api.id, data.applicationId, data.planId, data.customApiKey).then((response) => {
               let subscription = response.data;
               this.NotificationService.show('A new subscription has been created.');
               this.$state.go('management.apis.detail.portal.subscriptions.subscription', {subscriptionId: subscription.id}, {reload: true});

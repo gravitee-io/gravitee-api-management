@@ -15,10 +15,14 @@
  */
 import moment = require('moment');
 
-function DialogSubscriptionAcceptController($scope, $mdDialog) {
+function DialogSubscriptionAcceptController($scope, $mdDialog, locals) {
   'ngInject';
 
   $scope.now = moment().toDate();
+  $scope.canUseCustomApiKey = locals.canUseCustomApiKey;
+  $scope.apiId = locals.apiId;
+
+  this.customApiKey = null;
 
   this.hide = function () {
     $mdDialog.cancel();
@@ -28,8 +32,13 @@ function DialogSubscriptionAcceptController($scope, $mdDialog) {
     $mdDialog.hide({
       starting_at: $scope.starting_at,
       ending_at: $scope.ending_at,
-      reason: $scope.reason
+      reason: $scope.reason,
+      customApiKey: this.customApiKey
     });
+  };
+
+  this.onApiKeyValueChange = (customApiKey) => {
+    this.customApiKey = customApiKey;
   };
 }
 

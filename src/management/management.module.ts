@@ -53,7 +53,7 @@ import DialogAddMemberApiController from '../management/api/portal/userGroupAcce
 import DialogTransferApiController
   from '../management/api/portal/userGroupAccess/transferOwnership/transferAPIDialog.controller';
 import DialogApiKeyExpirationController
-  from '../management/api/portal/subscriptions/apikey.expiration.dialog.controller';
+  from './api/portal/subscriptions/dialog/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
 import FileLoaderDirective from '../components/fileloader/fileloader.directive';
@@ -203,15 +203,16 @@ import ConfirmController from '../user/registration/confirm/confirm.controller';
 import ResetPasswordController from '../user/resetPassword/resetPassword.controller';
 import SubscriptionService from '../services/subscription.service';
 import DialogSubscriptionRejectController
-  from '../management/api/portal/subscriptions/subscription.reject.dialog.controller';
+  from './api/portal/subscriptions/dialog/subscription.reject.dialog.controller';
 import DialogSubscriptionAcceptController
-  from '../management/api/portal/subscriptions/subscription.accept.dialog.controller';
+  from './api/portal/subscriptions/dialog/subscription.accept.dialog.controller';
 import DialogSubscriptionCreateController
-  from '../management/api/portal/subscriptions/subscription.create.dialog.controller';
+  from './api/portal/subscriptions/dialog/subscription.create.dialog.controller';
 import DialogSubscriptionTransferController
-  from '../management/api/portal/subscriptions/subscription.transfer.dialog.controller';
+  from './api/portal/subscriptions/dialog/subscription.transfer.dialog.controller';
 import DialogSubscriptionChangeEndDateController
-  from '../management/api/portal/subscriptions/subscription.change.end.date.dialog.controller';
+  from './api/portal/subscriptions/dialog/subscription.change.end.date.dialog.controller';
+import DialogSubscriptionRenewController from './api/portal/subscriptions/dialog/subscription.renew.dialog.controller';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import DialogPublishPlanController from '../management/api/portal/plans/publishPlanDialog.controller';
 import TagsController from '../management/configuration/tags/tags.controller';
@@ -506,6 +507,7 @@ import UpdateFieldDialogController
 import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
+import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
 
 (<any>window).traverse = traverse;
 
@@ -721,6 +723,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController)
   .controller('DialogSubscriptionTransferController', DialogSubscriptionTransferController)
   .controller('DialogSubscriptionChangeEndDateController', DialogSubscriptionChangeEndDateController)
+  .controller('DialogSubscriptionRenewController', DialogSubscriptionRenewController)
   .controller('DialogPublishPlanController', DialogPublishPlanController)
   .controller('TagsController', TagsController)
   .controller('MetadataController', MetadataController)
@@ -861,6 +864,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('planWizardRestrictions', ApiEditPlanWizardRestrictionsComponent)
 
   // API subscriptions
+  .component('apiKeyValidatedInput', ApiKeyValidatedInput)
   .component('apiSubscriptions', ApiSubscriptionsComponent)
   .component('apiSubscription', ApiSubscriptionComponent)
 
