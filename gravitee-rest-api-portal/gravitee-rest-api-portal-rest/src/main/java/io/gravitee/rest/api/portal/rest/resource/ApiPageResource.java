@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
@@ -53,6 +54,7 @@ public class ApiPageResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @RequirePortalAuth
     public Response getPageByApiIdAndPageId(
             @HeaderParam("Accept-Language") String acceptLang,
             @PathParam("apiId") String apiId,
@@ -93,6 +95,7 @@ public class ApiPageResource extends AbstractResource {
     @GET
     @Path("content")
     @Produces(MediaType.TEXT_PLAIN)
+    @RequirePortalAuth
     public Response getPageContentByApiIdAndPageId(@PathParam("apiId") String apiId,
             @PathParam("pageId") String pageId) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());

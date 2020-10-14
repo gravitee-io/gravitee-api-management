@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ public class CategoryResource extends AbstractResource {
 
     @GET
     @Produces(APPLICATION_JSON)
+    @RequirePortalAuth
     public Response get(@PathParam("categoryId") String categoryId) {
         CategoryEntity category = categoryService.findNotHiddenById(categoryId);
 
@@ -63,6 +65,7 @@ public class CategoryResource extends AbstractResource {
 
     @GET
     @Path("picture")
+    @RequirePortalAuth
     public Response picture(@Context Request request, @PathParam("categoryId") String categoryId) {
         categoryService.findNotHiddenById(categoryId);
 

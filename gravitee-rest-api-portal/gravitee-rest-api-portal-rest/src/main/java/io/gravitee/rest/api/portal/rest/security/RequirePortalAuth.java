@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.portal.rest.security;
 
-import io.gravitee.rest.api.model.PortalConfigEntity;
+import javax.ws.rs.NameBinding;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * This annotation is used to protect public resources when the administration requires login on the portal.
+ * When the 'forceLogin' is enable, method without permissions but annotated with RequirePortalAuth are rejected for anonymous user.
+ *
+ * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ConfigService {
-    PortalConfigEntity getPortalConfig();
-    boolean portalLoginForced();
-    void save(PortalConfigEntity portalConfigEntity);
+@NameBinding
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RequirePortalAuth {
 }

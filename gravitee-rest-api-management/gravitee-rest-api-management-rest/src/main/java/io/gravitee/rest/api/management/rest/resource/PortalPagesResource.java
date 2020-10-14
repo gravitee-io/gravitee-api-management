@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
@@ -51,6 +52,9 @@ public class PortalPagesResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
+
+    @Inject
+    private ConfigService configService;
 
     @GET
     @Path("/{page}")
@@ -320,7 +324,12 @@ public class PortalPagesResource extends AbstractResource {
     }
 
     private boolean isDisplayable(boolean isPagePublished, List<String> excludedGroups) {
-        return (isAuthenticated() && hasPermission(RolePermission.ENVIRONMENT_DOCUMENTATION, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE)) ||
-                (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull()));
+        if (!isAuthenticated() && configService.portalLoginForced())  {
+            // if portal requires login, this endpoint should hide the api pages even PUBLIC ones
+            return false;
+        } else {
+            return (isAuthenticated() && hasPermission(RolePermission.ENVIRONMENT_DOCUMENTATION, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE)) ||
+                    (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull()));
+        }
     }
 }
