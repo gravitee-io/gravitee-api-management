@@ -233,6 +233,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                 // organizations resources
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**").permitAll()
+                .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/**/changePassword").permitAll()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users").authenticated()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users/**").authenticated()
                 .antMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**").authenticated()

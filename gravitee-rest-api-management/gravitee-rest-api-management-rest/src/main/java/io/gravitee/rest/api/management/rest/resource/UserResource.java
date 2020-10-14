@@ -29,6 +29,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
@@ -159,6 +160,7 @@ public class UserResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions(
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
+            // if permission changes or a new one is added, please update io.gravitee.rest.api.service.impl.UserServiceImpl#canResetPassword
     )
     @Path("resetPassword")
     public Response resetPassword(@PathParam("id") String userId) {
@@ -222,5 +224,26 @@ public class UserResource extends AbstractResource {
     public Response updateUserRoles(@PathParam("id") String userId, List<String> roleIds ) {
         userService.updateUserRoles(userId, roleIds);
         return Response.ok().build();
+    }
+
+    @POST
+    @Path("/changePassword")
+    @ApiOperation(
+            value = "Change user password after a reset",
+            notes = "User registration must be enabled"
+    )
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "User successfully updated", response = UserEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response finalizeResetPassword(@Valid ResetPasswordUserEntity resetPwdEntity) {
+        UserEntity newUser = userService.finalizeResetPassword(resetPwdEntity);
+        if (newUser != null) {
+            return Response
+                    .ok()
+                    .entity(newUser)
+                    .build();
+        }
+
+        return Response.serverError().build();
     }
 }

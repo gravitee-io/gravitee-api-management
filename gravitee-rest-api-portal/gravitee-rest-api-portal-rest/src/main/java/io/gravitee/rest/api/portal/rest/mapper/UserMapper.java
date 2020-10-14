@@ -18,11 +18,9 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
+import io.gravitee.rest.api.model.ResetPasswordUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
-import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
-import io.gravitee.rest.api.portal.rest.model.User;
-import io.gravitee.rest.api.portal.rest.model.UserLinks;
+import io.gravitee.rest.api.portal.rest.model.*;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -70,6 +68,15 @@ public class UserMapper {
         registerUserEntity.setFirstname(input.getFirstname());
         registerUserEntity.setLastname(input.getLastname());
         return registerUserEntity;
+    }
+
+    public ResetPasswordUserEntity convert(ChangeUserPasswordInput input) {
+        ResetPasswordUserEntity changePwdUserEntity = new ResetPasswordUserEntity();
+        changePwdUserEntity.setToken(input.getToken());
+        changePwdUserEntity.setPassword(input.getPassword());
+        changePwdUserEntity.setFirstname(input.getFirstname());
+        changePwdUserEntity.setLastname(input.getLastname());
+        return changePwdUserEntity;
     }
 
     public UserLinks computeUserLinks(String basePath, Date updateDate) {

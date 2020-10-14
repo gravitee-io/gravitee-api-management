@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import io.gravitee.rest.api.service.impl.RatingServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -125,6 +126,20 @@ public class RatingServiceTest {
         when(user.getId()).thenReturn(USER);
 
         when(mockParameterService.findAsBoolean(Key.PORTAL_RATING_ENABLED)).thenReturn(Boolean.TRUE);
+    }
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
+            }
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+        });
     }
 
     @Test(expected = RatingAlreadyExistsException.class)

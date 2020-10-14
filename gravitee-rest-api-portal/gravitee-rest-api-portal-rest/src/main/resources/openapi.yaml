@@ -1751,6 +1751,35 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /users/_change_password:
+    post:
+      tags:
+        - Users
+      summary: Change a user's password after a reset requests
+      description: |
+        Perform the password update for a user
+      operationId: changeUserPassword
+      requestBody:
+        description: Use to change a user's password.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeUserPasswordInput'
+      responses:
+        200:
+          description: The user whose password has been change.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Input must not be null or no active and internally managed user has been found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /users/_search:
     post:
       tags:
@@ -4127,6 +4156,26 @@ components:
           type: string
         confirmation_page_url:
           description: URL of the confirmation page to be used in the 'User Registration' email.
+          type: string
+    ChangeUserPasswordInput:
+      required:
+        - token
+        - password
+        - firstname
+        - lastname
+      properties:
+        token:
+          description: Token of the user to be validated.
+          type: string
+        password:
+          description: Password of the user.
+          type: string
+          format: password
+        firstname:
+          description: First name of the user.
+          type: string
+        lastname:
+          description: Last name of the user.
           type: string
     FinalizeRegistrationInput:
       required:

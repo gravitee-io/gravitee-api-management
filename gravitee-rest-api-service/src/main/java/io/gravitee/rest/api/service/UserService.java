@@ -46,6 +46,7 @@ public interface UserService {
     UserEntity register(NewExternalUserEntity newExternalUserEntity);
     UserEntity register(NewExternalUserEntity newExternalUserEntity, String confirmationPageUrl);
     UserEntity finalizeRegistration(RegisterUserEntity registerUserEntity);
+    UserEntity finalizeResetPassword(ResetPasswordUserEntity registerUserEntity);
     PictureEntity getPicture(String id);
     void delete(String id);
     void resetPassword(String id);

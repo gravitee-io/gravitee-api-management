@@ -30,6 +30,7 @@ import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -38,7 +39,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-
 import java.net.URI;
 import java.util.Comparator;
 import java.util.List;
@@ -97,10 +97,24 @@ public class UsersResource extends AbstractResource {
     public Response resetUserPassword(@NotNull(message = "Input must not be null.") @Valid ResetUserPasswordInput resetUserPasswordInput) {
         try {
             userService.resetPasswordFromSourceId(resetUserPasswordInput.getUsername(), resetUserPasswordInput.getResetPageUrl());
+        } catch (PasswordAlreadyResetException e) {
+            throw e;
         } catch (AbstractManagementException e) {
             LOGGER.warn("Problem while resetting a password : {}", e.getMessage());
         }
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("_change_password")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response changeUserPassword(@NotNull(message = "Input must not be null.") @Valid ChangeUserPasswordInput changeUserPasswordInput) {
+        UserEntity newUser = userService.finalizeResetPassword(userMapper.convert(changeUserPasswordInput));
+        if (newUser != null) {
+            return Response.ok().entity(userMapper.convert(newUser)).build();
+        }
+
+        return Response.serverError().build();
     }
 
     @POST

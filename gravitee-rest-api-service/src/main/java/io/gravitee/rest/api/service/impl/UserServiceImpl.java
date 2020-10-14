@@ -21,6 +21,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
+import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.spel.function.JsonPathFunction;
@@ -34,13 +35,14 @@ import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.audit.AuditEntity;
+import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -68,16 +70,19 @@ import org.springframework.stereotype.Component;
 import javax.xml.bind.DatatypeConverter;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.*;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -108,6 +113,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
     private RoleService roleService;
     @Autowired
     private MembershipService membershipService;
+    @Autowired
+    private PermissionService permissionService;
     @Autowired
     private AuditService auditService;
     @Autowired
@@ -312,19 +319,13 @@ public class UserServiceImpl extends AbstractService implements UserService {
     @Override
     public UserEntity finalizeRegistration(final RegisterUserEntity registerUserEntity) {
         try {
-            final String jwtSecret = environment.getProperty("jwt.secret");
-            if (jwtSecret == null || jwtSecret.isEmpty()) {
-                throw new IllegalStateException("JWT secret is mandatory");
-            }
-
-            Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
-            JWTVerifier verifier = JWT.require(algorithm)
-                    .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
-                    .build();
-
-            DecodedJWT jwt = verifier.verify(registerUserEntity.getToken());
+            DecodedJWT jwt = getDecodedJWT(registerUserEntity.getToken());
 
             final String action = jwt.getClaim(Claims.ACTION).asString();
+            if (RESET_PASSWORD.name().equals(action)) {
+                throw new UserStateConflictException("Reset password forbidden on this resource");
+            }
+
             if (USER_REGISTRATION.name().equals(action)) {
                 checkUserRegistrationEnabled();
             } else if (GROUP_INVITATION.name().equals(action)) {
@@ -377,13 +378,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             user.setUpdatedAt(new Date());
 
             // Encrypt password if internal user
-            if (registerUserEntity.getPassword() != null) {
-                if (passwordValidator.validate(registerUserEntity.getPassword())) {
-                    user.setPassword(passwordEncoder.encode(registerUserEntity.getPassword()));
-                } else {
-                    throw new PasswordFormatInvalidException();
-                }
-            }
+            encryptPassword(user, registerUserEntity.getPassword());
 
             user = userRepository.update(user);
             auditService.createPortalAuditLog(
@@ -399,12 +394,86 @@ public class UserServiceImpl extends AbstractService implements UserService {
             final UserEntity userEntity = convert(user, true);
             searchEngineService.index(userEntity, false);
             return userEntity;
+
         } catch (AbstractManagementException ex) {
             throw ex;
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to create an internal user with the token {}", registerUserEntity.getToken(), ex);
             throw new TechnicalManagementException(ex.getMessage(), ex);
         }
+    }
+
+    @Override
+    public UserEntity finalizeResetPassword(ResetPasswordUserEntity registerUserEntity) {
+        try {
+            DecodedJWT jwt = getDecodedJWT(registerUserEntity.getToken());
+
+            final String action = jwt.getClaim(Claims.ACTION).asString();
+            if (!RESET_PASSWORD.name().equals(action)) {
+                throw new UserStateConflictException("Invalid action on reset password resource");
+            }
+
+            final Object subject = jwt.getSubject();
+            User user;
+            if (subject == null) {
+                throw new UserNotFoundException("Subject missing from JWT token");
+            } else {
+                final String username = subject.toString();
+                LOGGER.debug("Find user {} to update password", username);
+                Optional<User> checkUser = userRepository.findById(username);
+                user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
+            }
+
+            // Set date fields
+            user.setUpdatedAt(new Date());
+
+            // Encrypt password if internal user
+            encryptPassword(user, registerUserEntity.getPassword());
+
+            user = userRepository.update(user);
+
+            auditService.createPortalAuditLog(
+                    Collections.singletonMap(USER, user.getId()),
+                    User.AuditEvent.PASSWORD_CHANGED,
+                    user.getUpdatedAt(),
+                    null,
+                    null);
+
+
+            // Do not send back the password
+            user.setPassword(null);
+
+            return convert(user, true);
+        } catch (AbstractManagementException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            LOGGER.error("An error occurs while trying to change password of an internal user with the token {}", registerUserEntity.getToken(), ex);
+            throw new TechnicalManagementException(ex.getMessage(), ex);
+        }
+    }
+
+    private void encryptPassword(User user, String password) {
+        if (password != null) {
+            if (passwordValidator.validate(password)) {
+                user.setPassword(passwordEncoder.encode(password));
+            } else {
+                throw new PasswordFormatInvalidException();
+            }
+        }
+    }
+
+    private DecodedJWT getDecodedJWT(String token) {
+        final String jwtSecret = environment.getProperty("jwt.secret");
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            throw new IllegalStateException("JWT secret is mandatory");
+        }
+
+        Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
+        JWTVerifier verifier = JWT.require(algorithm)
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .build();
+
+        return verifier.verify(token);
     }
 
     @Override
@@ -871,9 +940,31 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (!IDP_SOURCE_GRAVITEE.equals(user.getSource())) {
                 throw new UserNotInternallyManagedException(id);
             }
-            user.setPassword(null);
-            user.setUpdatedAt(new Date());
-            userRepository.update(user);
+
+            // do not update password to null anymore to avoid DoS attack on a user account.
+            // use the audit events to throttle the number of resetPassword for a given userid
+            // see: https://github.com/gravitee-io/issues/issues/4410
+
+            // do not perform this check if the request comes from an authenticated user (ie. admin or someone with right permission)
+            if (!isAuthenticated() || !canResetPassword()) {
+                AuditQuery query = new AuditQuery();
+                query.setEvents(Arrays.asList(User.AuditEvent.PASSWORD_RESET.name()));
+                query.setFrom(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli());
+                query.setPage(1);
+                query.setSize(100);
+                MetadataPage<AuditEntity> events = auditService.search(query);
+                if (events != null) {
+                    if (events.getContent().size() == 100) {
+                        LOGGER.warn("More than 100 reset password received in less than 1 hour", user.getId());
+                    }
+
+                    Optional<AuditEntity> optReset = events.getContent().stream().filter(evt -> user.getId().equals(evt.getProperties().get(USER.name()))).findFirst();
+                    if (optReset.isPresent()) {
+                        LOGGER.warn("Multiple reset password received for user '{}' in less than 1 hour", user.getId());
+                        throw new PasswordAlreadyResetException();
+                    }
+                }
+            }
 
             final Map<String, Object> params = getTokenRegistrationParams(convert(user, false),
                     RESET_PASSWORD_PATH, RESET_PASSWORD, resetPageUrl);
@@ -883,7 +974,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             auditService.createPortalAuditLog(
                     Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.PASSWORD_RESET,
-                    user.getUpdatedAt(),
+                    new Date(),
                     null,
                     null);
             emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
@@ -898,6 +989,13 @@ public class UserServiceImpl extends AbstractService implements UserService {
             LOGGER.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
+    }
+
+    protected boolean canResetPassword() {
+        if (isAdmin()) {
+            return true;
+        }
+        return permissionService.hasPermission(RolePermission.ORGANIZATION_USERS, GraviteeContext.getCurrentOrganization(), new RolePermissionAction[]{UPDATE});
     }
 
     private User convert(NewExternalUserEntity newExternalUserEntity) {

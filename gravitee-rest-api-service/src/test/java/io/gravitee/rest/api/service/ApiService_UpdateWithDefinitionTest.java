@@ -29,6 +29,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -100,6 +101,20 @@ public class ApiService_UpdateWithDefinitionTest {
         final SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
         SecurityContextHolder.setContext(securityContext);
+    }
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
+            }
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+        });
     }
 
     @Test

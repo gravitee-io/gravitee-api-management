@@ -17,15 +17,16 @@ package io.gravitee.rest.api.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserReferenceType;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
@@ -52,6 +53,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.RESET_PASSWORD;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
@@ -59,6 +61,7 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
@@ -319,6 +322,69 @@ public class UserServiceTest {
 
     }
 
+    @Test(expected = UserStateConflictException.class)
+    public void createNewRegistrationUserWithResetPasswordAction() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+
+        RegisterUserEntity userEntity = new RegisterUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100, RESET_PASSWORD.name()));
+        userEntity.setPassword(PASSWORD);
+
+        userService.finalizeRegistration(userEntity);
+
+    }
+
+    @Test
+    public void changePassword() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(passwordValidator.validate(anyString())).thenReturn(true);
+
+        User user = new User();
+        user.setId("CUSTOM_LONG_ID");
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
+        when(userRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100, RESET_PASSWORD.name()));
+        userEntity.setPassword(PASSWORD);
+
+        userService.finalizeResetPassword(userEntity);
+
+        verify(auditService).createPortalAuditLog(anyMap(), argThat(evt -> evt.equals(User.AuditEvent.PASSWORD_CHANGED)), any(), any(), any());
+    }
+
+    @Test (expected = PasswordFormatInvalidException.class)
+    public void changePassword_invalidPwd() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+
+        User user = new User();
+        user.setId("CUSTOM_LONG_ID");
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
+
+        ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100, RESET_PASSWORD.name()));
+        userEntity.setPassword(PASSWORD);
+
+        userService.finalizeResetPassword(userEntity);
+    }
+
+    @Test (expected = UserStateConflictException.class)
+    public void changePassword_withInvalidAction() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+
+        ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
+        userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
+        userEntity.setPassword(PASSWORD);
+
+        userService.finalizeResetPassword(userEntity);
+    }
+
     @Test (expected = PasswordFormatInvalidException.class)
     public void createAlreadyPreRegisteredUser_invalidPassword() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
@@ -387,10 +453,54 @@ public class UserServiceTest {
         when(user.getSource()).thenReturn("gravitee");
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
+        when(auditService.search(argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name())))).thenReturn(mock(MetadataPage.class));
+
         userService.resetPassword(USER_NAME);
 
-        verify(user).setPassword(null);
-        verify(userRepository).update(user);
+        verify(user, never()).setPassword(null);
+        verify(userRepository, never()).update(user);
+        verify(emailService).sendAsyncEmailNotification(any());
+    }
+
+    @Test
+    public void shouldResetPassword_auditEventNotMatch() throws TechnicalException {
+        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER))
+                .thenReturn(1000);
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getSource()).thenReturn("gravitee");
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+
+        MetadataPage mdPage = mock(MetadataPage.class);
+        AuditEntity entity1 = new AuditEntity();
+        entity1.setProperties(Collections.singletonMap("USER", "unknown"));
+        when(mdPage.getContent()).thenReturn(Arrays.asList(entity1));
+        when(auditService.search(argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name())))).thenReturn(mdPage);
+
+        userService.resetPassword(USER_NAME);
+
+        verify(user, never()).setPassword(null);
+        verify(userRepository, never()).update(user);
+        verify(emailService).sendAsyncEmailNotification(any());
+    }
+
+    @Test(expected = PasswordAlreadyResetException.class)
+    public void shouldNotResetPassword_AlreadyReset() throws TechnicalException {
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getSource()).thenReturn("gravitee");
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+
+        MetadataPage mdPage = mock(MetadataPage.class);
+        AuditEntity entity1 = new AuditEntity();
+        entity1.setProperties(Collections.singletonMap("USER", USER_NAME));
+        when(mdPage.getContent()).thenReturn(Arrays.asList(entity1));
+        when(auditService.search(argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name())))).thenReturn(mdPage);
+
+        userService.resetPassword(USER_NAME);
+
+        verify(user, never()).setPassword(null);
+        verify(userRepository, never()).update(user);
+        verify(emailService, never()).sendAsyncEmailNotification(any());
     }
 
     @Test(expected = UserNotFoundException.class)
@@ -437,7 +547,7 @@ public class UserServiceTest {
         userService.resetPassword(USER_NAME);
     }
 
-    private String createJWT(long expirationSeconds) {
+    private String createJWT(long expirationSeconds, String action) {
         Algorithm algorithm = Algorithm.HMAC256(JWT_SECRET);
 
         Date issueAt = new Date();
@@ -451,7 +561,7 @@ public class UserServiceTest {
                 .withClaim(JWTHelper.Claims.EMAIL, EMAIL)
                 .withClaim(JWTHelper.Claims.FIRSTNAME, FIRST_NAME)
                 .withClaim(JWTHelper.Claims.LASTNAME, LAST_NAME)
-                .withClaim(JWTHelper.Claims.ACTION, USER_REGISTRATION.name())
+                .withClaim(JWTHelper.Claims.ACTION, action)
                 .sign(algorithm);
 
         /*
@@ -464,6 +574,10 @@ public class UserServiceTest {
         claims.put("exp", expirationSeconds);
         return new JWTSigner(JWT_SECRET).sign(claims);
          */
+    }
+
+    private String createJWT(long expirationSeconds) {
+        return createJWT(expirationSeconds, USER_REGISTRATION.name());
     }
 
     @Test
