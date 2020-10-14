@@ -194,9 +194,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity createFromSwagger(final SwaggerApiEntity swaggerApiEntity, final String userId,
                                        final ImportSwaggerDescriptorEntity swaggerDescriptor) throws ApiAlreadyExistsException {
-        checkGroupExistence(swaggerApiEntity.getGroups());
-
-        checkShardingTags(swaggerApiEntity, null);
 
         if (swaggerApiEntity != null && swaggerDescriptor != null) {
 

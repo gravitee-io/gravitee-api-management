@@ -22,12 +22,10 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.policy.api.swagger.Policy;
-import io.gravitee.rest.api.model.ApiMetadataEntity;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.MetadataFormat;
-import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIDescriptorVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
@@ -39,6 +37,7 @@ import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.servers.ServerVariable;
 import io.swagger.v3.oas.models.servers.ServerVariables;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.net.URI;
@@ -68,9 +67,12 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
     private GroupService groupService;
 
-    public OAIToAPIConverter(Collection<? extends OAIOperationVisitor> visitors, GroupService groupService) {
+    private TagService tagService;
+
+    public OAIToAPIConverter(Collection<? extends OAIOperationVisitor> visitors, GroupService groupService, TagService tagService) {
         this.visitors = visitors;
         this.groupService = groupService;
+        this.tagService = tagService;
     }
 
     @Override
@@ -252,7 +254,14 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
             // Tags
             if (xGraviteeIODefinition.getTags() != null && !xGraviteeIODefinition.getTags().isEmpty()) {
-                apiEntity.setTags(new HashSet<>(xGraviteeIODefinition.getTags()));
+                final Map<String, String> tagMap = tagService.findAll().stream().collect(toMap(TagEntity::getId, TagEntity::getName));
+                final Set<String> tagIdToAdd = xGraviteeIODefinition.getTags().stream()
+                        .map(tag -> findTagIdByName(tagMap, tag))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+                if (tagIdToAdd != null && !tagIdToAdd.isEmpty()) {
+                    apiEntity.setTags(tagIdToAdd);
+                }
             }
 
             // Visibility
@@ -261,6 +270,15 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
             }
         }
         return apiEntity;
+    }
+
+    private String findTagIdByName(Map<String, String> tagMap, String tag) {
+        for (Map.Entry<String, String> entry : tagMap.entrySet()) {
+            if (entry.getValue().equals(tag)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     private List<String> mapServersToEndpoint(List<Server> servers) {

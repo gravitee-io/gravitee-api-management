@@ -23,10 +23,7 @@ import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.policy.api.swagger.Policy;
-import io.gravitee.rest.api.model.ApiMetadataEntity;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.impl.SwaggerServiceImpl;
@@ -67,6 +64,9 @@ public class SwaggerService_CreateAPITest {
     @Mock
     private GroupService groupService;
 
+    @Mock
+    private TagService tagService;
+
     @InjectMocks
     private SwaggerServiceImpl swaggerService;
 
@@ -91,6 +91,14 @@ public class SwaggerService_CreateAPITest {
         grp2.setId("group2");
         when(groupService.findByName("group1")).thenReturn(Arrays.asList(grp1));
         when(groupService.findByName("group2")).thenReturn(Arrays.asList(grp2));
+
+        TagEntity tag1 = new TagEntity();
+        tag1.setId("tagId1");
+        tag1.setName("tag1");
+        TagEntity tag2 = new TagEntity();
+        tag2.setId("tagId2");
+        tag2.setName("tag2");
+        when(tagService.findAll()).thenReturn(Arrays.asList(tag1, tag2));
     }
 
     // Swagger v1
@@ -196,7 +204,7 @@ public class SwaggerService_CreateAPITest {
 
         final Set<String> tags = updateApiEntity.getTags();
         assertEquals(2, tags.size());
-        assertTrue(tags.containsAll(asList("tag1", "tag2")));
+        assertTrue(tags.containsAll(asList("tagId1", "tagId2")));
         
         final Map<String, String> properties = updateApiEntity.getProperties().getValues();
         assertEquals(2, properties.size());

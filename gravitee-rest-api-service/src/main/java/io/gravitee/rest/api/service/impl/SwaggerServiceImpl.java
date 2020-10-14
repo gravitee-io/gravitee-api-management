@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Format;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIConverter;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
@@ -68,6 +69,9 @@ public class SwaggerServiceImpl implements SwaggerService {
     @Autowired
     private GroupService groupService;
 
+    @Autowired
+    private TagService tagService;
+
     @Override
     public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
         boolean wsdlImport = Format.WSDL.equals(swaggerDescriptor.getFormat());
@@ -86,7 +90,7 @@ public class SwaggerServiceImpl implements SwaggerService {
                         .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
                         .collect(Collectors.toList());
             }
-            return new OAIToAPIConverter(visitors, groupService)
+            return new OAIToAPIConverter(visitors, groupService, tagService)
                     .convert((OAIDescriptor) descriptor);
 
         }

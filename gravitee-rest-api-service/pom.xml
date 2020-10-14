@@ -193,6 +193,12 @@
 			<groupId>io.swagger.parser.v3</groupId>
 			<artifactId>swagger-parser</artifactId>
 			<version>${swagger-parser.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.github.fge</groupId>
+					<artifactId>json-patch</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
