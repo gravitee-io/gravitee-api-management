@@ -11,13 +11,13 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import { CountAnalytics, DateHistoAnalytics, GroupByAnalytics } from '../model/models';
 import { Inject, Injectable, Optional }                      from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams,
          HttpResponse, HttpEvent, HttpParameterCodec }       from '@angular/common/http';
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
+import { CountAnalytics, DateHistoAnalytics, GroupByAnalytics } from '../model/models';
 import { ErrorResponse } from '../model/errorResponse';
 import { Log } from '../model/log';
 import { LogsResponse } from '../model/logsResponse';

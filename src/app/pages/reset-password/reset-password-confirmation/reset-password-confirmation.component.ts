@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { FinalizeRegistrationInput, UsersService } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import { ChangeUserPasswordInput, UsersService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { TokenService } from '../../../services/token.service';
 import { GvValidators } from '../../../utils/gv-validators';
 import { ReCaptchaService } from '../../../services/recaptcha.service';
@@ -65,14 +65,14 @@ export class ResetPasswordConfirmationComponent implements OnInit {
   onSubmitResetPasswordConfirmationForm() {
     if (this.resetPasswordConfirmationForm.valid && !this.isSubmitted) {
 
-      const input: FinalizeRegistrationInput = {
+      const input: ChangeUserPasswordInput = {
         token: this.token,
         password: this.resetPasswordConfirmationForm.value.password,
         firstname: this.userFromToken.firstname,
         lastname: this.userFromToken.lastname
       };
       this.reCaptchaService.execute('reset_password_confirmation').then(() => {
-        this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
+        this.usersService.changeUserPassword({ ChangeUserPasswordInput: input })
           .toPromise()
           .then(() => this.isSubmitted = true)
           .catch(() => {

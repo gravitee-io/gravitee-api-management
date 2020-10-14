@@ -646,7 +646,8 @@
     "unexpected": "Vyskytla se neočekávaná chyba",
     "user": {
       "exists": "E-mail již existuje uživatel: {user}",
-      "finalized": "Účet již byl dokončen"
+      "finalized": "Účet již byl dokončen",
+      "resetpassword": "Obnovte již požadované heslo, zkontrolujte e-maily a před novým pokusem počkejte několik minut."
     }
   },
   "footer": {

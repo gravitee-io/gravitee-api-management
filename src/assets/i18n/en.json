@@ -646,7 +646,8 @@
     "unexpected": "An unexpected error occurred",
     "user": {
       "exists": "There is already a user with the email: {user}",
-      "finalized": "The account has already been finalized"
+      "finalized": "The account has already been finalized",
+      "resetpassword": "Reset password already requested, please check your emails and wait a few minutes before a new attempt."
     }
   },
   "footer": {

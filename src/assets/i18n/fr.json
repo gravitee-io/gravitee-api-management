@@ -646,7 +646,8 @@
     "unexpected": "Une erreur inattendue est survenue",
     "user": {
       "exists": "Il existe déjà un utilisateur avec l'email : {user}",
-      "finalized": "Le compte a déjà été finalisé"
+      "finalized": "Le compte a déjà été finalisé",
+      "resetpassword": "Une demande a déjà été prise en compte, merci de vérifier vos emails avant de refaire une demande dans quelques minutes"
     }
   },
   "footer": {
