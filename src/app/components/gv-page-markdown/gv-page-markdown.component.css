@@ -34,7 +34,7 @@
 }
 :host ::ng-deep code {
   max-width: 100%;
-  display: block;
+  display: inline;
   overflow: auto;
 }
 
