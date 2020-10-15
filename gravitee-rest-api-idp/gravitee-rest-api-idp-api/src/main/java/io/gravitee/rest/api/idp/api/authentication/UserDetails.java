@@ -16,10 +16,12 @@
 package io.gravitee.rest.api.idp.api.authentication;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +45,21 @@ public class UserDetails extends User implements org.springframework.security.co
     private boolean firstLogin;
     private boolean displayNewsletterSubscription;
     private Map<String, Object> customFields;
+    /**
+     * The user creation date
+     */
+    @JsonProperty("created_at")
+    private Date createdAt;
+    /**
+     * The user creation date
+     */
+    @JsonProperty("updated_at")
+    private Date updatedAt;
+    /**
+     * The user last connection date
+     */
+    @JsonProperty("last_connection_at")
+    private Date lastConnectionAt;
 
     public UserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
@@ -191,6 +208,30 @@ public class UserDetails extends User implements org.springframework.security.co
 
     public void setCustomFields(Map<String, Object> customFields) {
         this.customFields = customFields;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getLastConnectionAt() {
+        return lastConnectionAt;
+    }
+
+    public void setLastConnectionAt(Date lastConnectionAt) {
+        this.lastConnectionAt = lastConnectionAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     @Override

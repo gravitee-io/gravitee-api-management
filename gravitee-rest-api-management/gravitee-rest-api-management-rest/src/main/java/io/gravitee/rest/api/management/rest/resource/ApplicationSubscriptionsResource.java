@@ -205,7 +205,7 @@ public class ApplicationSubscriptionsResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
-    public Set<ApiKeyEntity> listApiKeysForSubscription(
+    public List<ApiKeyEntity> listApiKeysForSubscription(
             @PathParam("application") String application,
             @PathParam("subscription") String subscription) {
         return apiKeyService.findBySubscription(subscription);

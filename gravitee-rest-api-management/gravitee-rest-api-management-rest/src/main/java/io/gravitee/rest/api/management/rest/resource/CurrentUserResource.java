@@ -131,6 +131,9 @@ public class CurrentUserResource extends AbstractResource {
             userDetails.setSource(userEntity.getSource());
             userDetails.setSourceId(userEntity.getSourceId());
             userDetails.setPrimaryOwner(userEntity.isPrimaryOwner());
+            userDetails.setCreatedAt(userEntity.getCreatedAt());
+            userDetails.setUpdatedAt(userEntity.getUpdatedAt());
+            userDetails.setLastConnectionAt(userEntity.getLastConnectionAt());
 
             if (details.getEmail() == null && "memory".equals(userEntity.getSource()) && userEntity.getEmail() != null) {
                 userDetails.setEmail(userEntity.getEmail());

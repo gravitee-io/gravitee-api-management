@@ -367,7 +367,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 // Update the expiration date for not yet revoked api-keys relative to this subscription
                 Date endingAt = subscription.getEndingAt();
                 if (plan.getSecurity() == PlanSecurityType.API_KEY && endingAt != null) {
-                    Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                    List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                     for (ApiKeyEntity apiKey : apiKeys) {
                         Date expireAt = apiKey.getExpireAt();
                         if (!apiKey.isRevoked() && (expireAt == null || expireAt.compareTo(endingAt) > 0)) {
@@ -522,7 +522,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                             subscription);
 
                     // API Keys are automatically revoked
-                    Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                    List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                     for (ApiKeyEntity apiKey : apiKeys) {
                         Date expireAt = apiKey.getExpireAt();
                         if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
@@ -595,7 +595,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         subscription);
 
                 // API Keys are automatically paused
-                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                 for (ApiKeyEntity apiKey : apiKeys) {
                     Date expireAt = apiKey.getExpireAt();
                     if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.after(now))) {
@@ -661,7 +661,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         subscription);
 
                 // API Keys are automatically revoked
-                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                 for (ApiKeyEntity apiKey : apiKeys) {
                     Date expireAt = apiKey.getExpireAt();
                     if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.after(now))) {
@@ -736,7 +736,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscriptionRepository.search(builder.build()).stream().map(this::convert);
             if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
                 subscriptionsStream = subscriptionsStream.filter(subscriptionEntity -> {
-                    final Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscriptionEntity.getId());
+                    final List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscriptionEntity.getId());
                     return apiKeys.stream().anyMatch(apiKeyEntity -> apiKeyEntity.getKey().equals(query.getApiKey()));
                 });
             }
@@ -832,7 +832,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             subscription.setPlan(transferSubscription.getPlan());
 
             subscription = subscriptionRepository.update(subscription);
-            final Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+            final List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
             for (final ApiKeyEntity apiKey : apiKeys) {
                 apiKey.setPlan(transferSubscription.getPlan());
                 apiKeyService.update(apiKey);

@@ -573,15 +573,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private String formatExpression(final Matcher matcher, final String group) {
-        final String matchedExpression = matcher.group(group);
+        String matchedExpression = matcher.group(group);
         final boolean expressionBlank = matchedExpression == null || "".equals(matchedExpression);
         final boolean after = "after".equals(group);
 
         String expression;
         if (after) {
+            if (matchedExpression.startsWith(" && (") && matchedExpression.endsWith(")")) {
+                matchedExpression = matchedExpression.substring(5, matchedExpression.length() - 1);
+            }
             expression = expressionBlank ? "" : " && (" + matchedExpression + ")";
             expression = expression.replaceAll("\\(" + LOGGING_DELIMITER_BASE, "\\(");
         } else {
+            if (matchedExpression.startsWith("(") && matchedExpression.endsWith(") && ")) {
+                matchedExpression = matchedExpression.substring(1, matchedExpression.length() - 5);
+            }
             expression = expressionBlank ? "" : "(" + matchedExpression + ") && ";
             expression = expression.replaceAll(LOGGING_DELIMITER_BASE + "\\)", "\\)");
         }
@@ -906,7 +912,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.setDeployedAt(apiToUpdate.getDeployedAt());
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
                 api.setLifecycleState(apiToUpdate.getLifecycleState());
-                if (updateApiEntity.getPicture() == null) {
+                // If no new picture and the current picture url is not the default one, keep the current picture
+                if (updateApiEntity.getPicture() == null && updateApiEntity.getPictureUrl() != null && updateApiEntity.getPictureUrl().indexOf("?hash") > 0) {
                     api.setPicture(apiToUpdate.getPicture());
                 }
                 if (updateApiEntity.getBackground() == null) {
@@ -1886,6 +1893,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .collect(toList());
         } catch (TechnicalException ex) {
             final String errorMessage = "An error occurs while trying to search for APIs: " + query;
+            LOGGER.error(errorMessage, ex);
+            throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    @Override
+    public Collection<String> searchIds(ApiQuery query) {
+        try {
+            LOGGER.debug("Search API ids by {}", query);
+            return apiRepository.search(queryToCriteria(query).build()).stream().map(Api::getId).collect(toList());
+        } catch (Exception ex) {
+            final String errorMessage = "An error occurs while trying to search for API ids: " + query;
             LOGGER.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
         }

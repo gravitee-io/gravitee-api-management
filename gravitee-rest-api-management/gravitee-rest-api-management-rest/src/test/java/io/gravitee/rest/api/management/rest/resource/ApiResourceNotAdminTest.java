@@ -19,17 +19,13 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiLifecycleState;
-import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.internal.util.collections.Sets;
-import org.mockito.invocation.InvocationOnMock;
 
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -40,8 +36,6 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -131,6 +125,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
     @Test
     public void shouldAccessToApiState_BecauseDirectMember() {
         MembershipEntity membershipEntity = mock(MembershipEntity.class);
+        when(membershipEntity.getReferenceType()).thenReturn(MembershipReferenceType.API);
         when(membershipEntity.getReferenceId()).thenReturn(API);
         when(membershipService.getMembershipsByMemberAndReference(
                 eq(MembershipMemberType.USER),
@@ -172,15 +167,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
                 .thenReturn(Sets.newSet(membershipEntity));
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
-
-        when(apiService.search(any())).thenAnswer((InvocationOnMock invocationOnMock) -> {
-            Set<ApiEntity> result = new HashSet<>();
-            final ApiQuery argument = invocationOnMock.getArgument(0);
-                if (argument.getGroups().contains(groupId)) {
-                    result.add(mockApi);
-                }
-                return result;
-            });
+        when(apiService.searchIds(any())).thenReturn(Collections.singletonList(mockApi.getId()));
 
         final Response response = target(API+"/state").request().get();
 

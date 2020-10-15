@@ -18,15 +18,12 @@ package io.gravitee.rest.api.portal.rest.resource.auth;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.portal.rest.model.PayloadInput;
 import io.gravitee.rest.api.portal.rest.utils.BlindTrustManager;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,11 +50,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -71,6 +64,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     @Autowired
     private SocialIdentityProviderService socialIdentityProviderService;
+
+    @Autowired
+    private AuthoritiesProvider authoritiesProvider;
 
     private Client client;
 
@@ -150,7 +146,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             @PathParam(value = "identity") String identity,
             @Valid @NotNull(message = "Input must not be null.") final PayloadInput payloadInput,
             @Context final HttpServletResponse servletResponse) throws IOException {
-        
+
         SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);
 
         if (identityProvider != null) {
@@ -214,23 +210,13 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo, final String state) {
         UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(socialProvider, userInfo);
         String userId = user.getId();
-        
-        final Set<RoleEntity> roles = membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), MembershipMemberType.USER, userId);
-        final Set<GrantedAuthority> authorities = new HashSet<>();
-        if (!roles.isEmpty()) {
-            authorities.addAll(
-                    commaSeparatedStringToAuthorityList(
-                            roles.stream()
-                            .map(r -> r.getScope().name() + ':' + r.getName())
-                            .collect(Collectors.joining(","))
-                    )
-            );
-        }
+
+        final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
 
         //set user to Authentication Context
         UserDetails userDetails = new UserDetails(userId, "", authorities);
         userDetails.setEmail(user.getEmail());
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
         return connectUser(userId, state, servletResponse);
     }

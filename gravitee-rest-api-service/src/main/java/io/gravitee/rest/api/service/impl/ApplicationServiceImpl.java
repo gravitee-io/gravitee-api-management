@@ -17,19 +17,14 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationListItemSettings;
-import io.gravitee.rest.api.model.application.ApplicationSettings;
-import io.gravitee.rest.api.model.application.OAuthClientSettings;
-import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.*;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
@@ -587,7 +582,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(applicationId, null);
 
             subscriptions.forEach(subscription -> {
-                Set<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                 apiKeys.forEach(apiKey -> {
                     try {
                         apiKeyService.delete(apiKey.getKey());

@@ -95,6 +95,11 @@ public class UpdateApiEntity {
             value = "the API logo encoded in base64")
     private String picture;
 
+    @JsonProperty("picture_url")
+    @ApiModelProperty(
+            value = "the API logo encoded in base64")
+    private String pictureUrl;
+
     @ApiModelProperty(
             value = "the list of categories associated with this API",
             dataType = "java.util.List",
@@ -295,5 +300,13 @@ public class UpdateApiEntity {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 }

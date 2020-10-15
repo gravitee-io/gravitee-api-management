@@ -17,16 +17,14 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.portal.rest.model.Links;
-import io.gravitee.rest.api.portal.rest.model.Subscription;
-import io.gravitee.rest.api.portal.rest.model.SubscriptionInput;
-import io.gravitee.rest.api.portal.rest.model.SubscriptionsResponse;
+import io.gravitee.rest.api.portal.rest.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +33,9 @@ import org.mockito.Mockito;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Arrays.asList;
@@ -42,8 +43,7 @@ import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
 /**
@@ -147,8 +147,12 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         SubscriptionInput subscriptionInput = new SubscriptionInput()
                 .application(APPLICATION)
                 .plan(PLAN)
-                .request("request")
-                ;
+                .request("request");
+
+        final ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        final Key key = new Key();
+        when(apiKeyService.findBySubscription(SUBSCRIPTION)).thenReturn(Collections.singletonList(apiKeyEntity));
+        when(keyMapper.convert(apiKeyEntity)).thenReturn(key);
 
         final Response response = target().request().post(Entity.json(subscriptionInput));
         assertEquals(OK_200, response.getStatus());
@@ -162,7 +166,9 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
         assertNotNull(subscriptionResponse);
         assertEquals(SUBSCRIPTION, subscriptionResponse.getId());
-
+        assertNotNull(subscriptionResponse.getKeys());
+        assertEquals(1, subscriptionResponse.getKeys().size());
+        assertEquals(key, subscriptionResponse.getKeys().get(0));
     }
 
     @Test

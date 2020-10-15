@@ -17,7 +17,9 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,14 +27,21 @@ import java.util.Map;
  */
 public class SwaggerDescriptorException extends AbstractManagementException {
 
-    @Override
-    public int getHttpStatusCode() {
-        return HttpStatusCode.BAD_REQUEST_400;
+    public SwaggerDescriptorException() {
+        super("Swagger descriptor: bad format");
+    }
+
+    public SwaggerDescriptorException(String message) {
+        super(message);
+    }
+
+    public SwaggerDescriptorException(List<String> messages) {
+        super(messages.stream().map(msg -> "\"" + msg + "\"").collect(Collectors.toList()).toString());
     }
 
     @Override
-    public String getMessage() {
-        return "Swagger descriptor: bad format";
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
     }
 
     @Override

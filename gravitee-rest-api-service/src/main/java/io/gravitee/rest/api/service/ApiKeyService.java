@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.Set;
-
 import io.gravitee.rest.api.model.ApiKeyEntity;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,7 +33,7 @@ public interface ApiKeyService {
 
     ApiKeyEntity reactivate(String apiKey);
 
-    Set<ApiKeyEntity> findBySubscription(String subscription);
+    List<ApiKeyEntity> findBySubscription(String subscription);
 
     ApiKeyEntity findByKey(String apiKey);
 

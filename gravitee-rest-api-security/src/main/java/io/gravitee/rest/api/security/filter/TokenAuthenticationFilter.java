@@ -19,7 +19,6 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
@@ -27,13 +26,14 @@ import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -45,8 +45,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Set;
 
 import static java.net.URLDecoder.decode;
 import static java.nio.charset.Charset.defaultCharset;
@@ -67,14 +68,17 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
     private CookieGenerator cookieGenerator;
     private UserService userService;
     private TokenService tokenService;
+    private AuthoritiesProvider authoritiesProvider;
 
     public TokenAuthenticationFilter(final String jwtSecret, final CookieGenerator cookieGenerator,
-                                     final UserService userService, final TokenService tokenService) {
+                                     final UserService userService, final TokenService tokenService,
+                                     final AuthoritiesProvider authoritiesProvider) {
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
         jwtVerifier = JWT.require(algorithm).build();
         this.cookieGenerator = cookieGenerator;
         this.userService = userService;
         this.tokenService = tokenService;
+        this.authoritiesProvider = authoritiesProvider;
     }
 
     @Override
@@ -104,15 +108,8 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                     if (tokenValue.contains(".")) {
                         final DecodedJWT jwt = jwtVerifier.verify(tokenValue);
 
-                        Claim permissionsClaim = jwt.getClaim(Claims.PERMISSIONS);
-
-                        List<SimpleGrantedAuthority> authorities;
-
-                        if (permissionsClaim != null) {
-                            authorities = permissionsClaim.asList(Map.class).stream().map(o -> new SimpleGrantedAuthority((String) o.get("authority"))).collect(Collectors.toList());
-                        } else {
-                            authorities = Collections.emptyList();
-                        }
+                        final Set<GrantedAuthority> authorities =
+                                this.authoritiesProvider.retrieveAuthorities(jwt.getClaim(Claims.SUBJECT).asString());
 
                         final UserDetails userDetails = new UserDetails(getStringValue(jwt.getSubject()), "",
                                 authorities);
@@ -120,18 +117,21 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
                         userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
 
-                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     } else if (tokenService != null && userService != null) {
                         final Token token = tokenService.findByToken(tokenValue);
                         final UserEntity user = userService.findById(token.getReferenceId());
 
-                        final UserDetails userDetails = new UserDetails(user.getId(), "", Collections.emptyList());
+                        final Set<GrantedAuthority> authorities = this.authoritiesProvider.retrieveAuthorities(user.getId());
+
+                        final UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
                         userDetails.setFirstname(user.getFirstname());
                         userDetails.setLastname(user.getLastname());
                         userDetails.setEmail(user.getEmail());
                         userDetails.setSource("token");
                         userDetails.setSourceId(token.getName());
-                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+
+                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     }
                 } else {
                     LOGGER.debug("Authorization schema not found");

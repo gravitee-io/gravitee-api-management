@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.security;
 
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
+import io.gravitee.rest.api.service.MembershipService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -26,7 +28,7 @@ import io.gravitee.rest.api.security.authentication.AuthenticationProviderManage
 import io.gravitee.rest.api.security.authentication.impl.AuthenticationProviderManagerImpl;
 
 /**
- * 
+ *
  * @author Titouan COMPIEGNE
  *
  */
@@ -42,5 +44,10 @@ public class SecurityManagementConfiguration extends GlobalAuthenticationConfigu
     @Bean
     public AuthenticationProviderManager authenticationProviderManager() {
         return new AuthenticationProviderManagerImpl();
+    }
+
+    @Bean
+    public AuthoritiesProvider authoritiesProvider(MembershipService membershipService) {
+        return new AuthoritiesProvider(membershipService);
     }
 }

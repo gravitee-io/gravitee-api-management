@@ -15,25 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -44,6 +25,17 @@ import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -73,7 +65,7 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
         doReturn(subscriptionEntity).when(subscriptionService).findById(SUBSCRIPTION);
         doThrow(SubscriptionNotFoundException.class).when(subscriptionService).findById(UNKNOWN_SUBSCRIPTION);
 
-        doReturn(new HashSet<ApiKeyEntity>(Arrays.asList(new ApiKeyEntity()))).when(apiKeyService).findBySubscription(SUBSCRIPTION);
+        doReturn(Arrays.asList(new ApiKeyEntity())).when(apiKeyService).findBySubscription(SUBSCRIPTION);
 
 
         doReturn(new Subscription()).when(subscriptionMapper).convert(any());

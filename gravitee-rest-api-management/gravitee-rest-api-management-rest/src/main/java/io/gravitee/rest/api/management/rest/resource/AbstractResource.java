@@ -17,10 +17,6 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -36,9 +32,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.StreamingOutput;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.gravitee.rest.api.model.MembershipMemberType.USER;
@@ -122,19 +119,20 @@ public abstract class AbstractResource {
 
     protected void canReadAPI(final String api) {
         if (!isAdmin()) {
-            final boolean canReadAPI = retrieveApiMembership().flatMap(membership -> {
-                // membership is possible thanks to a group
-                // in this case we have to query ApiService to retrieve all the API for this group
-                if (GROUP.equals(membership.getReferenceType())) {
-                    final ApiQuery apiQuery = new ApiQuery();
-                    apiQuery.setGroups(Arrays.asList(membership.getReferenceId()));
-                    return apiService.search(apiQuery).stream().map(ApiEntity::getId);
-                } else {
-                    // otherwise, user is a member for an API
-                    return Stream.of(membership.getReferenceId());
-                }
-            }).anyMatch(ref -> api.equals(ref));
+            // get memberships of the current user
+            List<MembershipEntity> memberships = retrieveApiMembership().collect(Collectors.toList());
+            Set<String> groups = memberships.stream().filter(m -> GROUP.equals(m.getReferenceType())).map(m -> m.getReferenceId()).collect(Collectors.toSet());
+            Set<String> directMembers =  memberships.stream().filter(m -> API.equals(m.getReferenceType())).map(m -> m.getReferenceId()).collect(Collectors.toSet());
 
+            // if the current user is member of the API, continue
+            if (directMembers.contains(api)) {
+                return;
+            }
+
+            // fetch group memberships
+            final ApiQuery apiQuery = new ApiQuery();
+            apiQuery.setGroups(new ArrayList<>(groups));
+            final boolean canReadAPI = apiService.searchIds(apiQuery).contains(api);
             if (!canReadAPI) {
                 throw new ForbiddenAccessException();
             }
