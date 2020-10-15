@@ -601,33 +601,24 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     private Set<ApplicationListItem> convertToList(Set<Application> applications) throws TechnicalException {
         Set<ApplicationEntity> entities = convert(applications);
+        return entities.stream().map(applicationEntity -> {
+            ApplicationListItem item = new ApplicationListItem();
 
-        return entities.stream().map(new Function<ApplicationEntity, ApplicationListItem>() {
-            @Override
-            public ApplicationListItem apply(ApplicationEntity applicationEntity) {
-                ApplicationListItem item = new ApplicationListItem();
+            item.setId(applicationEntity.getId());
+            item.setName(applicationEntity.getName());
+            item.setDescription(applicationEntity.getDescription());
+            item.setCreatedAt(applicationEntity.getCreatedAt());
+            item.setUpdatedAt(applicationEntity.getUpdatedAt());
+            item.setGroups(applicationEntity.getGroups());
+            item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
+            item.setType(applicationEntity.getType());
+            item.setStatus(applicationEntity.getStatus());
 
-                item.setId(applicationEntity.getId());
-                item.setName(applicationEntity.getName());
-                item.setDescription(applicationEntity.getDescription());
-                item.setCreatedAt(applicationEntity.getCreatedAt());
-                item.setUpdatedAt(applicationEntity.getUpdatedAt());
-                item.setGroups(applicationEntity.getGroups());
-                item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
-                item.setType(applicationEntity.getType());
-                item.setStatus(applicationEntity.getStatus());
+            final Application app = applications.stream()
+                    .filter(application -> application.getId().equals(applicationEntity.getId())).findFirst().get();
+            item.setSettings(getSettings(app));
 
-                ApplicationListItemSettings settings = new ApplicationListItemSettings();
-                if (applicationEntity.getSettings().getApp() != null) {
-                    settings.setType(applicationEntity.getSettings().getApp().getType());
-                    settings.setClientId(applicationEntity.getSettings().getApp().getClientId());
-                } else if (applicationEntity.getSettings().getoAuthClient() != null) {
-                    settings.setClientId(applicationEntity.getSettings().getoAuthClient().getClientId());
-                }
-                item.setSettings(settings);
-
-                return item;
-            }
+            return item;
         }).collect(Collectors.toSet());
     }
 
@@ -654,7 +645,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
         applicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
 
-        ApplicationSettings settings = new ApplicationSettings();
+        applicationEntity.setSettings(getSettings(application));
+        applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
+        return applicationEntity;
+    }
+
+    private ApplicationSettings getSettings(Application application) {
+        final ApplicationSettings settings = new ApplicationSettings();
         if (application.getType() == ApplicationType.SIMPLE) {
             SimpleApplicationSettings simpleSettings = new SimpleApplicationSettings();
             if (application.getMetadata() != null) {
@@ -694,9 +691,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             settings.setoAuthClient(clientSettings);
         }
-        applicationEntity.setSettings(settings);
-        applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
-        return applicationEntity;
+        return settings;
     }
 
     private static Application convert(NewApplicationEntity newApplicationEntity) {

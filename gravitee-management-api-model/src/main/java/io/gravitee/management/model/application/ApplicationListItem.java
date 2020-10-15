@@ -78,7 +78,7 @@ public class ApplicationListItem {
     private PrimaryOwnerEntity primaryOwner;
 
     @JsonProperty("settings")
-    private ApplicationListItemSettings settings;
+    private ApplicationSettings settings;
 
     public String getId() {
         return id;
@@ -144,11 +144,11 @@ public class ApplicationListItem {
         this.status = status;
     }
 
-    public ApplicationListItemSettings getSettings() {
+    public ApplicationSettings getSettings() {
         return settings;
     }
 
-    public void setSettings(ApplicationListItemSettings settings) {
+    public void setSettings(ApplicationSettings settings) {
         this.settings = settings;
     }
 
