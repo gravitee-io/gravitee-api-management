@@ -74,7 +74,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
-
 import javax.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -93,6 +92,7 @@ import static io.gravitee.management.model.PageType.SWAGGER;
 import static io.gravitee.management.model.WorkflowState.DRAFT;
 import static io.gravitee.management.model.WorkflowType.REVIEW;
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
@@ -1867,9 +1867,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return updateApiEntity;
     }
 
+
     private ApiEntity updateWorkflowReview(final String apiId, final String userId, final ApiHook hook,
                                            final WorkflowState workflowState, final String workflowMessage) {
-        workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
+        Workflow workflow = workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
         final ApiEntity apiEntity = findById(apiId);
         apiEntity.setWorkflowState(workflowState);
 
@@ -1878,6 +1879,32 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .api(apiEntity)
                         .user(userService.findById(userId))
                         .build());
+
+        Map<Audit.AuditProperties, String> properties = new HashMap<>();
+        properties.put(Audit.AuditProperties.USER, userId);
+        properties.put(Audit.AuditProperties.API, apiId);
+
+        Workflow.AuditEvent evtType = null;
+        switch (workflowState) {
+            case REQUEST_FOR_CHANGES:
+                evtType = API_REVIEW_REJECTED;
+                break;
+            case REVIEW_OK:
+                evtType = API_REVIEW_ACCEPTED;
+                break;
+            default:
+                evtType = API_REVIEW_ASKED;
+                break;
+        }
+
+        auditService.createApiAuditLog(
+                apiId,
+                properties,
+                evtType,
+                new Date(),
+                null,
+                workflow);
+
         return apiEntity;
     }
 
