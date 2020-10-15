@@ -180,6 +180,8 @@ import DialogConfigureLoggingEditorController
 // Others
 import ThemeElementDirective from '../components/theme/theme-element.directive';
 
+import ErrorComponent from '../components/error/error.component';
+import ErrorController from '../components/error/error.controller';
 import IdentityPictureDirective from '../components/identityPicture/identityPicture.directive';
 import ImageDirective from '../components/image/image.directive';
 import EventsService from '../services/events.service';
@@ -789,6 +791,8 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvWidgetDataMapConfiguration', WidgetChartMapConfigurationComponent)
   .component('gvWidgetDataPieConfiguration', WidgetChartPieConfigurationComponent)
   .component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent)
+  .component('gvError', ErrorComponent)
+  .controller('errorCtrl', ErrorController)
 
   .component('categories', CategoriesComponent)
   .component('category', CategoryComponent)

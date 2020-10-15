@@ -51,7 +51,8 @@ function interceptorConfig(
               && $location.$$path !== '/'
               && $location.$$path !== '/login'
               && !$location.$$path.startsWith('/registration')
-              && !$location.$$path.startsWith('/resetPassword');
+              && !$location.$$path.startsWith('/resetPassword')
+              && !error.config.url.startsWith('/management/user/');
             if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
               sessionExpired = true;
               // session expired

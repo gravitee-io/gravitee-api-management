@@ -56,7 +56,7 @@ table.md-table.gv-table-dense {
 }
 
 .audit-properties {
-  display: grid; grid-gap: 5px; grid-template-columns: 90px 1fr; line-height: 20px;
+  display: grid; grid-gap: 5px; grid-template-columns: auto 1fr; line-height: 20px;
 }
 
 .audit-property {

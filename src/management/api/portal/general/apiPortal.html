@@ -49,7 +49,7 @@
                layout="column" layout-align="center center"></div>
           <gravitee-image ng-if="!portalCtrl.readOnly" image-id="portalCtrl.api.id" image="portalCtrl.api.picture"
                           image-url="portalCtrl.api.picture_url" image-name="portalCtrl.api.name + '  ' + portalCtrl.api.version"
-                          success-event-name="apiPictureChangeSuccess"></gravitee-image>
+                          success-event-name="apiPictureChangeSuccess" can-delete="true" delete-label="Use default"></gravitee-image>
 
           <div class="gravitee-api-header-image" ng-if="portalCtrl.readOnly"
                ng-style="{'background-image':'url({{portalCtrl.api.background || portalCtrl.api.background_url || 'assets/default_api_logo.png'}})'}"
@@ -57,7 +57,8 @@
           <gravitee-image ng-if="!portalCtrl.readOnly" image-id="'bg-' + portalCtrl.api.id" image="portalCtrl.api.background"
                           image-name="'bg-' + portalCtrl.api.name + '  ' + portalCtrl.api.version"
                           image-url="portalCtrl.api.background_url" change-label="Change background"
-                          no-default-image="true" success-event-name="apiBackgroundChangeSuccess"></gravitee-image>
+                          no-default-image="true" success-event-name="apiBackgroundChangeSuccess"
+                          can-delete="true" delete-label="Use default"></gravitee-image>
         </div>
 
         <div layout="row">

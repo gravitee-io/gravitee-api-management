@@ -57,10 +57,12 @@ class IdentityPictureController {
         div.title = $scope.imageName;
         div.innerHTML = jdenticon.toSvg($scope.imageName, ($scope.imageWidth ? $scope.imageWidth : 110), { backColor: '#FFF' });
       }
+      $scope.$apply();
     };
     $scope.imgLoad = function() {
       document.querySelector('#avatar_' + $scope.imageId).classList.add('show');
       document.querySelector('#jdenticon_' + $scope.imageId).classList.remove('show');
+      $scope.$apply();
     };
   }
 
