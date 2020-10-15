@@ -41,7 +41,6 @@ class UserController {
   }
 
   $onInit() {
-    console.log(this.user);
     if (! this.user || (this.user && this.user.id === undefined)) {
       this.$state.go('login', {}, {reload: true, inherit: false});
     } else {
