@@ -126,6 +126,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
                     clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
                     sendToClient(clientResponse);
+                    runningRequests.decrementAndGet();
                 }
             }
         });
@@ -172,6 +173,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
             }
 
             proxyResponse.endHandler().handle(null);
+            runningRequests.decrementAndGet();
         });
 
         clientResponse.exceptionHandler(throwable -> {
@@ -179,6 +181,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
                     httpClientRequest.method(), httpClientRequest.absoluteURI(), throwable.getMessage());
 
             proxyResponse.endHandler().handle(null);
+            runningRequests.decrementAndGet();
         });
 
         clientResponse.customFrameHandler(frame -> proxyResponse.writeCustomFrame(

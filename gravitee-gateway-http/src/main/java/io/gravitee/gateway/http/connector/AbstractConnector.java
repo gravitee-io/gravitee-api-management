@@ -44,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -75,6 +77,8 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     private final Map<Context, HttpClient> httpClients = new HashMap<>();
 
+    private AtomicInteger runningRequests = new AtomicInteger(0);
+
     @Override
     public ProxyConnection request(ProxyRequest proxyRequest) {
         final URI uri = proxyRequest.uri();
@@ -100,6 +104,8 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
         // Grab an instance of the HTTP client
         final HttpClient client = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
+
+        runningRequests.incrementAndGet();
 
         // Connect to the upstream
         return connection.connect(client, port, uri.getHost(),
@@ -253,7 +259,16 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("Closing HTTP Client for '{}' endpoint [{}]", endpoint.getName(), endpoint.getTarget());
+        LOGGER.info("Graceful shutdown of HTTP Client for endpoint[{}] target[{}] requests[{}]", endpoint.getName(), endpoint.getTarget(), runningRequests.get());
+        long shouldEndAt = System.currentTimeMillis() + endpoint.getHttpClientOptions().getReadTimeout();
+
+        while (runningRequests.get() != 0 && System.currentTimeMillis() <= shouldEndAt) {
+            TimeUnit.MILLISECONDS.sleep(100);
+        }
+
+        if (runningRequests.get() > 0) {
+            LOGGER.warn("Cancel requests[{}] for endpoint[{}] target[{}]", runningRequests.get(), endpoint.getName(), endpoint.getTarget());
+        }
 
         httpClients.values().forEach(httpClient -> {
             try {
