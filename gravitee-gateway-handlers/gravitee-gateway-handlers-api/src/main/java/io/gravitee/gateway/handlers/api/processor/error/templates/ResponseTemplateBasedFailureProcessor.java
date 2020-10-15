@@ -22,6 +22,7 @@ import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
 

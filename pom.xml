@@ -253,8 +253,8 @@
         <gravitee-plugin-policy.version>1.15.1-SNAPSHOT</gravitee-plugin-policy.version>
         <gravitee-plugin-alert.version>1.15.1-SNAPSHOT</gravitee-plugin-alert.version>
         <gravitee-plugin-service-discovery.version>1.15.1-SNAPSHOT</gravitee-plugin-service-discovery.version>
-        <gravitee-gateway-api.version>1.21.1</gravitee-gateway-api.version>
-        <gravitee-policy-api.version>1.9.0</gravitee-policy-api.version>
+        <gravitee-gateway-api.version>1.22.0-SNAPSHOT</gravitee-gateway-api.version>
+        <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
         <gravitee-alert-api.version>1.5.0</gravitee-alert-api.version>
         <gravitee-reporter-api.version>1.18.0</gravitee-reporter-api.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
@@ -272,6 +272,7 @@
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <protobuf-java.version>3.12.2</protobuf-java.version>
         <hazelcast.version>3.12.9</hazelcast.version>
+        <jmh.version>1.26</jmh.version>
     </properties>
 
     <build>

@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.api.path.impl;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.handlers.api.path.Path;
+import io.gravitee.gateway.handlers.api.path.PathParam;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.netty.handler.codec.http.QueryStringDecoder;
 
@@ -41,7 +42,7 @@ public abstract class AbstractPathResolver implements PathResolver {
 
     private final List<Path> registeredPaths = new ArrayList<>();
 
-    private final static Path UNNOWN_PATH = new Path() {
+    private final static Path UNKNOWN_PATH = new Path() {
         @Override
         public String getPath() {
             return null;
@@ -52,10 +53,6 @@ public abstract class AbstractPathResolver implements PathResolver {
             return Collections.emptyList();
         }
     };
-
-    AbstractPathResolver() {
-
-    }
 
     @Override
     public Path resolve(final Request request) {
@@ -84,17 +81,21 @@ public abstract class AbstractPathResolver implements PathResolver {
             }
         }
 
-        return ( bestPath != null ) ? bestPath : UNNOWN_PATH;
+        return ( bestPath != null ) ? bestPath : UNKNOWN_PATH;
     }
 
     protected void register(Path path) {
         String [] branches = path.getPath().split(URL_PATH_SEPARATOR);
         StringBuilder buffer = new StringBuilder(URL_PATH_SEPARATOR);
+        List<PathParam> parameters = new ArrayList<>();
 
-        for(String branch : branches) {
-            if (! branch.isEmpty()) {
+        for (int i = 0 ; i < branches.length ; i++) {
+            final String branch = branches[i];
+            if (!branch.isEmpty()) {
                 if (branch.startsWith(PATH_PARAM_PREFIX)) {
                     buffer.append(PATH_PARAM_REGEX);
+                    parameters.add(new PathParam(
+                            branch.substring(PATH_PARAM_PREFIX.length()), i));
                 } else {
                     buffer.append(branch);
                 }
@@ -107,6 +108,8 @@ public abstract class AbstractPathResolver implements PathResolver {
         buffer.append('?');
 
         path.setPattern(Pattern.compile(buffer.toString()));
+        path.setParameters(parameters);
+
         registeredPaths.add(path);
     }
 }

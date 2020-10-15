@@ -18,9 +18,10 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
+import io.gravitee.common.http.IdGenerator;
+import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
-import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -50,6 +51,8 @@ public class VertxHttpServerRequest implements Request {
     protected final HttpServerRequest serverRequest;
 
     private MultiValueMap<String, String> queryParameters = null;
+
+    private MultiValueMap<String, String> pathParameters = null;
 
     private HttpHeaders headers = null;
 
@@ -109,6 +112,15 @@ public class VertxHttpServerRequest implements Request {
         }
 
         return queryParameters;
+    }
+
+    @Override
+    public MultiValueMap<String, String> pathParameters() {
+        if (pathParameters == null) {
+            pathParameters = new LinkedMultiValueMap<>();
+        }
+
+        return pathParameters;
     }
 
     @Override
@@ -222,6 +234,7 @@ public class VertxHttpServerRequest implements Request {
         return this.timeoutHandler;
     }
 
+    @Override
     public boolean isWebSocket() {
         return false;
     }

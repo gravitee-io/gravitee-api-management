@@ -21,7 +21,6 @@ import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.policy.RuleBasedPolicyResolver;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.gateway.reactor.handler.Entrypoint;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -38,27 +37,15 @@ import java.util.List;
  */
 public class ApiPolicyResolver extends RuleBasedPolicyResolver {
 
-    private final static String API_RESOLVED_PATH = ExecutionContext.ATTR_PREFIX + "api-policy-path";
+    public final static String API_RESOLVED_PATH = ExecutionContext.ATTR_PREFIX + "api-policy-path";
 
     @Autowired
     private PathResolver pathResolver;
 
     @Override
     public List<Policy> resolve(StreamType streamType, ExecutionContext context) {
-        // Check that the path has already been calculated
+        // Has been registered in path parameters processor
         Path path = (Path) context.getAttribute(API_RESOLVED_PATH);
-
-        if (path == null) {
-            // Resolve the "configured" path according to the inbound request
-            path = pathResolver.resolve(context.request());
-
-            context.setAttribute(API_RESOLVED_PATH, path);
-
-            // TODO: deprecated ?
-            // Not sure this is used by someone during policies processing
-            // Perhaps it may be removed in the future
-            context.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, path.getPath());
-        }
 
         // TODO: optimization: get the policy according to the stream type
         // It must be pre-computed for the Path

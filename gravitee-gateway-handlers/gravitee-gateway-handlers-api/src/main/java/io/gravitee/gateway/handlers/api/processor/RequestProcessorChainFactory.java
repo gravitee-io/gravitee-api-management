@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
 import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
+import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
@@ -31,10 +32,12 @@ import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProcessor;
+import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersIndexProcessor;
 import io.gravitee.gateway.policy.PolicyChainProvider;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.security.core.SecurityPolicyChainProvider;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
@@ -57,6 +60,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
     @Value("${handlers.request.headers.x-forwarded-prefix:false}")
     private boolean overrideXForwardedPrefix;
 
+    @Override
     public void afterPropertiesSet() {
         ApiPolicyResolver apiPolicyResolver = new ApiPolicyResolver();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPolicyResolver);
@@ -71,9 +75,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyResolver);
         PolicyChainProvider planPolicyChainProvider = new PlanPolicyChainProvider(StreamType.ON_REQUEST, planPolicyResolver);
 
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(securityPolicyChainProvider);
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(planPolicyChainProvider);
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPolicyResolver);
+        final PathParametersIndexProcessor pathParametersIndexProcessor = new PathParametersIndexProcessor();
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(pathParametersIndexProcessor);
 
         ProcessorSupplier<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> loggingDecorator = null;
 
@@ -106,6 +109,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             providers.add(new ProcessorSupplier<>(() ->
                     new StreamableProcessorDecorator<>(new XForwardedPrefixProcessor())));
         }
+
+        providers.add(new ProcessorSupplier<>(() -> new StreamableProcessorDecorator<>(pathParametersIndexProcessor)));
 
         providers.add(planPolicyChainProvider);
         providers.add(apiPolicyChainProvider);

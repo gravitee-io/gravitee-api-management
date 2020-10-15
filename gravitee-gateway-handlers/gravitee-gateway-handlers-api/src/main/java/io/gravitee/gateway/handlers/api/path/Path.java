@@ -37,6 +37,11 @@ public class Path {
     private Pattern pattern;
 
     /**
+     * List of pathParam name
+     */
+    private List<PathParam> parameters;
+
+    /**
      * Rules to apply when request path match this path
      */
     private List<Rule> rules;
@@ -63,5 +68,13 @@ public class Path {
 
     public void setPattern(Pattern pattern) {
         this.pattern = pattern;
+    }
+
+    public List<PathParam> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<PathParam> parameters) {
+        this.parameters = parameters;
     }
 }
