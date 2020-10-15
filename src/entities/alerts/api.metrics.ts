@@ -56,6 +56,7 @@ export class ApiMetrics extends Metrics {
             'REQUEST_TIMEOUT',
             'REQUEST_VALIDATION_INVALID',
             'RESOURCE_FILTERING_FORBIDDEN',
+            'RESOURCE_FILTERING_METHOD_NOT_ALLOWED',
             'RBAC_FORBIDDEN',
             'RBAC_INVALID_USER_ROLES',
             'RBAC_NO_USER_ROLE',
