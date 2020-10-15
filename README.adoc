@@ -29,15 +29,57 @@ $ mvn clean package
 
 == Installing
 
-Unzip the gravitee-repository-redis-1.20.0-SNAPSHOT.zip in the gravitee home directory.
+Unzip the gravitee-repository-redis-3.1.0-SNAPSHOT.zip in the gravitee home directory.
 
 == Configuration
 
-  repository.redis options :
+  repository.redis options (standalone) :
 
   | Parameter                                        |   default  |
   | ------------------------------------------------ | ---------: |
-  | host                                             |  localhost |
+  | host                                             | localhost  |
   | port                                             |      6379  |
   | password                                         |            |
-  | timeout                                          |        -1  |
+  | timeout                                          |   1000 ms  |
+
+  repository.redis options (using sentinel) :
+
+  | Parameter                                        |   default  |
+  | ------------------------------------------------ | ---------: |
+  | sentinel.nodes                                   |            |
+  | sentinel.password                                |            |
+  | sentinel.master (mandatory when using Sentinel)  |            |
+  | password                                         |            |
+  | timeout                                          |   1000 ms  |
+
+Examples :
+
+_Standalone redis_ :
+
+[source,yaml]
+----
+redis:
+  host: 'redis.mycompany'
+  port: 6379
+  password: 'mysecretpassword'
+  timeout: 2000
+----
+
+_Redis replicaset behind Sentinels_ :
+
+[source,yaml]
+----
+redis:
+  sentinel:
+    master: 'mymaster'
+    nodes:
+      - host: 'sentinel-1.mycompany'
+        port: 26379
+      - host: 'sentinel-2.mycompany'
+        port: 26379
+      - host: 'sentinel-3.mycompany'
+        port: 26379
+    password: 'sentinel-password'
+  password: 'redis-password'
+  timeout: 2000
+----
