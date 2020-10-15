@@ -39,6 +39,7 @@ i18n([
   'gv-file-upload.error.maxSize',
   'gv-file-upload.orDragIt',
   'gv-file-upload.error.typeNotAllowed',
+  'gv-file-upload.removePicture',
   'gv-header.empty',
   'gv-header.error',
   'gv-header.subscribe',

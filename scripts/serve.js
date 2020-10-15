@@ -3,12 +3,12 @@ const express = require('express');
 const app = express();
 
 app.use(compression());
-app.use(express.static('dist/gravitee-portal-webui'));
+app.use(express.static('dist'));
 
 app.all("/*", function(req, res) {
-  res.sendFile('index.html', { root: 'dist/gravitee-portal-webui' });
+  res.sendFile('index.html', { root: 'dist' });
 });
 
-app.listen(3000, function () {
-  console.log('Example app listening at http://localhost:3000')
+app.listen(4100, function () {
+  console.log('Example app listening at http://localhost:4100')
 });

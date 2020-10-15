@@ -13,97 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+import { createPipeFactory, SpectatorPipe } from '@ngneat/spectator';
 import { SafePipe } from './safe.pipe';
-import {
-  DomSanitizer,
-  SafeValue,
-} from '@angular/platform-browser';
-import { SecurityContext } from '@angular/core';
-
-class MockDomSanitizer extends DomSanitizer {
-  bypassSecurityTrustHtml = jasmine.createSpy('bypassSecurityTrustHtml');
-
-  bypassSecurityTrustResourceUrl = jasmine.createSpy('bypassSecurityTrustResourceUrl');
-
-  bypassSecurityTrustScript = jasmine.createSpy('bypassSecurityTrustScript');
-
-  bypassSecurityTrustStyle = jasmine.createSpy('bypassSecurityTrustStyle');
-
-  bypassSecurityTrustUrl = jasmine.createSpy('bypassSecurityTrustUrl');
-
-  sanitize(context: SecurityContext, value: SafeValue | string | null): string | null;
-  sanitize(context: SecurityContext, value: SafeValue | string | null | {}): string | null {
-    return undefined;
-  }
-
-}
 
 describe('SafePipe', () => {
 
+  let spectator: SpectatorPipe<SafePipe>;
+  const createPipe = createPipeFactory({
+    pipe: SafePipe,
+  });
+
   it('create an instance', () => {
-    const tds = new MockDomSanitizer();
-    const pipe = new SafePipe(tds);
-    expect(pipe).toBeTruthy();
+    spectator = createPipe();
+    expect(spectator.element).toBeTruthy();
   });
 
   it('should throw an Error when type is unknown', () => {
-    const unsafeCode = 'http://foo.bar';
-    const domSanitizer = new MockDomSanitizer();
-    const pipe = new SafePipe(domSanitizer);
-    const fakePipe = 'fakePipe';
-    expect(() => {
-      pipe.transform(unsafeCode, fakePipe);
-    }).toThrow(new Error(`Invalid safe type specified: ${fakePipe}`));
+    try {
+      createPipe(`{{ 'http://foo.bar' | safe:'foobar' }}`);
+    } catch (e) {
+      expect(e).toEqual(new Error(`Invalid safe type specified: foobar`));
+    }
   });
 
   it('should safe HTML', () => {
-    const unsafeCode = '<foo></foo>';
-    const domSanitizer = new MockDomSanitizer();
-    const pipe = new SafePipe(domSanitizer);
-
-    pipe.transform(unsafeCode, 'html');
-
-    expect(domSanitizer.bypassSecurityTrustHtml).toHaveBeenCalledWith(unsafeCode);
+    spectator = createPipe(`{{ '<div>foo</div>' | safe:'html' }}`);
+    expect(spectator.element).toHaveText('foo');
   });
 
   it('should safe Script', () => {
-    const unsafeCode = 'var foo = bar*2;';
-    const domSanitizer = new MockDomSanitizer();
-    const pipe = new SafePipe(domSanitizer);
-
-    pipe.transform(unsafeCode, 'script');
-
-    expect(domSanitizer.bypassSecurityTrustScript).toHaveBeenCalledWith(unsafeCode);
+    const value = 'var foo = bar*2;';
+    spectator = createPipe(`{{ value | safe:'script' }}`,{
+      hostProps: {
+        value
+      }
+    });
+    expect(spectator.element).toHaveText(value);
   });
 
   it('should safe Resource URL', () => {
-    const unsafeCode = '/assets/foo/bar';
-    const domSanitizer = new MockDomSanitizer();
-    const pipe = new SafePipe(domSanitizer);
-
-    pipe.transform(unsafeCode, 'resourceUrl');
-
-    expect(domSanitizer.bypassSecurityTrustResourceUrl).toHaveBeenCalledWith(unsafeCode);
+    spectator = createPipe(`{{ '/assets/foo/bar' | safe:'resourceUrl' }}`);
+    expect(spectator.element).toHaveText('/assets/foo/bar' );
   });
 
   it('should safe style', () => {
-    const unsafeCode = '<style>--foo: bar;</style>';
-    const domSanitizer = new MockDomSanitizer();
-    const pipe = new SafePipe(domSanitizer);
-
-    pipe.transform(unsafeCode, 'style');
-
-    expect(domSanitizer.bypassSecurityTrustStyle).toHaveBeenCalledWith(unsafeCode);
+    spectator = createPipe(`{{ '<style>.foo { display: none;}</style>' | safe:'style' }}`);
+    expect(spectator.element).toBeDefined();
   });
 
   it('should safe URL', () => {
-    const unsafeCode = 'http://foo.bar';
-    const domSanitizer = new MockDomSanitizer();
-    const pipe = new SafePipe(domSanitizer);
-
-    pipe.transform(unsafeCode, 'url');
-
-    expect(domSanitizer.bypassSecurityTrustUrl).toHaveBeenCalledWith(unsafeCode);
+    spectator = createPipe(`{{ 'http://foo.bar' | safe:'url' }}`);
+    expect(spectator.element).toHaveText('http://foo.bar');
   });
 
 });

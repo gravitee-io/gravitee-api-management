@@ -19,7 +19,7 @@ import '@gravitee/ui-components/wc/gv-file-upload';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { AppComponent } from '../../../app.component';
 import { CurrentUserService } from '../../../services/current-user.service';
-import { CustomUserFields, User, UserService, UsersService } from '@gravitee/ng-portal-webclient';
+import { CustomUserFields, User, UserService, UsersService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
 
@@ -61,7 +61,7 @@ export class UserAccountComponent implements OnInit, OnDestroy {
       const formDescriptor: any = {
         display_name: new FormControl( { value: this.displayName, disabled: true }, Validators.required),
         email: new FormControl({ value: this.email, disabled: true }, Validators.required),
-        avatar: new FormControl(this.avatar, Validators.required)
+        avatar: new FormControl(this.avatar)
       };
 
       if (this.currentUser.customFields) {

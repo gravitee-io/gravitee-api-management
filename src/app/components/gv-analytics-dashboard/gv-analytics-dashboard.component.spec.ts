@@ -13,41 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
+import { AnalyticsService } from '../../services/analytics.service';
 
 import { GvAnalyticsDashboardComponent } from './gv-analytics-dashboard.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { AnalyticsService } from '../../services/analytics.service';
-import { provideMock } from '../../test/mock.helper.spec';
 
 describe('GvAnalyticsDashboardComponent', () => {
-  let component: GvAnalyticsDashboardComponent;
-  let fixture: ComponentFixture<GvAnalyticsDashboardComponent>;
-  let analyticsService;
+  const createComponent = createComponentFactory({
+    component: GvAnalyticsDashboardComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
+    providers: [
+      mockProvider(AnalyticsService)
+    ]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ GvAnalyticsDashboardComponent ],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(AnalyticsService)
-      ]
-    })
-    .compileComponents();
-  }));
+  let spectator: Spectator<GvAnalyticsDashboardComponent>;
+  let component;
 
   beforeEach(() => {
-    analyticsService = TestBed.inject(AnalyticsService);
-    fixture = TestBed.createComponent(GvAnalyticsDashboardComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

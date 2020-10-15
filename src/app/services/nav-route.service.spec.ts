@@ -13,66 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
-import { UserTestingModule } from '../test/user-testing-module';
-
-import { NavRouteService } from './nav-route.service';
-import { provideMock } from '../test/mock.helper.spec';
-import { TranslateService } from '@ngx-translate/core';
-import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ActivatedRoute } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createHttpFactory, createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator';
+import { UserTestingModule } from '../test/user-testing-module';
+import { NavRouteService } from './nav-route.service';
+import { TranslateService } from '@ngx-translate/core';
 import { FeatureGuardService } from './feature-guard.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { AuthGuardService } from './auth-guard.service';
 import { CurrentUserService } from './current-user.service';
-import { TranslateTestingModule } from '../test/translate-testing-module';
 import { PermissionGuardService } from './permission-guard.service';
 
 describe('NavRouteService', () => {
 
-  let router: Router;
-  let translateService: TranslateService;
-  let featureGuardService: FeatureGuardService;
-  let authGuardService: AuthGuardService;
+  let service: SpectatorService<NavRouteService>;
+  const createService = createServiceFactory({
+    service: NavRouteService,
+    imports: [
+      UserTestingModule,
+      HttpClientTestingModule,
+      RouterTestingModule.withRoutes([
+        { path: 'foobar', redirectTo: '', children: [{ path: 'bar', redirectTo: '', children: [{ path: 'foo', redirectTo: '' }] }] },
+        { path: 'catalog', redirectTo: '' },
+        {
+          path: 'catalogWithChildren',
+          data: { menu: true },
+          children: [
+            { path: 'catalogChild', data: { title: 'Hey' }, redirectTo: '' },
+            { path: 'otherChild', data: {}, redirectTo: '' }
+          ]
+        }
+      ]),
+    ],
+    providers: [
+      mockProvider(FeatureGuardService),
+      mockProvider(ActivatedRoute),
+    ]
+  });
   let routeService: NavRouteService;
-  let currentUserService: CurrentUserService;
   let permissionGuardService: PermissionGuardService;
-
+  let featureGuardService: FeatureGuardService;
   beforeEach(() => {
-
-    TestBed.configureTestingModule({
-      imports: [
-        TranslateTestingModule,
-        UserTestingModule,
-        HttpClientTestingModule,
-        RouterTestingModule.withRoutes([
-          { path: 'foobar', redirectTo: '', children: [{ path: 'bar', redirectTo: '', children: [{ path: 'foo', redirectTo: '' }] }] },
-          { path: 'catalog', redirectTo: '' },
-          {
-            path: 'catalogWithChildren',
-            data: { menu: true },
-            children: [
-              { path: 'catalogChild', data: { title: 'Hey' }, redirectTo: '' },
-              { path: 'otherChild', data: {}, redirectTo: '' }
-            ]
-          }
-        ]),
-      ],
-      providers: [
-        provideMock(FeatureGuardService),
-        provideMock(ActivatedRoute),
-      ]
-    });
-
-    router = TestBed.inject(Router);
-    currentUserService = TestBed.inject(CurrentUserService);
-    featureGuardService = TestBed.inject(FeatureGuardService);
-    authGuardService = TestBed.inject(AuthGuardService);
-    translateService = TestBed.inject(TranslateService);
-    permissionGuardService = TestBed.inject(PermissionGuardService);
-
-    routeService = new NavRouteService(router, translateService, featureGuardService, currentUserService, authGuardService,
-      permissionGuardService);
+    service = createService();
+    service.inject(CurrentUserService);
+    service.inject(AuthGuardService);
+    service.inject(TranslateService);
+    featureGuardService = service.inject(FeatureGuardService);
+    permissionGuardService = service.inject(PermissionGuardService);
+    routeService = service.service;
   });
 
   it('should be created', () => {
@@ -91,18 +80,16 @@ describe('NavRouteService', () => {
   });
 
   it('should get null children nav if parent does not have data.menu', async () => {
-    featureGuardService.canActivate = jasmine.createSpy().and.returnValue(true);
-    const service: NavRouteService = TestBed.inject(NavRouteService);
+    featureGuardService.canActivate = jest.fn(() => true);
     const catalog = routeService.getRouteByPath('catalog');
-    const routes = await service.getChildrenNav(catalog);
+    const routes = await routeService.getChildrenNav(catalog);
     expect(routes).toEqual(null);
   });
 
   it('should get children nav if parent have data.menu and child have data.title', async () => {
-    featureGuardService.canActivate = jasmine.createSpy().and.returnValue(true);
-    const service: NavRouteService = TestBed.inject(NavRouteService);
+    featureGuardService.canActivate = jest.fn(() => true);
     const catalog = routeService.getRouteByPath('catalogWithChildren');
-    const routes = await service.getChildrenNav(catalog);
+    const routes = await routeService.getChildrenNav(catalog);
     expect(routes.length).toEqual(1);
   });
 

@@ -34,16 +34,16 @@
   },
   "apiGeneral": {
     "description": "Description",
-    "giveRating": "Share your opinion",
+    "giveRating": "Share your review",
     "rate": "Note",
     "rateComment": "Explain to us why",
     "rateTitle": "Would you recommend this API ?",
     "rateTitlePlaceholder": "In a word",
-    "ratingAnswerCreated": "Your response has been sent",
+    "ratingAnswerCreated": "Your answer has been sent",
     "ratingAnswerDeleted": "Your answer has been deleted",
-    "ratingCreated": "Your opinion has been sent",
+    "ratingCreated": "Your review has been sent",
     "ratingDeleted": "Your review has been deleted",
-    "ratingUpdated": "Thank you for giving your advise",
+    "ratingUpdated": "Thank you for giving your review",
     "ratingsSortOptions": {
       "answers": "Most commented",
       "best": "Best rated",
@@ -89,11 +89,11 @@
       "congratulations": "Bravo !",
       "discoverApi": "Start discovering the API",
       "goToHome": "Back to home",
+      "oauth2": "You have to get an access_token from the authorization server before being able to consume this API.",
       "subscriptionAccepted": "The subscription of the application <b>{appName}</b> to the plan <b>{planName}</b> of the API <b>{apiName}</b> is accepted!",
       "subscriptionKey": "Here is your personal key to access the API",
       "subscriptionPending": "The subscription of the application <b>{appName}</b> to the plan <b>{planName}</b> of the API <b>{apiName}</b> is being validated.",
-      "subscriptionRejected": "The subscription of the <b>{appName}</b> application to the <b>{planName}</b> plan of the API <b>{apiName}</b> is rejected.",
-      "oauth2": "You have to get an access_token from the authorization server before being able to consume this API."
+      "subscriptionRejected": "The subscription of the <b>{appName}</b> application to the <b>{planName}</b> plan of the API <b>{apiName}</b> is rejected."
     },
     "validate": {
       "askConfirmation": "The subscription of the <b>{appName}</b> application to the <b>{planName}</b> plan of the API <b>{apiName}</b> is about to be finalized .",
@@ -166,7 +166,7 @@
       "label": "Describe the goal of this application",
       "title": "Description"
     },
-    "general": "Général",
+    "general": "General",
     "information": {
       "createdDate": "Created",
       "lastUpdate": "Updated",
@@ -255,9 +255,6 @@
       }
     },
     "metadata": {
-      "add": {
-        "success": "The metadata \"{key}\" has been added"
-      },
       "format": "Format",
       "key": "Key",
       "list": {
@@ -265,8 +262,6 @@
           "title": "Add"
         },
         "remove": {
-          "message": "Are you sure to remove this metadata ?",
-          "success": "The metadata \"{key}\" has been removed",
           "title": "Remove"
         },
         "title": "Metadata list"
@@ -654,7 +649,6 @@
       "general_conditions_accept": "Plan {plan} require acceptance of general conditions.",
       "general_conditions_status": "Plan {plan} references a non published page as general conditions.",
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
-      "otherOAuth2OrJWTSubscribed": "An other OAuth2 or JWT plan is already subscribed by the same application.",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
     },
     "server": {
@@ -741,7 +735,8 @@
       "maxSize": "File size exceeds allowable limit",
       "typeNotAllowed": "This file type is not allowed"
     },
-    "orDragIt": "or drop it here."
+    "orDragIt": "or drop it here.",
+    "removePicture": "Remove picture"
   },
   "gv-header": {
     "empty": "No API to display here",
@@ -986,7 +981,7 @@
       "init": "Roll on an application to view its subscriptions",
       "navigate": "Go to the subscription",
       "plan": "Plan",
-      "start_date": "Date de début",
+      "start_date": "Start date",
       "title": "Subscriptions"
     },
     "title": "My subscriptions"

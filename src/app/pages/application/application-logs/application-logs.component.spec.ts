@@ -13,45 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
-import { ApplicationLogsComponent } from './application-logs.component';
-import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
 import { AnalyticsService } from '../../../services/analytics.service';
-import { provideMock } from '../../../test/mock.helper.spec';
+import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { ApplicationLogsComponent } from './application-logs.component';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('ApplicationLogsComponent', () => {
-  let component: ApplicationLogsComponent;
-  let fixture: ComponentFixture<ApplicationLogsComponent>;
-  let analyticsService;
+  const createComponent = createComponentFactory({
+    component: ApplicationLogsComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+    providers: [
+      mockProvider(AnalyticsService)
+    ]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ApplicationLogsComponent, GvPageComponent],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(AnalyticsService)
-      ]
-    })
-      .compileComponents();
-  }));
+  let spectator: Spectator<ApplicationLogsComponent>;
+  let component;
 
   beforeEach(() => {
-    analyticsService = TestBed.inject(AnalyticsService);
-    fixture = TestBed.createComponent(ApplicationLogsComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

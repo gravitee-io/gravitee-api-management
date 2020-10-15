@@ -73,7 +73,7 @@
   font-weight: bold;
 }
 
-.application__log__infos__block div, .application__log__infos__section > * {
+.application__log__infos__block div, .application__log__infos__section > div {
   overflow-x: auto;
 }
 

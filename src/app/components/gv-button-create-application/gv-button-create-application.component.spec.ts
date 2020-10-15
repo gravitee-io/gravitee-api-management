@@ -13,43 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-
+import { mockProvider } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { GvButtonCreateApplicationComponent } from './gv-button-create-application.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
-describe('GvCreateApplicationButtonComponent', () => {
-  let component: GvButtonCreateApplicationComponent;
-  let fixture: ComponentFixture<GvButtonCreateApplicationComponent>;
+describe('GvButtonCreateApplicationComponent', () => {
+  const createComponent = createComponentFactory({
+    component: GvButtonCreateApplicationComponent,
+    imports: [
+      RouterTestingModule, HttpClientTestingModule
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
+      mockProvider(PortalService),
+    ]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
-        TranslateTestingModule,
-        HttpClientTestingModule,
-      ],
-      declarations: [
-        GvButtonCreateApplicationComponent
-      ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        GvButtonCreateApplicationComponent,
-      ]
-    }).compileComponents();
-  }));
+  let spectator: Spectator<GvButtonCreateApplicationComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvButtonCreateApplicationComponent);
-    component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

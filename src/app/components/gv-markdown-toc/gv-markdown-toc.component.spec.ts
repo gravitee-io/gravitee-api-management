@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { GvMarkdownTocComponent } from './gv-markdown-toc.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('GvMarkdownTocComponent', () => {
-  let component: GvMarkdownTocComponent;
-  let fixture: ComponentFixture<GvMarkdownTocComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ GvMarkdownTocComponent ],
-      imports: [ HttpClientTestingModule, RouterTestingModule ],
+  const createComponent = createComponentFactory({
+    component: GvMarkdownTocComponent,
+    imports: [ HttpClientTestingModule, RouterTestingModule ],
+  });
 
-    })
-    .compileComponents();
-  }));
+  let spectator: Spectator<GvMarkdownTocComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvMarkdownTocComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

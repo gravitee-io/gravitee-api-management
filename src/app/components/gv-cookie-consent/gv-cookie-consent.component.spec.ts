@@ -13,36 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { GvCookieConsentComponent } from './gv-cookie-consent.component';
-import { provideMock } from 'src/app/test/mock.helper.spec';
 import { HttpClient } from '@angular/common/http';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from 'src/app/test/translate-testing-module';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
+import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { GvCookieConsentComponent } from './gv-cookie-consent.component';
+import '@gravitee/ui-components/wc/gv-button';
 
-describe('GvCookieComponent', () => {
-  let component: GvCookieConsentComponent;
-  let fixture: ComponentFixture<GvCookieConsentComponent>;
+describe('GvCookieConsentComponent', () => {
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ GvCookieConsentComponent ],
-      imports: [
-        TranslateTestingModule,
-        RouterTestingModule,
-      ],
-      providers: [
-        provideMock(HttpClient),
-      ]
-    })
-    .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: GvCookieConsentComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+      TranslateTestingModule,
+      RouterTestingModule,
+    ],
+    providers: [
+      mockProvider(HttpClient),
+    ]
+  });
+
+  let spectator: Spectator<GvCookieConsentComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvCookieConsentComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

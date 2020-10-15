@@ -13,34 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { ApplicationMembersComponent } from './application-members.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
+
+import { ApplicationMembersComponent } from './application-members.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApplicationMembersComponent', () => {
-  let component: ApplicationMembersComponent;
-  let fixture: ComponentFixture<ApplicationMembersComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ApplicationMembersComponent],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-      .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: ApplicationMembersComponent,
+    imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  });
+
+  let spectator: Spectator<ApplicationMembersComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationMembersComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

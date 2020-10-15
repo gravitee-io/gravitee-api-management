@@ -16,7 +16,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import * as marked from 'marked';
 import * as hljs from 'highlight.js';
-import { Page } from '@gravitee/ng-portal-webclient';
+import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from 'src/app/services/page.service';
 import { Router } from '@angular/router';
 import { ScrollService } from 'src/app/services/scroll.service';

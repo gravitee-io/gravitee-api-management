@@ -13,53 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { provideMock } from '../../test/mock.helper.spec';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator';
 import { NotificationService } from '../../services/notification.service';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
 import { UserTestingModule } from '../../test/user-testing-module';
 import { GvContactComponent } from './gv-contact.component';
 
 describe('GvContactComponent', () => {
-  let component: GvContactComponent;
-  let fixture: ComponentFixture<GvContactComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [GvContactComponent],
-      imports: [
-        FormsModule,
-        ReactiveFormsModule,
-        TranslateTestingModule,
-        HttpClientTestingModule,
-        RouterTestingModule,
-        UserTestingModule
-      ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(NotificationService),
-      ]
-    })
-      .compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(GvContactComponent);
-    component = fixture.componentInstance;
+  const createComponent = createComponentFactory({
+    component: GvContactComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+      FormsModule,
+      ReactiveFormsModule,
+      HttpClientTestingModule,
+      RouterTestingModule,
+      UserTestingModule
+    ],
+    providers: [
+      mockProvider(NotificationService),
+    ]
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  let spectator: Spectator<GvContactComponent>;
+  let component;
+
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 });

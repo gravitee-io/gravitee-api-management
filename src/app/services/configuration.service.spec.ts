@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
+import { createHttpFactory, SpectatorService } from '@ngneat/spectator';
 import { ConfigurationService } from './configuration.service';
-import { provideMock } from '../test/mock.helper.spec';
-import { HttpClient } from '@angular/common/http';
 
 describe('ConfigurationService', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    providers: [
-      provideMock(HttpClient),
-    ]
-  }));
+  let service: SpectatorService<ConfigurationService>;
+  const createService = createHttpFactory(ConfigurationService);
+
+  beforeEach(() => {
+    service = createService();
+  });
 
   it('should be created', () => {
-    const service: ConfigurationService = TestBed.inject(ConfigurationService);
     expect(service).toBeTruthy();
   });
+
 });

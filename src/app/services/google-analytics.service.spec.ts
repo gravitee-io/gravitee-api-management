@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
-import { GoogleAnalyticsService } from './google-analytics.service';
-import { provideMock } from '../test/mock.helper.spec';
 import { HttpClient } from '@angular/common/http';
 import { RouterTestingModule } from '@angular/router/testing';
+import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator';
+import { GoogleAnalyticsService } from './google-analytics.service';
 
 describe('GoogleAnalyticsService', () => {
-  beforeEach(() => TestBed.configureTestingModule({
+
+  let service: SpectatorService<GoogleAnalyticsService>;
+  const createService = createServiceFactory({
+    service: GoogleAnalyticsService,
     imports: [
       RouterTestingModule,
     ],
     providers: [
-      provideMock(HttpClient),
+      mockProvider(HttpClient),
     ]
-  }));
+  });
+
+  beforeEach(() => {
+    service = createService();
+  });
 
   it('should be created', () => {
-    const service: GoogleAnalyticsService = TestBed.inject(GoogleAnalyticsService);
     expect(service).toBeTruthy();
   });
 });
