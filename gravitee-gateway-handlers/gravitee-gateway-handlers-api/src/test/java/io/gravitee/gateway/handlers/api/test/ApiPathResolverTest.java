@@ -18,6 +18,7 @@ package io.gravitee.gateway.handlers.api.test;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Path;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.handlers.api.path.PathParam;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
 import org.junit.Assert;
@@ -28,9 +29,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.mockito.Mockito.when;
 
@@ -84,6 +83,10 @@ public class ApiPathResolverTest {
                 Path p6 = new Path();
                 p6.setPath("/Stores/:storeId");
                 put(p6.getPath(), p6);
+
+                Path p7 = new Path();
+                p7.setPath("/stores/:storeId/order/:orderId");
+                put(p7.getPath(), p7);
             }
         });
 
@@ -133,6 +136,7 @@ public class ApiPathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
+        validatePathParams(path.getParameters(), Collections.singletonList(new PathParam("storeId", 2)));
     }
 
     @Test
@@ -142,6 +146,7 @@ public class ApiPathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
+        validatePathParams(path.getParameters(), Collections.singletonList(new PathParam("storeId", 2)));
     }
 
     @Test
@@ -187,6 +192,7 @@ public class ApiPathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
+        validatePathParams(path.getParameters(), Collections.singletonList(new PathParam("storeId", 2)));
     }
 
     @Test
@@ -196,6 +202,7 @@ public class ApiPathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
+        validatePathParams(path.getParameters(), Collections.singletonList(new PathParam("storeId", 2)));
     }
 
     @Test
@@ -205,6 +212,7 @@ public class ApiPathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
+        validatePathParams(path.getParameters(), Collections.singletonList(new PathParam("storeId", 2)));
     }
 
     @Test
@@ -214,6 +222,7 @@ public class ApiPathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
+        validatePathParams(path.getParameters(), Collections.singletonList(new PathParam("storeId", 2)));
     }
 
     @Test
@@ -242,6 +251,7 @@ public class ApiPathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/Stores/:storeId", path.getPath());
+        validatePathParams(path.getParameters(), Collections.singletonList(new PathParam("storeId", 2)));
     }
 
     @Test
@@ -251,5 +261,22 @@ public class ApiPathResolverTest {
         Assert.assertNotNull(path);
 
         Assert.assertEquals("/stores/:storeId", path.getPath());
+        validatePathParams(path.getParameters(), Collections.singletonList(new PathParam("storeId", 2)));
+    }
+
+    @Test
+    public void resolve_pathWithContextPath_mustReturnParameteriedPath6() {
+        when(request.pathInfo()).thenReturn("/stores/my_petstore/order/190783");
+        io.gravitee.gateway.handlers.api.path.Path path = pathResolver2.resolve(request);
+        Assert.assertNotNull(path);
+
+        Assert.assertEquals("/stores/:storeId/order/:orderId", path.getPath());
+        validatePathParams(path.getParameters(), Arrays.asList(new PathParam("storeId", 2), new PathParam("orderId", 4)));
+    }
+
+    private void validatePathParams(List<PathParam> pathParameters, List<PathParam> expectedPathsParams) {
+        Assert.assertNotNull(pathParameters);
+        Assert.assertEquals(expectedPathsParams.size(), pathParameters.size());
+        Assert.assertTrue(pathParameters.containsAll(expectedPathsParams));
     }
 }

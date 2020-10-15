@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.logging.condition.evaluation.el;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.core.logging.condition.evaluation.ConditionEvaluator;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
