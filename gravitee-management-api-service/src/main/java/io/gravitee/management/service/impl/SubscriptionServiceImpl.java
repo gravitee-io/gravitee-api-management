@@ -92,6 +92,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private NotifierService notifierService;
     @Autowired
     private GroupService groupService;
+    @Autowired
+    private UserService userService;
 
     @Override
     public SubscriptionEntity findById(String subscription) {
@@ -438,12 +440,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .plan(plan)
                     .subscription(subscriptionEntity)
                     .build();
+
+
             if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
                 notifierService.trigger(ApiHook.SUBSCRIPTION_ACCEPTED, apiId, params);
                 notifierService.trigger(ApplicationHook.SUBSCRIPTION_ACCEPTED, application.getId(), params);
+                searchSubscriberEmail(subscriptionEntity).ifPresent(subscriberEmail -> {
+                    notifierService.triggerEmail(ApplicationHook.SUBSCRIPTION_ACCEPTED, apiId, params, subscriberEmail);
+                });
             } else {
                 notifierService.trigger(ApiHook.SUBSCRIPTION_REJECTED, apiId, params);
                 notifierService.trigger(ApplicationHook.SUBSCRIPTION_REJECTED, application.getId(), params);
+                searchSubscriberEmail(subscriptionEntity).ifPresent(subscriberEmail -> {
+                    notifierService.triggerEmail(ApplicationHook.SUBSCRIPTION_REJECTED, apiId, params, subscriberEmail);
+                });
             }
 
             if (plan.getSecurity() == PlanSecurityType.API_KEY &&
@@ -458,6 +468,16 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             throw new TechnicalManagementException(String.format(
                     "An error occurs while trying to process subscription %s by %s",
                     processSubscription.getId(), userId), ex);
+        }
+    }
+
+    private Optional<String> searchSubscriberEmail(SubscriptionEntity subscriptionEntity) {
+        try {
+            UserEntity subscriber = userService.findById(subscriptionEntity.getSubscribedBy());
+            return Optional.ofNullable(subscriber.getEmail());
+        } catch (UserNotFoundException e) {
+            logger.warn("Subscriber '{}' not found, unable to retrieve email", subscriptionEntity.getSubscribedBy());
+            return Optional.empty();
         }
     }
 

@@ -104,6 +104,19 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
 
     @Override
     @Async
+    public void triggerEmail(final ApplicationHook hook, final String appId, Map<String, Object> params, String recipient) {
+        if (!(recipient == null || recipient.isEmpty())) {
+            GenericNotificationConfig genericNotificationConfig = new GenericNotificationConfig();
+            genericNotificationConfig.setConfig(recipient);
+            genericNotificationConfig.setNotifier(DEFAULT_EMAIL_NOTIFIER_ID);
+            emailNotifierService.trigger(hook, genericNotificationConfig, params);
+        } else {
+            LOGGER.debug("Recipient email is missing, ignore email trigger '{}' for application '{}'", hook, appId);
+        }
+    }
+
+    @Override
+    @Async
     public void trigger(final ApplicationHook hook, final String applicationId, Map<String, Object> params) {
         triggerPortalNotifications(hook, NotificationReferenceType.APPLICATION, applicationId, params);
         triggerGenericNotifications(hook, NotificationReferenceType.APPLICATION, applicationId, params);
