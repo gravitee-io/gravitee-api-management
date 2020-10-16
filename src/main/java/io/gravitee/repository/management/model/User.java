@@ -24,7 +24,7 @@ import java.util.Objects;
  */
 public class User {
 	public enum AuditEvent implements Audit.AuditEvent {
-		USER_CREATED, USER_UPDATED, USER_CONNECTED, PASSWORD_RESET
+		USER_CREATED, USER_UPDATED, USER_CONNECTED, PASSWORD_RESET, PASSWORD_CHANGED
 	}
 
 	/**
