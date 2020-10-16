@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.gateway.services</groupId>
         <artifactId>gravitee-gateway-services</artifactId>
-        <version>1.30.24-SNAPSHOT</version>
+        <version>1.30.24</version>
     </parent>
 
     <artifactId>gravitee-gateway-services-apikeyscache</artifactId>
