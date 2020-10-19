@@ -33,14 +33,17 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     this.settings = _.cloneDeep(Constants);
 
     this.$onInit = () => {
+      this.settings.api.labelsDictionary = this.settings.api.labelsDictionary || [];
       this.settings.authentication.localLogin.enabled = (this.settings.authentication.localLogin.enabled || !this.hasIdpDefined());
     };
 
     this.save = () => {
       PortalConfigService.save(this.settings).then( (response) => {
+        // We have to manually set this property because lodash's merge do not handle well the case of label deletion
+        Constants.api.labelsDictionary = response.data.api.labelsDictionary;
         _.merge(Constants, response.data);
         NotificationService.show('Configuration saved');
-        this.formSettings.$setPristine();
+        this.reset();
         $state.reload();
       });
     };

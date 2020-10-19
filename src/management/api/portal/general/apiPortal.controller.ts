@@ -35,6 +35,7 @@ class ApiPortalController {
   private qualityMetrics: QualityMetrics;
   private qualityMetricsDescription: Map<string, string>;
   private isQualityEnabled: boolean;
+  private apiLabelsDictionary = [];
 
   constructor(
     private ApiService: ApiService,
@@ -132,6 +133,7 @@ class ApiPortalController {
     });
 
     this.isQualityEnabled = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
+    this.apiLabelsDictionary = Constants.api.labelsDictionary;
     this.qualityMetricsDescription = new Map<string, string>();
     this.qualityMetricsDescription.set('api.quality.metrics.functional.documentation.weight', 'A functional page must be published');
     this.qualityMetricsDescription.set('api.quality.metrics.technical.documentation.weight', 'A swagger page must be published');
@@ -349,11 +351,11 @@ class ApiPortalController {
     return _.find(this.groups, {'id': groupId});
   }
 
-  /**
-   * Search for HTTP Headers.
+  /*
+   * Search for Labels
    */
-  querySearchHeaders(query) {
-    return query ? this.headers.filter(this.createFilterFor(query)) : [];
+  querySearchLabels(query) {
+    return query ? this.apiLabelsDictionary.filter(this.createFilterFor(query)) : [];
   }
 
   /**
@@ -362,8 +364,8 @@ class ApiPortalController {
   createFilterFor(query) {
     let lowercaseQuery = query.toLowerCase();
 
-    return function filterFn(header) {
-      return header.toLowerCase().indexOf(lowercaseQuery) === 0;
+    return function filterFn(item) {
+      return item.toLowerCase().indexOf(lowercaseQuery) !== -1;
     };
   }
 

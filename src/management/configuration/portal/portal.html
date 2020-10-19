@@ -107,6 +107,16 @@
         </tr>
       </table>
 
+      <h3>API labels dictionary</h3>
+      <md-input-container class="md-block">
+        <label>Labels
+          <small>(Used by API Management to suggest labels for API's details)</small></label>
+        <md-chips ng-model="$ctrl.settings.api.labelsDictionary"
+                  placeholder="Enter a label"
+                  md-add-on-blur="true"
+                  ng-click="$ctrl.formSettings.$setDirty()">
+        </md-chips>
+      </md-input-container>
 
       <h3>Theme</h3>
       <md-input-container class="md-block" flex-gt-xs>
