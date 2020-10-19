@@ -47,6 +47,7 @@ public class PortalConfigEntity {
     private Maintenance maintenance;
     private Newsletter newsletter;
     private ReCaptcha reCaptcha;
+    private Api api;
 
     public PortalConfigEntity() {
         company = new Company();
@@ -67,6 +68,7 @@ public class PortalConfigEntity {
         maintenance = new Maintenance();
         newsletter = new Newsletter();
         reCaptcha = new ReCaptcha();
+        api = new Api();
     }
 
     public Company getCompany() {
@@ -211,6 +213,14 @@ public class PortalConfigEntity {
 
     public void setReCaptcha(ReCaptcha reCaptcha) {
         this.reCaptcha = reCaptcha;
+    }
+
+    public Api getApi() {
+        return api;
+    }
+
+    public void setApi(Api api) {
+        this.api = api;
     }
 
     public static class GoogleAuthentication {
@@ -485,6 +495,19 @@ public class PortalConfigEntity {
 
         public void setSiteKey(String siteKey) {
             this.siteKey = siteKey;
+        }
+    }
+
+    public class Api {
+        @ParameterKey(Key.API_LABELS_DICTIONARY)
+        private List<String> labelsDictionary;
+
+        public List<String> getLabelsDictionary() {
+            return labelsDictionary;
+        }
+
+        public void setLabelsDictionary(List<String> labelsDictionary) {
+            this.labelsDictionary = labelsDictionary;
         }
     }
 

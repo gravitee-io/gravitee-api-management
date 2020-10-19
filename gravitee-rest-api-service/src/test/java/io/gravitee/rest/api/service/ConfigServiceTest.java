@@ -69,6 +69,7 @@ public class ConfigServiceTest {
         params.put(Key.SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
         params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
+        params.put(Key.API_LABELS_DICTIONARY.key(), Arrays.asList("label1", "label2"));
 
         when(mockParameterService.findAll(any(List.class))).thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
@@ -87,6 +88,7 @@ public class ConfigServiceTest {
         assertEquals("plan security keyless", Boolean.TRUE, portalConfig.getPlan().getSecurity().getKeyless().isEnabled());
         assertEquals("open api swagger enabled", Boolean.TRUE, portalConfig.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled());
         assertEquals("open api swagger default", "Swagger", portalConfig.getOpenAPIDocViewer().getOpenAPIDocType().getDefaultType());
+        assertEquals("api labels", 2, portalConfig.getApi().getLabelsDictionary().size());
     }
 
     @Test

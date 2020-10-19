@@ -106,7 +106,9 @@ public enum Key {
     NEWSLETTER_ENABLED("newsletter.enabled", "true"),
 
     RECAPTCHA_ENABLED("reCaptcha.enabled", "false"),
-    RECAPTCHA_SITE_KEY("reCaptcha.siteKey");
+    RECAPTCHA_SITE_KEY("reCaptcha.siteKey"),
+
+    API_LABELS_DICTIONARY("api.labelsDictionary");
 
     String key;
     String defaultValue;
