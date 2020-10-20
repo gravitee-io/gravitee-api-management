@@ -67,6 +67,7 @@ public class SubscriptionServiceTest {
     private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
     private static final String USER_ID = "user";
+    private static final String SUBSCRIBER_ID = "subscriber";
 
     @InjectMocks
     private SubscriptionService subscriptionService = new SubscriptionServiceImpl();
@@ -103,6 +104,8 @@ public class SubscriptionServiceTest {
     private GroupService groupService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private UserService userService;
 
     @Test
     public void shouldFindById() throws TechnicalException {
@@ -328,6 +331,11 @@ public class SubscriptionServiceTest {
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         SecurityContextHolder.setContext(new SecurityContext() {
             @Override
@@ -430,6 +438,11 @@ public class SubscriptionServiceTest {
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         SecurityContextHolder.setContext(new SecurityContext() {
             @Override
@@ -825,6 +838,11 @@ public class SubscriptionServiceTest {
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         when(plan.getApi()).thenReturn(API_ID);
 
@@ -839,6 +857,9 @@ public class SubscriptionServiceTest {
 
         // Verify
         verify(apiKeyService, never()).generate(any());
+        verify(userService).findById(SUBSCRIBER_ID);
+        verify(notifierService).triggerEmail(any(), anyString(), anyMap(), anyString());
+
         assertEquals(SubscriptionStatus.REJECTED, subscriptionEntity.getStatus());
         assertEquals(USER_ID, subscriptionEntity.getProcessedBy());
         assertNotNull(subscriptionEntity.getProcessedAt());

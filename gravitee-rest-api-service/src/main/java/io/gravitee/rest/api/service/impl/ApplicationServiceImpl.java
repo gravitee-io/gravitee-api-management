@@ -24,7 +24,10 @@ import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.application.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.OAuthClientSettings;
+import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
@@ -50,7 +53,6 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Application.AuditEvent.*;
@@ -663,34 +665,21 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     private Set<ApplicationListItem> convertToList(Set<Application> applications) throws TechnicalException {
         Set<ApplicationEntity> entities = convert(applications);
-
-        return entities.stream().map(new Function<ApplicationEntity, ApplicationListItem>() {
-            @Override
-            public ApplicationListItem apply(ApplicationEntity applicationEntity) {
-                ApplicationListItem item = new ApplicationListItem();
-
-                item.setId(applicationEntity.getId());
-                item.setName(applicationEntity.getName());
-                item.setDescription(applicationEntity.getDescription());
-                item.setCreatedAt(applicationEntity.getCreatedAt());
-                item.setUpdatedAt(applicationEntity.getUpdatedAt());
-                item.setGroups(applicationEntity.getGroups());
-                item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
-                item.setType(applicationEntity.getType());
-                item.setStatus(applicationEntity.getStatus());
-                item.setPicture(applicationEntity.getPicture());
-
-                ApplicationListItemSettings settings = new ApplicationListItemSettings();
-                if (applicationEntity.getSettings().getApp() != null) {
-                    settings.setType(applicationEntity.getSettings().getApp().getType());
-                    settings.setClientId(applicationEntity.getSettings().getApp().getClientId());
-                } else if (applicationEntity.getSettings().getoAuthClient() != null) {
-                    settings.setClientId(applicationEntity.getSettings().getoAuthClient().getClientId());
-                }
-                item.setSettings(settings);
-
-                return item;
-            }
+        return entities.stream().map(applicationEntity -> {
+            ApplicationListItem item = new ApplicationListItem();
+            item.setId(applicationEntity.getId());
+            item.setName(applicationEntity.getName());
+            item.setDescription(applicationEntity.getDescription());
+            item.setCreatedAt(applicationEntity.getCreatedAt());
+            item.setUpdatedAt(applicationEntity.getUpdatedAt());
+            item.setGroups(applicationEntity.getGroups());
+            item.setPrimaryOwner(applicationEntity.getPrimaryOwner());
+            item.setType(applicationEntity.getType());
+            item.setStatus(applicationEntity.getStatus());
+            final Application app = applications.stream()
+                    .filter(application -> application.getId().equals(applicationEntity.getId())).findFirst().get();
+            item.setSettings(getSettings(app));
+            return item;
         }).collect(Collectors.toSet());
     }
 
@@ -718,7 +707,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
         applicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
 
-        ApplicationSettings settings = new ApplicationSettings();
+        applicationEntity.setSettings(getSettings(application));
+        applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
+        return applicationEntity;
+    }
+
+    private ApplicationSettings getSettings(Application application) {
+        final ApplicationSettings settings = new ApplicationSettings();
         if (application.getType() == ApplicationType.SIMPLE) {
             SimpleApplicationSettings simpleSettings = new SimpleApplicationSettings();
             if (application.getMetadata() != null) {
@@ -758,9 +753,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
             settings.setoAuthClient(clientSettings);
         }
-        applicationEntity.setSettings(settings);
-        applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
-        return applicationEntity;
+        return settings;
     }
 
     private static Application convert(NewApplicationEntity newApplicationEntity) {
