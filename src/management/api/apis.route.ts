@@ -94,7 +94,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
       }
     })
     .state('management.apis.create', {
-      url: '/new/create',
+      url: '/new/create/:definitionVersion',
       component: 'apiCreation',
       resolve: {
         tenants: (TenantService: TenantService) => TenantService.list().then(response => response.data),

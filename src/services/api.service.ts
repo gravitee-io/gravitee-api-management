@@ -37,7 +37,7 @@ class ApiService {
   private Constants: any;
   private analyticsHttpTimeout: number;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private $rootScope, Constants) {
     'ngInject';
     this.apisURL = `${Constants.envBaseURL}/apis/`;
     this.Constants = Constants;
@@ -92,11 +92,11 @@ class ApiService {
   }
 
   start(api): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '?action=START', {}, { headers: { 'If-Match': api.etag } });
+    return this.$http.post(this.apisURL + api.id + '?action=START', {}, {headers: {'If-Match': api.etag}});
   }
 
   stop(api): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '?action=STOP', {}, { headers: { 'If-Match': api.etag } });
+    return this.$http.post(this.apisURL + api.id + '?action=STOP', {}, {headers: {'If-Match': api.etag}});
   }
 
   reload(name): ng.IPromise<any> {
@@ -112,12 +112,15 @@ class ApiService {
         }
       });
     }
+
     return this.$http.put(this.apisURL + api.id,
       {
         'version': api.version,
         'description': api.description,
         'proxy': api.proxy,
         'paths': api.paths,
+        'flows': api.flows,
+        'plans': api.plans,
         'private': api.private,
         'visibility': api.visibility,
         'name': api.name,
@@ -135,7 +138,7 @@ class ApiService {
         'response_templates': api.response_templates,
         'lifecycle_state': api.lifecycle_state,
         'disable_membership_notifications': api.disable_membership_notifications
-      }, { headers: { 'If-Match': api.etag } }
+      }, {headers: {'If-Match': api.etag}}
     );
   }
 
@@ -166,11 +169,13 @@ class ApiService {
     return this.$http.post(this.apisURL + 'import', apiDefinition);
   }
 
-  importSwagger(apiId: string, swaggerDescriptor: string, config?): ng.IPromise<any> {
+  importSwagger(apiId: string, swaggerDescriptor: string, definitionVersion?: string, config?): ng.IPromise<any> {
+    const url = this.apisURL + (apiId || '') + '/import/swagger' + (definitionVersion ? '?definitionVersion=' + definitionVersion : '');
+    const params = definitionVersion ? `?definitionVersion=${definitionVersion}` : '';
     if (apiId) {
-      return this.$http.put(this.apisURL + apiId + '/import/swagger', swaggerDescriptor, config);
+      return this.$http.put(`${this.apisURL}${apiId}/import/swagger${params}`, swaggerDescriptor, config);
     }
-    return this.$http.post(this.apisURL + 'import/swagger', swaggerDescriptor, config);
+    return this.$http.post(`${this.apisURL}import/swagger${params}`, swaggerDescriptor, config);
   }
 
   export(apiId, exclude, exportVersion): ng.IPromise<any> {
@@ -196,22 +201,22 @@ class ApiService {
     var url = this.apisURL + api + '/analytics?';
 
     var keys = Object.keys(request);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, function(key) {
       var val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
     });
 
-    return this.$http.get(url, { timeout: this.analyticsHttpTimeout });
+    return this.$http.get(url, {timeout: this.analyticsHttpTimeout});
   }
 
   findLogs(api: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs?'), { timeout: 30000 });
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs?'), {timeout: 30000});
   }
 
   exportLogsAsCSV(api: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs/export?'), { timeout: 30000 });
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs/export?'), {timeout: 30000});
   }
 
   getLog(api, logId, timestamp): ng.IPromise<any> {
@@ -268,9 +273,10 @@ class ApiService {
     return this.$http.get(this.apisURL + apiId + '/plans?status=published');
   }
 
-  savePlan(apiId, plan): ng.IPromise<any> {
+  savePlan(api, plan): ng.IPromise<any> {
+    let promise = null;
     if (plan.id) {
-      return this.$http.put(this.apisURL + apiId + '/plans/' + plan.id,
+      promise = this.$http.put(this.apisURL + api.id + '/plans/' + plan.id,
         {
           id: plan.id, name: plan.name, description: plan.description,
           validation: plan.validation, policies: plan.policies,
@@ -284,7 +290,7 @@ class ApiService {
           general_conditions: plan.general_conditions
         });
     } else {
-      return this.$http.post(this.apisURL + apiId + '/plans',
+      promise = this.$http.post(this.apisURL + api.id + '/plans',
         {
           name: plan.name,
           description: plan.description,
@@ -304,22 +310,31 @@ class ApiService {
           general_conditions: plan.general_conditions
         });
     }
+    return promise.then(async (response) => {
+      await this.syncV2Api(api);
+      return response;
+    });
   }
 
-  closePlan(apiId, planId): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_close');
+  closePlan(api, planId): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + api.id + '/plans/' + planId + '/_close').then(async (response) => {
+      await this.syncV2Api(api);
+      return response;
+    });
   }
 
-  deletePlan(apiId, planId): ng.IPromise<any> {
-    return this.$http.delete(this.apisURL + apiId + '/plans/' + planId);
+  publishPlan(api, planId): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + api.id + '/plans/' + planId + '/_publish').then(async (response) => {
+      await this.syncV2Api(api);
+      return response;
+    });
   }
 
-  publishPlan(apiId, planId): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_publish');
-  }
-
-  deprecatePlan(apiId, planId) {
-    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_deprecate');
+  deprecatePlan(api, planId) {
+    return this.$http.post(this.apisURL + api.id + '/plans/' + planId + '/_deprecate').then(async (response) => {
+      await this.syncV2Api(api);
+      return response;
+    });
   }
 
   /*
@@ -340,7 +355,7 @@ class ApiService {
       req += query;
     }
 
-    return this.$http.get(req, { timeout: 30000 });
+    return this.$http.get(req, {timeout: 30000});
   }
 
   getSubscribers(apiId: string): ng.IHttpPromise<any> {
@@ -459,21 +474,21 @@ class ApiService {
       req += '&field=' + field;
     }
 
-    return this.$http.get(req, { timeout: 30000 });
+    return this.$http.get(req, {timeout: 30000});
   }
 
   apiHealthLogs(api: string, query: LogsQuery): ng.IPromise<any> {
     let url = this.apisURL + api + '/health/logs?';
 
     let keys = Object.keys(query);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, function(key) {
       let val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
     });
 
-    return this.$http.get(url, { timeout: 30000 });
+    return this.$http.get(url, {timeout: 30000});
   }
 
   getHealthLog(api: string, log: string): ng.IPromise<any> {
@@ -484,14 +499,14 @@ class ApiService {
     var url = this.apisURL + api + '/health/average?';
 
     var keys = Object.keys(request);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, function(key) {
       var val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
     });
 
-    return this.$http.get(url, { timeout: 30000 });
+    return this.$http.get(url, {timeout: 30000});
   }
 
   /*
@@ -524,7 +539,7 @@ class ApiService {
 
   updateRating(api, rating): ng.IPromise<any> {
     return this.$http.put(this.apisURL + api + '/ratings/' + rating.id,
-      { 'rate': rating.rate, 'title': rating.title, 'comment': rating.comment });
+      {'rate': rating.rate, 'title': rating.title, 'comment': rating.comment});
   }
 
   deleteRating(api, ratingId): ng.IPromise<any> {
@@ -573,15 +588,15 @@ class ApiService {
   }
 
   askForReview(api, message?): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '/reviews?action=ASK', { message: message }, { headers: { 'If-Match': api.etag } });
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=ASK', {message: message}, {headers: {'If-Match': api.etag}});
   }
 
   acceptReview(api, message): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '/reviews?action=ACCEPT', { message: message }, { headers: { 'If-Match': api.etag } });
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=ACCEPT', {message: message}, {headers: {'If-Match': api.etag}});
   }
 
   rejectReview(api, message): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '/reviews?action=REJECT', { message: message }, { headers: { 'If-Match': api.etag } });
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=REJECT', {message: message}, {headers: {'If-Match': api.etag}});
   }
 
   /*
@@ -591,12 +606,21 @@ class ApiService {
     return this.$http.post(this.apisURL + apiId + '/keys/_verify?apiKey=' + apiKey);
   }
 
+  private async syncV2Api(api) {
+    if (isV2(api)) {
+      const updatedApi = await this.get(api.id);
+      this.$rootScope.$broadcast('apiChangeSuccess', {api: updatedApi.data});
+      return true;
+    }
+    return false;
+  }
+
   /*
    * Logs
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     var keys = Object.keys(query);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, function(key) {
       var val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -618,3 +642,7 @@ class ApiService {
 }
 
 export default ApiService;
+
+export function isV2(api) {
+  return api && api.gravitee === '2.0.0';
+}

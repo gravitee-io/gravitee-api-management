@@ -15,6 +15,7 @@
  */
 import _ = require('lodash');
 import angular = require('angular');
+import { StateService } from '@uirouter/core';
 
 class ApiPoliciesController {
   private apiPoliciesByPath: any;
@@ -39,9 +40,11 @@ class ApiPoliciesController {
     private $q,
     private $rootScope,
     private StringService,
-    private UserService
+    private UserService,
+    private $state: StateService,
   ) {
     'ngInject';
+
     this.pathsInitialized = [];
     this.dndEnabled = UserService.isUserHasPermissions(['api-definition-u']);
 
@@ -68,7 +71,7 @@ class ApiPoliciesController {
     });
 
     const that = this;
-    this.$scope.$on('dragulardrop', function (event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
+    this.$scope.$on('dragulardrop', function(event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
       if (dropzoneObjList !== null) {
         // Automatically display the configuration associated to the dragged policy
         that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then((schema) => {
@@ -121,7 +124,7 @@ class ApiPoliciesController {
     const dragularSrcOptions = document.querySelector('.gravitee-policy-draggable');
 
     this.dragularService([dragularSrcOptions], {
-      moves: function () {
+      moves: function() {
         return true;
       },
       copy: true,
@@ -140,7 +143,7 @@ class ApiPoliciesController {
       const dragularApiOptions = document.querySelector('.dropzone-' + this.StringService.hashCode(path));
       if (dragularApiOptions) {
         this.dragularService([dragularApiOptions], {
-          moves: function () {
+          moves: function() {
             return true;
           },
           copy: false,
@@ -260,7 +263,7 @@ class ApiPoliciesController {
         title: 'Are you sure you want to remove this policy?',
         confirmButton: 'Remove'
       }
-    }).then(function (response) {
+    }).then(function(response) {
       if (response) {
         _.forEach(that.apiPoliciesByPath[path], (policy, idx) => {
           if (policy.$$hashKey === hashKey) {
@@ -288,10 +291,10 @@ class ApiPoliciesController {
       locals: {
         description: policy.description
       }
-    }).then(function (description) {
+    }).then(function(description) {
       policy.description = description;
       that.savePaths();
-    }, function () {
+    }, function() {
       // You cancelled the dialog
     });
   }
@@ -370,7 +373,7 @@ class ApiPoliciesController {
         title: 'Are you sure you want to remove this path?',
         confirmButton: 'Remove'
       }
-    }).then(function (response) {
+    }).then(function(response) {
       if (response) {
         delete that.apiPoliciesByPath[path];
         that.pathsInitialized[path] = false;

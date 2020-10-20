@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
-import {IScope} from 'angular';
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import NotificationService from '../../services/notification.service';
 import ApiService from '../../services/api.service';
 import _ = require('lodash');
@@ -25,14 +25,16 @@ const ImportComponent: ng.IComponentOptions = {
   bindings: {
     apiId: '<',
     cancelAction: '&',
-    policies: '<'
+    policies: '<',
+    definitionVersion: '<'
   },
-  controller: function (
+  controller: function(
     $state: StateService,
     $scope: IScope,
     $mdDialog: angular.material.IDialogService,
     NotificationService: NotificationService,
-    ApiService: ApiService
+    ApiService: ApiService,
+    $attrs,
   ) {
 
     'ngInject';
@@ -84,7 +86,7 @@ const ImportComponent: ng.IComponentOptions = {
       }
 
       if (this.importFileMode && this.importAPIFile) {
-        var extension = this.importAPIFile.name.split('.').pop().toLowerCase( );
+        var extension = this.importAPIFile.name.split('.').pop().toLowerCase();
         switch (extension) {
           case 'yml' :
           case 'yaml' :
@@ -106,6 +108,10 @@ const ImportComponent: ng.IComponentOptions = {
 
     this.isForUpdate = () => {
       return this.apiId != null;
+    };
+
+    this.hasCancel = () => {
+      return $attrs.cancelAction || this.isForUpdate();
     };
 
     this.isSwaggerDescriptor = () => {
@@ -132,11 +138,11 @@ const ImportComponent: ng.IComponentOptions = {
 
     this.isWsdl = () => {
       if (this.importFileMode) {
-        var extension = this.importAPIFile.name.split('.').pop().toLowerCase( );
+        var extension = this.importAPIFile.name.split('.').pop().toLowerCase();
         switch (extension) {
           case 'wsdl' :
           case 'xml' :
-              return true;
+            return true;
           default:
             return false;
         }
@@ -149,7 +155,7 @@ const ImportComponent: ng.IComponentOptions = {
 
     this.importAPI = () => {
       if (this.importFileMode) {
-        var extension = this.importAPIFile.name.split('.').pop().toLowerCase( );
+        var extension = this.importAPIFile.name.split('.').pop().toLowerCase();
         switch (extension) {
           case 'yml' :
           case 'yaml' :
@@ -167,8 +173,8 @@ const ImportComponent: ng.IComponentOptions = {
             break;
           case 'wsdl' :
           case 'xml' :
-              this.importWSDL();
-              break;
+            this.importWSDL();
+            break;
           default:
             this.enableFileImport = false;
             NotificationService.showError('Input file must be a valid API definition file.');
@@ -189,7 +195,7 @@ const ImportComponent: ng.IComponentOptions = {
       var id = (this.isForUpdate() ? this.apiId : null);
       var apiDefinition = (this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL);
       var isUpdate = this.isForUpdate();
-      ApiService.import(id, apiDefinition).then(function (api) {
+      ApiService.import(id, apiDefinition).then(function(api) {
         if (isUpdate) {
           NotificationService.show('API updated');
           $state.reload();
@@ -239,13 +245,13 @@ const ImportComponent: ng.IComponentOptions = {
 
       if (this.isForUpdate()) {
         // @ts-ignore
-        ApiService.importSwagger(this.apiId, swagger, {silentCall: true}).then((api) => {
+        ApiService.importSwagger(this.apiId, swagger, this.definitionVersion, {silentCall: true}).then((api) => {
           NotificationService.show('API successfully imported');
           $state.reload();
         }).catch(this._manageSwaggerError);
       } else {
         // @ts-ignore
-        ApiService.importSwagger(null, swagger, {silentCall: true}).then((api) => {
+        ApiService.importSwagger(null, swagger, this.definitionVersion, {silentCall: true}).then((api) => {
           NotificationService.show('API successfully updated');
           $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
         }).catch(this._manageSwaggerError);

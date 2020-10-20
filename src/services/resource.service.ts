@@ -21,17 +21,29 @@ class ResourceService {
     this.resourcesURL = `${Constants.envBaseURL}/resources/`;
   }
 
-  list() {
+  list(expandSchema = false, expandIcon = false) {
+    const expandParams = [];
+    if (expandSchema) {
+      expandParams.push('expand=schema');
+    }
+    if (expandIcon) {
+      expandParams.push('expand=icon');
+    }
     let url = this.resourcesURL;
-    /*    if(expandSchema) {
-          url += "?expand=schema";
-        }*/
+    if (expandParams.length > 0) {
+      url += `?${expandParams.join('&')}`;
+    }
     return this.$http.get(url);
   }
 
   getSchema(resourceId) {
     return this.$http.get(`${this.resourcesURL + resourceId}/schema`);
   }
+
+  getDocumentation(resourceId) {
+    return this.$http.get(this.resourcesURL + resourceId + '/documentation');
+  }
+
 }
 
 export default ResourceService;

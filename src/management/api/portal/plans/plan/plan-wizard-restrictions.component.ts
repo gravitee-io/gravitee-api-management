@@ -60,21 +60,22 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
       _.each(this.policies, policy => {
         this.PolicyService.getSchema(policy.id).then(schema => {
           policy.schema = schema.data;
-
-          let idx = this.parent.planPolicies.findIndex(pathPolicy => pathPolicy[policy.id] != null);
-          if (idx !== -1) {
-            let restrictionPolicy = this.parent.planPolicies.splice(idx, 1)[0];
-            policy.enabled = true;
-            policy.model = restrictionPolicy[policy.id];
-          } else {
-            policy.model = {};
+          if (!this.parent.isV2()) {
+            let idx = this.parent.planPolicies.findIndex(pathPolicy => pathPolicy[policy.id] != null);
+            if (idx !== -1) {
+              let restrictionPolicy = this.parent.planPolicies.splice(idx, 1)[0];
+              policy.enabled = true;
+              policy.model = restrictionPolicy[policy.id];
+            } else {
+              policy.model = {};
+            }
           }
         });
       });
     }
 
     validate() {
-      return ! _.find(this.policies, policy => {
+      return !_.find(this.policies, policy => {
         return policy.enabled && policy.form && policy.form.$invalid;
       });
     }
@@ -96,7 +97,35 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
         .each(policy => this.parent.restrictionsPolicies.push(policy));
 
       this.parent.vm.stepData[2].data = this.parent.plan;
-      this.parent.moveToNextStep(this.parent.vm.stepData[2]);
+      if (!this.parent.hasPoliciesStep()) {
+        const me = this;
+        const pre = this.parent.restrictionsPolicies.map((restriction) => {
+          const policyId = restriction.quota ? 'quota' : restriction['rate-limit'] ? 'rate-limit' : restriction['resource-filtering'] ? 'resource-filtering' : null;
+          const policy = me.policies.find((policy) => policy.id === policyId);
+          const name = policy.title;
+          const description = policy.description;
+          const enabled = true;
+          const configuration = restriction[policyId];
+          return {
+            name, description, enabled, configuration
+          };
+        });
+        this.parent.plan.flows = [
+          {
+            'path-operator': {
+              path: '/',
+              operator: 'STARTS_WITH'
+            },
+            enabled: true,
+            pre,
+            post: []
+          }
+        ];
+        delete this.parent.plan.paths;
+        this.parent.saveOrUpdate();
+      } else {
+        this.parent.moveToNextStep(this.parent.vm.stepData[2]);
+      }
     }
   }
 };

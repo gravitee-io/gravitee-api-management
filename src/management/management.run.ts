@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ApiService, { isV2 } from '../services/api.service';
 /* global setInterval:false, clearInterval:false, screen:false */
 import UserService from '../services/user.service';
-import {log} from 'util';
 
 function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
-                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService) {
+                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService, ApiService) {
   'ngInject';
 
-  $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration'
-      && state.name !== 'confirm' && state.name !== 'confirmProfile' && state.name !== 'resetPassword'}, (trans) => {
+  $transitions.onStart({
+    to: (state) => state.name !== 'login' && state.name !== 'registration'
+      && state.name !== 'confirm' && state.name !== 'confirmProfile' && state.name !== 'resetPassword'
+  }, (trans) => {
     let forceLogin = Constants.authentication.forceLogin.enabled;
 
     if (forceLogin && !UserService.isAuthenticated()) {
@@ -33,7 +35,21 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     }
   });
 
-  $transitions.onFinish({}, function (trans) {
+  $transitions.onBefore({}, trans => {
+    const params = Object.assign({}, trans.params());
+    const stateService = trans.router.stateService;
+    let toState = trans.to();
+    if (toState.apiDefinition) {
+      return ApiService.get(params.apiId).then((response) => {
+        if (response.data.gravitee != null && toState.apiDefinition.version !== response.data.gravitee) {
+          return stateService.target(toState.apiDefinition.redirect, params);
+        }
+        return {};
+      });
+    }
+  });
+
+  $transitions.onFinish({}, function(trans) {
 
     // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
     ReCaptchaService.hideBadge();
@@ -50,20 +66,20 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     }
   });
 
-  $rootScope.$on('graviteeLogout', function (event, params) {
+  $rootScope.$on('graviteeLogout', function(event, params) {
     $state.go('login', {redirectUri: params.redirectUri});
   });
 
-  $rootScope.$watch(function () {
+  $rootScope.$watch(function() {
     return $http.pendingRequests.length > 0;
-  }, function (hasPendingRequests) {
+  }, function(hasPendingRequests) {
     $rootScope.isLoading = hasPendingRequests;
   });
 
   $rootScope.displayLoader = true;
 
   // force displayLoader value to change on a new digest cycle
-  $timeout(function () {
+  $timeout(function() {
     $rootScope.displayLoader = false;
   });
 
@@ -77,6 +93,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   $window.onfocus = () => {
     $rootScope.isWindowFocused = true;
   };
+
 }
 
 export default runBlock;

@@ -17,6 +17,7 @@ import angular = require('angular');
 import _ = require('lodash');
 import './index.scss';
 import './management/management.module';
+import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
 
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
@@ -30,6 +31,7 @@ let ConstantsJSON: any;
 fetchData()
   .then((constants: any) => initLoader(constants))
   .then((constants: any) => initTheme(constants))
+  .then(initComponents)
   .then(bootstrapApplication);
 
 function fetchData() {
@@ -101,6 +103,10 @@ function initTheme(constants: any) {
         angular.module('gravitee-management').constant('Theme', response.data);
       });
     });
+}
+
+function initComponents() {
+  loadDefaultTranslations();
 }
 
 function bootstrapApplication() {

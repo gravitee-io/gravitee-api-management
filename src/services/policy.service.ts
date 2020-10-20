@@ -21,11 +21,18 @@ class PolicyService {
     this.policiesURL = `${Constants.envBaseURL}/policies/`;
   }
 
-  list() {
+  list(expandSchema = false, expandIcon = false) {
+    const expandParams = [];
+    if (expandSchema) {
+      expandParams.push('expand=schema');
+    }
+    if (expandIcon) {
+      expandParams.push('expand=icon');
+    }
     let url = this.policiesURL;
-    /*    if(expandSchema) {
-          url += "?expand=schema";
-        }*/
+    if (expandParams.length > 0) {
+      url += `?${expandParams.join('&')}`;
+    }
     return this.$http.get(url);
   }
 
@@ -36,6 +43,11 @@ class PolicyService {
   getSchema(policyId) {
     return this.$http.get(this.policiesURL + policyId + '/schema');
   }
+
+  getDocumentation(policyId) {
+    return this.$http.get(this.policiesURL + policyId + '/documentation');
+  }
+
 }
 
 export default PolicyService;

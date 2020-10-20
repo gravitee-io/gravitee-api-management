@@ -33,12 +33,13 @@ module.exports = {
         enforce: 'pre'
       },
       {
-        test: /\.(css|scss)$/,
+        test: /\.(scss)$/,
         loaders: ['style-loader', 'css-loader', 'sass-loader'],
         include: [
           path.resolve(__dirname, '..') + '/src/index.scss'
         ]
       },
+      {test: /\.css$/, loaders: ['style-loader', 'css-loader']},
       {
         test: /\.ts$/,
         exclude: /node_modules/,
@@ -104,6 +105,18 @@ module.exports = {
       {
         from: './docs',
         to: './docs'
+      },
+      {
+        from: './node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js',
+        to: 'webcomponents/webcomponents-loader.js'
+      },
+      {
+        from: './node_modules/@gravitee/ui-components/assets/css',
+        to: 'css'
+      },
+      {
+        from: './node_modules/@gravitee/ui-components/assets/i18n',
+        to: 'i18n'
       }
     ], {
       copyUnmodified: true

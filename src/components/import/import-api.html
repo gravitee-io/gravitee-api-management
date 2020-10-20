@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-dialog-content>
+<md-dialog-content class="content">
   <md-tabs md-dynamic-height md-border-bottom >
     <md-tab label="Import file" ng-click="$ctrl.toggleTab()">
       <div class="import-file-drop-box">
@@ -72,7 +72,11 @@
     </div>
   </div>
 </md-dialog-content>
-<md-dialog-actions layout="row">
-  <md-button md-no-ink ng-click="$ctrl.cancel()" ng-show=$ctrl.isForUpdate()>Cancel</md-button>
-  <md-button ng-disabled="!$ctrl.enableImport()" ng-click="$ctrl.importAPI()" class="md-raised gv-import-api-button" ng-class="{'md-warn': $ctrl.isForUpdate()}">Import</md-button>
+<md-dialog-actions layout="row" class="gv-import-api-actions">
+  <div  ng-show="$ctrl.hasCancel()">
+    <md-button md-no-ink ng-click="$ctrl.cancel()">Cancel</md-button>
+  </div>
+  <div>
+    <md-button ng-disabled="!$ctrl.enableImport()" ng-click="$ctrl.importAPI()" class="md-raised" ng-class="{'md-warn': $ctrl.isForUpdate()}">Import</md-button>
+  </div>
 </md-dialog-actions>

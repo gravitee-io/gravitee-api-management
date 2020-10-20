@@ -21,12 +21,8 @@ const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const pkg = require('../package.json');
 const autoprefixer = require('autoprefixer');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-
-const packages = Object.keys(pkg.dependencies);
-packages.splice(packages.indexOf('swagger-ui-dist'), 1);
 
 module.exports = {
   mode: 'production',
@@ -39,7 +35,7 @@ module.exports = {
         enforce: 'pre'
       },
       {
-        test: /\.(css|scss)$/,
+        test: /\.(scss)$/,
         loaders: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: 'css-loader!sass-loader!postcss-loader'
@@ -48,6 +44,7 @@ module.exports = {
           path.resolve(__dirname, '..') + '/src/index.scss'
         ]
       },
+      {test: /\.css$/, loaders: ['style-loader', 'css-loader']},
       {
         test: /\.ts$/,
         exclude: /node_modules/,
@@ -126,6 +123,18 @@ module.exports = {
         from: './docs',
         to: './docs'
       },
+      {
+        from: './node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js',
+        to: 'webcomponents/webcomponents-loader.js'
+      },
+      {
+        from: './node_modules/@gravitee/ui-components/assets/css',
+        to: 'css'
+      },
+      {
+        from: './node_modules/@gravitee/ui-components/assets/i18n',
+        to: 'i18n'
+      },
       {from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html'}
     ], {
       copyUnmodified: true
@@ -148,7 +157,6 @@ module.exports = {
     ]
   },
   entry: {
-    vendor: packages,
     app: `./${conf.path.src('index')}`
   },
   node: {
@@ -159,7 +167,19 @@ module.exports = {
   optimization: {
     minimize: true,
     splitChunks: {
-      chunks: 'all'
+      chunks: 'all',
+      cacheGroups: {
+        default: false,
+        // Merge all the CSS into one file
+        styles: {
+          name: 'styles',
+          test: /\.s?css$/,
+          chunks: 'all',
+          minChunks: 1,
+          reuseExistingChunk: true,
+          enforce: true
+        }
+      }
     }
   }
-};
+}

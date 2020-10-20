@@ -16,12 +16,16 @@
 import * as _ from 'lodash';
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
+import ApiEditPlanController from '../../portal/plans/plan/edit-plan.controller';
+import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';
 
 class ApiCreationController {
 
   api: any;
   selectedTenants: any[];
+
+  private parent: NewApiController;
   private vm: {
     selectedStep: number;
     stepProgress: number;
@@ -66,6 +70,7 @@ class ApiCreationController {
               private $rootScope) {
     'ngInject';
     this.api = {};
+    this.api.gravitee = ['2.0.0', '1.0.0'].includes($stateParams.definitionVersion) ? $stateParams.definitionVersion : '2.0.0';
     this.contextPathInvalid = true;
     this.api.proxy = {};
     this.api.proxy.endpoints = [];
@@ -113,9 +118,7 @@ class ApiCreationController {
    */
   initStepSettings() {
     this.skippedStep = false;
-    this.apiSteps = [];
-    this.apiSteps.push(this.steps()[0]);
-
+    this.apiSteps = this.steps().slice(0, 2);
     this.vm = {
       selectedStep: 0,
       stepProgress: 1,
@@ -141,22 +144,23 @@ class ApiCreationController {
       this.vm.stepProgress = this.vm.stepProgress + 1;
     }
 
+    const stepIndex = this.vm.selectedStep + 1;
     // change api step state
     if (this.skippedStep) {
-      this.apiSteps[this.vm.selectedStep].badgeClass = 'disable';
-      this.apiSteps[this.vm.selectedStep].badgeIconClass = 'glyphicon-remove-circle';
-      this.apiSteps[this.vm.selectedStep].title = this.steps()[this.vm.selectedStep].title + ' <em>skipped</em>';
+      this.apiSteps[stepIndex].badgeClass = 'disable';
+      this.apiSteps[stepIndex].badgeIconClass = 'glyphicon-remove-circle';
+      this.apiSteps[stepIndex].title = this.steps()[this.vm.selectedStep].title + ' <em>skipped</em>';
       this.skippedStep = false;
     } else {
-      this.apiSteps[this.vm.selectedStep].badgeClass = 'info';
-      this.apiSteps[this.vm.selectedStep].badgeIconClass = 'glyphicon-ok-circle';
+      this.apiSteps[stepIndex].badgeClass = 'info';
+      this.apiSteps[stepIndex].badgeIconClass = 'glyphicon-ok-circle';
     }
-    if (!this.apiSteps[this.vm.selectedStep + 1]) {
-      this.apiSteps.push(this.steps()[this.vm.selectedStep + 1]);
+    if (!this.apiSteps[stepIndex + 1]) {
+      this.apiSteps.push(this.steps()[stepIndex + 1]);
     }
 
     var that = this;
-    this.$timeout(function () {
+    this.$timeout(function() {
       that.vm.selectedStep = that.vm.selectedStep + 1;
     });
   }
@@ -202,7 +206,7 @@ class ApiCreationController {
     var that = this;
     this.$mdDialog
       .show(alert)
-      .then(function () {
+      .then(function() {
         that._createAPI(deployAndStart, readyForReview);
       });
   }
@@ -210,7 +214,7 @@ class ApiCreationController {
   _createAPI(deployAndStart, readyForReview?: boolean) {
     var _this = this;
     // clear API pages json format
-    _.forEach(this.api.pages, function (page) {
+    _.forEach(this.api.pages, function(page) {
       if (!page.name) {
         page.name = page.fileName;
       }
@@ -220,7 +224,7 @@ class ApiCreationController {
     });
 
     // handle plan publish state
-    _.forEach(this.api.plans, function (plan) {
+    _.forEach(this.api.plans, function(plan) {
       plan.status = (deployAndStart) ? 'PUBLISHED' : 'STAGING';
     });
 
@@ -228,7 +232,7 @@ class ApiCreationController {
     if (deployAndStart) {
       this.api.lifecycle_state = 'PUBLISHED';
     }
-    this.ApiService.import(null, this.api).then(function (api) {
+    this.ApiService.import(null, this.api).then(function(api) {
       _this.vm.showBusyText = false;
       if (readyForReview) {
         _this.ApiService.askForReview(api.data).then((response) => {
@@ -239,8 +243,8 @@ class ApiCreationController {
         });
       }
       if (deployAndStart) {
-        _this.ApiService.deploy(api.data.id).then(function () {
-          _this.ApiService.start(api.data).then(function () {
+        _this.ApiService.deploy(api.data.id).then(function() {
+          _this.ApiService.start(api.data).then(function() {
             _this.NotificationService.show('API created, deployed and started');
             _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
           });
@@ -250,7 +254,7 @@ class ApiCreationController {
         _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
       }
       return api;
-    }).catch(function () {
+    }).catch(function() {
       _this.vm.showBusyText = false;
     });
   }
@@ -263,16 +267,16 @@ class ApiCreationController {
     if (this.contextPathInvalid) {
       var _this = this;
       var criteria = {'context_path': this.api.proxy.context_path};
-      this.ApiService.verify(criteria).then(function () {
+      this.ApiService.verify(criteria).then(function() {
         _this.contextPathInvalid = false;
         _this.submitCurrentStep(stepData);
-        _this.apiSteps[_this.vm.selectedStep].title = stepMessage;
-      }, function () {
+        _this.apiSteps[_this.vm.selectedStep + 1].title = stepMessage;
+      }, function() {
         _this.contextPathInvalid = true;
       });
     } else {
       this.submitCurrentStep(stepData);
-      this.apiSteps[this.vm.selectedStep].title = stepMessage;
+      this.apiSteps[this.vm.selectedStep + 1].title = stepMessage;
     }
   }
 
@@ -310,42 +314,86 @@ class ApiCreationController {
     if (!this.plan.validation) {
       this.plan.validation = 'MANUAL';
     }
-    this.api.plans = [];
-    this.plan.paths = {
-      '/': []
-    };
+
     // set resource filtering whitelist
     _.remove(this.resourceFiltering.whitelist, (whitelistItem: any) => {
       return !whitelistItem.pattern;
     });
-    if (this.resourceFiltering.whitelist.length) {
-      this.plan.paths['/'].push({
-        'methods': this.methods,
-        'resource-filtering': {
-          'whitelist': this.resourceFiltering.whitelist
-        }
-      });
+    if (this.api.gravitee === '1.0.0') {
+      this.plan.paths = {
+        '/': []
+      };
+
+      if (this.resourceFiltering.whitelist.length) {
+        this.plan.paths['/'].push({
+          'methods': this.methods,
+          'resource-filtering': {
+            'whitelist': this.resourceFiltering.whitelist
+          }
+        });
+      }
+      // set rate limit policy
+      if (this.rateLimit && this.rateLimit.limit) {
+        this.plan.paths['/'].push({
+          'methods': this.methods,
+          'rate-limit': {
+            'rate': this.rateLimit
+          }
+        });
+      }
+      // set quota policy
+      if (this.quota && this.quota.limit) {
+        this.plan.paths['/'].push({
+          'methods': this.methods,
+          'quota': {
+            'quota': this.quota,
+            'addHeaders': true
+          }
+        });
+      }
+    } else {
+      const flow = {
+        'path-operator': {
+          path: '/',
+          operator: 'STARTS_WITH'
+        },
+        condition: '',
+        pre: [],
+        post: []
+      };
+      if (this.resourceFiltering.whitelist.length) {
+        flow.pre.push({
+          name: 'Resource Filtering',
+          policy: 'resource-filtering',
+          configuration: {
+            whitelist: this.resourceFiltering.whitelist
+          }
+        });
+      }
+      // set rate limit policy
+      if (this.rateLimit && this.rateLimit.limit) {
+        flow.pre.push({
+          name: 'Rate limit',
+          policy: 'rate-limit',
+          configuration: {
+            rate: this.rateLimit
+          }
+        });
+      }
+      // set quota policy
+      if (this.quota && this.quota.limit) {
+        flow.pre.push({
+          name: 'Quota',
+          policy: 'quota',
+          configuration: {
+            quota: this.quota,
+            addHeaders: true
+          }
+        });
+      }
+      this.plan.flows = [flow];
     }
-    // set rate limit policy
-    if (this.rateLimit && this.rateLimit.limit) {
-      this.plan.paths['/'].push({
-        'methods': this.methods,
-        'rate-limit': {
-          'rate': this.rateLimit
-        }
-      });
-    }
-    // set quota policy
-    if (this.quota && this.quota.limit) {
-      this.plan.paths['/'].push({
-        'methods': this.methods,
-        'quota': {
-          'quota': this.quota,
-          'addHeaders': true
-        }
-      });
-    }
-    this.api.plans.push(this.plan);
+    this.api.plans = [this.plan];
     // set api step message
     var stepMessage = this.plan.name + ' <code>' + this.plan.security + '</code> <code>' + this.plan.validation + '</code>';
     this.apiSteps[this.vm.selectedStep].title = stepMessage;
@@ -370,7 +418,7 @@ class ApiCreationController {
    */
   initDocumentationSettings() {
     var that = this;
-    this.$scope.$watch('newApiPageFile.content', function (data) {
+    this.$scope.$watch('newApiPageFile.content', function(data) {
       if (data) {
         var file = {
           name: that.$scope.newApiPageFile.name,
@@ -400,7 +448,7 @@ class ApiCreationController {
 
   selectDocumentation() {
     var stepMessage = '';
-    _.forEach(this.api.pages, function (page) {
+    _.forEach(this.api.pages, function(page) {
       stepMessage += page.name + ' ';
     });
     this.apiSteps[this.vm.selectedStep].title = stepMessage;
@@ -441,7 +489,7 @@ class ApiCreationController {
     var that = this;
     this.$mdDialog
       .show(alert)
-      .then(function () {
+      .then(function() {
         _.remove(that.api.pages, (_page: any) => {
           return _page.fileName === page.fileName;
         });
@@ -454,27 +502,33 @@ class ApiCreationController {
   }
 
   steps() {
-    return [{
-      badgeClass: 'disable',
-      badgeIconClass: 'glyphicon-refresh',
-      title: 'General',
-      content: 'Name, version and context-path'
-    }, {
-      badgeClass: 'disable',
-      badgeIconClass: 'glyphicon-refresh',
-      title: 'Gateway',
-      content: 'Endpoint'
-    }, {
-      badgeClass: 'disable',
-      badgeIconClass: 'glyphicon-refresh',
-      title: 'Plan',
-      content: 'Name, security type and validation mode'
-    }, {
-      badgeClass: 'disable',
-      badgeIconClass: 'glyphicon-refresh',
-      title: 'Documentation',
-      content: 'Pages name'
-    }];
+    return [
+      {
+        badgeClass: 'info',
+        badgeIconClass: 'glyphicon-ok-circle',
+        title: getDefinitionVersionTitle(this.api.gravitee),
+        content: getDefinitionVersionDescription(this.api.gravitee)
+      }, {
+        badgeClass: 'disable',
+        badgeIconClass: 'glyphicon-refresh',
+        title: 'General',
+        content: 'Name, version and context-path'
+      }, {
+        badgeClass: 'disable',
+        badgeIconClass: 'glyphicon-refresh',
+        title: 'Gateway',
+        content: 'Endpoint'
+      }, {
+        badgeClass: 'disable',
+        badgeIconClass: 'glyphicon-refresh',
+        title: 'Plan',
+        content: 'Name, security type and validation mode'
+      }, {
+        badgeClass: 'disable',
+        badgeIconClass: 'glyphicon-refresh',
+        title: 'Documentation',
+        content: 'Pages name'
+      }];
   }
 }
 

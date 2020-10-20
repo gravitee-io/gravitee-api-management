@@ -261,11 +261,12 @@ class ApiHistoryController {
       'tags': eventPayloadDefinition.tags,
       'proxy': eventPayloadDefinition.proxy,
       'paths': eventPayloadDefinition.paths,
+      'flows': eventPayloadDefinition.flows,
       'properties': eventPayloadDefinition.properties,
       'services': eventPayloadDefinition.services,
       'resources': eventPayloadDefinition.resources,
       'path_mappings': eventPayloadDefinition.path_mappings,
-      'response_templates': eventPayloadDefinition.response_templates
+      'response_templates': eventPayloadDefinition.response_templates,
     };
     return reorganizedEvent;
   }

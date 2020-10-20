@@ -23,13 +23,15 @@ export const submenuFilter = function ($state: StateService, UserService: UserSe
     let hasId = 'apiId' in $state.params || 'applicationId' in $state.params || 'instanceId' in $state.params;
 
     if (universeLevels.indexOf('configuration') !== -1 || hasId) {
+
       let universe: string = `${universeLevels.join('.')}.`;
-      return menuItems.filter((cState) => !cState.abstract &&
+      const result = menuItems.filter((cState) => !cState.abstract &&
         cState.data && cState.data.menu && !cState.data.menu.firstLevel &&
         cState.name.indexOf(universe) === 0 &&
         (!cState.data.perms || !cState.data.perms.only || UserService.isUserHasPermissions(cState.data.perms.only)) &&
         (!cState.data.menu.parameter || _.get(Constants, cState.data.menu.parameter))
       );
+      return result;
     } else {
       return [];
     }

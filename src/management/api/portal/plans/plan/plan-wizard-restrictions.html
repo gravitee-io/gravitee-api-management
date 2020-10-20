@@ -50,7 +50,11 @@
         </div>
 
         <div flex layout="row" layout-align="end top">
-          <md-button ng-disabled="! $ctrl.validate()" ng-click="$ctrl.gotoNextStep()">NEXT</md-button>
+          <md-button ng-if="!$ctrl.parent.isV2()" ng-disabled="!$ctrl.validate()" ng-click="$ctrl.gotoNextStep()">NEXT</md-button>
+          <md-button
+              ng-if="$ctrl.parent.isV2()" ng-disabled="!$ctrl.validate()"
+              ng-click="$ctrl.gotoNextStep()"
+              class="md-primary md-raised">SAVE</md-button>
         </div>
       </md-step-actions>
     </md-content>

@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<section>
+<section class="new-api" ng-class="{'new-api-import': $ctrl.isImport}">
   <md-toolbar class="md-table-toolbar md-default" style="background-color:#fbfbfc;">
     <div class="md-toolbar-tools">
       <span>Create an API</span>
@@ -23,22 +23,58 @@
   </md-toolbar>
   <div layout="column">
     <div layout="row" layout-align="center" style="margin-top: 40px;">
-      <div layout="column">
-        <gravitee-empty-state icon="dashboard"
-                              model="API"
-                              message="Create an API from scratch ..."
-                              create-mode="true"></gravitee-empty-state>
-        <md-button ui-sref="management.apis.create" style="margin: 0 auto;" aria-label="create-api" class="md-success md-fab create-api-button">
-          <ng-md-icon icon="arrow_forward" style="fill: white" size="38"></ng-md-icon>
-        </md-button>
+      <div layout="column" class="import-container">
+        <div class="card-import">
+          <div class="title">{{$ctrl.getImportTitle()}}</div>
+          <div class="description">
+            <abbr title="The import refer to the definition version included in file to choose the DESIGN MODE">API
+              definition</abbr>
+            or your Swagger descriptor file or a WSDL
+          </div>
+          <gv-api-import policies="$ctrl.policies" definition-version="$ctrl.definitionVersion" cancel-action="$ctrl.cancelImport()"></gv-api-import>
+        </div>
       </div>
     </div>
-    <div layout="row" layout-align="center" style="margin-top: 50px;">
-      <div layout="column">
-        <h4>... or import API definition or your Swagger descriptor file or a WSDL</h4>
+    <div layout="row" class="card-container" layout-align="center" style="margin-top: 40px;">
 
-        <gv-api-import policies="$ctrl.policies"></gv-api-import>
+      <div layout="column" ng-class="{selected: $ctrl.definitionVersion ==='2.0.0', 'definition-container': true}">
+
+        <div class="card" ng-click="$ctrl.definitionVersion='2.0.0'">
+          <span class="title">{{$ctrl.getDefinitionVersionTitle('2.0.0')}}</span>
+          <gv-image src="assets/api-design-studio.png"></gv-image>
+          <span class="description">{{$ctrl.getDefinitionVersionDescription('2.0.0')}}</span>
+        </div>
+
+        <div class="actions">
+          <gv-button class="import-action" icon="code:left-circle" outlined ng-click="$ctrl.isImport = false">Cancel
+          </gv-button>
+          <gv-button icon="general:upload" outlined ng-click="$ctrl.isImport = true">Import</gv-button>
+          <gv-button icon-right="code:right-circle"
+                     ui-sref="management.apis.create({definitionVersion: $ctrl.definitionVersion})">Create
+          </gv-button>
+        </div>
+
       </div>
+
+      <div layout="column" ng-class="{ selected: $ctrl.definitionVersion==='1.0.0', 'definition-container': true}">
+
+        <div class="card" ng-click="$ctrl.definitionVersion='1.0.0'">
+          <span class="title">{{$ctrl.getDefinitionVersionTitle('1.0.0')}}</span>
+          <gv-image src="assets/api-design-paths.png"></gv-image>
+          <span class="description">{{$ctrl.getDefinitionVersionDescription('1.0.0')}}</span>
+        </div>
+
+        <div class="actions">
+          <gv-button icon="general:upload" outlined ng-click="$ctrl.isImport = true">Import</gv-button>
+          <gv-button class="import-action" icon="code:left-circle" outlined ng-click="$ctrl.isImport = false">Cancel
+          </gv-button>
+          <gv-button icon-right="code:right-circle"
+                     ui-sref="management.apis.create({definitionVersion: $ctrl.definitionVersion})">Create
+          </gv-button>
+        </div>
+
+      </div>
+
     </div>
   </div>
 </section>

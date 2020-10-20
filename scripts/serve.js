@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const conf = require('./gulp.conf');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const compression = require('compression');
+const express = require('express');
+const {createProxyMiddleware} = require('http-proxy-middleware');
+const app = express();
 
-module.exports = function (env) {
-  return {
-    server: {
-      baseDir: [
-        conf.paths.tmp,
-        conf.paths.src
-      ]
-    },
-    open: false,
-    middleware: createProxyMiddleware(
-      env ? `https://${env}.gravitee.io/management/**` : 'http://localhost:8083/management/**',
-      { changeOrigin: Boolean(env), secure: false }
-    )
-  };
-};
+app.use(compression());
+app.use(express.static('dist/'));
+app.use('/management', createProxyMiddleware({target: 'http://localhost:8083', changeOrigin: true}));
+
+app.all('/*', (req, res) => {
+  res.sendFile('index.html', {root: 'dist/'});
+});
+
+app.listen(3000, () => {
+  console.log('Example app listening at http://localhost:3000');
+});

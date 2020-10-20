@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const conf = require('./gulp.conf');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+class FlowService {
 
-module.exports = function (env) {
-  return {
-    server: {
-      baseDir: [
-        conf.paths.tmp,
-        conf.paths.src
-      ]
-    },
-    open: false,
-    middleware: createProxyMiddleware(
-      env ? `https://${env}.gravitee.io/management/**` : 'http://localhost:8083/management/**',
-      { changeOrigin: Boolean(env), secure: false }
-    )
-  };
-};
+  private flowURL: string;
+
+  constructor(private $http, Constants) {
+    'ngInject';
+    this.flowURL = `${Constants.baseURL}/configuration/flow/`;
+  }
+
+  getSchema() {
+    return this.$http.get(`${this.flowURL}schema`);
+  }
+
+}
+
+export default FlowService;

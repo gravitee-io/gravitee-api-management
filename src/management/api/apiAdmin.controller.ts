@@ -118,7 +118,6 @@ class ApiAdminController {
   }
 
   showDeployAPIConfirm(ev, api) {
-    ev.stopPropagation();
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',

@@ -16,8 +16,15 @@
   }
 }
 
-.gv-import-api-button {
-  margin: 0 auto;
+.gv-import-api-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.gv-import-api-actions > * {
+  flex: 1;
+  display: flex;
+  justify-content: center;
 }
 
 .layout-column > .flex {

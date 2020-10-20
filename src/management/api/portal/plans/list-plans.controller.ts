@@ -16,7 +16,7 @@
 import _ = require('lodash');
 import angular = require('angular');
 import UserService from '../../../../services/user.service';
-import ApiService from '../../../../services/api.service';
+import ApiService, { isV2 } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 
@@ -55,7 +55,7 @@ class ApiListPlansController {
 
     let d = document.querySelector('.plans');
     this.dragularService([d], {
-      moves: function () {
+      moves: function() {
         return that.dndEnabled;
       },
       scope: this.$scope,
@@ -67,7 +67,7 @@ class ApiListPlansController {
       let movedPlan = that.filteredPlans[index];
       movedPlan.order = dropIndex + 1;
 
-      that.ApiService.savePlan(that.$stateParams.apiId, movedPlan).then(function () {
+      that.ApiService.savePlan(that.api, movedPlan).then(function() {
         // sync list from server because orders has been changed
         that.list();
         that.NotificationService.show('Plans have been reordered successfully');
@@ -86,6 +86,14 @@ class ApiListPlansController {
 
     this.isApiDeprecated = this.api.lifecycle_state === 'deprecated';
     this.creationEmptyMessage = this.isApiDeprecated ? 'The API is deprecated' : 'Start creating a plan';
+  }
+
+  canDesign(plan) {
+    return isV2(this.api) && plan.status !== 'closed';
+  }
+
+  design(plan) {
+    this.$state.go('management.apis.detail.design.policy-studio', {apiId: this.api.id, flows: `${plan.id}_0`});
   }
 
   list() {
@@ -121,9 +129,9 @@ class ApiListPlansController {
     this.countPlansByStatus();
     var that = this;
     this.filteredPlans = _.sortBy(
-      _.filter(this.plans, function (plan: any) {
-      return _.includes(that.selectedStatus, plan.status);
-    }), 'order');
+      _.filter(this.plans, function(plan: any) {
+        return _.includes(that.selectedStatus, plan.status);
+      }), 'order');
   }
 
   addPlan() {
@@ -135,7 +143,7 @@ class ApiListPlansController {
   }
 
   close(plan, ev) {
-    this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then( (response) => {
+    this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then((response) => {
       const subscriptions = response.data.page.size;
       let msg = '';
       if (plan.security === 'key_less') {
@@ -168,16 +176,16 @@ class ApiListPlansController {
           validationValue: plan.name,
           confirmButton: confirmButton
         }
-      }).then( (response) => {
+      }).then((response) => {
         if (response) {
           let that = this;
-          this.ApiService.closePlan(this.$stateParams.apiId, plan.id).then(function() {
+          this.ApiService.closePlan(this.api, plan.id).then(function() {
             that.NotificationService.show('Plan ' + plan.name + ' has been closed');
-            that.$rootScope.$broadcast('planChangeSuccess', { state: 'closed'});
+            that.$rootScope.$broadcast('planChangeSuccess', {state: 'closed'});
             that.$scope.$parent.apiCtrl.checkAPISynchronization({id: that.$stateParams.apiId});
             that.selectedStatus = ['closed'];
             that.list();
-          }).catch(function (error) {
+          }).catch(function(error) {
             that.NotificationService.show('Error while closing plan ' + plan.name);
           });
         }
@@ -196,11 +204,11 @@ class ApiListPlansController {
         msg: 'By deprecating this plan, users will no more be able to subscribe to it.',
         confirmButton: 'Deprecate'
       }
-    }).then( (response) => {
+    }).then((response) => {
       if (response) {
-        this.ApiService.deprecatePlan(this.$stateParams.apiId, plan.id).then( () => {
+        this.ApiService.deprecatePlan(this.api, plan.id).then( () => {
           this.NotificationService.show('Plan ' + plan.name + ' has been deprecated');
-          this.$rootScope.$broadcast('planChangeSuccess', { state: 'deprecated'});
+          this.$rootScope.$broadcast('planChangeSuccess', {state: 'deprecated'});
           this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
           this.selectedStatus = ['published'];
           this.list();
@@ -211,27 +219,27 @@ class ApiListPlansController {
 
   publish(plan, ev) {
     this.$mdDialog.show({
-        controller: 'DialogPublishPlanController',
-        template: require('./publishPlan.dialog.html'),
-        parent: angular.element(document.body),
-        targetEvent: ev,
-        clickOutsideToClose: true,
-        locals: {
-          plan: plan
-        }
-      }).then( (plan) => {
-        if (plan) {
-          this.ApiService.publishPlan(this.$stateParams.apiId, plan.id).then( () => {
-            this.NotificationService.show('Plan ' + plan.name + ' has been published');
-            this.$rootScope.$broadcast('planChangeSuccess', { state: 'published'});
-            this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
-            this.selectedStatus = ['published'];
-            this.list();
-          });
-        }
-      }, function() {
-        // You cancelled the dialog
-      });
+      controller: 'DialogPublishPlanController',
+      template: require('./publishPlan.dialog.html'),
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose: true,
+      locals: {
+        plan: plan
+      }
+    }).then((plan) => {
+      if (plan) {
+        this.ApiService.publishPlan(this.api, plan.id).then(() => {
+          this.NotificationService.show('Plan ' + plan.name + ' has been published');
+          this.$rootScope.$broadcast('planChangeSuccess', {state: 'published'});
+          this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
+          this.selectedStatus = ['published'];
+          this.list();
+        });
+      }
+    }, function() {
+      // You cancelled the dialog
+    });
   }
 
   countPlansByStatus() {

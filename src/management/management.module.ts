@@ -496,12 +496,11 @@ import ConfirmProfileController from '../user/confirmProfile/confirmProfile.cont
 import CustomUserFieldsComponent from './configuration/custom-user-fields/custom-user-fields.component';
 import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
 import CustomUserFieldsService from '../services/custom-user-fields.service';
-import NewFieldDialogController
-  from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
-import DeleteFieldDialogController
-  from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
-import UpdateFieldDialogController
-  from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
+import NewFieldDialogController from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
+import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
+import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
+import FlowService from '../services/flow.service';
+import ApiPolicyStudioController from './api/design/policy-studio/policy-studio.controller';
 
 (<any>window).jQuery = jQuery;
 
@@ -516,13 +515,13 @@ import TicketDetailComponent from './support/ticket-detail.component';
 
 (<any>window).marked = marked;
 
+
 (<any>window).hljs = hljs;
 
 (<any>window).CodeMirror = CodeMirror;
 
 // tslint:disable:no-var-requires
 require('satellizer');
-
 require('angular-marked');
 require('angular-highlightjs');
 
@@ -688,6 +687,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvHttpConfiguration', HttpConfigurationComponent)
   .controller('DialogAssertionInformationController', DialogAssertionInformationController)
   .controller('ApiPropertiesController', ApiPropertiesController)
+  .controller('ApiPolicyStudioController', ApiPolicyStudioController)
   .controller('ApiEventsController', ApiEventsController)
   .controller('ApiHistoryController', ApiHistoryController)
   .controller('ApiResourcesController', ApiResourcesController)
@@ -792,7 +792,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('TokenService', TokenService)
   .service('EnvironmentService', EnvironmentService)
   .service('OrganizationService', OrganizationService)
-
+  .service('FlowService', FlowService)
   .controller('DialogGenerateTokenController', DialogGenerateTokenController)
 
   .directive('filecontent', () => FileContentDirective)

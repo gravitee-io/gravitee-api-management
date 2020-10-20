@@ -67,8 +67,13 @@
           <md-button class="md-raised md-warn" ui-sref="management.apis.detail.portal.plans.list">CANCEL</md-button>
         </div>
         <div flex layout="row" layout-align="end top">
-          <md-button ng-disabled="$ctrl.planGeneralForm.$invalid || $ctrl.securityConfigurationForm.$invalid"
+          <md-button ng-if="$ctrl.parent.hasRestrictionStep()"
+                     ng-disabled="$ctrl.planGeneralForm.$invalid || $ctrl.securityConfigurationForm.$invalid"
                      ng-click="$ctrl.gotoNextStep()">NEXT</md-button>
+          <md-button
+              ng-if="!$ctrl.parent.hasRestrictionStep()" ng-disabled="$ctrl.planGeneralForm.$invalid || $ctrl.securityConfigurationForm.$invalid"
+              ng-click="$ctrl.gotoNextStep()"
+              class="md-primary md-raised">SAVE</md-button>
         </div>
       </md-step-actions>
     </md-content>

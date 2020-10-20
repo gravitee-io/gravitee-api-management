@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import FlowService from '../../../services/flow.service';
 import TenantService from '../../../services/tenant.service';
 import ResourceService from '../../../services/resource.service';
+import PolicyService from '../../../services/policy.service';
 
 export default apisDesignRouterConfig;
 
@@ -30,8 +32,9 @@ function apisDesignRouterConfig($stateProvider) {
       controller: 'ApiPoliciesController',
       controllerAs: 'apiPoliciesCtrl',
       resolve: {
-        resolvedTenants: (TenantService: TenantService) => TenantService.list()
+        resolvedTenants: (TenantService: TenantService) => TenantService.list(),
       },
+      apiDefinition: {version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio'},
       data: {
         menu: {
           label: 'Design',
@@ -51,8 +54,9 @@ function apisDesignRouterConfig($stateProvider) {
       controller: 'ApiResourcesController',
       controllerAs: 'apiResourcesCtrl',
       resolve: {
-        resolvedResources: (ResourceService: ResourceService) => ResourceService.list()
+        resolvedResources: (ResourceService: ResourceService) => ResourceService.list(),
       },
+      apiDefinition: {version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio'},
       data: {
         perms: {
           only: ['api-definition-r']
@@ -67,12 +71,38 @@ function apisDesignRouterConfig($stateProvider) {
       template: require('./properties/properties.html'),
       controller: 'ApiPropertiesController',
       controllerAs: 'apiPropertiesCtrl',
+      apiDefinition: {version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio'},
       data: {
         perms: {
           only: ['api-definition-r']
         },
         docs: {
           page: 'management-api-properties'
+        }
+      }
+    })
+    .state('management.apis.detail.design.policy-studio', {
+      url: '/policy-studio?flows',
+      template: require('./policy-studio/policy-studio.html'),
+      controller: 'ApiPolicyStudioController',
+      controllerAs: 'apiPolicyStudioCtrl',
+      resolve: {
+        resolvedPolicies: (PolicyService: PolicyService) => PolicyService.list(true, true),
+        resolvedResources: (ResourceService: ResourceService) => ResourceService.list(true, true),
+        resolvedFlowSchema: (FlowService: FlowService) => FlowService.getSchema(),
+      },
+      data: {
+        perms: {
+          only: ['api-definition-r']
+        },
+        docs: {
+          page: 'management-api-policy-studio'
+        }
+      },
+      params: {
+        flows: {
+          type: 'string',
+          dynamic: true
         }
       }
     });

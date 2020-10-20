@@ -14,13 +14,51 @@
  * limitations under the License.
  */
 
+// tslint:disable-next-line:no-var-requires
+require('@gravitee/ui-components/wc/gv-option');
+
+export function getDefinitionVersionTitle(definitionVersion) {
+  if (definitionVersion === '2.0.0') {
+    return 'Design studio';
+  }
+  return 'Paths based';
+}
+
+export function getDefinitionVersionDescription(definitionVersion) {
+  if (definitionVersion === '2.0.0') {
+    return 'Use this version to enjoy a more intuitive interface to design';
+  }
+  return 'Use the proven version you will be able to migrate later';
+}
+
 class NewApiController {
+
+  definitionVersion: any;
+  options: any[];
+  isImport: boolean;
+
+  getDefinitionVersionTitle = getDefinitionVersionTitle;
+  getDefinitionVersionDescription = getDefinitionVersionDescription;
+  private definitionVersions: string[];
+
   constructor(
-    private policies
+    private policies,
+    private Constants: any
   ) {
     'ngInject';
-
+    this.definitionVersions = ['2.0.0', '1.0.0'];
+    this.definitionVersion = '2.0.0';
+    this.isImport = false;
   }
+
+  cancelImport() {
+    this.isImport = false;
+  }
+
+  getImportTitle() {
+    return `Import ${getDefinitionVersionTitle(this.definitionVersion)}`;
+  }
+
 }
 
 export default NewApiController;

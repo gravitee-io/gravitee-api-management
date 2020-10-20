@@ -48,6 +48,11 @@
             <md-tooltip md-direction="top">Configure plan</md-tooltip>
             <ng-md-icon style="fill: grey;" icon="mode_edit" ng-click="$ctrl.editPlan(plan)"></ng-md-icon>
           </span>
+
+                                   <span ng-if="$ctrl.canDesign(plan)" permission permission-only="'api-plan-u'">
+            <md-tooltip md-direction="top">Design plan</md-tooltip>
+            <ng-md-icon style="fill: #6ba2c5;" icon="palette" ng-click="$ctrl.design(plan)"></ng-md-icon>
+          </span>
                                     <span ng-if="plan.status === 'staging'" permission permission-only="'api-plan-u'">
             <md-tooltip md-direction="top">Publish plan</md-tooltip>
             <ng-md-icon style="fill: #6ba2c5;" icon="backup" ng-click="$ctrl.publish(plan)"></ng-md-icon>

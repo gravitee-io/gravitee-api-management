@@ -49,14 +49,14 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
           'id': 'key_less',
           'name': 'Keyless (public)'
         }], (security) => {
-          return Constants.plan.security[_.replace(security.id, '_', '')].enabled;
+        return Constants.plan.security[_.replace(security.id, '_', '')].enabled;
       });
     }
 
     $onInit() {
-        if (this.parent.plan.security) {
-          this.onSecurityTypeChange();
-        }
+      if (this.parent.plan.security) {
+        this.onSecurityTypeChange();
+      }
     }
 
     onSecurityTypeChange() {
@@ -90,7 +90,11 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
 
     gotoNextStep() {
       this.parent.vm.stepData[1].data = this.parent.plan;
-      this.parent.moveToNextStep(this.parent.vm.stepData[1]);
+      if (!this.parent.hasRestrictionStep()) {
+        this.parent.saveOrUpdate();
+      } else {
+        this.parent.moveToNextStep(this.parent.vm.stepData[1]);
+      }
     }
   }
 };

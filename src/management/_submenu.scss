@@ -64,3 +64,13 @@
     padding: 0 8px;
   }
 }
+
+.gv-sub-content-fullscreen {
+  overflow: auto;
+  height: calc(100vh - 54px);
+  padding: 0 4px;
+  position: relative;
+  @media screen and (max-width: 1000px) {
+    padding: 0 8px;
+  }
+}
