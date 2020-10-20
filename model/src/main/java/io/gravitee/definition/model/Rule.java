@@ -17,13 +17,14 @@ package io.gravitee.definition.model;
 
 import io.gravitee.common.http.HttpMethod;
 
+import java.io.Serializable;
 import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Rule {
+public class Rule implements Serializable {
 
     private Set<HttpMethod> methods;
 

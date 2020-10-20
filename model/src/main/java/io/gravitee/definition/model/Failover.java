@@ -15,12 +15,14 @@
  */
 package io.gravitee.definition.model;
 
+import java.io.Serializable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Failover {
+public class Failover implements Serializable {
 
     public static int DEFAULT_MAX_ATTEMPTS = 1;
     public static long DEFAULT_RETRY_TIMEOUT = 10000L;

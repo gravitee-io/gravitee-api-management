@@ -15,11 +15,13 @@
  */
 package io.gravitee.definition.model;
 
+import java.io.Serializable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LoadBalancer {
+public class LoadBalancer implements Serializable {
 
     private LoadBalancerType type = LoadBalancerType.ROUND_ROBIN;
 

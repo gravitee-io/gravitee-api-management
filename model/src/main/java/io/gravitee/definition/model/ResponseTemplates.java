@@ -15,13 +15,14 @@
  */
 package io.gravitee.definition.model;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ResponseTemplates {
+public class ResponseTemplates implements Serializable {
 
     private Map<String, ResponseTemplate> templates;
 

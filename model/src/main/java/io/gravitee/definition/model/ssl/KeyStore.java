@@ -15,11 +15,13 @@
  */
 package io.gravitee.definition.model.ssl;
 
+import java.io.Serializable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class KeyStore {
+public abstract class KeyStore implements Serializable {
 
     private final KeyStoreType type;
 

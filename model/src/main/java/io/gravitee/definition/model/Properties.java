@@ -17,6 +17,7 @@ package io.gravitee.definition.model;
 
 import io.gravitee.common.util.TemplatedValueHashMap;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Properties {
+public class Properties implements Serializable {
 
     private List<Property> properties;
     private Map<String ,String> entries;

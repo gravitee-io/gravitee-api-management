@@ -15,13 +15,14 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Response {
+public class Response implements Serializable {
 
     public final static String DEFAULT_ASSERTION = "#response.status == 200";
 

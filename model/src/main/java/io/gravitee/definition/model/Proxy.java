@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -22,7 +23,7 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Proxy {
+public class Proxy implements Serializable {
 
     private List<VirtualHost> virtualHosts;
 

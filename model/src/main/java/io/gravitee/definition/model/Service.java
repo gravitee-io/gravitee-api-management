@@ -15,13 +15,14 @@
  */
 package io.gravitee.definition.model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class Service {
+public abstract class Service implements Serializable {
 
     private final String name;
 

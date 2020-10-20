@@ -17,6 +17,7 @@ package io.gravitee.definition.model;
 
 import io.gravitee.definition.model.services.Services;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,7 +25,7 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointGroup {
+public class EndpointGroup implements Serializable {
 
     private String name;
     private Set<Endpoint> endpoints;

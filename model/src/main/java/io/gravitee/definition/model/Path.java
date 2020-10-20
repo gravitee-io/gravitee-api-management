@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Path {
+public class Path implements Serializable {
     private String path;
 
     private List<Rule> rules = new ArrayList<>();

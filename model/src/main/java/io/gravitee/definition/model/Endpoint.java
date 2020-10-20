@@ -17,6 +17,7 @@ package io.gravitee.definition.model;
 
 import io.gravitee.definition.model.endpoint.EndpointStatusListener;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,7 +26,7 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class Endpoint {
+public abstract class Endpoint implements Serializable {
 
     private final Set<EndpointStatusListener> listeners = new HashSet<>();
 

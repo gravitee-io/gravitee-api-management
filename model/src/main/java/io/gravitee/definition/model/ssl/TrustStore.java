@@ -15,11 +15,13 @@
  */
 package io.gravitee.definition.model.ssl;
 
+import java.io.Serializable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class TrustStore {
+public abstract class TrustStore implements Serializable {
 
     private final TrustStoreType type;
 

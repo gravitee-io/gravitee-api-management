@@ -18,11 +18,13 @@ package io.gravitee.definition.model;
 import io.gravitee.definition.model.ssl.KeyStore;
 import io.gravitee.definition.model.ssl.TrustStore;
 
+import java.io.Serializable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpClientSslOptions {
+public class HttpClientSslOptions implements Serializable {
 
     private boolean trustAll;
 

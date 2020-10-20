@@ -17,6 +17,7 @@ package io.gravitee.definition.model.services;
 
 import io.gravitee.definition.model.Service;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +27,7 @@ import java.util.function.Consumer;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class Services {
+public final class Services implements Serializable {
 
     private Map<Class<? extends Service>, Service> services = new HashMap<>();
 

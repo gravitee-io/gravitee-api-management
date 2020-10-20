@@ -15,13 +15,14 @@
  */
 package io.gravitee.definition.model.services.schedule;
 
+import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Trigger {
+public class Trigger implements Serializable {
 
     private long rate;
 

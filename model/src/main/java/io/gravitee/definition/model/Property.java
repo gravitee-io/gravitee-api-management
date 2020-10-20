@@ -15,11 +15,13 @@
  */
 package io.gravitee.definition.model;
 
+import java.io.Serializable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Property {
+public class Property implements Serializable {
 
     private final String key;
 

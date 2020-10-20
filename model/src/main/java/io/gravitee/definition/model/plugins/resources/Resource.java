@@ -15,13 +15,14 @@
  */
 package io.gravitee.definition.model.plugins.resources;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Resource {
+public class Resource implements Serializable {
 
     private boolean enabled = true;
 

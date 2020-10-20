@@ -17,6 +17,7 @@ package io.gravitee.definition.model;
 
 import io.gravitee.common.http.HttpStatusCode;
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -24,7 +25,7 @@ import java.util.regex.Pattern;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Cors {
+public class Cors implements Serializable {
 
     public static int DEFAULT_ERROR_STATUS_CODE = HttpStatusCode.BAD_REQUEST_400;
 

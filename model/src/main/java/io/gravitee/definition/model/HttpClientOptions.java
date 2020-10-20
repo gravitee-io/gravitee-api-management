@@ -15,11 +15,13 @@
  */
 package io.gravitee.definition.model;
 
+import java.io.Serializable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpClientOptions {
+public class HttpClientOptions implements Serializable {
 
     public static long DEFAULT_IDLE_TIMEOUT = 60000;
     public static long DEFAULT_CONNECT_TIMEOUT = 5000;

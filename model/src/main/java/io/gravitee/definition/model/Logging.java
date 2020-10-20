@@ -15,11 +15,13 @@
  */
 package io.gravitee.definition.model;
 
+import java.io.Serializable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Logging {
+public class Logging implements Serializable {
 
     public final static LoggingMode DEFAULT_LOGGING_MODE = LoggingMode.NONE;
 

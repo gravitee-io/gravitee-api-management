@@ -18,13 +18,14 @@ package io.gravitee.definition.model.services.healthcheck;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Request {
+public class Request implements Serializable {
 
     private String path;
 

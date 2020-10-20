@@ -15,11 +15,13 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
+import java.io.Serializable;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Step {
+public class Step implements Serializable {
 
     private String name;
 
