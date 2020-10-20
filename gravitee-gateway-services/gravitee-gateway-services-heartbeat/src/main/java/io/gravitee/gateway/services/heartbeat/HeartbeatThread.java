@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.hearbeat;
+package io.gravitee.gateway.services.heartbeat;
 
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
