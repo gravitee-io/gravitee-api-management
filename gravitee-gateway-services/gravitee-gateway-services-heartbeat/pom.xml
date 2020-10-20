@@ -28,7 +28,7 @@
     </parent>
 
     <artifactId>gravitee-gateway-services-heartbeat</artifactId>
-    <name>Gravitee.io APIM - Gateway - Services - Hearbeat</name>
+    <name>Gravitee.io APIM - Gateway - Services - Heartbeat</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->

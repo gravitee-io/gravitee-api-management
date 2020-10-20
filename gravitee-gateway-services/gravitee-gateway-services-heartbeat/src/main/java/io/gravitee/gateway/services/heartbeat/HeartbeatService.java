@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.hearbeat;
+package io.gravitee.gateway.services.heartbeat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,8 +21,8 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.services.hearbeat.event.InstanceEventPayload;
-import io.gravitee.gateway.services.hearbeat.event.Plugin;
+import io.gravitee.gateway.services.heartbeat.event.InstanceEventPayload;
+import io.gravitee.gateway.services.heartbeat.event.Plugin;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.management.api.EventRepository;
