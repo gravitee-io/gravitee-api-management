@@ -41,33 +41,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <configuration>
-          <mapping>
-            <ts>SLASHSTAR_STYLE</ts>
-          </mapping>
-          <excludes>
-            <exclude>LICENSE.txt</exclude>
-            <exclude>node/**</exclude>
-            <exclude>node_modules/**</exclude>
-            <exclude>src/libraries/**</exclude>
-            <exclude>**/*.scss</exclude>
-            <exclude>**/*.svg</exclude>
-            <exclude>Jenkinsfile</exclude>
-            <exclude>**/.*</exclude>
-            <exclude>**/*.adoc</exclude>
-            <exclude>**/*.woff</exclude>
-            <exclude>**/*.ttf</exclude>
-            <exclude>**/*.woff2</exclude>
-            <exclude>**/*.eot</exclude>
-            <exclude>package-json.lock</exclude>
-            <exclude>.tmp/**</exclude>
-            <exclude>dist/**</exclude>
-          </excludes>
-        </configuration>
-      </plugin>
-      <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <version>2.5</version>
         <configuration>
@@ -85,6 +58,29 @@
               <directory>node_modules</directory>
             </fileset>
           </filesets>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <mapping>
+            <ts>SLASHSTAR_STYLE</ts>
+          </mapping>
+          <excludes>
+            <exclude>LICENSE.txt</exclude>
+            <exclude>src/libraries/**</exclude>
+            <exclude>**/*.scss</exclude>
+            <exclude>**/*.svg</exclude>
+            <exclude>Jenkinsfile</exclude>
+            <exclude>**/.*</exclude>
+            <exclude>**/*.adoc</exclude>
+            <exclude>**/*.woff</exclude>
+            <exclude>**/*.ttf</exclude>
+            <exclude>**/*.woff2</exclude>
+            <exclude>**/*.eot</exclude>
+            <exclude>package-json.lock</exclude>
+          </excludes>
         </configuration>
       </plugin>
       <plugin>
