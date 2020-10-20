@@ -15,13 +15,14 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Subscription {
+public class Subscription implements Serializable {
     public enum AuditEvent implements Audit.ApiAuditEvent {
         SUBSCRIPTION_CREATED, SUBSCRIPTION_UPDATED, SUBSCRIPTION_DELETED, SUBSCRIPTION_CLOSED, SUBSCRIPTION_PAUSED,
         SUBSCRIPTION_RESUMED

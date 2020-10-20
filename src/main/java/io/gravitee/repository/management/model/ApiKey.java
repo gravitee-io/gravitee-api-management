@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
@@ -22,7 +23,7 @@ import java.util.Objects;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiKey {
+public class ApiKey implements Serializable {
 	public enum AuditEvent implements Audit.ApiAuditEvent {
 		APIKEY_CREATED, APIKEY_RENEWED, APIKEY_REVOKED, APIKEY_EXPIRED, APIKEY_REACTIVATED
 	}

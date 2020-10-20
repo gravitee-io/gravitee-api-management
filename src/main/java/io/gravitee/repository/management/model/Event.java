@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
@@ -22,7 +23,7 @@ import java.util.Map;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Event {
+public class Event implements Serializable {
 
     /**
      * The event ID
