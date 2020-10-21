@@ -68,6 +68,7 @@ public class CategoriesResource extends AbstractResource {
                     c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
                     return c;
                 })
+                .filter(c -> c.getTotalApis() > 0)
                 .map(c-> categoryMapper.convert(c, uriInfo.getBaseUriBuilder()))
                 .collect(Collectors.toList());
         
