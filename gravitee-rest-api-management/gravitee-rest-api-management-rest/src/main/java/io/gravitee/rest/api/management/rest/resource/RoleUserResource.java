@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -34,6 +35,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PathParam;
+import java.util.Optional;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -58,18 +60,24 @@ public class RoleUserResource extends AbstractResource  {
     public void deleteRoleForUser(@PathParam("scope")RoleScope scope,
                        @PathParam("role") String role,
                        @PathParam("userId") String userId) {
-        if (RoleScope.ORGANIZATION.equals(scope)) {
-            membershipService.deleteReferenceMember(
-                    MembershipReferenceType.ORGANIZATION,
-                    GraviteeContext.getCurrentOrganization(),
-                    MembershipMemberType.USER,
-                    userId);
-        } else if (RoleScope.ENVIRONMENT.equals(scope)) {
-            membershipService.deleteReferenceMember(
-                    MembershipReferenceType.ENVIRONMENT,
-                    GraviteeContext.getCurrentEnvironment(),
-                    MembershipMemberType.USER,
-                    userId);
+        final Optional<RoleEntity> roleToRemove = roleService.findByScopeAndName(scope, role);
+        if (roleToRemove.isPresent()) {
+            String roleId = roleToRemove.get().getId();
+            if (RoleScope.ORGANIZATION.equals(scope)) {
+                membershipService.removeRole(
+                        MembershipReferenceType.ORGANIZATION,
+                        GraviteeContext.getCurrentOrganization(),
+                        MembershipMemberType.USER,
+                        userId,
+                        roleId);
+            } else if (RoleScope.ENVIRONMENT.equals(scope)) {
+                membershipService.removeRole(
+                        MembershipReferenceType.ENVIRONMENT,
+                        GraviteeContext.getCurrentEnvironment(),
+                        MembershipMemberType.USER,
+                        userId,
+                        roleId);
+            }
         }
     }
 }
