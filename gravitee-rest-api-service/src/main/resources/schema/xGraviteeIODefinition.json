@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "description": "Definition of the Gravity vendor extension for Swagger/OpenAPI descriptors : x-graviteeio-definition",
+  "description": "Definition of the Gravitee vendor extension for Swagger/OpenAPI descriptors : x-graviteeio-definition",
   "title": "xGraviteeIODefinition",
   "type": "object",
   "properties": {
