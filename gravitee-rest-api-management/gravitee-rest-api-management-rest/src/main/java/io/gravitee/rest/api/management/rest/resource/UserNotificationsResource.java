@@ -48,7 +48,7 @@ public class UserNotificationsResource extends AbstractResource  {
             @ApiResponse(code = 200, message = "User's notifications"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PagedResult<PortalNotificationEntity> list()  {
+    public PagedResult<PortalNotificationEntity> getUserNotifications()  {
         List<PortalNotificationEntity> notifications = portalNotificationService.findByUser(getAuthenticatedUser())
                 .stream()
                 .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt))
@@ -63,7 +63,7 @@ public class UserNotificationsResource extends AbstractResource  {
             @ApiResponse(code = 204, message = "Notifications successfully deleted"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response deleteAll() {
+    public Response deleteAllUserNotifications() {
         portalNotificationService.deleteAll(getAuthenticatedUser());
         return Response
                 .status(Response.Status.NO_CONTENT)
@@ -77,7 +77,7 @@ public class UserNotificationsResource extends AbstractResource  {
             @ApiResponse(code = 204, message = "Notification successfully deleted"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response delete(@PathParam("notification") String notificationId) {
+    public Response deleteUserNotification(@PathParam("notification") String notificationId) {
         portalNotificationService.delete(notificationId);
         return Response
                 .status(Response.Status.NO_CONTENT)

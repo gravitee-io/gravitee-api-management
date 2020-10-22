@@ -16,17 +16,16 @@
 package io.gravitee.rest.api.management.rest.resource.configuration.dictionary;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
-import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.model.configuration.dictionary.DictionaryListItem;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.swagger.annotations.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -61,7 +60,7 @@ public class DictionariesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List global dictionaries", response = DictionaryListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<DictionaryListItem> listDictionaries()  {
+    public List<DictionaryListItem> getDictionaries()  {
         return dictionaryService
                 .findAll()
                 .stream()

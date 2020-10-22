@@ -23,10 +23,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -61,6 +58,10 @@ public class UserResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
+    @PathParam("userId")
+    @ApiParam(name = "userId", required = true)
+    private String userId;
+
     @GET
     @Produces(APPLICATION_JSON)
     @ApiOperation(value = "Retrieve a user",
@@ -72,7 +73,7 @@ public class UserResource extends AbstractResource {
     @Permissions(
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)
     )
-    public UserEntity getUser(@PathParam("id") String userId) {
+    public UserEntity getUser() {
         UserEntity user = userService.findByIdWithRoles(userId);
 
         // Delete password for security reason
@@ -92,7 +93,7 @@ public class UserResource extends AbstractResource {
     @Permissions(
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.DELETE)
     )
-    public Response deleteUser(@PathParam("id") String userId) {
+    public Response deleteUser() {
         userService.delete(userId);
         return Response.noContent().build();
     }
@@ -109,7 +110,7 @@ public class UserResource extends AbstractResource {
     @Permissions(
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)
     )
-    public List<UserGroupEntity> getGroups(@PathParam("id") String userId) {
+    public List<UserGroupEntity> getUserGroups() {
         List<UserGroupEntity> groups = new ArrayList<>();
         groupService.findByUser(userId).forEach(groupEntity -> {
             UserGroupEntity userGroupEntity = new UserGroupEntity();
@@ -138,7 +139,7 @@ public class UserResource extends AbstractResource {
     @Permissions(
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ)
     )
-    public UserMembershipList getMemberships(@PathParam("id") String userId, @QueryParam("type") String sType) {
+    public UserMembershipList getUserMemberships(@QueryParam("type") String sType) {
         MembershipReferenceType type = null;
         if (sType != null) {
             type = MembershipReferenceType.valueOf(sType.toUpperCase());
@@ -163,7 +164,7 @@ public class UserResource extends AbstractResource {
             // if permission changes or a new one is added, please update io.gravitee.rest.api.service.impl.UserServiceImpl#canResetPassword
     )
     @Path("resetPassword")
-    public Response resetPassword(@PathParam("id") String userId) {
+    public Response resetUserPassword() {
         userService.resetPassword(userId);
         return Response.noContent().build();
     }
@@ -175,13 +176,13 @@ public class UserResource extends AbstractResource {
             @ApiResponse(code = 200, message = "User's avatar"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getUserAvatar(@PathParam("id") String id, @Context Request request) {
-        PictureEntity picture = userService.getPicture(id);
+    public Response getUserAvatar(@Context Request request) {
+        PictureEntity picture = userService.getPicture(userId);
 
         if (picture instanceof UrlPictureEntity) {
             return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }
-        
+
         InlinePictureEntity image = (InlinePictureEntity) picture;
         if (image == null || image.getContent() == null) {
             return Response.ok().build();
@@ -215,13 +216,13 @@ public class UserResource extends AbstractResource {
                 .type(image.getType())
                 .build();
     }
-    
+
     @PUT
     @Path("/roles")
     @Permissions(
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
     )
-    public Response updateUserRoles(@PathParam("id") String userId, List<String> roleIds ) {
+    public Response updateUserRoles(List<String> roleIds ) {
         userService.updateUserRoles(userId, roleIds);
         return Response.ok().build();
     }

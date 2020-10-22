@@ -27,8 +27,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -47,7 +47,8 @@ public class ApiHeadersResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-    @Autowired
+
+    @Inject
     private ApiHeaderService apiHeaderService;
 
     @GET
@@ -59,7 +60,7 @@ public class ApiHeadersResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.READ)
     })
-    public List<ApiHeaderEntity> get() {
+    public List<ApiHeaderEntity> getApiHeaders() {
         return apiHeaderService.findAll();
     }
 
@@ -74,7 +75,7 @@ public class ApiHeadersResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.CREATE)
     })
-    public ApiHeaderEntity create(@Valid @NotNull final NewApiHeaderEntity newApiHeaderEntity) {
+    public ApiHeaderEntity createApiHeader(@Valid @NotNull final NewApiHeaderEntity newApiHeaderEntity) {
         return apiHeaderService.create(newApiHeaderEntity);
     }
 

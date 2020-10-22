@@ -17,24 +17,20 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.exception.InvalidImageException;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.UpdateCategoryEntity;
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.UpdateCategoryEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+import io.swagger.annotations.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -50,8 +46,12 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 @Api(tags = {"Categories"})
 public class CategoryResource extends AbstractCategoryResource {
 
-    @Autowired
+    @Inject
     private CategoryService categoryService;
+
+    @PathParam("categoryId")
+    @ApiParam(name = "categoryId", required = true)
+    private String categoryId;
 
     @GET
     @Produces(APPLICATION_JSON)
@@ -60,7 +60,7 @@ public class CategoryResource extends AbstractCategoryResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Category's definition", response = CategoryEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public CategoryEntity get(@PathParam("id") String categoryId) {
+    public CategoryEntity getCategory() {
         boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
         CategoryEntity category = categoryService.findById(categoryId);
 
@@ -80,9 +80,7 @@ public class CategoryResource extends AbstractCategoryResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Category's picture"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response picture(
-            @Context Request request,
-            @PathParam("id") String categoryId) throws CategoryNotFoundException {
+    public Response getCategoryPicture(@Context Request request) throws CategoryNotFoundException {
         boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
         CategoryEntity category = categoryService.findById(categoryId);
 
@@ -134,7 +132,7 @@ public class CategoryResource extends AbstractCategoryResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE)
     })
-    public Response update(@PathParam("id") String categoryId, @Valid @NotNull final UpdateCategoryEntity category) {
+    public Response updateCategory(@Valid @NotNull final UpdateCategoryEntity category) {
         try {
             ImageUtils.verify(category.getPicture());
         } catch (InvalidImageException e) {
@@ -157,8 +155,8 @@ public class CategoryResource extends AbstractCategoryResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("id") String id) {
-        categoryService.delete(id);
+    public void deleteCategory() {
+        categoryService.delete(categoryId);
     }
 
 }

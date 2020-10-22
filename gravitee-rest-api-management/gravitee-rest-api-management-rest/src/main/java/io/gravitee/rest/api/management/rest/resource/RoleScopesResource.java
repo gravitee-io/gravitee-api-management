@@ -54,7 +54,7 @@ public class RoleScopesResource extends AbstractResource  {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of role scopes"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Map<String, List<String>> list()  {
+    public Map<String, List<String>> getRoleScopes() {
         final Map<String, List<String>> roles = new LinkedHashMap<>(4);
         roles.put(RoleScope.ORGANIZATION.name(), stream(OrganizationPermission.values()).map(OrganizationPermission::getName).sorted().collect(toList()));
         roles.put(RoleScope.ENVIRONMENT.name(), stream(EnvironmentPermission.values()).map(EnvironmentPermission::getName).sorted().collect(toList()));

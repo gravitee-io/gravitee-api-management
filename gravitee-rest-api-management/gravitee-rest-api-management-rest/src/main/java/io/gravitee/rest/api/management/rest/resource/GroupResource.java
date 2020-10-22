@@ -15,14 +15,13 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -52,8 +51,10 @@ public class GroupResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
-    @Inject
-    ApplicationService applicationService;
+
+    @PathParam("group")
+    @ApiParam(name = "group", required = true)
+    private String group;
 
     @GET
     @Produces(APPLICATION_JSON)
@@ -65,7 +66,7 @@ public class GroupResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
     })
-    public GroupEntity get(@PathParam("group") String group) {
+    public GroupEntity getGroup() {
         return groupService.findById(group);
     }
 
@@ -77,8 +78,8 @@ public class GroupResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE)
     })
-    public Response delete(@PathParam("group") String group) {
-        checkRights(group);
+    public Response deleteGroup() {
+        checkRights();
         groupService.delete(group);
         return Response.noContent().build();
     }
@@ -94,10 +95,9 @@ public class GroupResource extends AbstractResource {
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
             @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE)
     })
-    public GroupEntity update(
-            @PathParam("group") String group,
+    public GroupEntity updateGroup(
             @ApiParam(name = "group", required = true) @Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
-        final GroupEntity groupEntity = checkRights(group);
+        final GroupEntity groupEntity = checkRights();
         // check if user is a 'simple group admin' or a platform admin
         if (!permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, GraviteeContext.getCurrentEnvironment(), CREATE, UPDATE, DELETE)) {
             updateGroupEntity.setMaxInvitation(groupEntity.getMaxInvitation());
@@ -122,10 +122,7 @@ public class GroupResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
     })
-    public Response getMemberships(
-            @PathParam("group")String group,
-            @QueryParam("type") String type
-            ) {
+    public Response getGroupMemberships(@QueryParam("type") String type) {
         if ("api".equalsIgnoreCase(type)) {
             return Response.ok(groupService.getApis(group)).build();
 
@@ -146,17 +143,16 @@ public class GroupResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE)
     })
-    public GroupEntity associate(@PathParam("group") String group,
-                                 @QueryParam("type") String type) {
-        final GroupEntity groupEntity = checkRights(group);
+    public GroupEntity addGroupMember(@QueryParam("type") String type) {
+        final GroupEntity groupEntity = checkRights();
 
         groupService.associate(group, type);
 
         return groupEntity;
     }
 
-    private GroupEntity checkRights(final String group) {
-        final GroupEntity groupEntity = get(group);
+    private GroupEntity checkRights() {
+        final GroupEntity groupEntity = getGroup();
         if (!groupEntity.isManageable()) {
             throw new ForbiddenAccessException();
         }

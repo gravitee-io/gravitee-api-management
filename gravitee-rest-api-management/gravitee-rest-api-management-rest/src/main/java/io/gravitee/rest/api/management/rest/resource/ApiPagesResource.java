@@ -16,14 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -63,6 +63,11 @@ public class ApiPagesResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List pages",
@@ -70,9 +75,8 @@ public class ApiPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of pages", response = PageEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<PageEntity> listPages(
+    public List<PageEntity> getApiPages(
             @HeaderParam("Accept-Language") String acceptLang,
-            @PathParam("api") String api,
             @QueryParam("homepage") Boolean homepage,
             @QueryParam("type") PageType type,
             @QueryParam("parent") String parent,
@@ -113,8 +117,7 @@ public class ApiPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
-    public Response createPage(
-            @PathParam("api") String api,
+    public Response createApiPage(
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
         if(newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
             throw new PageSystemFolderActionException("Create");
@@ -144,9 +147,7 @@ public class ApiPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public Response fetchAllPages(
-            @PathParam("api") String api
-    ) {
+    public Response fetchAllApiPages() {
         String contributor = getAuthenticatedUser();
         pageService.fetchAll(new PageQuery.Builder().api(api).build(), contributor);
         return Response.noContent().build();
@@ -169,8 +170,7 @@ public class ApiPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
-    public List<PageEntity> importFiles(
-            @PathParam("api") String api,
+    public List<PageEntity> importApiPageFiles(
             @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity pageEntity) {
         pageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.importFiles(api, pageEntity);
@@ -188,8 +188,7 @@ public class ApiPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
-    public List<PageEntity> updateImportFiles(
-            @PathParam("api") String api,
+    public List<PageEntity> updateApiPageImportFiles(
             @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity pageEntity) {
         pageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.importFiles(api, pageEntity);

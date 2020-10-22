@@ -39,7 +39,6 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.swagger.annotations.*;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -73,16 +72,20 @@ public class ApiResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private NotifierService notifierService;
-    @Autowired
+    @Inject
     private QualityMetricsService qualityMetricsService;
-    @Autowired
+    @Inject
     private MessageService messageService;
-    @Autowired
+    @Inject
     private ParameterService parameterService;
     @Inject
     private SwaggerService swaggerService;
+
+    @PathParam("api")
+    @ApiParam(name = "api", required = true, value = "The ID of the API")
+    private String api;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -91,10 +94,10 @@ public class ApiResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response get(@PathParam("api") String api) {
+    public Response getApi() {
         ApiEntity apiEntity = apiService.findById(api);
         if (hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.READ)) {
-            setPicture(apiEntity);
+            setApiPicture(apiEntity);
         } else {
             filterSensitiveData(apiEntity);
         }
@@ -105,7 +108,7 @@ public class ApiResource extends AbstractResource {
                 .build();
     }
 
-    private void setPicture(final ApiEntity apiEntity) {
+    private void setApiPicture(final ApiEntity apiEntity) {
         if (apiEntity.getPicture() != null) {
             final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
             final UriBuilder uriBuilder = ub.path("picture");
@@ -123,10 +126,8 @@ public class ApiResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API's picture"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response picture(
-            @Context Request request,
-            @PathParam("api") String api) throws ApiNotFoundException {
-        canReadAPI(api);
+    public Response getApiPicture(@Context Request request) throws ApiNotFoundException {
+        canReadApi(api);
         CacheControl cc = new CacheControl();
         cc.setNoTransform(true);
         cc.setMustRevalidate(false);
@@ -168,12 +169,12 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response doLifecycleAction(
+    public Response doApiLifecycleAction(
             @Context HttpHeaders headers,
             @ApiParam(required = true, allowableValues = "START, STOP")
-            @QueryParam("action") LifecycleActionParam action,
-            @PathParam("api") String api) {
-        final Response responseApi = get(api);
+            @QueryParam("action") LifecycleActionParam action
+            ) {
+        final Response responseApi = getApi();
         Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
 
         if (builder != null) {
@@ -184,11 +185,11 @@ public class ApiResource extends AbstractResource {
         final ApiEntity updatedApi;
         switch (action.getAction()) {
             case START:
-                checkAPILifeCycle(apiEntity, action.getAction());
+                checkApiLifeCycle(apiEntity, action.getAction());
                 updatedApi = apiService.start(apiEntity.getId(), getAuthenticatedUser());
                 break;
             case STOP:
-                checkAPILifeCycle(apiEntity, action.getAction());
+                checkApiLifeCycle(apiEntity, action.getAction());
                 updatedApi = apiService.stop(apiEntity.getId(), getAuthenticatedUser());
                 break;
             default:
@@ -216,11 +217,10 @@ public class ApiResource extends AbstractResource {
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
             @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response update(
+    public Response updateApi(
             @Context HttpHeaders headers,
-            @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiToUpdate,
-            @PathParam("api") String api) {
-        final Response responseApi = get(api);
+            @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiToUpdate) {
+        final Response responseApi = getApi();
         Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
 
         if (builder != null) {
@@ -241,7 +241,7 @@ public class ApiResource extends AbstractResource {
         }
 
         final ApiEntity updatedApi = apiService.update(api, apiToUpdate);
-        setPicture(updatedApi);
+        setApiPicture(updatedApi);
 
         return Response
                 .ok(updatedApi)
@@ -281,7 +281,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE)
     })
-    public Response delete(@PathParam("api") String api) {
+    public Response deleteApi() {
         apiService.delete(api);
 
         return Response.noContent().build();
@@ -299,7 +299,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response deployAPI(@PathParam("api") String api) {
+    public Response deployApi() {
         try {
             ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUser(), EventType.PUBLISH_API);
             return Response
@@ -321,8 +321,8 @@ public class ApiResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API's state", response = ApiStateEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public ApiStateEntity isAPISynchronized(@PathParam("api") String api) {
-        canReadAPI(api);
+    public ApiStateEntity isApiSynchronized() {
+        canReadApi(api);
         ApiStateEntity apiStateEntity = new ApiStateEntity();
         apiStateEntity.setApiId(api);
         setSynchronizationState(apiStateEntity);
@@ -342,9 +342,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response rollback(
-            @PathParam("api") String api,
-            @ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiEntity) {
+    public Response rollbackApi(@ApiParam(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiEntity) {
         try {
             ApiEntity rollbackedApi = apiService.rollback(api, apiEntity);
             return Response
@@ -370,10 +368,8 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response updateWithDefinition(
-            @PathParam("api") String api,
-            @ApiParam(name = "definition", required = true) String apiDefinition) {
-        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
+    public Response updateApiWithDefinition(@ApiParam(name = "definition", required = true) String apiDefinition) {
+        final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
         ApiEntity updatedApi = apiService.createWithImportedDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
         return Response
@@ -396,9 +392,8 @@ public class ApiResource extends AbstractResource {
         @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public Response updateWithDefinitionPUT(
-        @PathParam("api") String api,
         @ApiParam(name = "definition", required = true) String apiDefinition) {
-        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
+        final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
         ApiEntity updatedApi = apiService.updateWithImportedDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
         return Response
@@ -421,9 +416,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response updateWithSwagger(
-            @PathParam("api") String api,
-            @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    public Response updateApiWithSwagger(@ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
         SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor);
         final ApiEntity updatedApi = apiService.update(api, swaggerApiEntity, swaggerDescriptor);
         return Response
@@ -445,8 +438,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ)
     })
-    public Response exportDefinition(
-            @PathParam("api") String api,
+    public Response exportApiDefinition(
             @QueryParam("version") @DefaultValue("default") String version,
             @QueryParam("exclude") @DefaultValue("") String exclude) {
         final ApiEntity apiEntity = apiService.findById(api);
@@ -465,7 +457,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_NOTIFICATION, acls = RolePermissionAction.READ)
     })
-    public List<NotifierEntity> getNotifiers(@PathParam("api") String api) {
+    public List<NotifierEntity> getApiNotifiers() {
         return notifierService.list(NotificationReferenceType.API, api);
     }
 
@@ -480,8 +472,8 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response importPathMappingsFromPage(@PathParam("api") String api, @QueryParam("page") @NotNull String page) {
-        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity();
+    public Response importApiPathMappingsFromPage(@QueryParam("page") @NotNull String page) {
+        final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
         ApiEntity updatedApi = apiService.importPathMappingsFromPage(apiEntity, page);
         return Response
                 .ok(updatedApi)
@@ -494,8 +486,8 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("quality")
     @ApiOperation(value = "Get the quality metrics of the API")
-    public ApiQualityMetricsEntity getQualityMetrics(@PathParam("api") String api) {
-        canReadAPI(api);
+    public ApiQualityMetricsEntity getApiQualityMetrics() {
+        canReadApi(api);
         final ApiEntity apiEntity = apiService.findById(api);
         return qualityMetricsService.getMetrics(apiEntity);
     }
@@ -510,7 +502,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_MESSAGE, acls = RolePermissionAction.CREATE)
     })
-    public Response create(@PathParam("api") String api, final MessageEntity message) {
+    public Response createApiMessage(final MessageEntity message) {
         return Response.ok(messageService.create(api, message)).build();
     }
 
@@ -518,7 +510,7 @@ public class ApiResource extends AbstractResource {
     @Path("headers")
     @ApiOperation(value = "Get the portal API headers values")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ApiHeaderEntity> getHeaders(@PathParam("api") String api) {
+    public List<ApiHeaderEntity> getPortalApiHeaders() {
         return apiService.getPortalHeaders(api);
     }
 
@@ -534,20 +526,19 @@ public class ApiResource extends AbstractResource {
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
             @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE)
     })
-    public Response doReviewAction(
+    public Response doApiReviewAction(
             @Context HttpHeaders headers,
             @ApiParam(required = true, allowableValues = "ASK")
             @NotNull @Valid @QueryParam("action") ReviewActionParam action,
-            @PathParam("api") String api,
             @ApiParam(name = "review") @Valid final ReviewEntity reviewEntity) {
-        final Response responseApi = get(api);
+        final Response responseApi = getApi();
         Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
         if (builder != null) {
             return builder.build();
         }
         final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
         final ApiEntity updatedApi;
-        checkAPIReviewWorkflow(apiEntity, action.getAction());
+        checkApiReviewWorkflow(apiEntity, action.getAction());
         switch (action.getAction()) {
             case ASK:
                 hasPermission(RolePermission.API_DEFINITION, api, RolePermissionAction.UPDATE);
@@ -572,7 +563,7 @@ public class ApiResource extends AbstractResource {
                 .build();
     }
 
-    private void checkAPIReviewWorkflow(final ApiEntity api, final ReviewAction action) {
+    private void checkApiReviewWorkflow(final ApiEntity api, final ReviewAction action) {
         if (ApiLifecycleState.ARCHIVED.equals(api.getLifecycleState())) {
             throw new BadRequestException("Deleted API can not be reviewed");
         }
@@ -607,9 +598,9 @@ public class ApiResource extends AbstractResource {
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ),
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
     })
-    public Response duplicateAPI(@PathParam("api") String api, @ApiParam(name = "api", required = true)
+    public Response duplicateAPI(@ApiParam(name = "api", required = true)
             @Valid @NotNull final DuplicateApiEntity duplicateApiEntity) {
-        get(api);
+        getApi();
         return Response.ok(apiService.duplicate(api, duplicateApiEntity)).build();
     }
 
@@ -701,7 +692,7 @@ public class ApiResource extends AbstractResource {
         }
     }
 
-    private void checkAPILifeCycle(ApiEntity api, LifecycleAction action) {
+    private void checkApiLifeCycle(ApiEntity api, LifecycleAction action) {
         if (ApiLifecycleState.ARCHIVED.equals(api.getLifecycleState())) {
             throw new BadRequestException("Deleted API can not be " + action.name().toLowerCase());
         }

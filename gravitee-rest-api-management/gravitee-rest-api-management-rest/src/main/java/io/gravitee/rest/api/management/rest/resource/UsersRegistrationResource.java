@@ -85,7 +85,7 @@ public class UsersRegistrationResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "User successfully created", response = UserEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response finalizeRegistration(@Valid RegisterUserEntity registerUserEntity) {
+    public Response finalizeUserRegistration(@Valid RegisterUserEntity registerUserEntity) {
         UserEntity newUser = userService.finalizeRegistration(registerUserEntity);
         if (newUser != null) {
             return Response

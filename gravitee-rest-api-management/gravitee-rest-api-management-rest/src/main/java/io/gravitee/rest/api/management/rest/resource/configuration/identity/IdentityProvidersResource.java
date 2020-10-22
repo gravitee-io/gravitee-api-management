@@ -16,17 +16,16 @@
 package io.gravitee.rest.api.management.rest.resource.configuration.identity;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
-import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.model.configuration.identity.IdentityProviderListItem;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
+import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.annotations.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -61,7 +60,7 @@ public class IdentityProvidersResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List identity providers", response = IdentityProviderListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<IdentityProviderListItem> listIdentityProviders() {
+    public List<IdentityProviderListItem> getIdentityProviders() {
         return identityProviderService.findAll().stream().map(identityProvider -> {
             IdentityProviderListItem item = new IdentityProviderListItem();
             item.setId(identityProvider.getId());

@@ -29,8 +29,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PathParam;
@@ -42,7 +42,7 @@ import javax.ws.rs.PathParam;
 @Api(tags = {"Roles"})
 public class RoleUserResource extends AbstractResource  {
 
-    @Autowired
+    @Inject
     private MembershipService membershipService;
 
     @DELETE
@@ -55,7 +55,7 @@ public class RoleUserResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("scope")RoleScope scope,
+    public void deleteRoleForUser(@PathParam("scope")RoleScope scope,
                        @PathParam("role") String role,
                        @PathParam("userId") String userId) {
         if (RoleScope.ORGANIZATION.equals(scope)) {

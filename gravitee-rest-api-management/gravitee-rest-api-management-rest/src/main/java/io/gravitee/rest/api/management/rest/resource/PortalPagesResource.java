@@ -64,13 +64,13 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PageEntity getPage(
+    public PageEntity getPortalPage(
                 @HeaderParam("Accept-Language") String acceptLang,
                 @PathParam("page") String page,
                 @QueryParam("portal") boolean portal,
                 @QueryParam("translated") boolean translated) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
-        PageEntity pageEntity = pageService.findById(page, translated?acceptedLocale:null);
+        PageEntity pageEntity = pageService.findById(page, translated ? acceptedLocale : null);
         if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
@@ -91,7 +91,7 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page's content"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getPageContent(
+    public Response getPortalPageContent(
             @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page);
         pageService.transformSwagger(pageEntity);
@@ -109,7 +109,7 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of pages", response = PageEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<PageEntity> listPages(
+    public List<PageEntity> getPortalPages(
             @HeaderParam("Accept-Language") String acceptLang,
             @QueryParam("homepage") Boolean homepage,
             @QueryParam("type") PageType type,
@@ -143,9 +143,9 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
-    public Response createPage(
+    public Response createPortalPage(
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
-        if(newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
+        if (newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
             throw new PageSystemFolderActionException("Create");
         }
         int order = pageService.findMaxPortalPageOrder() + 1;
@@ -174,11 +174,11 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity updatePage(
+    public PageEntity updatePortalPage(
             @PathParam("page") String page,
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
-        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+        if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
         }
         updatePageEntity.setLastContributor(getAuthenticatedUser());
@@ -221,11 +221,11 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity partialUpdatePage(
+    public PageEntity partialUpdatePortalPage(
             @PathParam("page") String page,
             @ApiParam(name = "page", required = true) @NotNull UpdatePageEntity updatePageEntity) {
-        PageEntity existingPage =pageService.findById(page);
-        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+        PageEntity existingPage = pageService.findById(page);
+        if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
         }
         updatePageEntity.setLastContributor(getAuthenticatedUser());
@@ -243,12 +243,11 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity fetchPage(
-    @PathParam("page") String page) {
-            pageService.findById(page);
-            String contributor = getAuthenticatedUser();
+    public PageEntity fetchPortalPage(@PathParam("page") String page) {
+        pageService.findById(page);
+        String contributor = getAuthenticatedUser();
 
-            return pageService.fetch(page, contributor);
+        return pageService.fetch(page, contributor);
     }
 
     @POST
@@ -262,7 +261,7 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public Response fetchAllPages() {
+    public Response fetchAllPortalPages() {
         String contributor = getAuthenticatedUser();
         pageService.fetchAll(new PageQuery.Builder().build(), contributor);
         return Response.noContent().build();
@@ -278,10 +277,10 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE)
     })
-    public void deletePage(
+    public void deletePortalPage(
             @PathParam("page") String page) {
         PageEntity existingPage = pageService.findById(page);
-        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+        if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Delete");
         }
         pageService.delete(page);
@@ -299,7 +298,7 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
-    public List<PageEntity> importFiles(
+    public List<PageEntity> importPortalPageFromFiles(
             @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.importFiles(importPageEntity);
@@ -317,7 +316,7 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
-    public List<PageEntity> updateImportFiles(
+    public List<PageEntity> updateImportedPortalPageFromFiles(
             @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.importFiles(importPageEntity);

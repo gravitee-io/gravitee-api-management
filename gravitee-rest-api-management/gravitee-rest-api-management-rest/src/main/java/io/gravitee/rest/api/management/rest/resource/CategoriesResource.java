@@ -28,8 +28,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.CategoryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -52,13 +52,13 @@ public class CategoriesResource extends AbstractCategoryResource  {
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private CategoryService categoryService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Retrieve list of categories")
-    public List<CategoryEntity> list()  {
+    public List<CategoryEntity> getCategories()  {
         Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = apiService.findAll();
@@ -92,7 +92,7 @@ public class CategoriesResource extends AbstractCategoryResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE)
     })
-    public CategoryEntity create(@Valid @NotNull final NewCategoryEntity category) {
+    public CategoryEntity createCategory(@Valid @NotNull final NewCategoryEntity category) {
         return categoryService.create(category);
     }
 
@@ -105,11 +105,11 @@ public class CategoriesResource extends AbstractCategoryResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE)
     })
-    public List<CategoryEntity> update(@Valid @NotNull final List<UpdateCategoryEntity> categories) {
+    public List<CategoryEntity> updateCategories(@Valid @NotNull final List<UpdateCategoryEntity> categories) {
         return categoryService.update(categories);
     }
 
-    @Path("{id}")
+    @Path("{categoryId}")
     public CategoryResource getCategoryResource() {
         return resourceContext.getResource(CategoryResource.class);
     }

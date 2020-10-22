@@ -16,16 +16,15 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.ApiMetadataEntity;
+import io.gravitee.rest.api.model.NewApiMetadataEntity;
+import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiMetadataService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -46,6 +45,11 @@ public class ApiMetadataResource extends AbstractResource {
     @Inject
     private ApiMetadataService metadataService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List metadata for the given API",
@@ -56,8 +60,7 @@ public class ApiMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ)
     })
-    public List<ApiMetadataEntity> listApiMetadatas(
-            @PathParam("api") String api) {
+    public List<ApiMetadataEntity> getApiMetadatas() {
         return metadataService.findAllByApi(api);
     }
 
@@ -73,7 +76,7 @@ public class ApiMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.READ)
     })
-    public ApiMetadataEntity getApiMetadata(@PathParam("api") String api, @PathParam("metadata") String metadata) {
+    public ApiMetadataEntity getApiMetadata(@PathParam("metadata") String metadata) {
         return metadataService.findByIdAndApi(metadata, api);
     }
 
@@ -88,7 +91,7 @@ public class ApiMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.CREATE)
     })
-    public Response create(@PathParam("api") String api, @Valid @NotNull final NewApiMetadataEntity metadata) {
+    public Response createApiMetadata(@Valid @NotNull final NewApiMetadataEntity metadata) {
         // prevent creation of a metadata on an another API
         metadata.setApiId(api);
 
@@ -111,9 +114,8 @@ public class ApiMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.UPDATE)
     })
-    public Response update(@PathParam("api") String api,
-                           @PathParam("metadata") String metadataPathParam,
-                           @Valid @NotNull final UpdateApiMetadataEntity metadata) {
+    public Response updateApiMetadata(@PathParam("metadata") String metadataPathParam,
+                                      @Valid @NotNull final UpdateApiMetadataEntity metadata) {
         // prevent update of a metadata on an another API
         metadata.setApiId(api);
 
@@ -130,7 +132,7 @@ public class ApiMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_METADATA, acls = RolePermissionAction.DELETE)
     })
-    public Response delete(@PathParam("api") String api, @PathParam("metadata") String metadata) {
+    public Response deleteApiMetadata(@PathParam("metadata") String metadata) {
         metadataService.delete(metadata, api);
         return Response.noContent().build();
     }

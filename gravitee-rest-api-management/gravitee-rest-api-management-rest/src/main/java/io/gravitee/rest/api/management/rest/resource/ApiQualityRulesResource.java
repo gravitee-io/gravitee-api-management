@@ -26,8 +26,9 @@ import io.gravitee.rest.api.model.quality.UpdateApiQualityRuleEntity;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.annotations.ApiParam;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -43,8 +44,13 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 @Api(tags = {"API Quality"})
 public class ApiQualityRulesResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private ApiQualityRuleService apiQualityRuleService;
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
 
     @GET
     @ApiOperation(value = "List quality rules for an API",
@@ -53,7 +59,7 @@ public class ApiQualityRulesResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_QUALITY_RULE, acls = READ)
     })
-    public List<ApiQualityRuleEntity> list(@PathParam("api") String api) {
+    public List<ApiQualityRuleEntity> getApiQualityRules() {
         return apiQualityRuleService.findByApi(api);
     }
 
@@ -65,7 +71,7 @@ public class ApiQualityRulesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.CREATE)
     })
-    public ApiQualityRuleEntity create(@PathParam("api") String api, @Valid @NotNull final NewApiQualityRuleEntity apiQualityRuleEntity) {
+    public ApiQualityRuleEntity createApiQualityRule(@Valid @NotNull final NewApiQualityRuleEntity apiQualityRuleEntity) {
         apiQualityRuleEntity.setApi(api);
         return apiQualityRuleService.create(apiQualityRuleEntity);
     }
@@ -79,7 +85,7 @@ public class ApiQualityRulesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.UPDATE)
     })
-    public ApiQualityRuleEntity update(@PathParam("api") String api, @PathParam("qualityRule") String qualityRule, @Valid @NotNull final UpdateApiQualityRuleEntity apiQualityRuleEntity) {
+    public ApiQualityRuleEntity updateApiQualityRule(@PathParam("qualityRule") String qualityRule, @Valid @NotNull final UpdateApiQualityRuleEntity apiQualityRuleEntity) {
         apiQualityRuleEntity.setApi(api);
         apiQualityRuleEntity.setQualityRule(qualityRule);
         return apiQualityRuleService.update(apiQualityRuleEntity);

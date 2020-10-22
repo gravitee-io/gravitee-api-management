@@ -29,8 +29,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -49,7 +49,7 @@ public class PlatformAlertsResource extends AbstractResource {
 
     private final static String PLATFORM_REFERENCE_ID = "default";
 
-    @Autowired
+    @Inject
     private AlertService alertService;
 
     @GET
@@ -62,7 +62,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
-    public List<AlertTriggerEntity> list() {
+    public List<AlertTriggerEntity> getPlatformAlerts() {
         return alertService.findByReference(PLATFORM, PLATFORM_REFERENCE_ID);
     }
 
@@ -77,7 +77,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
-    public AlertStatusEntity status() {
+    public AlertStatusEntity getPlatformAlertStatus() {
         return alertService.getStatus();
     }
 
@@ -92,7 +92,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.CREATE)
     })
-    public AlertTriggerEntity create(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
+    public AlertTriggerEntity createPlatformAlert(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
         alertEntity.setReferenceType(PLATFORM);
         alertEntity.setReferenceId(PLATFORM_REFERENCE_ID);
         return alertService.create(alertEntity);
@@ -110,7 +110,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.UPDATE)
     })
-    public AlertTriggerEntity update(@PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
+    public AlertTriggerEntity updatePlatformAlert(@PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(PLATFORM);
         alertEntity.setReferenceId(PLATFORM_REFERENCE_ID);
@@ -127,7 +127,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.UPDATE)
     })
-    public Response associate(@PathParam("alert") String alert, @QueryParam("type") String type) {
+    public Response associatePlatformAlert(@PathParam("alert") String alert, @QueryParam("type") String type) {
         alertService.applyDefaults(alert, AlertReferenceType.valueOf(type.toUpperCase()));
         return Response.ok().build();
     }
@@ -144,7 +144,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("alert") String alert) {
+    public void deletePlatformAlert(@PathParam("alert") String alert) {
         alertService.delete(alert, PLATFORM_REFERENCE_ID);
     }
 
@@ -159,7 +159,7 @@ public class PlatformAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
-    public Page<AlertEventEntity> listEvents(@PathParam("alert") String alert, @BeanParam AlertEventSearchParam param) {
+    public Page<AlertEventEntity> getPlatformAlertEvents(@PathParam("alert") String alert, @BeanParam AlertEventSearchParam param) {
         return alertService.findEvents(
                 alert,
                 new AlertEventQuery.Builder()

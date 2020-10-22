@@ -117,7 +117,7 @@ public abstract class AbstractResource {
         return Stream.concat(streamUserMembership, streamGroupMembership);
     }
 
-    protected void canReadAPI(final String api) {
+    protected void canReadApi(final String api) {
         if (!isAdmin()) {
             // get memberships of the current user
             List<MembershipEntity> memberships = retrieveApiMembership().collect(Collectors.toList());

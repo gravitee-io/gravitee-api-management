@@ -42,7 +42,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -66,10 +65,12 @@ public class ApplicationSubscriptionsResource {
     private ApiService apiService;
 
     @Inject
-    private ApplicationService applicationService;
-
-    @Inject
     private UserService userService;
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("application")
+    @ApiParam(name = "application", hidden = true)
+    private String application;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -81,8 +82,7 @@ public class ApplicationSubscriptionsResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.CREATE)
     })
-    public Response createSubscription(
-            @PathParam("application") String application,
+    public Response createSubscriptionWithApplication(
             @ApiParam(name = "plan", required = true)
             @NotNull @QueryParam("plan") String plan,
             NewSubscriptionEntity newSubscriptionEntity) {
@@ -119,13 +119,13 @@ public class ApplicationSubscriptionsResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
-    public PagedResult<SubscriptionEntity> listApplicationSubscriptions(
+    public PagedResult<SubscriptionEntity> getApplicationSubscriptions(
             @BeanParam SubscriptionParam subscriptionParam,
             @Valid @BeanParam Pageable pageable,
             @ApiParam(allowableValues = "keys", value = "Expansion of data to return in subscriptions") @QueryParam("expand") List<String> expand) {
         // Transform query parameters to a subscription query
         SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
-
+        subscriptionQuery.setApplication(application);
         Page<SubscriptionEntity> subscriptions = subscriptionService
                 .search(subscriptionQuery, pageable.toPageable());
 
@@ -163,8 +163,7 @@ public class ApplicationSubscriptionsResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
-    public Subscription getSubscription(
-            @PathParam("application") String application,
+    public Subscription getApplicationSubscription(
             @PathParam("subscription") String subscription) {
         return convert(subscriptionService.findById(subscription));
     }
@@ -180,8 +179,7 @@ public class ApplicationSubscriptionsResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
     })
-    public Response closeSubscription(
-            @PathParam("application") String application,
+    public Response closeApplicationSubscription(
             @PathParam("subscription") String subscriptionId) {
         SubscriptionEntity subscription = subscriptionService.findById(subscriptionId);
         if (subscription.getApplication().equals(application)) {
@@ -205,8 +203,7 @@ public class ApplicationSubscriptionsResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
-    public List<ApiKeyEntity> listApiKeysForSubscription(
-            @PathParam("application") String application,
+    public List<ApiKeyEntity> getApiKeysForApplicationSubscription(
             @PathParam("subscription") String subscription) {
         return apiKeyService.findBySubscription(subscription);
     }
@@ -222,8 +219,7 @@ public class ApplicationSubscriptionsResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
     })
-    public Response renewApiKey(
-            @PathParam("application") String application,
+    public Response renewApiKeyForApplicationSubscription(
             @PathParam("subscription") String subscription) {
         ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription);
         return Response
@@ -245,12 +241,11 @@ public class ApplicationSubscriptionsResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
     })
-    public Response revokeApiKey(
-            @PathParam("application") String application,
+    public Response revokeApiKeyForApplicationSubscription(
             @PathParam("subscription") String subscription,
             @PathParam("key") String apiKey) {
         ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(apiKey);
-        if (apiKeyEntity.getSubscription() != null && ! subscription.equals(apiKeyEntity.getSubscription())) {
+        if (apiKeyEntity.getSubscription() != null && !subscription.equals(apiKeyEntity.getSubscription())) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'key' parameter does not correspond to the subscription")
@@ -305,8 +300,6 @@ public class ApplicationSubscriptionsResource {
     }
 
     private static class SubscriptionParam {
-        @PathParam("application")
-        private String application;
 
         @QueryParam("plan")
         @ApiParam(value = "plan")
@@ -330,14 +323,6 @@ public class ApplicationSubscriptionsResource {
 
         public void setPlans(ListStringParam plans) {
             this.plans = plans;
-        }
-
-        public String getApplication() {
-            return application;
-        }
-
-        public void setApplication(String application) {
-            this.application = application;
         }
 
         public ListStringParam getApis() {
@@ -366,8 +351,6 @@ public class ApplicationSubscriptionsResource {
 
         private SubscriptionQuery toQuery() {
             SubscriptionQuery query = new SubscriptionQuery();
-
-            query.setApplication(this.application);
 
             if (apis != null && apis.getValue() != null) {
                 query.setApis(apis.getValue());

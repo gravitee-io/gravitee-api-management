@@ -32,7 +32,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static io.gravitee.rest.api.model.SubscriptionStatus.*;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
@@ -59,6 +58,11 @@ public class ApiSubscriptionResource extends AbstractResource {
     @Inject
     private UserService userService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a subscription",
@@ -71,7 +75,6 @@ public class ApiSubscriptionResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
     public Subscription getApiSubscription(
-            @PathParam("api") String api,
             @PathParam("subscription") String subscription) {
         return convert(subscriptionService.findById(subscription));
     }
@@ -89,7 +92,6 @@ public class ApiSubscriptionResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = UPDATE)
     })
     public Response processApiSubscription(
-            @PathParam("api") String api,
             @PathParam("subscription") String subscription,
             @ApiParam(name = "subscription", required = true) @Valid @NotNull ProcessSubscriptionEntity processSubscriptionEntity) {
 
@@ -120,7 +122,6 @@ public class ApiSubscriptionResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = UPDATE)
     })
     public Response updateApiSubscription(
-            @PathParam("api") String api,
             @PathParam("subscription") String subscription,
             @ApiParam(name = "subscription", required = true) @Valid @NotNull UpdateSubscriptionEntity updateSubscriptionEntity) {
 
@@ -151,8 +152,7 @@ public class ApiSubscriptionResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
     })
-    public Response changeSubscriptionStatus(
-            @PathParam("api") String api,
+    public Response changeApiSubscriptionStatus(
             @PathParam("subscription") String subscription,
             @ApiParam(required = true, allowableValues = "CLOSED, PAUSED, RESUMED")
             @QueryParam("status") SubscriptionStatus subscriptionStatus) {
@@ -182,8 +182,7 @@ public class ApiSubscriptionResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
-    public List<ApiKeyEntity> listApiKeysForSubscription(
-            @PathParam("api") String api,
+    public List<ApiKeyEntity> getApiKeysForSubscription(
             @PathParam("subscription") String subscription) {
         return apiKeyService.findBySubscription(subscription);
     }
@@ -199,7 +198,6 @@ public class ApiSubscriptionResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
     })
     public Response renewApiKey(
-            @PathParam("api") String api,
             @PathParam("subscription") String subscription) {
         ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription);
         return Response
@@ -221,12 +219,11 @@ public class ApiSubscriptionResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
     })
-    public Response revokeApiKey(
-            @PathParam("api") String api,
+    public Response revokeSubscriptionApiKey(
             @PathParam("subscription") String subscription,
             @PathParam("key") String apiKey) {
         ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(apiKey);
-        if (apiKeyEntity.getSubscription() != null && ! subscription.equals(apiKeyEntity.getSubscription())) {
+        if (apiKeyEntity.getSubscription() != null && !subscription.equals(apiKeyEntity.getSubscription())) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity("'key' parameter does not correspond to the subscription")
@@ -253,7 +250,6 @@ public class ApiSubscriptionResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
     })
     public Response reactivateApiKey(
-            @PathParam("api") String api,
             @PathParam("subscription") String subscription,
             @PathParam("key") String apiKey) {
         ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(apiKey);
@@ -284,7 +280,6 @@ public class ApiSubscriptionResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = UPDATE)
     })
     public Response transferApiSubscription(
-            @PathParam("api") String api,
             @PathParam("subscription") String subscription,
             @ApiParam(name = "subscription", required = true) @Valid @NotNull TransferSubscriptionEntity transferSubscriptionEntity) {
 

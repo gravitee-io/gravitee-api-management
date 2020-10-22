@@ -51,7 +51,7 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
  * @author GraviteeSource Team
  */
 @Api(tags = {"Application Memberships"})
-public class ApplicationMembersResource  extends AbstractResource {
+public class ApplicationMembersResource extends AbstractResource {
 
     @Inject
     private MembershipService membershipService;
@@ -61,6 +61,11 @@ public class ApplicationMembersResource  extends AbstractResource {
     @Inject
     private UserService userService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("application")
+    @ApiParam(name = "application", hidden = true)
+    private String application;
+
     @GET
     @Path("/permissions")
     @Produces(MediaType.APPLICATION_JSON)
@@ -69,14 +74,14 @@ public class ApplicationMembersResource  extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Application member's permissions", response = MemberEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getPermissions(@PathParam("application") String application) {
+    public Response getApplicationMemberPermissions() {
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String username = getAuthenticatedUser();
             final ApplicationEntity applicationEntity = applicationService.findById(application);
             if (isAdmin()) {
                 final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
-                for (ApplicationPermission perm: ApplicationPermission.values()) {
+                for (ApplicationPermission perm : ApplicationPermission.values()) {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
@@ -96,7 +101,7 @@ public class ApplicationMembersResource  extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.READ)
     })
-    public List<MembershipListItem> listApplicationMembers(@PathParam("application") String application) {
+    public List<MembershipListItem> getApplicationMembers() {
         applicationService.findById(application);
         return membershipService.getMembersByReference(MembershipReferenceType.APPLICATION, application)
                 .stream()
@@ -117,7 +122,6 @@ public class ApplicationMembersResource  extends AbstractResource {
             @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)
     })
     public Response addOrUpdateApplicationMember(
-            @PathParam("application") String application,
             @Valid @NotNull ApplicationMembership applicationMembership) {
 
         if (PRIMARY_OWNER.name().equals(applicationMembership.getRole())) {
@@ -158,7 +162,6 @@ public class ApplicationMembersResource  extends AbstractResource {
             @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE)
     })
     public Response deleteApplicationMember(
-            @PathParam("application") String application,
             @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
         applicationService.findById(application);
         try {
@@ -181,8 +184,7 @@ public class ApplicationMembersResource  extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE)
     })
-    public Response transferOwnership(
-            @PathParam("application") String application,
+    public Response transferApplicationOwnership(
             @Valid @NotNull TransferOwnership transferOwnership) {
         List<RoleEntity> newRoles = new ArrayList<>();
         Optional<RoleEntity> optNewPORole = roleService.findByScopeAndName(RoleScope.APPLICATION, transferOwnership.getPoRole());

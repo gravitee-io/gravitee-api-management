@@ -29,8 +29,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -52,7 +52,7 @@ public class TopApisResource extends AbstractResource  {
     @Context
     private UriInfo uriInfo;
 
-    @Autowired
+    @Inject
     private TopApiService topApiService;
 
     @GET
@@ -66,7 +66,7 @@ public class TopApisResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.READ)
     })
-    public List<TopApiEntity> list()  {
+    public List<TopApiEntity> getTopApis()  {
         return topApiService.findAll().stream()
                 .peek(addPictureUrl())
                 .collect(toList());
@@ -83,7 +83,7 @@ public class TopApisResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.CREATE)
     })
-    public List<TopApiEntity> create(@Valid @NotNull final NewTopApiEntity topApi) {
+    public List<TopApiEntity> createTopApi(@Valid @NotNull final NewTopApiEntity topApi) {
         return topApiService.create(topApi).stream()
                 .peek(addPictureUrl())
                 .collect(toList());
@@ -100,7 +100,7 @@ public class TopApisResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.UPDATE)
     })
-    public List<TopApiEntity> update(@Valid @NotNull final List<UpdateTopApiEntity> topApis) {
+    public List<TopApiEntity> updateTopApi(@Valid @NotNull final List<UpdateTopApiEntity> topApis) {
         return topApiService.update(topApis).stream()
                 .peek(addPictureUrl())
                 .collect(toList());
@@ -118,7 +118,7 @@ public class TopApisResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TOP_APIS, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("topAPI") String topAPI) {
+    public void deleteTopApi(@PathParam("topAPI") String topAPI) {
         topApiService.delete(topAPI);
     }
 

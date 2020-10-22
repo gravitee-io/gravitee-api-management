@@ -16,8 +16,10 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiParam;
 
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
@@ -33,7 +35,9 @@ public class OrganizationsResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Path("/{orgId}")
-    public OrganizationResource getOrganizationResource() {
+    public OrganizationResource getOrganizationResource(
+            @PathParam("orgId") @ApiParam(name = "orgId", required = true, defaultValue = "DEFAULT", value = "The ID of the Organization") String orgId
+    ) {
         return resourceContext.getResource(OrganizationResource.class);
     }
 }

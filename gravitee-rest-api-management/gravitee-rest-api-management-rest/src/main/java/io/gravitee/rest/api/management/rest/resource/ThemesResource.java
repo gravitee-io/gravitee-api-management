@@ -24,11 +24,14 @@ import io.gravitee.rest.api.model.theme.NewThemeEntity;
 import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.service.ThemeService;
 import io.swagger.annotations.Api;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
@@ -42,7 +45,7 @@ public class ThemesResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private ThemeService themeService;
 
     @POST
@@ -51,7 +54,7 @@ public class ThemesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.CREATE)
     })
-    public ThemeEntity create(@Valid @NotNull final NewThemeEntity theme) {
+    public ThemeEntity createTheme(@Valid @NotNull final NewThemeEntity theme) {
         return themeService.create(theme);
     }
 

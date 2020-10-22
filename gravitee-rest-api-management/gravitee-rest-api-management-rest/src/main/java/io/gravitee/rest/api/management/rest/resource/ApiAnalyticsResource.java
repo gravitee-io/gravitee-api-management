@@ -26,10 +26,7 @@ import io.gravitee.rest.api.model.analytics.query.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AnalyticsService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -53,6 +50,11 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private AnalyticsService analyticsService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get API analytics",
@@ -63,14 +65,12 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_ANALYTICS, acls = RolePermissionAction.READ)
     })
-    public Response hits(
-            @PathParam("api") String api,
-            @BeanParam AnalyticsParam analyticsParam) {
+    public Response getApiAnalyticsHits(@BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
 
         Analytics analytics = null;
 
-        switch(analyticsParam.getType()) {
+        switch (analyticsParam.getType()) {
             case DATE_HISTO:
                 analytics = executeDateHisto(api, analyticsParam);
                 break;

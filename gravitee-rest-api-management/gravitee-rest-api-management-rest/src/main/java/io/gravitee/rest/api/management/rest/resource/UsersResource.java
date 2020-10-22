@@ -65,7 +65,7 @@ public class UsersResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List users matching the query criteria", response = UserEntity.class, responseContainer = "PagedResult"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PagedResult<UserEntity> findAll(
+    public PagedResult<UserEntity> getAllUsers(
             @ApiParam(name = "q")
             @QueryParam("q") String query,
             @Valid @BeanParam Pageable pageable) {
@@ -94,7 +94,7 @@ public class UsersResource extends AbstractResource {
         return Response.serverError().build();
     }
 
-    @Path("{id}")
+    @Path("{userId}")
     public UserResource getUserResource() {
         return resourceContext.getResource(UserResource.class);
     }

@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
@@ -23,9 +26,6 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -54,6 +54,15 @@ public class ApiPageResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
+    @PathParam("page")
+    @ApiParam(name = "page", required = true)
+    private String page;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a page",
@@ -61,10 +70,8 @@ public class ApiPageResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PageEntity getPage(
+    public PageEntity getApiPage(
                 @HeaderParam("Accept-Language") String acceptLang,
-                @PathParam("api") String api,
-                @PathParam("page") String page,
                 @QueryParam("portal") boolean portal,
                 @QueryParam("translated") boolean translated) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
@@ -96,10 +103,8 @@ public class ApiPageResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page's content"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getPageContent(
-            @PathParam("api") String api,
-            @PathParam("page") String page) {
-        final PageEntity pageEntity = getPage(null, api, page, true, false);
+    public Response getApiPageContent() {
+        final PageEntity pageEntity = getApiPage(null, true, false);
         return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
     }
 
@@ -115,9 +120,7 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public String updatePageContent(@PathParam("api") String api,
-                                    @PathParam("page") String page,
-                                    @ApiParam(name = "content", required = true) @Valid @NotNull String content) {
+    public String updatePageContent(@ApiParam(name = "content", required = true) @Valid @NotNull String content) {
         pageService.findById(page);
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -138,10 +141,7 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity updatePage(
-            @PathParam("api") String api,
-            @PathParam("page") String page,
-            @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
+    public PageEntity updateApiPage(@ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
@@ -162,9 +162,7 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity fetchPage(
-            @PathParam("api") String api,
-            @PathParam("page") String page) {
+    public PageEntity fetchApiPage() {
         pageService.findById(page);
         String contributor = getAuthenticatedUser();
 
@@ -182,9 +180,7 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity partialUpdatePage(
-            @PathParam("api") String api,
-            @PathParam("page") String page,
+    public PageEntity partialUpdateApiPage(
             @ApiParam(name = "page") UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
@@ -204,9 +200,7 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE)
     })
-    public void deletePage(
-            @PathParam("api") String api,
-            @PathParam("page") String page) {
+    public void deleteApiPage() {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Delete");

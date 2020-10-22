@@ -15,15 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
@@ -45,6 +42,11 @@ public class GroupMemberResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("group")
+    @ApiParam(name = "group", hidden = true)
+    private String group;
+
     @DELETE
     @ApiOperation(value = "Remove a group member")
     @ApiResponses({
@@ -55,7 +57,7 @@ public class GroupMemberResource extends AbstractResource {
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE),
             @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.DELETE)
     })
-    public Response deleteMember( @PathParam("group") String group, @PathParam("member") String userId) {
+    public Response deleteGroupMember(@PathParam("member") String userId) {
         groupService.deleteUserFromGroup(group, userId);
         
         return Response.ok().build();

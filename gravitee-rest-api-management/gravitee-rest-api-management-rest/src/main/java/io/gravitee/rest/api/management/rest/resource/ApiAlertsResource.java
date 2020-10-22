@@ -25,12 +25,9 @@ import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AlertService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.annotations.*;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -47,8 +44,13 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 @Api(tags = {"API Alerts"})
 public class ApiAlertsResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private AlertService alertService;
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
 
     @GET
     @ApiOperation(value = "List alerts of an API",
@@ -60,7 +62,7 @@ public class ApiAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_ALERT, acls = READ)
     })
-    public List<AlertTriggerEntity> list(@PathParam("api") String api) {
+    public List<AlertTriggerEntity> getApiAlerts() {
         return alertService.findByReference(API, api);
     }
 
@@ -75,7 +77,7 @@ public class ApiAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
-    public AlertStatusEntity status(@PathParam("api") String api) {
+    public AlertStatusEntity getApiAlertsStatus() {
         return alertService.getStatus();
     }
 
@@ -90,7 +92,7 @@ public class ApiAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.CREATE)
     })
-    public AlertTriggerEntity create(@PathParam("api") String api, @Valid @NotNull final NewAlertTriggerEntity alertEntity) {
+    public AlertTriggerEntity createApiAlert(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
         alertEntity.setReferenceType(API);
         alertEntity.setReferenceId(api);
         return alertService.create(alertEntity);
@@ -108,7 +110,7 @@ public class ApiAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.UPDATE)
     })
-    public AlertTriggerEntity update(@PathParam("api") String api, @PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
+    public AlertTriggerEntity updateApiAlert(@PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(API);
         alertEntity.setReferenceId(api);
@@ -126,10 +128,10 @@ public class ApiAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_ALERT, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("api") String api, @PathParam("alert") String alert) {
+    public void deleteApiAlert(@PathParam("alert") String alert) {
         alertService.delete(alert, api);
     }
-    
+
     @GET
     @Path("{alert}/events")
     @ApiOperation(value = "Retrieve the list of events for an alert",
@@ -141,7 +143,7 @@ public class ApiAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
-    public Page<AlertEventEntity> listEvents(@PathParam("api") String api, @PathParam("alert") String alert, @BeanParam AlertEventSearchParam param) {
+    public Page<AlertEventEntity> getApiAlertEvents(@PathParam("alert") String alert, @BeanParam AlertEventSearchParam param) {
         return alertService.findEvents(
                 alert,
                 new AlertEventQuery.Builder()
