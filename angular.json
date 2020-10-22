@@ -38,6 +38,11 @@
                 "glob": "oauth2-redirect.html",
                 "input": "node_modules/swagger-ui-dist",
                 "output": "/"
+              },
+              {
+                "glob": "build.json",
+                "input": ".",
+                "output": "/"
               }
             ],
             "styles": [
