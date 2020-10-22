@@ -39,4 +39,26 @@ describe('GvPageMarkdownComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should use gv-button[href] for render an anchor', () => {
+    const renderer = component.renderer.link('#anchor', 'Anchor', '');
+
+    expect(renderer).not.toBeNull();
+    expect(renderer).toEqual('<gv-button link href=\"#anchor\"></gv-button>');
+  });
+
+  it('should call onAnchorClick when click to gv-button[href]', () => {
+    const anchor = '#anchor';
+    component.onAnchorClick = jest.fn();
+
+    const button = document.createElement('gv-button');
+    button.setAttribute('href', anchor);
+    spectator.element.appendChild(button);
+    button.click();
+
+    expect(component.onAnchorClick).toBeCalledTimes(1);
+    expect(component.onAnchorClick).toBeCalledWith(anchor);
+  });
+
 });
+

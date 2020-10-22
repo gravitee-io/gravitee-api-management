@@ -28,4 +28,25 @@ describe('ScrollServiceService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('should be call scrollToAnchor with id', (done) => {
+    document.getElementById = jest.fn(() => null);
+    const anchorId = 'anchorId';
+    service.scrollToAnchor(anchorId).finally(() => {
+      expect(document.getElementById).toBeCalledTimes(1);
+      expect(document.getElementById).toBeCalledWith(anchorId);
+      done();
+    });
+  });
+
+  it('should be call scrollToAnchor with xpath', (done) => {
+    document.querySelector = jest.fn(() => null);
+    const anchorId = '#anchorId';
+    service.scrollToAnchor(anchorId).finally(() => {
+      expect(document.querySelector).toBeCalledTimes(1);
+      expect(document.querySelector).toBeCalledWith(anchorId);
+      done();
+    });
+  });
+
 });
