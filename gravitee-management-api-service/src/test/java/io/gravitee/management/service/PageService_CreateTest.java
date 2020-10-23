@@ -15,8 +15,10 @@
  */
 package io.gravitee.management.service;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.management.model.NewPageEntity;
 import io.gravitee.management.model.PageEntity;
 import io.gravitee.management.model.PageSourceEntity;
@@ -34,9 +36,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
@@ -77,11 +80,20 @@ public class PageService_CreateTest {
     @Mock
     private ImportConfiguration importConfiguration;
 
+    private PageEntity getPage(String resource, String contentType) throws IOException {
+        URL url = Resources.getResource(resource);
+        String descriptor = Resources.toString(url, Charsets.UTF_8);
+        PageEntity pageEntity = new PageEntity();
+        pageEntity.setContent(descriptor);
+        pageEntity.setContentType(contentType);
+        return pageEntity;
+    }
+
     @Test
-    public void shouldCreatePage() throws TechnicalException {
+    public void shouldCreatePage() throws TechnicalException, IOException {
         final String name = "MARKDOWN";
         final String contrib = "contrib";
-        final String content = "content";
+        final String content = getPage("io/gravitee/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent();
         final String type = "MARKDOWN";
 
         when(page1.getId()).thenReturn(PAGE_ID);
@@ -93,6 +105,7 @@ public class PageService_CreateTest {
         when(page1.getContent()).thenReturn(content);
 
         when(pageRepository.create(any())).thenReturn(page1);
+
 
         when(newPage.getName()).thenReturn(name);
         when(newPage.getOrder()).thenReturn(1);
@@ -120,9 +133,13 @@ public class PageService_CreateTest {
     }
 
     @Test(expected = TechnicalManagementException.class)
-    public void shouldNotCreateBecauseTechnicalException() throws TechnicalException {
+    public void shouldNotCreateBecauseTechnicalException() throws TechnicalException, IOException {
         final String name = "PAGE_NAME";
         when(newPage.getName()).thenReturn(name);
+        when(newPage.getType()).thenReturn(io.gravitee.management.model.PageType.SWAGGER);
+        when(newPage.getContent()).thenReturn(
+                getPage("io/gravitee/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent()
+        );
 
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 

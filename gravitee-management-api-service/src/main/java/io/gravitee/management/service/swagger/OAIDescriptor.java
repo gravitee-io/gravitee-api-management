@@ -17,6 +17,8 @@ package io.gravitee.management.service.swagger;
 
 import io.swagger.v3.oas.models.OpenAPI;
 
+import java.util.List;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -24,6 +26,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 public final class OAIDescriptor extends AbstractDescriptor<OpenAPI> {
 
     private final OpenAPI oai;
+    private List<String> messages;
 
     public OAIDescriptor(final OpenAPI oai) {
         this.oai = oai;
@@ -32,5 +35,13 @@ public final class OAIDescriptor extends AbstractDescriptor<OpenAPI> {
     @Override
     public OpenAPI getSpecification() {
         return oai;
+    }
+
+    public List<String> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<String> messages) {
+        this.messages = messages;
     }
 }

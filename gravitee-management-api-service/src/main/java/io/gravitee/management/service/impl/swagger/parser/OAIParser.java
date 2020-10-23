@@ -16,8 +16,8 @@
 package io.gravitee.management.service.impl.swagger.parser;
 
 import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
+import io.gravitee.management.service.swagger.OAIDescriptor;
 import io.swagger.parser.OpenAPIParser;
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
+public class OAIParser extends AbstractSwaggerParser<OAIDescriptor> {
 
     private final Logger logger = LoggerFactory.getLogger(OAIParser.class);
 
@@ -40,7 +40,7 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
     }
 
     @Override
-    public OpenAPI parse(String content) {
+    public OAIDescriptor parse(String content) {
         OpenAPIParser parser = new OpenAPIParser();
         SwaggerParseResult parseResult;
         String path = content;
@@ -52,13 +52,13 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
 
         parseResult = parser.readLocation(path, null, null);
 
-        if (parseResult != null && parseResult.getOpenAPI() != null &&
-                (parseResult.getMessages() != null && !parseResult.getMessages().isEmpty())) {
-            throw new SwaggerDescriptorException(parseResult.getMessages());
+        if (parseResult == null || parseResult.getOpenAPI() == null) {
+            throw new SwaggerDescriptorException("Malformed descriptor");
         }
 
-        return (parseResult != null && parseResult.getOpenAPI() != null && parseResult.getOpenAPI().getInfo() != null)
-                ? parseResult.getOpenAPI() : null;
+        OAIDescriptor descriptor = new OAIDescriptor(parseResult.getOpenAPI());
+        descriptor.setMessages(parseResult.getMessages());
+        return descriptor;
     }
 
 

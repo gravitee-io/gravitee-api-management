@@ -28,7 +28,9 @@ import io.gravitee.management.service.ApiService;
 import io.gravitee.management.service.GroupService;
 import io.gravitee.management.service.PageService;
 import io.gravitee.management.service.exceptions.ForbiddenAccessException;
+import io.gravitee.management.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.management.service.exceptions.UnauthorizedAccessException;
+import io.gravitee.repository.management.model.PageType;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -36,6 +38,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -78,6 +81,13 @@ public class ApiPageResource extends AbstractResource {
                 }
             }
             if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+                if (pageEntity.getContentType() != null) {
+                    try {
+                        pageEntity.setMessages(pageService.validateSafeContent(pageEntity.getContent(), PageType.valueOf(pageEntity.getType())));
+                    } catch (SwaggerDescriptorException swaggerDescriptorException) {
+                        pageEntity.setMessages(Arrays.asList(swaggerDescriptorException.getMessage()));
+                    }
+                }
                 return pageEntity;
             } else {
                 throw new UnauthorizedAccessException();

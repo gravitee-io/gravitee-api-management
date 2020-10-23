@@ -18,6 +18,9 @@ package io.gravitee.management.service;
 import io.gravitee.management.model.*;
 import io.gravitee.management.model.api.ApiEntity;
 import io.gravitee.management.model.documentation.PageQuery;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Page;
+import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
 import java.util.List;
 
@@ -64,4 +67,6 @@ public interface PageService {
 	void transformWithTemplate(PageEntity pageEntity, String api);
 
 	PageEntity create(String apiId, PageEntity pageEntity);
+
+	List<String> validateSafeContent(String content, io.gravitee.repository.management.model.PageType type);
 }

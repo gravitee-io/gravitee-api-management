@@ -34,10 +34,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -54,7 +56,7 @@ import static org.mockito.Mockito.*;
 public class PageService_ImportDirectoryTest {
 
     @InjectMocks
-    private PageServiceImpl pageService = new PageServiceImpl();
+    private PageServiceImpl pageService = Mockito.mock( PageServiceImpl.class, CALLS_REAL_METHODS );
 
     @Mock
     private PageRepository pageRepository;
@@ -84,6 +86,10 @@ public class PageService_ImportDirectoryTest {
 
     @Test
     public void shouldImportDirectory() throws Exception {
+        // We mock the validateSafeContent method because the fetcher keeps sending the same json descriptor which is
+        // not a swagger valid document (and modify the fetcher mock to produce valid desc is overkill)
+        when(pageService.validateSafeContent(any(), any())).thenReturn(new ArrayList<>());
+
         PageSourceEntity pageSource = new PageSourceEntity();
         pageSource.setType("type");
         pageSource.setConfiguration(mapper.readTree("{}"));

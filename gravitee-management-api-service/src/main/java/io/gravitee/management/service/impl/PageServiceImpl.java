@@ -40,8 +40,8 @@ import io.gravitee.management.service.impl.swagger.parser.OAIParser;
 import io.gravitee.management.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.management.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
 import io.gravitee.management.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
-import io.gravitee.management.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.management.service.sanitizer.HtmlSanitizer;
+import io.gravitee.management.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.management.service.search.SearchEngineService;
 import io.gravitee.management.service.spring.ImportConfiguration;
 import io.gravitee.management.service.swagger.OAIDescriptor;
@@ -58,12 +58,10 @@ import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -186,7 +184,6 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			}
 
 			swaggerService.transform((OAIDescriptor) descriptor, transformers);
-
 			if (pageEntity.getContentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
 				try {
 					pageEntity.setContent(descriptor.toJson());
@@ -272,12 +269,16 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setCreatedAt(new Date());
 			page.setUpdatedAt(page.getCreatedAt());
 
-            Page createdPage = validateContentAndCreate(page);
+			List<String> messages = validateSafeContent(page.getContent(), page.getType()) ;
+            Page createdPage = this.pageRepository.create(page);
 
 			//only one homepage is allowed
 			onlyOneHomepage(page);
 			createAuditLog(apiId, PAGE_CREATED, page.getCreatedAt(), null, page);
 			PageEntity pageEntity = convert(createdPage);
+			if (messages != null && messages.size() > 0) {
+				pageEntity.setMessages(messages);
+			}
 
 			// add document in search engine
 			index(pageEntity);
@@ -369,10 +370,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 				reorderAndSavePages(page);
 				return null;
 			} else {
-                Page updatedPage = validateContentAndUpdate(page);
+				List<String> messages = validateSafeContent(page.getContent(), page.getType()) ;
+                Page updatedPage = pageRepository.update(page);
                 createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), pageToUpdate, page);
 
 				PageEntity pageEntity = convert(updatedPage);
+				pageEntity.setMessages(messages);
 
 				// update document in search engine
                 if(pageToUpdate.isPublished() && !page.isPublished()) {
@@ -607,9 +610,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setUpdatedAt(new Date());
 			page.setLastContributor(contributor);
 
-            Page updatedPage = validateContentAndUpdate(page);
+			List<String> messages = validateSafeContent(page.getContent(), page.getType());
+            Page updatedPage = pageRepository.update(page);
             createAuditLog(page.getApi(), PAGE_UPDATED, page.getUpdatedAt(), page, page);
-			return convert(updatedPage);
+			PageEntity pageEntity = convert(updatedPage);
+			pageEntity.setMessages(messages);
+			return pageEntity;
 		} catch (TechnicalException ex) {
 			throw onUpdateFail(pageId, ex);
 		}
@@ -861,11 +867,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
 			page.setApi(apiId);
 			if (searchResult.isEmpty()) {
 				page.setId(UUID.toString(UUID.random()));
-                return validateContentAndCreate(page);
+				validateSafeContent(page.getContent(), page.getType()) ;
+				return pageRepository.create(page) ;
 			} else {
 				page.setId(searchResult.get(0).getId());
 				mergeSensitiveData(this.getFetcher(searchResult.get(0).getSource()).getConfiguration(), page);
-				return validateContentAndUpdate(page);
+				validateSafeContent(page.getContent(), page.getType()) ;
+				return pageRepository.update(page);
 			}
 		} catch (TechnicalException | FetcherException ex) {
 			logger.error("An error occurs while trying to save the configuration",ex);
@@ -1215,29 +1223,23 @@ public class PageServiceImpl extends TransactionalService implements PageService
 		this.applicationContext = applicationContext;
 	}
 
-	private Page validateContentAndCreate(Page page) throws TechnicalException {
+	@Override
+	public List<String> validateSafeContent(String content, io.gravitee.repository.management.model.PageType type) {
 
-        validateSafeContent(page);
-		return pageRepository.create(page);
-	}
-
-    private Page validateContentAndUpdate(Page page) throws TechnicalException {
-
-        validateSafeContent(page);
-        return pageRepository.update(page);
-    }
-
-    private void validateSafeContent(Page page) {
-
-        if (markdownSanitize && io.gravitee.repository.management.model.PageType.MARKDOWN == page.getType()) {
-			HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(page.getContent());
+        if (markdownSanitize && io.gravitee.repository.management.model.PageType.MARKDOWN.equals(type)) {
+			HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(content);
 
 			if(!sanitizeInfos.isSafe()) {
 				throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
 			}
-        } else if (io.gravitee.repository.management.model.PageType.SWAGGER == page.getType()) {
-            new OAIParser().parse(page.getContent());
+        } else if (type != null && io.gravitee.repository.management.model.PageType.SWAGGER.equals(type)) {
+			OAIDescriptor openApiDescriptor = new OAIParser().parse(content);
+			if (openApiDescriptor != null && openApiDescriptor.getMessages() != null) {
+				return openApiDescriptor.getMessages();
+			}
         }
+
+        return new ArrayList<>() ;
     }
 
     private void validateSafeSource(Page page) {
