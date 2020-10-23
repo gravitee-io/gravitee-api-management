@@ -658,7 +658,7 @@
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
     },
     "server": {
-      "unavailable": "Serveur indisponible ou connection perdu"
+      "unavailable": "Serveur indisponible ou connexion perdue"
     },
     "support": {
       "disabled": "Le formulaire de contact n'est pas disponible pour le moment"
