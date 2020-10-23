@@ -18,6 +18,6 @@
 <div ng-if="$ctrl.hasErrors()" class="gv-error">
     <h5>{{ $ctrl.title }}</h5>
     <ul>
-        <li ng-repeat="msg in $ctrl.messages">{{msg}}</li>
+        <li ng-repeat="msg in $ctrl.messages track by $index">{{msg}}</li>
     </ul>
 </div>

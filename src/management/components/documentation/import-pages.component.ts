@@ -90,9 +90,17 @@ const ImportPagesComponent: ng.IComponentOptions = {
       DocumentationService.import(this.page, this.apiId)
         .then( (response: any) => {
           if (this.page.id) {
-            NotificationService.show("'" + response.data.length + "' elements has been updated.");
+            if (response.data.messages && response.data.messages.length > 0) {
+              NotificationService.showError("'" + response.data.length + "' elements has been updated (with validation errors - check the bottom of the page for details)");
+            } else {
+              NotificationService.show("'" + response.data.length + "' elements has been updated.");
+            }
           } else {
-            NotificationService.show("'" + response.data.length + "' elements has been created.");
+            if (response.data.messages && response.data.messages.length > 0) {
+              NotificationService.showError("'" + response.data.length + "' elements has been created (with validation errors - check the bottom of the page for details)");
+            } else {
+              NotificationService.show("'" + response.data.length + "' elements has been created.");
+            }
           }
           if (this.apiId) {
             $state.go("management.apis.detail.portal.documentation", {apiId: this.apiId});
