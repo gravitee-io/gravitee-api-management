@@ -260,7 +260,7 @@
         <commons-validator.version>1.4.1</commons-validator.version>
         <json-path.version>2.4.0</json-path.version>
         <wiremock.version>2.26.3</wiremock.version>
-        <guava.version>29.0-jre</guava.version>
+        <guava.version>30.0-android</guava.version>
         <powermock.version>2.0.0</powermock.version>
         <nimbus-jwt.version>8.19</nimbus-jwt.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
