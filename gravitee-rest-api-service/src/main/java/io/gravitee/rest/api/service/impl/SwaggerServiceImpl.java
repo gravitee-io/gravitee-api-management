@@ -75,7 +75,7 @@ public class SwaggerServiceImpl implements SwaggerService {
     @Override
     public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
         boolean wsdlImport = Format.WSDL.equals(swaggerDescriptor.getFormat());
-        SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload(), wsdlImport);
+        SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload(), wsdlImport, true);
         if (wsdlImport) {
             overridePayload(swaggerDescriptor, descriptor);
             populateXmlToJsonPolicy(swaggerDescriptor);
@@ -133,10 +133,11 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Override
     public SwaggerDescriptor parse(String content) {
-        return parse(content, false);
+        return parse(content, false, false);
     }
 
-    public SwaggerDescriptor parse(String content, boolean wsdl) {
+    @Override
+    public SwaggerDescriptor parse(String content, boolean wsdl, boolean failIfErrors) {
         OpenAPI descriptor;
 
         if (isUrl(content)) {
@@ -146,10 +147,10 @@ public class SwaggerServiceImpl implements SwaggerService {
         if (wsdl) {
             // try to read wsdl
             logger.debug("Trying to load a Wsdl descriptor");
-            descriptor = new WsdlParser().parse(content);
+            descriptor = new WsdlParser().parse(content, failIfErrors);
         } else {
             logger.debug("Trying to load a Swagger/OpenAPI descriptor");
-            descriptor = new OAIParser().parse(content);
+            descriptor = new OAIParser().parse(content, failIfErrors);
         }
 
         if (descriptor != null) {

@@ -44,11 +44,11 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
     }
 
     @Override
-    public OpenAPI parse(String content) {
-        return this.parse(content, true, null);
+    public OpenAPI parse(String content, boolean failIfErrors) {
+        return this.parse(content, true, null, failIfErrors);
     }
 
-    private OpenAPI parse(String content, boolean reparse, ParseOptions options) {
+    private OpenAPI parse(String content, boolean reparse, ParseOptions options, boolean failIfErrors) {
         OpenAPIParser parser = new OpenAPIParser();
         SwaggerParseResult parseResult;
         String path = content;
@@ -68,12 +68,14 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
         /* Hack due to swagger v1 converting issue
          * See https://github.com/swagger-api/swagger-parser/issues/1451
          */
-        final List<String> filteredMessages = parseResult.getMessages().stream()
-                .filter(message -> !message.matches("^attribute info.contact.*"))
-                .collect(Collectors.toList());
-        parseResult.setMessages(filteredMessages);
+        if (parseResult.getMessages() != null) {
+            final List<String> filteredMessages = parseResult.getMessages().stream()
+                    .filter(message -> !message.matches("^attribute info.contact.*"))
+                    .collect(Collectors.toList());
+            parseResult.setMessages(filteredMessages);
+        }
 
-        if (parseResult != null && parseResult.getOpenAPI() != null &&
+        if (failIfErrors && parseResult != null && parseResult.getOpenAPI() != null &&
                 (parseResult.getMessages() != null && !parseResult.getMessages().isEmpty())) {
             throw new SwaggerDescriptorException(parseResult.getMessages());
 
@@ -88,7 +90,7 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
                 ParseOptions reparseOptions = new ParseOptions();
                 reparseOptions.setResolveFully(true);
 
-                return this.parse(Yaml.pretty(parseResult.getOpenAPI()), false, reparseOptions);
+                return this.parse(Yaml.pretty(parseResult.getOpenAPI()), false, reparseOptions, failIfErrors);
             }
             return parseResult.getOpenAPI();
         }

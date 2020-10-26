@@ -21,5 +21,5 @@ package io.gravitee.rest.api.service.impl.swagger.parser;
  */
 public interface SwaggerParser<T> {
 
-    T parse(String content);
+    T parse(String content, boolean failIfErrors);
 }

@@ -54,4 +54,13 @@ public interface SwaggerService {
      * @return A swagger descriptor
      */
     SwaggerDescriptor parse(String content);
+
+    /**
+     * This method is used to parse a content (can be a plain text content or an URL starting with http|https|file)
+     *
+     * @param content
+     * @param failIfErrors
+     * @return A swagger descriptor
+     */
+    SwaggerDescriptor parse(String content, boolean wsdl, boolean failIfErrors);
 }

@@ -343,6 +343,7 @@ public class PageService_UpdateTest {
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setPublished(true);
+        updatePageEntity.setContent("");
         updatePageEntity.setOrder(1);
         updatePageEntity.setConfiguration(conf);
 
