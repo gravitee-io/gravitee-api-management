@@ -35,7 +35,7 @@ public class BridgePathTest {
     @Test
     public void shouldGetDefaultWithoutTrailingSlash() throws Exception {
         resetStatic();
-        when(environment.getProperty("management.http.url", String.class, null)).thenReturn("http://127.0.0.1");
+        when(environment.getProperty("management.http.url", String.class)).thenReturn("http://127.0.0.1");
         when(environment.getProperty("management.http.strippedUrl", Boolean.class, true)).thenReturn(true);
         String path = BridgePath.get(environment);
         assertEquals("/_bridge", path);
@@ -44,7 +44,7 @@ public class BridgePathTest {
     @Test
     public void shouldGetDefaultWithTrailingSlash() throws Exception {
         resetStatic();
-        when(environment.getProperty("management.http.url", String.class, null)).thenReturn("http://127.0.0.1/");
+        when(environment.getProperty("management.http.url", String.class)).thenReturn("http://127.0.0.1/");
         when(environment.getProperty("management.http.strippedUrl", Boolean.class, true)).thenReturn(true);
         String path = BridgePath.get(environment);
         assertEquals("/_bridge", path);
@@ -53,7 +53,7 @@ public class BridgePathTest {
     @Test
     public void shouldGetNotStrippedWithoutTrailingSlash() throws Exception {
         resetStatic();
-        when(environment.getProperty("management.http.url", String.class, null)).thenReturn("http://127.0.0.1/");
+        when(environment.getProperty("management.http.url", String.class)).thenReturn("http://127.0.0.1");
         when(environment.getProperty("management.http.strippedUrl", Boolean.class, true)).thenReturn(false);
         String path = BridgePath.get(environment);
         assertEquals("", path);
@@ -62,7 +62,7 @@ public class BridgePathTest {
     @Test
     public void shouldGetNotStrippedWithTrailingSlash() throws Exception {
         resetStatic();
-        when(environment.getProperty("management.http.url", String.class, null)).thenReturn("http://127.0.0.1/");
+        when(environment.getProperty("management.http.url", String.class)).thenReturn("http://127.0.0.1/");
         when(environment.getProperty("management.http.strippedUrl", Boolean.class, true)).thenReturn(false);
         String path = BridgePath.get(environment);
         assertEquals("", path);
@@ -71,7 +71,7 @@ public class BridgePathTest {
     @Test
     public void shouldGetNotStrippedPathWithoutTrailingSlash() throws Exception {
         resetStatic();
-        when(environment.getProperty("management.http.url", String.class, null)).thenReturn("http://127.0.0.1/foo");
+        when(environment.getProperty("management.http.url", String.class)).thenReturn("http://127.0.0.1/foo");
         when(environment.getProperty("management.http.strippedUrl", Boolean.class, true)).thenReturn(false);
         String path = BridgePath.get(environment);
         assertEquals("/foo", path);
@@ -80,7 +80,7 @@ public class BridgePathTest {
     @Test
     public void shouldGetNotStrippedPathWithTrailingSlash() throws Exception {
         resetStatic();
-        when(environment.getProperty("management.http.url", String.class, null)).thenReturn("http://127.0.0.1/foo/");
+        when(environment.getProperty("management.http.url", String.class)).thenReturn("http://127.0.0.1/foo/");
         when(environment.getProperty("management.http.strippedUrl", Boolean.class, true)).thenReturn(false);
         String path = BridgePath.get(environment);
         assertEquals("/foo", path);

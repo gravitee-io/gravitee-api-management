@@ -56,15 +56,15 @@ public class HttpSubscriptionRepository extends AbstractRepository implements Su
 
     @Override
     public Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException {
-        return post("/subscriptions/_search", BodyCodecs.page(Subscription.class))
+        return blockingGet(post("/subscriptions/_search", BodyCodecs.page(Subscription.class))
                 .addQueryParam("page", Integer.toString(pageable.pageNumber()))
                 .addQueryParam("size", Integer.toString(pageable.pageSize()))
-                .send(criteria);
+                .send(criteria));
     }
 
     @Override
     public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
-        return post("/subscriptions/_search", BodyCodecs.list(Subscription.class))
-                .send(criteria);
+        return blockingGet(post("/subscriptions/_search", BodyCodecs.list(Subscription.class))
+                .send(criteria));
     }
 }

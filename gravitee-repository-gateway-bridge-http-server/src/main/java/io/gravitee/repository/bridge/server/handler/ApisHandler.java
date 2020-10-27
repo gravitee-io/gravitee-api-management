@@ -51,8 +51,8 @@ public class ApisHandler {
         response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         response.setChunked(true);
 
-        Boolean excludeDefinition = Boolean.parseBoolean(ctx.request().getParam("excludeDefinition"));
-        Boolean excludePicture = Boolean.parseBoolean(ctx.request().getParam("excludePicture"));
+        boolean excludeDefinition = Boolean.parseBoolean(ctx.request().getParam("excludeDefinition"));
+        boolean excludePicture = Boolean.parseBoolean(ctx.request().getParam("excludePicture"));
         try {
             final ApiFieldExclusionFilter.Builder builder = new ApiFieldExclusionFilter.Builder();
             if (excludeDefinition) {

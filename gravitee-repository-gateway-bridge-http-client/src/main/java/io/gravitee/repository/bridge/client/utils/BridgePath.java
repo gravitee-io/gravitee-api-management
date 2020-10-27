@@ -22,12 +22,12 @@ import java.net.URI;
 
 public class BridgePath {
 
-    public static final String BRIDGE = "/_bridge";
+    private static final String BRIDGE = "/_bridge";
     private static String path;
 
     public static String get(Environment environment) {
         if (path == null) {
-            String url = environment.getProperty(Scope.MANAGEMENT.getName() + ".http.url", String.class, null);
+            String url = environment.getProperty(Scope.MANAGEMENT.getName() + ".http.url", String.class);
             if (url != null) {
                 boolean isStripped = environment.getProperty(Scope.MANAGEMENT.getName() + ".http.strippedUrl", Boolean.class, true);
                 String _path = URI.create(url).getPath().replaceAll("/$", "");

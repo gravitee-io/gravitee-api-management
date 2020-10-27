@@ -42,14 +42,14 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
 
     @Override
     public Event create(Event event) throws TechnicalException {
-        return post("/events", BodyCodec.json(Event.class))
-                .send(event);
+        return blockingGet(post("/events", BodyCodec.json(Event.class))
+                .send(event));
     }
 
     @Override
     public Event update(Event event) throws TechnicalException {
-        return put("/events/" + event.getId(), BodyCodec.json(Event.class))
-                .send(event);
+        return blockingGet(put("/events/" + event.getId(), BodyCodec.json(Event.class))
+                .send(event));
     }
 
     @Override
@@ -59,15 +59,25 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
 
     @Override
     public Page<Event> search(EventCriteria filter, Pageable pageable) {
-        return post("/events/_search", BodyCodecs.page(Event.class))
-                .addQueryParam("page", Integer.toString(pageable.pageNumber()))
-                .addQueryParam("size", Integer.toString(pageable.pageSize()))
-                .send(filter);
+        try {
+            return blockingGet(post("/events/_search", BodyCodecs.page(Event.class))
+                    .addQueryParam("page", Integer.toString(pageable.pageNumber()))
+                    .addQueryParam("size", Integer.toString(pageable.pageSize()))
+                    .send(filter));
+        } catch (TechnicalException te) {
+            // Ensure that an exception is thrown and managed by the caller
+            throw new IllegalStateException(te);
+        }
     }
 
     @Override
     public List<Event> search(EventCriteria filter) {
-        return post("/events/_search", BodyCodecs.list(Event.class))
-                .send(filter);
+        try {
+            return blockingGet(post("/events/_search", BodyCodecs.list(Event.class))
+                    .send(filter));
+        } catch (TechnicalException te) {
+            // Ensure that an exception is thrown and managed by the caller
+            throw new IllegalStateException(te);
+        }
     }
 }

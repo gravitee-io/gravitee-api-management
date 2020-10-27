@@ -33,8 +33,8 @@ public class HttpPlanRepository extends AbstractRepository implements PlanReposi
 
     @Override
     public Optional<Plan> findById(String planId) throws TechnicalException {
-        return get("/plans/" + planId, BodyCodecs.optional(Plan.class))
-                .send();
+        return blockingGet(get("/plans/" + planId, BodyCodecs.optional(Plan.class))
+                .send());
     }
 
     @Override
@@ -54,7 +54,7 @@ public class HttpPlanRepository extends AbstractRepository implements PlanReposi
 
     @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
-        return get("/apis/" + apiId + "/plans", BodyCodecs.set(Plan.class))
-                .send();
+        return blockingGet(get("/apis/" + apiId + "/plans", BodyCodecs.set(Plan.class))
+                .send());
     }
 }
