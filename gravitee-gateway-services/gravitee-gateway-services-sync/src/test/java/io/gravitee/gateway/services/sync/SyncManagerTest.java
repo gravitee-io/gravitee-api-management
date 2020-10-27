@@ -23,6 +23,7 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
@@ -69,6 +70,9 @@ public class SyncManagerTest {
     private EventRepository eventRepository;
 
     @Mock
+    private DictionaryRepository dictionaryRepository;
+
+    @Mock
     private ApiManager apiManager;
 
     @Mock
@@ -78,8 +82,9 @@ public class SyncManagerTest {
     private GatewayConfiguration gatewayConfiguration;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
+        when(dictionaryRepository.findAll()).thenReturn(Collections.emptySet());
     }
 
     @Test
@@ -99,7 +104,7 @@ public class SyncManagerTest {
                 new RepositoryApiBuilder().id("api-test").updatedAt(new Date()).definition("test").build();
 
         final io.gravitee.definition.model.Api mockApi = mockApi(api);
-        
+
         final Event mockEvent = mockEvent(api, EventType.PUBLISH_API);
         when(eventRepository.search(
                 any(EventCriteria.class),
@@ -641,7 +646,7 @@ public class SyncManagerTest {
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(mockApi);
         return mockApi;
     }
-    
+
     private Event mockEvent(final io.gravitee.repository.management.model.Api api, EventType eventType) throws Exception {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
