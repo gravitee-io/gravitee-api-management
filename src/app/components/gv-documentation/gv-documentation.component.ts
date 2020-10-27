@@ -94,7 +94,7 @@ export class GvDocumentationComponent implements AfterViewInit {
   @Input() fragment: string;
 
   static updateMenuHeight(menuElement) {
-    if(menuElement){
+    if (menuElement) {
       const viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
       menuElement.style.height = `${viewportHeight - (ScrollService.getHeaderHeight() + 2 * GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM)}px`;
     }
@@ -124,7 +124,7 @@ export class GvDocumentationComponent implements AfterViewInit {
   }
 
   static reset(menuElement) {
-    if(menuElement) {
+    if (menuElement) {
       const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM;
       menuElement.style.bottom = `${GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM}px`;
       menuElement.style.top = `${top}px`;
@@ -256,17 +256,19 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   @HostListener(':gv-button:click', ['$event.srcElement.dataset.pageId'])
   onInternalLinkClick(pageId: string) {
-    const pageToDisplay = this._pages.find((page) => page.id === pageId);
-    this.onPageChange(pageToDisplay);
+    if (pageId) {
+      const pageToDisplay = this._pages.find((page) => page.id === pageId);
+      this.onPageChange(pageToDisplay);
+    }
   }
 
   private findMenuItem(menu: TreeItem[], pageToFind: any) {
     if (menu) {
-      for(const item of menu) {
-        if(item.value === pageToFind) {
+      for (const item of menu) {
+        if (item.value === pageToFind) {
           return item;
         }
-        if(item.children && item.children.length > 0) {
+        if (item.children && item.children.length > 0) {
           const foundItem = this.findMenuItem(item.children, pageToFind);
           if (foundItem) {
             return foundItem;
