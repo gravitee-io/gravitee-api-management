@@ -97,19 +97,26 @@ public class SyncManager {
 
         long nextLastRefreshAt = System.currentTimeMillis();
 
+        boolean error = false;
         try {
             synchronizeApis(nextLastRefreshAt);
         } catch (Exception ex) {
+            error = true;
             logger.error("An error occurs while synchronizing APIs", ex);
         }
 
         try {
             synchronizeDictionaries(nextLastRefreshAt);
         } catch (Exception ex) {
+            error = true;
             logger.error("An error occurs while synchronizing dictionaries", ex);
         }
 
-        lastRefreshAt = nextLastRefreshAt;
+        // If there was no error during the sync process, let's continue it with the next period of time
+        if (! error) {
+            lastRefreshAt = nextLastRefreshAt;
+        }
+
         logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 
