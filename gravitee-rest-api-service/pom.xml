@@ -67,7 +67,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.gravitee.rest.api</groupId>
-			<artifactId>gravitee-spec-converter</artifactId>
+			<artifactId>gravitee-rest-api-spec-converter</artifactId>
 			<version>${project.version}</version>
 		</dependency>
         <dependency>
