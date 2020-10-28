@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as _ from 'lodash';
+
+export class TicketsQuery {
+  page: number;
+  size: number;
+  order: string;
+}
+
 class TicketService {
   private ticketURL: string;
 
@@ -27,8 +35,23 @@ class TicketService {
     }
   }
 
-  isSupportEnabled() {
-    return this.Constants.portal.support.enabled;
+  search(query: TicketsQuery) {
+    return this.$http.get(this.buildURLWithQuery(query, this.ticketURL + '?'));
+  }
+
+  getTicket(ticketId: string) {
+    return this.$http.get(`${this.ticketURL}/${ticketId}`);
+  }
+
+  private buildURLWithQuery(query: TicketsQuery, url) {
+    var keys = Object.keys(query);
+    _.forEach(keys, function (key) {
+      var val = query[key];
+      if (val !== undefined && val !== '') {
+        url += key + '=' + val + '&';
+      }
+    });
+    return url;
   }
 }
 

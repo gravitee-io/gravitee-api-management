@@ -61,6 +61,8 @@ class SupportTicketController {
     this.TicketService.create(this.ticket).then(() => {
       this.NotificationService.show('Support ticket has been created successfully');
       this.formTicket.$setPristine();
+      this.formTicket.$setUntouched();
+      this.ticket = {};
     });
   }
 }

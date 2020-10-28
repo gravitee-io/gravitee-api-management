@@ -21,8 +21,9 @@ import {User} from '../entities/user';
 import RoleService from '../services/role.service';
 import DashboardService from '../services/dashboard.service';
 import {StateParams} from '@uirouter/core';
-import TenantService from '../services/tenant.service';
 import AnalyticsService from '../services/analytics.service';
+import TicketsListController from './support/tickets-list.controller';
+import TicketService from '../services/ticket.service';
 
 function managementRouterConfig($stateProvider) {
   'ngInject';
@@ -263,11 +264,43 @@ function managementRouterConfig($stateProvider) {
       }
     })
     .state('management.support', {
+      template: '<div ui-view></div>',
+    })
+    .state('management.support.create', {
       url: '/support',
       template: require('./support/ticket.html'),
       controller: 'SupportTicketController',
       controllerAs: 'supportTicketCtrl'
-    });
+    })
+    .state('management.support.tickets', {
+      url: '/support/tickets?page&size&order',
+      template: require('./support/tickets-list.html'),
+      controller: TicketsListController,
+      controllerAs: 'ticketsListCtrl',
+      params: {
+        page: {
+          type: 'int',
+          dynamic: true
+        },
+        size: {
+          type: 'int',
+          dynamic: true
+        },
+        order: {
+          type: 'string',
+          dynamic: true
+        }
+      },
+    })
+    .state('management.support.ticket', {
+      url: '/support/tickets/:ticketId?page&size&order',
+      component: 'ticketDetail',
+      resolve: {
+        ticket: ($stateParams: StateParams, TicketService: TicketService) =>
+          TicketService.getTicket($stateParams.ticketId).then(response => response.data)
+      }
+    })
+  ;
 }
 
 export default managementRouterConfig;

@@ -18,8 +18,10 @@
 <div class="gv-sub-content">
   <form name="supportTicketCtrl.formTicket" ng-submit="supportTicketCtrl.create()" novalidate>
     <div class="gv-forms" layout="column">
-      <h1>Support ticket creation</h1>
-
+      <div class="gv-forms-header">
+        <h1>Support ticket creation</h1>
+        <a ui-sref="management.support.tickets">See tickets history</a>
+      </div>
       <h5 ng-if="!supportTicketCtrl.userHasAnEmail" style="color: red;margin-left: 10px;">
         <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
         <span>You can not submit a ticket because you do not have an email configured on your account</span>

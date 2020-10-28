@@ -508,6 +508,8 @@ import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
 import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
+import TicketsListController from './support/tickets-list.controller';
+import TicketDetailComponent from './support/ticket-detail.component';
 
 (<any>window).traverse = traverse;
 
@@ -740,6 +742,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController)
   .controller('DialogAddUserRoleController', DialogAddUserRoleController)
   .controller('SupportTicketController', SupportTicketController)
+  .controller('TicketsListController', TicketsListController)
   .controller('AuditController', AuditController)
   .controller('ApiAuditController', ApiAuditController)
   .controller('ThemeController', ThemeController)
@@ -830,6 +833,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('analyticsSettings', AnalyticsSettingsComponent)
   .directive('gvMetadataValidator', () => MetadataValidatorDirective)
   .component('customUserFields', CustomUserFieldsComponent)
+  .component('ticketDetail', TicketDetailComponent)
 
   .component('instances', InstancesComponent)
   .component('instance', InstanceComponent)
