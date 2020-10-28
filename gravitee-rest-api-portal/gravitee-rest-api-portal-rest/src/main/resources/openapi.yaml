@@ -2044,6 +2044,28 @@ paths:
           description: Created
         500:
           $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Portal
+      parameters:
+        - $ref: '#/components/parameters/apiIdQueryParam'
+        - $ref: '#/components/parameters/applicationIdQueryParam'
+        - $ref: '#/components/parameters/pageNumberParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+        - $ref: '#/components/parameters/orderQueryParam'
+      description: |
+        List all tickets written by current user
+
+      operationId: getTickets
+      responses:
+        200:
+          description: List of Tickets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketsResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /categories:
     get:
       tags:
@@ -2866,6 +2888,17 @@ components:
       example: "order=-avg:response-time"
       schema:
         type: string
+    orderQueryParam:
+      name: order
+      in: query
+      required: false
+      description: |
+        Used to sort result.
+
+        By default, sort is ASC. If *type* starts with '-', the order sort is DESC
+      example: "order=-created_at"
+      schema:
+        type: string
     logOrderQueryParam:
       name: order
       in: query
@@ -3073,6 +3106,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Subscription'
+        metadata:
+          $ref: '#/components/schemas/MetadataMap'
+        links:
+          $ref: '#/components/schemas/Links'
+    TicketsResponse:
+      properties:
+        data:
+          description: List of tickets.
+          type: array
+          items:
+            $ref: '#/components/schemas/Ticket'
         metadata:
           $ref: '#/components/schemas/MetadataMap'
         links:
@@ -3746,6 +3790,30 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Key'
+    Ticket:
+      properties:
+        id:
+          description: Unique identifier of a ticket.
+          type: string
+        api:
+          description: Concerned API.
+          type: string
+        application:
+          description: Concerned application.
+          type: string
+        subject:
+          description: Subject of the ticket.
+          type: string
+        content:
+          description: Content of the ticket.
+          type: string
+        created_at:
+          description: Creation date and time of the ticket.
+          type: string
+          format: date-time
+        from_user:
+          description: User identifier of the ticket creator.
+          type: string
     User:
       properties:
         id:

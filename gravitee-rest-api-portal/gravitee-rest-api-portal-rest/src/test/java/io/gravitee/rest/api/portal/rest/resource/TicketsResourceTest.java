@@ -15,15 +15,25 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
-import org.junit.Before;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.TicketEntity;
+import io.gravitee.rest.api.model.api.TicketQuery;
+import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.portal.rest.model.TicketsResponse;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import io.gravitee.common.http.HttpStatusCode;
@@ -50,7 +60,78 @@ public class TicketsResourceTest extends AbstractResourceTest {
         final Response response = target().request().post(Entity.json(input));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         
-        Mockito.verify(ticketMapper).convert(input);
-        Mockito.verify(ticketService).create(eq(USER_NAME), any());
+        verify(ticketMapper).convert(input);
+        verify(ticketService).create(eq(USER_NAME), any());
+    }
+
+    @Test
+    public void shouldSearchTickets() {
+        resetAllMocks();
+
+        TicketEntity ticketEntity = new TicketEntity();
+        ticketEntity.setId("1");
+
+        ArgumentCaptor<TicketQuery> queryCaptor = ArgumentCaptor.forClass(TicketQuery.class);
+        ArgumentCaptor<SortableImpl> sortableCaptor = ArgumentCaptor.forClass(SortableImpl.class);
+
+        when(ticketService.search(queryCaptor.capture(), sortableCaptor.capture(), any()))
+                .thenReturn(new Page<>(singletonList(ticketEntity), 1, 1, 1));
+
+        Response response = target()
+                .queryParam("page", 1)
+                .queryParam("size", 10)
+                .queryParam("apiId", "apiId")
+                .queryParam("order", "-subject")
+                .request()
+                .get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        TicketQuery query = queryCaptor.getValue();
+        SortableImpl sortable = sortableCaptor.getValue();
+        assertEquals("Criteria user", USER_NAME, query.getFromUser());
+        assertEquals("Criteria api", "apiId", query.getApi());
+        assertEquals("Query sort field", "subject", sortable.getField());
+        assertEquals("Query sort order", false, sortable.isAscOrder());
+
+        verify(ticketService, Mockito.times(1))
+                .search(any(),
+                        argThat(o -> o.getField().equals("subject") && !o.isAscOrder()),
+                        argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10));
+
+        TicketsResponse ticketsResponse = response.readEntity(TicketsResponse.class);
+        assertEquals("Ticket list had not the good size", 1, ticketsResponse.getData().size());
+    }
+
+    @Test
+    public void shouldSearchTicketsWithoutSorting() {
+        resetAllMocks();
+
+        TicketEntity ticketEntity = new TicketEntity();
+        ticketEntity.setId("1");
+
+        ArgumentCaptor<TicketQuery> queryCaptor = ArgumentCaptor.forClass(TicketQuery.class);
+
+        when(ticketService.search(queryCaptor.capture(), any(), any()))
+                .thenReturn(new Page<>(singletonList(ticketEntity), 1, 1, 1));
+
+        Response response = target()
+                .queryParam("apiId", "apiId")
+                .request()
+                .get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        TicketQuery query = queryCaptor.getValue();
+        assertEquals("Criteria user", USER_NAME, query.getFromUser());
+        assertEquals("Criteria api", "apiId", query.getApi());
+
+        verify(ticketService, Mockito.times(1))
+                .search(any(),
+                        isNull(),
+                        argThat(o -> o.getPageNumber() == 1 && o.getPageSize() == 10));
+
+        TicketsResponse ticketsResponse = response.readEntity(TicketsResponse.class);
+        assertEquals("Ticket list had not the good size", 1, ticketsResponse.getData().size());
     }
 }

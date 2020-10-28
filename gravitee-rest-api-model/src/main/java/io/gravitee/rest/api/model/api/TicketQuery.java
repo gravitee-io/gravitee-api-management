@@ -13,24 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
-
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.NewTicketEntity;
-import io.gravitee.rest.api.model.TicketEntity;
-import io.gravitee.rest.api.model.api.TicketQuery;
-import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.common.Sortable;
+package io.gravitee.rest.api.model.api;
 
 /**
- * @author Azize ELAMRANI (azize at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TicketService {
+public class TicketQuery {
 
-    TicketEntity create(String username, NewTicketEntity ticketEntity);
+    private String fromUser;
 
-    Page<TicketEntity> search(TicketQuery query, Sortable sortable, Pageable pageable);
+    private String api;
 
-    TicketEntity findById(String ticketId);
+    private String application;
+
+    public String getFromUser() {
+        return fromUser;
+    }
+
+    public void setFromUser(String fromUser) {
+        this.fromUser = fromUser;
+    }
+
+    public String getApi() {
+        return api;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
+    }
+
+    public String getApplication() {
+        return application;
+    }
+
+    public void setApplication(String application) {
+        this.application = application;
+    }
 }
