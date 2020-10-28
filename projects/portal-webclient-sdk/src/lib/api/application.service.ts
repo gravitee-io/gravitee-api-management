@@ -226,7 +226,7 @@ export class ApplicationService {
 
     /**
      * Create an application
-     * Create an application.  User must have MANAGEMENT_APPLICATION[CREATE] permission.
+     * Create an application.  User must have MANAGEMENT_APPLICATION[CREATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -276,7 +276,7 @@ export class ApplicationService {
 
     /**
      * Create an application member
-     * Create an application member.  User must have the APPLICATION_MEMBER[CREATE] permission.
+     * Create an application member.  User must have the APPLICATION_MEMBER[CREATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -330,7 +330,7 @@ export class ApplicationService {
 
     /**
      * Create an application metadata
-     * Create an application metadata.  User must have the APPLICATION_METADATA[CREATE] permission.
+     * Create an application metadata.  User must have the APPLICATION_METADATA[CREATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -384,7 +384,7 @@ export class ApplicationService {
 
     /**
      * Delete an application
-     * Delete an application.  User must have the APPLICATION_DEFINITION[DELETE] permission.
+     * Delete an application.  User must have the APPLICATION_DEFINITION[DELETE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -427,7 +427,7 @@ export class ApplicationService {
 
     /**
      * Remove an application member
-     * Remove an application member.  User must have the APPLICATION_MEMBER[DELETE] permission.
+     * Remove an application member.  User must have the APPLICATION_MEMBER[DELETE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -474,7 +474,7 @@ export class ApplicationService {
 
     /**
      * Remove an application metadata
-     * Remove an application metadata.  User must have the APPLICATION_METADATA[DELETE] permission.
+     * Remove an application metadata.  User must have the APPLICATION_METADATA[DELETE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -521,7 +521,7 @@ export class ApplicationService {
 
     /**
      * Export application logs as CSV
-     * Export application logs as CSV.  User must have the APPLICATION_LOG[READ] permission.
+     * Export application logs as CSV.  User must have the APPLICATION_LOG[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -597,7 +597,7 @@ export class ApplicationService {
 
     /**
      * Get Application analytics
-     * Get the application analytics.  User must have the APPLICATION_ANALYTICS[READ] permission.
+     * Get the application analytics.  User must have the APPLICATION_ANALYTICS[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -687,7 +687,7 @@ export class ApplicationService {
 
     /**
      * Get the application\&#39;s background
-     * Get the application\&#39;s background.  User must have APPLICATION_DEFINITION[READ] permission.
+     * Get the application\&#39;s background.  User must have APPLICATION_DEFINITION[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -732,7 +732,7 @@ export class ApplicationService {
 
     /**
      * Get an application.
-     * Get an application.  User must have the APPLICATION_DEFINITION[READ] permission.
+     * Get an application.  User must have the APPLICATION_DEFINITION[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -775,7 +775,7 @@ export class ApplicationService {
 
     /**
      * Get a specific log of an application
-     * Get a specific log of an application.  User must have the APPLICATION_LOG[READ] permission.
+     * Get a specific log of an application.  User must have the APPLICATION_LOG[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -829,7 +829,7 @@ export class ApplicationService {
 
     /**
      * Get Application logs
-     * Get the application logs.  User must have the APPLICATION_LOG[READ] permission.
+     * Get the application logs.  User must have the APPLICATION_LOG[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -903,7 +903,7 @@ export class ApplicationService {
 
     /**
      * Get an application member
-     * Get an application member.  User must have the APPLICATION_MEMBER[READ] permission.
+     * Get an application member.  User must have the APPLICATION_MEMBER[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -950,7 +950,7 @@ export class ApplicationService {
 
     /**
      * Get an application metadata
-     * Get an application metadata.  User must have the APPLICATION_METADATA[READ] permission.
+     * Get an application metadata.  User must have the APPLICATION_METADATA[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -997,7 +997,7 @@ export class ApplicationService {
 
     /**
      * Get the application\&#39;s picture
-     * Get the application\&#39;s picture.  User must have APPLICATION_DEFINITION[READ] permission.
+     * Get the application\&#39;s picture.  User must have APPLICATION_DEFINITION[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1042,7 +1042,7 @@ export class ApplicationService {
 
     /**
      * Get the application type configuration.
-     * Get application type.
+     * Get application type. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1080,7 +1080,7 @@ export class ApplicationService {
 
     /**
      * List all the applications accessible to authenticated user. Default order is by *name* ASC.
-     * List all the applications accessible to authenticated user.  User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission.
+     * List all the applications accessible to authenticated user.  User must have MANAGEMENT_APPLICATION[READ] and PORTAL_APPLICATION[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1138,7 +1138,7 @@ export class ApplicationService {
 
     /**
      * Get the application\&#39;s hooks list.
-     * Get application\&#39;s hooks that can be used in the portal.
+     * Get application\&#39;s hooks that can be used in the portal. 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -1171,7 +1171,7 @@ export class ApplicationService {
 
     /**
      * List application members
-     * List application members.  User must have the APPLICATION_MEMBER[READ] permission.
+     * List application members.  User must have the APPLICATION_MEMBER[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1225,7 +1225,7 @@ export class ApplicationService {
 
     /**
      * List application metadata
-     * List application metadata.  User must have the APPLICATION_METADATA[READ] permission.
+     * List application metadata.  User must have the APPLICATION_METADATA[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1279,7 +1279,7 @@ export class ApplicationService {
 
     /**
      * Get application notifications
-     * Get application notifications.  User must have APPLICATION_NOTIFICATION[READ] permission to get notifications.
+     * Get application notifications.  User must have APPLICATION_NOTIFICATION[READ] permission to get notifications. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1322,7 +1322,7 @@ export class ApplicationService {
 
     /**
      * List APIs that subscribed with an application
-     * Lists API that current user is allowed to access. May be filtered by status. Ordered by nimber of hits.  This application has to be accessible by the current user, otherwise a 404 will be returned.
+     * Lists API that current user is allowed to access. May be filtered by status. Ordered by nimber of hits.  This application has to be accessible by the current user, otherwise a 404 will be returned. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1377,7 +1377,7 @@ export class ApplicationService {
 
     /**
      * Renew the client secret for an OAuth2 application
-     * Renew the client secret for an OAuth2 application.  User must have the APPLICATION_DEFINITION[UPDATE] permission.
+     * Renew the client secret for an OAuth2 application.  User must have the APPLICATION_DEFINITION[UPDATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1421,7 +1421,7 @@ export class ApplicationService {
 
     /**
      * Transfer the ownership of the application
-     * Transfer the ownership of the application.  User must have the APPLICATION_MEMBER[UPDATE] permission.
+     * Transfer the ownership of the application.  User must have the APPLICATION_MEMBER[UPDATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1475,7 +1475,7 @@ export class ApplicationService {
 
     /**
      * Update an application.
-     * Update an application.  User must have APPLICATION_DEFINITION[UPDATE] permission.
+     * Update an application.  User must have APPLICATION_DEFINITION[UPDATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1529,7 +1529,7 @@ export class ApplicationService {
 
     /**
      * Update an application member.
-     * Update an application member.  User must have the APPLICATION_MEMBER[UPDATE] permission.
+     * Update an application member.  User must have the APPLICATION_MEMBER[UPDATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1587,7 +1587,7 @@ export class ApplicationService {
 
     /**
      * Update an application metadata.
-     * Update an application metadata.  User must have the APPLICATION_METADATA[UPDATE] permission.
+     * Update an application metadata.  User must have the APPLICATION_METADATA[UPDATE] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1645,7 +1645,7 @@ export class ApplicationService {
 
     /**
      * Update notifications for an application.
-     * Update notifications for an application.  User must have APPLICATION_NOTIFICATION[UPDATE] permission to update notifications.
+     * Update notifications for an application.  User must have APPLICATION_NOTIFICATION[UPDATE] permission to update notifications. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

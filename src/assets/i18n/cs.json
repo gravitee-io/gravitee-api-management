@@ -957,6 +957,7 @@
     "notFound": "Stránka nebyla nalezena",
     "notifications": "Oznámení",
     "subscriptions": "Předplatné",
+    "tickets": "Vstupenky",
     "user": "Můj účet"
   },
   "search": {
@@ -986,6 +987,14 @@
       "title": "Předplatné"
     },
     "title": "Mé odběry"
+  },
+  "tickets": {
+    "api": "API",
+    "application": "Aplikace",
+    "content": "Obsah",
+    "date": "Datum",
+    "subject": "Předmět",
+    "title": "Vstupenky"
   },
   "user": {
     "account": {

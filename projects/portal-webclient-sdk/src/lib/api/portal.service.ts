@@ -33,6 +33,7 @@ import { Page } from '../model/page';
 import { PagesResponse } from '../model/pagesResponse';
 import { ThemeResponse } from '../model/themeResponse';
 import { TicketInput } from '../model/ticketInput';
+import { TicketsResponse } from '../model/ticketsResponse';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
 import { Configuration }                                     from '../configuration';
@@ -85,6 +86,14 @@ export interface GetPortalIdentityProviderRequestParams {
 
 export interface GetPortalMediaRequestParams {
     mediaHash: string;
+}
+
+export interface GetTicketsRequestParams {
+    apiId?: string;
+    applicationId?: string;
+    page?: number;
+    size?: number;
+    order?: string;
 }
 
 
@@ -837,6 +846,67 @@ export class PortalService {
 
         return this.httpClient.get<ThemeResponse>(`${this.configuration.basePath}/theme`,
             {
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * List all tickets written by current user 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getTickets(requestParameters: GetTicketsRequestParams, observe?: 'body', reportProgress?: boolean): Observable<TicketsResponse>;
+    public getTickets(requestParameters: GetTicketsRequestParams, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<TicketsResponse>>;
+    public getTickets(requestParameters: GetTicketsRequestParams, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<TicketsResponse>>;
+    public getTickets(requestParameters: GetTicketsRequestParams, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+        const apiId = requestParameters.apiId;
+        const applicationId = requestParameters.applicationId;
+        const page = requestParameters.page;
+        const size = requestParameters.size;
+        const order = requestParameters.order;
+
+        let queryParameters = new HttpParams({encoder: this.encoder});
+        if (apiId !== undefined && apiId !== null) {
+            queryParameters = queryParameters.set('apiId', <any>apiId);
+        }
+        if (applicationId !== undefined && applicationId !== null) {
+            queryParameters = queryParameters.set('applicationId', <any>applicationId);
+        }
+        if (page !== undefined && page !== null) {
+            queryParameters = queryParameters.set('page', <any>page);
+        }
+        if (size !== undefined && size !== null) {
+            queryParameters = queryParameters.set('size', <any>size);
+        }
+        if (order !== undefined && order !== null) {
+            queryParameters = queryParameters.set('order', <any>order);
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        // to determine the Accept header
+        const httpHeaderAccepts: string[] = [
+            'application/json'
+        ];
+        const httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        return this.httpClient.get<TicketsResponse>(`${this.configuration.basePath}/tickets`,
+            {
+                params: queryParameters,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
                 observe: observe,

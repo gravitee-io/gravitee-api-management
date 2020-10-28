@@ -957,6 +957,7 @@
     "notFound": "Page introuvable",
     "notifications": "Notifications",
     "subscriptions": "Souscriptions",
+    "tickets": "Tickets",
     "user": "Mon compte"
   },
   "search": {
@@ -986,6 +987,14 @@
       "title": "Souscriptions"
     },
     "title": "Mes souscriptions"
+  },
+  "tickets": {
+    "api": "API",
+    "application": "Application",
+    "content": "Message",
+    "date": "Date",
+    "subject": "Sujet",
+    "title": "Tickets"
   },
   "user": {
     "account": {

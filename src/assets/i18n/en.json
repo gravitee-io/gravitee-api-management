@@ -957,6 +957,7 @@
     "notFound": "Page not found",
     "notifications": "Notifications",
     "subscriptions": "Subscriptions",
+    "tickets": "Tickets",
     "user": "My account"
   },
   "search": {
@@ -986,6 +987,14 @@
       "title": "Subscriptions"
     },
     "title": "My subscriptions"
+  },
+  "tickets": {
+    "api": "API",
+    "application": "Application",
+    "content": "Content",
+    "date": "Date",
+    "subject": "Subject",
+    "title": "Tickets"
   },
   "user": {
     "account": {

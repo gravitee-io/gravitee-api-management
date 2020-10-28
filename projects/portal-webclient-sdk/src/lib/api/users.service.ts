@@ -17,8 +17,8 @@ import { HttpClient, HttpHeaders, HttpParams,
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
-import { CustomUserFields } from '../model/customUserFields';
 import { ChangeUserPasswordInput } from '../model/changeUserPasswordInput';
+import { CustomUserFields } from '../model/customUserFields';
 import { ErrorResponse } from '../model/errorResponse';
 import { FinalizeRegistrationInput } from '../model/finalizeRegistrationInput';
 import { RegisterUserInput } from '../model/registerUserInput';

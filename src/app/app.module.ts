@@ -66,6 +66,7 @@ import { UserContactComponent } from './pages/user/user-contact/user-contact.com
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { ViewportScroller } from '@angular/common';
 import { ReCaptchaService } from './services/recaptcha.service';
+import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets-history.component';
 
 @NgModule({
   declarations: [
@@ -101,6 +102,7 @@ import { ReCaptchaService } from './services/recaptcha.service';
     UserAccountComponent,
     UserContactComponent,
     UserNotificationComponent,
+    TicketsHistoryComponent,
   ],
   entryComponents: [GvSearchApiComponent, GvHeaderItemComponent],
   imports: [

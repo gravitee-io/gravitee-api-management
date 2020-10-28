@@ -51,6 +51,7 @@ import { UserNotificationComponent } from './pages/user/user-notification/user-n
 import { CookiesComponent } from './pages/cookies/cookies.component';
 import { CategoryResolver } from './resolvers/category.resolver';
 import { PermissionsResolver } from './resolvers/permissions-resolver.service';
+import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets-history.component';
 
 export const routes: Routes = [
   { path: '', component: HomepageComponent, data: { title: i18n('route.homepage'), menu: false, animation: { type: 'fade' } } },
@@ -115,6 +116,17 @@ export const routes: Routes = [
               expectedFeature: FeatureEnum.contact,
               expectedRole: Role.AUTH_USER,
               animation: { type: 'slide', group: 'api', index: 3 }
+            }
+          },
+          {
+            path: 'tickets',
+            component: TicketsHistoryComponent,
+            data: {
+              title: i18n('route.tickets'),
+              icon: 'communication:snoozed-mail',
+              expectedFeature: FeatureEnum.contact,
+              expectedRole: Role.AUTH_USER,
+              animation: { type: 'slide', group: 'user', index: 4 }
             }
           },
           {
@@ -233,6 +245,18 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'tickets',
+        component: TicketsHistoryComponent,
+        canActivate: [AuthGuardService, FeatureGuardService],
+        data: {
+          title: i18n('route.tickets'),
+          icon: 'communication:snoozed-mail',
+          expectedFeature: FeatureEnum.contact,
+          expectedRole: Role.AUTH_USER,
+          animation: { type: 'slide', group: 'user', index: 3 }
+        }
+      },
+      {
         path: 'notifications',
         component: UserNotificationComponent,
         canActivate: [AuthGuardService, FeatureGuardService],
@@ -240,7 +264,7 @@ export const routes: Routes = [
           title: i18n('route.notifications'),
           icon: 'general:notifications#2',
           expectedRole: Role.AUTH_USER,
-          animation: { type: 'slide', group: 'user', index: 3 }
+          animation: { type: 'slide', group: 'user', index: 4 }
         }
       },
       {
