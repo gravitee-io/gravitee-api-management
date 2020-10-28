@@ -34,7 +34,7 @@ import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
-import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
+import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUPPORT_TICKET;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -111,15 +111,15 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         }
 
         parameters.put("content", ticketEntity.getContent().replaceAll("(\r\n|\n)", "<br />"));
+        parameters.put("ticketSubject", ticketEntity.getSubject());
         final String fromName = user.getFirstname() == null ? user.getEmail() : user.getFirstname() + ' ' + user.getLastname();
         emailService.sendEmailNotification(
                 new EmailNotificationBuilder()
                         .replyTo(user.getEmail())
                         .fromName(fromName)
                         .to(emailTo)
-                        .subject(ticketEntity.getSubject())
                         .copyToSender(ticketEntity.isCopyToSender())
-                        .template(SUPPORT_TICKET)
+                        .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
                         .params(parameters)
                         .build());
         sendUserNotification(user, api, applicationEntity);

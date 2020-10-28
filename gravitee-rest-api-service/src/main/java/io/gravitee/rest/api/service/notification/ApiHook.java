@@ -36,7 +36,7 @@ public enum ApiHook implements Hook {
     API_STOPPED("API Stopped", "Triggered when an API is stopped", "LIFECYCLE"),
     NEW_RATING("New Rating", "Triggered when a new rating is submitted", "RATING"),
     NEW_RATING_ANSWER("New Rating Answer", "Triggered when a new answer is submitted", "RATING"),
-    MESSAGE(null, null, null, true),
+    MESSAGE("Message", "Used when sending a custom message to an Application Role", null, true),
     ASK_FOR_REVIEW("Ask for API review", "Triggered when an API can be reviewed", "REVIEW"),
     REVIEW_OK("Accept API review", "Triggered when an API's review has been accepted", "REVIEW"),
     REQUEST_FOR_CHANGES("Reject API review", "Triggered when an API's review has been rejected", "REVIEW"),
@@ -64,7 +64,6 @@ public enum ApiHook implements Hook {
     }
 
     @Override
-
     public String getDescription() {
         return description;
     }

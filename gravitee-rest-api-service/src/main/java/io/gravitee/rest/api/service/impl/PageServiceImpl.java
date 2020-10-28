@@ -21,9 +21,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.fetcher.api.*;
 import io.gravitee.plugin.core.api.PluginManager;
@@ -38,7 +35,6 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
@@ -53,6 +49,7 @@ import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurationOAITransformer;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -83,7 +80,6 @@ import static io.gravitee.repository.management.model.Page.AuditEvent.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processTemplateIntoString;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -115,7 +111,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
     @Autowired
     private FetcherConfigurationFactory fetcherConfigurationFactory;
     @Autowired
-    private Configuration freemarkerConfiguration;
+    private NotificationTemplateService notificationTemplateService;
     @Autowired
     private ApplicationContext applicationContext;
     @Autowired
@@ -617,27 +613,22 @@ public class PageServiceImpl extends TransactionalService implements PageService
     @Override
     public void transformWithTemplate(final PageEntity pageEntity, final String api) {
         if (pageEntity.getContent() != null) {
-            try {
-                final Template template = new Template(pageEntity.getId(), pageEntity.getContent(), freemarkerConfiguration);
-                final Map<String, Object> model = new HashMap<>();
-                if (api == null) {
-                    final List<MetadataEntity> metadataList = metadataService.findAllDefault();
-                    if (metadataList != null) {
-                        final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
-                        metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(), metadata.getValue()));
-                        model.put("metadata", mapMetadata);
-                    }
-                } else {
-                    ApiModelEntity apiEntity = apiService.findByIdForTemplates(api, true);
-                    model.put("api", apiEntity);
+            final Map<String, Object> model = new HashMap<>();
+            if (api == null) {
+                final List<MetadataEntity> metadataList = metadataService.findAllDefault();
+                if (metadataList != null) {
+                    final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
+                    metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(), metadata.getValue()));
+                    model.put("metadata", mapMetadata);
                 }
-
-                final String content = processTemplateIntoString(template, model);
-
-                pageEntity.setContent(content);
-            } catch (IOException | TemplateException ex) {
-                logger.error("An error occurs while transforming page content for {}", pageEntity.getId(), ex);
+            } else {
+                ApiModelEntity apiEntity = apiService.findByIdForTemplates(api, true);
+                model.put("api", apiEntity);
             }
+
+            final String content = this.notificationTemplateService.resolveInlineTemplateWithParam(pageEntity.getId(), pageEntity.getContent(), model);
+
+            pageEntity.setContent(content);
         }
     }
 

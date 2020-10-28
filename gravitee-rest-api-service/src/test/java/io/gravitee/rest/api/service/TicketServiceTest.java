@@ -36,7 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.HashMap;
 import java.util.Map;
 
-import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
+import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUPPORT_TICKET;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -54,8 +54,8 @@ public class TicketServiceTest {
     private static final String USER_LASTNAME = "Lastname";
     private static final String API_ID = "my-api-id";
     private static final String APPLICATION_ID = "my-application-id";
-    private static final String EMAIL_SUBJECT = "email-subject";
     private static final String EMAIL_CONTENT = "Email\nContent";
+    private static final String EMAIL_SUBJECT = "Email\nSubject";
     private static final boolean EMAIL_COPY_TO_SENDER = false;
     private static final String EMAIL_SUPPORT = "email@support.com";
 
@@ -136,9 +136,9 @@ public class TicketServiceTest {
         when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
-        when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
         when(newTicketEntity.getContent()).thenReturn(EMAIL_CONTENT);
+        when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
 
         when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
@@ -158,10 +158,9 @@ public class TicketServiceTest {
                         .replyTo(USER_EMAIL)
                         .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
                         .to(EMAIL_SUPPORT)
-                        .subject(EMAIL_SUBJECT)
                         .copyToSender(EMAIL_COPY_TO_SENDER)
-                        .template(SUPPORT_TICKET)
-                        .params(ImmutableMap.of("user", user, "api", api, "content", "Email<br />Content", "application", application))
+                        .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
+                        .params(ImmutableMap.of("user", user, "api", api, "content", "Email<br />Content", "application", application, "ticketSubject", EMAIL_SUBJECT))
                         .build());
         verify(mockNotifierService, times(1)).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }

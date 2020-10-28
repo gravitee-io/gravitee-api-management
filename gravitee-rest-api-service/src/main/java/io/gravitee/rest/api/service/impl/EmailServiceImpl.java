@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
 import io.gravitee.rest.api.service.EmailNotification;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -47,7 +46,6 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processTemplateIntoString;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -62,7 +60,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     @Autowired
     private JavaMailSender mailSender;
     @Autowired
-    private Configuration freemarkerConfiguration;
+    private NotificationTemplateService notificationTemplateService;
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
     @Value("${email.subject:[Gravitee.io] %s}")
@@ -72,13 +70,14 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     @Value("${email.from}")
     private String defaultFrom;
 
+    @Override
     public void sendEmailNotification(final EmailNotification emailNotification) {
         if (enabled && emailNotification.getTo() != null && emailNotification.getTo().length > 0) {
             try {
                 final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 
-                final Template template = freemarkerConfiguration.getTemplate(emailNotification.getTemplate());
-                String content = processTemplateIntoString(template, emailNotification.getParams());
+                String emailSubject = notificationTemplateService.resolveTemplateWithParam(emailNotification.getTemplate() + ".EMAIL.TITLE", emailNotification.getParams());
+                String content = notificationTemplateService.resolveTemplateWithParam(emailNotification.getTemplate() + ".EMAIL", emailNotification.getParams());
                 content = content.replaceAll("&lt;br /&gt;", "<br />");
 
                 final String from = isNull(emailNotification.getFrom()) || emailNotification.getFrom().isEmpty()
@@ -107,12 +106,12 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                     mailMessage.setBcc(emailNotification.getBcc());
                 }
 
-                mailMessage.setSubject(format(subject, emailNotification.getSubject()));
+                mailMessage.setSubject(format(subject, emailSubject));
 
                 final String html = addResourcesInMessage(mailMessage, content);
 
                 LOGGER.debug("Sending an email to: {}\nSubject: {}\nMessage: {}",
-                        emailNotification.getTo(), emailNotification.getSubject(), html);
+                        emailNotification.getTo(), emailSubject, html);
 
                 mailSender.send(mailMessage.getMimeMessage());
             } catch (final Exception ex) {
@@ -122,6 +121,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         }
     }
 
+    @Override
     @Async
     public void sendAsyncEmailNotification(final EmailNotification emailNotification) {
         sendEmailNotification(emailNotification);

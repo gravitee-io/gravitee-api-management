@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import org.junit.Test;
@@ -79,6 +80,9 @@ public class PageService_CreateTest {
 
     @Mock
     private ImportConfiguration importConfiguration;
+
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
 
     @Test
     public void shouldCreatePage() throws TechnicalException {
@@ -452,7 +456,7 @@ public class PageService_CreateTest {
         when(newPage.getContent()).thenReturn(content);
         when(newPage.getLastContributor()).thenReturn(contrib);
         when(newPage.getType()).thenReturn(PageType.MARKDOWN);
-
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any())).thenReturn(content);
         this.pageService.createPage(API_ID, newPage);
 
         verify(pageRepository, never()).create(any());

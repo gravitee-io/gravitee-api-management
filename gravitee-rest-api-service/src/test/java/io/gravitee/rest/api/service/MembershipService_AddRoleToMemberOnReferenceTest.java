@@ -22,14 +22,16 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.exceptions.NotAuthorizedMembershipException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -81,11 +83,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         newMembership.setReferenceId(API_ID);
         newMembership.setMemberId(GROUP_ID);
         newMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.GROUP);
-        GroupEntity groupEntityMock = mock(GroupEntity.class);
-        when(groupEntityMock.getName()).thenReturn("foo");
-        
-        
-        when(groupService.findById(GROUP_ID)).thenReturn(groupEntityMock);
+        when(groupService.findById(GROUP_ID)).thenReturn(mock(GroupEntity.class));
         when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userEntity.getId(), io.gravitee.repository.management.model.MembershipMemberType.USER ,io.gravitee.repository.management.model.MembershipReferenceType.GROUP, GROUP_ID))
             .thenReturn(new HashSet<>(Arrays.asList(newMembership)), Collections.emptySet());
         when(membershipRepository.create(any())).thenReturn(newMembership);

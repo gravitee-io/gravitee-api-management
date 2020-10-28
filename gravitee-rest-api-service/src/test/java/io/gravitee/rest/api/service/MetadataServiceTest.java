@@ -21,17 +21,32 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.MetadataServiceImpl;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import java.io.Reader;
 
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class MetadataServiceTest {
 
-    private final MetadataService metadataService = new MetadataServiceImpl();
+    @InjectMocks
+    private MetadataServiceImpl metadataService;
+
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
 
     @Test(expected = TechnicalManagementException.class)
     public void checkMetadataFormat_badEmailFormat() {
@@ -45,12 +60,12 @@ public class MetadataServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void checkMetadataFormat_badEmailFormat_EL() {
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("test");
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail("test");
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22));
         metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${api.primaryOwner.email}", API, apiEntity);
     }
 
@@ -61,7 +76,6 @@ public class MetadataServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22));
         metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${api.primaryOwner.email}", API, apiEntity);
     }
 
@@ -71,7 +85,6 @@ public class MetadataServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22));
         metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${(api.primaryOwner.email)!''}", API, apiEntity);
     }
 }

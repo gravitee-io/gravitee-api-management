@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.notification;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.gravitee.rest.api.service.jackson.ser.HookSerializer;
+package io.gravitee.rest.api.model.notification;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonSerialize(using = HookSerializer.class)
-public interface Hook {
-    String name();
-    String getLabel();
-    String getDescription();
-    String getCategory();
-    HookScope getScope();
-    default boolean isHidden() {
-        return false;
-    }
-
-    default String getTemplate() {
-        return this.getScope().name() + "." + this.name();
-    }
+public enum NotificationTemplateType {
+	EMAIL,
+	PORTAL
 }

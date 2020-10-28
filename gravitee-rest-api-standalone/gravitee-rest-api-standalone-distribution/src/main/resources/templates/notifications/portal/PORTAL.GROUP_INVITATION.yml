@@ -1,3 +1,3 @@
 title: Group invitation
 message: |
-  You have been invited in group "${group.name}".
+    "${user.firstname} ${user.lastname}" has been invited in group "${group.name}".

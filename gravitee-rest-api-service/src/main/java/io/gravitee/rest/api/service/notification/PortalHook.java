@@ -28,7 +28,7 @@ public enum PortalHook implements Hook {
     PASSWORD_RESET("Password Reset", "Triggered when a password is reset", "USER"),
     NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
     GROUP_INVITATION("Group invitation", "Triggered when an user is invited in a group", "GROUP"),
-    MESSAGE(null, null, null, true);
+    MESSAGE("Message", "Used when sending a custom message to an Environment Role", null, true);
 
     private String label;
     private String description;

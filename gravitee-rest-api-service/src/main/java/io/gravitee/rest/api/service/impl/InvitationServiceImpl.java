@@ -32,7 +32,6 @@ import io.gravitee.rest.api.service.exceptions.InvitationEmailAlreadyExistsExcep
 import io.gravitee.rest.api.service.exceptions.InvitationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.MemberEmailAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,8 +174,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         final GroupEntity group = groupService.findById(invitation.getReferenceId());
         emailService.sendEmailNotification(new EmailNotificationBuilder()
                 .to(invitation.getEmail())
-                .subject("Group invitation - " + group.getName())
-                .template(EmailNotificationBuilder.EmailTemplate.GROUP_INVITATION)
+                .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_GROUP_INVITATION)
                 .params(userService.getTokenRegistrationParams(userEntity, REGISTRATION_PATH, GROUP_INVITATION))
                 .param("group", group)
                 .build()

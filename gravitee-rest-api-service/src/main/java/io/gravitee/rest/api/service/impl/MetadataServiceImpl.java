@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
@@ -30,11 +28,11 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import javax.mail.internet.InternetAddress;
 import java.io.StringReader;
@@ -57,10 +55,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Component
 public class MetadataServiceImpl extends TransactionalService implements MetadataService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceImpl.class);
-
     private final static String DEFAULT_REFERENCE_ID = "_";
-
+    private final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceImpl.class);
     @Autowired
     private MetadataRepository metadataRepository;
 
@@ -68,7 +64,11 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     private AuditService auditService;
 
     @Autowired
-    private Configuration freemarkerConfiguration;
+    private NotificationTemplateService notificationTemplateService;
+
+    public static String getDefaultReferenceId() {
+        return DEFAULT_REFERENCE_ID;
+    }
 
     @Override
     public List<MetadataEntity> findAllDefault() {
@@ -223,8 +223,9 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         try {
             String decodedValue = value;
             if (entity != null && !isBlank(value) && value.startsWith("${")) {
-                Template template = new Template(value, new StringReader(value), freemarkerConfiguration);
-                decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(template,
+                decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
+                        value,
+                        new StringReader(value),
                         singletonMap(referenceType.name().toLowerCase(), entity));
             }
 
@@ -256,10 +257,6 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             LOGGER.error("Error occurred while trying to validate format '{}' of value '{}'", format, value, e);
             throw new TechnicalManagementException("Error occurred while trying to validate format " + format + " of value " + value, e);
         }
-    }
-
-    public void setFreemarkerConfiguration(Configuration freemarkerConfiguration) {
-        this.freemarkerConfiguration = freemarkerConfiguration;
     }
 
     private MetadataEntity convert(final Metadata metadata) {
@@ -309,9 +306,5 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
         metadata.setReferenceType(MetadataReferenceType.DEFAULT);
 
         return metadata;
-    }
-
-    public static String getDefaultReferenceId() {
-        return DEFAULT_REFERENCE_ID;
     }
 }

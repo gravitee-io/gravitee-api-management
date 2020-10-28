@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
-import io.gravitee.rest.api.management.rest.resource.CustomUserFieldsResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
 import io.swagger.annotations.Api;
 
@@ -46,5 +45,10 @@ public class OrganizationConfigurationResource {
     @Path("custom-user-fields")
     public CustomUserFieldsResource getCustomUserFields() {
         return resourceContext.getResource(CustomUserFieldsResource.class);
+    }
+
+    @Path("notification-templates")
+    public NotificationTemplatesResource getNotificationTemplatesResource() {
+        return resourceContext.getResource(NotificationTemplatesResource.class);
     }
 }

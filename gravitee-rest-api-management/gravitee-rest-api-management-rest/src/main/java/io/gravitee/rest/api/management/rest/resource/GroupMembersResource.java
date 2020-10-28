@@ -25,6 +25,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_GROUP;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import static io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException.Type.SYSTEM;
+import static io.gravitee.rest.api.service.notification.PortalHook.GROUP_INVITATION;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -56,6 +59,10 @@ public class GroupMembersResource extends AbstractResource {
     private ResourceContext resourceContext;
     @Inject
     private GroupService groupService;
+    @Inject
+    private UserService userService;
+    @Inject
+    private NotifierService notifierService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("group")
@@ -257,6 +264,15 @@ public class GroupMembersResource extends AbstractResource {
                             MembershipMemberType.USER,
                             membership.getId(),
                             previousGroupRole.getId());
+                }
+
+                // Send notification
+                if (previousApiRole == null && previousApplicationRole == null && previousGroupRole == null) {
+                    UserEntity userEntity = this.userService.findById(membership.getId());
+                    Map<String, Object> params = new HashMap<>();
+                    params.put("group", groupEntity);
+                    params.put("user", userEntity);
+                    this.notifierService.trigger(GROUP_INVITATION, params);
                 }
             }
         }

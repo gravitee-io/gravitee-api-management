@@ -47,9 +47,7 @@ import java.util.stream.Collectors;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_CREATED;
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_DELETED;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
-import static io.gravitee.rest.api.service.notification.PortalHook.GROUP_INVITATION;
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonMap;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -182,11 +180,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membershipRepository.create(membership);
                     createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
                 }
-                
-                if (MembershipReferenceType.GROUP == reference.getType()) {
-                    notifierService.trigger(GROUP_INVITATION, singletonMap("group", groupService.findById(reference.getId())));
-                }
-                
+
                 return userMember;
             }
             
@@ -252,7 +246,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     private EmailNotification buildEmailNotification(UserEntity user, MembershipReferenceType referenceType, String referenceId) {
-        String subject = null;
         EmailNotificationBuilder.EmailTemplate template = null;
         Map<String, Object> params = null;
         GroupEntity groupEntity;
@@ -260,20 +253,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         switch (referenceType) {
             case APPLICATION:
                 ApplicationEntity applicationEntity = applicationService.findById(referenceId);
-                subject = "Subscription to application " + applicationEntity.getName();
-                template = EmailNotificationBuilder.EmailTemplate.APPLICATION_MEMBER_SUBSCRIPTION;
+                template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_APPLICATION_MEMBER_SUBSCRIPTION;
                 params = paramsBuilder.application(applicationEntity).user(user).build();
                 break;
             case API:
                 ApiEntity apiEntity = apiService.findById(referenceId);
-                subject = "Subscription to API " + apiEntity.getName();
-                template = EmailNotificationBuilder.EmailTemplate.API_MEMBER_SUBSCRIPTION;
+                template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_API_MEMBER_SUBSCRIPTION;
                 params = paramsBuilder.api(apiEntity).user(user).build();
                 break;
             case GROUP:
                 groupEntity = groupService.findById(referenceId);
-                subject = "Subscription to group " + groupEntity.getName();
-                template = EmailNotificationBuilder.EmailTemplate.GROUP_MEMBER_SUBSCRIPTION;
+                template = EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_GROUP_MEMBER_SUBSCRIPTION;
                 params = paramsBuilder.group(groupEntity).user(user).build();
                 break;
             default:
@@ -286,7 +276,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
         return new EmailNotificationBuilder()
                 .to(user.getEmail())
-                .subject(subject)
                 .template(template)
                 .params(params)
                 .build();

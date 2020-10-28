@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.rest.resource;
+package io.gravitee.rest.api.management.rest.resource.organization;
 
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.CustomUserFieldEntity;

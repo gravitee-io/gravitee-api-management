@@ -15,9 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -34,6 +31,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -92,13 +88,10 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
     @Autowired
     GroupService groupService;
-
-    @Autowired
-    private Configuration freemarkerConfiguration;
-
     @Autowired
     HttpClientService httpClientService;
-
+    @Autowired
+    private NotificationTemplateService notificationTemplateService;
     @Value("${email.from}")
     private String defaultFrom;
 
@@ -177,8 +170,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                                 .to(defaultFrom)
                                 .bcc(mails.toArray(new String[0]))
-                                .subject(message.getTitle())
-                                .template(EmailNotificationBuilder.EmailTemplate.GENERIC_MESSAGE)
+                                .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_GENERIC_MESSAGE)
                                 .params(Collections.singletonMap("message", message.getText()))
                                 .build());
                 }
@@ -341,17 +333,11 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         if (message.getText() == null || api == null) {
             return message.getText();
         }
-        try {
-            Template template = new Template(new Date().toString(), message.getText(), freemarkerConfiguration);
 
-            ApiModelEntity apiEntity = apiService.findByIdForTemplates(api.getId());
-            Map<String, Object> model = new HashMap<>();
-            model.put("api", apiEntity);
+        ApiModelEntity apiEntity = apiService.findByIdForTemplates(api.getId());
+        Map<String, Object> model = new HashMap<>();
+        model.put("api", apiEntity);
 
-            return FreeMarkerTemplateUtils.processTemplateIntoString(template, model);
-        } catch (IOException | TemplateException e) {
-            LOGGER.error("Unable to apply templating on the message", e);
-            throw new TechnicalManagementException("Unable to apply templating on the message", e);
-        }
+        return this.notificationTemplateService.resolveInlineTemplateWithParam(new Date().toString(), message.getText(), model);
     }
 }

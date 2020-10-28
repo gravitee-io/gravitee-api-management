@@ -19,9 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Properties;
@@ -65,6 +62,7 @@ import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.processor.ApiSynchronizationProcessor;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -76,7 +74,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
@@ -159,7 +156,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private ApiHeaderService apiHeaderService;
     @Autowired
-    private Configuration freemarkerConfiguration;
+    private NotificationTemplateService notificationTemplateService;
     @Autowired
     private ParameterService parameterService;
     @Autowired
@@ -1955,8 +1952,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiModelEntity.setMetadata(mapMetadata);
             if (decodeTemplate) {
                 try {
-                    Template apiMetadataTemplate = new Template(apiModelEntity.getId(), new StringReader(mapMetadata.toString()), freemarkerConfiguration);
-                    String decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(apiMetadataTemplate, Collections.singletonMap("api", apiModelEntity));
+                    String decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
+                            apiModelEntity.getId(),
+                            new StringReader(mapMetadata.toString()),
+                            Collections.singletonMap("api", apiModelEntity));
                     Map<String, String> metadataDecoded = Arrays
                         .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
                         .map(entry -> entry.split("="))
@@ -2038,13 +2037,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         model.put("api", apiEntity);
         entities.forEach(entity -> {
             if (entity.getValue().contains("${")) {
-                try {
-                    Template template = new Template(entity.getId() + entity.getUpdatedAt().toString(), entity.getValue(), freemarkerConfiguration);
-                    entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));
-                } catch (IOException | TemplateException e) {
-                    LOGGER.error("Unable to apply templating on api headers ", e);
-                    throw new TechnicalManagementException("Unable to apply templating on api headers", e);
-                }
+                String entityValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
+                        entity.getId() + entity.getUpdatedAt().toString(),
+                        entity.getValue(),
+                        model);
+                entity.setValue(entityValue);
             }
         });
         return entities.stream()

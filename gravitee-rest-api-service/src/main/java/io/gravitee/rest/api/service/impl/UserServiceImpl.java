@@ -83,7 +83,6 @@ import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.*;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -669,9 +668,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
             final Map<String, Object> params = getTokenRegistrationParams(userEntity, REGISTRATION_PATH, action, confirmationPageUrl);
             emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                     .to(userEntity.getEmail())
-                    .subject(format("User %s - %s", USER_REGISTRATION.equals(action) ? "registration" : "creation", userEntity.getDisplayName()))
-                    .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION)
+                    .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION)
                     .params(params)
+                    .param("registrationAction", USER_REGISTRATION.equals(action) ? "registration" : "creation")
                     .build()
             );
 
@@ -696,9 +695,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
         final Map<String, Object> params = new NotificationParamsBuilder().user(processedUser).build();
         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                 .to(userToProcess.getEmail())
-                .subject(format("User registration %s - %s", accepted ? "accepted" : "rejected", processedUser.getDisplayName()))
-                .template(EmailNotificationBuilder.EmailTemplate.USER_REGISTRATION_REQUEST_PROCESSED)
+                .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED)
                 .params(params)
+                .param("registrationStatus", accepted ? "accepted" : "rejected")
                 .build()
         );
         auditService.createEnvironmentAuditLog(
@@ -1099,8 +1098,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     null);
             emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                     .to(user.getEmail())
-                    .subject("Password reset - " + convert(user, false).getDisplayName())
-                    .template(EmailNotificationBuilder.EmailTemplate.PASSWORD_RESET)
+                    .template(EmailNotificationBuilder.EmailTemplate.PORTAL_PASSWORD_RESET)
                     .params(params)
                     .build()
             );

@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,6 +79,9 @@ public class PageService_UpdateTest {
 
     @Mock
     private PlanService planService;
+
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
 
     @Test
     public void shouldUpdate() throws TechnicalException {
@@ -446,11 +450,13 @@ public class PageService_UpdateTest {
 
         setField(pageService, "markdownSanitize", true);
 
-        when(existingPage.getContent()).thenReturn("<script />");
+        String content = "<script />";
+        when(existingPage.getContent()).thenReturn(content);
         when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
         when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
         when(page1.getReferenceId()).thenReturn(API_ID);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any())).thenReturn(content);
 
         pageService.update(PAGE_ID, existingPage);
 

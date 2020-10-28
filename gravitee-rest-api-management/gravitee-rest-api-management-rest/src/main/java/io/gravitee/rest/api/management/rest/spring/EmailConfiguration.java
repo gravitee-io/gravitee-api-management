@@ -15,12 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.spring;
 
-import freemarker.cache.ConditionalTemplateConfigurationFactory;
-import freemarker.cache.FileExtensionMatcher;
-import freemarker.cache.FileTemplateLoader;
-import freemarker.core.HTMLOutputFormat;
-import freemarker.core.TemplateClassResolver;
-import freemarker.core.TemplateConfiguration;
 import io.gravitee.common.util.EnvironmentUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,8 +26,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
@@ -47,10 +39,8 @@ public class EmailConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailConfiguration.class);
 
-    private final static String EMAIL_PROPERTIES_PREFIX = "email.properties";
-    private final static String MAILAPI_PROPERTIES_PREFIX = "mail.smtp.";
-
-    private final static String HTML_TEMPLATE_EXTENSION = "html";
+    private static final String EMAIL_PROPERTIES_PREFIX = "email.properties";
+    private static final String MAILAPI_PROPERTIES_PREFIX = "mail.smtp.";
 
     @Value("${email.host}")
     private String host;
@@ -97,25 +87,4 @@ public class EmailConfiguration {
 
         return properties;
     }
-
-    @Bean
-    public freemarker.template.Configuration getConfiguration() {
-        final freemarker.template.Configuration configuration =
-                new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22);
-
-        TemplateConfiguration tcHTML = new TemplateConfiguration();
-        tcHTML.setOutputFormat(HTMLOutputFormat.INSTANCE);
-
-        configuration.setTemplateConfigurations(
-                new ConditionalTemplateConfigurationFactory(new FileExtensionMatcher(HTML_TEMPLATE_EXTENSION), tcHTML));
-
-        try {
-            configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
-            configuration.setTemplateLoader(new FileTemplateLoader(new File(templatesPath)));
-        } catch (final IOException e) {
-            LOGGER.warn("Error occurred while trying to read email templates directory", e);
-        }
-        return configuration;
-    }
-
 }
