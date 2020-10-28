@@ -39,3 +39,19 @@ databaseChangeLog:
               - addPrimaryKey:
                   constraintName: pk_notification_templates
                   columnNames: id
+
+        - createTable:
+            tableName: tickets
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: from_user, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: api, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: application, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: subject, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: content, type: nclob, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_tickets
+            columnNames: id
+            tableName: tickets

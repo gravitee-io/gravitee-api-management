@@ -103,6 +103,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "role_permissions",
             "subscriptions",
             "tags",
+            "tickets",
             "tenants",
             "users",
             "categories",
