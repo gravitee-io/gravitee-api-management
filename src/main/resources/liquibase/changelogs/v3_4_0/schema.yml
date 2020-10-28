@@ -19,3 +19,23 @@ databaseChangeLog:
             constraintName: pk_identity_provider_activations
             columnNames: identity_provider_id, reference_id, reference_type
             tableName: identity_provider_activations
+        - createTable:
+            tableName: notification_templates
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: hook, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: scope, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: description, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: title, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: content, type: nclob, constraints: { nullable: true } }
+              - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+
+              - addPrimaryKey:
+                  constraintName: pk_notification_templates
+                  columnNames: id

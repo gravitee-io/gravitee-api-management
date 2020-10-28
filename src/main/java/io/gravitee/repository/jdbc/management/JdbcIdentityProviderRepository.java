@@ -91,16 +91,16 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
             };
             if (sMap != null && !sMap.isEmpty()) {
                 try {
-                    HashMap<String, Object> value = JSON_MAPPER.readValue(sMap, typeRef);
+                    HashMap<String, T> value = JSON_MAPPER.readValue(sMap, typeRef);
                     if (array) {
                         value
-                                .forEach(new BiConsumer<String, Object>() {
+                                .forEach(new BiConsumer<String, T>() {
                                     @Override
-                                    public void accept(String s, Object t) {
+                                    public void accept(String s, T t) {
                                         List<C> list = (List<C>) t;
                                         C[] arr = (C[]) Array.newInstance(valueType, list.size());
                                         arr = list.toArray(arr);
-                                        value.put(s, arr);
+                                        value.put(s, (T) arr);
                                     }
                                 });
                     }
