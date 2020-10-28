@@ -246,4 +246,9 @@ public class MockTestRepositoryConfiguration {
     public NotificationTemplateRepositoryMock notificationTemplateRepositoryMock() {
         return new NotificationTemplateRepositoryMock();
     }
+
+    @Bean
+    public TicketRepositoryMock ticketRepositoryMock() {
+        return new TicketRepositoryMock();
+    }
 }
