@@ -27,8 +27,6 @@
     "angular-sanitize": "^1.7.9",
     "angular-schema-form": "^0.8.13",
     "angular-timeline": "^1.7.0",
-    "angular-translate": "^2.18.2",
-    "angular-translate-loader-static-files": "^2.18.2",
     "angular-ui-tree": "^2.22.6",
     "angular-ui-validate": "^1.2.3",
     "bootstrap": "3.4.1",

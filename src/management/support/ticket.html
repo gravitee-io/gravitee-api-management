@@ -18,48 +18,48 @@
 <div class="gv-sub-content">
   <form name="supportTicketCtrl.formTicket" ng-submit="supportTicketCtrl.create()" novalidate>
     <div class="gv-forms" layout="column">
-      <h1>{{'support.ticket.title' | translate}}</h1>
+      <h1>Support ticket creation</h1>
 
       <h5 ng-if="!supportTicketCtrl.userHasAnEmail" style="color: red;margin-left: 10px;">
         <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
-        <span>{{'support.ticket.userWithoutEmail.message' | translate}}</span>
+        <span>You can not submit a ticket because you do not have an email configured on your account</span>
       </h5>
 
       <div class="gv-form">
         <h2></h2>
         <div class="gv-form-content" layout="column" style="background-color: #FAFAFA;">
           <md-input-container ng-if="!supportTicketCtrl.stateParams.apiId">
-            <label>{{'support.ticket.api' | translate}}</label>
+            <label>Select an API</label>
             <md-select ng-model="supportTicketCtrl.ticket.api" ng-disabled="!supportTicketCtrl.userHasAnEmail">
               <md-option ng-repeat="api in supportTicketCtrl.apis" ng-value="api.id">{{api.name}} ({{api.version}})</md-option>
             </md-select>
           </md-input-container>
           <md-input-container>
-            <label>{{'support.ticket.application' | translate}}</label>
+            <label>Select an application</label>
             <md-select ng-model="supportTicketCtrl.ticket.application" ng-disabled="!supportTicketCtrl.userHasAnEmail">
               <md-option ng-repeat="application in supportTicketCtrl.applications" ng-value="application.id">{{application.name}} ({{application.owner.displayName}})</md-option>
             </md-select>
           </md-input-container>
           <md-input-container>
-            <label>{{'support.ticket.subject' | translate}}</label>
+            <label>Subject</label>
             <input ng-model="supportTicketCtrl.ticket.subject" ng-required="true" ng-disabled="!supportTicketCtrl.userHasAnEmail">
           </md-input-container>
           <md-input-container>
-            <label>{{'support.ticket.content' | translate}}</label>
+            <label>Content</label>
             <textarea ng-model="supportTicketCtrl.ticket.content" ng-required="true" rows="10" ng-disabled="!supportTicketCtrl.userHasAnEmail"></textarea>
           </md-input-container>
           <md-input-container>
             <md-checkbox ng-model="supportTicketCtrl.ticket.copyToSender" ng-disabled="!supportTicketCtrl.userHasAnEmail" aria-label="cb-copy-to-sender">
-              <span>{{'support.ticket.copyToSender' | translate}}</span>
+              <span>Receive a copy of the email</span>
             </md-checkbox>
           </md-input-container>
-          
+
           <div class="md-actions" layout="row">
-            <md-button type="submit" class="md-raised md-primary" 
+            <md-button type="submit" class="md-raised md-primary"
             ng-disabled="supportTicketCtrl.formTicket.$pristine || supportTicketCtrl.formTicket.$invalid || !supportTicketCtrl.userHasAnEmail"
-            aria-label="create-ticket">{{'support.ticket.create' | translate}}</md-button>
+            aria-label="create-ticket">Create</md-button>
           </div>
-        </div>        
+        </div>
       </div>
     </div>
   </form>

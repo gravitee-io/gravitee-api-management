@@ -17,7 +17,6 @@ import angular = require('angular');
 import _ = require('lodash');
 import './index.scss';
 import './management/management.module';
-import './i18n/i18n.module';
 
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
@@ -106,6 +105,6 @@ function initTheme(constants: any) {
 
 function bootstrapApplication() {
   angular.element(document).ready(function () {
-    angular.bootstrap(document, ['gravitee-i18n', 'gravitee-management']);
+    angular.bootstrap(document, ['gravitee-management']);
   });
 }

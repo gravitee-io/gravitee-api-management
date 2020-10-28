@@ -20,7 +20,7 @@
     <a ui-sref="management.apis.list" style="text-decoration: none">
       <img ng-src="{{$ctrl.getLogo()}}" alt="logo"/>
     </a>
-    <md-button ng-if="$ctrl.portalURL" class="gv-navbar-link" ng-href="{{$ctrl.portalURL}}" target="_blank">{{'menu.portal' | translate}}</md-button>
+    <md-button ng-if="$ctrl.portalURL" class="gv-navbar-link" ng-href="{{$ctrl.portalURL}}" target="_blank">Developers portal</md-button>
   </div>
   <span flex></span>
   <md-button class="gv-navbar-button" ng-click="$ctrl.openContextualDocumentation();" aria-label="Display contextual documentation"
@@ -69,14 +69,14 @@
         </div>
         <md-divider></md-divider>
         <div layout="column" layout-align="end start" class="gv-menu-content-links">
-            <a ui-sref="user">{{'menu.profile' | translate}}</a>
-            <a ui-sref="management.tasks">{{'menu.tasks' | translate}}<span ng-if="$ctrl.getUserTaskCount() > 0" flex class="badge gv-menu-badge">{{$ctrl.getUserTaskCount()}}</span></a>
-            <a ui-sref="management.support">{{'menu.support' | translate}}</a>
+            <a ui-sref="user">My account</a>
+            <a ui-sref="management.tasks">Tasks<span ng-if="$ctrl.getUserTaskCount() > 0" flex class="badge gv-menu-badge">{{$ctrl.getUserTaskCount()}}</span></a>
+            <a ui-sref="management.support">Support</a>
         </div>
       </div>
       <md-divider></md-divider>
       <div layout="row" layout-align="end end" class="gv-menu-content-footer">
-        <md-button ui-sref="logout" style="border: 1px solid grey; font-size: 12px;">{{'menu.logout' | translate}}</md-button>
+        <md-button ui-sref="logout" style="border: 1px solid grey; font-size: 12px;">Sign out</md-button>
       </div>
     </md-menu-content>
   </md-menu>

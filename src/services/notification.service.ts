@@ -15,34 +15,27 @@
  */
 class NotificationService {
   constructor(private $mdToast: ng.material.IToastService,
-              private $translate: any,
               private $state) {
     'ngInject';
   }
 
-  show(message: any, errorStatus?: number, params?: any) {
+  show(message: any, errorStatus?: number) {
     const vm = this;
-    let msg;
-    vm.$translate(message.statusText || message, params).then(function (translatedMessage) {
-      msg = translatedMessage;
-    }).catch(function (translatedMessage) {
-      msg = translatedMessage;
-    }).finally(function () {
-      let preconditionFailed = errorStatus === 412;
-      vm.$mdToast.show(
-        vm.$mdToast.simple()
-          .action(preconditionFailed ? 'Refresh' : '')
-          .textContent(preconditionFailed ? 'The API version is outdated and must be refreshed (current modifications will be lost)' : msg)
-          .position('bottom right')
-          .hideDelay(preconditionFailed ? 10000 : 3000)
-          .theme(errorStatus ? 'toast-error' : 'toast-success')
-      ).then(function (response) {
-        if (response === 'ok') {
-          vm.$state.go(vm.$state.current, {}, { reload: true });
-        }
-      }).catch(() => {
-      });
-    });
+    let msg = message.statusText || message;
+    let preconditionFailed = errorStatus === 412;
+    vm.$mdToast.show(
+      vm.$mdToast.simple()
+        .action(preconditionFailed ? 'Refresh' : '')
+        .textContent(preconditionFailed ? 'The API version is outdated and must be refreshed (current modifications will be lost)' : msg)
+        .position('bottom right')
+        .hideDelay(preconditionFailed ? 10000 : 3000)
+        .theme(errorStatus ? 'toast-error' : 'toast-success')
+    )
+      .then(function (response) {
+      if (response === 'ok') {
+        vm.$state.go(vm.$state.current, {}, { reload: true });
+      }})
+      .catch(() => {});
   }
 
   showError(error: any, message?: string) {

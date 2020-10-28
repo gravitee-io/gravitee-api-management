@@ -19,8 +19,6 @@ import 'angular-animate';
 import 'angular-material';
 import 'angular-sanitize';
 import 'angular-local-storage';
-import 'angular-translate';
-import 'angular-translate-loader-static-files';
 
 import * as traverse from 'traverse';
 import * as marked from 'marked';
@@ -489,7 +487,6 @@ import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
 
-
 (<any>window).traverse = traverse;
 
 (<any>window).marked = marked;
@@ -585,7 +582,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
   'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
   'utf8-base64', 'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
-  'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll, 'moment-picker', 'mdColorPicker', 'pascalprecht.translate'])
+  'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll, 'moment-picker', 'mdColorPicker'])
   .config(['cfpLoadingBarProvider', function (cfpLoadingBarProvider) {
     cfpLoadingBarProvider.includeSpinner = false;
   }])
