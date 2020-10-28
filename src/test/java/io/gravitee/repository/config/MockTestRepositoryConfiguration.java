@@ -241,4 +241,9 @@ public class MockTestRepositoryConfiguration {
     public IdentityProviderActivationRepositoryMock identityProviderActivationRepository() throws Exception {
         return new IdentityProviderActivationRepositoryMock();
     }
+
+    @Bean
+    public NotificationTemplateRepositoryMock notificationTemplateRepositoryMock() {
+        return new NotificationTemplateRepositoryMock();
+    }
 }

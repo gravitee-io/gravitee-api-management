@@ -145,6 +145,8 @@ public abstract class AbstractRepositoryTest {
     protected CustomUserFieldsRepository customUserFieldsRepository;
     @Inject
     protected IdentityProviderActivationRepository identityProviderActivationRepository;
+    @Inject    
+    protected NotificationTemplateRepository notificationTemplateRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -299,6 +301,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if( object instanceof CustomUserField) {
             customUserFieldsRepository.create((CustomUserField) object);
+        }
+        else if( object instanceof NotificationTemplate) {
+            notificationTemplateRepository.create((NotificationTemplate) object);
         }
     }
 
