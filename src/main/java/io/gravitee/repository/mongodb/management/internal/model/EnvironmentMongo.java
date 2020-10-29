@@ -31,6 +31,8 @@ public class EnvironmentMongo {
 	@Id
 	private String id;
 
+	private List<String> hrids;
+
 	private String name;
 
 	private String description;
@@ -78,6 +80,14 @@ public class EnvironmentMongo {
     public void setDomainRestrictions(List<String> domainRestrictions) {
         this.domainRestrictions = domainRestrictions;
     }
+    
+	public List<String> getHrids() {
+		return hrids;
+	}
+
+	public void setHrids(List<String> hrids) {
+		this.hrids = hrids;
+	}
 
     @Override
 	public boolean equals(Object o) {

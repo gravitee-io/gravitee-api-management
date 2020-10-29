@@ -92,8 +92,8 @@ public class MongoOrganizationRepository implements OrganizationRepository {
 
         } catch (Exception e) {
 
-            LOGGER.error("An error occured when updating organization", e);
-            throw new TechnicalException("An error occured when updating organization");
+            LOGGER.error("An error occurred when updating organization", e);
+            throw new TechnicalException("An error occurred when updating organization");
         }
     }
 
@@ -102,21 +102,18 @@ public class MongoOrganizationRepository implements OrganizationRepository {
         try {
             internalOrganizationRepo.deleteById(organizationId);
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting organization [{}]", organizationId, e);
-            throw new TechnicalException("An error occured when deleting organization");
+            LOGGER.error("An error occurred when deleting organization [{}]", organizationId, e);
+            throw new TechnicalException("An error occurred when deleting organization");
         }
     }
 
     @Override
-    public Set<Organization> findAll() throws TechnicalException {
-        final List<OrganizationMongo> organizations = internalOrganizationRepo.findAll();
-        return organizations.stream()
-                .map(organizationMongo -> {
-                    final Organization organization = new Organization();
-                    organization.setId(organizationMongo.getId());
-                    organization.setName(organizationMongo.getName());
-                    return organization;
-                })
-                .collect(Collectors.toSet());
+    public Long count() throws TechnicalException {
+        try {
+            return internalOrganizationRepo.count();
+        } catch (Exception e) {
+            LOGGER.error("An error occurred when counting organizations", e);
+            throw new TechnicalException("An error occurred when counting organization");
+        }
     }
 }

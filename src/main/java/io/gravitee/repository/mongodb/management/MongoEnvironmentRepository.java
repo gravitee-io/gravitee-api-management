@@ -15,22 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.mongodb.management.internal.environment.EnvironmentMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EnvironmentMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -86,6 +85,9 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
         try {
             //Update
             environmentMongo.setName(environment.getName());
+            environmentMongo.setDescription(environment.getDescription());
+            environmentMongo.setHrids(environment.getHrids());
+            environmentMongo.setDomainRestrictions(environment.getDomainRestrictions());
 
             EnvironmentMongo environmentMongoUpdated = internalEnvironmentRepo.save(environmentMongo);
             return mapper.map(environmentMongoUpdated, Environment.class);
@@ -111,33 +113,15 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
     public Set<Environment> findAll() throws TechnicalException {
         final List<EnvironmentMongo> environments = internalEnvironmentRepo.findAll();
         return environments.stream()
-                .map(environmentMongo -> {
-                    final Environment environment = new Environment();
-                    environment.setId(environmentMongo.getId());
-                    environment.setName(environmentMongo.getName());
-                    environment.setDescription(environmentMongo.getDescription());
-                    environment.setOrganizationId(environmentMongo.getOrganizationId());
-                    environment.setDomainRestrictions(environmentMongo.getDomainRestrictions());
-                    return environment;
-                })
+                .map(environmentMongo -> mapper.map(environmentMongo, Environment.class))
                 .collect(Collectors.toSet());
     }
 
     @Override
     public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
-        final List<EnvironmentMongo> environments = internalEnvironmentRepo.findAll();
+        final Set<EnvironmentMongo> environments = internalEnvironmentRepo.findByOrganizationId(organizationId);
         return environments.stream()
-                .filter(env -> organizationId.equals(env.getOrganizationId()))
-                .map(environmentMongo -> {
-                    final Environment environment = new Environment();
-                    environment.setId(environmentMongo.getId());
-                    environment.setName(environmentMongo.getName());
-                    environment.setDescription(environmentMongo.getDescription());
-                    environment.setOrganizationId(environmentMongo.getOrganizationId());
-                    environment.setDomainRestrictions(environmentMongo.getDomainRestrictions());
-                    return environment;
-                })
+                .map(environmentMongo -> mapper.map(environmentMongo, Environment.class))
                 .collect(Collectors.toSet());
     }
-
 }
