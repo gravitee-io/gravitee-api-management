@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.6.0
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: organization_hrids
+            columns:
+              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: hrid, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: pos, type: integer, constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_organization_hrids
+            columnNames: organization_id, hrid
+            tableName: organization_hrids
+
+        - createTable:
+            tableName: environment_hrids
+            columns:
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: hrid, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: pos, type: integer, constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_environment_hrids
+            columnNames: environment_id, hrid
+            tableName: environment_hrids
