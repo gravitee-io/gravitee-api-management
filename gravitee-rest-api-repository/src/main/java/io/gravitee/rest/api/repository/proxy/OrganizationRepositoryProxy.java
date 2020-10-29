@@ -52,7 +52,7 @@ public class OrganizationRepositoryProxy extends AbstractProxy<OrganizationRepos
     }
 
     @Override
-    public Set<Organization> findAll() throws TechnicalException {
-        return target.findAll();
+    public Long count() throws TechnicalException {
+        return target.count();
     }
 }

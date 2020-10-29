@@ -58,51 +58,10 @@ public class OrganizationResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private OrganizationService organizationService;
-
-    @Inject
     private IdentityProviderService identityProviderService;
 
     @Inject
     private IdentityProviderActivationService identityProviderActivationService;
-
-    /**
-     * Create or update an Organization for the authenticated user.
-     *
-     * @param organizationEntity
-     * @return
-     */
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an Organization", tags = {"Organization"})
-    @ApiResponses({@ApiResponse(code = 201, message = "Organization successfully created"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Response createOrganization(
-            @ApiParam(name = "organizationEntity", required = true) @Valid @NotNull final UpdateOrganizationEntity organizationEntity) {
-        organizationEntity.setId(GraviteeContext.getCurrentOrganization());
-        return Response
-                .ok(organizationService.createOrUpdate(organizationEntity))
-                .build();
-    }
-
-    /**
-     * Delete an existing Organization.
-     * @return
-     */
-    @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete an Organization", tags = {"Organization"})
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "Organization successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Response deleteOrganization() {
-        organizationService.delete(GraviteeContext.getCurrentOrganization());
-        //TODO: should delete all items that refers to this organization
-        return Response
-                .status(Status.NO_CONTENT)
-                .build();
-    }
 
     @GET
     @Path("/identities")

@@ -478,7 +478,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         systemRole.setReferenceId(organizationId);
         systemRole.setReferenceType(RoleReferenceType.ORGANIZATION);
         
-        Optional<Role> existingRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(systemRole.getScope(), systemRole.getName(), GraviteeContext.getCurrentOrganization(), RoleReferenceType.ORGANIZATION);
+        Optional<Role> existingRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(systemRole.getScope(), systemRole.getName(), organizationId, RoleReferenceType.ORGANIZATION);
         if (existingRole.isPresent() && permissionsAreDifferent(existingRole.get(), systemRole)) {
             systemRole.setId(existingRole.get().getId());
             systemRole.setUpdatedAt(new Date());

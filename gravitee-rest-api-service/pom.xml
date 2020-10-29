@@ -74,6 +74,11 @@
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-api</artifactId>
         </dependency>
+		<dependency>
+			<groupId>io.gravitee.cockpit</groupId>
+			<artifactId>gravitee-cockpit-api</artifactId>
+		</dependency>
+
 		<!-- Gravitee Dependencies -->
 		<dependency>
 			<groupId>io.gravitee.definition</groupId>
@@ -112,6 +117,11 @@
 		<dependency>
 			<groupId>io.gravitee.plugin</groupId>
 			<artifactId>gravitee-plugin-notifier</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.plugin</groupId>
+			<artifactId>gravitee-plugin-cockpit</artifactId>
 		</dependency>
 
 		<!-- Lucene -->

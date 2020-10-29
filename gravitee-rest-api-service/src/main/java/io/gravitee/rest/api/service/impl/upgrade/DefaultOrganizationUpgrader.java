@@ -41,14 +41,13 @@ public class DefaultOrganizationUpgrader implements Upgrader, Ordered {
 
     @Override
     public boolean upgrade() {
-        // initialize roles.
-        if (organizationService.findAll().isEmpty()) {
+        // initialize default organization.
+        if (organizationService.count().equals(0L)) {
             logger.info("    No organization found. Add default one.");
             organizationService.initialize();
         }
         return true;
     }
-
 
     @Override
     public int getOrder() {

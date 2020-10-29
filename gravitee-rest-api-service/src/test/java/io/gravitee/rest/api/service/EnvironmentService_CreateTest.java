@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.exceptions.BadOrganizationException;
+import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.impl.EnvironmentServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,85 +57,80 @@ public class EnvironmentService_CreateTest {
 
     @Mock
     private ApiHeaderService mockAPIHeaderService;
-    
+
     @Mock
     private PageService mockPageService;
- 
+
     @Test
     public void shouldCreateEnvironment() throws TechnicalException {
         when(mockOrganizationService.findById(any())).thenReturn(null);
         when(mockEnvironmentRepository.findById(any())).thenReturn(Optional.empty());
 
         UpdateEnvironmentEntity env1 = new UpdateEnvironmentEntity();
-        env1.setId("env_id");
+        env1.setHrids(Arrays.asList("envhrid"));
         env1.setName("env_name");
         env1.setDescription("env_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
         env1.setDomainRestrictions(domainRestrictions);
-        env1.setOrganizationId("DEFAULT");
-        
+
         Environment createdEnv = new Environment();
         createdEnv.setId("env_id");
         when(mockEnvironmentRepository.create(any())).thenReturn(createdEnv);
 
-        EnvironmentEntity environment = environmentService.createOrUpdate(env1);
+        EnvironmentEntity environment = environmentService.createOrUpdate("DEFAULT", "env_id", env1);
 
         assertNotNull("result is null", environment);
         verify(mockEnvironmentRepository, times(1))
-            .create(argThat(arg -> 
-                arg != null 
-                && arg.getName().equals("env_name")
-                && arg.getDescription().equals("env_desc")
-                && arg.getDomainRestrictions().equals(domainRestrictions)
-                && arg.getOrganizationId().equals("DEFAULT")
-            ));
+                .create(argThat(arg ->
+                        arg != null
+                                && arg.getHrids().equals(Arrays.asList("envhrid"))
+                                && arg.getName().equals("env_name")
+                                && arg.getDescription().equals("env_desc")
+                                && arg.getDomainRestrictions().equals(domainRestrictions)
+                                && arg.getOrganizationId().equals("DEFAULT")
+                ));
         verify(mockEnvironmentRepository, never()).update(any());
         verify(mockAPIHeaderService, times(1)).initialize("env_id");
         verify(mockPageService, times(1)).initialize("env_id");
     }
-    
+
     @Test
     public void shouldUpdateEnvironment() throws TechnicalException {
         when(mockOrganizationService.findById(any())).thenReturn(null);
         when(mockEnvironmentRepository.findById(any())).thenReturn(Optional.of(new Environment()));
 
         UpdateEnvironmentEntity env1 = new UpdateEnvironmentEntity();
-        env1.setId("env_id");
+        env1.setHrids(Arrays.asList("envhrid"));
         env1.setName("env_name");
         env1.setDescription("env_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
         env1.setDomainRestrictions(domainRestrictions);
-        env1.setOrganizationId("DEFAULT");
 
         Environment updatedEnv = new Environment();
         when(mockEnvironmentRepository.update(any())).thenReturn(updatedEnv);
 
-        EnvironmentEntity environment = environmentService.createOrUpdate(env1);
+        EnvironmentEntity environment = environmentService.createOrUpdate("DEFAULT", "env_id", env1);
 
         assertNotNull("result is null", environment);
         verify(mockEnvironmentRepository, times(1))
-            .update(argThat(arg -> 
-                arg != null 
-                && arg.getName().equals("env_name")
-                && arg.getDescription().equals("env_desc")
-                && arg.getDomainRestrictions().equals(domainRestrictions)
-                && arg.getOrganizationId().equals("DEFAULT")
-            ));
+                .update(argThat(arg ->
+                        arg != null
+                                && arg.getHrids().equals(Arrays.asList("envhrid"))
+                                && arg.getName().equals("env_name")
+                                && arg.getDescription().equals("env_desc")
+                                && arg.getDomainRestrictions().equals(domainRestrictions)
+                                && arg.getOrganizationId().equals("DEFAULT")
+                ));
         verify(mockEnvironmentRepository, never()).create(any());
         verify(mockAPIHeaderService, never()).initialize("env_id");
         verify(mockPageService, never()).initialize("env_id");
     }
-    
-    @Test(expected = BadOrganizationException.class)
-    public void shouldHaveBadOrganizationException() throws TechnicalException {
-        UpdateEnvironmentEntity env1 = new UpdateEnvironmentEntity();
-        env1.setOrganizationId("NOT DEFAULT");
 
-        environmentService.createOrUpdate(env1);
-    }
-    
-    @Test(expected = BadOrganizationException.class)
-    public void shouldHaveBadOrganizationExceptionWhenNoOrganizationInEntity() throws TechnicalException {
-        environmentService.createOrUpdate(new UpdateEnvironmentEntity());
+    @Test(expected = OrganizationNotFoundException.class)
+    public void shouldHaveBadOrganizationExceptionWhenNoOrganizationInEntity() {
+
+        when(mockOrganizationService.findById("UNKNOWN")).thenThrow(new OrganizationNotFoundException("UNKNOWN"));
+
+        environmentService.createOrUpdate("UNKNOWN", "env_id", new UpdateEnvironmentEntity());
     }
 }

@@ -26,11 +26,11 @@ import java.util.List;
  */
 public interface OrganizationService {
 
-    List<OrganizationEntity> findAll();
+    Long count();
 
     OrganizationEntity findById(String organizationId);
 
-    OrganizationEntity createOrUpdate(UpdateOrganizationEntity organizationEntity);
+    OrganizationEntity createOrUpdate(String organizationId, UpdateOrganizationEntity organizationEntity);
     
     void delete(String organizationId);
     

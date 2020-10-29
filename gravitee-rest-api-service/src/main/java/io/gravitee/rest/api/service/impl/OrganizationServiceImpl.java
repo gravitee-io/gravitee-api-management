@@ -55,7 +55,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             LOGGER.debug("Find organization by ID: {}", organizationId);
             Optional<Organization> optOrganization = organizationRepository.findById(organizationId);
 
-            if (! optOrganization.isPresent()) {
+            if (!optOrganization.isPresent()) {
                 throw new OrganizationNotFoundException(organizationId);
             }
 
@@ -67,23 +67,11 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public List<OrganizationEntity> findAll() {
+    public OrganizationEntity createOrUpdate(String organizationId, final UpdateOrganizationEntity organizationEntity) {
         try {
-            LOGGER.debug("Find all organizations");
-            return organizationRepository.findAll()
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all organizations", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all organizations", ex);
-        }
-    }
-
-    @Override
-    public OrganizationEntity createOrUpdate(final UpdateOrganizationEntity organizationEntity) {
-        try {
-            Optional<Organization> organizationOptional = organizationRepository.findById(organizationEntity.getId());
+            Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
             Organization organization = convert(organizationEntity);
+            organization.setId(organizationId);
             if (organizationOptional.isPresent()) {
                 return convert(organizationRepository.update(organization));
             } else {
@@ -100,7 +88,16 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update organization " + organizationEntity.getName(), ex);
         }
-        
+    }
+
+    @Override
+    public Long count() {
+        try {
+            return organizationRepository.count();
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to count organizations", ex);
+            throw new TechnicalManagementException("An error occurs while trying to count organizations ", ex);
+        }
     }
 
     @Override
@@ -118,7 +115,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
 
     private Organization convert(final UpdateOrganizationEntity organizationEntity) {
         final Organization organization = new Organization();
-        organization.setId(organizationEntity.getId());
+        organization.setHrids(organizationEntity.getHrids());
         organization.setName(organizationEntity.getName());
         organization.setDescription(organizationEntity.getDescription());
         organization.setDomainRestrictions(organizationEntity.getDomainRestrictions());
@@ -128,6 +125,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     private OrganizationEntity convert(final Organization organization) {
         final OrganizationEntity organizationEntity = new OrganizationEntity();
         organizationEntity.setId(organization.getId());
+        organizationEntity.setHrids(organization.getHrids());
         organizationEntity.setName(organization.getName());
         organizationEntity.setDescription(organization.getDescription());
         organizationEntity.setDomainRestrictions(organization.getDomainRestrictions());

@@ -27,25 +27,16 @@ import java.util.Objects;
  */
 public class UpdateEnvironmentEntity {
 
-    private String id;
+    private List<String> hrids;
+
     @NotNull
     @Size(min = 1)
     private String name;
 
     private String description;
 
-    @NotNull
-    private String organizationId;
-
     private List<String> domainRestrictions;
-    
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -63,14 +54,6 @@ public class UpdateEnvironmentEntity {
         this.description = description;
     }
 
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
-    }
-
     public List<String> getDomainRestrictions() {
         return domainRestrictions;
     }
@@ -79,28 +62,37 @@ public class UpdateEnvironmentEntity {
         this.domainRestrictions = domainRestrictions;
     }
 
+    public List<String> getHrids() {
+        return hrids;
+    }
+
+    public void setHrids(List<String> hrids) {
+        this.hrids = hrids;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof UpdateEnvironmentEntity)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         UpdateEnvironmentEntity that = (UpdateEnvironmentEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
+        return Objects.equals(hrids, that.hrids) &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(description, that.description) &&
+                Objects.equals(domainRestrictions, that.domainRestrictions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name);
+        return Objects.hash(hrids, name, description, domainRestrictions);
     }
 
     @Override
     public String toString() {
         return "UpdateEnvironmentEntity{" +
-                "id='" + id + '\'' +
+                "hrids=" + hrids +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", organizationId='" + organizationId + '\'' +
-                ", domain restrictions='" + domainRestrictions + '\'' +
+                ", domainRestrictions=" + domainRestrictions +
                 '}';
     }
 }

@@ -26,15 +26,13 @@ import java.util.List;
  */
 public interface EnvironmentService {
 
-    List<EnvironmentEntity> findAll();
-
     List<EnvironmentEntity> findByUser(String userId);
 
     List<EnvironmentEntity> findByOrganization(String organizationId);
 
     EnvironmentEntity findById(String environmentId);
 
-    EnvironmentEntity createOrUpdate(UpdateEnvironmentEntity environment);
+    EnvironmentEntity createOrUpdate(String organizationId, String environmentId, UpdateEnvironmentEntity environment);
 
     void delete(String environmentId);
     

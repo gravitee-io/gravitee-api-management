@@ -58,7 +58,7 @@ public class OrganizationService_CreateTest {
         when(mockOrganizationRepository.findById(any())).thenReturn(Optional.empty());
 
         UpdateOrganizationEntity org1 = new UpdateOrganizationEntity();
-        org1.setId("org_id");
+        org1.setHrids(Arrays.asList("orgid"));
         org1.setName("org_name");
         org1.setDescription("org_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
@@ -68,7 +68,7 @@ public class OrganizationService_CreateTest {
         createdOrganization.setId("org_id");
         when(mockOrganizationRepository.create(any())).thenReturn(createdOrganization);
 
-        OrganizationEntity organization = organizationService.createOrUpdate(org1);
+        OrganizationEntity organization = organizationService.createOrUpdate("org_id", org1);
 
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))
@@ -88,7 +88,7 @@ public class OrganizationService_CreateTest {
         when(mockOrganizationRepository.findById(any())).thenReturn(Optional.of(new Organization()));
 
         UpdateOrganizationEntity org1 = new UpdateOrganizationEntity();
-        org1.setId("org_id");
+        org1.setHrids(Arrays.asList("orgid"));
         org1.setName("org_name");
         org1.setDescription("org_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
@@ -97,7 +97,7 @@ public class OrganizationService_CreateTest {
         Organization createdOrganization = new Organization();
         when(mockOrganizationRepository.update(any())).thenReturn(createdOrganization);
 
-        OrganizationEntity organization = organizationService.createOrUpdate(org1);
+        OrganizationEntity organization = organizationService.createOrUpdate("org_id", org1);
 
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))

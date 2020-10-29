@@ -21,7 +21,6 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.BadOrganizationException;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import org.slf4j.Logger;
@@ -76,19 +75,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     }
 
     @Override
-    public List<EnvironmentEntity> findAll() {
-        try {
-            LOGGER.debug("Find all environments");
-            return environmentRepository.findAll().stream()
-                    .map(this::convert)
-                    .collect(Collectors.toList());
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all environments", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
-        }
-    }
-
-    @Override
     public List<EnvironmentEntity> findByUser(String userId) {
         try {
             LOGGER.debug("Find all environments by user");
@@ -115,17 +101,17 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     }
 
     @Override
-    public EnvironmentEntity createOrUpdate(final UpdateEnvironmentEntity environmentEntity) {
-        String organizationId = GraviteeContext.getCurrentOrganization();
-        if (environmentEntity.getOrganizationId() == null || !environmentEntity.getOrganizationId().equals(organizationId)) {
-            throw new BadOrganizationException();
-        }
+    public EnvironmentEntity createOrUpdate(String organizationId, String environmentId, final UpdateEnvironmentEntity environmentEntity) {
+
         try {
             // First we check that organization exists
             this.organizationService.findById(organizationId);
 
-            Optional<Environment> environmentOptional = environmentRepository.findById(environmentEntity.getId());
+            Optional<Environment> environmentOptional = environmentRepository.findById(environmentId);
             Environment environment = convert(environmentEntity);
+            environment.setId(environmentId);
+            environment.setOrganizationId(organizationId);
+
             if (environmentOptional.isPresent()) {
                 return convert(environmentRepository.update(environment));
             } else {
@@ -162,10 +148,9 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     private Environment convert(final UpdateEnvironmentEntity environmentEntity) {
         final Environment environment = new Environment();
-        environment.setId(environmentEntity.getId());
+        environment.setHrids(environmentEntity.getHrids());
         environment.setName(environmentEntity.getName());
         environment.setDescription(environmentEntity.getDescription());
-        environment.setOrganizationId(environmentEntity.getOrganizationId());
         environment.setDomainRestrictions(environmentEntity.getDomainRestrictions());
         return environment;
     }
@@ -173,6 +158,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     private EnvironmentEntity convert(final Environment environment) {
         final EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(environment.getId());
+        environmentEntity.setHrids(environment.getHrids());
         environmentEntity.setName(environment.getName());
         environmentEntity.setDescription(environment.getDescription());
         environmentEntity.setOrganizationId(environment.getOrganizationId());
