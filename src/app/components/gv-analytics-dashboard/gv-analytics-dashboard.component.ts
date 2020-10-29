@@ -19,6 +19,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AnalyticsService } from '../../services/analytics.service';
 import { NavRouteService } from '../../services/nav-route.service';
 
+import '@gravitee/ui-components/wc/gv-table';
+
 @Component({
   selector: 'app-gv-analytics-dashboard',
   templateUrl: './gv-analytics-dashboard.component.html',
