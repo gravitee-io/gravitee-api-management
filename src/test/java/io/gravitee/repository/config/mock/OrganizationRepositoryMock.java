@@ -42,6 +42,7 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
 
         final Organization orgCreate = new Organization();
         orgCreate.setId("DEFAULT-ORG-create");
+        orgCreate.setHrids(Arrays.asList("hrid1", "hrid2"));
         orgCreate.setName("Default org for create");
         orgCreate.setDescription("Default org description for create");
         orgCreate.setDomainRestrictions(Arrays.asList("domain", "restriction"));
@@ -62,7 +63,6 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         orgFindById.setId("DEFAULT-ORG-findById");
         orgFindById.setName("Default org for findById");
 
-
         when(organizationRepository.create(any(Organization.class))).thenReturn(orgCreate);
         when(organizationRepository.update(any(Organization.class))).thenReturn(orgUpdated);
         when(organizationRepository.update(any(Organization.class))).thenReturn(orgUpdated);
@@ -71,10 +71,7 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         when(organizationRepository.findById("DEFAULT-ORG-update")).thenReturn(of(org2Update), of(orgUpdated));
         when(organizationRepository.findById("DEFAULT-ORG-delete")).thenReturn(of(orgDelete), Optional.empty());
         when(organizationRepository.findById("DEFAULT-ORG-findById")).thenReturn(of(orgFindById));
-        
-        final Set<Organization> allOrganizations = newSet(orgCreate, org2Update, orgUpdated, orgDelete, orgFindById);
-        
-        when(organizationRepository.findAll()).thenReturn(allOrganizations);
 
+        when(organizationRepository.count()).thenReturn(3L);
     }
 }

@@ -39,6 +39,7 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
     public void shouldCreate() throws Exception {
         final Environment environment = new Environment();
         environment.setId("DEFAULT-create");
+        environment.setHrids(Arrays.asList("hrid1", "hrid2"));
         environment.setName("Default env for create");
         environment.setDescription("Default env description for create");
         environment.setOrganizationId("DEFAULT-ORG");
@@ -47,6 +48,7 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
         final Environment createdEnv = environmentRepository.create(environment);
 
         assertEquals(environment.getId(), createdEnv.getId());
+        assertEquals(environment.getHrids(), environment.getHrids());
         assertEquals(environment.getName(), createdEnv.getName());
         assertEquals(environment.getDescription(), createdEnv.getDescription());
         assertEquals(environment.getOrganizationId(), createdEnv.getOrganizationId());

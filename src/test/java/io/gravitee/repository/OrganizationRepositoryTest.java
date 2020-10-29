@@ -39,6 +39,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
     public void shouldCreate() throws Exception {
         final Organization organization = new Organization();
         organization.setId("DEFAULT-ORG-create");
+        organization.setHrids(Arrays.asList("hrid1", "hrid2"));
         organization.setName("Default org for create");
         organization.setDescription("Default org description for create");
         organization.setDomainRestrictions(Arrays.asList("domain", "restriction"));
@@ -48,6 +49,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         assertEquals(organization.getId(), createdOrg.getId());
         assertEquals(organization.getName(), createdOrg.getName());
         assertEquals(organization.getDescription(), createdOrg.getDescription());
+        assertEquals(organization.getHrids(), createdOrg.getHrids());
         List<String> domainRestrictions = createdOrg.getDomainRestrictions();
         assertNotNull(domainRestrictions);
         assertEquals(2, domainRestrictions.size());
@@ -88,10 +90,11 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         Optional<Organization> optional = organizationRepository.findById("DEFAULT-ORG-findById");
         Assert.assertTrue("Organization to find not found", optional.isPresent());
     }
-    
+
     @Test
-    public void shouldFindAll() throws Exception {
-        Set<Organization> allOrganizations = organizationRepository.findAll();
-        Assert.assertTrue("No organization found", !allOrganizations.isEmpty());
+    public void shouldCount() throws Exception {
+        final long count = organizationRepository.count();
+        // Should count 3 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update and DEFAULT-ORG-findById)
+        Assert.assertEquals("Organization count should be 3",3L, count);
     }
 }
