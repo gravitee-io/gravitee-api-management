@@ -25,6 +25,7 @@ import java.util.Objects;
 public class Organization {
 
     private String id;
+    private List<String> hrids;
     private String name;
     private String description;
     private List<String> domainRestrictions;
@@ -61,26 +62,39 @@ public class Organization {
         this.domainRestrictions = domainRestrictions;
     }
 
+    public List<String> getHrids() {
+        return hrids;
+    }
+
+    public void setHrids(List<String> hrids) {
+        this.hrids = hrids;
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Organization)) return false;
-        Organization env = (Organization) o;
-        return Objects.equals(id, env.id);
+        if (o == null || getClass() != o.getClass()) return false;
+        Organization that = (Organization) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(hrids, that.hrids) &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(description, that.description) &&
+                Objects.equals(domainRestrictions, that.domainRestrictions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, hrids, name, description, domainRestrictions);
     }
 
     @Override
     public String toString() {
-        return "Environment{" +
+        return "Organization{" +
                 "id='" + id + '\'' +
+                ", hrids=" + hrids +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", domain restrictions='" + domainRestrictions + '\'' +
+                ", domainRestrictions=" + domainRestrictions +
                 '}';
     }
 }

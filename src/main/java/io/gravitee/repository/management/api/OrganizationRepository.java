@@ -25,5 +25,5 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface OrganizationRepository extends CrudRepository<Organization, String>{
-    Set<Organization> findAll() throws TechnicalException;
+    Long count() throws TechnicalException;
 }

@@ -25,6 +25,7 @@ import java.util.Objects;
 public class Environment {
 
     private String id;
+    private List<String> hrids;
     private String name;
     private String description;
     private String organizationId;
@@ -70,27 +71,41 @@ public class Environment {
         this.domainRestrictions = domainRestrictions;
     }
 
+    public List<String> getHrids() {
+        return hrids;
+    }
+
+    public void setHrids(List<String> hrids) {
+        this.hrids = hrids;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Environment)) return false;
-        Environment env = (Environment) o;
-        return Objects.equals(id, env.id);
+        if (o == null || getClass() != o.getClass()) return false;
+        Environment that = (Environment) o;
+        return Objects.equals(id, that.id) &&
+                Objects.equals(hrids, that.hrids) &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(description, that.description) &&
+                Objects.equals(organizationId, that.organizationId) &&
+                Objects.equals(domainRestrictions, that.domainRestrictions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, hrids, name, description, organizationId, domainRestrictions);
     }
 
     @Override
     public String toString() {
         return "Environment{" +
                 "id='" + id + '\'' +
+                ", hrids=" + hrids +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", organizationId='" + organizationId + '\'' +
-                ", domain restrictions='" + domainRestrictions + '\'' +
+                ", domainRestrictions=" + domainRestrictions +
                 '}';
     }
 }
