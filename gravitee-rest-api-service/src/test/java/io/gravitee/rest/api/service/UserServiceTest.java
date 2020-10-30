@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.common.data.domain.MetadataPage;
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
@@ -44,7 +45,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.expression.spel.SpelEvaluationException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -726,7 +726,7 @@ public class UserServiceTest {
         userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
     }
     
-    @Test(expected = SpelEvaluationException.class)
+    @Test(expected = ExpressionEvaluationException.class)
     public void shouldSpelEvaluationExceptionWhenWrongELGroupsMapping() throws IOException, TechnicalException {
         reset(identityProvider, userRepository);
         mockDefaultEnvironment();

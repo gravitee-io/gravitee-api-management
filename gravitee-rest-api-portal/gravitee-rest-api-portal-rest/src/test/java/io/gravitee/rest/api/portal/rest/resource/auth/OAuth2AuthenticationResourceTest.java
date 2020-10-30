@@ -24,6 +24,7 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
@@ -36,8 +37,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.expression.spel.SpelEvaluationException;
-import org.springframework.expression.spel.SpelMessage;
 
 import javax.ws.rs.core.*;
 import java.io.IOException;
@@ -385,7 +384,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
 
         //mock DB find user by name
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString())).thenThrow(new SpelEvaluationException(SpelMessage.TYPE_CONVERSION_ERROR, "cannot convert from java.lang.String to boolean"));
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(eq(identityProvider), anyString())).thenThrow(new ExpressionEvaluationException("cannot convert from java.lang.String to boolean"));
 
         // -- CALL
 
