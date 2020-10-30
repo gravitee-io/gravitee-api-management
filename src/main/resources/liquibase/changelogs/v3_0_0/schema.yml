@@ -25,6 +25,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.0.0
       author: GraviteeSource Team
+      validCheckSum: 1:any
       changes:
         ## roles, permissions & memberships migration ##
         # roles_permissions
