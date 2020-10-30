@@ -258,6 +258,9 @@ services:
 #    transaction:
 #      # Default: X-Gravitee-Transaction-Id.
 #      header: X-Gravitee-Transaction-Id
+#    headers:
+#      # Override X-Forwarded-Prefix with context path. Disabled by default.
+#      x-forwarded-prefix: false
 #    request:
 #      # Default: X-Gravitee-Request-Id.
 #      header: X-Gravitee-Request-Id
