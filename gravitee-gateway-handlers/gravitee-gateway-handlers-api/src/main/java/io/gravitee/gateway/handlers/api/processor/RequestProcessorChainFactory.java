@@ -29,6 +29,7 @@ import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightRequestProcessor;
+import io.gravitee.gateway.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProcessor;
 import io.gravitee.gateway.policy.PolicyChainProvider;
 import io.gravitee.gateway.policy.StreamType;
@@ -53,6 +54,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
     private int maxSizeLogMessage;
     @Value("${reporters.logging.excluded_response_types:#{null}}")
     private String excludedResponseTypes;
+    @Value("${handlers.request.headers.x-forwarded-prefix:false}")
+    private boolean overrideXForwardedPrefix;
 
     public void afterPropertiesSet() {
         ApiPolicyResolver apiPolicyResolver = new ApiPolicyResolver();
@@ -97,6 +100,11 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
 
         if (loggingDecorator != null) {
             providers.add(loggingDecorator);
+        }
+
+        if (overrideXForwardedPrefix) {
+            providers.add(new ProcessorSupplier<>(() ->
+                    new StreamableProcessorDecorator<>(new XForwardedPrefixProcessor())));
         }
 
         providers.add(planPolicyChainProvider);
