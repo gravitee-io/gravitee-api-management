@@ -56,6 +56,9 @@
       "plans": {
         "background-color": "#c1c1c1"
       }
+    },
+    "login": {
+      "background-color": "#fdfdfd"
     }
   }
 }

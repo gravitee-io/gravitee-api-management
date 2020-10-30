@@ -65,6 +65,9 @@
         "color": "#555",
         "border": "1px solid #ccc"
       }
+    },
+    "login": {
+      "background-color": "#fdfdfd"
     }
   }
 }

@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-content class="gravitee-no-sidenav-container" flex>
+<md-content class="gravitee-no-sidenav-container" gv-theme-element="portal.login" flex>
     <div class="login-page">
       <div class="form">
 
@@ -41,16 +41,16 @@
           </div>
 
           <button
-            type="submit" 
+            type="submit"
             class="btn btn-block btn-signin"
             ng-disabled="canBeDisabled && (formUser.$invalid || formUser.$pristine)">
-            <md-icon 
+            <md-icon
               md-svg-icon="assets/logo_sign-in.svg"
               style="fill: #fff"
             ></md-icon>
             <span>Sign in</span>
           </button>
-          
+
           <p class="text-center text-muted" ng-if="$ctrl.userCreationEnabled" >
             <small>Don't have an account yet? <a ui-sref="registration">Sign up</a></small>
           </p>
@@ -58,12 +58,12 @@
         </form>
 
         <div class="form-content">
-          <button 
-            class="btn btn-block btn-{{provider.type}}" 
+          <button
+            class="btn btn-block btn-{{provider.type}}"
             ng-style="{{ $ctrl.getProviderStyle(provider) }}"
             data-ng-repeat="provider in $ctrl.identityProviders"
             ng-click="$ctrl.authenticate(provider.id)">
-            <md-icon 
+            <md-icon
               md-svg-icon="assets/logo_{{provider.type | lowercase}}-idp.svg"
               ng-style="{'fill': $ctrl.getProviderColor(provider)}"
             ></md-icon>
