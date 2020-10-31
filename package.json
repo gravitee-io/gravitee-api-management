@@ -32,7 +32,7 @@
     "angular-ui-tree": "^2.22.6",
     "angular-ui-validate": "^1.2.3",
     "bootstrap": "3.4.1",
-    "codemirror": "^5.54.0",
+    "codemirror": "^5.58.2",
     "diff": "^3.5.0",
     "dragular": "^4.6.0",
     "highcharts": "^8.1.1",
