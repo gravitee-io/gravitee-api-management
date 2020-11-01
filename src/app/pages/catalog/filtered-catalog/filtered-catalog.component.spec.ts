@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { FilteredCatalogComponent } from './filtered-catalog.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -24,35 +22,25 @@ import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 
 describe('FilteredCatalogComponent', () => {
-  let component: FilteredCatalogComponent;
-  let fixture: ComponentFixture<FilteredCatalogComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-        TranslateTestingModule
-      ],
-      declarations: [FilteredCatalogComponent, ApiStatesPipe, ApiLabelsPipe],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [ApiStatesPipe, ApiLabelsPipe]
-    })
-      .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: FilteredCatalogComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [HttpClientTestingModule, RouterTestingModule],
+    declarations: [ApiStatesPipe, ApiLabelsPipe],
+    providers:[ApiStatesPipe, ApiLabelsPipe],
+  });
+
+  let spectator: Spectator<FilteredCatalogComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(FilteredCatalogComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
+  it('should create', () => {
       expect(component).toBeTruthy();
-      done();
-    });
   });
+
 });

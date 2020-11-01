@@ -13,48 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../../../test/translate-testing-module';
-
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { ApplicationCreationStep4Component } from './application-creation-step4.component';
 
 describe('ApplicationCreationStep4Component', () => {
-  let component: ApplicationCreationStep4Component;
-  let fixture: ComponentFixture<ApplicationCreationStep4Component>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-        TranslateTestingModule,
-        FormsModule,
-        ReactiveFormsModule
-      ],
-      declarations: [ApplicationCreationStep4Component],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-    })
-      .compileComponents();
-  }));
-
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationCreationStep4Component);
-    component = fixture.componentInstance;
+  const createComponent = createComponentFactory({
+    component: ApplicationCreationStep4Component,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  let spectator: Spectator<ApplicationCreationStep4Component>;
+  let component;
+
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 
 });

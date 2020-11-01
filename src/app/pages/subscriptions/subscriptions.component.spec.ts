@@ -13,33 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 
 import { SubscriptionsComponent } from './subscriptions.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('SubscriptionsComponent', () => {
-  let component: SubscriptionsComponent;
-  let fixture: ComponentFixture<SubscriptionsComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [SubscriptionsComponent],
-      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-    })
-      .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: SubscriptionsComponent,
+    imports: [ HttpClientTestingModule, RouterTestingModule],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  });
+
+  let spectator: Spectator<SubscriptionsComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SubscriptionsComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
+    component.pages = [];
   });
 
   it('should create', () => {

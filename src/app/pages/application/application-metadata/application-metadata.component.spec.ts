@@ -13,34 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 
 import { ApplicationMetadataComponent } from './application-metadata.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApplicationMetadataComponent', () => {
-  let component: ApplicationMetadataComponent;
-  let fixture: ComponentFixture<ApplicationMetadataComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ApplicationMetadataComponent],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-      .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: ApplicationMetadataComponent,
+    imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  });
+
+  let spectator: Spectator<ApplicationMetadataComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationMetadataComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

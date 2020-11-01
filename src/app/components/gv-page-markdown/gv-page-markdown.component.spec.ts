@@ -13,33 +13,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { SafePipe } from '../../pipes/safe.pipe';
+import { GvMarkdownTocComponent } from '../gv-markdown-toc/gv-markdown-toc.component';
 import { GvPageMarkdownComponent } from './gv-page-markdown.component';
 import { RouterTestingModule } from '@angular/router/testing';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('GvPageMarkdownComponent', () => {
-  let component: GvPageMarkdownComponent;
-  let fixture: ComponentFixture<GvPageMarkdownComponent>;
+  const createComponent = createComponentFactory({
+    component: GvPageMarkdownComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    declarations: [SafePipe, GvMarkdownTocComponent],
+    imports: [RouterTestingModule],
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ GvPageMarkdownComponent ],
-      imports: [ RouterTestingModule ],
-
-    })
-    .compileComponents();
-  }));
+  let spectator: Spectator<GvPageMarkdownComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvPageMarkdownComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
     component.withToc = null;
     component.pageContent = null;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should use gv-button[href] for render an anchor', () => {
+    const renderer = component.renderer.link('#anchor', 'Anchor', '');
+
+    expect(renderer).not.toBeNull();
+    expect(renderer).toEqual('<gv-button link href=\"#anchor\"></gv-button>');
+  });
+
+  it('should call onAnchorClick when click to gv-button[href]', () => {
+    const anchor = '#anchor';
+    component.onAnchorClick = jest.fn();
+
+    const button = document.createElement('gv-button');
+    button.setAttribute('href', anchor);
+    spectator.element.appendChild(button);
+    button.click();
+
+    expect(component.onAnchorClick).toBeCalledTimes(1);
+    expect(component.onAnchorClick).toBeCalledWith(anchor);
+  });
+
 });
+

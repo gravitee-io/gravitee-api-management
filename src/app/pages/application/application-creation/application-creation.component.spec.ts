@@ -13,51 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
-
-import { ApplicationCreationComponent } from './application-creation.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
+import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
+import { ApplicationCreationComponent } from './application-creation.component';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('ApplicationCreationComponent', () => {
-  let component: ApplicationCreationComponent;
-  let fixture: ComponentFixture<ApplicationCreationComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-        TranslateTestingModule,
-        FormsModule,
-        ReactiveFormsModule
-      ],
-      declarations: [ApplicationCreationComponent],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [ApiStatesPipe, ApiLabelsPipe]
-    })
-      .compileComponents();
-  }));
-
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationCreationComponent);
-    component = fixture.componentInstance;
+  const createComponent = createComponentFactory({
+    component: ApplicationCreationComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+      HttpClientTestingModule,
+      RouterTestingModule,
+      FormsModule,
+      ReactiveFormsModule
+    ],
+    declarations: [ApiStatesPipe, ApiLabelsPipe],
+    providers: [ApiStatesPipe, ApiLabelsPipe]
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  let spectator: Spectator<ApplicationCreationComponent>;
+  let component;
+
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 
 });

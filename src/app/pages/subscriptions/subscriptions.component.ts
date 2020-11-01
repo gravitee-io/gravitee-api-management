@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
-import { Api, ApiService, Application, ApplicationService, Subscription, SubscriptionService } from '@gravitee/ng-portal-webclient';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import {
+  Api,
+  ApiService,
+  Application,
+  ApplicationService,
+  Subscription,
+  SubscriptionService
+} from '../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
-import StatusEnum = Subscription.StatusEnum;
 import { ConfigurationService } from 'src/app/services/configuration.service';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import StatusEnum = Subscription.StatusEnum;
 
 @Component({
   selector: 'app-subscriptions',
@@ -71,14 +78,21 @@ export class SubscriptionsComponent implements OnInit {
         { field: '_links.picture', type: 'image', alt: (item) => getPictureDisplayName(item) },
         {
           field: 'name',
+          type: 'gv-icon',
+          width: '30px',
+          attributes: {
+            shape: (item) => getApplicationTypeIcon(item.applicationType),
+            title: (item) => item.applicationType,
+          },
+        },
+        {
+          field: 'name',
           label: i18n('subscriptions.applications.name'),
-          icon: (item) => getApplicationTypeIcon(item.applicationType),
-          iconTitle: (item) => item.applicationType,
         },
         { field: 'owner.display_name', label: i18n('subscriptions.applications.owner') },
         {
           type: 'gv-button',
-          width: '25px',
+          width: '30px',
           attributes: {
             link: true,
             href: (item) => `/applications/${item.id}`,

@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
-import { ReCaptchaService } from './recaptcha.service';
-import { provideMock } from '../test/mock.helper.spec';
 import { HttpClient } from '@angular/common/http';
 import { RouterTestingModule } from '@angular/router/testing';
+import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator';
+import { ReCaptchaService } from './recaptcha.service';
 
 describe('ReCaptchaService', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [ RouterTestingModule ],
+  let service: SpectatorService<ReCaptchaService>;
+  const createService = createServiceFactory({
+    service: ReCaptchaService,
+    imports: [RouterTestingModule],
     providers: [
-      provideMock(HttpClient),
+      mockProvider(HttpClient),
     ]
-  }));
+  });
+
+  beforeEach(() => {
+    service = createService();
+  });
 
   it('should be created', () => {
-    const service: ReCaptchaService = TestBed.inject(ReCaptchaService);
     expect(service).toBeTruthy();
   });
+
 });

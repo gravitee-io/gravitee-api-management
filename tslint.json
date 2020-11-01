@@ -101,5 +101,10 @@
   ],
   "variable-name": [
     "allow-leading-underscore"
-  ]
+  ],
+  "linterOptions": {
+    "exclude": [
+      "projects/**"
+    ]
+  }
 }

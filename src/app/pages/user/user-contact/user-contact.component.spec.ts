@@ -14,46 +14,46 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { mockProvider } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
+import { PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import { GvDocumentationComponent } from '../../../components/gv-documentation/gv-documentation.component';
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { ApiDocumentationComponent } from '../../api/api-documentation/api-documentation.component';
 
 import { UserContactComponent } from './user-contact.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { provideMock } from '../../../test/mock.helper.spec';
 import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('UserContactComponent', () => {
-  let component: UserContactComponent;
-  let fixture: ComponentFixture<UserContactComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [UserContactComponent],
-      imports: [FormsModule, ReactiveFormsModule, TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(NotificationService),
-        provideMock(CurrentUserService),
-      ]
-    })
-      .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: UserContactComponent,
+    imports: [
+      FormsModule, ReactiveFormsModule, HttpClientTestingModule, RouterTestingModule
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
+      mockProvider(NotificationService),
+      mockProvider(CurrentUserService),
+    ]
+  });
+
+  let spectator: Spectator<UserContactComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(UserContactComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
+    component.pages = [];
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
+
 });

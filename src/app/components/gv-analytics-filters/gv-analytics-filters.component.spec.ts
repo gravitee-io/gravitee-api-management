@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { TranslateTestingModule } from '../../test/translate-testing-module';
-
 import { GvAnalyticsFiltersComponent } from './gv-analytics-filters.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -23,29 +22,23 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('GvAnalyticsFiltersComponent', () => {
-  let component: GvAnalyticsFiltersComponent;
-  let fixture: ComponentFixture<GvAnalyticsFiltersComponent>;
+  const createComponent = createComponentFactory({
+    component: GvAnalyticsFiltersComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [GvAnalyticsFiltersComponent],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-      .compileComponents();
-  }));
+  let spectator: Spectator<GvAnalyticsFiltersComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvAnalyticsFiltersComponent);
-    component = fixture.componentInstance;
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-    });
+    spectator = createComponent();
+    component = spectator.component;
   });
+
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

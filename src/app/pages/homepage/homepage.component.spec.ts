@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { HomepageComponent } from './homepage.component';
 import { GvPageComponent } from '../../components/gv-page/gv-page.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -25,31 +23,28 @@ import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('HomepageComponent', () => {
-  let component: HomepageComponent;
-  let fixture: ComponentFixture<HomepageComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ HomepageComponent, GvPageComponent, ApiStatesPipe, ApiLabelsPipe ],
-      imports: [ HttpClientTestingModule, RouterTestingModule, TranslateTestingModule ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [ApiStatesPipe, ApiLabelsPipe],
-    })
-    .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: HomepageComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+      RouterTestingModule,
+      HttpClientTestingModule,
+    ],
+    declarations: [ GvPageComponent, ApiStatesPipe, ApiLabelsPipe ],
+    providers: [ApiStatesPipe, ApiLabelsPipe],
+  });
+
+  let spectator: Spectator<HomepageComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(HomepageComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
+
 });

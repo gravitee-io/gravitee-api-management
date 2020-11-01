@@ -15,45 +15,33 @@
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../../../test/translate-testing-module';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { ApplicationCreationStep1Component } from './application-creation-step1.component';
 
 describe('ApplicationCreationStep1Component', () => {
-  let component: ApplicationCreationStep1Component;
-  let fixture: ComponentFixture<ApplicationCreationStep1Component>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-        TranslateTestingModule,
-        FormsModule,
-        ReactiveFormsModule
-      ],
-      declarations: [ApplicationCreationStep1Component],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-    })
-      .compileComponents();
-  }));
-
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationCreationStep1Component);
-    component = fixture.componentInstance;
+  const createComponent = createComponentFactory({
+    component: ApplicationCreationStep1Component,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+      HttpClientTestingModule,
+      RouterTestingModule,
+      FormsModule,
+      ReactiveFormsModule
+    ],
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  let spectator: Spectator<ApplicationCreationStep1Component>;
+  let component;
+
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 
 });

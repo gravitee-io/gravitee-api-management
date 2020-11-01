@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
-
-import { AuthService } from './auth.service';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator';
 import { OAuthService } from 'angular-oauth2-oidc';
-import { provideMock } from '../test/mock.helper.spec';
+import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
-  beforeEach(() => TestBed.configureTestingModule({
+  let service: SpectatorService<AuthService>;
+  const createService = createServiceFactory({
+    service: AuthService,
     imports: [HttpClientTestingModule],
-    providers: [provideMock(OAuthService)]
-  }));
+    providers: [mockProvider(OAuthService)]
+  });
+
+  beforeEach(() => {
+    service = createService();
+  });
 
   it('should be created', () => {
-    const service: AuthService = TestBed.inject(AuthService);
     expect(service).toBeTruthy();
   });
+
 });

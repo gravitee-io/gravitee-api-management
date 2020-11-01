@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { TranslateTestingModule } from '../../../test/translate-testing-module';
 
 import { CategoriesComponent } from './categories.component';
@@ -23,38 +24,24 @@ import { SafePipe } from '../../../pipes/safe.pipe';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CategoriesComponent', () => {
-  let component: CategoriesComponent;
-  let fixture: ComponentFixture<CategoriesComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        TranslateTestingModule,
-        RouterTestingModule
-      ],
-      declarations: [
-        CategoriesComponent,
-        SafePipe
-      ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-    .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: CategoriesComponent,
+    declarations: [SafePipe],
+    imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  });
+
+  let spectator: Spectator<CategoriesComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CategoriesComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
+
 });

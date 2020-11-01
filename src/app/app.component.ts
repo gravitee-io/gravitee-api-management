@@ -38,7 +38,8 @@ import { NotificationService } from './services/notification.service';
 import {
   ActivatedRoute,
   NavigationEnd,
-  NavigationStart, PRIMARY_OUTLET,
+  NavigationStart,
+  PRIMARY_OUTLET,
   Router,
   RouterOutlet,
   UrlSegmentGroup,
@@ -46,7 +47,7 @@ import {
 } from '@angular/router';
 import { INavRoute, NavRouteService } from './services/nav-route.service';
 import { animation } from './route-animation';
-import { Link, PortalService, User, UserService } from '@gravitee/ng-portal-webclient';
+import { Link, PortalService, User, UserService } from '../../projects/portal-webclient-sdk/src/lib';
 import { Notification } from './model/notification';
 import { GvMenuTopSlotDirective } from './directives/gv-menu-top-slot.directive';
 import { GvMenuRightTransitionSlotDirective } from './directives/gv-menu-right-transition-slot.directive';
@@ -115,8 +116,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       }
     });
 
-    this.googleAnalyticsService.load();
-
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.notificationService.reset();
@@ -133,7 +132,8 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     });
   }
 
-  async ngOnInit() {
+  ngOnInit() {
+    this.googleAnalyticsService.load();
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
       this.userRoutes = this.navRouteService.getUserNav();
