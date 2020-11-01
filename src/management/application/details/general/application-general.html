@@ -57,12 +57,14 @@
           </div>
           <gravitee-image image-id="$ctrl.application.id" image="$ctrl.application.picture"
                           image-url="$ctrl.application.picture_url" success-event-name="applicationPictureChangeSuccess"
-                          image-name="$ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"></gravitee-image>
+                          image-name="$ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
+                          can-delete="true" delete-label="Use default"></gravitee-image>
 
           <gravitee-image image-id="'bg-' + $ctrl.application.id" image="$ctrl.application.background"
                           image-url="$ctrl.application.background_url" change-label="Change background"
                           no-default-image="true" success-event-name="applicationBackgroundChangeSuccess"
-                          image-name="'bg-' + $ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"></gravitee-image>
+                          image-name="'bg-' + $ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
+                          can-delete="true" delete-label="Use default"></gravitee-image>
         </div>
         <div layout="row">
           <md-input-container class="md-block" flex>

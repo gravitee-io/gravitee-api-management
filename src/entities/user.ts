@@ -30,6 +30,7 @@ export class User {
   public authenticated: boolean = false;
   public firstLogin: boolean;
   public picture: string;
+  public picture_url: string;
   public number_of_active_tokens: number;
 
   constructor() {

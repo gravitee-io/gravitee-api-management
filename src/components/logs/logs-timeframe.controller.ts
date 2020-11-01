@@ -134,7 +134,7 @@ class LogsTimeframeController {
         to: this.$state.params.to
       });
     } else {
-      this.setTimeframe(this.$state.params.timeframe || '1d', true);
+      this.setTimeframe(this.$state.params.timeframe || '5m', true);
     }
   }
 

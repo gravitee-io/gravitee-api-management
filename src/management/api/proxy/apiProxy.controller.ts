@@ -343,17 +343,19 @@ class ApiProxyController {
 
   isRegexValid() {
     let isValid = true;
-    this.api.proxy.cors.allowOrigin.forEach(allowOrigin => {
-      if ('*' !== allowOrigin &&
-        (allowOrigin.includes('(') || allowOrigin.includes('[') || allowOrigin.includes('*'))) {
-        try {
-          // tslint:disable-next-line:no-unused-expression
-          new RegExp(allowOrigin);
-        } catch (e) {
-          isValid = false;
+    if (this.api.proxy.cors.allowOrigin) {
+      this.api.proxy.cors.allowOrigin.forEach(allowOrigin => {
+        if ('*' !== allowOrigin &&
+          (allowOrigin.includes('(') || allowOrigin.includes('[') || allowOrigin.includes('*'))) {
+          try {
+            // tslint:disable-next-line:no-unused-expression
+            new RegExp(allowOrigin);
+          } catch (e) {
+            isValid = false;
+          }
         }
-      }
-    });
+      });
+    }
     return isValid;
   }
 

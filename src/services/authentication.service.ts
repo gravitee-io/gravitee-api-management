@@ -37,8 +37,6 @@ class AuthenticationService {
   }
 
   authenticate(provider: IdentityProvider, state?: string) {
-    provider.type = (provider.type === 'oidc') ? 'oauth2' : provider.type;
-
     let satellizerProvider = this.SatellizerConfig.providers[provider.id];
     if (!satellizerProvider) {
       satellizerProvider = _.merge(provider, {

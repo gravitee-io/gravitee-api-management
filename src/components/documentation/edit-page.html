@@ -233,6 +233,8 @@
                 </md-tab>
             </md-tabs>
 
+            <gv-error error="$ctrl.error"></gv-error>
+
             <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate && $ctrl.currentTab === 'translations' && $ctrl.currentTranslation">
                 <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
                            type="button"
@@ -434,6 +436,18 @@
                                 </md-radio-group>
                             </div>
 
+                            <md-checkbox ng-model="$ctrl.page.configuration.entrypointsAsServers" ng-true-value="'true'" ng-false-value="'false'" ng-click="$ctrl.toggleEntrypointAsServer()">
+                              Use entrypoints of the API as server urls (in that case, the base URL is no more used).
+                            </md-checkbox>
+                            <md-input-container class="md-block">
+                              <label>Base URL</label>
+                              <input type="text" ng-model="$ctrl.page.configuration.tryItURL" ng-disabled="$ctrl.page.configuration.entrypointsAsServers === 'true'">
+                              <div class="hint">Custom base URL to use as server url (if empty and not using api's entrypoints, the server url of the swagger / openapi descriptor will be used).</div>
+                            </md-input-container>
+                            <md-checkbox ng-model="$ctrl.page.configuration.entrypointAsBasePath" ng-true-value="'true'" ng-false-value="'false'">
+                              Use context-path of the API (this will replace the path of the server url with the context-path of the API)
+                            </md-checkbox>
+
                             <div ng-if="$ctrl.page.configuration.viewer === 'Swagger'" layout="column">
                                 <h3>Swagger</h3>
                                 <md-checkbox ng-model="$ctrl.page.configuration.tryIt" ng-true-value="'true'" ng-false-value="'false'">
@@ -441,17 +455,6 @@
                                 </md-checkbox>
                                 <md-checkbox ng-model="$ctrl.page.configuration.tryItAnonymous" ng-true-value="'true'" ng-false-value="'false'">
                                     Allow "Try it!" for anonymous users
-                                </md-checkbox>
-                                <md-input-container class="md-block">
-                                    <label>Base URL</label>
-                                    <input type="text" ng-model="$ctrl.page.configuration.tryItURL" ng-disabled="$ctrl.page.configuration.tryIt === 'false'">
-                                    <div class="hint">Base URL used to try the API</div>
-                                </md-input-container>
-                                <md-checkbox ng-model="$ctrl.page.configuration.entrypointsAsServers" ng-true-value="'true'" ng-false-value="'false'" ng-click="$ctrl.toggleEntrypointAsServer()">
-                                    Swagger servers URL are based on the entrypoints of the API (in that case, the base URL is no more used).
-                                </md-checkbox>
-                                <md-checkbox ng-model="$ctrl.page.configuration.entrypointAsBasePath" ng-true-value="'true'" ng-false-value="'false'" ng-disabled="$ctrl.page.configuration.entrypointsAsServers === undefined || $ctrl.page.configuration.entrypointsAsServers === 'false'">
-                                    Swagger servers URL contains the context-path of the API as the base path
                                 </md-checkbox>
                                 <md-checkbox ng-model="$ctrl.page.configuration.showURL" ng-true-value="'true'" ng-false-value="'false'">
                                     Show the URL to download the content

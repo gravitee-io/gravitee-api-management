@@ -16,8 +16,18 @@
 
 .inline-multiple-select > .md-select-value > span {
   max-width: 250px;
-  
+
   .md-text {
     display: inline !important;
+  }
+}
+
+md-select.md-table-select {
+  .md-select-value  {
+    span {
+      .md-text {
+        padding-top: 2px;
+      }
+    }
   }
 }
