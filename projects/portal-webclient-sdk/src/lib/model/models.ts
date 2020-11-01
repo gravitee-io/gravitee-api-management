@@ -16,6 +16,7 @@ export * from './categoriesResponse';
 export * from './categorizedLinks';
 export * from './category';
 export * from './categoryLinks';
+export * from './changeUserPasswordInput';
 export * from './configurationAnalytics';
 export * from './configurationApplication';
 export * from './configurationApplicationRolesResponse';

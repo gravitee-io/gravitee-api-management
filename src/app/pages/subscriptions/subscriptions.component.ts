@@ -78,14 +78,21 @@ export class SubscriptionsComponent implements OnInit {
         { field: '_links.picture', type: 'image', alt: (item) => getPictureDisplayName(item) },
         {
           field: 'name',
+          type: 'gv-icon',
+          width: '30px',
+          attributes: {
+            shape: (item) => getApplicationTypeIcon(item.applicationType),
+            title: (item) => item.applicationType,
+          },
+        },
+        {
+          field: 'name',
           label: i18n('subscriptions.applications.name'),
-          icon: (item) => getApplicationTypeIcon(item.applicationType),
-          iconTitle: (item) => item.applicationType,
         },
         { field: 'owner.display_name', label: i18n('subscriptions.applications.owner') },
         {
           type: 'gv-button',
-          width: '25px',
+          width: '30px',
           attributes: {
             link: true,
             href: (item) => `/applications/${item.id}`,

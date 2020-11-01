@@ -39,7 +39,7 @@ export class ScrollService {
   scrollToAnchor(anchor) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        const element = document.getElementById(anchor);
+        const element = anchor.startsWith('#') ? document.querySelector(anchor) : document.getElementById(anchor);
         if (element) {
           this.scrollToStickyMenu();
           setTimeout(() => {

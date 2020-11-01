@@ -29,4 +29,5 @@ i18n([
   'errors.unexpected',
   'errors.user.exists',
   'errors.user.finalized',
+  'errors.user.resetpassword',
 ]);

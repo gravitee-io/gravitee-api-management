@@ -89,10 +89,17 @@ export class DashboardComponent implements OnInit {
           alt: (item) => getPictureDisplayName(item.application),
         },
         {
+          field: 'name',
+          type: 'gv-icon',
+          width: '30px',
+          attributes: {
+            shape: (item) => getApplicationTypeIcon(item.application.applicationType),
+            title: (item) => item.application.applicationType,
+          },
+        },
+        {
           field: 'application.name',
           label: i18n('dashboard.subscriptions.application'),
-          icon: (item) => getApplicationTypeIcon(item.application.applicationType),
-          iconTitle: (item) => item.application.applicationType,
         },
         { field: 'api.name', tag: 'api.version', label: i18n('dashboard.subscriptions.api') },
         { field: 'plan.name', label: i18n('dashboard.subscriptions.plan') },

@@ -27,6 +27,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { NotificationService } from '../../../services/notification.service';
 
+import '@gravitee/ui-components/wc/gv-table';
+
 @Component({
   selector: 'app-application-metadata',
   templateUrl: './application-metadata.component.html',

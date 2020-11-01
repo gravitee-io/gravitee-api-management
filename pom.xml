@@ -145,6 +145,23 @@
         <version>1.5.3</version>
         <executions>
           <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>replace</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>${project.basedir}/build.json</include>
+              </includes>
+              <replacements>
+                <replacement>
+                  <token>"version": "(.*)"</token>
+                  <value>"version": "${project.version}"</value>
+                </replacement>
+              </replacements>
+            </configuration>
+          </execution>
+          <execution>
             <id>replace-base-url</id>
             <phase>package</phase>
             <goals>
