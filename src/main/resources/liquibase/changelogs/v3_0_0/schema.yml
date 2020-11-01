@@ -25,6 +25,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.0.0
       author: GraviteeSource Team
+      validCheckSum: 1:any
       changes:
         ## roles, permissions & memberships migration ##
         # roles_permissions
@@ -234,8 +235,8 @@ databaseChangeLog:
             columnName: reference_id
             tableName: memberships
 
-            ## insert memberships
-            # dbms: mariadb, mysql
+        ## insert memberships
+        # dbms: mariadb, mysql
         - sql:
             dbms: mariadb, mysql
             sql: insert into memberships (id, member_id, member_type, reference_id, reference_type, role_id, created_at, updated_at) select ${uuid_function} as id, g.id, 'GROUP', null, gr.role_scope, CONCAT(gr.role_scope,'_',gr.role_name) as role_id, g.created_at, g.updated_at from `groups` g inner join group_roles gr on gr.group_id = g.id
