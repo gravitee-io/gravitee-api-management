@@ -42,8 +42,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -75,7 +75,7 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
         this.endpoint = endpoint;
     }
 
-    private final Map<Context, HttpClient> httpClients = new HashMap<>();
+    private final Map<Context, HttpClient> httpClients = new ConcurrentHashMap<>();
 
     private AtomicInteger runningRequests = new AtomicInteger(0);
 
