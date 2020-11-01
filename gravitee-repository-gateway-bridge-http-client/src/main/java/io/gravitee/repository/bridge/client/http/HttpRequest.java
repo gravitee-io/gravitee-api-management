@@ -15,12 +15,12 @@
  */
 package io.gravitee.repository.bridge.client.http;
 
-import io.gravitee.repository.bridge.client.utils.BridgePath;
-import io.gravitee.repository.bridge.client.utils.VertxCompletableFuture;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpResponse;
@@ -28,7 +28,6 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,10 +46,6 @@ public class HttpRequest<T> {
     private BodyCodec<T> codec;
 
     private MultiMap parameters = new CaseInsensitiveHeaders();
-
-    private Vertx vertx;
-
-    private Environment environment;
 
     private HttpRequest(WebClient client, HttpMethod method, String url) {
         this.client = client;
@@ -86,93 +81,43 @@ public class HttpRequest<T> {
         return this;
     }
 
-    public HttpRequest<T> vertx(Vertx vertx) {
-        this.vertx = vertx;
-
-        return this;
+    public Future<T> send() {
+        return send(null);
     }
 
-    public HttpRequest<T> env(Environment environment) {
-        this.environment = environment;
-
-        return this;
-    }
-
-    public HttpMethod method() {
-        return method;
-    }
-
-    public String url() {
-        return url;
-    }
-
-    public BodyCodec<T> codec() {
-        return codec;
-    }
-
-    public MultiMap parameters() {
-        return parameters;
-    }
-
-    public T send() {
+    public Future<T> send(Object payload) {
         Future<T> future = Future.future();
 
         io.vertx.ext.web.client.HttpRequest<T> request = client
-                .request(method, BridgePath.get(environment) + url)
+                .request(method, url)
                 .as(codec);
 
         this.parameters.forEach(paramEntry -> request.addQueryParam(paramEntry.getKey(), paramEntry.getValue()));
 
-        request
-                .send(ar -> {
-                    if (ar.succeeded()) {
-                        HttpResponse<T> response = ar.result();
-                        future.complete(response.body());
-                    } else {
-                        if (ar.cause() != null) {
-                            logger.error("An error occurs while invoking the bridge server", ar.cause());
-                        }
-                        future.fail(new TechnicalException("An error occurs while invoking the bridge server", ar.cause()));
-                    }
-                });
+        logger.debug("Calling bridge server: method[{}] url[{}]", method, url);
 
-        VertxCompletableFuture<T> completable = VertxCompletableFuture.from(vertx, future);
-        try {
-            return completable.get();
-        } catch (Exception ex) {
-            logger.error("Unexpected error", ex);
-            return null;
+        Handler<AsyncResult<HttpResponse<T>>> handler = event -> {
+            if (event.succeeded()) {
+                HttpResponse<T> response = event.result();
+                // A 200 status response is always expected from the remote bridge. If it's not the case, we have to
+                // consider that something wrong occurs.
+                if (response.statusCode() == HttpStatusCode.OK_200) {
+                    future.complete(response.body());
+                } else {
+                    future.fail(new TechnicalException("Unexpected response from the bridge server while calling " +
+                            "url[" +  url + "] status [" + response.statusCode()+ "]"));
+                }
+            } else {
+                future.fail(new TechnicalException("An error occurs while invoking the bridge server", event.cause()));
+            }
+        };
+
+        if (payload != null) {
+            request.sendJson(payload, handler);
+        } else {
+            request.send(handler);
         }
-    }
 
-    public T send(Object payload) {
-        Future<T> future = Future.future();
-
-        io.vertx.ext.web.client.HttpRequest<T> request = client
-                .request(method, BridgePath.get(environment) + url)
-                .as(codec);
-
-        this.parameters.forEach(paramEntry -> request.addQueryParam(paramEntry.getKey(), paramEntry.getValue()));
-
-        request
-                .sendJson(payload, ar -> {
-                    if (ar.succeeded()) {
-                        HttpResponse<T> response = ar.result();
-                        future.complete(response.body());
-                    } else {
-                        if (ar.cause() != null) {
-                            logger.error("An error occurs while invoking the bridge server", ar.cause());
-                        }
-                        future.fail(new TechnicalException("An error occurs while invoking the bridge server", ar.cause()));
-                    }
-                });
-
-        VertxCompletableFuture<T> completable = VertxCompletableFuture.from(vertx, future);
-        try {
-            return completable.get();
-        } catch (Exception ex) {
-            logger.error("Unexpected error", ex);
-            throw new RuntimeException(ex);
-        }
+        return future;
     }
 }

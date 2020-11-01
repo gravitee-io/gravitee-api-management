@@ -76,7 +76,7 @@ public class WebClientFactory implements FactoryBean<WebClient> {
 
         WebClientInternal client = (WebClientInternal) WebClient.create(vertx, options);
 
-        client.addInterceptor(new ReadTimeoutInterceptor());
+        client.addInterceptor(new ReadTimeoutInterceptor(WebClientFactory.this.readPropertyValue("readTimeout", Long.class, 10000L)));
 
         String username = readPropertyValue(propertyPrefix + "authentication.basic.username", String.class);
         String password = readPropertyValue(propertyPrefix + "authentication.basic.password", String.class);
@@ -192,11 +192,11 @@ public class WebClientFactory implements FactoryBean<WebClient> {
         return true;
     }
 
-    private class ReadTimeoutInterceptor implements Handler<HttpContext<?>> {
+    private static class ReadTimeoutInterceptor implements Handler<HttpContext<?>> {
         private final long timeout;
 
-        ReadTimeoutInterceptor() {
-            timeout = WebClientFactory.this.readPropertyValue("readTimeout", Long.class, 10000L);
+        ReadTimeoutInterceptor(long timeout) {
+            this.timeout = timeout;
         }
 
         @Override
@@ -206,16 +206,17 @@ public class WebClientFactory implements FactoryBean<WebClient> {
         }
     }
 
-    private class BasicAuthorizationInterceptor implements Handler<HttpContext<?>> {
-        private final String credentials;
+    private static class BasicAuthorizationInterceptor implements Handler<HttpContext<?>> {
+        private final String authorizationSchemeValue;
+        private final static String AUTHORIZATION_SCHEME = "Basic ";
 
         BasicAuthorizationInterceptor(String username, String password) {
-            credentials = Base64.getEncoder().encodeToString((username + ':' + password).getBytes());
+            authorizationSchemeValue = AUTHORIZATION_SCHEME + Base64.getEncoder().encodeToString((username + ':' + password).getBytes());
         }
 
         @Override
         public void handle(HttpContext context) {
-            context.request().putHeader(HttpHeaders.AUTHORIZATION, "Basic " + credentials);
+            context.request().putHeader(HttpHeaders.AUTHORIZATION, authorizationSchemeValue);
             context.next();
         }
     }

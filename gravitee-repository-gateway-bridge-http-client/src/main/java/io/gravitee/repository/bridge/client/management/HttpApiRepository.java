@@ -37,8 +37,8 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
 
     @Override
     public Optional<Api> findById(String apiId) throws TechnicalException {
-        return get("/apis/" + apiId, BodyCodecs.optional(Api.class))
-                .send();
+        return blockingGet(get("/apis/" + apiId, BodyCodecs.optional(Api.class))
+                .send());
     }
 
     @Override
@@ -68,8 +68,13 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
 
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-        return get("/apis", BodyCodecs.list(Api.class))
-                .addQueryParam("excludeDefinition", Boolean.toString(apiFieldExclusionFilter.isDefinition()))
-                .send();
+        try {
+            return blockingGet(get("/apis", BodyCodecs.list(Api.class))
+                    .addQueryParam("excludeDefinition", Boolean.toString(apiFieldExclusionFilter.isDefinition()))
+                    .send());
+        } catch (TechnicalException te) {
+            // Ensure that an exception is thrown and managed by the caller
+            throw new IllegalStateException(te);
+        }
     }
 }
