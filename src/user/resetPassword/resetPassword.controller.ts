@@ -35,8 +35,8 @@ class ResetPasswordController {
     }
 
     $scope.changePassword = function () {
-       ReCaptchaService.execute('finalizeRegistration').then(() => {
-         UserService.finalizeRegistration({
+       ReCaptchaService.execute('finalizeResetPassword').then(() => {
+         UserService.finalizeResetPassword($scope.user.sub, {
            token: $state.params.token, password: $scope.confirmPassword,
            firstname: $scope.user.firstname, lastname: $scope.user.lastname
          }).then(function () {

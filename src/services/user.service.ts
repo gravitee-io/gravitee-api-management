@@ -94,6 +94,10 @@ class UserService {
     return this.$http.post(`${this.usersURL}registration/finalize`, user);
   }
 
+  finalizeResetPassword(userId, user): ng.IPromise<any> {
+    return this.$http.post(`${this.usersURL}${userId}/changePassword`, user);
+  }
+
   search(query): ng.IPromise<any> {
     return this.$http.get(`${this.searchUsersURL}?q=${query}`);
   }
