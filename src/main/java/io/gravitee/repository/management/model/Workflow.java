@@ -23,7 +23,9 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Workflow {
-
+    public enum AuditEvent implements Audit.AuditEvent {
+        API_REVIEW_ASKED, API_REVIEW_ACCEPTED, API_REVIEW_REJECTED
+    }
     private String id;
     private String referenceType;
     private String referenceId;
