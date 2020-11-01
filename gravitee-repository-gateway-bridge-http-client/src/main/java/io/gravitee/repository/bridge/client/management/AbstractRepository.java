@@ -16,9 +16,16 @@
 package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.bridge.client.http.HttpRequest;
+import io.gravitee.repository.bridge.client.utils.BridgePath;
+import io.gravitee.repository.bridge.client.utils.VertxCompletableFuture;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -26,10 +33,12 @@ import org.springframework.core.env.Environment;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractRepository {
+public abstract class AbstractRepository implements InitializingBean {
+
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    protected WebClient client;
+    private WebClient client;
 
     @Autowired
     protected Vertx vertx;
@@ -37,19 +46,36 @@ public abstract class AbstractRepository {
     @Autowired
     private Environment environment;
 
+    private String prefixPath;
+
     protected <T> HttpRequest<T> post(String url, BodyCodec<T> codec) {
-        return HttpRequest.<T>post(client, url).bodyCodec(codec).vertx(vertx).env(environment);
+        return HttpRequest.<T>post(client, prefixPath + url).bodyCodec(codec);
     }
 
     protected <T> HttpRequest<T> get(String url, BodyCodec<T> codec) {
-        return HttpRequest.<T>get(client, url).bodyCodec(codec).vertx(vertx).env(environment);
+        return HttpRequest.<T>get(client, prefixPath + url).bodyCodec(codec);
     }
 
     protected <T> HttpRequest<T> put(String url, BodyCodec<T> codec) {
-        return HttpRequest.<T>put(client, url).bodyCodec(codec).vertx(vertx).env(environment);
+        return HttpRequest.<T>put(client, prefixPath + url).bodyCodec(codec);
     }
 
     protected <T> HttpRequest<T> delete(String url, BodyCodec<T> codec) {
-        return HttpRequest.<T>delete(client, url).bodyCodec(codec).vertx(vertx).env(environment);
+        return HttpRequest.<T>delete(client, prefixPath + url).bodyCodec(codec);
+    }
+
+    <T> T blockingGet(Future<T> future) throws TechnicalException {
+        VertxCompletableFuture<T> completable = VertxCompletableFuture.from(vertx, future);
+        try {
+            return completable.get();
+        } catch (Exception ex) {
+            logger.error("Unexpected error", ex);
+            throw new TechnicalException(ex);
+        }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        prefixPath = BridgePath.get(environment);
     }
 }
