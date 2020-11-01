@@ -26,9 +26,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Workflow;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -38,6 +36,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,6 +74,61 @@ public class ApiService_UpdateTest {
     private static final String API_ID2 = "id-api2";
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
+    public static final String API_DEFINITION = "{\n" +
+            "  \"description\" : \"Gravitee.io\",\n" +
+            "  \"paths\" : { },\n" +
+            "  \"path_mappings\":[],\n" +
+            "  \"proxy\": {\n" +
+            "    \"virtual_hosts\": [{\n" +
+            "      \"path\": \"/test\"\n" +
+            "    }],\n" +
+            "    \"strip_context_path\": false,\n" +
+            "    \"preserve_host\":false,\n" +
+            "    \"logging\": {\n" +
+            "      \"mode\":\"CLIENT_PROXY\",\n" +
+            "      \"condition\":\"condition\"\n" +
+            "    },\n" +
+            "    \"groups\": [\n" +
+            "      {\n" +
+            "        \"name\": \"default-group\",\n" +
+            "        \"endpoints\": [\n" +
+            "          {\n" +
+            "            \"name\": \"default\",\n" +
+            "            \"target\": \"http://test\",\n" +
+            "            \"weight\": 1,\n" +
+            "            \"backup\": false,\n" +
+            "            \"type\": \"HTTP\",\n" +
+            "            \"http\": {\n" +
+            "              \"connectTimeout\": 5000,\n" +
+            "              \"idleTimeout\": 60000,\n" +
+            "              \"keepAlive\": true,\n" +
+            "              \"readTimeout\": 10000,\n" +
+            "              \"pipelining\": false,\n" +
+            "              \"maxConcurrentConnections\": 100,\n" +
+            "              \"useCompression\": true,\n" +
+            "              \"followRedirects\": false,\n" +
+            "              \"encodeURI\":false\n" +
+            "            }\n" +
+            "          }\n" +
+            "        ],\n" +
+            "        \"load_balancing\": {\n" +
+            "          \"type\": \"ROUND_ROBIN\"\n" +
+            "        },\n" +
+            "        \"http\": {\n" +
+            "          \"connectTimeout\": 5000,\n" +
+            "          \"idleTimeout\": 60000,\n" +
+            "          \"keepAlive\": true,\n" +
+            "          \"readTimeout\": 10000,\n" +
+            "          \"pipelining\": false,\n" +
+            "          \"maxConcurrentConnections\": 100,\n" +
+            "          \"useCompression\": true,\n" +
+            "          \"followRedirects\": false,\n" +
+            "          \"encodeURI\":false\n" +
+            "        }\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}\n";
 
     @InjectMocks
     private ApiServiceImpl apiService = new ApiServiceImpl();
@@ -108,6 +162,8 @@ public class ApiService_UpdateTest {
     @Mock
     private CategoryService categoryService;
     @Mock
+    private NotifierService notifierService;
+    @Mock
     private PolicyService policyService;
 
     @Before
@@ -121,6 +177,20 @@ public class ApiService_UpdateTest {
 
         when(api.getId()).thenReturn(API_ID);
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
+    }
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
+            }
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+        });
     }
 
     @Test
@@ -411,6 +481,55 @@ public class ApiService_UpdateTest {
         assertUpdate(ApiLifecycleState.ARCHIVED, PUBLISHED, true);
         assertUpdate(ApiLifecycleState.ARCHIVED, UNPUBLISHED, true);
         assertUpdate(ApiLifecycleState.ARCHIVED, DEPRECATED, true);
+    }
+
+    @Test
+    public void shouldTraceReviewReject() throws TechnicalException {
+        prepareReviewAuditTest();
+
+        final ReviewEntity reviewEntity = new ReviewEntity();
+        reviewEntity.setMessage("Test Review msg");
+        apiService.rejectReview(API_ID, USER_NAME, reviewEntity);
+
+        verify(auditService).createApiAuditLog(argThat(apiId -> apiId.equals(API_ID)), anyMap(), argThat(evt -> Workflow.AuditEvent.API_REVIEW_REJECTED.equals(evt)), any(), any(), any());
+    }
+
+
+    @Test
+    public void shouldTraceReviewAsked() throws TechnicalException {
+        prepareReviewAuditTest();
+
+        final ReviewEntity reviewEntity = new ReviewEntity();
+        reviewEntity.setMessage("Test Review msg");
+        apiService.askForReview(API_ID, USER_NAME, reviewEntity);
+        verify(auditService).createApiAuditLog(argThat(apiId -> apiId.equals(API_ID)), anyMap(), argThat(evt -> Workflow.AuditEvent.API_REVIEW_ASKED.equals(evt)), any(), any(), any());
+    }
+
+    @Test
+    public void shouldTraceReviewAccepted() throws TechnicalException {
+        prepareReviewAuditTest();
+
+        final ReviewEntity reviewEntity = new ReviewEntity();
+        reviewEntity.setMessage("Test Review msg");
+        apiService.acceptReview(API_ID, USER_NAME, reviewEntity);
+        verify(auditService).createApiAuditLog(argThat(apiId -> apiId.equals(API_ID)), anyMap(), argThat(evt -> Workflow.AuditEvent.API_REVIEW_ACCEPTED.equals(evt)), any(), any(), any());
+    }
+
+    private void prepareReviewAuditTest() throws TechnicalException {
+        when(api.getDefinition()).thenReturn(API_DEFINITION);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        final MembershipEntity membership = new MembershipEntity();
+        membership.setMemberId(USER_NAME);
+        when(membershipService.getPrimaryOwner(
+                MembershipReferenceType.API,
+                API_ID)).thenReturn(membership);
+
+        when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
+
+        final Workflow workflow = new Workflow();
+        workflow.setState(WorkflowState.REQUEST_FOR_CHANGES.name());
+        when(workflowService.create(any(), any(), any(), any(), any(), any())).thenReturn(workflow);
     }
 
     @Test

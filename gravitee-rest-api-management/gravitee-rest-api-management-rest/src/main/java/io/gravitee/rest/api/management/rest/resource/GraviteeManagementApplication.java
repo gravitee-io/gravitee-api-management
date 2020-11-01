@@ -60,6 +60,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         beanConfig.setResourcePackage("io.gravitee.rest.api.management.rest.resource");
         beanConfig.setTitle("Gravitee.io - Management API");
         beanConfig.setScan(true);
+        beanConfig.setBasePath("/management");
 
         ModelConverters.getInstance().addConverter(new ModelConverter() {
             @Override

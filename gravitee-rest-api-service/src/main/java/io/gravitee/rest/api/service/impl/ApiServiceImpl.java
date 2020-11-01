@@ -90,6 +90,7 @@ import java.util.stream.Stream;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
@@ -2033,7 +2034,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private ApiEntity updateWorkflowReview(final String apiId, final String userId, final ApiHook hook,
                                            final WorkflowState workflowState, final String workflowMessage) {
-        workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
+        Workflow workflow = workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
         final ApiEntity apiEntity = findById(apiId);
         apiEntity.setWorkflowState(workflowState);
 
@@ -2042,6 +2043,31 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .api(apiEntity)
                 .user(userService.findById(userId))
                 .build());
+
+        Map<Audit.AuditProperties, String> properties = new HashMap<>();
+        properties.put(Audit.AuditProperties.USER, userId);
+        properties.put(Audit.AuditProperties.API, apiId);
+
+        Workflow.AuditEvent evtType = null;
+        switch (workflowState) {
+            case REQUEST_FOR_CHANGES:
+                evtType = API_REVIEW_REJECTED;
+                break;
+            case REVIEW_OK:
+                evtType = API_REVIEW_ACCEPTED;
+                break;
+            default:
+                evtType = API_REVIEW_ASKED;
+                break;
+        }
+
+        auditService.createApiAuditLog(
+                apiId,
+                properties,
+                evtType,
+                new Date(),
+                null,
+                workflow);
         return apiEntity;
     }
 

@@ -16,18 +16,17 @@
 package io.gravitee.rest.api.management.rest.resource.configuration.application.registration;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.model.configuration.application.ClientRegistrationProviderListItem;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.model.configuration.application.ClientRegistrationProviderListItem;
-import io.gravitee.rest.api.management.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.swagger.annotations.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -63,7 +62,7 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List client registration providers",
                     response = ClientRegistrationProviderListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<ClientRegistrationProviderListItem> listClientRegistrationProviders() {
+    public List<ClientRegistrationProviderListItem> getClientRegistrationProviders() {
         return clientRegistrationService.findAll().stream().map(clientRegistrationProvider -> {
             ClientRegistrationProviderListItem item = new ClientRegistrationProviderListItem();
             item.setId(clientRegistrationProvider.getId());

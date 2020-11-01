@@ -67,7 +67,7 @@ public class PlatformEventsResource  extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)
     })
-    public Page<EventEntity> listEvents(@BeanParam EventSearchParam eventSearchParam) {
+    public Page<EventEntity> getPlatformEvents(@BeanParam EventSearchParam eventSearchParam) {
         eventSearchParam.validate();
 
         Map<String, Object> properties = new HashMap<>();

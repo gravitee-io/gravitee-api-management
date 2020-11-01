@@ -57,7 +57,7 @@ public class PortalMediaResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Media successfully created"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response upload(
+    public Response uploadPortalMedia(
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail,
             @FormDataParam("file") final FormDataBodyPart body
@@ -91,7 +91,7 @@ public class PortalMediaResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "A media"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getImage(
+    public Response getPortalMedia(
             @Context Request request,
             @PathParam("hash") String hash) {
 

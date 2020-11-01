@@ -67,7 +67,6 @@ public class CompositeIdentityManager implements IdentityManager {
     @Override
     public Collection<SearchableUser> search(String query) {
         Set<SearchableUser> users = new HashSet<>();
-        Collections.sort(identityLookups);
         for (IdentityLookup identityLookup : identityLookups) {
             if (identityLookup.searchable()) {
                 Collection<User> lookupUsers = identityLookup.search(query);
@@ -87,6 +86,7 @@ public class CompositeIdentityManager implements IdentityManager {
     public void addIdentityLookup(IdentityLookup identityLookup) {
         if (identityLookup != null) {
             identityLookups.add(identityLookup);
+            Collections.sort(identityLookups);
         }
     }
 

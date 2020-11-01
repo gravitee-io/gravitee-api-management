@@ -56,6 +56,11 @@ public class ApiMembersResource extends AbstractResource {
     @Inject
     private UserService userService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @Path("/permissions")
     @Produces(MediaType.APPLICATION_JSON)
@@ -64,7 +69,7 @@ public class ApiMembersResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API member's permissions", response = MemberEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getPermissions(@PathParam("api") String api) {
+    public Response getApiMembersPermissions() {
         final ApiEntity apiEntity = apiService.findById(api);
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
@@ -91,7 +96,7 @@ public class ApiMembersResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ)
     })
-    public List<MembershipListItem> listApiMembers(@PathParam("api") String api) {
+    public List<MembershipListItem> getApiMembers() {
         apiService.findById(api);
         return membershipService.getMembersByReference(MembershipReferenceType.API, api)
                 .stream()
@@ -111,9 +116,7 @@ public class ApiMembersResource extends AbstractResource {
             @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.CREATE),
             @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE)
     })
-    public Response addOrUpdateApiMember(
-            @PathParam("api") String api,
-            @Valid @NotNull ApiMembership apiMembership) {
+    public Response addOrUpdateApiMember(@Valid @NotNull ApiMembership apiMembership) {
 
         if (PRIMARY_OWNER.name().equals(apiMembership.getRole())) {
             throw new SinglePrimaryOwnerException(RoleScope.API);
@@ -152,8 +155,7 @@ public class ApiMembersResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE)
     })
-    public Response transferOwnership(
-            @PathParam("api") String api,
+    public Response transferApiMemberOwnership(
             @Valid @NotNull TransferOwnership transferOwnership) {
         List<RoleEntity> newRoles = new ArrayList<>();
 
@@ -181,7 +183,6 @@ public class ApiMembersResource extends AbstractResource {
             @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.DELETE)
     })
     public Response deleteApiMember(
-            @PathParam("api") String api,
             @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
         apiService.findById(api);
         try {

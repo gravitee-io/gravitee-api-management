@@ -56,7 +56,7 @@ public class InstancesResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ)
     })
-    public Page<InstanceListItem> listInstances(@BeanParam InstanceSearchParam param) {
+    public Page<InstanceListItem> getInstances(@BeanParam InstanceSearchParam param) {
         InstanceQuery query = new InstanceQuery();
         query.setIncludeStopped(param.isIncludeStopped());
         query.setFrom(param.getFrom());

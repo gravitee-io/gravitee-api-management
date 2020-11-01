@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
@@ -57,6 +58,7 @@ public class ApiPlansResource extends AbstractResource {
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @RequirePortalAuth
     public Response getApiPlansByApiId(@PathParam("apiId") String apiId,
                                        @BeanParam PaginationParam paginationParam) {
         String username = getAuthenticatedUserOrNull();

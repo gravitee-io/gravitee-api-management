@@ -25,6 +25,7 @@ import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
@@ -72,6 +73,7 @@ public class ApiResource extends AbstractResource {
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
+    @RequirePortalAuth
     public Response getApiByApiId(@PathParam("apiId") String apiId,
                                   @QueryParam("include") List<String> include) {
         String username = getAuthenticatedUserOrNull();
@@ -115,6 +117,7 @@ public class ApiResource extends AbstractResource {
     @GET
     @Path("picture")
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
+    @RequirePortalAuth
     public Response getPictureByApiId(@Context Request request, @PathParam("apiId") String apiId) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
@@ -143,6 +146,7 @@ public class ApiResource extends AbstractResource {
     @GET
     @Path("links")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequirePortalAuth
     public Response getApiLinks(@HeaderParam("Accept-Language") String acceptLang, @PathParam("apiId") String apiId) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> apiLinks = new HashMap<>();

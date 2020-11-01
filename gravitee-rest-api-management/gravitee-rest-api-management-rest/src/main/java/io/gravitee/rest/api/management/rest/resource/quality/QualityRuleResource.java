@@ -24,12 +24,9 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
 import io.gravitee.rest.api.service.QualityRuleService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.annotations.*;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -43,8 +40,12 @@ import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 @Api(tags = {"Configuration"})
 public class QualityRuleResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private QualityRuleService qualityRuleService;
+
+    @PathParam("id")
+    @ApiParam(name = "id", required = true)
+    private String id;
 
     @GET
     @Produces(APPLICATION_JSON)
@@ -57,7 +58,7 @@ public class QualityRuleResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.READ)
     })
-    public QualityRuleEntity get(@PathParam("id") String id) {
+    public QualityRuleEntity getQualityRule() {
         return qualityRuleService.findById(id);
     }
 
@@ -74,7 +75,7 @@ public class QualityRuleResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.UPDATE)
     })
-    public QualityRuleEntity update(@PathParam("id") String id, @Valid @NotNull final UpdateQualityRuleEntity updateQualityRuleEntity) {
+    public QualityRuleEntity updateQualityRule(@Valid @NotNull final UpdateQualityRuleEntity updateQualityRuleEntity) {
         updateQualityRuleEntity.setId(id);
         return qualityRuleService.update(updateQualityRuleEntity);
     }
@@ -90,7 +91,7 @@ public class QualityRuleResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("id") String id) {
+    public void deleteQualityRule() {
         qualityRuleService.delete(id);
     }
 }

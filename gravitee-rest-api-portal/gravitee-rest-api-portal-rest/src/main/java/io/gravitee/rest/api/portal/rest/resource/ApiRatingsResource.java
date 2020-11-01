@@ -28,6 +28,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import io.gravitee.common.http.MediaType;
@@ -62,6 +63,7 @@ public class ApiRatingsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @RequirePortalAuth
     public Response getApiRatingsByApiId(@PathParam("apiId") String apiId,
                                          @BeanParam PaginationParam paginationParam,
                                          @QueryParam("mine") Boolean mine,

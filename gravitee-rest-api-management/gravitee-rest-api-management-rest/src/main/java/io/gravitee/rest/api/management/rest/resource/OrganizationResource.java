@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -35,7 +36,7 @@ import javax.ws.rs.core.Response.Status;
  */
 @Api
 public class OrganizationResource extends AbstractResource {
-    
+
     @Context
     private ResourceContext resourceContext;
 
@@ -44,7 +45,7 @@ public class OrganizationResource extends AbstractResource {
 
     /**
      * Create or update an Organization for the authenticated user.
-     * 
+     *
      * @param organizationEntity
      * @return
      */
@@ -55,17 +56,15 @@ public class OrganizationResource extends AbstractResource {
     @ApiResponses({ @ApiResponse(code = 201, message = "Organization successfully created"),
             @ApiResponse(code = 500, message = "Internal server error") })
     public Response createOrganization(
-            @ApiParam(name = "organizationId", required = true) @PathParam("orgId") String organizationId,
             @ApiParam(name = "organizationEntity", required = true) @Valid @NotNull final UpdateOrganizationEntity organizationEntity) {
-        organizationEntity.setId(organizationId);
+        organizationEntity.setId(GraviteeContext.getCurrentOrganization());
         return Response
                 .ok(organizationService.createOrUpdate(organizationEntity))
                 .build();
     }
-    
+
     /**
      * Delete an existing Organization.
-     * @param organizationId
      * @return
      */
     @DELETE
@@ -74,8 +73,8 @@ public class OrganizationResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 204, message = "Organization successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response deleteOrganization(@ApiParam(name = "organizationId", required = true) @PathParam("orgId") String organizationId) {
-        organizationService.delete(organizationId);
+    public Response deleteOrganization() {
+        organizationService.delete(GraviteeContext.getCurrentOrganization());
         //TODO: should delete all items that refers to this organization
         return Response
                 .status(Status.NO_CONTENT)
@@ -86,7 +85,7 @@ public class OrganizationResource extends AbstractResource {
     public UsersResource getUsersResource() {
         return resourceContext.getResource(UsersResource.class);
     }
-    
+
     @Path("configuration/rolescopes/{scope}/roles/{role}/users")
     public RoleUsersResource getRoleUsersResource() {
         return resourceContext.getResource(RoleUsersResource.class);

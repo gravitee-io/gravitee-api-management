@@ -34,6 +34,7 @@ public interface NotifierService {
      void trigger(final ApiHook hook, final String apiId, Map<String, Object> params);
      void trigger(final ApplicationHook hook, final String applicationId, Map<String, Object> params);
      void trigger(final PortalHook hook, Map<String, Object> params);
+     void triggerEmail(final ApplicationHook hook, final String apiId, Map<String, Object> params, final String recipient);
      List<NotifierEntity> list(NotificationReferenceType referenceType, String referenceId);
      Set<io.gravitee.rest.api.model.NotifierEntity> findAll();
      io.gravitee.rest.api.model.NotifierEntity findById(String notifier);

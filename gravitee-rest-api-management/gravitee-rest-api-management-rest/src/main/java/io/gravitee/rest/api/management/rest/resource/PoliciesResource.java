@@ -66,7 +66,7 @@ public class PoliciesResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
-    public Collection<PolicyListItem> listPolicies(@QueryParam("expand") List<String> expand) {
+    public Collection<PolicyListItem> getPolicies(@QueryParam("expand") List<String> expand) {
         Stream<PolicyListItem> stream = policyService.findAll().stream().map(this::convert);
 
         if(expand!=null && !expand.isEmpty()) {

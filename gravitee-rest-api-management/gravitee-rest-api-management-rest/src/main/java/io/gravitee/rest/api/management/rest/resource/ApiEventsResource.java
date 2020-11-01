@@ -16,13 +16,13 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.param.EventTypeListParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.param.EventTypeListParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.EventService;
 import io.swagger.annotations.*;
 
@@ -41,7 +41,12 @@ public class ApiEventsResource extends AbstractResource {
 
     @Inject
     private EventService eventService;
-    
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get API's events",
@@ -52,9 +57,7 @@ public class ApiEventsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ)
     })
-    public List<EventEntity> events(
-            @PathParam("api") String api,
-            @ApiParam @DefaultValue("all") @QueryParam("type") EventTypeListParam eventTypeListParam) {
+    public List<EventEntity> getApiEventsEvents(@ApiParam @DefaultValue("all") @QueryParam("type") EventTypeListParam eventTypeListParam) {
         final EventQuery query = new EventQuery();
         query.setApi(api);
         return eventService.search(query).stream()

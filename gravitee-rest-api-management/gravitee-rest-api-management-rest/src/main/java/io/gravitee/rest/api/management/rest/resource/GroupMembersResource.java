@@ -28,10 +28,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupInvitationForbiddenException;
 import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -59,7 +56,12 @@ public class GroupMembersResource extends AbstractResource {
     private ResourceContext resourceContext;
     @Inject
     private GroupService groupService;
-    
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("group")
+    @ApiParam(name = "group", hidden = true)
+    private String group;
+
     @GET
     @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List group members")
@@ -70,7 +72,7 @@ public class GroupMembersResource extends AbstractResource {
             @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
             @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ)
     })
-    public List<GroupMemberEntity> getMembers(@PathParam("group") String group) {
+    public List<GroupMemberEntity> getGroupMembers() {
         //check that group exists
         groupService.findById(group);
 
@@ -110,8 +112,7 @@ public class GroupMembersResource extends AbstractResource {
             @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.CREATE),
             @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
     })
-    public Response addOrUpdateMember(
-            @PathParam("group") String group,
+    public Response addOrUpdateGroupMember(
             @Valid @NotNull final List<GroupMembership> memberships
     ) {
         // Check that group exists

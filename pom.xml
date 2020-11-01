@@ -38,10 +38,10 @@
         <gravitee-definition.version>1.23.2</gravitee-definition.version>
         <gravitee-common.version>1.17.2</gravitee-common.version>
         <gravitee-plugin.version>1.10.0</gravitee-plugin.version>
-        <gravitee-repository.version>3.2.0</gravitee-repository.version>
+        <gravitee-repository.version>3.2.1-SNAPSHOT</gravitee-repository.version>
         <gravitee-gateway-api.version>1.20.0</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
-        <gravitee-expression-language.version>1.4.1</gravitee-expression-language.version>
+        <gravitee-expression-language.version>1.4.2</gravitee-expression-language.version>
         <gravitee-alert-api.version>1.5.0</gravitee-alert-api.version>
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
         <gravitee-notifier-api.version>1.2.1</gravitee-notifier-api.version>

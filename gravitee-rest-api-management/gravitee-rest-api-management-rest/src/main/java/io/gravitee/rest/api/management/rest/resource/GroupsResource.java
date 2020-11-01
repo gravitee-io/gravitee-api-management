@@ -15,14 +15,13 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.MembershipService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -48,9 +47,6 @@ public class GroupsResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
-    @Inject
-    private MembershipService membershipService;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -66,7 +62,7 @@ public class GroupsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
     })
-    public Response findAll(){
+    public Response getGroups() {
         return Response
                 .ok(groupService.findAll())
                 .build();

@@ -18,17 +18,17 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.rest.api.management.rest.resource.param.AuditParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.param.AuditParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.AuditService;
 import io.swagger.annotations.Api;
-
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.reflections.Reflections;
 
 import javax.inject.Inject;
@@ -48,6 +48,11 @@ public class ApiAuditResource extends AbstractResource {
     @Inject
     private AuditService auditService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @ApiOperation(value = "Retrieve audit logs for the API",
             notes = "User must have the API_AUDIT[READ] permission to use this service")
@@ -56,8 +61,7 @@ public class ApiAuditResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ)
     })
-    public MetadataPage<AuditEntity> list(@PathParam("api") String api,
-                                          @BeanParam AuditParam param) {
+    public MetadataPage<AuditEntity> getApiAudits(@BeanParam AuditParam param) {
 
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());
@@ -83,7 +87,7 @@ public class ApiAuditResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ)
     })
-    public Response getEvents(@PathParam("api") String api) {
+    public Response getApiAuditEvents() {
         if (events.isEmpty()) {
             Set<Class<? extends Audit.ApiAuditEvent>> subTypesOf =
                     new Reflections("io.gravitee.repository.management.model")

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.SubscriptionServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
+import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -69,6 +70,7 @@ public class SubscriptionServiceTest {
     private static final String API_ID = "my-api";
     private static final String PAGE_ID = "my-page-gcu";
     private static final String USER_ID = "user";
+    private static final String SUBSCRIBER_ID = "subscriber";
 
     @InjectMocks
     private SubscriptionService subscriptionService = new SubscriptionServiceImpl();
@@ -103,6 +105,22 @@ public class SubscriptionServiceTest {
     private GroupService groupService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private UserService userService;
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
+            }
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+        });
+    }
 
     @Test
     public void shouldFindById() throws TechnicalException {
@@ -358,6 +376,11 @@ public class SubscriptionServiceTest {
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         SecurityContextHolder.setContext(generateSecurityContext());
 
@@ -415,6 +438,11 @@ public class SubscriptionServiceTest {
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         SecurityContextHolder.setContext(generateSecurityContext());
 
@@ -769,6 +797,11 @@ public class SubscriptionServiceTest {
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         when(plan.getApi()).thenReturn(API_ID);
 
@@ -783,6 +816,9 @@ public class SubscriptionServiceTest {
 
         // Verify
         verify(apiKeyService, never()).generate(any());
+        verify(userService).findById(SUBSCRIBER_ID);
+        verify(notifierService).triggerEmail(any(), anyString(), anyMap(), anyString());
+
         assertEquals(SubscriptionStatus.REJECTED, subscriptionEntity.getStatus());
         assertEquals(USER_ID, subscriptionEntity.getProcessedBy());
         assertNotNull(subscriptionEntity.getProcessedAt());

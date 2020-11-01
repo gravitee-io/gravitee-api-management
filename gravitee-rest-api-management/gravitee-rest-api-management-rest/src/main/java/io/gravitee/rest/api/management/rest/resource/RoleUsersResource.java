@@ -19,18 +19,15 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.RoleMembership;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -51,7 +48,7 @@ public class RoleUsersResource extends AbstractResource  {
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private MembershipService membershipService;
 
     @GET
@@ -64,7 +61,7 @@ public class RoleUsersResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ)
     })
-    public List<MembershipListItem> listUsersPerRole(
+    public List<MembershipListItem> getUsersPerRole(
             @PathParam("scope")RoleScope scope,
             @PathParam("role") String role) {
         if (RoleScope.ORGANIZATION.equals(scope) || RoleScope.ENVIRONMENT.equals(scope)) {
@@ -154,22 +151,5 @@ public class RoleUsersResource extends AbstractResource  {
     @Path("{userId}")
     public RoleUserResource getRoleUserResource() {
         return resourceContext.getResource(RoleUserResource.class);
-    }
-
-    private final static class MembershipListItem {
-
-        private final MemberEntity member;
-
-        public MembershipListItem(final MemberEntity member) {
-            this.member = member;
-        }
-
-        public String getId() {
-            return member.getId();
-        }
-
-        public String getDisplayName() {
-            return member.getDisplayName();
-        }
     }
 }

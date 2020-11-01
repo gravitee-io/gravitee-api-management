@@ -714,7 +714,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         alert.setDescription(alertEntity.getDescription());
         alert.setReferenceId(alertEntity.getReferenceId());
         alert.setReferenceType(alertEntity.getReferenceType().name());
-        alert.setEnabled(alertEntity.isTemplate() ? alertEntity.isTemplate() : alertEntity.isEnabled());
+        alert.setEnabled(alertEntity.isTemplate() || alertEntity.isEnabled());
         alert.setType(alertEntity.getType());
         alert.setSeverity(alertEntity.getSeverity().name());
         alert.setTemplate(alertEntity.isTemplate());
@@ -812,6 +812,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 alertTriggerEntity.setSeverity(Trigger.Severity.INFO);
             }
 
+            alertTriggerEntity.setEnabled(alert.isEnabled());
             alertTriggerEntity.setTemplate(alert.isTemplate());
             alertTriggerEntity.setParentId(alert.getParentId());
 

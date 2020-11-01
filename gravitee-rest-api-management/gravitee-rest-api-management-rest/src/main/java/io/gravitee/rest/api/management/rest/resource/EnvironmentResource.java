@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationRe
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -57,18 +58,17 @@ public class EnvironmentResource extends AbstractResource {
             @ApiResponse(code = 201, message = "Environment successfully created"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response createEnvironment(
-            @ApiParam(name = "environmentId", required = true) @PathParam("envId") String environmentId,
             @ApiParam(name = "environmentEntity", required = true) @Valid @NotNull final UpdateEnvironmentEntity environmentEntity) {
-        environmentEntity.setId(environmentId);
+        environmentEntity.setId(GraviteeContext.getCurrentEnvironment());
         return Response
                 .status(Status.CREATED)
                 .entity(environmentService.createOrUpdate(environmentEntity))
                 .build();
     }
-    
+
     /**
      * Delete an existing Environment.
-     * @param environmentId
+     *
      * @return
      */
     @DELETE
@@ -77,10 +77,8 @@ public class EnvironmentResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 204, message = "Environment successfully deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response deleteEnvironment(
-            @ApiParam(name = "environmentId", required = true)
-            @PathParam("envId") String environmentId) {
-        environmentService.delete(environmentId);
+    public Response deleteEnvironment() {
+        environmentService.delete(GraviteeContext.getCurrentEnvironment());
         //TODO: should delete all items that refers to this environment
         return Response
                 .status(Status.NO_CONTENT)
@@ -184,8 +182,8 @@ public class EnvironmentResource extends AbstractResource {
     }
 
     @Path("entrypoints")
-    public PortalEntryPointsResource getPortalEntryPointsResource() {
-        return resourceContext.getResource(PortalEntryPointsResource.class);
+    public PortalEntrypointsResource getPortalEntryPointsResource() {
+        return resourceContext.getResource(PortalEntrypointsResource.class);
     }
 
     @Path("notifiers")

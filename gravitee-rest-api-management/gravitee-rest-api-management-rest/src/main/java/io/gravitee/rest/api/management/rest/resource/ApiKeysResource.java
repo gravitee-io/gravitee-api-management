@@ -16,11 +16,11 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.swagger.annotations.*;
 
@@ -46,6 +46,11 @@ public class ApiKeysResource extends AbstractResource {
     @Inject
     private ApiKeyService apiKeyService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @DELETE
     @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -55,7 +60,6 @@ public class ApiKeysResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
     })
     public Response revokeApiKey(
-            @PathParam("api") @ApiParam("The API id") String api,
             @PathParam("key") @ApiParam("The API key") String apiKey) {
         apiKeyService.revoke(apiKey, true);
 
@@ -78,7 +82,6 @@ public class ApiKeysResource extends AbstractResource {
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
     })
     public Response updateApiKey(
-            @PathParam("api") @ApiParam("The API id") String api,
             @PathParam("key") @ApiParam("The API key") String apiKey,
             @Valid @NotNull ApiKeyEntity apiKeyEntity) {
         if (apiKeyEntity.getKey() != null && ! apiKey.equals(apiKeyEntity.getKey())) {

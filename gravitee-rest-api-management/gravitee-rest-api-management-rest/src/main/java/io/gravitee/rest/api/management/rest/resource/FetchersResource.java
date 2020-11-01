@@ -57,7 +57,7 @@ public class FetchersResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of fetchers", response = FetcherListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Collection<FetcherListItem> list(@BeanParam FetchersParam params) {
+    public Collection<FetcherListItem> getFetchers(@BeanParam FetchersParam params) {
         Stream<FetcherListItem> stream = fetcherService.findAll(params.isOnlyFilesFetchers()).stream().map(this::convert);
 
         if(params != null && params.getExpand() != null && !params.getExpand().isEmpty()) {

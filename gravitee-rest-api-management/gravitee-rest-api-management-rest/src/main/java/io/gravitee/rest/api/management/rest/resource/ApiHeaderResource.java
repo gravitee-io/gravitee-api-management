@@ -27,8 +27,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -40,7 +40,7 @@ import javax.ws.rs.*;
 @Api(tags = {"Configuration"})
 public class ApiHeaderResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private ApiHeaderService apiHeaderService;
 
     @PUT
@@ -55,7 +55,7 @@ public class ApiHeaderResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.UPDATE)
     })
-    public ApiHeaderEntity update(@PathParam("id") String id, @Valid @NotNull final UpdateApiHeaderEntity updateApiHeaderEntity) {
+    public ApiHeaderEntity updateApiHeader(@PathParam("id") String id, @Valid @NotNull final UpdateApiHeaderEntity updateApiHeaderEntity) {
         updateApiHeaderEntity.setId(id);
         return apiHeaderService.update(updateApiHeaderEntity);
     }
@@ -71,7 +71,7 @@ public class ApiHeaderResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("id") String id) {
+    public void deleteApiHeader(@PathParam("id") String id) {
         apiHeaderService.delete(id);
     }
 

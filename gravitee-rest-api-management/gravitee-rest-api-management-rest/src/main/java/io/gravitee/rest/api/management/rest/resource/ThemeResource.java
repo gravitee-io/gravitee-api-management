@@ -27,8 +27,9 @@ import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.model.theme.UpdateThemeEntity;
 import io.gravitee.rest.api.service.ThemeService;
 import io.swagger.annotations.Api;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.annotations.ApiParam;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -43,15 +44,19 @@ import java.net.URI;
 @Api(tags = {"Themes"})
 public class ThemeResource extends AbstractResource  {
 
-    @Autowired
+    @Inject
     private ThemeService themeService;
-
+    
+    @PathParam("themeId")
+    @ApiParam(name = "themeId", required=true)
+    private String themeId;
+    
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ)
     })
-    public ThemeEntity get(final @PathParam("themeId") String themeId)  {
+    public ThemeEntity getTheme()  {
         return themeService.findEnabled();
     }
 
@@ -61,7 +66,7 @@ public class ThemeResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE)
     })
-    public ThemeEntity update(@PathParam("themeId") String themeId, @Valid @NotNull final UpdateThemeEntity theme) {
+    public ThemeEntity updateTheme(@Valid @NotNull final UpdateThemeEntity theme) {
         theme.setId(themeId);
         return themeService.update(theme);
     }
@@ -72,7 +77,7 @@ public class ThemeResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE)
     })
-    public ThemeEntity reset(@PathParam("themeId") String themeId) {
+    public ThemeEntity resetTheme() {
         return themeService.resetToDefaultTheme(themeId);
     }
 
@@ -81,26 +86,26 @@ public class ThemeResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("themeId") String themeId) {
+    public void deleteTheme() {
         themeService.delete(themeId);
     }
 
     @GET
     @Path("/logo")
-    public Response getLogo(@PathParam("themeId") String id, @Context Request request) {
-       return this.buildPictureResponse(themeService.getLogo(id), request);
+    public Response getThemeLogo(@Context Request request) {
+       return this.buildPictureResponse(themeService.getLogo(themeId), request);
     }
 
     @GET
     @Path("/optionalLogo")
-    public Response getLogoLight(@PathParam("themeId") String id, @Context Request request) {
-        return this.buildPictureResponse(themeService.getOptionalLogo(id), request);
+    public Response getLogoLight(@Context Request request) {
+        return this.buildPictureResponse(themeService.getOptionalLogo(themeId), request);
     }
 
     @GET
     @Path("/backgroundImage")
-    public Response getBackground(@PathParam("themeId") String id, @Context Request request) {
-        return this.buildPictureResponse(themeService.getBackgroundImage(id), request);
+    public Response getThemeBackground(@Context Request request) {
+        return this.buildPictureResponse(themeService.getBackgroundImage(themeId), request);
     }
 
     private Response buildPictureResponse(PictureEntity picture, @Context Request request) {

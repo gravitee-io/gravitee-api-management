@@ -57,6 +57,16 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ReCaptchaService reCaptchaService;
 
     @Override
+    public boolean portalLoginForced() {
+        boolean result = false;
+        final PortalConfigEntity.Authentication auth = getPortalConfig().getAuthentication();
+        if ( auth.getForceLogin() != null) {
+            result = auth.getForceLogin().isEnabled();
+        }
+        return result;
+    }
+
+    @Override
     public PortalConfigEntity getPortalConfig() {
         PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
         Object[] objects = getObjectArray(portalConfigEntity);

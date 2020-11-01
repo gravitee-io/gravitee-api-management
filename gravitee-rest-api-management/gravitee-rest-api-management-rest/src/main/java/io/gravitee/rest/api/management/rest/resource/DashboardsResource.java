@@ -30,8 +30,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -44,7 +44,7 @@ import java.util.List;
 @Api(tags = {"Dashboards"})
 public class DashboardsResource extends AbstractResource  {
 
-    @Autowired
+    @Inject
     private DashboardService dashboardService;
 
     @GET
@@ -53,7 +53,7 @@ public class DashboardsResource extends AbstractResource  {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of platform dashboards", response = DashboardEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<DashboardEntity> list(final @QueryParam("reference_type") DashboardReferenceType referenceType)  {
+    public List<DashboardEntity> getDashboards(final @QueryParam("reference_type") DashboardReferenceType referenceType)  {
         if (!hasPermission(RolePermission.ENVIRONMENT_DASHBOARD, RolePermissionAction.READ) &&
             !canReadAPIConfiguration()) {
             throw new ForbiddenAccessException();
@@ -76,7 +76,7 @@ public class DashboardsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.CREATE)
     })
-    public DashboardEntity create(@Valid @NotNull final NewDashboardEntity dashboard) {
+    public DashboardEntity createDashboard(@Valid @NotNull final NewDashboardEntity dashboard) {
         return dashboardService.create(dashboard);
     }
 
@@ -91,7 +91,7 @@ public class DashboardsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.READ)
     })
-    public DashboardEntity get(final @PathParam("dashboardId") String dashboardId)  {
+    public DashboardEntity getDashboard(final @PathParam("dashboardId") String dashboardId)  {
         return dashboardService.findById(dashboardId);
     }
 
@@ -107,7 +107,7 @@ public class DashboardsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.UPDATE)
     })
-    public DashboardEntity update(@PathParam("dashboardId") String dashboardId, @Valid @NotNull final UpdateDashboardEntity dashboard) {
+    public DashboardEntity updateDashboard(@PathParam("dashboardId") String dashboardId, @Valid @NotNull final UpdateDashboardEntity dashboard) {
         dashboard.setId(dashboardId);
         return dashboardService.update(dashboard);
     }
@@ -123,7 +123,7 @@ public class DashboardsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("dashboardId") String dashboardId) {
+    public void deleteDashboard(@PathParam("dashboardId") String dashboardId) {
         dashboardService.delete(dashboardId);
     }
 }
