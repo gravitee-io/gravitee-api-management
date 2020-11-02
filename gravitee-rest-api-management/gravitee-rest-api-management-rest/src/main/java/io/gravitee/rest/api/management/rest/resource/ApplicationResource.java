@@ -18,6 +18,8 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
@@ -25,16 +27,11 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntit
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -42,7 +39,6 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
-
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.List;
@@ -67,6 +63,10 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private ApplicationTypeService applicationTypeService;
 
+    @PathParam("application")
+    @ApiParam(name = "application", required = true)
+    private String application;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get an application",
@@ -77,7 +77,7 @@ public class ApplicationResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
     })
-    public ApplicationEntity getApplication(@PathParam("application") String application) {
+    public ApplicationEntity getApplication() {
         return applicationService.findById(application);
     }
 
@@ -93,7 +93,7 @@ public class ApplicationResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
     })
-    public Response getApplicationType(@PathParam("application") String application) {
+    public Response getApplicationType() {
         ApplicationEntity applicationEntity = applicationService.findById(application);
         ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
         return Response
@@ -113,7 +113,6 @@ public class ApplicationResource extends AbstractResource {
             @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
     public ApplicationEntity updateApplication(
-            @PathParam("application") String application,
             @Valid @NotNull(message = "An application must be provided") final UpdateApplicationEntity updatedApplication) {
         // To preserve backward compatibility, ensure that we have at least default settings for simple application type
         if (updatedApplication.getSettings() == null ||
@@ -138,7 +137,7 @@ public class ApplicationResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
     })
-    public Response picture(@Context Request request, @PathParam("application") String application) throws ApplicationNotFoundException {
+    public Response getApplicationPicture(@Context Request request) throws ApplicationNotFoundException {
         return getImageResponse(request, applicationService.getPicture(application));
     }
 
@@ -204,8 +203,7 @@ public class ApplicationResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public ApplicationEntity renewClientSecret(
-            @PathParam("application") String application) {
+    public ApplicationEntity renewApplicationClientSecret() {
         return applicationService.renewClientSecret(application);
     }
 
@@ -218,7 +216,7 @@ public class ApplicationResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)
     })
-    public Response deleteApplication(@PathParam("application") String application) {
+    public Response deleteApplication() {
         applicationService.archive(application);
         return Response.noContent().build();
     }
@@ -234,7 +232,7 @@ public class ApplicationResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ)
     })
-    public List<NotifierEntity> getNotifiers(@PathParam("application") String application) {
+    public List<NotifierEntity> getApplicationNotifiers() {
         return notifierService.list(NotificationReferenceType.APPLICATION, application);
     }
 

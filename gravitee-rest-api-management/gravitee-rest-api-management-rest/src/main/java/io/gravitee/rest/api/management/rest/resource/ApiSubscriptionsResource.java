@@ -72,6 +72,11 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Inject
     private ApiKeyService apiKeyService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List subscriptions for the API",
@@ -82,13 +87,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
-    public PagedResult<SubscriptionEntity> listApiSubscriptions(
+    public PagedResult<SubscriptionEntity> getApiSubscriptions(
             @BeanParam SubscriptionParam subscriptionParam,
             @Valid @BeanParam Pageable pageable,
             @ApiParam(allowableValues = "keys", value = "Expansion of data to return in subscriptions") @QueryParam("expand") List<String> expand) {
         // Transform query parameters to a subscription query
         SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
-        subscriptionQuery.setApi(subscriptionParam.getApi());
+        subscriptionQuery.setApi(api);
 
         Page<SubscriptionEntity> subscriptions = subscriptionService
                 .search(subscriptionQuery, pageable.toPageable());
@@ -126,8 +131,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.CREATE)
     })
-    public Response createSubscription(
-            @PathParam("api") String api,
+    public Response createSubscriptionToApi(
             @ApiParam(name = "application", required = true)
             @NotNull @QueryParam("application") String application,
             @ApiParam(name = "plan", required = true)
@@ -157,13 +161,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
             @ApiResponse(code = 200, message = "API logs as CSV"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
-    public Response exportAPILogsAsCSV(
+    public Response exportApiSubscriptionsLogsAsCSV(
             @BeanParam SubscriptionParam subscriptionParam,
             @Valid @BeanParam Pageable pageable) {
-        final PagedResult<SubscriptionEntity> subscriptions = listApiSubscriptions(subscriptionParam, pageable, null);
+        final PagedResult<SubscriptionEntity> subscriptions = getApiSubscriptions(subscriptionParam, pageable, null);
         return Response
                 .ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", subscriptionParam.getApi(), System.currentTimeMillis()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", api, System.currentTimeMillis()))
                 .build();
     }
 
@@ -211,8 +215,6 @@ public class ApiSubscriptionsResource extends AbstractResource {
     }
 
     private static class SubscriptionParam {
-        @PathParam("api")
-        private String api;
 
         @QueryParam("plan")
         @ApiParam(value = "plan")
@@ -229,14 +231,6 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
         @QueryParam("api_key")
         private String apiKey;
-
-        public String getApi() {
-            return api;
-        }
-
-        public void setApi(String api) {
-            this.api = api;
-        }
 
         public ListStringParam getPlans() {
             return plans;

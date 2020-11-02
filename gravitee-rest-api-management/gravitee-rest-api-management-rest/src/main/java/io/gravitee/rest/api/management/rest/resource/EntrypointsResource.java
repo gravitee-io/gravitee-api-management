@@ -28,8 +28,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -44,7 +44,7 @@ import static java.util.stream.Collectors.toList;
 @Api(tags = {"Entrypoints"})
 public class EntrypointsResource extends AbstractResource  {
 
-    @Autowired
+    @Inject
     private EntrypointService entrypointService;
 
     @GET
@@ -59,7 +59,7 @@ public class EntrypointsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
     })
-    public EntrypointEntity get(final @PathParam("entrypoint") String entrypointId)  {
+    public EntrypointEntity getEntrypoint(final @PathParam("entrypoint") String entrypointId)  {
         return entrypointService.findById(entrypointId);
     }
 
@@ -73,7 +73,7 @@ public class EntrypointsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ)
     })
-    public List<EntrypointEntity> list()  {
+    public List<EntrypointEntity> getEntrypoints()  {
         return entrypointService.findAll()
                 .stream()
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getValue(), o2.getValue()))
@@ -91,7 +91,7 @@ public class EntrypointsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE)
     })
-    public EntrypointEntity create(@Valid @NotNull final NewEntryPointEntity entrypoint) {
+    public EntrypointEntity createEntrypoint(@Valid @NotNull final NewEntryPointEntity entrypoint) {
         return entrypointService.create(entrypoint);
     }
 
@@ -106,7 +106,7 @@ public class EntrypointsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE)
     })
-    public EntrypointEntity update(@Valid @NotNull final UpdateEntryPointEntity entrypoint) {
+    public EntrypointEntity updateEntrypoint(@Valid @NotNull final UpdateEntryPointEntity entrypoint) {
         return entrypointService.update(entrypoint);
     }
 
@@ -121,7 +121,7 @@ public class EntrypointsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("entrypoint") String entrypoint) {
+    public void deleteEntrypoint(@PathParam("entrypoint") String entrypoint) {
         entrypointService.delete(entrypoint);
     }
 }

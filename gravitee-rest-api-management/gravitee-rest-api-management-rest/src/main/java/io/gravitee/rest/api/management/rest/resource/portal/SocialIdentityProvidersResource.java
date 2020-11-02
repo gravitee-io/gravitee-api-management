@@ -16,14 +16,13 @@
 package io.gravitee.rest.api.management.rest.resource.portal;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.Consumes;
@@ -51,7 +50,7 @@ public class SocialIdentityProvidersResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List social identity providers", response = SocialIdentityProviderEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<SocialIdentityProviderEntity> listSocialIdentityProvider() {
+    public List<SocialIdentityProviderEntity> getSocialIdentityProvider() {
         return socialIdentityProviderService.findAll()
                 .stream()
                 .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))

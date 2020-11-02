@@ -29,6 +29,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
+import io.gravitee.rest.api.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,10 +40,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.resource.AbstractResource;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
@@ -75,6 +73,9 @@ public class PermissionsFilter implements ContainerRequestFilter {
     @Inject
     private RoleService roleService;
 
+    @Inject
+    private ConfigService configService;
+
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         if (    securityContext.isUserInRole(AbstractResource.ENVIRONMENT_ADMIN)) {
@@ -84,6 +85,8 @@ public class PermissionsFilter implements ContainerRequestFilter {
         }
 
         filter(getRequiredPermission(), requestContext);
+        filter(requiredPortalAuth());
+
     }
 
     protected void filter(Permissions permissions, ContainerRequestContext requestContext) {
@@ -97,6 +100,12 @@ public class PermissionsFilter implements ContainerRequestFilter {
                     }
                 }
             }
+            sendSecurityError();
+        }
+    }
+
+    protected void filter(boolean portalLoginRequired) {
+        if (portalLoginRequired && configService.portalLoginForced() && securityContext.getUserPrincipal() == null) {
             sendSecurityError();
         }
     }
@@ -170,5 +179,13 @@ public class PermissionsFilter implements ContainerRequestFilter {
         }
 
         return permission;
+    }
+
+    private boolean requiredPortalAuth() {
+        boolean requiredAuth = resourceInfo.getResourceMethod().getDeclaredAnnotation(RequirePortalAuth.class) != null;
+        if (!requiredAuth) {
+            requiredAuth = resourceInfo.getResourceClass().getDeclaredAnnotation(RequirePortalAuth.class) != null;
+        }
+        return requiredAuth;
     }
 }

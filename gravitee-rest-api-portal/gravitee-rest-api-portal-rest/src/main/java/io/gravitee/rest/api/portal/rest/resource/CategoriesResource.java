@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,7 @@ public class CategoriesResource extends AbstractResource {
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @RequirePortalAuth
     public Response getCategories(@BeanParam PaginationParam paginationParam) {
         Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         
@@ -66,6 +68,7 @@ public class CategoriesResource extends AbstractResource {
                     c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
                     return c;
                 })
+                .filter(c -> c.getTotalApis() > 0)
                 .map(c-> categoryMapper.convert(c, uriInfo.getBaseUriBuilder()))
                 .collect(Collectors.toList());
         

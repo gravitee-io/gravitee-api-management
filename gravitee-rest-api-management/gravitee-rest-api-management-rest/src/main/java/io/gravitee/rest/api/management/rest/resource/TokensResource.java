@@ -23,8 +23,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -40,7 +40,7 @@ import static java.util.stream.Collectors.toList;
 @Api(tags = {"User Tokens"})
 public class TokensResource extends AbstractResource  {
 
-    @Autowired
+    @Inject
     private TokenService tokenService;
 
     @GET
@@ -50,7 +50,7 @@ public class TokensResource extends AbstractResource  {
             @ApiResponse(code = 200, message = "User's personal tokens"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<TokenEntity> list()  {
+    public List<TokenEntity> getTokens()  {
         return tokenService.findByUser(getAuthenticatedUser())
                 .stream()
                 .sorted(comparing(TokenEntity::getCreatedAt))
@@ -64,7 +64,7 @@ public class TokensResource extends AbstractResource  {
     @ApiResponses({
             @ApiResponse(code = 201, message = "A new personal token", response = TokenEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public TokenEntity create(@Valid @NotNull final NewTokenEntity token) {
+    public TokenEntity createTokens(@Valid @NotNull final NewTokenEntity token) {
         return tokenService.create(token);
     }
 
@@ -75,7 +75,7 @@ public class TokensResource extends AbstractResource  {
             @ApiResponse(code = 204, message = "User's personal tokens revoked"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public void revokeAll() {
+    public void revokeAllTokens() {
         tokenService.revokeByUser(getAuthenticatedUser());
     }
 
@@ -87,7 +87,7 @@ public class TokensResource extends AbstractResource  {
             @ApiResponse(code = 204, message = "User's personal token revoked"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public void revoke(@PathParam("token") String tokenId) {
+    public void revokeToken(@PathParam("token") String tokenId) {
         tokenService.revoke(tokenId);
     }
 }

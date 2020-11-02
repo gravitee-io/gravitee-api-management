@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiInformation;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
@@ -44,6 +45,7 @@ public class ApiInformationsResource extends AbstractResource {
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
+    @RequirePortalAuth
     public Response getApiInformations(@Context Request request, @PathParam("apiId") String apiId) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {

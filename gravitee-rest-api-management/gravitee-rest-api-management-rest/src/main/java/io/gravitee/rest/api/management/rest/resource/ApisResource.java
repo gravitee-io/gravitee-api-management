@@ -88,7 +88,7 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<ApiListItem> listApis(@BeanParam final ApisParam apisParam) {
+    public List<ApiListItem> getApis(@BeanParam final ApisParam apisParam) {
 
         final ApiQuery apiQuery = new ApiQuery();
         if (apisParam.getGroup() != null) {
@@ -178,7 +178,7 @@ public class ApisResource extends AbstractResource {
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE)
     })
-    public Response importDefinition(
+    public Response importApiDefinition(
             @ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition) {
 
         return Response.ok(apiService.createWithImportedDefinition(null, apiDefinition, getAuthenticatedUser())).build();
@@ -194,7 +194,7 @@ public class ApisResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
     })
-    public Response importSwagger(
+    public Response importSwaggerApi(
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor);
         final ApiEntity api = apiService.createFromSwagger(swaggerApiEntity, getAuthenticatedUser(), swaggerDescriptor);
@@ -214,7 +214,7 @@ public class ApisResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
     })
-    public Response verify(@Valid VerifyApiParam verifyApiParam) {
+    public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
         // TODO : create verify service to query repository with criteria
         virtualHostService.validate(Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())));
         return Response.ok().entity("API context [" + verifyApiParam.getContextPath() + "] is available").build();
@@ -222,9 +222,9 @@ public class ApisResource extends AbstractResource {
 
     @GET
     @Path("/hooks")
-    @ApiOperation("Get the list of available hooks")
+    @ApiOperation(value = "Get the list of available hooks")
     @Produces(MediaType.APPLICATION_JSON)
-    public Hook[] getHooks() {
+    public Hook[] getApiHooks() {
         return Arrays.stream(ApiHook.values()).filter(h -> !h.isHidden()).toArray(Hook[]::new);
     }
 

@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -60,6 +61,7 @@ public class ApiMetricsResource extends AbstractResource {
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
+    @RequirePortalAuth
     public Response getApiMetricsByApiId(@Context Request request, @PathParam("apiId") String apiId) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {

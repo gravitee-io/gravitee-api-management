@@ -77,7 +77,7 @@ public class PlatformAnalyticsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = ENVIRONMENT_PLATFORM, acls = READ)
     })
-    public Response platformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
+    public Response getPlatformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
 
         analyticsParam.validate();
 

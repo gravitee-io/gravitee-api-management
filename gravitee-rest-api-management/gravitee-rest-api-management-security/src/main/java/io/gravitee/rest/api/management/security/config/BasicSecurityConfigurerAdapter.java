@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.management.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
@@ -92,6 +95,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private UserService userService;
     @Autowired
     private TokenService tokenService;
+    @Autowired
+    private AuthoritiesProvider authoritiesProvider;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -203,7 +208,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         csrf(http);
         cors(http);
 
-        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService), BasicAuthenticationFilter.class);
+        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider), BasicAuthenticationFilter.class);
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
     }
 
@@ -242,6 +247,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 //Users management
                 .antMatchers(HttpMethod.GET,uriOrgPrefix + "/users/custom-fields").permitAll()
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**").permitAll()
+                .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/**/changePassword").permitAll()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users").authenticated()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users/**").authenticated()
                 .antMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**").authenticated()
@@ -287,7 +293,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
                 // API requests
                 .antMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks").authenticated()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()
+                .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").authenticated()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/apis").authenticated()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/apis/**").authenticated()
                 .antMatchers(HttpMethod.PUT, uriPrefix + "/apis/**").authenticated()

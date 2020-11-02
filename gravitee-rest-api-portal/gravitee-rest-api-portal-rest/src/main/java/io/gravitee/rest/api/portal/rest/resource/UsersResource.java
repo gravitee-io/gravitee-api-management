@@ -22,10 +22,7 @@ import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
-import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
-import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
-import io.gravitee.rest.api.portal.rest.model.ResetUserPasswordInput;
-import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
@@ -33,6 +30,7 @@ import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -100,10 +98,24 @@ public class UsersResource extends AbstractResource {
     public Response resetUserPassword(@NotNull(message = "Input must not be null.") @Valid ResetUserPasswordInput resetUserPasswordInput) {
         try {
             userService.resetPasswordFromSourceId(resetUserPasswordInput.getUsername(), resetUserPasswordInput.getResetPageUrl());
+        } catch (PasswordAlreadyResetException e) {
+            throw e;
         } catch (AbstractManagementException e) {
             LOGGER.warn("Problem while resetting a password : {}", e.getMessage());
         }
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("_change_password")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response changeUserPassword(@NotNull(message = "Input must not be null.") @Valid ChangeUserPasswordInput changeUserPasswordInput) {
+        UserEntity newUser = userService.finalizeResetPassword(userMapper.convert(changeUserPasswordInput));
+        if (newUser != null) {
+            return Response.ok().entity(userMapper.convert(newUser)).build();
+        }
+
+        return Response.serverError().build();
     }
 
     @POST

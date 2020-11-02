@@ -48,7 +48,6 @@ public class ApplicationListItem implements FilterableItem {
 
     @ApiModelProperty(
             value = "Application's groups. Used to add team in your App.",
-            dataType = "java.util.List",
             example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
@@ -80,7 +79,7 @@ public class ApplicationListItem implements FilterableItem {
     private PrimaryOwnerEntity primaryOwner;
 
     @JsonProperty("settings")
-    private ApplicationListItemSettings settings;
+    private ApplicationSettings settings;
 
     private String picture;
 
@@ -156,11 +155,11 @@ public class ApplicationListItem implements FilterableItem {
         this.status = status;
     }
 
-    public ApplicationListItemSettings getSettings() {
+    public ApplicationSettings getSettings() {
         return settings;
     }
 
-    public void setSettings(ApplicationListItemSettings settings) {
+    public void setSettings(ApplicationSettings settings) {
         this.settings = settings;
     }
 

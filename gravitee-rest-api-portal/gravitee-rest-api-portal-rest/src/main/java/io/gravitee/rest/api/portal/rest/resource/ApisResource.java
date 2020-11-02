@@ -24,6 +24,7 @@ import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
@@ -59,6 +60,7 @@ public class ApisResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @RequirePortalAuth
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
         Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), createQueryFromParam(apisParam));
 
@@ -106,6 +108,7 @@ public class ApisResource extends AbstractResource {
     @POST
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequirePortalAuth
     public Response searchApis(@NotNull(message = "Input must not be null.") @QueryParam("q") String query,
                                @BeanParam PaginationParam paginationParam) {
         Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(),

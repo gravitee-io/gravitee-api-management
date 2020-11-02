@@ -29,8 +29,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -49,7 +49,8 @@ public class QualityRulesResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-    @Autowired
+
+    @Inject
     private QualityRuleService qualityRuleService;
 
     @GET
@@ -58,7 +59,7 @@ public class QualityRulesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of quality rules", response = QualityRuleEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<QualityRuleEntity> get() {
+    public List<QualityRuleEntity> getQualityRules() {
         if (!hasPermission(RolePermission.ENVIRONMENT_QUALITY_RULE, RolePermissionAction.READ) &&
                 !canReadAPIConfiguration()) {
             throw new ForbiddenAccessException();
@@ -77,7 +78,7 @@ public class QualityRulesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.CREATE)
     })
-    public QualityRuleEntity create(@Valid @NotNull final NewQualityRuleEntity newQualityRuleEntity) {
+    public QualityRuleEntity createQualityRule(@Valid @NotNull final NewQualityRuleEntity newQualityRuleEntity) {
         return qualityRuleService.create(newQualityRuleEntity);
     }
 

@@ -50,6 +50,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.inject.Inject;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -84,19 +85,19 @@ public class CurrentUserResource extends AbstractResource {
 
     private static Logger LOG = LoggerFactory.getLogger(CurrentUserResource.class);
 
-    @Autowired
+    @Inject
     private UserService userService;
     @Context
     private HttpServletResponse response;
-    @Autowired
+    @Inject
     private TaskService taskService;
     @Context
     private ResourceContext resourceContext;
-    @Autowired
+    @Inject
     private ConfigurableEnvironment environment;
-    @Autowired
+    @Inject
     private CookieGenerator cookieGenerator;
-    @Autowired
+    @Inject
     private TagService tagService;
     @Autowired
     private EnvironmentService environmentService;
@@ -136,6 +137,9 @@ public class CurrentUserResource extends AbstractResource {
             userDetails.setSource(userEntity.getSource());
             userDetails.setSourceId(userEntity.getSourceId());
             userDetails.setPrimaryOwner(userEntity.isPrimaryOwner());
+            userDetails.setCreatedAt(userEntity.getCreatedAt());
+            userDetails.setUpdatedAt(userEntity.getUpdatedAt());
+            userDetails.setLastConnectionAt(userEntity.getLastConnectionAt());
 
             if (details.getEmail() == null && "memory".equals(userEntity.getSource()) && userEntity.getEmail() != null) {
                 userDetails.setEmail(userEntity.getEmail());
@@ -182,7 +186,7 @@ public class CurrentUserResource extends AbstractResource {
 
         if (isAuthenticated()) {
             userService.delete(getAuthenticatedUser());
-            logout();
+            logoutCurrentUser();
             return Response.noContent().build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -332,7 +336,7 @@ public class CurrentUserResource extends AbstractResource {
     @POST
     @Path("/logout")
     @ApiOperation(value = "Logout")
-    public Response logout() {
+    public Response logoutCurrentUser() {
         response.addCookie(cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null));
         return Response.ok().build();
     }

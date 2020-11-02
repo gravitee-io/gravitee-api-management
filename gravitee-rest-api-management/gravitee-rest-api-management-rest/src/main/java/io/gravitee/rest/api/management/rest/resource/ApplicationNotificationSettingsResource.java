@@ -27,8 +27,9 @@ import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.annotations.ApiParam;
 
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -45,11 +46,16 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 @Api(tags = {"Application Notifications"})
 public class ApplicationNotificationSettingsResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private PortalNotificationConfigService portalNotificationConfigService;
 
-    @Autowired
+    @Inject
     private GenericNotificationConfigService genericNotificationConfigService;
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("application")
+    @ApiParam(name = "application", hidden = true)
+    private String application;
 
     @GET
     @ApiOperation(value = "Get notification settings")
@@ -57,7 +63,7 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Permissions({
             @Permission(value = APPLICATION_NOTIFICATION, acls = READ)
     })
-    public List<Object> get(@PathParam("application") String application) {
+    public List<Object> getApplicationNotificationSettings() {
         List<Object> settings = new ArrayList<>();
         settings.add(portalNotificationConfigService.findById(getAuthenticatedUser(), NotificationReferenceType.APPLICATION, application));
         if (hasPermission(APPLICATION_NOTIFICATION, application, CREATE, UPDATE, DELETE)){
@@ -70,7 +76,7 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @ApiOperation(value = "Create notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Object create(@PathParam("application") String application, GenericNotificationConfigEntity config) {
+    public Object createApplicationNotificationSettings(GenericNotificationConfigEntity config) {
         if (!application.equals(config.getReferenceId())
                 || !NotificationReferenceType.APPLICATION.name().equals(config.getReferenceType())) {
             throw new ForbiddenAccessException();
@@ -93,8 +99,7 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Permissions({
             @Permission(value = APPLICATION_NOTIFICATION, acls = UPDATE)
     })
-    public GenericNotificationConfigEntity update(
-            @PathParam("application") String application,
+    public GenericNotificationConfigEntity updateApplicationGeneralNotificationSettings(
             @PathParam("notificationId") String notificationId,
             GenericNotificationConfigEntity config) {
         if (!application.equals(config.getReferenceId())
@@ -113,8 +118,7 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Permissions({
             @Permission(value = APPLICATION_NOTIFICATION, acls = READ)
     })
-    public PortalNotificationConfigEntity update(
-            @PathParam("application") String application,
+    public PortalNotificationConfigEntity updateApplicationPortalNotificationSettings(
             PortalNotificationConfigEntity config) {
         if (!application.equals(config.getReferenceId())
                 || !NotificationReferenceType.APPLICATION.name().equals(config.getReferenceType())
@@ -133,8 +137,7 @@ public class ApplicationNotificationSettingsResource extends AbstractResource {
     @Permissions({
             @Permission(value = APPLICATION_NOTIFICATION, acls = DELETE)
     })
-    public Response delete(
-            @PathParam("application") String application,
+    public Response deleteApplicationNotificationSettings(
             @PathParam("notificationId") String notificationId) {
         genericNotificationConfigService.delete(notificationId);
         return Response.noContent().build();

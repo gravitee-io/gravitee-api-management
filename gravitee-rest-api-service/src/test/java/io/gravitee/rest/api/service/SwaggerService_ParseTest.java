@@ -175,15 +175,6 @@ public class SwaggerService_ParseTest {
         swaggerService.parse(pageEntity.getContent());
     }
 
-    private void validateV2(JsonNode node) {
-        assertEquals("1.2.3", node.get("info").get("version").asText());
-        assertEquals("Gravitee.io Swagger API", node.get("info").get("title").asText());
-        assertEquals("https", node.get("schemes").get(0).asText());
-        assertEquals("demo.gravitee.io", node.get("host").asText());
-        assertEquals("/gateway/echo", node.get("basePath").asText());
-    }
-
-
     private void validateV3(JsonNode node) {
         validateV3(node, true);
     }

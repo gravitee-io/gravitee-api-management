@@ -96,13 +96,11 @@ public class ApiListItem {
 
     @ApiModelProperty(
             value = "the list of categories associated with this API",
-            dataType = "java.util.List",
             example = "Product, Customer, Misc")
     private Set<String> categories;
 
     @ApiModelProperty(
             value = "the free list of labels associated with this API",
-            dataType = "java.util.List",
             example = "json, read_only, awesome")
     private List<String> labels;
 
@@ -118,7 +116,6 @@ public class ApiListItem {
 
     @ApiModelProperty(
             value = "the list of sharding tags associated with this API.",
-            dataType = "java.util.List",
             example = "public, private")
     private Set<String> tags;
 

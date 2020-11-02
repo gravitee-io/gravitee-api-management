@@ -60,6 +60,8 @@ public interface UserService {
 
     UserEntity finalizeRegistration(RegisterUserEntity registerUserEntity);
 
+    UserEntity finalizeResetPassword(ResetPasswordUserEntity registerUserEntity);
+
     UserEntity processRegistration(String userId, boolean accepted);
 
     PictureEntity getPicture(String id);

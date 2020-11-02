@@ -16,21 +16,20 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.UpdateTagEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.TagService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -43,9 +42,9 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Api(tags = {"Sharding Tags"})
-public class TagsResource extends AbstractResource  {
+public class TagsResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private TagService tagService;
 
     @GET
@@ -54,7 +53,7 @@ public class TagsResource extends AbstractResource  {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of sharding tags", response = TagEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<TagEntity> list()  {
+    public List<TagEntity> getTags() {
         return tagService.findAll()
                 .stream()
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
@@ -87,7 +86,7 @@ public class TagsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.CREATE)
     })
-    public TagEntity create(@Valid @NotNull final NewTagEntity tag) {
+    public TagEntity createTag(@Valid @NotNull final NewTagEntity tag) {
         return tagService.create(tag);
     }
 
@@ -103,7 +102,7 @@ public class TagsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.UPDATE)
     })
-    public TagEntity update(@PathParam("tag") String tagId, @Valid @NotNull final UpdateTagEntity tag) {
+    public TagEntity updateTag(@PathParam("tag") String tagId, @Valid @NotNull final UpdateTagEntity tag) {
         return tagService.update(tag);
     }
 
@@ -118,7 +117,7 @@ public class TagsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("tag") String tag) {
+    public void deleteTag(@PathParam("tag") String tag) {
         tagService.delete(tag);
     }
 }

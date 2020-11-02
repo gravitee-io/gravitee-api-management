@@ -13,34 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.application;
+package io.gravitee.rest.api.model.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Rule;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * /!\ This class shouldn't be used.
+ * It was created to fix the issue https://github.com/gravitee-io/issues/issues/4406
+ * and allow a correct swagger generation without modifying the ApiEntity/UpdateApiEntity structure
+ *
+ * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationListItemSettings {
-
-    @JsonProperty("client_id")
-    private String clientId;
-
-    private String type;
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
+class PathsSwaggerDef extends HashMap<String, ArrayList<Rule>> {
 }

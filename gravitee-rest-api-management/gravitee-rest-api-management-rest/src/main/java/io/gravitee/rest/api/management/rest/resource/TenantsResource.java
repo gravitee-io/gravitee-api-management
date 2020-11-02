@@ -28,8 +28,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @Api(tags = {"Tenants"})
 public class TenantsResource extends AbstractResource  {
 
-    @Autowired
+    @Inject
     private TenantService tenantService;
 
     @GET
@@ -53,7 +53,7 @@ public class TenantsResource extends AbstractResource  {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of tenants", response = TenantEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<TenantEntity> list()  {
+    public List<TenantEntity> getTenants()  {
         return tenantService.findAll()
                 .stream()
                 .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
@@ -71,7 +71,7 @@ public class TenantsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.CREATE)
     })
-    public List<TenantEntity> create(@Valid @NotNull final List<NewTenantEntity> tenant) {
+    public List<TenantEntity> createTenants(@Valid @NotNull final List<NewTenantEntity> tenant) {
         return tenantService.create(tenant);
     }
 
@@ -86,7 +86,7 @@ public class TenantsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.UPDATE)
     })
-    public List<TenantEntity> update(@Valid @NotNull final List<UpdateTenantEntity> tenant) {
+    public List<TenantEntity> updateTenants(@Valid @NotNull final List<UpdateTenantEntity> tenant) {
         return tenantService.update(tenant);
     }
 
@@ -101,7 +101,7 @@ public class TenantsResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("tenant") String tenant) {
+    public void deleteTenant(@PathParam("tenant") String tenant) {
         tenantService.delete(tenant);
     }
 }

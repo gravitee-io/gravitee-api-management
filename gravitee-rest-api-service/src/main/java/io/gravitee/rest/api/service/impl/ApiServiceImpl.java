@@ -91,6 +91,7 @@ import java.util.stream.Stream;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
@@ -596,15 +597,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private String formatExpression(final Matcher matcher, final String group) {
-        final String matchedExpression = matcher.group(group);
+        String matchedExpression = matcher.group(group);
         final boolean expressionBlank = matchedExpression == null || "".equals(matchedExpression);
         final boolean after = "after".equals(group);
 
         String expression;
         if (after) {
+            if (matchedExpression.startsWith(" && (") && matchedExpression.endsWith(")")) {
+                matchedExpression = matchedExpression.substring(5, matchedExpression.length() - 1);
+            }
             expression = expressionBlank ? "" : " && (" + matchedExpression + ")";
             expression = expression.replaceAll("\\(" + LOGGING_DELIMITER_BASE, "\\(");
         } else {
+            if (matchedExpression.startsWith("(") && matchedExpression.endsWith(") && ")) {
+                matchedExpression = matchedExpression.substring(1, matchedExpression.length() - 5);
+            }
             expression = expressionBlank ? "" : "(" + matchedExpression + ") && ";
             expression = expression.replaceAll(LOGGING_DELIMITER_BASE + "\\)", "\\)");
         }
@@ -1013,7 +1020,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.setDeployedAt(apiToUpdate.getDeployedAt());
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
                 api.setLifecycleState(apiToUpdate.getLifecycleState());
-                if (updateApiEntity.getPicture() == null) {
+                // If no new picture and the current picture url is not the default one, keep the current picture
+                if (updateApiEntity.getPicture() == null && updateApiEntity.getPictureUrl() != null && updateApiEntity.getPictureUrl().indexOf("?hash") > 0) {
                     api.setPicture(apiToUpdate.getPicture());
                 }
                 if (updateApiEntity.getBackground() == null) {
@@ -1998,6 +2006,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
+    public Collection<String> searchIds(ApiQuery query) {
+        try {
+            LOGGER.debug("Search API ids by {}", query);
+            return apiRepository.search(queryToCriteria(query).build()).stream().map(Api::getId).collect(toList());
+        } catch (Exception ex) {
+            final String errorMessage = "An error occurs while trying to search for API ids: " + query;
+            LOGGER.error(errorMessage, ex);
+            throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    @Override
     public Collection<ApiEntity> search(String query, Map<String, Object> filters) {
         Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class)
             .setQuery(query)
@@ -2120,7 +2140,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private ApiEntity updateWorkflowReview(final String apiId, final String userId, final ApiHook hook,
                                            final WorkflowState workflowState, final String workflowMessage) {
-        workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
+        Workflow workflow = workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
         final ApiEntity apiEntity = findById(apiId);
         apiEntity.setWorkflowState(workflowState);
 
@@ -2129,6 +2149,31 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .api(apiEntity)
                 .user(userService.findById(userId))
                 .build());
+
+        Map<Audit.AuditProperties, String> properties = new HashMap<>();
+        properties.put(Audit.AuditProperties.USER, userId);
+        properties.put(Audit.AuditProperties.API, apiId);
+
+        Workflow.AuditEvent evtType = null;
+        switch (workflowState) {
+            case REQUEST_FOR_CHANGES:
+                evtType = API_REVIEW_REJECTED;
+                break;
+            case REVIEW_OK:
+                evtType = API_REVIEW_ACCEPTED;
+                break;
+            default:
+                evtType = API_REVIEW_ASKED;
+                break;
+        }
+
+        auditService.createApiAuditLog(
+                apiId,
+                properties,
+                evtType,
+                new Date(),
+                null,
+                workflow);
         return apiEntity;
     }
 

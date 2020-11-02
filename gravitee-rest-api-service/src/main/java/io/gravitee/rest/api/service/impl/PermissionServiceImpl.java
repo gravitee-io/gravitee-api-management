@@ -16,9 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.*;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
@@ -27,9 +25,7 @@ import io.gravitee.rest.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +57,9 @@ public class PermissionServiceImpl extends AbstractService implements Permission
             case ENVIRONMENT:
                 membershipReferenceType = MembershipReferenceType.ENVIRONMENT;
                 break;
+            case ORGANIZATION:
+                membershipReferenceType = MembershipReferenceType.ORGANIZATION;
+                break;
             default:
                 membershipReferenceType = null;
         }
@@ -75,8 +74,8 @@ public class PermissionServiceImpl extends AbstractService implements Permission
     @Override
     public boolean hasManagementRights(String userId) {
         UserEntity user = userService.findByIdWithRoles(userId);
-        boolean hasManagementRights = (user.getRoles() != null && !user.getRoles().isEmpty());
-        
+        boolean hasManagementRights = this.hasRelevantManagementRole(user) ;
+
         if (!hasManagementRights) {
             Set<RoleEntity> userApisRole = membershipService.findUserMembership(MembershipReferenceType.API, userId)
                     .stream()
@@ -101,5 +100,45 @@ public class PermissionServiceImpl extends AbstractService implements Permission
             });
         }
         return hasManagementRights;
+    }
+
+    /**
+     * Checks whether the user has an appropriate management role, which means he has create/update/delete permission
+     * on Organization or Environment scope, with the exception of the Environment/Application scope (which does not
+     * allow the user to access management)
+     *
+     * @param user
+     * @return true if the user has an appropriate management role, else false
+     */
+    private boolean hasRelevantManagementRole(UserEntity user) {
+        if (user.getRoles() == null) {
+            return false ;
+        }
+
+        for (UserRoleEntity userRoleEntity :  user.getRoles()) {
+            if (userRoleEntity.getPermissions() != null) {
+                RoleScope currentScope = userRoleEntity.getScope() ;
+                for (String permissionName : userRoleEntity.getPermissions().keySet()) {
+                    String permissionString = new String(userRoleEntity.getPermissions().get((permissionName)));
+                    boolean isCreateUpdateOrDelete = permissionString.contains("C") ||
+                            permissionString.contains("U") ||
+                            permissionString.contains("D");
+
+                    if (currentScope.equals(RoleScope.ORGANIZATION)
+                            && isCreateUpdateOrDelete) {
+                        return true ;
+                    }
+
+                    if (currentScope.equals(RoleScope.ENVIRONMENT)
+                            && !EnvironmentPermission.valueOf(permissionName).equals(EnvironmentPermission.APPLICATION)
+                            && isCreateUpdateOrDelete
+                    ) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

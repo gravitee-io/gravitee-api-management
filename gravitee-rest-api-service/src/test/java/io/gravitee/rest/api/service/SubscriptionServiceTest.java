@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.SubscriptionServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
+import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -49,6 +50,9 @@ import java.util.Optional;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -66,6 +70,7 @@ public class SubscriptionServiceTest {
     private static final String API_ID = "my-api";
     private static final String PAGE_ID = "my-page-gcu";
     private static final String USER_ID = "user";
+    private static final String SUBSCRIBER_ID = "subscriber";
 
     @InjectMocks
     private SubscriptionService subscriptionService = new SubscriptionServiceImpl();
@@ -100,6 +105,22 @@ public class SubscriptionServiceTest {
     private GroupService groupService;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private UserService userService;
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
+            }
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+        });
+    }
 
     @Test
     public void shouldFindById() throws TechnicalException {
@@ -355,6 +376,11 @@ public class SubscriptionServiceTest {
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         SecurityContextHolder.setContext(generateSecurityContext());
 
@@ -412,6 +438,11 @@ public class SubscriptionServiceTest {
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         SecurityContextHolder.setContext(generateSecurityContext());
 
@@ -595,7 +626,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
-        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singleton(apiKeyEntity));
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKeyEntity));
         when(apiKeyEntity.isRevoked()).thenReturn(false);
         when(apiKeyEntity.getExpireAt()).thenReturn(null);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -628,7 +659,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(subscription)).thenAnswer(returnsFirstArg());
-        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singleton(apiKeyEntity));
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKeyEntity));
         when(apiKeyEntity.isRevoked()).thenReturn(true);
         when(apiKeyEntity.getExpireAt()).thenReturn(null);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -661,7 +692,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(subscription)).thenAnswer(returnsFirstArg());
-        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singleton(apiKeyEntity));
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKeyEntity));
         when(apiKeyEntity.isRevoked()).thenReturn(false);
         when(apiKeyEntity.getExpireAt()).thenReturn(new Date(updatedSubscription.getEndingAt().getTime() + 10000));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -703,7 +734,7 @@ public class SubscriptionServiceTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(subscription)).thenReturn(subscription);
-        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singleton(apiKey));
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKey));
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
@@ -742,7 +773,7 @@ public class SubscriptionServiceTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(subscription)).thenReturn(subscription);
-        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singleton(apiKey));
+        when(apiKeyService.findBySubscription(SUBSCRIPTION_ID)).thenReturn(singletonList(apiKey));
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
@@ -766,6 +797,11 @@ public class SubscriptionServiceTest {
         subscription.setApplication(APPLICATION_ID);
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         when(plan.getApi()).thenReturn(API_ID);
 
@@ -780,6 +816,9 @@ public class SubscriptionServiceTest {
 
         // Verify
         verify(apiKeyService, never()).generate(any());
+        verify(userService).findById(SUBSCRIBER_ID);
+        verify(notifierService).triggerEmail(any(), anyString(), anyMap(), anyString());
+
         assertEquals(SubscriptionStatus.REJECTED, subscriptionEntity.getStatus());
         assertEquals(USER_ID, subscriptionEntity.getProcessedBy());
         assertNotNull(subscriptionEntity.getProcessedAt());

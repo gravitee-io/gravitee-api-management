@@ -33,11 +33,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -450,5 +449,31 @@ public class ApiKeyServiceTest {
                 .trigger(eq(ApiHook.APIKEY_EXPIRED), any(), any());
         verify(auditService, times(1))
                 .createApiAuditLog(any(), any(), eq(ApiKey.AuditEvent.APIKEY_EXPIRED), any(), any(), any());
+    }
+
+    @Test
+    public void shouldFindBySubscription() throws TechnicalException {
+        String subscriptionId = "my-subscription";
+        SubscriptionEntity subscriptionEntity = mock(SubscriptionEntity.class);
+        when(subscriptionEntity.getId()).thenReturn(subscriptionId);
+        when(subscriptionService.findById(subscriptionId)).thenReturn(subscriptionEntity);
+        ApiKey firstKey = mock(ApiKey.class);
+        when(firstKey.getCreatedAt()).thenReturn(new Date(Instant.now().toEpochMilli()));
+        when(firstKey.getKey()).thenReturn("first");
+        ApiKey secondkey = mock(ApiKey.class);
+        when(secondkey.getKey()).thenReturn("second");
+        when(secondkey.getCreatedAt()).thenReturn(new Date(Instant.now().minus(5, ChronoUnit.DAYS).toEpochMilli()));
+        ApiKey lastKey = mock(ApiKey.class);
+        when(lastKey.getKey()).thenReturn("last");
+        when(lastKey.getCreatedAt()).thenReturn(new Date(Instant.now().minus(10, ChronoUnit.DAYS).toEpochMilli()));
+        Set<ApiKey> keys = new HashSet<>(Arrays.asList(lastKey, firstKey, secondkey));
+        when(apiKeyRepository.findBySubscription(subscriptionId)).thenReturn(keys);
+
+        List<ApiKeyEntity> bySubscription = apiKeyService.findBySubscription(subscriptionId).stream().collect(Collectors.toList());
+
+        assertEquals(3, bySubscription.size());
+        assertEquals("first", bySubscription.get(0).getKey());
+        assertEquals("second", bySubscription.get(1).getKey());
+        assertEquals("last", bySubscription.get(2).getKey());
     }
 }

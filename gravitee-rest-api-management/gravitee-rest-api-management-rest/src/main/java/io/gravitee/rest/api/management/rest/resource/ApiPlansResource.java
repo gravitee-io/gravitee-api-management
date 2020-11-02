@@ -67,6 +67,11 @@ public class ApiPlansResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
@@ -75,8 +80,7 @@ public class ApiPlansResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible plans for current user", response = PlanEntity.class, responseContainer = "Set"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<PlanEntity> listPlans(
-            @PathParam("api") final String api,
+    public List<PlanEntity> getApiPlans(
             @QueryParam("status") @DefaultValue("published") final PlanStatusParam wishedStatus,
             @QueryParam("security") final PlanSecurityParam security) {
         if (!hasPermission(RolePermission.API_PLAN, api, RolePermissionAction.READ) &&
@@ -107,8 +111,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_PLAN, acls = CREATE)
     })
-    public Response createPlan(
-            @PathParam("api") String api,
+    public Response createApiPlan(
             @ApiParam(name = "plan", required = true) @Valid @NotNull NewPlanEntity newPlanEntity) {
         newPlanEntity.setApi(api);
         newPlanEntity.setType(PlanType.API);
@@ -134,8 +137,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_PLAN, acls = UPDATE)
     })
-    public Response updatePlan(
-            @PathParam("api") String api,
+    public Response updateApiPlan(
             @PathParam("plan") String plan,
             @ApiParam(name = "plan", required = true) @Valid @NotNull UpdatePlanEntity updatePlanEntity) {
 
@@ -169,8 +171,7 @@ public class ApiPlansResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Plan information", response = PlanEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getPlan(
-            @PathParam("api") String api,
+    public Response getApiPlan(
             @PathParam("plan") String plan) {
 
         if (Visibility.PUBLIC.equals(apiService.findById(api).getVisibility())
@@ -199,8 +200,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_PLAN, acls = DELETE)
     })
-    public Response deletePlan(
-            @PathParam("api") String api,
+    public Response deleteApiPlan(
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
         if (! planEntity.getApi().equals(api)) {
@@ -226,8 +226,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_PLAN, acls = UPDATE)
     })
-    public Response closePlan(
-            @PathParam("api") String api,
+    public Response closeApiPlan(
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
         if (! planEntity.getApi().equals(api)) {
@@ -251,8 +250,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_PLAN, acls = UPDATE)
     })
-    public Response publishPlan(
-            @PathParam("api") String api,
+    public Response publishApiPlan(
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
         if (! planEntity.getApi().equals(api)) {
@@ -276,8 +274,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_PLAN, acls = UPDATE)
     })
-    public Response depreciatePlan(
-            @PathParam("api") String api,
+    public Response depreciateApiPlan(
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
         if (! planEntity.getApi().equals(api)) {

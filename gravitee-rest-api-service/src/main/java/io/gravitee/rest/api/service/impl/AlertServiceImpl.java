@@ -36,10 +36,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.AlertEventQuery;
-import io.gravitee.rest.api.model.AlertEventRuleEntity;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -101,8 +98,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     private String username;
     @Value("${notifiers.email.password:#{null}}")
     private String password;
-    @Value("${notifiers.email.from}")
-    private String defaultFrom;
     @Value("${notifiers.email.starttls.enabled:false}")
     private boolean startTLSEnabled;
     @Value("${notifiers.email.ssl.trustAll:false}")
@@ -144,6 +139,9 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
 
     @Autowired
     private ApiRepository apiRepository;
+
+    @Autowired
+    private ApiMetadataService apiMetadataService;
 
     @Override
     public AlertStatusEntity getStatus() {
@@ -458,7 +456,6 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         EmailNotifierConfiguration configuration = new EmailNotifierConfiguration();
 
         if (host == null) {
-            configuration.setPassword(environment.getProperty("email.subject"));
             configuration.setHost(environment.getProperty("email.host"));
             final String emailPort = environment.getProperty("email.port");
             if (emailPort != null) {
@@ -482,7 +479,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             JsonNode emailNode = mapper.readTree(notification.getConfiguration());
             configuration.setFrom(emailNode.path("from").asText());
             configuration.setTo(emailNode.path("to").asText());
-            configuration.setSubject(emailNode.path("subject").asText());
+            configuration.setSubject(String.format(subject, emailNode.path("subject").asText()));
             configuration.setBody(emailNode.path("body").asText());
 
             notification.setConfiguration(mapper.writeValueAsString(configuration));
@@ -637,6 +634,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 } else {
                     ApiEntity apiEntity = apiService.findById(api);
                     metadata = mapper.convertValue(apiEntity, Map.class);
+                    metadata.put("id", api);
                     metadata.put("primaryOwner", mapper.convertValue(apiEntity.getPrimaryOwner(), Map.class));
                     metadata.remove("picture");
                     metadata.remove("proxy");
@@ -646,6 +644,11 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                     metadata.remove("resources");
                     metadata.remove("response_templates");
                     metadata.remove("path_mappings");
+
+                    final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(api);
+                    final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
+                    metadataList.forEach(m -> mapMetadata.put(m.getKey(), m.getValue() == null ? m.getDefaultValue() : m.getValue()));
+                    metadata.put("metadata",  mapper.convertValue(mapMetadata, Map.class));
                 }
             } catch (ApiNotFoundException anfe) {
                 metadata.put(METADATA_DELETED, Boolean.TRUE.toString());
@@ -711,7 +714,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         alert.setDescription(alertEntity.getDescription());
         alert.setReferenceId(alertEntity.getReferenceId());
         alert.setReferenceType(alertEntity.getReferenceType().name());
-        alert.setEnabled(alertEntity.isEnabled());
+        alert.setEnabled(alertEntity.isTemplate() || alertEntity.isEnabled());
         alert.setType(alertEntity.getType());
         alert.setSeverity(alertEntity.getSeverity().name());
         alert.setTemplate(alertEntity.isTemplate());
@@ -809,6 +812,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 alertTriggerEntity.setSeverity(Trigger.Severity.INFO);
             }
 
+            alertTriggerEntity.setEnabled(alert.isEnabled());
             alertTriggerEntity.setTemplate(alert.isTemplate());
             alertTriggerEntity.setParentId(alert.getParentId());
 

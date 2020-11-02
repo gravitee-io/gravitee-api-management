@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
@@ -23,8 +25,6 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
@@ -40,7 +40,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +73,7 @@ public class ApplicationsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ)
     })
-    public List<ApplicationListItem> listApplications(
+    public List<ApplicationListItem> getApplications(
             @QueryParam("group") final String group,
             @QueryParam("query") final String query) {
         Set<ApplicationListItem> applications;
@@ -164,7 +163,7 @@ public class ApplicationsResource extends AbstractResource {
             @ApiResponse(code = 200, message = "List of hooks"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Produces(MediaType.APPLICATION_JSON)
-    public Hook[] getHooks() {
+    public Hook[] getApplicationHooks() {
         return ApplicationHook.values();
     }
 

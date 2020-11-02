@@ -25,12 +25,9 @@ import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AlertService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.annotations.*;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -47,8 +44,13 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 @Api(tags = {"Application Alerts"})
 public class ApplicationAlertsResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private AlertService alertService;
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("application")
+    @ApiParam(name = "application", hidden = true)
+    private String application;
 
     @GET
     @ApiOperation(value = "List configured alerts of an application",
@@ -60,7 +62,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = APPLICATION_ALERT, acls = READ)
     })
-    public List<AlertTriggerEntity> list(@PathParam("application") String application) {
+    public List<AlertTriggerEntity> getApplicationAlerts() {
         return alertService.findByReference(APPLICATION, application);
     }
 
@@ -75,7 +77,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
-    public AlertStatusEntity status(@PathParam("application") String application) {
+    public AlertStatusEntity getApplicationAlertsStatus() {
         return alertService.getStatus();
     }
 
@@ -90,7 +92,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.CREATE)
     })
-    public AlertTriggerEntity create(@PathParam("application") String application, @Valid @NotNull final NewAlertTriggerEntity alertEntity) {
+    public AlertTriggerEntity createApplicationAlert(@Valid @NotNull final NewAlertTriggerEntity alertEntity) {
         alertEntity.setReferenceType(APPLICATION);
         alertEntity.setReferenceId(application);
         return alertService.create(alertEntity);
@@ -108,7 +110,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.UPDATE)
     })
-    public AlertTriggerEntity update(@PathParam("application") String application, @PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
+    public AlertTriggerEntity updateApplicationAlert(@PathParam("alert") String alert, @Valid @NotNull final UpdateAlertTriggerEntity alertEntity) {
         alertEntity.setId(alert);
         alertEntity.setReferenceType(APPLICATION);
         alertEntity.setReferenceId(application);
@@ -126,7 +128,7 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_ALERT, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("application") String application, @PathParam("alert") String alert) {
+    public void deleteApplicationAlert(@PathParam("alert") String alert) {
         alertService.delete(alert, application);
     }
 }

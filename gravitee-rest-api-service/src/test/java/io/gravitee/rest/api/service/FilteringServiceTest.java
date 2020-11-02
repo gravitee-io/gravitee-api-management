@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.filtering.FilteringServiceImpl;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +68,20 @@ public class FilteringServiceTest {
     ApplicationService applicationService;
 
     private static Set<ApiEntity> mockApis;
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
+            }
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+        });
+    }
 
     @BeforeClass
     public static void initAllTest() {

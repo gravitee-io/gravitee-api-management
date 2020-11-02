@@ -60,6 +60,15 @@ public class ApiPageResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
+    @PathParam("page")
+    @ApiParam(name = "page", required = true)
+    private String page;
+
     @Context
     private ResourceContext resourceContext;
 
@@ -70,10 +79,8 @@ public class ApiPageResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PageEntity getPage(
+    public PageEntity getApiPage(
                 @HeaderParam("Accept-Language") String acceptLang,
-                @PathParam("api") String api,
-                @PathParam("page") String page,
                 @QueryParam("portal") boolean portal,
                 @QueryParam("translated") boolean translated) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
@@ -111,11 +118,31 @@ public class ApiPageResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page's content"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getPageContent(
-            @PathParam("api") String api,
-            @PathParam("page") String page) {
-        final PageEntity pageEntity = getPage(null, api, page, true, false);
+    public Response getApiPageContent() {
+        final PageEntity pageEntity = getApiPage(null, true, false);
         return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
+    }
+
+    @PUT
+    @Path("/content")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Put the page's content",
+            notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Page content successfully updated"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
+    public String updatePageContent(@ApiParam(name = "content", required = true) @Valid @NotNull String content) {
+        pageService.findById(page);
+
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setContent(content);
+        PageEntity update = pageService.update(page, updatePageEntity, true);
+
+        return update.getContent();
     }
 
     @PUT
@@ -129,15 +156,12 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity updatePage(
-            @PathParam("api") String api,
-            @PathParam("page") String page,
-            @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
+    public PageEntity updateApiPage(@ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Update"); 
+            throw new PageSystemFolderActionException("Update");
         }
-        
+
         updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity);
     }
@@ -153,9 +177,7 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity fetchPage(
-            @PathParam("api") String api,
-            @PathParam("page") String page) {
+    public PageEntity fetchApiPage() {
         pageService.findById(page);
         String contributor = getAuthenticatedUser();
 
@@ -173,13 +195,11 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity partialUpdatePage(
-            @PathParam("api") String api,
-            @PathParam("page") String page,
+    public PageEntity partialUpdateApiPage(
             @ApiParam(name = "page") UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Update"); 
+            throw new PageSystemFolderActionException("Update");
         }
 
         updatePageEntity.setLastContributor(getAuthenticatedUser());
@@ -195,12 +215,10 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE)
     })
-    public void deletePage(
-            @PathParam("api") String api,
-            @PathParam("page") String page) {
+    public void deleteApiPage() {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Delete"); 
+            throw new PageSystemFolderActionException("Delete");
         }
 
         pageService.delete(page);

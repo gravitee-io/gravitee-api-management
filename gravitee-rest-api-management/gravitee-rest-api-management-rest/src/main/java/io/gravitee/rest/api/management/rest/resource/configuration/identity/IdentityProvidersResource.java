@@ -60,7 +60,7 @@ public class IdentityProvidersResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List identity providers", response = IdentityProviderListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<IdentityProviderListItem> listIdentityProviders() {
+    public List<IdentityProviderListItem> getIdentityProviders() {
         return identityProviderService.findAll().stream().map(identityProvider -> {
             IdentityProviderListItem item = new IdentityProviderListItem();
             item.setId(identityProvider.getId());

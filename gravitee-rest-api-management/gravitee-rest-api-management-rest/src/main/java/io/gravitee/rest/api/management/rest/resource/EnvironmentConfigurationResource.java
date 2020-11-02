@@ -69,7 +69,7 @@ public class EnvironmentConfigurationResource {
     @Path("/hooks")
     @ApiOperation("Get the list of available hooks")
     @Produces(MediaType.APPLICATION_JSON)
-    public Hook[] getHooks() {
+    public Hook[] getConfigurationHooks() {
         return Arrays.stream(PortalHook.values()).filter(h -> !h.isHidden()).toArray(Hook[]::new);
     }
 
@@ -83,7 +83,7 @@ public class EnvironmentConfigurationResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_NOTIFICATION, acls = RolePermissionAction.READ)
     })
-    public List<NotifierEntity> getNotifiers() {
+    public List<NotifierEntity> getPortalNotifiers() {
         return notifierService.list(NotificationReferenceType.PORTAL, PortalNotificationDefaultReferenceId.DEFAULT.name());
     }
 

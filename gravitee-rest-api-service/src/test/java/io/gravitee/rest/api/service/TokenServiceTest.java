@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
 import io.gravitee.rest.api.service.impl.TokenServiceImpl;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,6 +76,20 @@ public class TokenServiceTest {
     private Token token;
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
+            }
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+        });
+    }
 
     @Before
     public void init() throws TechnicalException {

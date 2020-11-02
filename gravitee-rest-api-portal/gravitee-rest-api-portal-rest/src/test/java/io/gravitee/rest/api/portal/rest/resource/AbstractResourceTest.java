@@ -20,6 +20,7 @@ import io.gravitee.rest.api.portal.rest.mapper.*;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
@@ -109,6 +110,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         reset(applicationMetadataService);
         reset(referenceMetadataMapper);
         reset(customUserFieldService);
+        reset(authenticationProvider);
     }
 
     public AbstractResourceTest() {
@@ -303,6 +305,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ReferenceMetadataMapper referenceMetadataMapper;
+
+    @Autowired
+    private AuthoritiesProvider authoritiesProvider;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
@@ -601,6 +606,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public CustomUserFieldService customUserFieldService() {
             return mock(CustomUserFieldService.class);
+        }
+
+        @Bean
+        public AuthoritiesProvider authoritiesProvider() {
+            return mock(AuthoritiesProvider.class);
         }
     }
 }

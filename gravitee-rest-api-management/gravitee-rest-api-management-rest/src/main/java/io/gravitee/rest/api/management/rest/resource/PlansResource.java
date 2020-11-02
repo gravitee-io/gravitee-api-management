@@ -22,8 +22,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -39,7 +39,7 @@ public class PlansResource extends AbstractResource  {
     @Context
     private UriInfo uriInfo;
 
-    @Autowired
+    @Inject
     private PlanService planService;
 
     @GET
@@ -48,7 +48,7 @@ public class PlansResource extends AbstractResource  {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of plans", response = PlansConfigurationEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PlansConfigurationEntity getConfiguration() {
+    public PlansConfigurationEntity getPlansConfiguration() {
         return planService.getConfiguration();
     }
 }

@@ -30,8 +30,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.reflections.Reflections;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -50,7 +50,7 @@ public class AuditResource extends AbstractResource  {
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private AuditService auditService;
 
     @GET
@@ -64,7 +64,7 @@ public class AuditResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ)
     })
-    public MetadataPage<AuditEntity> list(@BeanParam AuditParam param){
+    public MetadataPage<AuditEntity> getAudits(@BeanParam AuditParam param){
 
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());
@@ -100,7 +100,7 @@ public class AuditResource extends AbstractResource  {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ)
     })
-    public Response getEvents() {
+    public Response getAuditEvents() {
         if (events.isEmpty()) {
             Set<Class<? extends Audit.AuditEvent>> subTypesOf =
                     new Reflections("io.gravitee.repository.management.model")

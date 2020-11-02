@@ -16,19 +16,16 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.param.LogsParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.param.LogsParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.LogsService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -48,6 +45,11 @@ public class ApplicationLogsResource extends AbstractResource {
     @Inject
     private LogsService logsService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("application")
+    @ApiParam(name = "application", hidden = true)
+    private String application;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get application logs")
@@ -57,9 +59,7 @@ public class ApplicationLogsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)
     })
-    public SearchLogResponse applicationLogs(
-            @PathParam("application") String application,
-            @BeanParam LogsParam param) {
+    public SearchLogResponse getApplicationLogs(@BeanParam LogsParam param) {
 
         param.validate();
 
@@ -85,8 +85,7 @@ public class ApplicationLogsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)
     })
-    public ApplicationRequest applicationLog(
-            @PathParam("application") String application,
+    public ApplicationRequest getApplicationLog(
             @PathParam("log") String logId,
             @QueryParam("timestamp") Long timestamp) {
         return logsService.findApplicationLog(logId, timestamp);
@@ -101,9 +100,8 @@ public class ApplicationLogsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({@Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)})
     public Response exportApplicationLogsAsCSV(
-            @PathParam("application") String application,
             @BeanParam LogsParam param) {
-        final SearchLogResponse searchLogResponse = applicationLogs(application, param);
+        final SearchLogResponse searchLogResponse = getApplicationLogs(param);
         return Response
                 .ok(logsService.exportAsCsv(searchLogResponse))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", application, System.currentTimeMillis()))

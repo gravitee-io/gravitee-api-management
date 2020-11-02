@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.service.impl.swagger.SwaggerProperties;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.AbstractPageConfigurationSwaggerTransformer;
@@ -23,6 +24,8 @@ import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.oas.models.servers.Server;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,24 +36,24 @@ import java.util.List;
 public class EntrypointsOAITransformer extends AbstractPageConfigurationSwaggerTransformer<OAIDescriptor> {
 
     private final List<ApiEntrypointEntity> entrypoints;
+    private final String contextPath;
 
-    public EntrypointsOAITransformer(final PageEntity page, final List<ApiEntrypointEntity> entrypoints) {
+    public EntrypointsOAITransformer(final PageEntity page, final ApiEntity api) {
         super(page);
-        this.entrypoints = entrypoints;
+        this.entrypoints = api.getEntrypoints();
+        contextPath = api.getContextPath();
     }
 
     @Override
     public void transform(OAIDescriptor descriptor) {
-        if (asBoolean(SwaggerProperties.ENTRYPOINTS_AS_SERVERS) && entrypoints != null && ! entrypoints.isEmpty()) {
+        if (asBoolean(SwaggerProperties.ENTRYPOINTS_AS_SERVERS) && entrypoints != null && !entrypoints.isEmpty()) {
             List<Server> servers = new ArrayList<>();
 
             // Add server according to entrypoints
             entrypoints.forEach(entrypoint -> {
                 Server server = new Server();
 
-                if (getProperty(SwaggerProperties.ENTRYPOINT_AS_BASEPATH) == null
-                        || getProperty(SwaggerProperties.ENTRYPOINT_AS_BASEPATH).isEmpty()
-                        || asBoolean(SwaggerProperties.ENTRYPOINT_AS_BASEPATH)) {
+                if (asBoolean(SwaggerProperties.ENTRYPOINT_AS_BASEPATH)) {
                     server.setUrl(entrypoint.getTarget());
                 } else {
                     URI target = URI.create(entrypoint.getTarget());
@@ -58,10 +61,25 @@ public class EntrypointsOAITransformer extends AbstractPageConfigurationSwaggerT
                 }
 
                 servers.add(server);
-
             });
 
             descriptor.getSpecification().setServers(servers);
+        } else if (asBoolean(SwaggerProperties.ENTRYPOINT_AS_BASEPATH) && descriptor.getSpecification().getServers() != null) {
+            // Replace the server path with the api context-path.
+            descriptor.getSpecification().getServers().forEach(server -> {
+                final URI newURI = URI.create(server.getUrl());
+                try {
+                    server.setUrl(new URI(newURI.getScheme(),
+                            newURI.getUserInfo(),
+                            newURI.getHost(),
+                            newURI.getPort(),
+                            this.contextPath,
+                            newURI.getQuery(),
+                            newURI.getFragment()).toString());
+                } catch (URISyntaxException e) {
+                    logger.error(e.getMessage(), e);
+                }
+            });
         }
     }
 }
