@@ -185,7 +185,7 @@ class ApiListPlansController {
     });
   }
 
-  depreciate(plan, ev) {
+  deprecate(plan, ev) {
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
@@ -198,7 +198,7 @@ class ApiListPlansController {
       }
     }).then( (response) => {
       if (response) {
-        this.ApiService.depreciatePlan(this.$stateParams.apiId, plan.id).then( () => {
+        this.ApiService.deprecatePlan(this.$stateParams.apiId, plan.id).then( () => {
           this.NotificationService.show('Plan ' + plan.name + ' has been deprecated');
           this.$rootScope.$broadcast('planChangeSuccess', { state: 'deprecated'});
           this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});

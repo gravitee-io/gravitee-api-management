@@ -315,8 +315,8 @@ class ApiService {
     return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_publish');
   }
 
-  depreciatePlan(apiId, planId) {
-    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_depreciate');
+  deprecatePlan(apiId, planId) {
+    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_deprecate');
   }
 
   /*
