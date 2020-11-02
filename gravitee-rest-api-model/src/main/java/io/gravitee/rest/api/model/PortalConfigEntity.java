@@ -17,6 +17,8 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.common.util.LinkedMultiValueMap;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
 
@@ -28,6 +30,8 @@ import java.util.List;
  */
 @JsonIgnoreProperties(value = {"baseURL", "orgBaseURL", "envBaseURL"})
 public class PortalConfigEntity {
+
+    public static final String METADATA_READONLY = "readonly";
 
     private Company company;
     private Management management;
@@ -49,6 +53,9 @@ public class PortalConfigEntity {
     private ReCaptcha reCaptcha;
     private Api api;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private MultiValueMap<String, String> metadata;
+
     public PortalConfigEntity() {
         company = new Company();
         management = new Management();
@@ -69,6 +76,7 @@ public class PortalConfigEntity {
         newsletter = new Newsletter();
         reCaptcha = new ReCaptcha();
         api = new Api();
+        metadata = new LinkedMultiValueMap<>();
     }
 
     public Company getCompany() {
@@ -221,6 +229,14 @@ public class PortalConfigEntity {
 
     public void setApi(Api api) {
         this.api = api;
+    }
+
+    public MultiValueMap<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(MultiValueMap<String, String> metadata) {
+        this.metadata = metadata;
     }
 
     public static class GoogleAuthentication {

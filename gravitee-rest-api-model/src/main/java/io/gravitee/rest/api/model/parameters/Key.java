@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.model.parameters;
 
+import java.util.List;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -23,7 +25,7 @@ package io.gravitee.rest.api.model.parameters;
 public enum Key {
     COMPANY_NAME("company.name", "Gravitee.io"),
 
-    PORTAL_TOP_APIS("portal.top-apis"),
+    PORTAL_TOP_APIS("portal.top-apis", List.class, false),
     PORTAL_TITLE("portal.title", "Gravitee.io Portal"),
     PORTAL_ENTRYPOINT("portal.entrypoint", "https://api.company.com"),
     PORTAL_APIKEY_HEADER("portal.apikey.header", "X-Gravitee-Api-Key"),
@@ -59,7 +61,7 @@ public enum Key {
     AUTHENTICATION_OAUTH2_COLOR("authentication.oauth2.color", "#0076b4"),
     AUTHENTICATION_OAUTH2_AUTHORIZATION_ENDPOINT("authentication.oauth2.authorization.endpoint"),
     AUTHENTICATION_OAUTH2_USER_LOGOUT_ENDPOINT("authentication.oauth2.user.logout.endpoint"),
-    AUTHENTICATION_OAUTH2_SCOPE("authentication.oauth2.scopes"),
+    AUTHENTICATION_OAUTH2_SCOPE("authentication.oauth2.scopes", List.class),
 
     SCHEDULER_TASKS("scheduler.tasks", "10"),
     SCHEDULER_NOTIFICATIONS("scheduler.notifications", "10"),
@@ -109,13 +111,26 @@ public enum Key {
     RECAPTCHA_ENABLED("reCaptcha.enabled", "false"),
     RECAPTCHA_SITE_KEY("reCaptcha.siteKey"),
 
-    API_LABELS_DICTIONARY("api.labelsDictionary");
+    API_LABELS_DICTIONARY("api.labelsDictionary", List.class);
 
     String key;
     String defaultValue;
+    Class<?> type;
+    boolean isOverridable = true;
 
     Key(String key) {
         this.key = key;
+    }
+
+    Key(String key, Class<?> type) {
+        this.key = key;
+        this.type = type;
+    }
+
+    Key(String key, Class<?> type, boolean isOverridable) {
+        this.key = key;
+        this.type = type;
+        this.isOverridable = isOverridable;
     }
 
     Key(String key, String defaultValue) {
@@ -129,5 +144,20 @@ public enum Key {
 
     public String defaultValue() {
         return defaultValue;
+    }
+
+    public Class<?> type() { return type; }
+
+    public boolean isOverridable() {
+        return isOverridable;
+    }
+
+    public static Key findByKey(String value) {
+        for (Key key : Key.values()) {
+            if (key.key.equals(value)) {
+                return key;
+            }
+        }
+        throw new IllegalArgumentException(value + " is not a valid Key");
     }
 }

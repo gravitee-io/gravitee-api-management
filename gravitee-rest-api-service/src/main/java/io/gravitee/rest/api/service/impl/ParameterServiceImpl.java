@@ -27,6 +27,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -61,6 +62,8 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     private ParameterRepository parameterRepository;
     @Inject
     private AuditService auditService;
+    @Inject
+    private ConfigurableEnvironment environment;
 
     @Override
     public String find(final Key key) {
@@ -69,7 +72,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         if (values == null || values.isEmpty()) {
             value = key.defaultValue();
         } else {
-            value = values.get(0);
+            value = String.join(SEPARATOR, values);
         }
         return value;
     }
@@ -102,7 +105,18 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     @Override
     public <T> List<T> findAll(final Key key, final Function<String, T> mapper, final Predicate<String> filter) {
         try {
-            final Optional<Parameter> optionalParameter = parameterRepository.findById(key.key());
+            Optional<Parameter> optionalParameter;
+            if (environment.containsProperty(key.key()) && key.isOverridable()) {
+                final Parameter parameter = new Parameter();
+                parameter.setKey(key.key());
+                parameter.setReferenceId(GraviteeContext.getCurrentEnvironment());
+                parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+                parameter.setValue(toSemicolonSeparatedString(key, environment.getProperty(key.key())));
+                optionalParameter = Optional.of(parameter);
+            } else {
+                optionalParameter = parameterRepository.findById(key.key());
+            }
+
             if (optionalParameter.isPresent()) {
                 return splitValue(optionalParameter.get().getValue(), mapper, filter);
             }
@@ -121,11 +135,36 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                     keys.stream().map(Key::key).collect(toList()), 
                     GraviteeContext.getCurrentEnvironment(), 
                     ParameterReferenceType.ENVIRONMENT);
+
+            // Find parameters from environment but not present in database
+            keys.forEach(k -> {
+                if (environment.containsProperty(k.key()) && k.isOverridable()) {
+                    parameters.stream().
+                            filter(p -> p.getKey().equals(k.key()))
+                            .findFirst()
+                            .ifPresentOrElse(
+                            p -> p.setValue(
+                                toSemicolonSeparatedString(Key.findByKey(p.getKey()),
+                                environment.getProperty(p.getKey()))),
+                            () -> {
+                                final Parameter parameter = new Parameter();
+                                parameter.setKey(k.key());
+                                parameter.setReferenceId(GraviteeContext.getCurrentEnvironment());
+                                parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+                                parameter.setValue(toSemicolonSeparatedString(k, environment.getProperty(k.key())));
+                                parameters.add(parameter);
+                            });
+                }
+            });
+
             if (parameters.isEmpty()) {
                 return emptyMap();
             }
+
             Map<String, List<T>> result = new HashMap<>();
-            parameters.forEach( p -> result.put(p.getKey(), splitValue(p.getValue(), mapper, filter)) );
+            parameters.forEach( p -> {
+                result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+            });
             return result;
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to find parameter values with keys: " + keys;
@@ -157,6 +196,11 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             parameter.setReferenceId(GraviteeContext.getCurrentEnvironment());
             parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
             parameter.setValue(value);
+
+            if (environment.containsProperty(key.key()) && key.isOverridable()) {
+                parameter.setValue(toSemicolonSeparatedString(key, environment.getProperty(key.key())));
+                return parameter;
+            }
 
             if (updateMode) {
                 if (value == null) {
@@ -206,5 +250,12 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 .stream()
                 .map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue())
                 .collect(joining(SEPARATOR)));
+    }
+
+    private String toSemicolonSeparatedString(Key key, String value) {
+        if (key.type() != null && List.class.isAssignableFrom(key.type())) {
+            value = value.replace(",", SEPARATOR);
+        }
+        return value;
     }
 }

@@ -91,10 +91,13 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     boolean accessible = f.isAccessible();
                     f.setAccessible(true);
                     try {
-                        final List<String> values = parameterMap.get(parameterKey.value().key());
+                        List<String> values = parameterMap.get(parameterKey.value().key());
+                        if (environment.containsProperty(parameterKey.value().key())) {
+                            portalConfigEntity.getMetadata().add(PortalConfigEntity.METADATA_READONLY, parameterKey.value().key());
+                        }
                         final String defaultValue = parameterKey.value().defaultValue();
                         if (Enabled.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, defaultValue))
+                            f.set(o, Boolean.parseBoolean(getFirstValueOrDefault(values, defaultValue))
                                     ? new Enabled(true)
                                     : new Enabled(false)
                             );
