@@ -95,7 +95,7 @@ public class SyncManager {
 
     void refresh() {
         long nextLastRefreshAt = System.currentTimeMillis();
-
+        boolean error = false;
         if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
             logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
             logger.debug("Refreshing gateway state...");
@@ -103,21 +103,26 @@ public class SyncManager {
             try {
                 synchronizeApis(nextLastRefreshAt);
             } catch (Exception ex) {
+                error = true;
                 logger.error("An error occurs while synchronizing APIs", ex);
             }
 
             try {
                 synchronizeDictionaries(nextLastRefreshAt);
             } catch (Exception ex) {
+                error = true;
                 logger.error("An error occurs while synchronizing dictionaries", ex);
             }
 
             logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
         }
 
-        // We refresh the date even if process did not run (not a master node) to ensure that we sync the same way as
-        // soon as the node is becoming the master later.
-        lastRefreshAt = nextLastRefreshAt;
+        // If there was no error during the sync process, let's continue it with the next period of time
+        if (!error) {
+            // We refresh the date even if process did not run (not a master node) to ensure that we sync the same way as
+            // soon as the node is becoming the master later.
+            lastRefreshAt = nextLastRefreshAt;
+        }
     }
 
     private void synchronizeApis(long nextLastRefreshAt) {
