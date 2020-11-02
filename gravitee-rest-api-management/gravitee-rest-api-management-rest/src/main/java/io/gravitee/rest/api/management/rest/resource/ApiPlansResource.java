@@ -264,17 +264,36 @@ public class ApiPlansResource extends AbstractResource {
     }
 
     @POST
+    @Deprecated
     @Path("/{plan}/_depreciate")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Depreciate a plan",
+    @ApiOperation(value = "Deprecated, use '_deprecate' instead. Deprecate a plan",
             notes = "User must have the API_PLAN[UPDATE] permission to use this service")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Plan successfully depreciated", response = PlanEntity.class),
+            @ApiResponse(code = 204, message = "Plan successfully deprecated", response = PlanEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = API_PLAN, acls = UPDATE)
     })
     public Response depreciateApiPlan(
+            @PathParam("plan") String plan) {
+
+        return this.deprecatePlan(api, plan);
+    }
+
+    @POST
+    @Path("/{plan}/_deprecate")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Deprecate a plan",
+            notes = "User must have the API_PLAN[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Plan successfully deprecated", response = PlanEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = API_PLAN, acls = UPDATE)
+    })
+    public Response deprecatePlan(
+            @PathParam("api") String api,
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
         if (! planEntity.getApi().equals(api)) {
@@ -284,7 +303,7 @@ public class ApiPlansResource extends AbstractResource {
                     .build();
         }
 
-        return Response.ok(planService.depreciate(plan)).build();
+        return Response.ok(planService.deprecate(plan)).build();
     }
 
     private PlanEntity filterSensitiveData(PlanEntity entity) {

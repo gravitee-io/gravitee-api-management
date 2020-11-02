@@ -40,7 +40,7 @@ import static org.mockito.Mockito.*;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class PlanService_DepreciateTest {
+public class PlanService_DeprecateTest {
 
     private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
@@ -68,7 +68,7 @@ public class PlanService_DepreciateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.DEPRECATED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.depreciate(PLAN_ID);
+        planService.deprecate(PLAN_ID);
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
@@ -76,7 +76,7 @@ public class PlanService_DepreciateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.CLOSED);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.depreciate(PLAN_ID);
+        planService.deprecate(PLAN_ID);
     }
 
     @Test(expected = PlanNotYetPublishedException.class)
@@ -84,7 +84,7 @@ public class PlanService_DepreciateTest {
         when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.depreciate(PLAN_ID);
+        planService.deprecate(PLAN_ID);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class PlanService_DepreciateTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
-        planService.depreciate(PLAN_ID, true);
+        planService.deprecate(PLAN_ID, true);
 
         verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
         verify(planRepository, times(1)).update(plan);
@@ -110,7 +110,7 @@ public class PlanService_DepreciateTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.depreciate(PLAN_ID, false);
+        planService.deprecate(PLAN_ID, false);
 
         verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
         verify(planRepository, times(1)).update(plan);
@@ -120,7 +120,7 @@ public class PlanService_DepreciateTest {
     public void shouldNotDepreciateBecauseTechnicalException() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.depreciate(PLAN_ID);
+        planService.deprecate(PLAN_ID);
     }
 
     @Test
@@ -132,7 +132,7 @@ public class PlanService_DepreciateTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
 
-        planService.depreciate(PLAN_ID);
+        planService.deprecate(PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.DEPRECATED);
         verify(planRepository, times(1)).update(plan);
