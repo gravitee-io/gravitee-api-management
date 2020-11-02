@@ -274,6 +274,19 @@ import NotificationsComponent from '../components/notifications/notifications.co
 import NotificationSettingsComponent
   from '../components/notifications/notificationsettings/notificationsettings.component';
 import NotificationSettingsService from '../services/notificationSettings.service';
+import NotificationTemplatesService from '../services/notificationTemplates.service';
+import NotificationTemplatesComponent
+  from '../management/configuration/notification-templates/notificationTemplates.component';
+import NotificationTemplateComponent
+  from '../management/configuration/notification-templates/notificationTemplate.component';
+import NotificationTemplateByTypeComponent
+  from '../management/configuration/notification-templates/components/notificationTemplateByType.component';
+import NotificationTemplatesController
+  from '../management/configuration/notification-templates/notificationTemplates.controller';
+import NotificationTemplateController
+  from '../management/configuration/notification-templates/notificationTemplate.controller';
+import NotificationTemplateByTypeController
+  from '../management/configuration/notification-templates/components/notificationTemplateByType.controller';
 // Documentation
 import DocumentationManagementComponent from '../components/documentation/documentation-management.component';
 import PageComponent from '../components/documentation/page/page.component';
@@ -481,9 +494,12 @@ import ConfirmProfileController from '../user/confirmProfile/confirmProfile.cont
 import CustomUserFieldsComponent from './configuration/custom-user-fields/custom-user-fields.component';
 import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
 import CustomUserFieldsService from '../services/custom-user-fields.service';
-import NewFieldDialogController from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
-import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
-import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
+import NewFieldDialogController
+  from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
+import DeleteFieldDialogController
+  from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
+import UpdateFieldDialogController
+  from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 
 (<any>window).jQuery = jQuery;
 
@@ -887,9 +903,17 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('portalNotifications', PortalNotificationsComponent)
   .service('UserNotificationService', UserNotificationService)
   .service('NotificationSettingsService', NotificationSettingsService)
+  .service('NotificationTemplatesService', NotificationTemplatesService)
   .controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController)
   .component('notificationSettingsComponent', NotificationSettingsComponent)
   .component('notificationsComponent', NotificationsComponent)
+  .component('notificationTemplatesComponent', NotificationTemplatesComponent)
+  .component('notificationTemplateComponent', NotificationTemplateComponent)
+  .component('gvNotificationTemplateByType', NotificationTemplateByTypeComponent)
+  .controller('NotificationTemplatesController', NotificationTemplatesController)
+  .controller('NotificationTemplateController', NotificationTemplateController)
+  .controller('NotificationTemplateByTypeController', NotificationTemplateByTypeController)
+
 
   .component('documentationManagement', DocumentationManagementComponent)
   .component('newPage', NewPageComponent)

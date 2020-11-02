@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "3.3.3",
+  "version": "3.4.0-SNAPSHOT",
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
     "@highcharts/map-collection": "^1.1.3",

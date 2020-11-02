@@ -153,22 +153,29 @@
                 </li>
             </ul>
 
-      <div class="aui-nav-heading" ng-if="$ctrl.settingsMenu.notifications.perm || $ctrl.settingsMenu.alerts.perm">
-        <strong>Notifications</strong>
-      </div>
-      <ul class="aui-nav">
-        <li class="iterable-item" ng-if="$ctrl.settingsMenu.notifications.perm" ui-sref-active="aui-nav-selected">
-          <a class="execute" ui-sref="{{$ctrl.settingsMenu.notifications.goTo}}">Notifications</a>
-        </li>
-      </ul>
-      <ul class="aui-nav">
-        <li class="iterable-item"
-            ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.alerts.list') || $ctrl.$state.includes('management.settings.alerts.alertnew') || $ctrl.$state.includes('management.settings.alerts.alert') }"
-            ng-if="$ctrl.settingsMenu.alerts.perm">
-          <a class="execute" ui-sref="{{$ctrl.settingsMenu.alerts.goTo}}">Alerts</a>
-        </li>
-      </ul>
-    </div>
+            <div class="aui-nav-heading" ng-if="$ctrl.settingsMenu.notifications.perm || $ctrl.settingsMenu.alerts.perm">
+                <strong>Notifications</strong>
+            </div>
+            <ul class="aui-nav">
+              <li class="iterable-item" ui-sref-active="aui-nav-selected" ng-if="$ctrl.settingsMenu.notifications.perm">
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.notifications.goTo}}">Notifications</a>
+              </li>
+            </ul>
+            <ul class="aui-nav">
+              <li class="iterable-item"
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.notificationTemplates') || $ctrl.$state.includes('management.settings.notificationTemplate') }"
+                  ng-if="$ctrl.settingsMenu.notificationTemplates.perm">
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.notificationTemplates.goTo}}">Templates</a>
+              </li>
+            </ul>
+            <ul class="aui-nav">
+              <li class="iterable-item"
+                  ng-if="$ctrl.settingsMenu.alerts.perm">
+                  ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.alerts.list') || $ctrl.$state.includes('management.settings.alerts.alertnew') || $ctrl.$state.includes('management.settings.alerts.alert') }"
+                <a class="execute" ui-sref="{{$ctrl.settingsMenu.alerts.goTo}}">Alerts</a>
+              </li>
+            </ul>
+        </div>
 
     <div class="gv-sub-content" flex layout="column" ui-view></div>
 

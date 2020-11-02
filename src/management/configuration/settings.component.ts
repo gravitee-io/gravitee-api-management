@@ -150,6 +150,10 @@ const SettingsComponent: ng.IComponentOptions = {
         perm: UserService.isUserHasPermissions(['environment-notification-r']),
         goTo: 'management.settings.notifications'
       },
+      notificationTemplates: {
+        perm: UserService.isUserHasPermissions(['organization-notification_templates-r']),
+        goTo: 'management.settings.notificationTemplates'
+      },
       alerts: {
         perm: UserService.isUserHasPermissions(['environment-alert-r']) && Constants.alert && Constants.alert.enabled,
         goTo: 'management.settings.alerts.list'

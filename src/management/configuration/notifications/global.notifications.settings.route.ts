@@ -15,8 +15,9 @@
  */
 import NotificationSettingsService from '../../../services/notificationSettings.service';
 import AlertService from '../../../services/alert.service';
-import {Scope} from '../../../entities/scope';
+import { Scope } from '../../../entities/scope';
 import NotifierService from '../../../services/notifier.service';
+import NotificationTemplatesService from '../../../services/notificationTemplates.service';
 
 export default applicationsNotificationsRouterConfig;
 
@@ -134,5 +135,49 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         notifiers: (NotifierService: NotifierService) =>
           NotifierService.list().then( (response) => response.data)
       }
-    });
+    })
+    .state('management.settings.notificationTemplates', {
+      url: '/notification-templates',
+      component: 'notificationTemplatesComponent',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-notification-templates'
+        },
+        perms: {
+          only: ['organization-notification_templates-r']
+        }
+      },
+      resolve: {
+        notificationTemplates:
+          (NotificationTemplatesService: NotificationTemplatesService) => NotificationTemplatesService.getNotificationTemplates()
+            .then(response => response.data),
+      }
+    })
+    .state('management.settings.notificationTemplate', {
+      url: '/notification-templates/:scope/:hook',
+      component: 'notificationTemplateComponent',
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-notification-template'
+        },
+        perms: {
+          only: ['organization-notification_templates-r']
+        }
+      },
+      resolve: {
+        notifTemplates:
+          (NotificationTemplatesService: NotificationTemplatesService, $stateParams) => {
+            if ($stateParams.scope.toUpperCase() === 'TEMPLATES_TO_INCLUDE') {
+              return NotificationTemplatesService.getNotificationTemplates('', $stateParams.scope)
+                .then(response => response.data);
+            } else {
+              return NotificationTemplatesService.getNotificationTemplates($stateParams.hook, $stateParams.scope)
+                .then(response => response.data);
+            }
+        }
+      }
+    })
+  ;
 }
