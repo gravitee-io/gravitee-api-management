@@ -428,7 +428,32 @@ public class ApiResource extends AbstractResource {
                 .build();
     }
 
+
     @POST
+    @Deprecated
+    @Path("import/swagger")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "Deprecated, use PUT method instead. Update the API with an existing Swagger descriptor",
+            notes = "User must have the MANAGE_API permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API successfully updated from Swagger descriptor", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
+    })
+    public Response updateApiWithSwagger(@ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor);
+        final ApiEntity updatedApi = apiService.updateFromSwagger(api, swaggerApiEntity, swaggerDescriptor);
+        return Response
+                .ok(updatedApi)
+                .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
+                .lastModified(updatedApi.getUpdatedAt())
+                .build();
+    }
+
+    @PUT
     @Path("import/swagger")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -441,7 +466,9 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response updateApiWithSwagger(@ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    public Response updateWithSwaggerPUT(
+            @PathParam("api") String api,
+            @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
         SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor);
         final ApiEntity updatedApi = apiService.updateFromSwagger(api, swaggerApiEntity, swaggerDescriptor);
         return Response
