@@ -40,10 +40,14 @@ import io.vertx.core.net.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
@@ -64,6 +68,9 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
     @Autowired
     private Vertx vertx;
 
+    @Autowired
+    private Environment environment;
+
     protected final T endpoint;
 
     private HttpClientOptions options;
@@ -73,7 +80,9 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
         this.endpoint = endpoint;
     }
 
-    private final Map<Context, HttpClient> httpClients = new HashMap<>();
+    private final Map<Context, HttpClient> httpClients = new ConcurrentHashMap<>();
+
+    private AtomicInteger runningRequests = new AtomicInteger(0);
 
     @Override
     public ProxyConnection request(ProxyRequest proxyRequest) {
@@ -100,6 +109,8 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
         // Grab an instance of the HTTP client
         final HttpClient client = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
+
+        runningRequests.incrementAndGet();
 
         // Connect to the upstream
         return connection.connect(client, port, uri.getHost(),
@@ -130,21 +141,28 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
             options.setHttp2ClearTextUpgrade(endpoint.getHttpClientOptions().isClearTextUpgrade());
             options.setHttp2MaxPoolSize(endpoint.getHttpClientOptions().getMaxConcurrentConnections());
         }
+        
+        URI target = URI.create(endpoint.getTarget());
 
         // Configure proxy
         HttpProxy proxy = endpoint.getHttpProxy();
         if (proxy != null && proxy.isEnabled()) {
-            ProxyOptions proxyOptions = new ProxyOptions();
-            proxyOptions.setHost(proxy.getHost());
-            proxyOptions.setPort(proxy.getPort());
-            proxyOptions.setUsername(proxy.getUsername());
-            proxyOptions.setPassword(proxy.getPassword());
-            proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
+            ProxyOptions proxyOptions;
 
+            if (proxy.isUseSystemProxy()) {
+                proxyOptions = getSystemProxyOptions();
+            } else {
+                proxyOptions = new ProxyOptions();
+                proxyOptions.setHost(proxy.getHost());
+                proxyOptions.setPort(proxy.getPort());
+                proxyOptions.setUsername(proxy.getUsername());
+                proxyOptions.setPassword(proxy.getPassword());
+                proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
+
+            }
             options.setProxyOptions(proxyOptions);
         }
 
-        URI target = URI.create(endpoint.getTarget());
         HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
 
         if (HTTPS_SCHEME.equalsIgnoreCase(target.getScheme())
@@ -253,7 +271,16 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("Closing HTTP Client for '{}' endpoint [{}]", endpoint.getName(), endpoint.getTarget());
+        LOGGER.info("Graceful shutdown of HTTP Client for endpoint[{}] target[{}] requests[{}]", endpoint.getName(), endpoint.getTarget(), runningRequests.get());
+        long shouldEndAt = System.currentTimeMillis() + endpoint.getHttpClientOptions().getReadTimeout();
+
+        while (runningRequests.get() != 0 && System.currentTimeMillis() <= shouldEndAt) {
+            TimeUnit.MILLISECONDS.sleep(100);
+        }
+
+        if (runningRequests.get() > 0) {
+            LOGGER.warn("Cancel requests[{}] for endpoint[{}] target[{}]", runningRequests.get(), endpoint.getName(), endpoint.getTarget());
+        }
 
         httpClients.values().forEach(httpClient -> {
             try {
@@ -295,6 +322,41 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
                     ", Host='" + options.getProxyOptions().getHost() + '\'' +
                     ", Port='" + options.getProxyOptions().getPort() + '\'' +
                     '}');
+        }
+    }
+    private ProxyOptions getSystemProxyOptions() {
+
+        StringBuilder errors = new StringBuilder();
+        ProxyOptions proxyOptions = new ProxyOptions();
+
+        // System proxy must be well configured. Check that this is the case.
+        if (environment.containsProperty("system.proxy.host")) {
+            proxyOptions.setHost(environment.getProperty("system.proxy.host"));
+        } else {
+            errors.append("'system.proxy.host' ");
+        }
+
+        try {
+            proxyOptions.setPort(Integer.parseInt(Objects.requireNonNull(environment.getProperty("system.proxy.port"))));
+        } catch (Exception e) {
+            errors.append("'system.proxy.port' [").append(environment.getProperty("system.proxy.port")).append("] ");
+        }
+
+        try {
+            proxyOptions.setType(ProxyType.valueOf(environment.getProperty("system.proxy.type")));
+        } catch (Exception e) {
+            errors.append("'system.proxy.type' [").append(environment.getProperty("system.proxy.type")).append("] ");
+        }
+
+        proxyOptions.setUsername(environment.getProperty("system.proxy.username"));
+        proxyOptions.setPassword(environment.getProperty("system.proxy.password"));
+
+        if (errors.length() == 0) {
+            return proxyOptions;
+        } else {
+            LOGGER.warn("An api endpoint (name[{}] type[{}] target[{}]) requires a system proxy to be defined but some configurations are missing or not well defined: {}", endpoint.getName(), endpoint.getType(), endpoint.getTarget(), errors);
+            LOGGER.warn("Ignoring system proxy");
+            return null;
         }
     }
 }
