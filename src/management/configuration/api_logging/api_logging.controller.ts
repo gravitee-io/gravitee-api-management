@@ -32,6 +32,10 @@ class ApiLoggingController {
       this.formApiLogging.$setPristine();
     });
   }
+
+  isReadonlySetting(property: string): boolean {
+    return this.PortalConfigService.isReadonly(this.Constants, property);
+  }
 }
 
 export default ApiLoggingController;

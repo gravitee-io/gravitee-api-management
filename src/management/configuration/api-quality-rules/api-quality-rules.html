@@ -21,10 +21,14 @@
     <h2></h2>
     <div class="gv-form-content" layout="column">
       <div>
-        <md-checkbox ng-model="$ctrl.settings.apiReview.enabled" aria-label="API reviews">
+        <md-checkbox ng-model="$ctrl.settings.apiReview.enabled"
+                     aria-label="API reviews"
+                     ng-disabled="$ctrl.isReadonlySetting('api.review.enabled')">
           Enable API review
         </md-checkbox>
-        <md-checkbox ng-model="$ctrl.settings.apiQualityMetrics.enabled" aria-label="Rating">
+        <md-checkbox ng-model="$ctrl.settings.apiQualityMetrics.enabled"
+                     aria-label="Rating"
+                     ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.enabled')">
           Enable API Quality Metrics
         </md-checkbox>
       </div>
@@ -32,41 +36,49 @@
       <div layout="row" layout-wrap="">
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Description weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.descriptionWeight">
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.descriptionWeight"
+                  ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.description.weight')">
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Description minimum length</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.descriptionMinLength">
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.descriptionMinLength"
+                  ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.description.min.length')">
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Logo weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.logoWeight">
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.logoWeight"
+                  ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.logo.weight')">
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Categories weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.categoriesWeight">
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.categoriesWeight"
+                  ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.categories.weight')">
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Labels weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.labelsWeight">
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.labelsWeight"
+                  ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.labels.weight')">
         </md-input-container>
       </div>
       <h4>Documentation</h4>
       <div layout="row" layout-wrap="">
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Functional documentation weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.functionalDocumentationWeight">
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.functionalDocumentationWeight"
+                  ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.functional.documentation.weight')">
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Technical documentation weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.technicalDocumentationWeight">
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.technicalDocumentationWeight"
+                  ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.technical.documentation.weight')">
         </md-input-container>
       </div>
       <h4>Endpoint</h4>
       <div layout="row" layout-wrap="">
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Healthcheck weight</label>
-          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.healthcheckWeight">
+          <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.healthcheckWeight"
+                  ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.healthcheck.weight')">
         </md-input-container>
       </div>
 

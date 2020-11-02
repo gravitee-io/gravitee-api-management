@@ -99,6 +99,10 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         _.merge(Constants, response.data);
       });
     };
+
+    this.isReadonlySetting = (property: string): boolean => {
+      return PortalConfigService.isReadonly(this.settings, property);
+    };
   }
 };
 

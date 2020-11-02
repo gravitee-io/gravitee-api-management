@@ -90,7 +90,7 @@
     <form name="$ctrl.formSettings" class="gv-form-content" layout="column" ng-submit="$ctrl.save()">
       <md-input-container class="md-block" flex-gt-sm>
         <label>HTTP Client Timeout</label>
-        <input type="number" min="0" ng-model="$ctrl.settings.analytics.clientTimeout">
+        <input type="number" min="0" ng-model="$ctrl.settings.analytics.clientTimeout" ng-disabled="$ctrl.isReadonlySetting('analytics.client.timeout')">
       </md-input-container>
 
       <md-card-actions>

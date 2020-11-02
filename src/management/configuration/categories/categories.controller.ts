@@ -94,6 +94,10 @@ class CategoriesController {
     });
   }
 
+  isReadonlySetting(property: string): boolean {
+    return this.PortalConfigService.isReadonly(this.settings, property);
+  }
+
   private reorder(from, to) {
     this.categories[from].order = to;
     this.categories[to].order = from;

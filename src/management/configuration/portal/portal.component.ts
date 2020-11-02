@@ -68,6 +68,10 @@ const PortalSettingsComponent: ng.IComponentOptions = {
         this.settings.openAPIDocViewer.openAPIDocType.defaultType = 'Swagger';
       }
     };
+
+    this.isReadonlySetting = (property: string): boolean => {
+      return PortalConfigService.isReadonly(this.settings, property);
+    };
   }
 };
 

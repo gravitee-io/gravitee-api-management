@@ -108,6 +108,10 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
       dashboard.enabled = !dashboard.enabled;
       this.update(dashboard);
     };
+
+    this.isReadonlySetting = (property: string): boolean => {
+      return PortalConfigService.isReadonly(this.settings, property);
+    };
   }
 };
 

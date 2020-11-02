@@ -144,7 +144,9 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
       });
     };
 
-
+    this.isReadonlySetting = (property: string): boolean => {
+      return PortalConfigService.isReadonly(this.settings, property);
+    };
   }
 };
 

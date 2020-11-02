@@ -21,7 +21,8 @@
   <div class="gv-form">
     <div class="gv-form-content" layout="column">
       <md-input-container class="gv-input-container-dense">
-        <md-switch ng-model="$ctrl.settings.portal.apis.categoryMode.enabled" aria-label="Category Mode" ng-change="$ctrl.toggleDisplayMode();">
+        <md-switch ng-model="$ctrl.settings.portal.apis.categoryMode.enabled" aria-label="Category Mode" ng-change="$ctrl.toggleDisplayMode();"
+                   ng-disabled="$ctrl.isReadonlySetting('portal.apis.categoryMode.enabled')">
           Enable Category Mode
         </md-switch>
         <div class="hint">

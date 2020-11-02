@@ -120,6 +120,10 @@ class TagsController {
       return _.find(this.groups, {id: groupId}).name;
     }), ', ');
   }
+
+  isReadonlySetting(property: string): boolean {
+    return this.PortalConfigService.isReadonly(this.Constants, property);
+  }
 }
 
 export default TagsController;
