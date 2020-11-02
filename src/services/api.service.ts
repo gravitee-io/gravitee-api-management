@@ -167,7 +167,10 @@ class ApiService {
   }
 
   importSwagger(apiId: string, swaggerDescriptor: string, config?): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + (apiId ? apiId + '/' : '') + 'import/swagger', swaggerDescriptor, config);
+    if (apiId) {
+      return this.$http.put(this.apisURL + apiId + '/import/swagger', swaggerDescriptor, config);
+    }
+    return this.$http.post(this.apisURL + 'import/swagger', swaggerDescriptor, config);
   }
 
   export(apiId, exclude, exportVersion): ng.IPromise<any> {
