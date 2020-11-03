@@ -106,6 +106,7 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         options.setTcpKeepAlive(httpServerConfiguration.isTcpKeepAlive());
         options.setMaxChunkSize(httpServerConfiguration.getMaxChunkSize());
         options.setMaxHeaderSize(httpServerConfiguration.getMaxHeaderSize());
+        options.setMaxInitialLineLength(httpServerConfiguration.getMaxInitialLineLength());
 
         // Configure websocket
         System.setProperty("vertx.disableWebsockets", Boolean.toString(!httpServerConfiguration.isWebsocketEnabled()));

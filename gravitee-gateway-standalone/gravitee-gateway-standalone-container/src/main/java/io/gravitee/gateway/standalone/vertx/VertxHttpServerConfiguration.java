@@ -77,6 +77,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.maxChunkSize:8192}")
     private int maxChunkSize;
 
+    @Value("${http.maxInitialLineLength:4096}")
+    private int maxInitialLineLength;
+
     @Value("${http.websocket.enabled:false}")
     private boolean websocketEnabled;
 
@@ -214,6 +217,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setTrustStoreType(String trustStoreType) {
         this.trustStoreType = trustStoreType;
+    }
+
+    public int getMaxInitialLineLength() {
+        return maxInitialLineLength;
+    }
+
+    public void setMaxInitialLineLength(int maxInitialLineLength) {
+        this.maxInitialLineLength = maxInitialLineLength;
     }
 
     @Override
