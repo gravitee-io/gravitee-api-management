@@ -1,0 +1,30 @@
+version: 2.1
+
+parameters:
+  gio_action:
+    type: enum
+    enum: [release, pr_build]
+    default: pr_build
+  dry_run:
+    type: boolean
+    default: true
+    description: "Run in dry run mode?"
+
+orbs:
+  gravitee: gravitee-io/gravitee@1.0
+
+workflows:
+  version: 2.1
+  pull_requests:
+    when:
+      equal: [ pr_build, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - gravitee/pr-build:
+          context: cicd-orchestrator
+  release:
+    when:
+      equal: [ release, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - gravitee/release:
+          context: cicd-orchestrator
+          dry_run: << pipeline.parameters.dry_run >>
