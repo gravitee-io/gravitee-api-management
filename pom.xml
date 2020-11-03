@@ -61,6 +61,9 @@
             <exclude>tmp/**</exclude>
             <exclude>**/*.scss</exclude>
             <exclude>**/*.woff2</exclude>
+            <exclude>.*</exclude>
+            <exclude>.*/**</exclude>
+            <exclude>**/*.adoc</exclude>
           </excludes>
         </configuration>
       </plugin>
