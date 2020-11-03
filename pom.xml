@@ -83,6 +83,9 @@
             <exclude>.tmp/**</exclude>
             <exclude>.vscode/**</exclude>
             <exclude>dist/**</exclude>
+            <exclude>.*</exclude>
+            <exclude>.*/**</exclude>
+            <exclude>**/*.adoc</exclude>
           </excludes>
         </configuration>
       </plugin>
