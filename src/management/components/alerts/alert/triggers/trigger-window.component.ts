@@ -17,6 +17,7 @@ import {DurationTimeUnit} from "../../../../../entities/alert";
 
 const AlertTriggerWindowComponent: ng.IComponentOptions = {
   bindings: {
+    label: '<',
     condition: '<'
   },
   template: require('./trigger-window.html'),

@@ -35,6 +35,14 @@ export class Rule {
     'API metrics',
     ApiMetrics.METRICS);
 
+  static API_METRICS_MISSING_DATA: Rule = new Rule(
+    'REQUEST',
+    'MISSING_DATA',
+    'Alert when there is no request matching filters received for a period of time',
+    [Scope.API, Scope.PLATFORM],
+    'API metrics',
+    ApiMetrics.METRICS);
+
   static API_METRICS_AGGREGATION: Rule = new Rule(
     'REQUEST',
     'METRICS_AGGREGATION',
@@ -106,6 +114,7 @@ export class Rule {
 
   static RULES: Rule[] = [
     Rule.API_METRICS_THRESHOLD,
+    Rule.API_METRICS_MISSING_DATA,
     Rule.API_METRICS_AGGREGATION,
     Rule.API_METRICS_RATE,
     Rule.API_HC_ENDPOINT_STATUS_CHANGED,

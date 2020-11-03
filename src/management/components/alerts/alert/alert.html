@@ -144,6 +144,10 @@
                         <br/>
                       </div>
 
+                      <gv-alert-trigger-missing-data
+                        ng-if="$ctrl.alert.type.endsWith('@MISSING_DATA')"
+                        alert="$ctrl.alert"></gv-alert-trigger-missing-data>
+
                       <gv-alert-trigger-metrics-simple-condition
                         ng-if="$ctrl.alert.type === 'REQUEST@METRICS_SIMPLE_CONDITION'"
                         alert="$ctrl.alert"></gv-alert-trigger-metrics-simple-condition>
