@@ -20,14 +20,13 @@ import com.hazelcast.core.IMap;
 import io.gravitee.repository.hazelcast.ratelimit.configuration.HazelcastRateLimitConfiguration;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
-import io.reactivex.Completable;
-import io.reactivex.Maybe;
-import io.reactivex.Single;
-import io.reactivex.SingleSource;
+import io.reactivex.*;
 import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
@@ -57,27 +56,30 @@ public class HazelcastRateLimitRepository implements RateLimitRepository<RateLim
 
         Lock lock = hazelcastInstance.getLock("lock-rl-" + key);
 
-        lock.lock();
+        return Completable.create(emitter -> {
+            lock.lock();
+            emitter.onComplete();
+        })
+                .subscribeOn(Schedulers.computation())
+                .andThen(
+                        Single.defer(() ->
+                                Maybe.fromFuture(counters.getAsync(key))
+                                        .switchIfEmpty((SingleSource<RateLimit>) observer -> observer.onSuccess(supplier.get()))
+                                        .flatMap((Function<RateLimit, SingleSource<RateLimit>>) rateLimit -> {
+                                            if (rateLimit.getResetTime() < now) {
+                                                rateLimit = supplier.get();
+                                            }
 
-        return Maybe.fromFuture(counters.getAsync(key))
-                .switchIfEmpty((SingleSource<RateLimit>) observer -> observer.onSuccess(supplier.get()))
-                .flatMap(new Function<RateLimit, SingleSource<RateLimit>>() {
-                    @Override
-                    public SingleSource<RateLimit> apply(RateLimit rateLimit) throws Exception {
-                        if (rateLimit.getResetTime() < now) {
-                            rateLimit = supplier.get();
-                        }
+                                            rateLimit.setCounter(rateLimit.getCounter() + weight);
 
-                        rateLimit.setCounter(rateLimit.getCounter() + weight);
+                                            final RateLimit finalRateLimit = rateLimit;
 
-                        final RateLimit finalRateLimit = rateLimit;
-
-                        return Completable.fromFuture(
-                                counters.setAsync(
-                                    rateLimit.getKey(), rateLimit, now - rateLimit.getResetTime(), TimeUnit.MILLISECONDS))
-                                .andThen(Single.defer(() -> Single.just(finalRateLimit)))
-                                .doFinally(lock::unlock);
-                    }
-                });
+                                            return Completable.fromFuture(
+                                                    counters.setAsync(
+                                                            rateLimit.getKey(), rateLimit, now - rateLimit.getResetTime(), TimeUnit.MILLISECONDS))
+                                                    .andThen(Single.defer(() -> Single.just(finalRateLimit)))
+                                                    .doFinally(lock::unlock);
+                                        })
+                        ));
     }
 }
