@@ -16,7 +16,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import * as marked from 'marked';
 import * as hljs from 'highlight.js';
-import { Page } from '@gravitee/ng-portal-webclient';
+import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from 'src/app/services/page.service';
 import { Router } from '@angular/router';
 import { ScrollService } from 'src/app/services/scroll.service';
@@ -41,6 +41,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   constructor(
     private pageService: PageService,
     private router: Router,
+    private scrollService: ScrollService,
   ) {
   }
 
@@ -73,6 +74,8 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
       marked.use({ renderer });
 
+      marked.use({ renderer: this.renderer });
+
       marked.setOptions({
         highlight: (code, language) => {
           const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
@@ -81,6 +84,24 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
       });
       this.pageContent = marked(this.page.content);
     }
+  }
+
+  private get renderer() {
+    const defaultRenderer = new marked.Renderer();
+
+    return {
+      image(href, title, text) {
+        const portalHref = href.replace(/\/management\/organizations\/[A-Za-z0-9-]*/g, '/portal');
+        return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
+      },
+
+      link(href, title, text) {
+        if (href.startsWith('#')) {
+          return `<gv-button link href="${href}">${text}</gv-button>`;
+        }
+        return defaultRenderer.link(href, title, text);
+      }
+    };
   }
 
   ngAfterViewInit() {
@@ -133,5 +154,12 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
   openMedia(link: string) {
     window.open(link, '_blank');
+  }
+
+  @HostListener(':gv-button:click', ['$event.srcElement.href'])
+  onAnchorClick(anchor: string) {
+    if (anchor) {
+      this.scrollService.scrollToAnchor(anchor);
+    }
   }
 }

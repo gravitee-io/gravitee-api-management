@@ -13,44 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-
+import { mockProvider } from '@ngneat/spectator';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { LogoutComponent } from './logout.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { provideMock } from '../../test/mock.helper.spec';
 import { AuthService } from '../../services/auth.service';
 
 describe('LogoutComponent', () => {
-  let component: LogoutComponent;
-  let fixture: ComponentFixture<LogoutComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [LogoutComponent],
-      imports: [RouterTestingModule, TranslateTestingModule, HttpClientTestingModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-      providers: [
-        provideMock(AuthService),
-      ]
-    })
-      .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: LogoutComponent,
+    imports: [
+      RouterTestingModule, HttpClientTestingModule
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
+      mockProvider(AuthService),
+    ]
+  });
+
+  let spectator: Spectator<LogoutComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(LogoutComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
+
 });

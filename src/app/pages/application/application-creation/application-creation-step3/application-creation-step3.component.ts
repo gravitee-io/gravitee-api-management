@@ -17,7 +17,7 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, View
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { Api, ApiService, ApisResponse, Page, Plan } from '@gravitee/ng-portal-webclient';
+import { Api, ApiService, ApisResponse, Page, Plan } from '../../../../../../projects/portal-webclient-sdk/src/lib';
 import { TranslateService } from '@ngx-translate/core';
 import { SearchRequestParams } from '../../../../utils/search-query-param.enum';
 import { distinctUntilChanged } from 'rxjs/operators';

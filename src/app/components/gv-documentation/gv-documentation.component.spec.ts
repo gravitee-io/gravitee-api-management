@@ -13,40 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { GvDocumentationComponent } from './gv-documentation.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('GvDocumentationComponent', () => {
-  let component: GvDocumentationComponent;
-  let fixture: ComponentFixture<GvDocumentationComponent>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ GvDocumentationComponent ],
-      imports: [ TranslateTestingModule, RouterTestingModule ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-    .compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(GvDocumentationComponent);
-    component = fixture.componentInstance;
-    component.pages = [];
+  const createComponent = createComponentFactory({
+    component: GvDocumentationComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [RouterTestingModule]
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  let spectator: Spectator<GvDocumentationComponent>;
+  let component;
+
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
+
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should not call onPageChange if link have data-pageId ', () => {
+    const page = { id: 'my-page' };
+    component._pages = [ page ];
+    component.onPageChange = jest.fn();
+    const linkToPage = document.createElement('gv-button');
+    linkToPage.dataset.pageId = page.id;
+    spectator.element.appendChild(linkToPage);
+
+    linkToPage.click();
+
+    expect(component.onPageChange).toBeCalledTimes(1);
+    expect(component.onPageChange).toBeCalledWith(page);
+  });
+
+
+  it('should not call onPageChange if link not have data-pageId ', () => {
+    const pageId = 'my-page';
+    component._pages = [ { id: pageId }];
+    component.onPageChange = jest.fn();
+    const linkToPage = document.createElement('gv-button');
+    spectator.element.appendChild(linkToPage);
+
+    linkToPage.click();
+
+    expect(component.onPageChange).toBeCalledTimes(0);
   });
 
 });

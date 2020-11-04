@@ -2,13 +2,15 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
+    "module": "commonjs",
+    "target": "es5",
     "types": [
-      "jasmine",
+      "jest",
       "node"
-    ]
+    ],
+    "emitDecoratorMetadata": true,
   },
   "files": [
-    "src/test.ts",
     "src/polyfills.ts"
   ],
   "include": [

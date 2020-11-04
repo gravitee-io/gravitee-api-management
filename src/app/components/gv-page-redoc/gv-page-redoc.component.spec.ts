@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { GvPageRedocComponent } from './gv-page-redoc.component';
 
 describe('GvPageRedocComponent', () => {
-  let component: GvPageRedocComponent;
-  let fixture: ComponentFixture<GvPageRedocComponent>;
+  const createComponent = createComponentFactory({
+    component: GvPageRedocComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  });
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ GvPageRedocComponent ],
-    })
-    .compileComponents();
-  }));
+  let spectator: Spectator<GvPageRedocComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvPageRedocComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {

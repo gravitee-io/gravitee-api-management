@@ -15,46 +15,35 @@
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../../../test/translate-testing-module';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 
 import { ApplicationCreationStep3Component } from './application-creation-step3.component';
 
 describe('ApplicationCreationStep3Component', () => {
-  let component: ApplicationCreationStep3Component;
-  let fixture: ComponentFixture<ApplicationCreationStep3Component>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-        TranslateTestingModule,
-        FormsModule,
-        ReactiveFormsModule
-      ],
-      declarations: [ApplicationCreationStep3Component],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ],
-    })
-      .compileComponents();
-  }));
-
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationCreationStep3Component);
-    component = fixture.componentInstance;
+  const createComponent = createComponentFactory({
+    component: ApplicationCreationStep3Component,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+      HttpClientTestingModule,
+      RouterTestingModule,
+      FormsModule,
+      ReactiveFormsModule
+    ],
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  let spectator: Spectator<ApplicationCreationStep3Component>;
+  let component;
+
+  beforeEach(() => {
+    spectator = createComponent();
+    component = spectator.component;
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 
 });

@@ -89,11 +89,11 @@
       "congratulations": "Výborně!",
       "discoverApi": "Začněte objevovat API",
       "goToHome": "Zpět na domovskou stránku",
+      "oauth2": "Je potřeba si opatřit access_token z autorizačního serveru před tím než budete schopni konzumovat toto API.",
       "subscriptionAccepted": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je přijato!",
       "subscriptionKey": "Zde je váš osobní klíč pro přístup k API",
       "subscriptionPending": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> se ověřuje.",
-      "subscriptionRejected": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je odmítnuto.",
-      "oauth2": "Je potřeba si opatřit access_token z autorizačního serveru před tím než budete schopni konzumovat toto API."
+      "subscriptionRejected": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> je odmítnuto."
     },
     "validate": {
       "askConfirmation": "Předplatné aplikace <b>{appName}</b> do plánu <b>{planName}</b> API <b>{apiName}</b> bude dokončeno.",
@@ -255,9 +255,6 @@
       }
     },
     "metadata": {
-      "add": {
-        "success": "Byla přidána metadata \"{key}\""
-      },
       "format": "Formát",
       "key": "Klíč",
       "list": {
@@ -265,8 +262,6 @@
           "title": "Přidat"
         },
         "remove": {
-          "message": "Opravdu chcete tato metadata odstranit?",
-          "success": "Metadata \"{key}\" byla odstraněna",
           "title": "Odstranit"
         },
         "title": "Seznam metadat"
@@ -654,7 +649,6 @@
       "general_conditions_accept": "Plán {plan} vyžadoval přijetí obecných podmínek.",
       "general_conditions_status": "Plan {plan} odkazuje na nezveřejněnou stránku jako obecné podmínky.",
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
-      "otherOAuth2OrJWTSubscribed": "Jiný plán OAuth2 nebo JWT je již přihlášen stejnou aplikací.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
     },
     "server": {
@@ -666,7 +660,8 @@
     "unexpected": "Vyskytla se neočekávaná chyba",
     "user": {
       "exists": "E-mail již existuje uživatel: {user}",
-      "finalized": "Účet již byl dokončen"
+      "finalized": "Účet již byl dokončen",
+      "resetpassword": "Obnovte již požadované heslo, zkontrolujte e-maily a před novým pokusem počkejte několik minut."
     }
   },
   "footer": {
@@ -741,7 +736,8 @@
       "maxSize": "Velikost souboru přesahuje povolený limit",
       "typeNotAllowed": "Tento typ souboru není povolen"
     },
-    "orDragIt": "nebo to pusť sem."
+    "orDragIt": "nebo to pusť sem.",
+    "removePicture": "Odebrat obrázek"
   },
   "gv-header": {
     "empty": "Žádné rozhraní API k zobrazení zde",

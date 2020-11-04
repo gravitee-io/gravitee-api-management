@@ -45,7 +45,7 @@
 }
 :host ::ng-deep code {
   max-width: 100%;
-  display: block;
+  display: inline;
   overflow: auto;
 }
 
@@ -70,6 +70,9 @@ app-gv-markdown-toc {
   max-width: 100%;
 }
 
+:host ::ng-deep gv-button {
+  vertical-align: baseline;
+}
 
 :host ::ng-deep table {
   border: 1px solid var(--gv-theme-font-color-dark, #262626);

@@ -13,40 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { TranslateTestingModule } from '../../../test/translate-testing-module';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { UserTestingModule } from '../../../test/user-testing-module';
-
 import { UserAccountComponent } from './user-account.component';
 import { SafePipe } from '../../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('UserAccountComponent', () => {
-  let component: UserAccountComponent;
-  let fixture: ComponentFixture<UserAccountComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [UserAccountComponent, SafePipe],
-      imports: [TranslateTestingModule, UserTestingModule, ReactiveFormsModule],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-      .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: UserAccountComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
+      UserTestingModule,
+      ReactiveFormsModule,
+    ],
+    declarations: [ SafePipe],
+  });
+
+  let spectator: Spectator<UserAccountComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(UserAccountComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
   });
 
-  it('should create', (done) => {
-    fixture.whenStable().then(() => {
-      fixture.detectChanges();
-      expect(component).toBeTruthy();
-      done();
-    });
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
+
 });

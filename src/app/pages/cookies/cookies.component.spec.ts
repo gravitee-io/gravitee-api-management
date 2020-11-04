@@ -13,33 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { RouterTestingModule } from '@angular/router/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
 
 import { CookiesComponent } from './cookies.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateTestingModule } from '../../test/translate-testing-module';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-describe('CookiesComponents', () => {
-  let component: CookiesComponent;
-  let fixture: ComponentFixture<CookiesComponent>;
+describe('CookiesComponent', () => {
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ CookiesComponent ],
-      imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule],
-    })
-    .compileComponents();
-  }));
+  const createComponent = createComponentFactory({
+    component: CookiesComponent,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [HttpClientTestingModule, RouterTestingModule],
+  });
+
+  let spectator: Spectator<CookiesComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CookiesComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    spectator = createComponent();
+    component = spectator.component;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });

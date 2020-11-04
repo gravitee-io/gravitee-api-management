@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { createComponentFactory, Spectator } from '@ngneat/spectator';
+import { SafePipe } from '../../pipes/safe.pipe';
 
 import { GvPageComponent } from './gv-page.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -26,24 +27,21 @@ import { GvPageContentSlotDirective } from 'src/app/directives/gv-page-content-s
 import { GvPageMarkdownComponent } from '../gv-page-markdown/gv-page-markdown.component';
 
 describe('GvPageComponent', () => {
-  let component: GvPageComponent;
-  let fixture: ComponentFixture<GvPageComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [
-        GvPageComponent,
-        GvPageMarkdownComponent,
-        GvPageRedocComponent,
-        GvPageSwaggerUIComponent,
-        GvPageContentSlotDirective
-      ],
-      imports: [ HttpClientTestingModule, RouterTestingModule ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-    .overrideModule(BrowserDynamicTestingModule, {
+  const createComponent = createComponentFactory({
+    component: GvPageComponent,
+    declarations: [
+      GvPageMarkdownComponent,
+      GvPageRedocComponent,
+      GvPageSwaggerUIComponent,
+      GvPageContentSlotDirective,
+      SafePipe
+    ],
+    imports: [HttpClientTestingModule, RouterTestingModule],
+    schemas: [
+      CUSTOM_ELEMENTS_SCHEMA,
+    ],
+    overrideModules: [[BrowserDynamicTestingModule, {
       set: {
         entryComponents: [
           GvPageMarkdownComponent,
@@ -51,18 +49,20 @@ describe('GvPageComponent', () => {
           GvPageSwaggerUIComponent
         ]
       }
-    })
-    .compileComponents();
-  }));
+    }]]
+  });
+
+  let spectator: Spectator<GvPageComponent>;
+  let component;
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GvPageComponent);
-    component = fixture.componentInstance;
+    spectator = createComponent();
+    component = spectator.component;
     component.page = null;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
 });
