@@ -24,6 +24,7 @@ import java.io.Serializable;
 public class HttpProxy implements Serializable {
 
     private boolean enabled;
+    private boolean useSystemProxy;
     private String host;
     private int port;
     private String username;
@@ -76,5 +77,13 @@ public class HttpProxy implements Serializable {
 
     public void setType(HttpProxyType type) {
         this.type = type;
+    }
+
+    public boolean isUseSystemProxy() {
+        return useSystemProxy;
+    }
+
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
     }
 }

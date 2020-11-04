@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model;
 
+import java.util.Objects;
 import java.io.Serializable;
 
 /**
@@ -68,5 +69,20 @@ public class VirtualHost implements Serializable {
 
     public void setOverrideEntrypoint(boolean overrideEntrypoint) {
         this.overrideEntrypoint = overrideEntrypoint;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        VirtualHost that = (VirtualHost) o;
+        return overrideEntrypoint == that.overrideEntrypoint &&
+                Objects.equals(host, that.host) &&
+                Objects.equals(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(host, path, overrideEntrypoint);
     }
 }

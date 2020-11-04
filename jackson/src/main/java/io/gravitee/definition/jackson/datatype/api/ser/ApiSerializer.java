@@ -22,6 +22,7 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.plugins.resources.Resource;
 
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -71,6 +72,8 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
 
         if (api.getProperties() != null && api.getProperties().getValues() != null) {
             jgen.writeObjectField("properties", api.getProperties());
+        } else {
+            jgen.writeObjectField("properties", Collections.emptyList());
         }
 
         if (api.getTags() != null && !api.getTags().isEmpty()) {
