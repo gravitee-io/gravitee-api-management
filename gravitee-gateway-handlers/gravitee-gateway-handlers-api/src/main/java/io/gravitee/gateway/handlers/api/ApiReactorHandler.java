@@ -248,7 +248,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         applicationContext.getBean(GroupLifecyleManager.class).stop();
 
         super.doStop();
-        logger.info("API handler is now stopped", api);
+        logger.info("API handler is now stopped: {}", this);
     }
 
     @Override

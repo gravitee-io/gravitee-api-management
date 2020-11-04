@@ -76,6 +76,9 @@ public class SyncManagerTest {
     private EventRepository eventRepository;
 
     @Mock
+    private DictionaryRepository dictionaryRepository;
+
+    @Mock
     private ApiManager apiManager;
 
     @Mock
@@ -502,7 +505,7 @@ public class SyncManagerTest {
         when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class)).thenReturn(mockApi);
         return mockApi;
     }
-    
+
     private Event mockEvent(final io.gravitee.repository.management.model.Api api, EventType eventType) throws Exception {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.API_ID.getValue(), api.getId());
