@@ -62,7 +62,7 @@ public class CustomUserFieldsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Custom User Field deleted", responseContainer = "List" ,response = CustomUserFieldEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response listAll() {
+    public Response getCustomUserFields() {
 
         List<CustomUserFieldEntity> fields = fieldService.listAllFields();
         return Response.ok().entity(fields).build();
@@ -77,7 +77,7 @@ public class CustomUserFieldsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 201, message = "Custom User Field Created", response = CustomUserFieldEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response createField(@Valid CustomUserFieldEntity newCustomUserFieldEntity) {
+    public Response createCustomUserField(@Valid CustomUserFieldEntity newCustomUserFieldEntity) {
         CustomUserFieldEntity newField = fieldService.create(newCustomUserFieldEntity);
         if (newField != null) {
             return Response
@@ -99,7 +99,7 @@ public class CustomUserFieldsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Custom User Field updated", response = CustomUserFieldEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response updateField(@PathParam ("key")String key,
+    public Response updateCustomUserField(@PathParam ("key")String key,
                                @Valid CustomUserFieldEntity toUpdateFieldEntity) {
 
         if (toUpdateFieldEntity == null || !key.toLowerCase().equals(toUpdateFieldEntity.getKey().toLowerCase())) {
@@ -127,7 +127,7 @@ public class CustomUserFieldsResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 204, message = "Custom User Field deleted"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response deleteField(@PathParam ("key")String key) {
+    public Response deleteCustomUserField(@PathParam ("key")String key) {
 
         fieldService.delete(key);
         return Response.noContent().build();
