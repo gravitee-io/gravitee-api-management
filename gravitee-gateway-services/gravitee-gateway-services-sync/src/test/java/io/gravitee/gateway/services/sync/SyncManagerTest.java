@@ -76,9 +76,6 @@ public class SyncManagerTest {
     private EventRepository eventRepository;
 
     @Mock
-    private DictionaryRepository dictionaryRepository;
-
-    @Mock
     private ApiManager apiManager;
 
     @Mock
