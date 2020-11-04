@@ -151,7 +151,7 @@ public class ApplicationResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
     })
-    public Response background(@Context Request request, @PathParam("application") String application) throws ApplicationNotFoundException {
+    public Response getApplicationBackground(@Context Request request) throws ApplicationNotFoundException {
         return getImageResponse(request, applicationService.getBackground(application));
     }
 

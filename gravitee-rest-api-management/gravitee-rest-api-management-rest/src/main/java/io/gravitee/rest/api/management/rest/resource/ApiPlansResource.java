@@ -278,7 +278,7 @@ public class ApiPlansResource extends AbstractResource {
     public Response depreciateApiPlan(
             @PathParam("plan") String plan) {
 
-        return this.deprecatePlan(api, plan);
+        return this.deprecateApiPlan(plan);
     }
 
     @POST
@@ -292,8 +292,7 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_PLAN, acls = UPDATE)
     })
-    public Response deprecatePlan(
-            @PathParam("api") String api,
+    public Response deprecateApiPlan(
             @PathParam("plan") String plan) {
         PlanEntity planEntity = planService.findById(plan);
         if (! planEntity.getApi().equals(api)) {
