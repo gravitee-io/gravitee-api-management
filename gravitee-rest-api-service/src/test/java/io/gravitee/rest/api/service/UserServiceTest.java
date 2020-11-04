@@ -18,8 +18,8 @@ package io.gravitee.rest.api.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.common.data.domain.MetadataPage;
-import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.common.util.Maps;
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
@@ -38,8 +38,6 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.UserServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -50,7 +48,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
@@ -402,7 +399,7 @@ public class UserServiceTest {
 
         userService.finalizeResetPassword(userEntity);
 
-        verify(auditService).createPortalAuditLog(anyMap(), argThat(evt -> evt.equals(User.AuditEvent.PASSWORD_CHANGED)), any(), any(), any());
+        verify(auditService).createOrganizationAuditLog(anyMap(), argThat(evt -> evt.equals(User.AuditEvent.PASSWORD_CHANGED)), any(), any(), any());
     }
 
     @Test (expected = PasswordFormatInvalidException.class)

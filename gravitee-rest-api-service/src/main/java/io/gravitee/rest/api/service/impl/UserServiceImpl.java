@@ -42,7 +42,10 @@ import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.permissions.*;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -81,7 +84,6 @@ import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAUL
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
 import static java.lang.String.format;
-import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -438,7 +440,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
             user = userRepository.update(user);
 
-            auditService.createPortalAuditLog(
+            auditService.createOrganizationAuditLog(
                     Collections.singletonMap(USER, user.getId()),
                     User.AuditEvent.PASSWORD_CHANGED,
                     user.getUpdatedAt(),

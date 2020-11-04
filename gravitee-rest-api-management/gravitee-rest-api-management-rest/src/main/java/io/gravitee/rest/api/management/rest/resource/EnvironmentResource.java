@@ -47,15 +47,19 @@ public class EnvironmentResource extends AbstractResource {
     @Inject
     private EnvironmentService environmentService;
 
+    @PathParam("envId")
+    @ApiParam(name = "envId", hidden = true)
+    private String envId;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get an Environment", tags = {"Environment"})
     @ApiResponses({
             @ApiResponse(code = 200, message = "Found Environment"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getEnvironment( @ApiParam(name = "environmentId", required = true) @PathParam("envId") String environmentId) {
+    public Response getEnvironment() {
         return Response
-                .ok(environmentService.findById(environmentId))
+                .ok(environmentService.findById(envId))
                 .build();
     }
 
