@@ -17,6 +17,7 @@ package io.gravitee.repository.jdbc.common;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.gravitee.repository.jdbc.exception.DatabaseInitializationException;
 import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.jvm.JdbcConnection;
@@ -172,7 +173,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
             liquibase.setIgnoreClasspathPrefix(true);
             liquibase.update((Contexts) null);
         } catch (Exception ex) {
-            LOGGER.error("Failed to set up database: ", ex);
+            throw new DatabaseInitializationException("Failed to set up database", ex) ;
         }
     }
 
