@@ -23,5 +23,6 @@ import io.gravitee.rest.api.model.PortalConfigEntity;
  */
 public interface ConfigService {
     PortalConfigEntity getPortalConfig();
+    boolean portalLoginForced();
     void save(PortalConfigEntity portalConfigEntity);
 }

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
@@ -63,8 +64,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -98,6 +97,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private EnvironmentService environmentService;
     @Autowired
     private Environment environment;
+    @Autowired
+    private AuthoritiesProvider authoritiesProvider;
+
     private Client client;
 
     @PostConstruct
@@ -304,20 +306,12 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     MembershipReferenceType.ORGANIZATION);
         }
 
-        final Set<RoleEntity> roles = membershipService.getRoles(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization(), MembershipMemberType.USER, userId);
-        environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())
-                .forEach(env -> roles.addAll(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, env.getId(), MembershipMemberType.USER, userId)));
-
-        final Set<GrantedAuthority> authorities = new HashSet<>();
-        if (!roles.isEmpty()) {
-            authorities.addAll(commaSeparatedStringToAuthorityList(roles.stream()
-                    .map(r -> r.getScope().name() + ':' + r.getName()).collect(Collectors.joining(","))));
-        }
+        final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
 
         //set user to Authentication Context
         UserDetails userDetails = new UserDetails(userId, "", authorities);
         userDetails.setEmail(email);
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
         return connectUser(userId, state, servletResponse);
     }

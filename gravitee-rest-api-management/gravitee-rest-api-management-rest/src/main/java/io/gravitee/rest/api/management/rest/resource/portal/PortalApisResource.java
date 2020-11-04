@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource.portal;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -24,13 +25,16 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiListItem;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.RatingService;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -43,6 +47,7 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.rest.api.model.Visibility.PUBLIC;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
@@ -67,6 +72,9 @@ public class PortalApisResource extends AbstractResource {
     @Context
     private UriInfo uriInfo;
 
+    @Inject
+    private ConfigService configService;
+
     @POST
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
@@ -86,6 +94,9 @@ public class PortalApisResource extends AbstractResource {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
                 if (isAuthenticated()) {
                     apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, true);
+                } else if (configService.portalLoginForced()) {
+                    // if portal requires login, this endpoint should hide the APIS even PUBLIC ones
+                    return Response.ok().entity(emptyList()).build();
                 } else {
                     apiQuery.setVisibility(PUBLIC);
                     apis = apiService.search(apiQuery);

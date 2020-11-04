@@ -41,7 +41,7 @@ public class AlertsResource extends AbstractResource {
     @GET
     @ApiOperation(value = "List alert metrics")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<AlertMetric> listMetrics() {
+    public List<AlertMetric> getAlertMetrics() {
         return stream(MetricType.values()).map(metric -> {
             final AlertMetric alertMetric = new AlertMetric();
             alertMetric.setKey(metric.name().toLowerCase());

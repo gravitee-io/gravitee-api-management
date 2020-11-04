@@ -26,8 +26,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Produces;
@@ -40,7 +40,7 @@ import javax.ws.rs.core.Response;
 @Api(tags = {"Messages"})
 public class MessagesResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private MessageService messageService;
 
     @POST
@@ -54,7 +54,7 @@ public class MessagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_MESSAGE, acls = RolePermissionAction.CREATE)
     })
-    public Response create(final MessageEntity message) {
+    public Response createMessage(final MessageEntity message) {
         return Response.ok(messageService.create(message)).build();
     }
 }

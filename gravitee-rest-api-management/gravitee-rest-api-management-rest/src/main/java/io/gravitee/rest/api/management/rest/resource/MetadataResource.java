@@ -28,8 +28,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -43,7 +43,7 @@ import java.util.List;
 @Api(tags = {"Metadata"})
 public class MetadataResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private MetadataService metadataService;
 
     @GET
@@ -56,7 +56,7 @@ public class MetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.READ)
     })
-    public List<MetadataEntity> list() {
+    public List<MetadataEntity> getMetadatas() {
         return metadataService.findAllDefault();
     }
 
@@ -71,7 +71,7 @@ public class MetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.CREATE)
     })
-    public MetadataEntity create(@Valid @NotNull final NewMetadataEntity metadata) {
+    public MetadataEntity createMetadata(@Valid @NotNull final NewMetadataEntity metadata) {
         return metadataService.create(metadata);
     }
 
@@ -86,7 +86,7 @@ public class MetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.UPDATE)
     })
-    public MetadataEntity update(@Valid @NotNull final UpdateMetadataEntity metadata) {
+    public MetadataEntity updateMetadata(@Valid @NotNull final UpdateMetadataEntity metadata) {
         return metadataService.update(metadata);
     }
 
@@ -101,7 +101,7 @@ public class MetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("metadata") String metadata) {
+    public void deleteMetadata(@PathParam("metadata") String metadata) {
         metadataService.delete(metadata);
     }
 }

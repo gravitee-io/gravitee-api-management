@@ -16,14 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.param.LogsParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApiRequest;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.param.LogsParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.LogsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -58,7 +58,7 @@ public class PlatformLogsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)
     })
-    public SearchLogResponse platformLogs(
+    public SearchLogResponse getPlatformLogs(
             @BeanParam LogsParam param) {
         param.validate();
 
@@ -85,7 +85,7 @@ public class PlatformLogsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)
     })
-    public ApiRequest platformLog(
+    public ApiRequest getPlatformLog(
             @PathParam("log") String logId,
             @QueryParam("timestamp") Long timestamp) {
         return logsService.findApiLog(logId, timestamp);
@@ -102,7 +102,7 @@ public class PlatformLogsResource extends AbstractResource {
     @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)})
     public Response exportPlatformLogsAsCSV(
             @BeanParam LogsParam param) {
-        final SearchLogResponse searchLogResponse = platformLogs(param);
+        final SearchLogResponse searchLogResponse = getPlatformLogs(param);
         return Response
                 .ok(logsService.exportAsCsv(searchLogResponse))
                 .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", "platform", System.currentTimeMillis()))

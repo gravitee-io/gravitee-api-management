@@ -30,8 +30,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -49,7 +49,7 @@ public class RoleResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private RoleService roleService;
 
     @GET
@@ -64,7 +64,7 @@ public class RoleResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ)
     })
-    public RoleEntity get(@PathParam("scope") RoleScope scope,
+    public RoleEntity getRole(@PathParam("scope") RoleScope scope,
                           @PathParam("role") String role) {
         Optional<RoleEntity> optRole = roleService.findByScopeAndName(scope, role);
         if (optRole.isPresent()) {
@@ -86,7 +86,7 @@ public class RoleResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.UPDATE)
     })
-    public RoleEntity update(@PathParam("scope") RoleScope scope,
+    public RoleEntity updateRole(@PathParam("scope") RoleScope scope,
                              @PathParam("role") String role,
                              @Valid @NotNull final UpdateRoleEntity entity) {
         return roleService.update(entity);
@@ -104,7 +104,7 @@ public class RoleResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("scope") RoleScope scope,
+    public void deleteRole(@PathParam("scope") RoleScope scope,
                        @PathParam("role") String role) {
         roleService.findByScopeAndName(scope, role).ifPresent(roleToDelete -> roleService.delete(roleToDelete.getId()));
     }

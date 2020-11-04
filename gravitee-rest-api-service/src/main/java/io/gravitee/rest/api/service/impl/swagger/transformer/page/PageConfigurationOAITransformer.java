@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.transformer.page;
 
+import io.gravitee.definition.model.Api;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.impl.swagger.SwaggerProperties;
 import io.gravitee.rest.api.service.impl.swagger.transformer.OAITransformer;
@@ -22,6 +23,9 @@ import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,7 +40,7 @@ public class PageConfigurationOAITransformer extends AbstractPageConfigurationSw
     @Override
     public void transform(OAIDescriptor descriptor) {
         String tryItUrl = asString(SwaggerProperties.TRY_IT);
-        if (tryItUrl != null && ! tryItUrl.isEmpty()) {
+        if (tryItUrl != null && !tryItUrl.isEmpty()) {
             URI newURI = URI.create(tryItUrl);
             descriptor.getSpecification().getServers().forEach(server -> {
                 try {
@@ -51,6 +55,9 @@ public class PageConfigurationOAITransformer extends AbstractPageConfigurationSw
                     logger.error(e.getMessage(), e);
                 }
             });
+
+            // Remove possible server duplicates.
+            descriptor.getSpecification().servers(descriptor.getSpecification().getServers().stream().distinct().collect(Collectors.toList()));
         }
     }
 }

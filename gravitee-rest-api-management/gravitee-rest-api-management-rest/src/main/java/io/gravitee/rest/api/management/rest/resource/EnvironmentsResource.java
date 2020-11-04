@@ -18,11 +18,13 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiOperation;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -50,7 +52,9 @@ public class EnvironmentsResource extends AbstractResource {
     }
 
     @Path("{envId}")
-    public EnvironmentResource getEnvironmentResource() {
+    public EnvironmentResource getEnvironmentResource(
+            @PathParam("envId") @ApiParam(name = "envId", required = true, defaultValue = "DEFAULT", value = "The ID of the environment") String envId
+    ) {
         return resourceContext.getResource(EnvironmentResource.class);
     }
 }

@@ -25,10 +25,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -54,6 +51,10 @@ public class PortalPageMediaResource extends AbstractResource {
     @Inject
     private PageService pageService;
 
+    @PathParam("page")
+    @ApiParam(name = "page", required = true)
+    private String page;
+
     @POST
     @ApiOperation(value = "Attach a media to a portal page ",
             notes = "User must have the ENVIRONMENT_DOCUMENTATION[UPDATE] permission to use this service")
@@ -65,8 +66,7 @@ public class PortalPageMediaResource extends AbstractResource {
     })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response attachMedia(
-            @PathParam("page") String page,
+    public Response attachPortalPageMedia(
             @Context final HttpServletRequest request,
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail,
@@ -101,7 +101,7 @@ public class PortalPageMediaResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ)
     })
-    public Response getMedia(@PathParam("page") String page) {
+    public Response getPortalPageMedia() {
         final PageEntity currentPage = pageService.findById(page);
         List<MediaEntity> pageMedia = mediaService.findAllWithoutContent(currentPage.getAttachedMedia());
 

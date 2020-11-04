@@ -26,10 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -49,6 +46,10 @@ public class ApiMediaResource extends AbstractResource {
     @Inject
     private MediaService mediaService;
 
+    @PathParam("api")
+    @ApiParam(name = "api", required = true, value = "The ID of the API")
+    private String api;
+
     @POST
     @ApiOperation(value = "Create a media for an API",
             notes = "User must have the API_DOCUMENTATION[CREATE] permission to use this service")
@@ -61,8 +62,7 @@ public class ApiMediaResource extends AbstractResource {
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces("text/plain")
-    public Response uploadImage(
-            @PathParam("api") String api,
+    public Response uploadApiMediaImage(
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail,
             @FormDataParam("file") final FormDataBodyPart body
@@ -94,9 +94,8 @@ public class ApiMediaResource extends AbstractResource {
     @GET
     @Path("/{hash}")
     @ApiOperation(value = "Retrieve a media for an API")
-    public Response getImage(
+    public Response getApiMediaImage(
             @Context Request request,
-            @PathParam("api") String api,
             @PathParam("hash") String hash) {
         MediaEntity mediaEntity = mediaService.findByHashAndApiId(hash, api);
 

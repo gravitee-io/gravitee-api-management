@@ -303,13 +303,16 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
-    public Set<ApiKeyEntity> findBySubscription(String subscription) {
+    public List<ApiKeyEntity> findBySubscription(String subscription) {
         try {
             LOGGER.debug("Find API Keys for subscription {}", subscription);
 
             SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
             Set<ApiKey> keys = apiKeyRepository.findBySubscription(subscriptionEntity.getId());
-            return keys.stream().map(ApiKeyServiceImpl::convert).collect(Collectors.toSet());
+            return keys.stream()
+                    .map(ApiKeyServiceImpl::convert)
+                    .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while finding API keys for subscription {}", subscription, ex);
             throw new TechnicalManagementException(

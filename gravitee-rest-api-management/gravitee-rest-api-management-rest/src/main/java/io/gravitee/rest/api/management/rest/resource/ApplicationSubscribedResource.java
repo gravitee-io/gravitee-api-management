@@ -25,10 +25,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -55,6 +52,11 @@ public class ApplicationSubscribedResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("application")
+    @ApiParam(name = "application", hidden = true)
+    private String application;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List APIs subscribed by the application",
@@ -65,8 +67,7 @@ public class ApplicationSubscribedResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ)
     })
-    public Collection<SubscribedApi> listApiSubscribed(
-            @PathParam("application") String application) {
+    public Collection<SubscribedApi> getApiSubscribed() {
         SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
         subscriptionQuery.setApplication(application);
 

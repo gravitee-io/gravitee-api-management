@@ -24,10 +24,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -54,6 +51,11 @@ public class ApiSubscribersResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List subscribers for the API",
@@ -61,8 +63,7 @@ public class ApiSubscribersResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Paged result of API subscribers", response = ApplicationEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Collection<ApplicationEntity> listApiSubscribers(
-            @PathParam("api") String api) {
+    public Collection<ApplicationEntity> getApiSubscribers() {
         if (!hasPermission(RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
                 !hasPermission(RolePermission.API_LOG, api, RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();

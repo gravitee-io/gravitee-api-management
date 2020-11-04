@@ -47,12 +47,14 @@ public class UpdateApplicationEntity {
 
     private String picture;
 
+    @JsonProperty("picture_url")
+    private String pictureUrl;
+
     @NotNull(message = "Application's settings must not be null")
     private ApplicationSettings settings;
 
     @ApiModelProperty(
             value = "Application's groups. Used to add team in your App.",
-            dataType = "java.util.List",
             example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
@@ -148,6 +150,14 @@ public class UpdateApplicationEntity {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 
     @Override

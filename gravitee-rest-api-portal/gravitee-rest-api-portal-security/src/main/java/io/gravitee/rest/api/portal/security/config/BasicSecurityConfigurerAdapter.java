@@ -29,6 +29,7 @@ import io.gravitee.rest.api.security.filter.RecaptchaFilter;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +89,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private ReCaptchaService reCaptchaService;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private AuthoritiesProvider authoritiesProvider;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -107,13 +110,13 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
             Collection<IdentityProvider> identityProviders = identityProviderManager.getAll();
             if(identityProviders != null) {
-                Optional<io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider> authenticationProviderPlugin = 
+                Optional<io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider> authenticationProviderPlugin =
                         identityProviders.stream()
                         .filter(ip-> ip.type().equalsIgnoreCase(providerType))
                         .map(ip -> identityProviderManager.loadIdentityProvider(ip.type(), provider.configuration()))
                         .filter(Objects::nonNull)
                         .findFirst();
-                
+
                 if (authenticationProviderPlugin.isPresent() ) {
                     Object authenticationProvider = authenticationProviderPlugin.get().configure();
 
@@ -125,9 +128,9 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 } else {
                     LOGGER.error("No authentication provider found for type: {}", providerType);
                 }
-                
+
             }
-         
+
         }
         LOGGER.info("--------------------------------------------------------------");
     }
@@ -199,7 +202,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         csrf(http);
         cors(http);
 
-        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null), BasicAuthenticationFilter.class);
+        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider), BasicAuthenticationFilter.class);
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
     }
 
@@ -232,7 +235,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Pages
                 .antMatchers(HttpMethod.GET, uriPrefix + "/pages/**").permitAll()
 
-                // Portal 
+                // Portal
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/**").permitAll()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/info/**").permitAll()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/media/**").permitAll()
@@ -243,12 +246,13 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Users
                 .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/users/_reset_password/**").permitAll()
-                
+                .antMatchers(HttpMethod.POST, uriPrefix + "/users/_change_password/**").permitAll()
+
                 // Categories
                 .antMatchers(HttpMethod.GET, uriPrefix + "/categories/**").permitAll()
 
                 /* Others requests
-                 * i.e. : 
+                 * i.e. :
                  *   - /auth/login
                  *   - /auth/logout
                  *   - POST /apis/ratings

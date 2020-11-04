@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
- * @author Guillaume GILLON 
+ * @author Guillaume GILLON
  */
 @Api(tags = {"Portal Pages"})
 public class PortalPagesResource extends AbstractResource {
@@ -53,6 +54,9 @@ public class PortalPagesResource extends AbstractResource {
 
     @Inject
     private GroupService groupService;
+
+    @Inject
+    private ConfigService configService;
 
     @Context
     private ResourceContext resourceContext;
@@ -65,13 +69,13 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PageEntity getPage(
+    public PageEntity getPortalPage(
                 @HeaderParam("Accept-Language") String acceptLang,
                 @PathParam("page") String page,
                 @QueryParam("portal") boolean portal,
                 @QueryParam("translated") boolean translated) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
-        PageEntity pageEntity = pageService.findById(page, translated?acceptedLocale:null);
+        PageEntity pageEntity = pageService.findById(page, translated ? acceptedLocale : null);
         if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
@@ -92,7 +96,7 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Page's content"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getPageContent(
+    public Response getPortalPageContent(
             @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page);
         pageService.transformSwagger(pageEntity);
@@ -110,7 +114,7 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of pages", response = PageEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<PageEntity> listPages(
+    public List<PageEntity> getPortalPages(
             @HeaderParam("Accept-Language") String acceptLang,
             @QueryParam("homepage") Boolean homepage,
             @QueryParam("published") Boolean published,
@@ -146,9 +150,9 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
-    public Response createPage(
+    public Response createPortalPage(
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
-        if(newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
+        if (newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
             throw new PageSystemFolderActionException("Create");
         }
         int order = pageService.findMaxPortalPageOrder() + 1;
@@ -177,15 +181,39 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity updatePage(
+    public PageEntity updatePortalPage(
             @PathParam("page") String page,
             @ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
-        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Update"); 
+        if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+            throw new PageSystemFolderActionException("Update");
         }
         updatePageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.update(page, updatePageEntity);
+    }
+
+    @PUT
+    @Path("/{page}/content")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Update a page content",
+            notes = "User must have the PORTAL_DOCUMENTATION[UPDATE] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Page content successfully updated"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
+    })
+    public String updatePageContent(
+            @PathParam("page") String page,
+            @ApiParam(name = "content", required = true) @Valid @NotNull String content) {
+        pageService.findById(page);
+
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setContent(content);
+        PageEntity update = pageService.update(page, updatePageEntity, true);
+
+        return update.getContent();
     }
 
     @PATCH
@@ -200,11 +228,11 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity partialUpdatePage(
+    public PageEntity partialUpdatePortalPage(
             @PathParam("page") String page,
             @ApiParam(name = "page", required = true) @NotNull UpdatePageEntity updatePageEntity) {
-        PageEntity existingPage =pageService.findById(page);
-        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+        PageEntity existingPage = pageService.findById(page);
+        if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
         }
         updatePageEntity.setLastContributor(getAuthenticatedUser());
@@ -222,12 +250,11 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public PageEntity fetchPage(
-    @PathParam("page") String page) {
-            pageService.findById(page);
-            String contributor = getAuthenticatedUser();
+    public PageEntity fetchPortalPage(@PathParam("page") String page) {
+        pageService.findById(page);
+        String contributor = getAuthenticatedUser();
 
-            return pageService.fetch(page, contributor);
+        return pageService.fetch(page, contributor);
     }
 
     @POST
@@ -241,7 +268,7 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
     })
-    public Response fetchAllPages() {
+    public Response fetchAllPortalPages() {
         String contributor = getAuthenticatedUser();
         pageService.fetchAll(new PageQuery.Builder().build(), contributor);
         return Response.noContent().build();
@@ -257,11 +284,11 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE)
     })
-    public void deletePage(
+    public void deletePortalPage(
             @PathParam("page") String page) {
         PageEntity existingPage = pageService.findById(page);
-        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
-            throw new PageSystemFolderActionException("Delete"); 
+        if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+            throw new PageSystemFolderActionException("Delete");
         }
         pageService.delete(page);
     }
@@ -278,7 +305,7 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
-    public List<PageEntity> importFiles(
+    public List<PageEntity> importPortalPageFromFiles(
             @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.importFiles(importPageEntity);
@@ -296,15 +323,20 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
     })
-    public List<PageEntity> updateImportFiles(
+    public List<PageEntity> updateImportedPortalPageFromFiles(
             @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
         return pageService.importFiles(importPageEntity);
     }
 
     private boolean isDisplayable(boolean isPagePublished, List<String> excludedGroups) {
-        return (isAuthenticated() && hasPermission(RolePermission.ENVIRONMENT_DOCUMENTATION, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE)) ||
-                (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull()));
+        if (!isAuthenticated() && configService.portalLoginForced())  {
+            // if portal requires login, this endpoint should hide the api pages even PUBLIC ones
+            return false;
+        } else {
+            return (isAuthenticated() && hasPermission(RolePermission.ENVIRONMENT_DOCUMENTATION, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE)) ||
+                    (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull()));
+        }
     }
 
     @Path("/{page}/media")

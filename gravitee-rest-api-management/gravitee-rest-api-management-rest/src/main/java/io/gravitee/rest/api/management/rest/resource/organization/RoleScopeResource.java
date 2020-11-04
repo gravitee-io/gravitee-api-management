@@ -29,8 +29,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -48,7 +48,7 @@ public class RoleScopeResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Autowired
+    @Inject
     private RoleService roleService;
 
     @GET
@@ -61,7 +61,7 @@ public class RoleScopeResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ)
     })
-    public List<RoleEntity> list(@PathParam("scope") RoleScope scope) {
+    public List<RoleEntity> getRoles(@PathParam("scope") RoleScope scope) {
         return roleService.findByScope(scope);
     }
 
@@ -76,7 +76,7 @@ public class RoleScopeResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE)
     })
-    public RoleEntity create(@PathParam("scope") RoleScope scope, @Valid @NotNull final NewRoleEntity role) {
+    public RoleEntity createRole(@PathParam("scope") RoleScope scope, @Valid @NotNull final NewRoleEntity role) {
         return roleService.create(role);
     }
 

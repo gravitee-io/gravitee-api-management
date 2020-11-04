@@ -476,14 +476,14 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
-    public PlanEntity depreciate(String planId) {
-        return depreciate(planId, false);
+    public PlanEntity deprecate(String planId) {
+        return deprecate(planId, false);
     }
 
     @Override
-    public PlanEntity depreciate(String planId, boolean allowStaging) {
+    public PlanEntity deprecate(String planId, boolean allowStaging) {
         try {
-            logger.debug("Depreciate plan {}", planId);
+            logger.debug("Deprecate plan {}", planId);
 
             Optional<Plan> optPlan = planRepository.findById(planId);
             if (! optPlan.isPresent()) {
@@ -518,9 +518,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             return convert(plan);
         } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to depreciate plan: {}", planId, ex);
+            logger.error("An error occurs while trying to deprecate plan: {}", planId, ex);
             throw new TechnicalManagementException(
-                    String.format("An error occurs while trying to depreciate plan: %s", planId), ex);
+                    String.format("An error occurs while trying to deprecate plan: %s", planId), ex);
         }
     }
 

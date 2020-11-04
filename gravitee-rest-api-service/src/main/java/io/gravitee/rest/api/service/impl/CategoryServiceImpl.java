@@ -155,7 +155,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public CategoryEntity update(String categoryId, UpdateCategoryEntity updateCategoryEntity) {
+    public CategoryEntity update(String categoryId, UpdateCategoryEntity categoryEntity) {
         try {
             LOGGER.debug("Update Category {}", categoryId);
 
@@ -164,7 +164,13 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 throw new CategoryNotFoundException(categoryId);
             }
 
-            Category category = convert(updateCategoryEntity, optCategoryToUpdate.get().getEnvironmentId());
+            Category category = convert(categoryEntity, optCategoryToUpdate.get().getEnvironmentId());
+
+            // check if picture has been set
+            // If no new picture and the current picture url is not the default one, keep the current picture
+            if (categoryEntity.getPicture() == null && categoryEntity.getPictureUrl() != null && categoryEntity.getPictureUrl().indexOf("?hash") > 0) {
+                category.setPicture(optCategoryToUpdate.get().getPicture());
+            }
 
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
             auditService.createEnvironmentAuditLog(
@@ -176,8 +182,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
             return updatedCategory;
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update category {}", updateCategoryEntity.getName(), ex);
-            throw new TechnicalManagementException("An error occurs while trying to update category " + updateCategoryEntity.getName(), ex);
+            LOGGER.error("An error occurs while trying to update category {}", categoryEntity.getName(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to update category " + categoryEntity.getName(), ex);
         }
     }
 

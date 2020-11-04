@@ -32,7 +32,7 @@ public class WsdlParser extends AbstractSwaggerParser<OpenAPI> {
     private static final Logger LOGGER = LoggerFactory.getLogger(WsdlParser.class);
 
     @Override
-    public OpenAPI parse(String content) {
+    public OpenAPI parse(String content, boolean failIfErrors) {
         try {
             if (isLocationUrl(content)) {
                 return new WSDLToOpenAPIConverter().toOpenAPI(RemoteUrl.urlToString(content, (List<AuthorizationValue>) null));

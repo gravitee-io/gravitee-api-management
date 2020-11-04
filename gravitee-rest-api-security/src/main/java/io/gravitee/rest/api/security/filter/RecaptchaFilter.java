@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
@@ -44,7 +45,8 @@ public class RecaptchaFilter extends GenericFilterBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecaptchaFilter.class);
     public static final String DEFAULT_RECAPTCHA_HEADER_NAME = "X-Recaptcha-Token";
-    private static final Set<String> RESTRICTED_PATHS = new HashSet<>(Arrays.asList("/user/login", "/users/registration", "/users/registration/finalize", "/auth/login", "/users/_reset_password"));
+    public static final Pattern MNG_CHANGE_PASSWORD = Pattern.compile("/users/([^/]+)/changePassword");
+    private static final Set<String> RESTRICTED_PATHS = new HashSet<>(Arrays.asList("/user/login", "/users/registration", "/users/registration/finalize", "/auth/login", "/users/_reset_password", "/users/_change_password"));
 
     private ReCaptchaService reCaptchaService;
     private ObjectMapper objectMapper;
@@ -60,7 +62,7 @@ public class RecaptchaFilter extends GenericFilterBean {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        if(RESTRICTED_PATHS.stream().anyMatch(path -> httpRequest.getPathInfo().contains(path))) {
+        if(RESTRICTED_PATHS.stream().anyMatch(path -> httpRequest.getPathInfo().contains(path) || MNG_CHANGE_PASSWORD.matcher(httpRequest.getPathInfo()).matches())) {
 
             LOGGER.debug("Checking captcha");
 

@@ -24,10 +24,7 @@ import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -47,6 +44,11 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Inject
     private ApplicationMetadataService metadataService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("application")
+    @ApiParam(name = "application", hidden = true)
+    private String application;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List metadata for an application",
@@ -57,8 +59,7 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ)
     })
-    public List<ApplicationMetadataEntity> listApplicationMetadatas(
-            @PathParam("application") String application) {
+    public List<ApplicationMetadataEntity> getApplicationMetadatas() {
         return metadataService.findAllByApplication(application);
     }
 
@@ -74,7 +75,7 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.READ)
     })
-    public ApplicationMetadataEntity getApplicationMetadata(@PathParam("application") String application, @PathParam("metadata") String metadata) {
+    public ApplicationMetadataEntity getApplicationMetadata(@PathParam("metadata") String metadata) {
         return metadataService.findByIdAndApplication(metadata, application);
     }
 
@@ -89,7 +90,7 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.CREATE)
     })
-    public Response create(@PathParam("application") String application, @Valid @NotNull final NewApplicationMetadataEntity metadata) {
+    public Response createApplicationMetadata(@Valid @NotNull final NewApplicationMetadataEntity metadata) {
         // prevent creation of a metadata on an another APPLICATION
         metadata.setApplicationId(application);
 
@@ -112,8 +113,7 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.UPDATE)
     })
-    public Response update(@PathParam("application") String application,
-                           @PathParam("metadata") String metadataPathParam,
+    public Response updateApplicationMetadata(@PathParam("metadata") String metadataPathParam,
                            @Valid @NotNull final UpdateApplicationMetadataEntity metadata) {
         // prevent update of a metadata on an another APPLICATION
         metadata.setApplicationId(application);
@@ -131,7 +131,7 @@ public class ApplicationMetadataResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.APPLICATION_METADATA, acls = RolePermissionAction.DELETE)
     })
-    public Response delete(@PathParam("application") String application, @PathParam("metadata") String metadata) {
+    public Response deleteApplicationMetadata(@PathParam("metadata") String metadata) {
         metadataService.delete(metadata, application);
         return Response.noContent().build();
     }

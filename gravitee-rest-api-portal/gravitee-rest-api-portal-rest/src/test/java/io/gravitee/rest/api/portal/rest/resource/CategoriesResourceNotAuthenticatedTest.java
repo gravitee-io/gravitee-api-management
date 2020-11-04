@@ -103,6 +103,7 @@ public class CategoriesResourceNotAuthenticatedTest extends AbstractResourceTest
         
         List<CategoryEntity> mockCategories = Arrays.asList(category1, category2, category3);
         doReturn(mockCategories).when(categoryService).findAll();
+        doReturn(1L).when(categoryService).getTotalApisByCategory(any(), any()) ;
 
         doReturn(false).when(ratingService).isEnabled();
 

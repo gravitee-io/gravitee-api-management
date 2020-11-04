@@ -3,7 +3,6 @@
     "name" : "Gravitee.io"
   },
   "portal" : {
-    "title" : "Gravitee.io Portal",
     "entrypoint" : "https://api.company.com",
     "apikeyHeader" : "X-Gravitee-Api-Key",
     "support" : {

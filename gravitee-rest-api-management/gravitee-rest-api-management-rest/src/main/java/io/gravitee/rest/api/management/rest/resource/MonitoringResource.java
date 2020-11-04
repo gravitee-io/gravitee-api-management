@@ -16,11 +16,11 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.monitoring.MonitoringData;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.MonitoringService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,7 +47,7 @@ public class MonitoringResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)
     })
-    public MonitoringData instanceMonitoring(
+    public MonitoringData getInstanceMonitoring(
             @PathParam("gatewayId") String gatewayId) {
         return monitoringService.findMonitoring(gatewayId);
     }

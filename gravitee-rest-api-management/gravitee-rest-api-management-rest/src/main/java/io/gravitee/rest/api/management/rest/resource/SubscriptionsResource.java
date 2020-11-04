@@ -20,7 +20,6 @@ import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -52,16 +51,13 @@ public class SubscriptionsResource {
     @Inject
     private PlanService planService;
 
-    @Inject
-    private ApiService apiService;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List subscriptions for authenticated user")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List of subscriptions", response = Subscription.class, responseContainer = "Set"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Set<Subscription> listUserSubscriptions(
+    public Set<Subscription> getUserSubscriptions(
             @QueryParam("application") String application,
             @QueryParam("plan") String plan) {
         return subscriptionService.findByApplicationAndPlan(application, plan)

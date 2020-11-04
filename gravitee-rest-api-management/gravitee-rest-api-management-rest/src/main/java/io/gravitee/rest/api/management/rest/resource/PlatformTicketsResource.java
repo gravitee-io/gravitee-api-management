@@ -48,7 +48,7 @@ public class PlatformTicketsResource extends AbstractResource  {
             @ApiResponse(code = 201, message = "Ticket succesfully created"),
             @ApiResponse(code = 500, message = "Internal server error")})
 
-    public Response create(@Valid @NotNull final NewTicketEntity ticketEntity) {
+    public Response createPlatformTicket(@Valid @NotNull final NewTicketEntity ticketEntity) {
         ticketService.create(getAuthenticatedUser(), ticketEntity);
         return Response.created(URI.create("")).build();
     }

@@ -47,9 +47,9 @@ public interface PlanService {
 
     PlanEntity publish(String plan);
 
-    PlanEntity depreciate(String plan);
+    PlanEntity deprecate(String plan);
 
-    PlanEntity depreciate(String plan, boolean allowStaging);
+    PlanEntity deprecate(String plan, boolean allowStaging);
 
     PlansConfigurationEntity getConfiguration();
 

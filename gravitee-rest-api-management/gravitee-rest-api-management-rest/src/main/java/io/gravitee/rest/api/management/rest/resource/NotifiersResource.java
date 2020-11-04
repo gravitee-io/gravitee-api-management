@@ -47,7 +47,6 @@ import java.util.stream.Stream;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/notifiers")
 @Api(tags = {"Plugins"})
 public class NotifiersResource {
 
@@ -67,7 +66,7 @@ public class NotifiersResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
-    public Collection<NotifierListItem> listNotifiers(@QueryParam("expand") List<String> expand) {
+    public Collection<NotifierListItem> getNotifiers(@QueryParam("expand") List<String> expand) {
         Stream<NotifierListItem> stream = notifierService.findAll().stream().map(this::convert);
 
         if(expand!=null && !expand.isEmpty()) {

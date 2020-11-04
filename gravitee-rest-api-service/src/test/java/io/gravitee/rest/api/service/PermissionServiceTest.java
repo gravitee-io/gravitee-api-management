@@ -17,6 +17,9 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
+import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
+import io.gravitee.rest.api.model.permissions.OrganizationPermission;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.impl.PermissionServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,14 +55,68 @@ public class PermissionServiceTest {
     private static final String USER_NAME = "username";
     
     @Test
-    public void shouldGetConfigurationWithManagementOrPortalRoles() {
+    public void shouldGetConfigurationWithRandomRoles() {
         reset(userService);
         reset(membershipService);
         UserEntity user = new UserEntity();
         user.setRoles(Collections.singleton(new UserRoleEntity()));
         doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
 
+        assertFalse(permissionService.hasManagementRights(USER_NAME));
+    }
+
+    @Test
+    public void shouldGetConfigurationWithOrganizationRoles() {
+        reset(userService);
+        reset(membershipService);
+        UserEntity user = new UserEntity();
+        UserRoleEntity userCUDEnvironment = new UserRoleEntity();
+        userCUDEnvironment.setScope(RoleScope.ORGANIZATION);
+
+        Map<String, char[]> perms = new HashMap<>();
+        perms.put(OrganizationPermission.ROLE.name(), new char[] {'C','U','D'});
+
+        userCUDEnvironment.setPermissions(perms);
+        user.setRoles(Collections.singleton(userCUDEnvironment));
+        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+
         assertTrue(permissionService.hasManagementRights(USER_NAME));
+    }
+
+    @Test
+    public void shouldGetConfigurationWithEnvironmentRoles() {
+        reset(userService);
+        reset(membershipService);
+        UserEntity user = new UserEntity();
+        UserRoleEntity userCUDEnvironment = new UserRoleEntity();
+        userCUDEnvironment.setScope(RoleScope.ENVIRONMENT);
+
+        Map<String, char[]> perms = new HashMap<>();
+        perms.put(EnvironmentPermission.API.name(), new char[] {'C','U','D'});
+
+        userCUDEnvironment.setPermissions(perms);
+        user.setRoles(Collections.singleton(userCUDEnvironment));
+        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+
+        assertTrue(permissionService.hasManagementRights(USER_NAME));
+    }
+
+    @Test
+    public void shouldGetConfigurationWithOnlyEnvironmentApplicationPermission() {
+        reset(userService);
+        reset(membershipService);
+        UserEntity user = new UserEntity();
+        UserRoleEntity userCUDEnvironment = new UserRoleEntity();
+        userCUDEnvironment.setScope(RoleScope.ENVIRONMENT);
+
+        Map<String, char[]> perms = new HashMap<>();
+        perms.put(EnvironmentPermission.APPLICATION.name(), new char[] {'C','U','D'});
+
+        userCUDEnvironment.setPermissions(perms);
+        user.setRoles(Collections.singleton(userCUDEnvironment));
+        doReturn(user).when(userService).findByIdWithRoles(USER_NAME);
+
+        assertFalse(permissionService.hasManagementRights(USER_NAME));
     }
 
     @Test
@@ -126,4 +183,5 @@ public class PermissionServiceTest {
 
         assertFalse(permissionService.hasManagementRights(USER_NAME));
     }
+
 }

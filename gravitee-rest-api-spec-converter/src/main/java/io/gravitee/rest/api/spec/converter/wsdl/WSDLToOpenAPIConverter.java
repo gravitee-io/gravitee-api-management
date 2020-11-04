@@ -168,6 +168,7 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
                 Output output = operation.getOutput();
                 ApiResponse successResp = new ApiResponse();
                 successResp.content(nodefContent);
+                successResp.setDescription(""); // description is mandatory
                 if (output != null) {
                     Message msg = output.getMessage();
                     if (msg != null) {

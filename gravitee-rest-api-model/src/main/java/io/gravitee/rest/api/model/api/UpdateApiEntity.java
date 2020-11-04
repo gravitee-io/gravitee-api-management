@@ -62,6 +62,8 @@ public class UpdateApiEntity {
 
     @JsonProperty(value = "paths", required = true)
     @ApiModelProperty(
+            // specify a type here because jackson der/ser for Path handle only array of rules
+            dataType = "io.gravitee.rest.api.model.api.PathsSwaggerDef",
             value = "a map where you can associate a path to a configuration (the policies configuration)")
     private Map<String, Path> paths = new HashMap<>();
 
@@ -87,7 +89,6 @@ public class UpdateApiEntity {
 
     @ApiModelProperty(
             value = "the list of sharding tags associated with this API.",
-            dataType = "java.util.List",
             example = "public, private")
     private Set<String> tags;
 
@@ -95,28 +96,29 @@ public class UpdateApiEntity {
             value = "the API logo encoded in base64")
     private String picture;
 
+    @JsonProperty("picture_url")
+    @ApiModelProperty(
+            value = "the API logo encoded in base64")
+    private String pictureUrl;
+
     @ApiModelProperty(
             value = "the list of categories associated with this API",
-            dataType = "java.util.List",
             example = "Product, Customer, Misc")
     private Set<String> categories;
 
     @ApiModelProperty(
             value = "the free list of labels associated with this API",
-            dataType = "java.util.List",
             example = "json, read_only, awesome")
     private List<String> labels;
 
     @ApiModelProperty(
             value = "API's groups. Used to add team in your API.",
-            dataType = "java.util.List",
             example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     @JsonProperty(value = "path_mappings")
     @ApiModelProperty(
             value = "A list of paths used to aggregate data in analytics",
-            dataType = "java.util.List",
             example = "/products/:productId, /products/:productId/media")
     private Set<String> pathMappings;
 
@@ -295,5 +297,13 @@ public class UpdateApiEntity {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 }

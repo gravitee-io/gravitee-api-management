@@ -28,8 +28,9 @@ import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.annotations.ApiParam;
 
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -46,13 +47,18 @@ import static java.util.stream.Collectors.toList;
 @Api(tags = {"API Ratings"})
 public class ApiRatingResource extends AbstractResource {
 
-    @Autowired
+    @Inject
     private RatingService ratingService;
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
 
     @GET
     @ApiOperation(value = "List ratings for an API")
     @Produces(MediaType.APPLICATION_JSON)
-    public Page<RatingEntity> list(@PathParam("api") String api, @Min(1) @QueryParam("pageNumber") int pageNumber, @QueryParam("pageSize") int pageSize) {
+    public Page<RatingEntity> getApiRating(@Min(1) @QueryParam("pageNumber") int pageNumber, @QueryParam("pageSize") int pageSize) {
         final ApiEntity apiEntity = apiService.findById(api);
         if (PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(RolePermission.API_RATING, api, RolePermissionAction.READ)) {
             final Page<RatingEntity> ratingEntityPage =
@@ -69,7 +75,7 @@ public class ApiRatingResource extends AbstractResource {
     @GET
     @ApiOperation(value = "Retrieve current rating for an API provided by the authenticated user")
     @Produces(MediaType.APPLICATION_JSON)
-    public RatingEntity getByApiAndUser(@PathParam("api") String api) {
+    public RatingEntity getApiRatingByApiAndUser() {
         if (!isAuthenticated()) {
             return null;
         }
@@ -85,7 +91,7 @@ public class ApiRatingResource extends AbstractResource {
     @ApiOperation(value = "Get the rating summary for an API")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public RatingSummaryEntity getSummaryByApi(@PathParam("api") String api) {
+    public RatingSummaryEntity getApiRatingSummaryByApi() {
         final ApiEntity apiEntity = apiService.findById(api);
         if (PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(RolePermission.API_RATING, api, RolePermissionAction.READ)) {
             return ratingService.findSummaryByApi(api);
@@ -102,7 +108,7 @@ public class ApiRatingResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE)
     })
-    public RatingEntity create(@PathParam("api") String api, @Valid @NotNull final NewRatingEntity rating) {
+    public RatingEntity createApiRating(@Valid @NotNull final NewRatingEntity rating) {
         rating.setApi(api);
         return filterPermission(api, ratingService.create(rating));
     }
@@ -116,7 +122,7 @@ public class ApiRatingResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.UPDATE)
     })
-    public RatingEntity update(@PathParam("api") String api, @PathParam("rating") String rating, @Valid @NotNull final UpdateRatingEntity ratingEntity) {
+    public RatingEntity updateApiRating(@PathParam("rating") String rating, @Valid @NotNull final UpdateRatingEntity ratingEntity) {
         ratingEntity.setId(rating);
         ratingEntity.setApi(api);
         return filterPermission(api, ratingService.update(ratingEntity));
@@ -130,7 +136,7 @@ public class ApiRatingResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("rating") String rating) {
+    public void deleteApiRating(@PathParam("rating") String rating) {
         ratingService.delete(rating);
     }
 
@@ -143,7 +149,7 @@ public class ApiRatingResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.CREATE)
     })
-    public RatingEntity createAnswer(@PathParam("api") String api, @PathParam("rating") String rating, @Valid @NotNull final NewRatingAnswerEntity answer) {
+    public RatingEntity createApiRatingAnswer(@PathParam("rating") String rating, @Valid @NotNull final NewRatingAnswerEntity answer) {
         answer.setRatingId(rating);
         return filterPermission(api, ratingService.createAnswer(answer));
     }
@@ -156,7 +162,7 @@ public class ApiRatingResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE)
     })
-    public void delete(@PathParam("rating") String rating, @PathParam("answer") String answer) {
+    public void deleteApiRatingAnswer(@PathParam("rating") String rating, @PathParam("answer") String answer) {
         ratingService.deleteAnswer(rating, answer);
     }
 

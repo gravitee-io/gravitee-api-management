@@ -28,6 +28,7 @@ import org.springframework.security.core.context.SecurityContextImpl;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -68,6 +69,9 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        assertThat(response.readEntity(HashMap.class))
+                .isNotNull()
+                .containsKeys("created_at", "updated_at", "last_connection_at");
     }
 
     @Test
@@ -109,6 +113,9 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         userEntity.setId(ID);
         userEntity.setRoles(Collections.emptySet());
         userEntity.setFirstConnectionAt(new Date());
+        userEntity.setCreatedAt(new Date());
+        userEntity.setUpdatedAt(new Date());
+        userEntity.setLastConnectionAt(new Date());
 
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userService.findByIdWithRoles(USER_NAME)).thenReturn(userEntity);
