@@ -132,9 +132,7 @@ public class ApiResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API's picture"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getApiPicture(
-            @Context Request request,
-            @PathParam("api") String api) throws ApiNotFoundException {
+    public Response getApiPicture(@Context Request request) throws ApiNotFoundException {
         return getImageResponse(request, api, apiService.getPicture(api));
     }
 
@@ -145,9 +143,7 @@ public class ApiResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "API's background"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response background(
-            @Context Request request,
-            @PathParam("api") String api) throws ApiNotFoundException {
+    public Response getApiBackground(@Context Request request) throws ApiNotFoundException {
         return getImageResponse(request, api, apiService.getBackground(api));
     }
 

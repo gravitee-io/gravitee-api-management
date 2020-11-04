@@ -223,7 +223,7 @@ public class UserResource extends AbstractResource {
     @Permissions(
             @Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE)
     )
-    public Response updateUserRoles(@PathParam("id") String userId, List<String> roleIds) {
+    public Response updateUserRoles(List<String> roleIds) {
         userService.updateUserRoles(userId, roleIds);
         return Response.ok().build();
     }
@@ -259,7 +259,7 @@ public class UserResource extends AbstractResource {
             @ApiResponse(code = 200, message = "Processed user"),
             @ApiResponse(code = 404, message = "User not found"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response validateRegistration(@PathParam("id") String userId, boolean accepted) {
+    public Response validateRegistration(boolean accepted) {
         return Response
                 .ok(userService.processRegistration(userId, accepted))
                 .build();

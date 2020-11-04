@@ -80,9 +80,7 @@ public class CategoryResource extends AbstractCategoryResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Category's picture"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getCategoryPicture(
-            @Context Request request,
-            @PathParam("id") String categoryId) throws CategoryNotFoundException {
+    public Response getCategoryPicture(@Context Request request) throws CategoryNotFoundException {
         return getImageResponse(request, categoryId, categoryService.getPicture(categoryId));
     }
 
@@ -93,9 +91,7 @@ public class CategoryResource extends AbstractCategoryResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Category's background"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public Response background(
-            @Context Request request,
-            @PathParam("id") String categoryId) throws CategoryNotFoundException {
+    public Response getCategoryBackground(@Context Request request) throws CategoryNotFoundException {
         return getImageResponse(request, categoryId, categoryService.getBackground(categoryId));
     }
 

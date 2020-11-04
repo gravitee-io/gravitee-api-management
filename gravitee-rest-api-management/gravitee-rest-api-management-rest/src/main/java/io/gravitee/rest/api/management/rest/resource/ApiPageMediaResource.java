@@ -25,10 +25,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -54,6 +51,16 @@ public class ApiPageMediaResource extends AbstractResource {
     @Inject
     private PageService pageService;
 
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("api")
+    @ApiParam(name = "api", hidden = true)
+    private String api;
+
+    @SuppressWarnings("UnresolvedRestParam")
+    @PathParam("page")
+    @ApiParam(name = "page", hidden = true)
+    private String page;
+
     @POST
     @ApiOperation(value = "Attach a media to an API page ",
             notes = "User must have the API_DOCUMENTATION[UPDATE] permission to use this service")
@@ -65,9 +72,7 @@ public class ApiPageMediaResource extends AbstractResource {
     })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response attachMedia(
-            @PathParam("api") String api,
-            @PathParam("page") String page,
+    public Response attachApiPageMedia(
             @Context final HttpServletRequest request,
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail,
@@ -102,9 +107,7 @@ public class ApiPageMediaResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ)
     })
-    public Response getMedia(
-            @PathParam("api") String api,
-            @PathParam("page") String page) {
+    public Response getApiPageMedia() {
         final PageEntity currentPage = pageService.findById(page);
         List<MediaEntity> pageMedia = mediaService.findAllWithoutContent(currentPage.getAttachedMedia(), api);
 
