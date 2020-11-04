@@ -125,6 +125,7 @@ class ApiService {
         'properties': api.properties,
         'tags': api.tags,
         'picture': api.picture,
+        'picture_url': api.picture_url,
         'background': api.background,
         'resources': api.resources,
         'categories': api.categories,
@@ -165,8 +166,11 @@ class ApiService {
     return this.$http.post(this.apisURL + 'import', apiDefinition);
   }
 
-  importSwagger(apiId: string, swaggerDescriptor: string): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + (apiId ? apiId + '/' : '') + 'import/swagger', swaggerDescriptor);
+  importSwagger(apiId: string, swaggerDescriptor: string, config?): ng.IPromise<any> {
+    if (apiId) {
+      return this.$http.put(this.apisURL + apiId + '/import/swagger', swaggerDescriptor, config);
+    }
+    return this.$http.post(this.apisURL + 'import/swagger', swaggerDescriptor, config);
   }
 
   export(apiId, exclude, exportVersion): ng.IPromise<any> {
@@ -314,8 +318,8 @@ class ApiService {
     return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_publish');
   }
 
-  depreciatePlan(apiId, planId) {
-    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_depreciate');
+  deprecatePlan(apiId, planId) {
+    return this.$http.post(this.apisURL + apiId + '/plans/' + planId + '/_deprecate');
   }
 
   /*

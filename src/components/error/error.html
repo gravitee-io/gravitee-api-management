@@ -15,21 +15,9 @@
     limitations under the License.
 
 -->
-<div class="gravitee-upload-image" ng-class="{checkered: checkeredBackground}" ngf-select="imgCtrl.selectImage($file,$invalidFiles)" ngf-pattern="'image/*'"
-     ngf-accept="'image/*'" ngf-max-size="maxSize">
-  <p class="background">{{ changeLabel }}</p>
-  <gravitee-identity-picture
-    image-id="imageId"
-    image="image"
-    image-url="imageUrl"
-    image-name="imageName"
-    image-width="110"
-    no-default-image="noDefaultImage"
-  >
-  </gravitee-identity-picture>
+<div ng-if="$ctrl.hasErrors()" class="gv-error">
+  <h5>{{ $ctrl.title }}</h5>
+  <ul>
+    <li ng-repeat="msg in $ctrl.messages">{{msg}}</li>
+  </ul>
 </div>
-<div class="gravitee-upload-image-button">
-    <a ng-if="canDelete && !imgCtrl.isDefaultImage()" ng-click="imgCtrl.onDelete($event)">{{ deleteLabel }}</a>
-</div>
-
-

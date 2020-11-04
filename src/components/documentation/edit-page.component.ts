@@ -61,6 +61,7 @@ const EditPageComponent: ng.IComponentOptions = {
     this.currentTab = this.tabs[this.selectedTab];
     this.shouldShowOpenApiDocFormat = false;
 
+    this.error = null;
     $scope.rename = false;
 
     this.$onInit = () => {
@@ -313,6 +314,7 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.save = () => {
+      this.error = null;
       DocumentationService.update(this.page, this.apiId)
         .then( (response) => {
           NotificationService.show('\'' + this.page.name + '\' has been updated');
@@ -321,7 +323,10 @@ const EditPageComponent: ng.IComponentOptions = {
           } else {
             $state.go('management.settings.editdocumentation', {pageId: this.page.id, type: this.page.type, tab: this.currentTab}, {reload: true});
           }
-      });
+      })
+        .catch((err) => {
+          this.error = { ...err.data, title: 'Sorry, unable to update page' };
+        });
     };
 
     this.changeContentMode = (newMode) => {
@@ -391,8 +396,9 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.toggleEntrypointAsServer = () => {
-      if (this.page.configuration.entrypointsAsServers === 'false') {
-        this.page.configuration.entrypointAsBasePath = this.page.configuration.entrypointsAsServers;
+      if (this.page.configuration.entrypointsAsServers === undefined) {
+        // Enable adding context-path automatically only the first time user decides to use entrypoint url.
+        this.page.configuration.entrypointAsBasePath = 'true';
       }
     };
 

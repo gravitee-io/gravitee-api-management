@@ -37,25 +37,23 @@
       </div>
     </md-checkbox>
   <div layout="column" layout-wrap layout-gt-sm="row">
-    <div flex-xs flex="50">
-      <md-input-container class="md-block" flex-gt-sm>
-        <label>Access-Control-Allow-Origin *</label>
-        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowOrigin"
-                  ng-required="apiProxyCtrl.api.proxy.cors.enabled"
-                  md-removable="apiProxyCtrl.api.proxy.cors.enabled" placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
-                  md-on-add="apiProxyCtrl.controlAllowOrigin($chip, $index)"
-                  md-add-on-blur="true"
-                  readonly="!apiProxyCtrl.api.proxy.cors.enabled">
-          <md-chip-template>
-            <strong>{{$chip}}</strong>
-          </md-chip-template>
-        </md-chips>
-        <div class="hint">
-          The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the <i>same-origin</i> definition.<br>
-          If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
-        </div>
-        <div ng-if="!apiProxyCtrl.isRegexValid()" style="color: red">Regex is invalid</div>
-      </md-input-container>
+    <div flex-xs flex="50" style="margin-top: 20px;">
+      <div class="md-label" ng-class="{disabled: !apiProxyCtrl.api.proxy.cors.enabled}">Access-Control-Allow-Origin *</div>
+      <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowOrigin"
+                ng-required="apiProxyCtrl.api.proxy.cors.enabled"
+                md-removable="apiProxyCtrl.api.proxy.cors.enabled" placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
+                md-on-add="apiProxyCtrl.controlAllowOrigin($chip, $index)"
+                md-add-on-blur="true"
+                readonly="!apiProxyCtrl.api.proxy.cors.enabled">
+        <md-chip-template>
+          <strong>{{$chip}}</strong>
+        </md-chip-template>
+      </md-chips>
+      <div class="hint">
+        The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the <i>same-origin</i> definition.<br>
+        If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
+      </div>
+      <div ng-if="!apiProxyCtrl.isRegexValid()" style="color: red">Regex is invalid</div>
     </div>
 
     <div flex-xs flex="50">
@@ -73,7 +71,7 @@
                    placeholder="Search for allowed HTTP method."
                    class="demo-header-searchbox md-text">
           </md-select-header>
-          <md-optgroup label="HTTP Methods">
+          <md-optgroup label="HTTPMethods">
             <md-option ng-value="method" ng-repeat="method in methods |
               filter:searchTerm">{{method}}</md-option>
           </md-optgroup>
@@ -82,31 +80,29 @@
       </md-input-container>
     </div>
 
-    <div flex-xs flex="50">
-      <md-input-container class="md-block" flex-gt-sm>
-          <label>Access-Control-Allow-Headers</label>
-        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowHeaders"
-                  md-autocomplete-snap
-                  md-add-on-blur="true"
-                  md-require-match="false"
-                  readonly="!apiProxyCtrl.api.proxy.cors.enabled">
-          <md-autocomplete
-            md-search-text="searchHeaders"
-            md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"
-            md-item-text="item"
-            placeholder="Content-Type, ...">
-            <span md-highlight-text="searchHeaders">{{item}}</span>
-          </md-autocomplete>
-          <md-chip-template>
-          <span>
-            <strong>{{$chip}}</strong>
-          </span>
-          </md-chip-template>
-          <span class="ipsum">
-             Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
-          </span>
-        </md-chips>
-      </md-input-container>
+    <div flex-xs flex="50" style="margin: 20px 0;">
+      <div class="md-label" ng-class="{disabled: !apiProxyCtrl.api.proxy.cors.enabled}">Access-Control-Allow-Headers</div>
+      <md-chips ng-model="apiProxyCtrl.api.proxy.cors.allowHeaders"
+                md-autocomplete-snap
+                md-add-on-blur="true"
+                md-require-match="false"
+                readonly="!apiProxyCtrl.api.proxy.cors.enabled">
+        <md-autocomplete
+          md-search-text="searchHeaders"
+          md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"
+          md-item-text="item"
+          placeholder="Content-Type, ...">
+          <span md-highlight-text="searchHeaders">{{item}}</span>
+        </md-autocomplete>
+        <md-chip-template>
+        <span>
+          <strong>{{$chip}}</strong>
+        </span>
+        </md-chip-template>
+        <span class="ipsum">
+           Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+        </span>
+      </md-chips>
     </div>
 
     <div layout-gt-sm="row">
@@ -134,27 +130,26 @@
     </div>
 
     <div flex-xs flex="50">
-      <md-input-container class="md-block" flex-gt-sm>
-        <md-chips ng-model="apiProxyCtrl.api.proxy.cors.exposeHeaders"
-                  md-autocomplete-snap
-                  md-add-on-blur="true"
-                  md-require-match="false"
-                  readonly="!apiProxyCtrl.api.proxy.cors.enabled">
-          <md-autocomplete
-            md-search-text="searchHeaders"
-            md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"
-            md-item-text="item"
-            placeholder="Access-Control-Expose-Headers">
-            <span md-highlight-text="searchHeaders">{{item}}</span>
-          </md-autocomplete>
-          <md-chip-template>
-          <span>
-            <strong>{{$chip}}</strong>
-          </span>
-          </md-chip-template>
-        </md-chips>
-        <div class="hint">This header lets a server whitelist headers that browsers are allowed to access.</div>
-      </md-input-container>
+      <div class="md-label" ng-class="{disabled: !apiProxyCtrl.api.proxy.cors.enabled}">Access-Control-Expose-Headers</div>
+      <md-chips ng-model="apiProxyCtrl.api.proxy.cors.exposeHeaders"
+                md-autocomplete-snap
+                md-add-on-blur="true"
+                md-require-match="false"
+                readonly="!apiProxyCtrl.api.proxy.cors.enabled">
+        <md-autocomplete
+          md-search-text="searchHeaders"
+          md-items="item in apiProxyCtrl.querySearchHeaders(searchHeaders)"
+          md-item-text="item"
+          placeholder="Cache-Control, Content-Length, Content-Type, ...">
+          <span md-highlight-text="searchHeaders">{{item}}</span>
+        </md-autocomplete>
+        <md-chip-template>
+        <span>
+          <strong>{{$chip}}</strong>
+        </span>
+        </md-chip-template>
+      </md-chips>
+      <div class="hint">This header lets a server whitelist headers that browsers are allowed to access.</div>
     </div>
   </div>
   <br>

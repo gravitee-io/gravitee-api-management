@@ -18,7 +18,8 @@ import UserService from '../services/user.service';
 import ReCaptchaService from '../services/reCaptcha.service';
 
 function interceptorConfig(
-  $httpProvider: angular.IHttpProvider
+  $httpProvider: angular.IHttpProvider,
+  Constants
 ) {
   'ngInject';
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -51,7 +52,8 @@ function interceptorConfig(
               && $location.$$path !== '/'
               && $location.$$path !== '/login'
               && !$location.$$path.startsWith('/registration')
-              && !$location.$$path.startsWith('/resetPassword');
+              && !$location.$$path.startsWith('/resetPassword')
+              && !error.config.url.startsWith(Constants.baseURL.endsWith('/') ? Constants.baseURL + 'user' :  Constants.baseURL + '/user/');
             if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
               sessionExpired = true;
               // session expired

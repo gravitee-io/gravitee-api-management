@@ -39,6 +39,7 @@ class ImageDirective {
         deleteLabel: '@',
         canDelete: '=',
         successEventName: '@',
+        checkeredBackground: '<'
       },
       template: require('./image.html'),
       controller: ImageController,
@@ -90,9 +91,17 @@ class ImageController {
 
   onDelete() {
     this.$scope.image = null;
-    this.$rootScope.$broadcast(this.$scope.successEventName, { image: this.$scope.image });
+    this.$scope.imageUrl = null;
+    this.$rootScope.$broadcast('apiPictureChangeSuccess', { image: this.$scope.image });
     if (this.$scope.imageForm) {
       this.$scope.imageForm.$setDirty();
+    }
+  }
+
+  isDefaultImage() {
+    const jdenticonElement = document.querySelector('#jdenticon_' + this.$scope.imageId);
+    if (jdenticonElement) {
+      return jdenticonElement.classList.contains('show');
     }
   }
 }

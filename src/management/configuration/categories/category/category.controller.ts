@@ -25,6 +25,7 @@ class CategoryController {
   public categoryForm: any;
   private createMode: boolean = false;
   private allApis: any[];
+  private initialCategory: any;
   private category: any;
   private categoryApis: any[];
   private pages: any[];
@@ -68,6 +69,24 @@ class CategoryController {
       }
       return comparison;
     });
+    let self = this;
+    this.$scope.$on('apiPictureChangeSuccess', function(event, args) {
+      if (!self.category) {
+        self.category = {};
+      }
+      self.category.picture = args.image;
+      self.formChanged = true;
+    });
+    this.initialCategory = _.cloneDeep(this.category);
+  }
+
+  reset() {
+    this.category = _.cloneDeep(this.initialCategory);
+    this.formChanged = false;
+    if (this.categoryForm) {
+      this.categoryForm.$setPristine();
+      this.categoryForm.$setUntouched();
+    }
   }
 
   save() {

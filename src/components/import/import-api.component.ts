@@ -56,6 +56,7 @@ const ImportComponent: ng.IComponentOptions = {
       this.importCreatePolicyPaths = false;
       this.importCreatePathMapping = true;
       this.importCreateMocks = false;
+      this.error = null;
       $scope.$watch('$ctrl.importAPIFile.content', function (data) {
         if (data) {
           that.enableFileImport = true;
@@ -199,6 +200,16 @@ const ImportComponent: ng.IComponentOptions = {
       });
     };
 
+    this.toggleTab = () => {
+      this.importFileMode = this.importURLMode;
+      this.importURLMode = !this.importFileMode;
+      this.error = null;
+    };
+
+    this._manageSwaggerError = (err) => {
+      this.error = {...err.data, title: 'Sorry, we can\'t seem to parse the definition'};
+    };
+
     this.importSwagger = () => {
       this.importApiSpecification('API');
     };
@@ -208,6 +219,7 @@ const ImportComponent: ng.IComponentOptions = {
     };
 
     this.importApiSpecification = (format) => {
+      this.error = null;
       let swagger: any = {
         with_documentation: this.importCreateDocumentation,
         with_path_mapping: this.importCreatePathMapping,
@@ -227,16 +239,16 @@ const ImportComponent: ng.IComponentOptions = {
 
       if (this.isForUpdate()) {
         // @ts-ignore
-        ApiService.importSwagger(this.apiId, swagger).then((api) => {
+        ApiService.importSwagger(this.apiId, swagger, {silentCall: true}).then((api) => {
           NotificationService.show('API successfully imported');
           $state.reload();
-        });
+        }).catch(this._manageSwaggerError);
       } else {
         // @ts-ignore
-        ApiService.importSwagger(null, swagger).then((api) => {
+        ApiService.importSwagger(null, swagger, {silentCall: true}).then((api) => {
           NotificationService.show('API successfully updated');
           $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
-        });
+        }).catch(this._manageSwaggerError);
       }
     };
   }

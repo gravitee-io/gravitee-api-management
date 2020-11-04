@@ -79,7 +79,8 @@
           <div>
             <gravitee-image image-id="'bg-category'" image="$ctrl.category.background" image-url="$ctrl.category.background_url"
                             image-name="'bg-' + $ctrl.category.name" change-label="Change background"
-                            no-default-image="true" success-event-name="categoryBackgroundChangeSuccess"></gravitee-image>
+                            no-default-image="true" success-event-name="categoryBackgroundChangeSuccess"
+                            can-delete="true" delete-label="Use default"></gravitee-image>
           </div>
         </div>
       </form>
@@ -158,6 +159,12 @@
                    permission permission-only="['environment-category-c', 'environment-category-u']"
                    class="md-raised md-primary">
           Save
+        </md-button>
+        <md-button ng-disabled="$ctrl.categoryForm.$invalid || $ctrl.categoryForm.$pristine && !$ctrl.formChanged"
+                   ng-click="$ctrl.reset()"
+                   permission permission-only="['environment-category-c', 'environment-category-u']"
+                   class="md-raised">
+          Reset
         </md-button>
       </div>
     </div>
