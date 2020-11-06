@@ -235,7 +235,7 @@
           <td md-cell>{{::key}}</td>
           <td md-cell ng-click="$ctrl.editProperty($event, key, value)"
               ng-class="{'gravitee-placeholder': value}">
-            {{::value || 'Set value'}}
+            {{value || 'Set value'}}
           </td>
           <td md-cell ng-if="$ctrl.dictionary.type === 'manual'">
             <ng-md-icon permission permission-only="['management-dictionary-u']"
