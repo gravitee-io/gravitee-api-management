@@ -20,6 +20,7 @@ import io.gravitee.common.util.Version;
 import io.gravitee.rest.api.management.rest.filter.*;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.*;
+import io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.organization.OrganizationsResource;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.swagger.converter.ModelConverter;
@@ -88,6 +89,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         });
         //Main resource
         register(OrganizationsResource.class);
+        register(CockpitAuthenticationResource.class);
 
         register(MultiPartFeature.class);
 

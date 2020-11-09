@@ -33,6 +33,7 @@ public interface JWTHelper {
         String FIRSTNAME = "firstname";
         String LASTNAME = "lastname";
         String ACTION = "action";
+        String ORG = "org";
     }
 
     interface DefaultValues {

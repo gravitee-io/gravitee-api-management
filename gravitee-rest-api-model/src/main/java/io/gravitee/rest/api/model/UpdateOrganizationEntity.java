@@ -61,6 +61,14 @@ public class UpdateOrganizationEntity {
         this.domainRestrictions = domainRestrictions;
     }
 
+    public List<String> getHrids() {
+        return hrids;
+    }
+
+    public void setHrids(List<String> hrids) {
+        this.hrids = hrids;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -85,13 +93,5 @@ public class UpdateOrganizationEntity {
                 ", description='" + description + '\'' +
                 ", domainRestrictions=" + domainRestrictions +
                 '}';
-    }
-
-    public List<String> getHrids() {
-        return hrids;
-    }
-
-    public void setHrids(List<String> hrids) {
-        this.hrids = hrids;
     }
 }

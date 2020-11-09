@@ -18,9 +18,7 @@ package io.gravitee.rest.api.management.rest.spring;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
-import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,8 +34,7 @@ import java.util.Properties;
  */
 @Configuration
 @Import({
-        PropertiesConfiguration.class, PluginConfiguration.class, ServiceConfiguration.class,
-        SecurityManagementConfiguration.class, IdentityProviderPluginConfiguration.class
+        PropertiesConfiguration.class, PluginConfiguration.class, ServiceConfiguration.class, IdentityProviderPluginConfiguration.class
 })
 public class RestManagementConfiguration {
 
