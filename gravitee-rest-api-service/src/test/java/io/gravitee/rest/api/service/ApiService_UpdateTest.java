@@ -30,8 +30,11 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
@@ -169,6 +172,8 @@ public class ApiService_UpdateTest {
     private GroupService groupService;
     @Mock
     private ApiMetadataService apiMetadataService;
+    @Mock
+    private EmailService emailService;
 
     @Before
     public void setUp() {
@@ -503,10 +508,28 @@ public class ApiService_UpdateTest {
     public void shouldTraceReviewAsked() throws TechnicalException {
         prepareReviewAuditTest();
 
+        when(roleService.findByScope(RoleScope.API)).thenReturn(Collections.singletonList(mock(RoleEntity.class)));
+        final RolePermissionAction[] acls = { RolePermissionAction.UPDATE };
+        when(roleService.hasPermission(any(), eq(ApiPermission.REVIEWS), eq(acls))).thenReturn(true);
+
+        MembershipEntity membershipEntity = mock(MembershipEntity.class);
+        when(membershipEntity.getMemberType()).thenReturn(MembershipMemberType.USER);
+        when(membershipEntity.getMemberId()).thenReturn("reviewerID");
+        when(membershipService.getMembershipsByReferenceAndRole(eq(MembershipReferenceType.API), eq(API_ID), any())).thenReturn(Sets.newSet(membershipEntity));
+
+        UserEntity reviewerEntity = mock(UserEntity.class);
+        when(reviewerEntity.getEmail()).thenReturn("Reviewer@ema.il");
+        when(userService.findById("reviewerID")).thenReturn(reviewerEntity);
+
         final ReviewEntity reviewEntity = new ReviewEntity();
         reviewEntity.setMessage("Test Review msg");
         apiService.askForReview(API_ID, USER_NAME, reviewEntity);
         verify(auditService).createApiAuditLog(argThat(apiId -> apiId.equals(API_ID)), anyMap(), argThat(evt -> Workflow.AuditEvent.API_REVIEW_ASKED.equals(evt)), any(), any(), any());
+        verify(emailService).sendAsyncEmailNotification(argThat(emailNotification -> emailNotification.getTemplate().equals(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW.getLinkedHook().getTemplate())
+                    && emailNotification.getTo().length == 1
+                    && emailNotification.getTo()[0].equals("Reviewer@ema.il")
+        ));
+        verify(roleService).findByScope(RoleScope.API);
     }
 
     @Test

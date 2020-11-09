@@ -48,11 +48,14 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -183,6 +186,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private PolicyService policyService;
     @Autowired
     private MediaService mediaService;
+    @Autowired
+    private EmailService emailService;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -2143,11 +2148,23 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ApiEntity apiEntity = findById(apiId);
         apiEntity.setWorkflowState(workflowState);
 
+        final UserEntity user = userService.findById(userId);
         notifierService.trigger(hook, apiId,
             new NotificationParamsBuilder()
                 .api(apiEntity)
-                .user(userService.findById(userId))
+                .user(user)
                 .build());
+
+        // Find all reviewers of the API and send them a notification email
+        if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
+            List<String> reviewersEmail = findAllReviewersEmail(apiId);
+            this.emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
+                    .params(new NotificationParamsBuilder().api(apiEntity).user(user).build())
+                    .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
+                    .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
+                    .build()
+            );
+        };
 
         Map<Audit.AuditProperties, String> properties = new HashMap<>();
         properties.put(Audit.AuditProperties.USER, userId);
@@ -2174,6 +2191,39 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 null,
                 workflow);
         return apiEntity;
+    }
+
+    private List<String> findAllReviewersEmail(String apiId) {
+        final RolePermissionAction[] acls = { RolePermissionAction.UPDATE };
+
+        // find direct members of the API
+        Set<String> reviewerEmails = roleService.findByScope(RoleScope.API).stream()
+                .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
+                .flatMap(role -> this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.API, apiId, role.getId()).stream())
+                .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
+                .map(MembershipEntity::getMemberId)
+                .distinct()
+                .map(this.userService::findById)
+                .map(UserEntity::getEmail)
+                .filter(Objects::nonNull)
+                .collect(toSet());
+
+        // find reviewers in group attached to the API
+        this.findById(apiId).getGroups().forEach(group -> {
+            reviewerEmails.addAll(roleService.findByScope(RoleScope.API).stream()
+                    .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
+                    .flatMap(role -> this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.GROUP, group, role.getId()).stream())
+                    .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
+                    .map(MembershipEntity::getMemberId)
+                    .distinct()
+                    .map(this.userService::findById)
+                    .map(UserEntity::getEmail)
+                    .filter(Objects::nonNull)
+                    .collect(toSet()));
+
+        });
+
+        return new ArrayList<>(reviewerEmails);
     }
 
     private ApiCriteria.Builder queryToCriteria(ApiQuery query) {

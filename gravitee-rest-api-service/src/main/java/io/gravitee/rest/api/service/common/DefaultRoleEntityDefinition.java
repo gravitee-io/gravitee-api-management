@@ -17,7 +17,10 @@ package io.gravitee.rest.api.service.common;
 
 import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.model.NewRoleEntity;
-import io.gravitee.rest.api.model.permissions.*;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
+import io.gravitee.rest.api.model.permissions.ApplicationPermission;
+import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
+import io.gravitee.rest.api.model.permissions.OrganizationPermission;
 
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import static io.gravitee.rest.api.model.permissions.RoleScope.*;
@@ -120,6 +123,7 @@ public interface DefaultRoleEntityDefinition {
                 .put(ApiPermission.DISCOVERY.getName(), new char[]{READ.getId()})
                 .put(ApiPermission.NOTIFICATION.getName(), new char[]{READ.getId(), UPDATE.getId()})
                 .put(ApiPermission.ALERT.getName(), new char[]{READ.getId()})
+                .put(ApiPermission.QUALITY_RULE.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId()})
                 .put(ApiPermission.REVIEWS.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()})
                 .build()
             );
