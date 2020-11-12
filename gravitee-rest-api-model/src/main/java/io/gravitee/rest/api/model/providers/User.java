@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.providers;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -38,6 +39,8 @@ public class User {
     private String sourceId;
 
     private String picture;
+
+    private Map<String, String> roles;
 
     public String getId() {
         return id;
@@ -101,6 +104,14 @@ public class User {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    public Map<String, String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Map<String, String> roles) {
+        this.roles = roles;
     }
 
     @Override

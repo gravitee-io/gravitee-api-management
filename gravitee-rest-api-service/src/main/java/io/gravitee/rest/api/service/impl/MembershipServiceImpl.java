@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.providers.User;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -130,7 +131,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 Date updateDate = new Date();
                 MemberEntity userMember = null;
                 if (member.getMemberType() == MembershipMemberType.USER) {
-                    UserEntity userEntity = findUserFromMembershipMember(member, role);
+                    UserEntity userEntity = findUserFromMembershipMember(member);
                     io.gravitee.repository.management.model.Membership membership = new io.gravitee.repository.management.model.Membership(
                             RandomString.generate(), 
                             userEntity.getId(), 
@@ -307,7 +308,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         return member;
     }
 
-    private UserEntity findUserFromMembershipMember(MembershipMember member, MembershipRole role) {
+    private UserEntity findUserFromMembershipMember(MembershipMember member) {
         UserEntity userEntity;
         if (member.getMemberId() != null) {
             userEntity = userService.findById(member.getMemberId());
@@ -317,7 +318,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             Optional<io.gravitee.rest.api.model.providers.User> providerUser = identityService.findByReference(member.getReference());
             if (providerUser.isPresent()) {
                 User identityUser = providerUser.get();
-                userEntity = findOrCreateUser(role, identityUser);
+                userEntity = findOrCreateUser(identityUser);
             } else {
                 throw new UserNotFoundException(member.getReference());
             }
@@ -325,7 +326,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         return userEntity;
     }
 
-    private UserEntity findOrCreateUser(MembershipRole role, User identityUser) {
+    private UserEntity findOrCreateUser(User identityUser) {
         UserEntity userEntity;
         try {
             userEntity = userService.findBySource(identityUser.getSource(), identityUser.getSourceId(),false);
@@ -339,7 +340,28 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             newUser.setEmail(identityUser.getEmail());
             newUser.setSourceId(identityUser.getSourceId());
 			newUser.setPicture(identityUser.getPicture());
-            userEntity = userService.create(newUser, true);
+			if (identityUser.getRoles() == null || identityUser.getRoles().isEmpty()) {
+                userEntity = userService.create(newUser, true);
+            } else {
+                userEntity = userService.create(newUser, false);
+                for(Map.Entry<String, String> role : identityUser.getRoles().entrySet()) {
+                    MembershipReferenceType membershipReferenceType = MembershipReferenceType.valueOf(role.getKey());
+                    MembershipReference reference = null;
+                    if(membershipReferenceType == MembershipReferenceType.ORGANIZATION) {
+                        reference = new MembershipReference(membershipReferenceType, GraviteeContext.getCurrentOrganization());
+                    } else if(membershipReferenceType == MembershipReferenceType.ENVIRONMENT) {
+                        reference = new MembershipReference(membershipReferenceType, GraviteeContext.getCurrentEnvironment());
+                    }
+
+                    if (reference != null) {
+                        this.addRoleToMemberOnReference(
+                                reference,
+                                new MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
+                                new MembershipRole(RoleScope.valueOf(role.getKey()), role.getValue())
+                        );
+                    }
+                }
+            }
         }
         return userEntity;
     }
