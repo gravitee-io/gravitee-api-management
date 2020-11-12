@@ -23,6 +23,7 @@
       <div class="aui-nav-heading"
            ng-if="$ctrl.settingsMenu.apiPortalHeader.perm
                  || $ctrl.settingsMenu.clientRegistration.perm
+                 || $ctrl.settingsMenu.organizationIdentityProviders.perm
                  || $ctrl.settingsMenu.environmentIdentityProviders.perm
                  || $ctrl.settingsMenu.portalSettings.perm
                  || $ctrl.settingsMenu.documentations.perm
@@ -49,9 +50,14 @@
           <a class="execute" ui-sref="{{$ctrl.settingsMenu.apiQuality.goTo}}">API Quality</a>
         </li>
         <li class="iterable-item"
+            ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.organization.identityproviders')}"
+            ng-if="$ctrl.settingsMenu.organizationIdentityProviders.perm">
+          <a class="execute" ui-sref="{{$ctrl.settingsMenu.organizationIdentityProviders.goTo}}">Authentication - Console</a>
+        </li>
+        <li class="iterable-item"
             ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.environment.identityproviders')}"
             ng-if="$ctrl.settingsMenu.environmentIdentityProviders.perm">
-          <a class="execute" ui-sref="{{$ctrl.settingsMenu.environmentIdentityProviders.goTo}}">Authentication</a>
+          <a class="execute" ui-sref="{{$ctrl.settingsMenu.environmentIdentityProviders.goTo}}">Authentication - Portal</a>
         </li>
         <li class="iterable-item"
             ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.categories') || $ctrl.$state.includes('management.settings.category') || $ctrl.$state.includes('management.settings.categorynew')}"
@@ -82,18 +88,6 @@
         <li class="iterable-item" ng-if="$ctrl.settingsMenu.topApis.perm"
             ui-sref-active="aui-nav-selected">
           <a class="execute" ui-sref="{{$ctrl.settingsMenu.topApis.goTo}}">Top APIs</a>
-        </li>
-      </ul>
-
-      <div class="aui-nav-heading"
-           ng-if="$ctrl.settingsMenu.organizationIdentityProviders.perm">
-        <strong>Console</strong>
-      </div>
-      <ul class="aui-nav">
-        <li class="iterable-item"
-            ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.organization.identityproviders')}"
-            ng-if="$ctrl.settingsMenu.organizationIdentityProviders.perm">
-          <a class="execute" ui-sref="{{$ctrl.settingsMenu.organizationIdentityProviders.goTo}}">Authentication</a>
         </li>
       </ul>
 
@@ -170,8 +164,8 @@
             </ul>
             <ul class="aui-nav">
               <li class="iterable-item"
-                  ng-if="$ctrl.settingsMenu.alerts.perm">
                   ng-class="{'aui-nav-selected': $ctrl.$state.includes('management.settings.alerts.list') || $ctrl.$state.includes('management.settings.alerts.alertnew') || $ctrl.$state.includes('management.settings.alerts.alert') }"
+                  ng-if="$ctrl.settingsMenu.alerts.perm">
                 <a class="execute" ui-sref="{{$ctrl.settingsMenu.alerts.goTo}}">Alerts</a>
               </li>
             </ul>

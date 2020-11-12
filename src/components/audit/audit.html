@@ -23,20 +23,6 @@
         <div class="gv-form-content" layout="column">
             <div layout="row" layout-align="space-around end">
                 <div layout="column" layout-align="end start">
-                    <div layout="row" ng-if="!$ctrl.api">
-                        <label id="orgEnvFilter" style="margin-right: 10px;">Show audit logs for: </label>
-                        <md-radio-group ng-model="$ctrl.queryLogType" ng-change="$ctrl.onOrgEnvFilterChange()" aria-labelledby="orgEnvFilter">
-                            <md-radio-button aria-label="All Audit Logs" value="all">
-                                All
-                            </md-radio-button>
-                            <md-radio-button aria-label="Only Current Environment Audit Logs" value="env">
-                                Current environment only
-                            </md-radio-button>
-                            <md-radio-button aria-label="Only Current Organization Audit Logs" value="org">
-                                Current organization only
-                            </md-radio-button>
-                        </md-radio-group>
-                    </div>
                     <div layout="row" layout-align="space-around end">
                         <md-input-container>
                             <label>Events</label>
