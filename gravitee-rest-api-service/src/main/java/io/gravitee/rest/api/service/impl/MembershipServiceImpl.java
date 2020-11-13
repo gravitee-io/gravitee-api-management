@@ -181,6 +181,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
                 }
 
+                roles.invalidate(reference.getType().name() + reference.getId() + member.getMemberType() + member.getMemberId());
+
                 return userMember;
             }
             
