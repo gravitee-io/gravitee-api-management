@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as jsyaml from 'js-yaml';
 import { Component, HostListener, Input, OnDestroy, ViewChild, OnInit } from '@angular/core';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from '../../services/notification.service';
@@ -121,7 +122,14 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
         },
       };
 
-      Redoc.init(page._links.content, options, this.redocContainer.nativeElement, (errors) => this._redocCallback(errors));
+      let contentAsJson;
+      try {
+        contentAsJson = JSON.parse(page.content);
+      } catch (e) {
+        contentAsJson = jsyaml.safeLoad(page.content);
+      }
+
+      Redoc.init(contentAsJson, options, this.redocContainer.nativeElement, (errors) => this._redocCallback(errors));
     }
   }
 
