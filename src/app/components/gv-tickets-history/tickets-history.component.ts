@@ -23,7 +23,7 @@ import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { ScrollService } from '../../services/scroll.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
-import { GetTicketsRequestParams, PortalService, Ticket } from "../../../../projects/portal-webclient-sdk/src/lib";
+import { GetTicketsRequestParams, PortalService, Ticket } from '../../../../projects/portal-webclient-sdk/src/lib';
 
 @Component({
   selector: 'app-gv-tickets-history',
