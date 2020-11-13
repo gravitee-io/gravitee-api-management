@@ -218,28 +218,28 @@
   <form name="formProperties"
         ng-submit="$ctrl.saveProperties()" novalidate>
     <md-table-container ng-if="$ctrl.hasProperties()">
-      <table md-table ng-init="order = 'name'">
-        <thead md-head md-order="order">
+      <table md-table ng-init="reverse = false">
+        <thead md-head md-order="name">
         <tr md-row>
           <th md-column>
             <md-checkbox aria-label="Select all" ng-model="$ctrl.selectAll" ng-change="$ctrl.toggleSelectAll($ctrl.selectAll)"></md-checkbox>
           </th>
-          <th md-column md-order-by="name">Key</th>
+          <th md-column md-order-by="name" ng-click="reverse = !reverse">Key</th>
           <th md-column>Value</th>
           <th md-column md-column width="80px" nowrap ng-if="$ctrl.dictionary.type === 'manual'"></th>
         </tr>
         </thead>
         <tbody md-body>
-        <tr md-row ng-repeat="(key, value) in $ctrl.getPropertiesPage()">
-          <td md-cell><md-checkbox aria-label="Select {{key}}" ng-model="$ctrl.selectedProperties[key]" ng-change="$ctrl.checkSelectAll()"></md-checkbox></td>
-          <td md-cell>{{::key}}</td>
-          <td md-cell ng-click="$ctrl.editProperty($event, key, value)"
-              ng-class="{'gravitee-placeholder': value}">
-            {{value || 'Set value'}}
+        <tr md-row ng-repeat="entry in $ctrl.getPropertiesPage(reverse)">
+          <td md-cell><md-checkbox aria-label="Select {{entry.key}}" ng-model="$ctrl.selectedProperties[entry.key]" ng-change="$ctrl.checkSelectAll()"></md-checkbox></td>
+          <td md-cell>{{::entry.key}}</td>
+          <td md-cell ng-click="$ctrl.editProperty($event, entry.key, entry.value)"
+              ng-class="{'gravitee-placeholder': entry.value}">
+            {{entry.value || 'Set value'}}
           </td>
           <td md-cell ng-if="$ctrl.dictionary.type === 'manual'">
             <ng-md-icon permission permission-only="['management-dictionary-u']"
-                        ng-click="$ctrl.deleteProperty(key)" icon="delete"></ng-md-icon>
+                        ng-click="$ctrl.deleteProperty(entry.key)" icon="delete"></ng-md-icon>
           </td>
         </tr>
         </tbody>

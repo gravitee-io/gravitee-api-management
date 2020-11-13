@@ -29,6 +29,7 @@ class DictionaryController {
 
   private dictionary: any;
   private initialDictionary: any;
+  private dictProperties : any;
 
   private joltSpecificationOptions: any;
   private providers: {id: string; name: string}[];
@@ -98,6 +99,7 @@ class DictionaryController {
   $onInit() {
     this.updateMode = this.dictionary && this.dictionary.id;
     this.initialDictionary = _.cloneDeep(this.dictionary);
+    this.dictProperties = this.computeProperties();
 
     this.query = {
       limit: 10,
@@ -106,22 +108,25 @@ class DictionaryController {
     };
   }
 
-  getPropertiesPage() {
-    let properties = Object
-      .entries(this.dictionary.properties)
+  getPropertiesPage = (reverse: boolean) => {
+    let properties = this.dictProperties
+      .sort((entry, entry2) => {
+        if (reverse) {
+          return entry2.key.localeCompare(entry.key);
+        } else {
+          return entry.key.localeCompare(entry2.key); 
+        }
+      })
       .slice(
         (this.query.page -1) * this.query.limit,
-        (this.query.page * this.query.limit))
-      .reduce(function(map, obj) {
-        map[obj[0]] = obj[1];
-        return map;
-      }, {});
+        (this.query.page * this.query.limit));
 
-    return properties;
+      return properties;
   }
 
   reset() {
     this.dictionary = _.cloneDeep(this.initialDictionary);
+    this.dictProperties = this.computeProperties();
     this.formDictionary.$setPristine();
   }
 
@@ -135,6 +140,7 @@ class DictionaryController {
       this.DictionaryService.update(this.dictionary).then((response) => {
         this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been updated');
         this.dictionary = response.data;
+        this.dictProperties = this.computeProperties();
       });
     }
   }
@@ -163,6 +169,7 @@ class DictionaryController {
     this.DictionaryService.deploy(this.dictionary).then((response) => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deployed');
       this.dictionary = response.data;
+      this.dictProperties = this.computeProperties();
     });
   }
 
@@ -170,6 +177,7 @@ class DictionaryController {
     this.DictionaryService.start(this.dictionary).then((response) => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been started');
       this.dictionary = response.data;
+      this.dictProperties = this.computeProperties();
     });
   }
 
@@ -177,6 +185,7 @@ class DictionaryController {
     this.DictionaryService.stop(this.dictionary).then((response) => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been stopped');
       this.dictionary = response.data;
+      this.dictProperties = this.computeProperties();
     });
   }
 
@@ -199,6 +208,8 @@ class DictionaryController {
         this.dictionary.properties[property.key] = property.value;
         ++this.query.total;
       }
+
+      this.dictProperties = this.computeProperties();
     });
   }
 
@@ -219,6 +230,7 @@ class DictionaryController {
   deleteProperty(key) {
     delete this.dictionary.properties[key];
     --this.query.total;
+    this.dictProperties = this.computeProperties();
   }
 
   deleteSelectedProperties() {
@@ -234,6 +246,7 @@ class DictionaryController {
     this.DictionaryService.update(this.dictionary).then((response) => {
       this.NotificationService.show('Properties has been updated');
       this.dictionary = response.data;
+      this.dictProperties = this.computeProperties();
     });
   }
 
@@ -267,6 +280,16 @@ class DictionaryController {
       this.formDictionary.$setDirty();
     }
   }
+
+  computeProperties = () => {
+    return Object.entries(this.dictionary.properties)
+    .map(entry => {
+      let result : any = {}
+      result['key'] = entry[0];
+      result['value'] = entry[1];
+      return result;
+    });
+  };
 }
 
 export default DictionaryController;
