@@ -23,7 +23,6 @@ import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -38,7 +37,7 @@ import java.util.Properties;
 @Configuration
 @Import({
         PropertiesConfiguration.class, PluginConfiguration.class, ServiceConfiguration.class,
-        SecurityManagementConfiguration.class, EmailConfiguration.class, IdentityProviderPluginConfiguration.class
+        SecurityManagementConfiguration.class, IdentityProviderPluginConfiguration.class
 })
 public class RestManagementConfiguration {
 

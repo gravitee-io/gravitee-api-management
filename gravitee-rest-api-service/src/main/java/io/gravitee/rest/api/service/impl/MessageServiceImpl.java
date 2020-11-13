@@ -92,8 +92,6 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
     HttpClientService httpClientService;
     @Autowired
     private NotificationTemplateService notificationTemplateService;
-    @Value("${email.from}")
-    private String defaultFrom;
 
     @Value("${notifiers.webhook.enabled:true}")
     private boolean httpEnabled;
@@ -168,7 +166,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                 Set<String> mails = getRecipientsEmails(recipientsId);
                     if (!mails.isEmpty()) {
                         emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                                .to(defaultFrom)
+                                .to(EmailService.DEFAULT_MAIL_TO)
                                 .bcc(mails.toArray(new String[0]))
                                 .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_GENERIC_MESSAGE)
                                 .param("message", message.getText())

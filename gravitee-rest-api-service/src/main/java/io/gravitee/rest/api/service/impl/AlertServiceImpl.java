@@ -456,14 +456,14 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         EmailNotifierConfiguration configuration = new EmailNotifierConfiguration();
 
         if (host == null) {
-            configuration.setHost(environment.getProperty("email.host"));
-            final String emailPort = environment.getProperty("email.port");
+            configuration.setHost(parameterService.find(Key.EMAIL_HOST));
+            final String emailPort = parameterService.find(Key.EMAIL_PORT);
             if (emailPort != null) {
                 configuration.setPort(Integer.parseInt(emailPort));
             }
-            configuration.setUsername(environment.getProperty("email.username"));
-            configuration.setPassword(environment.getProperty("email.password"));
-            configuration.setStartTLSEnabled(environment.getProperty("email.properties.starttls.enable", Boolean.class, false));
+            configuration.setUsername(parameterService.find(Key.EMAIL_USERNAME));
+            configuration.setPassword(parameterService.find(Key.EMAIL_PASSWORD));
+            configuration.setStartTLSEnabled(parameterService.findAsBoolean(Key.EMAIL_HOST));
         } else {
             configuration.setHost(host);
             configuration.setPort(Integer.parseInt(port));

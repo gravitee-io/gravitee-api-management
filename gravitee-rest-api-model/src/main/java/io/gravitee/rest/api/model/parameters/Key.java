@@ -111,6 +111,24 @@ public enum Key {
     RECAPTCHA_ENABLED("reCaptcha.enabled", "false"),
     RECAPTCHA_SITE_KEY("reCaptcha.siteKey"),
 
+    HTTP_CORS_ALLOW_ORIGIN("http.cors.allow-origin", "*", List.class),
+    HTTP_CORS_ALLOW_HEADERS("http.cors.allow-headers", "Cache-Control;Pragma;Origin;Authorization;Content-Type;X-Requested-With;If-Match;X-Xsrf-Token;X-Recaptcha-Token", List.class),
+    HTTP_CORS_ALLOW_METHODS("http.cors.allow-methods", "OPTIONS;GET;POST;PUT;DELETE;PATCH", List.class),
+    HTTP_CORS_EXPOSED_HEADERS("http.cors.exposed-headers", "ETag;X-Xsrf-Token", List.class),
+    HTTP_CORS_MAX_AGE("http.cors.max-age", "1728000"),
+
+    EMAIL_ENABLED("email.enabled", "false"),
+    EMAIL_HOST("email.host", "smtp.my.domain"),
+    EMAIL_PORT("email.port", "587"),
+    EMAIL_USERNAME("email.username", "user@my.domain"),
+    EMAIL_PASSWORD("email.password", "password"),
+    EMAIL_PROTOCOL("email.protocol", "smtp"),
+    EMAIL_SUBJECT("email.subject", "[Gravitee.io] %s"),
+    EMAIL_FROM("email.from", "noreply@my.domain"),
+    EMAIL_PROPERTIES_AUTH_ENABLED("email.properties.auth"),
+    EMAIL_PROPERTIES_STARTTLS_ENABLE("email.properties.starttls.enable"),
+    EMAIL_PROPERTIES_SSL_TRUST("email.properties.ssl.trust"),
+
     API_LABELS_DICTIONARY("api.labelsDictionary", List.class);
 
     String key;
@@ -120,6 +138,12 @@ public enum Key {
 
     Key(String key) {
         this.key = key;
+    }
+
+    Key(String key, String defaultValue, Class<?> type) {
+        this.key = key;
+        this.type = type;
+        this.defaultValue = defaultValue;
     }
 
     Key(String key, Class<?> type) {

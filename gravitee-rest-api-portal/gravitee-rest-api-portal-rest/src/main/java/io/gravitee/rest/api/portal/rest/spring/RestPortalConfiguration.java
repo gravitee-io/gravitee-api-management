@@ -38,7 +38,7 @@ import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 @ComponentScan({"io.gravitee.rest.api.portal.rest.mapper"})
 @Import({
         PropertiesConfiguration.class, PluginConfiguration.class, ServiceConfiguration.class,
-        SecurityPortalConfiguration.class, EmailConfiguration.class, IdentityProviderPluginConfiguration.class
+        SecurityPortalConfiguration.class, IdentityProviderPluginConfiguration.class
 })
 public class RestPortalConfiguration {
 

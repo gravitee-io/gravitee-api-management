@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
@@ -55,7 +56,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ParameterServiceImpl.class);
 
-    private static final String SEPARATOR = ";";
+    public static final String SEPARATOR = ";";
     public static final String KV_SEPARATOR = "@";
 
     @Inject
@@ -64,6 +65,8 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     private AuditService auditService;
     @Inject
     private ConfigurableEnvironment environment;
+    @Inject
+    private EventManager eventManager;
 
     @Override
     public String find(final Key key) {
@@ -136,7 +139,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                     GraviteeContext.getCurrentEnvironment(), 
                     ParameterReferenceType.ENVIRONMENT);
 
-            // Find parameters from environment but not present in database
+            // Override or add parameters from environment
             keys.forEach(k -> {
                 if (environment.containsProperty(k.key()) && k.isOverridable()) {
                     final Optional<Parameter> optionalParameter = parameters.stream().
@@ -214,6 +217,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                             new Date(),
                             optionalParameter.get(),
                             updatedParameter);
+                    eventManager.publishEvent(key, parameter);
                     return updatedParameter;
                 } else {
                     return optionalParameter.get();
@@ -229,6 +233,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                         new Date(),
                         null,
                         savedParameter);
+                eventManager.publishEvent(key, parameter);
                 return savedParameter;
             }
 

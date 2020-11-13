@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
@@ -30,6 +31,7 @@ import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,6 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -59,11 +60,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
-import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
-import static java.util.Arrays.asList;
-
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -91,6 +87,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private ObjectMapper objectMapper;
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
+    @Autowired
+    private ParameterService parameterService;
+    @Autowired
+    private EventManager eventManager;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -152,25 +152,10 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        final CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.setAllowedOrigins(getPropertiesAsList("http.cors.allow-origin", "*"));
-        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, " + DEFAULT_CSRF_HEADER_NAME + ", " + DEFAULT_RECAPTCHA_HEADER_NAME));
-        config.setAllowedMethods(getPropertiesAsList("http.cors.allow-methods", "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
-        config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", DEFAULT_CSRF_HEADER_NAME));
-        config.setMaxAge(environment.getProperty("http.cors.max-age", Long.class, 1728000L));
-
+        GraviteeCorsConfiguration graviteeCorsConfiguration = new GraviteeCorsConfiguration(parameterService, eventManager);
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", graviteeCorsConfiguration);
         return source;
-    }
-
-    private List<String> getPropertiesAsList(final String propertyKey, final String defaultValue) {
-        String property = environment.getProperty(propertyKey);
-        if (property == null) {
-            property = defaultValue;
-        }
-        return asList(property.replaceAll("\\s+","").split(","));
     }
 
     @Override

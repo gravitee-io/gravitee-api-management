@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.EmailNotification;
 import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import org.jsoup.Jsoup;
@@ -37,12 +39,17 @@ import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_FROM;
+import static io.gravitee.rest.api.model.parameters.Key.EMAIL_SUBJECT;
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -61,18 +68,19 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     private JavaMailSender mailSender;
     @Autowired
     private NotificationTemplateService notificationTemplateService;
+    @Autowired
+    private ParameterService parameterService;
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
-    @Value("${email.subject:[Gravitee.io] %s}")
-    private String subject;
-    @Value("${email.enabled:false}")
-    private boolean enabled;
-    @Value("${email.from}")
-    private String defaultFrom;
 
     @Override
     public void sendEmailNotification(final EmailNotification emailNotification) {
-        if (enabled && emailNotification.getTo() != null && emailNotification.getTo().length > 0) {
+
+        Map<Key, String> mailParameters = getMailSenderConfiguration();
+
+        if (Boolean.parseBoolean(mailParameters.get(EMAIL_ENABLED))
+                && emailNotification.getTo() != null
+                && emailNotification.getTo().length > 0) {
             try {
                 final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 
@@ -81,7 +89,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 content = content.replaceAll("&lt;br /&gt;", "<br />");
 
                 final String from = isNull(emailNotification.getFrom()) || emailNotification.getFrom().isEmpty()
-                        ? defaultFrom
+                        ? mailParameters.get(EMAIL_FROM)
                         : emailNotification.getFrom();
 
                 if (isEmpty(emailNotification.getFromName())) {
@@ -96,7 +104,11 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                     sender = emailNotification.getReplyTo();
                 }
 
-                mailMessage.setTo(emailNotification.getTo());
+                if (Arrays.equals(DEFAULT_MAIL_TO,emailNotification.getTo())) {
+                    mailMessage.setTo(mailParameters.get(Key.EMAIL_FROM));
+                } else {
+                    mailMessage.setTo(emailNotification.getTo());
+                }
 
                 if (emailNotification.isCopyToSender() && sender != null) {
                     mailMessage.setBcc(sender);
@@ -106,7 +118,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                     mailMessage.setBcc(emailNotification.getBcc());
                 }
 
-                mailMessage.setSubject(format(subject, emailSubject));
+                mailMessage.setSubject(format(mailParameters.get(EMAIL_SUBJECT), emailSubject));
 
                 final String html = addResourcesInMessage(mailMessage, content);
 
@@ -180,5 +192,19 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         if (!matcher.find())
             return "";
         return matcher.group(1).toLowerCase();
+    }
+
+    private Map<Key, String> getMailSenderConfiguration() {
+        return parameterService.findAll(Arrays.asList(
+                EMAIL_ENABLED,
+                EMAIL_SUBJECT,
+                EMAIL_FROM
+        ))
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        e -> Key.findByKey(e.getKey()),
+                        e -> e.getValue().isEmpty() ? "" : e.getValue().get(0))
+                );
     }
 }

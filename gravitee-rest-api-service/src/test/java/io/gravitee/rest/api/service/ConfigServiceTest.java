@@ -90,6 +90,7 @@ public class ConfigServiceTest {
         assertEquals("open api swagger enabled", Boolean.TRUE, portalConfig.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled());
         assertEquals("open api swagger default", "Swagger", portalConfig.getOpenAPIDocViewer().getOpenAPIDocType().getDefaultType());
         assertEquals("api labels", 2, portalConfig.getApi().getLabelsDictionary().size());
+        assertEquals("cors exposed headers", 2, portalConfig.getCors().getExposedHeaders().size());
     }
 
     @Test
@@ -103,6 +104,7 @@ public class ConfigServiceTest {
         params.put(Key.SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
         params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
+        params.put(Key.HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
 
         when(mockParameterService.findAll(any(List.class))).thenReturn(params);
 
@@ -124,6 +126,7 @@ public class ConfigServiceTest {
         assertEquals("scheduler notifications", Integer.valueOf(11), portalConfig.getScheduler().getNotificationsInSeconds());
         assertEquals("analytics", Boolean.TRUE, portalConfig.getPortal().getAnalytics().isEnabled());
         assertEquals("open api swagger enabled", Boolean.TRUE, portalConfig.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled());
+        assertEquals("cors exposed headers", 1, portalConfig.getCors().getExposedHeaders().size());
         List<String> readonlyMetadata = portalConfig.getMetadata().get(PortalConfigEntity.METADATA_READONLY);
         assertEquals("Config metadata size", 7, readonlyMetadata.size());
         assertTrue("Config metadata contains COMPANY_NAME", readonlyMetadata.contains(COMPANY_NAME.key()));

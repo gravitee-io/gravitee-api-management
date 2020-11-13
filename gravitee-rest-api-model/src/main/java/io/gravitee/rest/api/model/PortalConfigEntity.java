@@ -52,6 +52,8 @@ public class PortalConfigEntity {
     private Newsletter newsletter;
     private ReCaptcha reCaptcha;
     private Api api;
+    private Cors cors;
+    private Email email;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private MultiValueMap<String, String> metadata;
@@ -76,6 +78,8 @@ public class PortalConfigEntity {
         newsletter = new Newsletter();
         reCaptcha = new ReCaptcha();
         api = new Api();
+        cors = new Cors();
+        email = new Email();
         metadata = new LinkedMultiValueMap<>();
     }
 
@@ -229,6 +233,22 @@ public class PortalConfigEntity {
 
     public void setApi(Api api) {
         this.api = api;
+    }
+
+    public Cors getCors() {
+        return cors;
+    }
+
+    public void setCors(Cors cors) {
+        this.cors = cors;
+    }
+
+    public Email getEmail() {
+        return email;
+    }
+
+    public void setEmail(Email email) {
+        this.email = email;
     }
 
     public MultiValueMap<String, String> getMetadata() {
@@ -535,6 +555,202 @@ public class PortalConfigEntity {
 
         public void setLabelsDictionary(List<String> labelsDictionary) {
             this.labelsDictionary = labelsDictionary;
+        }
+    }
+
+    public class Cors {
+        @ParameterKey(Key.HTTP_CORS_ALLOW_ORIGIN)
+        private List<String> allowOrigin;
+
+        @ParameterKey(Key.HTTP_CORS_ALLOW_HEADERS)
+        private List<String> allowHeaders;
+
+        @ParameterKey(Key.HTTP_CORS_ALLOW_METHODS)
+        private List<String> allowMethods;
+
+        @ParameterKey(Key.HTTP_CORS_EXPOSED_HEADERS)
+        private List<String> exposedHeaders;
+
+        @ParameterKey(Key.HTTP_CORS_MAX_AGE)
+        private Integer maxAge;
+
+        public List<String> getAllowOrigin() {
+            return allowOrigin;
+        }
+
+        public void setAllowOrigin(List<String> allowOrigin) {
+            this.allowOrigin = allowOrigin;
+        }
+
+        public List<String> getAllowHeaders() {
+            return allowHeaders;
+        }
+
+        public void setAllowHeaders(List<String> allowHeaders) {
+            this.allowHeaders = allowHeaders;
+        }
+
+        public List<String> getAllowMethods() {
+            return allowMethods;
+        }
+
+        public void setAllowMethods(List<String> allowMethods) {
+            this.allowMethods = allowMethods;
+        }
+
+        public List<String> getExposedHeaders() {
+            return exposedHeaders;
+        }
+
+        public void setExposedHeaders(List<String> exposedHeaders) {
+            this.exposedHeaders = exposedHeaders;
+        }
+
+        public Integer getMaxAge() {
+            return maxAge;
+        }
+
+        public void setMaxAge(Integer maxAge) {
+            this.maxAge = maxAge;
+        }
+    }
+
+    public class Email {
+        @ParameterKey(Key.EMAIL_ENABLED)
+        private Boolean enabled;
+
+        @ParameterKey(Key.EMAIL_HOST)
+        private String host;
+
+        @ParameterKey(Key.EMAIL_PORT)
+        private Integer port;
+
+        @ParameterKey(Key.EMAIL_USERNAME)
+        private String username;
+
+        @ParameterKey(Key.EMAIL_PASSWORD)
+        private String password;
+
+        @ParameterKey(Key.EMAIL_PROTOCOL)
+        private String protocol;
+
+        @ParameterKey(Key.EMAIL_SUBJECT)
+        private String subject;
+
+        @ParameterKey(Key.EMAIL_FROM)
+        private String from;
+
+        private EmailProperties properties;
+
+        public Email() {
+            properties = new EmailProperties();
+        }
+
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
+        }
+
+        public Integer getPort() {
+            return port;
+        }
+
+        public void setPort(Integer port) {
+            this.port = port;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getProtocol() {
+            return protocol;
+        }
+
+        public void setProtocol(String protocol) {
+            this.protocol = protocol;
+        }
+
+        public String getSubject() {
+            return subject;
+        }
+
+        public void setSubject(String subject) {
+            this.subject = subject;
+        }
+
+        public String getFrom() {
+            return from;
+        }
+
+        public void setFrom(String from) {
+            this.from = from;
+        }
+
+        public EmailProperties getProperties() {
+            return properties;
+        }
+
+        public void setProperties(EmailProperties properties) {
+            this.properties = properties;
+        }
+
+        public class EmailProperties {
+            @ParameterKey(Key.EMAIL_PROPERTIES_AUTH_ENABLED)
+            private Boolean auth;
+
+            @ParameterKey(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE)
+            private Boolean startTlsEnable;
+
+            @ParameterKey(Key.EMAIL_PROPERTIES_SSL_TRUST)
+            private String sslTrust;
+
+            public Boolean getAuth() {
+                return auth;
+            }
+
+            public void setAuth(Boolean auth) {
+                this.auth = auth;
+            }
+
+            public Boolean getStartTlsEnable() {
+                return startTlsEnable;
+            }
+
+            public void setStartTlsEnable(Boolean startTlsEnable) {
+                this.startTlsEnable = startTlsEnable;
+            }
+
+            public String getSslTrust() {
+                return sslTrust;
+            }
+
+            public void setSslTrust(String sslTrust) {
+                this.sslTrust = sslTrust;
+            }
         }
     }
 

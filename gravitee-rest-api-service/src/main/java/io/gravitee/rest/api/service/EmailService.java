@@ -20,6 +20,8 @@ package io.gravitee.rest.api.service;
  */
 public interface EmailService {
 
+    String[] DEFAULT_MAIL_TO = { "DEFAULT_MAIL_TO" };
+
     void sendEmailNotification(EmailNotification emailNotification);
 
     void sendAsyncEmailNotification(EmailNotification emailNotification);

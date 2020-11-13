@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
@@ -62,13 +63,14 @@ public class ParameterServiceTest {
 
     @InjectMocks
     private ParameterService parameterService = new ParameterServiceImpl();
-
     @Mock
     private ParameterRepository parameterRepository;
     @Mock
     private AuditService auditService;
     @Mock
     private ConfigurableEnvironment environment;
+    @Mock
+    private EventManager eventManager;
 
     @Test
     public void shouldFindAll() throws TechnicalException {

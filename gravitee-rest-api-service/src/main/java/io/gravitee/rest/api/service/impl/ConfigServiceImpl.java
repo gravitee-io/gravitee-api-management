@@ -23,6 +23,7 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +32,12 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.KV_SEPARATOR;
+import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.SEPARATOR;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toMap;
 
@@ -109,7 +112,11 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                             f.set(o, Long.valueOf(getFirstValueOrDefault(values, defaultValue)));
                         } else if (List.class.isAssignableFrom(f.getType())) {
                             if (values == null || values.isEmpty()) {
-                                f.set(o, emptyList());
+                                if (StringUtils.isNotEmpty(defaultValue)) {
+                                    f.set(o, Arrays.asList(defaultValue.split(SEPARATOR)));
+                                } else {
+                                    f.set(o, emptyList());
+                                }
                             } else {
                                 f.set(o, values);
                             }
@@ -256,7 +263,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                 portalConfigEntity.getLogging().getAudit().getTrail(),
                 portalConfigEntity.getAlert(),
                 portalConfigEntity.getMaintenance(),
-                portalConfigEntity.getApi()
+                portalConfigEntity.getApi(),
+                portalConfigEntity.getCors(),
+                portalConfigEntity.getEmail(),
+                portalConfigEntity.getEmail().getProperties()
         };
     }
 }
