@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 export class QualityRule {
-  public id: string;
+  public id?: string;
   public name: string;
   public description: string;
   public weight: number;
-  public createdAt: string;
-  public updatedAt: string;
+  public createdAt?: string;
+  public updatedAt?: string;
 }
