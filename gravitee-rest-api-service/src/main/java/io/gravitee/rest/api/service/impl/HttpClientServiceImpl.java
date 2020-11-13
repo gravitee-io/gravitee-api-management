@@ -78,7 +78,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     
     @Autowired
     private Vertx vertx;
-    
+
     private HttpClient getHttpClient(String uriScheme, Boolean useSystemProxy) {
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(uriScheme);
 
@@ -129,7 +129,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                 io.vertx.core.http.HttpMethod.valueOf(method.name()),
                 port,
                 requestUri.getHost(),
-                requestUri.toString(),
+                requestUri.getPath(),
                 response -> LOGGER.debug("Web response status code : {}", response.statusCode())
         );
         request.setTimeout(httpClientTimeout);
