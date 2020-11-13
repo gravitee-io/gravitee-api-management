@@ -32,7 +32,7 @@
     "angulartics": "^1.6.0",
     "angulartics-google-analytics": "^0.5.0",
     "bootstrap": "3.4.1",
-    "codemirror": "^5.51.0",
+    "codemirror": "^5.58.0",
     "diff": "^3.5.0",
     "dragular": "^4.6.0",
     "highcharts": "^6.2.0",
