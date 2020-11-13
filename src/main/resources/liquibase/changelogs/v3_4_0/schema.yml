@@ -55,3 +55,8 @@ databaseChangeLog:
             constraintName: pk_tickets
             columnNames: id
             tableName: tickets
+
+        - sql:
+            sql: delete from role_permissions where role_id = (select id from roles r where r.scope = 'API' and r.name='REVIEWER') and permission like '30%';
+        - sql:
+            sql: insert into role_permissions (role_id, permission) select r.id, '3014' from roles r where r.scope = 'API' and r.name='REVIEWER';
