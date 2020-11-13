@@ -21,6 +21,8 @@ import PortalConfigService from '../../../services/portalConfig.service';
 import {IScope} from 'angular';
 
 class TagsController {
+
+  public providedConfigurationMessage = 'Configuration provided by the system';
   private tags: any;
   private groups: Array<any>;
   private entrypoints: Array<any>;

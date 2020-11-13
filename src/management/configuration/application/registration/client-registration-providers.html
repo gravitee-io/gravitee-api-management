@@ -26,6 +26,7 @@
         <md-checkbox ng-model="$ctrl.settings.application.registration.enabled" aria-label="Client registration" ng-change="$ctrl.saveClientRegistration()"
                      ng-disabled="$ctrl.isReadonlySetting('application.registration.enabled')">
           Client registration for applications (OpenID Connect - Dynamic Client Registration)
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('application.registration.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
       </md-input-container>
 
@@ -34,30 +35,35 @@
         <md-checkbox ng-model="$ctrl.settings.application.types.simple.enabled" aria-label="Allow or deny simple application type" ng-change="$ctrl.saveApplicationType('simple')"
                      ng-disabled="$ctrl.isReadonlySetting('application.types.simple.enabled')">
           Simple (A hands-free application. Using this type, you will be able to define the client_id by your own)
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.simple.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
         <md-checkbox ng-model="$ctrl.settings.application.types.browser.enabled" aria-label="Allow or deny browser application type" ng-change="$ctrl.saveApplicationType('browser')"
                      ng-disabled="$ctrl.isReadonlySetting('application.types.browser.enabled')">
           Browser (Angular, React, ...)
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.browser.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
         <md-checkbox ng-model="$ctrl.settings.application.types.web.enabled" aria-label="Allow or deny web application type" ng-change="$ctrl.saveApplicationType('web')"
                      ng-disabled="$ctrl.isReadonlySetting('application.types.web.enabled')">
           Web (Java, .Net, ...)
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.web.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
         <md-checkbox ng-model="$ctrl.settings.application.types.native.enabled" aria-label="Allow or deny native application type" ng-change="$ctrl.saveApplicationType('native')"
                      ng-disabled="$ctrl.isReadonlySetting('application.types.native.enabled')">
           Native (iOS, Android, ...)
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.native.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
         <md-checkbox ng-model="$ctrl.settings.application.types.backend_to_backend.enabled" aria-label="Allow or deny machine to machine application type" ng-change="$ctrl.saveApplicationType('backend_to_backend')"
                      ng-disabled="$ctrl.isReadonlySetting('application.types.backend_to_backend.enabled')">
           Backend-to-Backend
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.backend_to_backend.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
       </md-input-container>
     </div>

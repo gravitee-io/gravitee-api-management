@@ -31,6 +31,7 @@ import * as tinycolor from 'tinycolor2';
 import FormDirective from '../components/form/form.directive';
 import AutofocusDirective from '../components/autofocus/autofocus.directive';
 import ApiService from '../services/api.service';
+import CorsService from '../services/cors.service';
 import ApisController from '../management/api/apis.controller';
 import ApiPortalController from '../management/api/portal/general/apiPortal.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
@@ -757,6 +758,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ApplicationService', ApplicationService)
   .service('ApplicationTypesService', ApplicationTypesService)
   .service('ApiService', ApiService)
+  .service('CorsService', CorsService)
   .service('DocumentationService', DocumentationService)
   .service('InstancesService', InstancesService)
   .service('NotificationService', NotificationService)

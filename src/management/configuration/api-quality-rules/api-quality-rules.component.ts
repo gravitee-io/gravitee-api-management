@@ -32,6 +32,7 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
     'ngInject';
     this.$rootScope = $rootScope;
     this.settings = _.cloneDeep(Constants);
+    this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.save = () => {
       PortalConfigService.save(this.settings).then( (response) => {

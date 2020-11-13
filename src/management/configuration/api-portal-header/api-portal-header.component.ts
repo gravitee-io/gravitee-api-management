@@ -38,6 +38,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
     this.settings = _.cloneDeep(Constants);
+    this.providedConfigurationMessage = 'Configuration provided by the system';
 
     // tslint:disable-next-line:no-empty
     this.$onInit = () => {

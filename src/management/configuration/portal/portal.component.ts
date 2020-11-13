@@ -17,6 +17,8 @@ import NotificationService from '../../../services/notification.service';
 import PortalConfigService from '../../../services/portalConfig.service';
 import { StateService } from '@uirouter/core';
 import _ = require('lodash');
+import CorsService from '../../../services/cors.service';
+import ApiService from '../../../services/api.service';
 
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -26,14 +28,24 @@ const PortalSettingsComponent: ng.IComponentOptions = {
   controller: function(
     NotificationService: NotificationService,
     PortalConfigService: PortalConfigService,
+    CorsService: CorsService,
+    ApiService: ApiService,
     $state: StateService,
     Constants: any
   ) {
     'ngInject';
     this.settings = _.cloneDeep(Constants);
+    this.methods = CorsService.getHttpMethods();
+    this.headers = ApiService.defaultHttpHeaders();
+    this.searchHeaders = null;
+    this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.$onInit = () => {
       this.settings.api.labelsDictionary = this.settings.api.labelsDictionary || [];
+      this.settings.cors.allowOrigin = this.settings.cors.allowOrigin || [];
+      this.settings.cors.allowHeaders = this.settings.cors.allowHeaders || [];
+      this.settings.cors.allowMethods = this.settings.cors.allowMethods || [];
+      this.settings.cors.exposedHeaders = this.settings.cors.exposedHeaders || [];
       this.settings.authentication.localLogin.enabled = (this.settings.authentication.localLogin.enabled || !this.hasIdpDefined());
     };
 
@@ -41,6 +53,10 @@ const PortalSettingsComponent: ng.IComponentOptions = {
       PortalConfigService.save(this.settings).then( (response) => {
         // We have to manually set this property because lodash's merge do not handle well the case of label deletion
         Constants.api.labelsDictionary = response.data.api.labelsDictionary;
+        Constants.cors.allowOrigin = response.data.cors.allowOrigin;
+        Constants.cors.allowHeaders = response.data.cors.allowHeaders;
+        Constants.cors.allowMethods = response.data.cors.allowMethods;
+        Constants.cors.exposedHeaders = response.data.cors.exposedHeaders;
         _.merge(Constants, response.data);
         NotificationService.show('Configuration saved');
         this.reset();
@@ -71,6 +87,18 @@ const PortalSettingsComponent: ng.IComponentOptions = {
 
     this.isReadonlySetting = (property: string): boolean => {
       return PortalConfigService.isReadonly(this.settings, property);
+    };
+
+    this.controlAllowOrigin = (chip, index) => {
+      CorsService.controlAllowOrigin(chip, index, this.settings.cors.allowOrigin);
+    };
+
+    this.isRegexValid = () => {
+      return CorsService.isRegexValid(this.settings.cors.allowOrigin);
+    };
+
+    this.querySearchHeaders = (query) => {
+      return CorsService.querySearchHeaders(query, this.headers);
     };
   }
 };

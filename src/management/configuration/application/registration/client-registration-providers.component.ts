@@ -36,6 +36,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.settings = _.cloneDeep(Constants);
+    this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.select = (provider: ClientRegistrationProvider) => {
       $state.go('management.settings.clientregistrationproviders.clientregistrationprovider', {id: provider.id});

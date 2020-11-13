@@ -39,6 +39,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     'ngInject';
     this.settings = _.cloneDeep(Constants);
     this.$rootScope = $rootScope;
+    this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.$onInit = () => {
       this.dashboardsByType = {

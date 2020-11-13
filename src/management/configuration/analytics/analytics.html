@@ -91,6 +91,7 @@
       <md-input-container class="md-block" flex-gt-sm>
         <label>HTTP Client Timeout</label>
         <input type="number" min="0" ng-model="$ctrl.settings.analytics.clientTimeout" ng-disabled="$ctrl.isReadonlySetting('analytics.client.timeout')">
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('analytics.client.timeout')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
 
       <md-card-actions>

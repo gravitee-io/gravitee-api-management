@@ -46,6 +46,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     this.$rootScope = $rootScope;
     this.activatedIdps = {};
     this.settings = _.cloneDeep(Constants);
+    this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.$onInit = () => {
       this.identities.forEach((ipa: IdentityProviderActivation) => this.activatedIdps[ipa.identityProvider] = true);

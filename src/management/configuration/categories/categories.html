@@ -24,6 +24,7 @@
         <md-switch ng-model="$ctrl.settings.portal.apis.categoryMode.enabled" aria-label="Category Mode" ng-change="$ctrl.toggleDisplayMode();"
                    ng-disabled="$ctrl.isReadonlySetting('portal.apis.categoryMode.enabled')">
           Enable Category Mode
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apis.categoryMode.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-switch>
         <div class="hint">
           Switch on to enable Category mode and automatically replace API gallery by Category gallery. Switch off to disable this option.

@@ -21,6 +21,8 @@ import PortalConfigService from '../../../services/portalConfig.service';
 import {IScope} from 'angular';
 
 class CategoriesController {
+
+  public providedConfigurationMessage = 'Configuration provided by the system';
   private categoriesToUpdate: any[];
   private categories: any[];
   private Constants: any;

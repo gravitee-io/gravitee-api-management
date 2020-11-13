@@ -66,13 +66,21 @@
     <div class="gv-form-content" layout="column" ng-if="$ctrl.target === 'ORGANIZATION'">
       <h3>Configuration</h3>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox aria-label="Force login" ng-change="$ctrl.saveForceLogin()" ng-model="$ctrl.settings.authentication.forceLogin.enabled">
+        <md-checkbox aria-label="Force login"
+                     ng-change="$ctrl.saveForceLogin()"
+                     ng-model="$ctrl.settings.authentication.forceLogin.enabled"
+                     ng-disabled="$ctrl.isReadonlySetting('authentication.forceLogin.enabled')">
           Force authentication to access portal and management console
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('authentication.forceLogin.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
       </md-input-container>
       <md-input-container class="gv-input-container-dense">
-        <md-checkbox aria-label="Show login form" ng-change="$ctrl.saveShowLoginForm()" ng-model="$ctrl.settings.authentication.localLogin.enabled">
+        <md-checkbox aria-label="Show login form"
+                     ng-change="$ctrl.saveShowLoginForm()"
+                     ng-model="$ctrl.settings.authentication.localLogin.enabled"
+                     ng-disabled="$ctrl.isReadonlySetting('authentication.localLogin.enabled')">
           Show login form on portal and management console
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('authentication.localLogin.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
       </md-input-container>
 

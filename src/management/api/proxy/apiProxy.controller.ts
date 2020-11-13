@@ -19,6 +19,7 @@ import UserService from '../../../services/user.service';
 import ApiService from '../../../services/api.service';
 import NotificationService from '../../../services/notification.service';
 import GroupService from '../../../services/group.service';
+import CorsService from '../../../services/cors.service';
 
 class ApiProxyController {
   private initialApi: any;
@@ -36,13 +37,13 @@ class ApiProxyController {
   private headers: string[];
   private discovery: any;
   private virtualHostModeEnabled: boolean;
-  private allowOriginPattern = '^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$';
   private domainRestrictions: string[];
   private domainRegexList: RegExp[] = [];
   private hostPattern: string;
 
   constructor(
     private ApiService: ApiService,
+    private CorsService: CorsService,
     private NotificationService: NotificationService,
     private UserService: UserService,
     private $scope,
@@ -62,6 +63,7 @@ class ApiProxyController {
     'ngInject';
 
     this.ApiService = ApiService;
+    this.CorsService = CorsService;
     this.NotificationService = NotificationService;
     this.UserService = UserService;
     this.GroupService = GroupService;
@@ -100,7 +102,7 @@ class ApiProxyController {
         value: 'WEIGHTED_RANDOM'
       }];
 
-    this.$scope.methods = ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];
+    this.$scope.methods = CorsService.getHttpMethods();
 
     this.initState();
 
@@ -253,18 +255,7 @@ class ApiProxyController {
    * Search for HTTP Headers.
    */
   querySearchHeaders(query) {
-    return query ? this.headers.filter(this.createFilterFor(query)) : [];
-  }
-
-  /**
-   * Create filter function for a query string
-   */
-  createFilterFor(query: string) {
-    let lowercaseQuery = query.toLowerCase();
-
-    return function filterFn(header) {
-      return header.toLowerCase().indexOf(lowercaseQuery) === 0;
-    };
+    return this.CorsService.querySearchHeaders(query, this.headers);
   }
 
   createGroup() {
@@ -315,54 +306,11 @@ class ApiProxyController {
   }
 
   controlAllowOrigin(chip, index) {
-    if ('*' === chip) {
-      this.$mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Are you sure you want to remove all cross-origin restrictions?',
-          confirmButton: 'Yes, I want to allow all origins.'
-        }
-      }).then((response) => {
-        if (!response) {
-          this.api.proxy.cors.allowOrigin.splice(index, 1);
-        }
-      });
-    } else {
-      let validator = new RegExp(this.allowOriginPattern, 'ig');
-
-      if (!validator.test(chip)) {
-        this.$mdDialog.show(
-          this.$mdDialog.alert({
-            title: 'Invalid regex',
-            textContent: `${chip} is not a valid origin`,
-            ok: 'Close'
-          })
-        ).then((response) => {
-          this.api.proxy.cors.allowOrigin.splice(index, 1);
-        });
-      }
-    }
+    this.CorsService.controlAllowOrigin(chip, index, this.api.proxy.cors.allowOrigin);
   }
 
   isRegexValid() {
-    let isValid = true;
-    if (this.api.proxy.cors.allowOrigin) {
-      this.api.proxy.cors.allowOrigin.forEach(allowOrigin => {
-        if ('*' !== allowOrigin &&
-          (allowOrigin.includes('(') || allowOrigin.includes('[') || allowOrigin.includes('*'))) {
-          try {
-            // tslint:disable-next-line:no-unused-expression
-            new RegExp(allowOrigin);
-          } catch (e) {
-            isValid = false;
-          }
-        }
-      });
-    }
-    return isValid;
+    return this.CorsService.isRegexValid(this.api.proxy.cors.allowOrigin);
   }
 
   switchVirtualHostMode() {

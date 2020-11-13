@@ -68,6 +68,7 @@
           <label>Entrypoint</label>
           <input ng-model="$ctrl.Constants.portal.entrypoint"
                  ng-disabled="$ctrl.isReadonlySetting('portal.entrypoint')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.entrypoint')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
         <md-card-actions>
           <md-button type="submit" class="md-raised md-primary" ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"

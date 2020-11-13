@@ -25,11 +25,13 @@
                      aria-label="API reviews"
                      ng-disabled="$ctrl.isReadonlySetting('api.review.enabled')">
           Enable API review
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.review.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
         <md-checkbox ng-model="$ctrl.settings.apiQualityMetrics.enabled"
                      aria-label="Rating"
                      ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.enabled')">
           Enable API Quality Metrics
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
       </div>
       <h4>General</h4>
@@ -38,26 +40,31 @@
           <label>Description weight</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.descriptionWeight"
                   ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.description.weight')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.description.weight')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Description minimum length</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.descriptionMinLength"
                   ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.description.min.length')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.description.min.length')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Logo weight</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.logoWeight"
                   ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.logo.weight')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.logo.weight')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Categories weight</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.categoriesWeight"
                   ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.categories.weight')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.categories.weight')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Labels weight</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.labelsWeight"
                   ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.labels.weight')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.labels.weight')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
       </div>
       <h4>Documentation</h4>
@@ -66,11 +73,13 @@
           <label>Functional documentation weight</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.functionalDocumentationWeight"
                   ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.functional.documentation.weight')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.functional.documentation.weight')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
         <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
           <label>Technical documentation weight</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.technicalDocumentationWeight"
                   ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.technical.documentation.weight')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.technical.documentation.weight')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
       </div>
       <h4>Endpoint</h4>
@@ -79,6 +88,7 @@
           <label>Healthcheck weight</label>
           <input  type="number" min="0" max="99999" ng-model="$ctrl.settings.apiQualityMetrics.healthcheckWeight"
                   ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.healthcheck.weight')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.healthcheck.weight')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
       </div>
 

@@ -17,6 +17,8 @@ import NotificationService from '../../../services/notification.service';
 import PortalConfigService from '../../../services/portalConfig.service';
 
 class ApiLoggingController {
+
+  public providedConfigurationMessage = 'Configuration provided by the system';
   private formApiLogging: any;
 
   constructor(private PortalConfigService: PortalConfigService,
