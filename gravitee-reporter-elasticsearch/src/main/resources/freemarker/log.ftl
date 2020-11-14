@@ -53,8 +53,7 @@
   }
   </#if>
   <#if log.getProxyRequest()??>
-    <#if log.getClientRequest()??>,</#if>
-  "proxy-request": {
+  ,"proxy-request": {
   "method":"${log.getProxyRequest().getMethod()}",
   "uri":"${log.getProxyRequest().getUri()}"
     <#if log.getProxyRequest().getBody()??>
