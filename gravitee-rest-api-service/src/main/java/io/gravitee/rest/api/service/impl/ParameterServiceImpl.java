@@ -139,21 +139,21 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             // Find parameters from environment but not present in database
             keys.forEach(k -> {
                 if (environment.containsProperty(k.key()) && k.isOverridable()) {
-                    parameters.stream().
+                    final Optional<Parameter> optionalParameter = parameters.stream().
                             filter(p -> p.getKey().equals(k.key()))
-                            .findFirst()
-                            .ifPresentOrElse(
-                            p -> p.setValue(
-                                toSemicolonSeparatedString(Key.findByKey(p.getKey()),
-                                environment.getProperty(p.getKey()))),
-                            () -> {
-                                final Parameter parameter = new Parameter();
-                                parameter.setKey(k.key());
-                                parameter.setReferenceId(GraviteeContext.getCurrentEnvironment());
-                                parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
-                                parameter.setValue(toSemicolonSeparatedString(k, environment.getProperty(k.key())));
-                                parameters.add(parameter);
-                            });
+                            .findFirst();
+                    if (optionalParameter.isPresent()) {
+                        final Parameter p = optionalParameter.get();
+                        p.setValue(toSemicolonSeparatedString(Key.findByKey(p.getKey()),
+                                environment.getProperty(p.getKey())));
+                    } else {
+                        final Parameter parameter = new Parameter();
+                        parameter.setKey(k.key());
+                        parameter.setReferenceId(GraviteeContext.getCurrentEnvironment());
+                        parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+                        parameter.setValue(toSemicolonSeparatedString(k, environment.getProperty(k.key())));
+                        parameters.add(parameter);
+                    }
                 }
             });
 
