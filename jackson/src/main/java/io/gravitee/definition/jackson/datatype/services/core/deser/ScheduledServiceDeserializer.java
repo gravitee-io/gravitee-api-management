@@ -39,37 +39,33 @@ public abstract class ScheduledServiceDeserializer<T extends ScheduledService> e
     protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         super.deserialize(service, jsonParser, node, ctxt);
 
-        if (service.isEnabled()) {
+        // New version of scheduler service
+        final JsonNode triggerNode = node.get("trigger");
+
+        if (triggerNode != null) {
             Trigger trigger = new Trigger();
+            final JsonNode rateNode = triggerNode.get("rate");
 
-            // New version of scheduler service
-            final JsonNode triggerNode = node.get("trigger");
-
-            if (triggerNode != null) {
-                final JsonNode rateNode = triggerNode.get("rate");
-
-                if (rateNode != null) {
-                    trigger.setRate(rateNode.asLong());
-                } else {
-                    throw ctxt.mappingException("[scheduled-service] Rate is required");
-                }
-
-                final JsonNode unitNode = triggerNode.get("unit");
-                if (unitNode != null) {
-                    trigger.setUnit(TimeUnit.valueOf(unitNode.asText().toUpperCase()));
-                } else {
-                    throw ctxt.mappingException("[scheduled-service] Unit is required");
-                }
-
+            if (rateNode != null) {
+                trigger.setRate(rateNode.asLong());
             } else {
-                // Ensure backward compatibility
-                final JsonNode intervalNode = node.get("interval");
+                throw ctxt.mappingException("[scheduled-service] Rate is required");
+            }
 
-                if (intervalNode != null) {
-                    trigger.setRate(intervalNode.asLong());
-                } else {
-                    throw ctxt.mappingException("[scheduled-service] Interval is required");
-                }
+            final JsonNode unitNode = triggerNode.get("unit");
+            if (unitNode != null) {
+                trigger.setUnit(TimeUnit.valueOf(unitNode.asText().toUpperCase()));
+            } else {
+                throw ctxt.mappingException("[scheduled-service] Unit is required");
+            }
+            service.setTrigger(trigger);
+        } else {
+            // Ensure backward compatibility
+            final JsonNode intervalNode = node.get("interval");
+
+            if (intervalNode != null) {
+                Trigger trigger = new Trigger();
+                trigger.setRate(intervalNode.asLong());
 
                 final JsonNode unitNode = node.get("unit");
                 if (unitNode != null) {
@@ -77,9 +73,9 @@ public abstract class ScheduledServiceDeserializer<T extends ScheduledService> e
                 } else {
                     throw ctxt.mappingException("[scheduled-service] Unit is required");
                 }
+                service.setTrigger(trigger);
             }
-
-            service.setTrigger(trigger);
         }
+
     }
 }
