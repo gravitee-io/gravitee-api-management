@@ -116,7 +116,7 @@ class DictionaryController {
         if (reverse) {
           return entry2.key.localeCompare(entry.key);
         } else {
-          return entry.key.localeCompare(entry2.key); 
+          return entry.key.localeCompare(entry2.key);
         }
       })
       .slice(
@@ -288,12 +288,12 @@ class DictionaryController {
   computeProperties = () => {
     return Object.entries(this.dictionary.properties)
     .map(entry => {
-      let result : any = {}
-      result['key'] = entry[0];
-      result['value'] = entry[1];
+      let result : any = {};
+      result.key = entry[0];
+      result.value = entry[1];
       return result;
     });
-  };
+  }
 }
 
 export default DictionaryController;

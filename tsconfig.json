@@ -16,6 +16,10 @@
       "node",
       "jasmine",
       "es6-shim"
+    ],
+    "lib": [
+      "es2017",
+      "dom"
     ]
   },
   "compileOnSave": false,

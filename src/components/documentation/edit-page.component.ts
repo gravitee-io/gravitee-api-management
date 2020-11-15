@@ -61,9 +61,9 @@ const EditPageComponent: ng.IComponentOptions = {
       this.page = this.resolvedPage;
       if (this.resolvedPage.messages && this.resolvedPage.messages.length > 0) {
         this.error = {
-          title: "Validation messages",
+          title: 'Validation messages',
           message: this.resolvedPage.messages
-        }
+        };
       }
       this.groups = this.resolvedGroups;
       this.fetchers = this.resolvedFetchers;

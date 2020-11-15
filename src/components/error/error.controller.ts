@@ -27,8 +27,8 @@ class ErrorController {
       try {
         this.messages = JSON.parse(this.error.message);
       } catch (e) {
-        if (Array.isArray(this.error.message)){
-          this.messages = this.error.message
+        if (Array.isArray(this.error.message)) {
+          this.messages = this.error.message;
         } else {
           this.messages = [this.error.message];
         }

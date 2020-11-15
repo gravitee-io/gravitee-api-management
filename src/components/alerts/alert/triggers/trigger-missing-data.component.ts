@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-import _ = require('lodash');
-import {Rule} from "../../../../entities/alerts/rule.metrics";
-import {AggregationCondition} from "../../../../entities/alert";
-
 const AlertTriggerMissingDataComponent: ng.IComponentOptions = {
   bindings: {
     alert: '<'
@@ -33,13 +29,13 @@ const AlertTriggerMissingDataComponent: ng.IComponentOptions = {
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
         this.alert.conditions = [{
-          "type": "MISSING_DATA"
+          'type': 'MISSING_DATA'
         }];
 
         this.alert.dampening = {
-          "mode": "strict_count",
-          "trueEvaluations": 1,
-          "totalEvaluations": 1
+          'mode': 'strict_count',
+          'trueEvaluations': 1,
+          'totalEvaluations': 1
         };
       }
     };

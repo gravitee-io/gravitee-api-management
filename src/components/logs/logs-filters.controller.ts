@@ -256,7 +256,7 @@ class LogsFiltersController {
           this.filters['remote-address'] = v;
           break;
         case 'host':
-          this.filters['host'] = v[0].replace(/\\"/g, '');
+          this.filters.host = v[0].replace(/\\"/g, '');
           break;
         default:
           console.error('unknown filter: ', k);

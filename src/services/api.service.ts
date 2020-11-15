@@ -80,7 +80,7 @@ class ApiService {
   }
 
   searchApis(query?: string, opts?: any): ng.IPromise<any> {
-    if(query) {
+    if (query) {
       return this.$http.post(this.apisURL + '_search?q=' + query, {}, opts);
     } else {
       return this.$http.post(this.apisURL + '_search?q=*', {}, opts);
