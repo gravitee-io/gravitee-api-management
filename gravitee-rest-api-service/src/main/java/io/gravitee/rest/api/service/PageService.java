@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import java.util.List;
 import java.util.Map;
 
+import io.gravitee.repository.management.model.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
@@ -73,6 +74,8 @@ public interface PageService {
 	void transformWithTemplate(PageEntity pageEntity, String api);
 
 	PageEntity create(String apiId, PageEntity pageEntity);
+
+	List<String> validateSafeContent(PageEntity pageEntity, String apiId);
 
 	Map<SystemFolderType, String> initialize(String environmentId);
 

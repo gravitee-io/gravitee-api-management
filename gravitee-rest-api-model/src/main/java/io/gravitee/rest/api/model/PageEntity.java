@@ -44,6 +44,7 @@ public class PageEntity implements Indexable {
     private String parentId;
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
+    private List<String> messages ;
     private Map<String, String> metadata;
     private List<PageEntity> translations;
 
@@ -165,6 +166,14 @@ public class PageEntity implements Indexable {
 
     public void setMetadata(Map<String, String> metadata) {
         this.metadata = metadata;
+    }
+
+    public List<String> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<String> messages) {
+        this.messages = messages;
     }
 
     public List<PageEntity> getTranslations() {

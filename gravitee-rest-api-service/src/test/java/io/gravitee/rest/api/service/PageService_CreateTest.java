@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.service;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
@@ -31,6 +34,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -77,11 +82,20 @@ public class PageService_CreateTest {
     @Mock
     private ImportConfiguration importConfiguration;
 
+    private PageEntity getPage(String resource, String contentType) throws IOException {
+        URL url = Resources.getResource(resource);
+        String descriptor = Resources.toString(url, Charsets.UTF_8);
+        PageEntity pageEntity = new PageEntity();
+        pageEntity.setContent(descriptor);
+        pageEntity.setContentType(contentType);
+        return pageEntity;
+    }
+
     @Test
-    public void shouldCreatePage() throws TechnicalException {
+    public void shouldCreatePage() throws TechnicalException, IOException {
         final String name = "MARKDOWN";
         final String contrib = "contrib";
-        final String content = "content";
+        final String content = getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent();
         final String type = "MARKDOWN";
 
         when(page1.getId()).thenReturn(PAGE_ID);
@@ -121,9 +135,13 @@ public class PageService_CreateTest {
     }
 
     @Test(expected = TechnicalManagementException.class)
-    public void shouldNotCreateBecauseTechnicalException() throws TechnicalException {
+    public void shouldNotCreateBecauseTechnicalException() throws TechnicalException, IOException {
         final String name = "PAGE_NAME";
         when(newPage.getName()).thenReturn(name);
+        when(newPage.getType()).thenReturn(PageType.SWAGGER);
+        when(newPage.getContent()).thenReturn(
+                getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent()
+        );
 
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 
