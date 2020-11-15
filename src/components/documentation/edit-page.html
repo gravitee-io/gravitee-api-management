@@ -228,8 +228,6 @@
                 </md-tab>
             </md-tabs>
 
-            <gv-error error="$ctrl.error"></gv-error>
-
             <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate && $ctrl.currentTab === 'translations' && $ctrl.currentTranslation">
                 <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
                     type="button"
@@ -517,6 +515,8 @@
                     </md-tab-body>
                 </md-tab>
             </md-tabs>
+
+            <gv-error error="$ctrl.error"></gv-error>
 
             <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate">
                 <md-button class="md-raised md-primary" type="submit" ng-click="$ctrl.save()" ng-disabled="!$ctrl.page.name" ng-if="$ctrl.currentTab !== 'translations' || !$ctrl.currentTranslation">
