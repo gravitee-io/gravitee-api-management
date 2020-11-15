@@ -164,7 +164,6 @@ const SettingsComponent: ng.IComponentOptions = {
 
     this.$onInit = () => {
       if ($state.current.name === 'management.settings') {
-        $rootScope.$broadcast('reduceSideNav');
         SidenavService.setCurrentResource('SETTINGS');
         $state.go(getDefaultSettingsMenu());
       }

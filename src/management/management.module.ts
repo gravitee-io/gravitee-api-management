@@ -394,6 +394,7 @@ import AlertTriggerConditionStringComponent from '../components/alerts/alert/tri
 import AlertTriggerConditionCompareComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-compare.component';
 import AlertTriggerMetricsSimpleConditionComponent from '../components/alerts/alert/triggers/trigger-metrics-simple-condition.component';
 import AlertTriggerMetricsAggregationComponent from '../components/alerts/alert/triggers/trigger-metrics-aggregation.component';
+import AlertTriggerMissingDataComponent from '../components/alerts/alert/triggers/trigger-missing-data.component';
 import AlertTriggerMetricsRateComponent from '../components/alerts/alert/triggers/trigger-metrics-rate.component';
 import AlertTriggerApiHealthCheckEndpointStatusChangedComponent from '../components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component';
 import AlertTriggerNodeLifecycleChangedComponent from '../components/alerts/alert/triggers/trigger-node-lifecycle-changed.component';
@@ -970,6 +971,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvAlertTriggerConditionCompare', AlertTriggerConditionCompareComponent)
   .component('gvAlertTriggerMetricsSimpleCondition', AlertTriggerMetricsSimpleConditionComponent)
   .component('gvAlertTriggerMetricsAggregation', AlertTriggerMetricsAggregationComponent)
+  .component('gvAlertTriggerMissingData', AlertTriggerMissingDataComponent)
   .component('gvAlertTriggerMetricsRate', AlertTriggerMetricsRateComponent)
   .component('gvAlertTriggerApiHealthCheckStatusChanged', AlertTriggerApiHealthCheckEndpointStatusChangedComponent)
   .component('gvAlertTriggerNodeLifecycleChanged', AlertTriggerNodeLifecycleChangedComponent)
