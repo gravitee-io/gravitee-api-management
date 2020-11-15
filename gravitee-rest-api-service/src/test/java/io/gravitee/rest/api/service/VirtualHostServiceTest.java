@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
 import io.gravitee.rest.api.service.impl.VirtualHostServiceImpl;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -198,7 +200,7 @@ public class VirtualHostServiceTest {
         virtualHostService.sanitizeAndValidate(Collections.singletonList(vhost));
     }
 
-    @Test(expected = InvalidVirtualHostException.class)
+    @Test
     public void validate_nullIsNotASubDomain() {
         VirtualHost vhost = new VirtualHost();
         vhost.setHost(null);
@@ -208,7 +210,9 @@ public class VirtualHostServiceTest {
         environmentEntity.setDomainRestrictions(Arrays.asList("test.gravitee.io", "other.gravitee.io"));
         when(environmentService.findById(any())).thenReturn(environmentEntity);
 
-        virtualHostService.sanitizeAndValidate(Collections.singletonList(vhost));
+        final Collection<VirtualHost> virtualHosts = virtualHostService.sanitizeAndValidate(Collections.singletonList(vhost));
+        Assert.assertEquals(1, virtualHosts.size());
+        Assert.assertEquals("test.gravitee.io", virtualHosts.iterator().next().getHost());
     }
 
     private Api createMock(String api, String path) {

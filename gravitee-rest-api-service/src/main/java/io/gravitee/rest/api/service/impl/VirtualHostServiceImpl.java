@@ -134,7 +134,7 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
                         throw new InvalidVirtualHostException(hostWithoutPort, domainRestrictions);
                     }
                 } else {
-                    throw new InvalidVirtualHostException(null, domainRestrictions);
+                    vHost.setHost(domainRestrictions.get(0));
                 }
             }
         }
