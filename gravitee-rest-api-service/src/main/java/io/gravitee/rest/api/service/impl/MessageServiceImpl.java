@@ -171,7 +171,8 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                                 .to(defaultFrom)
                                 .bcc(mails.toArray(new String[0]))
                                 .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_GENERIC_MESSAGE)
-                                .params(Collections.singletonMap("message", message.getText()))
+                                .param("message", message.getText())
+                                .param("messageSubject", message.getTitle())
                                 .build());
                 }
                 return mails.size();
