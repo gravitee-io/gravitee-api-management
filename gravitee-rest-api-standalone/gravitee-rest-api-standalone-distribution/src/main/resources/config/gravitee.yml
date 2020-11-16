@@ -311,6 +311,11 @@ email:
 #templates:
 #  path: ${gravitee.home}/templates
 
+# Portal themes
+#portal:
+#  themes:
+#    path: ${gravitee.home}/themes
+
 # Referenced properties
 ds:
   mongodb:

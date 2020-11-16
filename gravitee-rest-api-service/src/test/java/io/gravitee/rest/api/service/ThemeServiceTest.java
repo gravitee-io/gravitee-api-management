@@ -30,12 +30,14 @@ import io.gravitee.rest.api.service.exceptions.DuplicateThemeNameException;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
 import io.gravitee.rest.api.service.impl.ThemeServiceImpl;
 import io.gravitee.rest.api.service.impl.ThemeServiceImpl.ThemeDefinitionMapper;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -61,6 +63,7 @@ import static org.mockito.Mockito.*;
 public class ThemeServiceTest {
 
     private static final String THEME_ID = "default";
+    private static final String THEMES_PATH = "src/test/resources/themes";
 
     @InjectMocks
     private ThemeService themeService = new ThemeServiceImpl();
@@ -72,6 +75,12 @@ public class ThemeServiceTest {
     private AuditService auditService;
 
     private ThemeServiceImpl themeServiceImpl = new ThemeServiceImpl();
+
+    @Before
+    public void init() {
+        ReflectionTestUtils.setField(themeService, "themesPath", THEMES_PATH);
+        ReflectionTestUtils.setField(themeServiceImpl, "themesPath", THEMES_PATH);
+    }
 
     @Test
     public void shouldFindById() throws TechnicalException, JsonProcessingException {
@@ -328,7 +337,7 @@ public class ThemeServiceTest {
         final Theme theme = new Theme();
         theme.setId(THEME_ID);
         theme.setName("NAME");
-        theme.setDefinition(themeServiceImpl.getDefinition("/themes/custom-definition.json"));
+        theme.setDefinition(themeServiceImpl.getDefinition(THEMES_PATH + "/custom-definition.json"));
         theme.setReferenceId("DEFAULT");
         theme.setReferenceType(ENVIRONMENT.name());
         theme.setCreatedAt(new Date());
@@ -375,9 +384,9 @@ public class ThemeServiceTest {
     @Test
     public void shouldMergeThemeDefinition() throws IOException, TechnicalException {
         ThemeDefinitionMapper mapper = new ThemeDefinitionMapper();
-        String def = themeServiceImpl.getDefinition("/themes/base-definition.json");
+        String def = themeServiceImpl.getDefinition(THEMES_PATH + "/base-definition.json");
         ThemeDefinition baseDefinition = mapper.readValue(def, ThemeDefinition.class);
-        String customDef = themeServiceImpl.getDefinition("/themes/custom-definition.json");
+        String customDef = themeServiceImpl.getDefinition(THEMES_PATH + "/custom-definition.json");
         ThemeDefinition customDefinition = mapper.readValue(customDef, ThemeDefinition.class);
         assertEquals(33, customDefinition.getData().size());
         assertNull(mapper.getThemeComponentDefinition(baseDefinition, "gv-pagination"));
@@ -418,7 +427,7 @@ public class ThemeServiceTest {
         ThemeDefinitionMapper mapper = new ThemeDefinitionMapper();
         String def = themeServiceImpl.getDefaultDefinition();
         ThemeDefinition themeDefinition = mapper.readValue(def, ThemeDefinition.class);
-        String customDef = themeServiceImpl.getDefinition("/themes/legacy-definition.json");
+        String customDef = themeServiceImpl.getDefinition(THEMES_PATH + "/legacy-definition.json");
         ThemeDefinition legacyDefinition = mapper.readValue(customDef, ThemeDefinition.class);
         assertEquals(39, themeDefinition.getData().size());
         assertEquals(35, legacyDefinition.getData().size());
@@ -446,13 +455,13 @@ public class ThemeServiceTest {
 
         assertNotEquals(definition, formattedDefinition);
         assertTrue(definitionMapper.isSame(definition, formattedDefinition));
-        assertFalse(definitionMapper.isSame(definition, themeServiceImpl.getDefinition("/themes/custom-definition.json")));
+        assertFalse(definitionMapper.isSame(definition, themeServiceImpl.getDefinition(THEMES_PATH + "/custom-definition.json")));
     }
 
     @Test
     public void shouldCreateDefaultTheme() throws TechnicalException, IOException {
         ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
-        String definition = new ThemeServiceImpl().getDefaultDefinition();
+        String definition = themeServiceImpl.getDefaultDefinition();
         final UpdateThemeEntity themeToCreate = new UpdateThemeEntity();
         themeToCreate.setId(THEME_ID);
         themeToCreate.setName("Default");
@@ -506,7 +515,7 @@ public class ThemeServiceTest {
         final Theme theme2 = mock(Theme.class);
         when(theme2.getId()).thenReturn(THEME_ID);
         when(theme2.getName()).thenReturn("NAME");
-        String customDefinition = themeServiceImpl.getDefinition("/themes/custom-definition.json");
+        String customDefinition = themeServiceImpl.getDefinition(THEMES_PATH + "/custom-definition.json");
         when(theme2.getDefinition()).thenReturn(customDefinition);
         when(theme2.getReferenceType()).thenReturn(ENVIRONMENT.name());
         when(theme2.getReferenceId()).thenReturn("DEFAULT");

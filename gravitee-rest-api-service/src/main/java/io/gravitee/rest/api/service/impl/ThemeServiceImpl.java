@@ -32,15 +32,17 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateThemeNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,7 +59,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ThemeServiceImpl.class);
     private static final ThemeDefinitionMapper MAPPER = new ThemeDefinitionMapper();
-    private static final String DEFAULT_THEME_PATH = "/themes/default/definition.json";
+    private static final String DEFAULT_THEME_PATH = "/default/definition.json";
     private static final String DEFAULT_THEME_ID = "default";
 
 
@@ -65,6 +67,9 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     private ThemeRepository themeRepository;
     @Autowired
     private AuditService auditService;
+
+    @Value("${portal.themes.path:${gravitee.home}/themes}")
+    private String themesPath;
 
     @Override
     public Set<ThemeEntity> findAll() {
@@ -281,7 +286,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                                     themeUpdate);
                         } catch (IOException ex) {
                             final String error = "Error while trying to merge default theme from the definition path: "
-                                    + DEFAULT_THEME_PATH
+                                    + themesPath + DEFAULT_THEME_PATH
                                     + " with theme "
                                     + theme.toString();
                             LOGGER.error(error, ex);
@@ -298,13 +303,13 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     public String getDefaultDefinition() {
-        return this.getDefinition(DEFAULT_THEME_PATH);
+        return this.getDefinition(themesPath + DEFAULT_THEME_PATH);
     }
 
     public String getDefinition(String path) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            String json = IOUtils.toString(this.getClass().getResourceAsStream(path), defaultCharset());
+            String json = Files.readString(Path.of(path), defaultCharset());
             // Important for remove formatting (space, line break...)
             JsonNode jsonNode = objectMapper.readValue(json, JsonNode.class);
             return jsonNode.toString();
@@ -324,9 +329,9 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     private String getImage(String filename) {
-        String filepath = "/themes/default/" + filename;
+        String filepath = themesPath + "/default/" + filename;
         try {
-            byte[] image = IOUtils.toByteArray(this.getClass().getResourceAsStream(filepath));
+            byte[] image = Files.readAllBytes(Path.of(filepath));
             MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
             return "data:" + fileTypeMap.getContentType(filename) + ";base64," + Base64.getEncoder().encodeToString(image);
         } catch (IOException ex) {
