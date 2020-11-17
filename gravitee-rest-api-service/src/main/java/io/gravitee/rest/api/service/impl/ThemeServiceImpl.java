@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.DatatypeConverter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -309,7 +310,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     public String getDefinition(String path) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            String json = Files.readString(Path.of(path), defaultCharset());
+            String json = new String(Files.readAllBytes(new File(path).toPath()), defaultCharset());
             // Important for remove formatting (space, line break...)
             JsonNode jsonNode = objectMapper.readValue(json, JsonNode.class);
             return jsonNode.toString();

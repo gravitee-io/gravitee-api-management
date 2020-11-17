@@ -107,6 +107,15 @@
 		</fileSet>
 
 		<fileSet>
+			<directory>../target/distribution/themes</directory>
+			<outputDirectory>/themes</outputDirectory>
+			<includes>
+				<include>**/*</include>
+			</includes>
+			<fileMode>755</fileMode>
+		</fileSet>
+
+		<fileSet>
 			<directory>../target/distribution/assets</directory>
 			<outputDirectory>/assets</outputDirectory>
 			<includes>

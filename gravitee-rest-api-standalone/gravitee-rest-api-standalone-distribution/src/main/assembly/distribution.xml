@@ -74,6 +74,14 @@
         </fileSet>
 
         <fileSet>
+            <directory>src/main/resources/themes</directory>
+            <outputDirectory>/themes</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
             <directory>${project.build.directory}/lib</directory>
             <outputDirectory>/lib</outputDirectory>
             <includes>
