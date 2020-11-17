@@ -48,32 +48,6 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.page = this.pageService.getCurrentPage();
     if (this.page && this.page.content) {
-      const defaultRenderer = new marked.Renderer();
-
-      const renderer = {
-        link( href, title, text ) {
-          // is it a portal page URL ?
-          let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
-          if (!parsedURL) {
-            // is it a API page URL ?
-            parsedURL = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
-          }
-
-          if (parsedURL) {
-            const pageId = parsedURL[1];
-            return `<gv-button link data-page-id="${pageId}">${text}</gv-button>`;
-          }
-
-          return defaultRenderer.link(href, title, text);
-        },
-        image(href, title, text) {
-          const portalHref = href.replace(/\/management\/organizations\/[A-Za-z0-9-]*/g, '/portal');
-          return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
-        }
-      };
-
-      marked.use({ renderer });
-
       marked.use({ renderer: this.renderer });
 
       marked.setOptions({
@@ -82,6 +56,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
           return hljs.highlight(validLanguage, code).value;
         },
       });
+
       this.pageContent = marked(this.page.content);
     }
   }
@@ -91,14 +66,39 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
     return {
       image(href, title, text) {
-        const portalHref = href.replace(/\/management\/organizations\/[A-Za-z0-9-]*/g, '/portal');
-        return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
+        // is it a portal media ?
+        let parsedURL = /.*\/environments\/([A-Za-z0-9-]*)\/portal\/media\/([A-Za-z0-9]*).*/g.exec(href)
+        if (parsedURL) {
+          const portalHref = `/portal/environments/${parsedURL[1]}/media/${parsedURL[2]}`;
+          return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
+        } else {
+          // is it a API media ?
+          parsedURL = /\/management\/organizations\/[A-Za-z0-9-]*\/environments\/([A-Za-z0-9-]*)\/apis\/.*/g.exec(href)
+          if (parsedURL) {
+            const portalHref = href.replace(/\/management\/organizations\/[A-Za-z0-9-]*/g, '/portal');
+            return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
+          }
+        }
+        return defaultRenderer.image(href, title, text);
       },
 
-      link(href, title, text) {
+      link( href, title, text ) {
+        // is it a portal page URL ?
+        let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
+        if (!parsedURL) {
+          // is it a API page URL ?
+          parsedURL = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
+        }
+
+        if (parsedURL) {
+          const pageId = parsedURL[1];
+          return `<gv-button link data-page-id="${pageId}">${text}</gv-button>`;
+        }
+
         if (href.startsWith('#')) {
           return `<gv-button link href="${href}">${text}</gv-button>`;
         }
+
         return defaultRenderer.link(href, title, text);
       }
     };
