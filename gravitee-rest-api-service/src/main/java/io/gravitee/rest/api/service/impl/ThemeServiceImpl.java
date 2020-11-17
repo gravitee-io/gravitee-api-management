@@ -43,7 +43,6 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,7 +59,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ThemeServiceImpl.class);
     private static final ThemeDefinitionMapper MAPPER = new ThemeDefinitionMapper();
-    private static final String DEFAULT_THEME_PATH = "/default/definition.json";
+    private static final String DEFAULT_THEME_PATH = "/definition.json";
     private static final String DEFAULT_THEME_ID = "default";
 
 
@@ -330,9 +329,9 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     }
 
     private String getImage(String filename) {
-        String filepath = themesPath + "/default/" + filename;
+        String filepath = themesPath + "/" + filename;
         try {
-            byte[] image = Files.readAllBytes(Path.of(filepath));
+            byte[] image = Files.readAllBytes(new File(filepath).toPath());
             MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
             return "data:" + fileTypeMap.getContentType(filename) + ";base64," + Base64.getEncoder().encodeToString(image);
         } catch (IOException ex) {
