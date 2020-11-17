@@ -186,7 +186,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 if (MembershipReferenceType.GROUP == reference.getType()) {
                     notifierService.trigger(GROUP_INVITATION, singletonMap("group", groupService.findById(reference.getId())));
                 }
-                
+
+                roles.invalidate(reference.getType().name() + reference.getId() + member.getMemberType() + member.getMemberId());
+
                 return userMember;
             }
             
