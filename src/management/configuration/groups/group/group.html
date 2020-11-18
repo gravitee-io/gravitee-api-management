@@ -88,22 +88,23 @@
 
       <h2>Associations</h2>
       <div class="gv-form-content" layout="column">
-        <md-checkbox
-              ng-model="$ctrl.apiByDefault"
-              ng-click="$event.stopPropagation()"
-              aria-label="Associate to every new API"
-              class="md-primary md-align-top-left"
-              flex>
-              Associate automatically to every new API
-        </md-checkbox>
-        <md-checkbox
-              ng-model="$ctrl.applicationByDefault"
-              aria-label="Associate to every new application"
-              class="md-primary md-align-top-left"
-              flex>
-              Associate automatically to every new application
-        </md-checkbox>
-
+        <div layout="column" style="margin-bottom: 10px;">
+          <md-checkbox
+                ng-model="$ctrl.apiByDefault"
+                ng-click="$event.stopPropagation()"
+                aria-label="Associate to every new API"
+                class="md-primary md-align-top-left"
+                flex>
+                Associate automatically to every new API
+          </md-checkbox>
+          <md-checkbox
+                ng-model="$ctrl.applicationByDefault"
+                aria-label="Associate to every new application"
+                class="md-primary md-align-top-left"
+                flex>
+                Associate automatically to every new application
+          </md-checkbox>
+        </div>
         <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.updateMode">
           <md-button
                      aria-label="Associate to existing APIs"

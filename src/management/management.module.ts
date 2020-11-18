@@ -439,6 +439,10 @@ import AnalyticsDashboardComponent from './configuration/analytics/dashboard/das
 import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/token/generateTokenDialog.controller';
 
+// User-Autocomplete
+import UserAutocompleteComponent from '../components/user-autocomplete/user-autocomplete.component';
+import UserAutocompleteController from '../components/user-autocomplete/user-autocomplete.controller';
+
 (<any>window).jQuery = jQuery;
 
 import angular = require('angular');
@@ -999,6 +1003,10 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('platformLogs', PlatformLogsComponent)
   .component('platformLog', PlatformLogComponent)
   .controller('PlatformLogsController', PlatformLogsController)
+
+  // User-Autocomplete
+  .component('gvUserAutocomplete', UserAutocompleteComponent)
+  .controller('UserAutocompleteController', UserAutocompleteController)
 
   .filter('humanDateFilter', function () {
     return function (input) {
