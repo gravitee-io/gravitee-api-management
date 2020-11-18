@@ -23,3 +23,36 @@ $ mvn clean compile exec:java -Pdev -pl gravitee-rest-api-standalone/gravitee-re
 ...
 <app starts and listens on port 8083>
 ```
+
+== Makefile support
+
+You can use link:Makefile[Makefile] to set up an environment locally and run `Postman` tests against it.
+
+Run `make` or `make --help` to see the list of available commands.
+
+=== Build and start your environment
+
+`make gravitee`
+
+The version will be based on your current branch's link:pom.xml[pom.xml]
+
+If containers exists, they will be stopped and deleted.
+
+You can skip tests running `make gravitee OPTIONS=-DskipTests`
+
+=== Start or stop the environment
+
+`make start`
+
+`make stop`
+
+=== Reset the environment
+
+`make reset`
+
+Stop the containers, delete data on databases and start the containers
+
+=== Run Postman tests
+
+`make postman`
+

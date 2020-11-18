@@ -15,3 +15,6 @@ gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/
 gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/logs/*
 gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/data/*
 gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/plugins/*
+
+# used in makefile as working directory
+.working/

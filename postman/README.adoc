@@ -1,0 +1,12 @@
+# Run postman collections
+
+## Run collection locally using newman.
+```
+newman run postman/test/collections/[...]collection.json -e postman/env/Gravitee.io-Localhost-Environment.json --bail
+
+```
+
+## Run all the tests collections locally using shell script.
+```
+sh scripts/tests.sh
+```

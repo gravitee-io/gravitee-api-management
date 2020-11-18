@@ -1,0 +1,204 @@
+{
+	"info": {
+		"_postman_id": "05857180-e6e1-4205-9d71-0c07752c8dd9",
+		"name": "Gravitee.io-Test.Suite-Create.Application",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Generate XSRF",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c7ef688c-7264-43c8-8deb-db41c38ef300",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    pm.environment.set('X-Xsrf-Token', pm.response.headers.get('X-Xsrf-Token'));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal",
+					"host": [
+						"{{GRAVITEEIO_MGMT_URL}}"
+					],
+					"path": [
+						"management",
+						"organizations",
+						"DEFAULT",
+						"environments",
+						"DEFAULT",
+						"portal"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login application1 SUCCESS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e4b1f0af-ef14-40f6-b2df-dc697f8ce62a",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{AUTHORIZATION_APPLICATION1}}"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/user/login",
+					"host": [
+						"{{GRAVITEEIO_MGMT_URL}}"
+					],
+					"path": [
+						"management",
+						"organizations",
+						"DEFAULT",
+						"environments",
+						"DEFAULT",
+						"user",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Application",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "496c63c4-de52-480a-9e89-86cbcd367db3",
+						"type": "text/javascript",
+						"exec": [
+							"pm.request.headers.add({key: 'X-Xsrf-Token', value: pm.environment.get('X-Xsrf-Token') });"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 201\"] = responseCode.code === 201;",
+							"tests[\"Location is present\"] = postman.getResponseHeader(\"Location\");",
+							"postman.setGlobalVariable(\"APPLICATION_LOCATION\", postman.getResponseHeader(\"Location\"));"
+						],
+						"id": "aa2596e1-0e3b-4a21-8d99-faa5d13c3ec0"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "{{AUTHORIZATION_APPLICATION1}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"description\": \"A new awesome webapp\",\n\t\"name\": \"webapp 1\",\n\t\"type\": \"webapp\"\n}"
+				},
+				"url": {
+					"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/applications",
+					"host": [
+						"{{GRAVITEEIO_MGMT_URL}}"
+					],
+					"path": [
+						"management",
+						"organizations",
+						"DEFAULT",
+						"environments",
+						"DEFAULT",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Application",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "19b5c95a-cbba-480c-a917-1acf32fc033d",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{AUTHORIZATION_APPLICATION1}}"
+					}
+				],
+				"url": {
+					"raw": "{{APPLICATION_LOCATION}}",
+					"host": [
+						"{{APPLICATION_LOCATION}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "45903315-f92d-4160-ba2d-62f4038ca501",
+				"type": "text/javascript",
+				"exec": [
+					"pm.request.headers.add({key: 'X-Xsrf-Token', value: pm.environment.get('X-Xsrf-Token') });"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "59167f3d-1e5f-4df7-ab18-7fbe8677973d",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
