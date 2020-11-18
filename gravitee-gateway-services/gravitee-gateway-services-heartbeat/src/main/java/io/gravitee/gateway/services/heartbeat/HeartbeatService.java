@@ -145,7 +145,7 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
         // Writing event to the repository is the responsibility of the master node
         if (clusterManager.isMasterNode()) {
             Event event = item.getItem();
-
+            queue.remove(event);
             try {
                 String state = event.getProperties().get(EVENT_STATE_PROPERTY);
                 if (state != null) {
