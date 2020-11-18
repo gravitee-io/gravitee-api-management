@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -101,9 +102,14 @@ public class PlatformEventsResource  extends AbstractResource {
 
                 // Retrieve additional data
                 String apiId = properties1.get(Event.EventProperties.API_ID.getValue());
-                ApiEntity api = apiService.findById(apiId);
-                properties1.put("api_name", api.getName());
-                properties1.put("api_version", api.getVersion());
+                try {
+                    ApiEntity api = apiService.findById(apiId);
+                    properties1.put("api_name", api.getName());
+                    properties1.put("api_version", api.getVersion());
+                } catch (ApiNotFoundException anfe) {
+                    properties1.put("deleted", Boolean.TRUE.toString());
+                    properties1.put("api_name", "Deleted API");
+                }
             }
         });
 
