@@ -40,6 +40,34 @@ describe('GvPageMarkdownComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should use correct portal media url', () => {
+    const renderer = component.renderer.image('/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789', 'title', 'text');
+
+    expect(renderer).not.toBeNull();
+    expect(renderer).toEqual('<img alt="text" title="title" src="/portal/environments/DEFAULT/media/123456789" />');
+  });
+
+  it('should use correct api media url', () => {
+    const renderer = component.renderer.image('/management/organizations/DEFAULT/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789', 'title', 'text');
+
+    expect(renderer).not.toBeNull();
+    expect(renderer).toEqual('<img alt="text" title="title" src="/portal/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789" />');
+  });
+
+  it('should use gv-button[data-page-id] for render an portal page link', () => {
+    const renderer = component.renderer.link('/#!/settings/pages/123456789', 'title', 'text');
+
+    expect(renderer).not.toBeNull();
+    expect(renderer).toEqual('<gv-button link data-page-id="123456789">text</gv-button>');
+  });
+
+  it('should use gv-button[data-page-id] for render an api page link', () => {
+    const renderer = component.renderer.link('/#!/apis/1A2Z3E4R5T6Y/documentation/123456789', 'title', 'text');
+
+    expect(renderer).not.toBeNull();
+    expect(renderer).toEqual('<gv-button link data-page-id="123456789">text</gv-button>');
+  });
+
   it('should use gv-button[href] for render an anchor', () => {
     const renderer = component.renderer.link('#anchor', 'Anchor', '');
 

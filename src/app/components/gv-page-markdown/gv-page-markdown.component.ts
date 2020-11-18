@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input, HostListener, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import * as marked from 'marked';
 import * as hljs from 'highlight.js';
 import { PageService } from 'src/app/services/page.service';
 import { Router } from '@angular/router';
 import { ScrollService } from 'src/app/services/scroll.service';
+import '@gravitee/ui-components/wc/gv-button';
 
 @Component({
   selector: 'app-gv-page-markdown',
@@ -63,14 +64,39 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
     return {
       image(href, title, text) {
-        const portalHref = href.replace(/\/management\/organizations\/[A-Za-z0-9-]*/g, '/portal');
-        return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
+        // is it a portal media ?
+        let parsedURL = /.*\/environments\/([A-Za-z0-9-]*)\/portal\/media\/([A-Za-z0-9]*).*/g.exec(href)
+        if (parsedURL) {
+          const portalHref = `/portal/environments/${parsedURL[1]}/media/${parsedURL[2]}`;
+          return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
+        } else {
+          // is it a API media ?
+          parsedURL = /\/management\/organizations\/[A-Za-z0-9-]*\/environments\/([A-Za-z0-9-]*)\/apis\/.*/g.exec(href)
+          if (parsedURL) {
+            const portalHref = href.replace(/\/management\/organizations\/[A-Za-z0-9-]*/g, '/portal');
+            return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
+          }
+        }
+        return defaultRenderer.image(href, title, text);
       },
 
       link(href, title, text) {
+        // is it a portal page URL ?
+        let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
+        if (!parsedURL) {
+          // is it a API page URL ?
+          parsedURL = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
+        }
+
+        if (parsedURL) {
+          const pageId = parsedURL[1];
+          return `<gv-button link data-page-id="${pageId}">${text}</gv-button>`;
+        }
+
         if (href.startsWith('#')) {
           return `<gv-button link href="${href}">${text}</gv-button>`;
         }
+
         return defaultRenderer.link(href, title, text);
       }
     };
@@ -122,6 +148,10 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         queryParamsHandling: 'preserve',
       });
     }
+  }
+
+  openMedia(link: string) {
+    window.open(link, '_blank');
   }
 
   @HostListener(':gv-button:click', ['$event.srcElement.href'])
