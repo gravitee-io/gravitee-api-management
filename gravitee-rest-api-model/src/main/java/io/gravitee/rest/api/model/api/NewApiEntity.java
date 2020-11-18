@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.api;
 
+import io.gravitee.definition.model.flow.Flow;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotEmpty;
@@ -68,6 +69,10 @@ public class NewApiEntity {
     @ApiModelProperty(
             value = "API's paths. A json representation of the design of each path.")
     private List<String> paths;
+
+    @ApiModelProperty(
+        value = "API's paths. A json representation of the design of each flow.")
+    private List<Flow> flows;
 
     public String getName() {
         return name;
@@ -123,6 +128,14 @@ public class NewApiEntity {
 
     public void setGroups(Set<String> groups) {
         this.groups = groups;
+    }
+
+    public List<Flow> getFlows() {
+        return flows;
+    }
+
+    public void setFlows(List<Flow> flows) {
+        this.flows = flows;
     }
 
     @Override

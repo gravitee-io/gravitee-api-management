@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.rest.resource.param.ApisParam;
@@ -195,8 +196,9 @@ public class ApisResource extends AbstractResource {
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
     })
     public Response importSwaggerApi(
-            @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor);
+            @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor,
+            @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion) {
+        final SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.valueOfLabel(definitionVersion));
         final ApiEntity api = apiService.createFromSwagger(swaggerApiEntity, getAuthenticatedUser(), swaggerDescriptor);
         return Response
                 .created(URI.create("/apis/" + api.getId()))

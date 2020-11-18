@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -42,10 +43,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -138,6 +139,7 @@ public class ApiService_CreateTest {
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+
     }
 
     @Test(expected = ApiAlreadyExistsException.class)
@@ -162,6 +164,7 @@ public class ApiService_CreateTest {
 
         apiService.create(newApi, USER_NAME);
     }
+
     @Test
     public void shouldCreateWithDefaultPath() throws TechnicalException {
         when(api.getId()).thenReturn(API_ID);
@@ -182,9 +185,6 @@ public class ApiService_CreateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         assertNotNull(apiEntity.getPaths());
-        /*assertTrue("paths not empty", !apiEntity.getPaths().isEmpty());
-        assertEquals("paths.size == 1", apiEntity.getPaths().size(), 1);
-        assertEquals("path == /* ", apiEntity.getPaths().get(0).getPath(), "/*");*/
 
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
@@ -193,4 +193,5 @@ public class ApiService_CreateTest {
         verify(searchEngineService, times(1)).index(any(), eq(false));
         verify(apiMetadataService, times(1)).create(any());
     }
+
 }

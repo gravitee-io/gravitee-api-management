@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -70,6 +72,11 @@ public class PlanService_PublishTest {
     @Mock
     private PageService pageService;
 
+    @Mock
+    private ApiService apiService;
+
+    @Mock
+    private ApiEntity apiEntity;
 
     @Test(expected = PlanAlreadyPublishedException.class)
     public void shouldNotPublishBecauseAlreadyPublished() throws TechnicalException {
@@ -137,11 +144,30 @@ public class PlanService_PublishTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(apiService.findById(API_ID)).thenReturn(apiEntity);
 
         planService.publish(PLAN_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
         verify(planRepository, times(1)).update(plan);
+    }
+
+    @Test
+    public void shouldPublishAndUpdateApiDefinition() throws TechnicalException {
+        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(apiEntity.getGraviteeDefinitionVersion()).thenReturn(DefinitionVersion.V2.getLabel());
+        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+
+        planService.publish(PLAN_ID);
+
+        verify(plan, times(1)).setStatus(Plan.Status.PUBLISHED);
+        verify(planRepository, times(1)).update(plan);
+        verify(apiService).update(anyString(), any());
     }
 
     @Test
@@ -154,6 +180,7 @@ public class PlanService_PublishTest {
         when(plan.getGeneralConditions()).thenReturn(GC_PAGE_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
+        when(apiService.findById(API_ID)).thenReturn(apiEntity);
 
         PageEntity page = mock(PageEntity.class);
         when(page.getId()).thenReturn(GC_PAGE_ID);

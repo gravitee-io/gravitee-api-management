@@ -131,6 +131,13 @@
 			<version>${lucene.version}</version>
 		</dependency>
 
+		<!-- ClassGraph -->
+		<dependency>
+			<groupId>io.github.classgraph</groupId>
+			<artifactId>classgraph</artifactId>
+			<version>${classgraph.version}</version>
+		</dependency>
+
 		<!-- Spring dependencies -->
 		<dependency>
 			<groupId>org.springframework</groupId>

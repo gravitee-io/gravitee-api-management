@@ -39,6 +39,90 @@
           "value": "#FF5722"
         },
         {
+          "name": "--gv-theme-color-error-dark",
+          "description": "Error dark color",
+          "type": "color",
+          "default": "#d32f2f",
+          "value": "#d32f2f"
+        },
+        {
+          "name": "--gv-theme-color-error",
+          "description": "Error color",
+          "type": "color",
+          "default": "#f44336",
+          "value": "#f44336"
+        },
+        {
+          "name": "--gv-theme-color-error-light",
+          "description": "Error light color",
+          "type": "color",
+          "default": "#e57373",
+          "value": "#e57373"
+        },
+        {
+          "name": "--gv-theme-color-info-dark",
+          "description": "Info dark color",
+          "type": "color",
+          "default": "#1976d2",
+          "value": "#1976d2"
+        },
+        {
+          "name": "--gv-theme-color-info",
+          "description": "Info color",
+          "type": "color",
+          "default": "#2196f3",
+          "value": "#2196f3"
+        },
+        {
+          "name": "--gv-theme-color-info-light",
+          "description": "Info light color",
+          "type": "color",
+          "default": "#64b5f6",
+          "value": "#64b5f6"
+        },
+        {
+          "name": "--gv-theme-color-success-dark",
+          "description": "Success dark color",
+          "type": "color",
+          "default": "#388e3c",
+          "value": "#388e3c"
+        },
+        {
+          "name": "--gv-theme-color-success",
+          "description": "Success color",
+          "type": "color",
+          "default": "#4caf50",
+          "value": "#4caf50"
+        },
+        {
+          "name": "--gv-theme-color-success-light",
+          "description": "Success light color",
+          "type": "color",
+          "default": "#81c784",
+          "value": "#81c784"
+        },
+        {
+          "name": "--gv-theme-color-warning-dark",
+          "description": "Warning dark color",
+          "type": "color",
+          "default": "#f57c00",
+          "value": "#f57c00"
+        },
+        {
+          "name": "--gv-theme-color-warning",
+          "description": "Warning color",
+          "type": "color",
+          "default": "#ff9800",
+          "value": "#ff9800"
+        },
+        {
+          "name": "--gv-theme-color-warning-light",
+          "description": "Warning light color",
+          "type": "color",
+          "default": "#ffb74d",
+          "value": "#ffb74d"
+        },
+        {
           "name": "--gv-theme-neutral-color-darkest",
           "description": "Neutral darkest color",
           "type": "color",
@@ -652,6 +736,13 @@
           "value": ""
         },
         {
+          "name": "--gv-popover--c",
+          "description": "Color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color-dark, #262626)",
+          "value": ""
+        },
+        {
           "name": "--gv-popover--bdc",
           "description": "Border color",
           "type": "color",
@@ -659,11 +750,11 @@
           "value": ""
         },
         {
-          "name": "--gv-popover--maw",
-          "description": "Max width",
+          "name": "--gv-popover--p",
+          "description": "Padding",
           "type": "length",
-          "default": "350px",
-          "value": "350px"
+          "default": "0.5rem",
+          "value": "0.5rem"
         }
       ]
     },
@@ -917,12 +1008,40 @@
           "type": "color",
           "default": "var(--gv-theme-neutral-color-dark, #D9D9D9)",
           "value": ""
+        },
+        {
+          "name": "--gv-text--fz",
+          "description": "Font size",
+          "type": "length",
+          "default": "var(--gv-theme-font-size-m, 14px)",
+          "value": ""
+        },
+        {
+          "name": "--gv-text--lh",
+          "description": "Line height",
+          "type": "length",
+          "default": "var(--gv-theme-font-size-m, 14px)",
+          "value": ""
         }
       ]
     },
     {
       "name": "gv-tag",
       "css": [
+        {
+          "name": "--gv-tag--fz",
+          "description": "Font size",
+          "type": "length",
+          "default": "var(--gv-theme-font-size-s, 12px)",
+          "value": ""
+        },
+        {
+          "name": "--gv-tag--p",
+          "description": "Padding",
+          "type": "length",
+          "default": "4px 8px",
+          "value": "4px 8px"
+        },
         {
           "name": "--gv-tag--bdr",
           "description": "Border radius",
@@ -1088,6 +1207,20 @@
           "value": "17px"
         },
         {
+          "name": "--gv-state--fz",
+          "description": "Font size",
+          "type": "length",
+          "default": "var(--gv-theme-font-size-s, 12px)",
+          "value": ""
+        },
+        {
+          "name": "--gv-state--p",
+          "description": "Padding",
+          "type": "length",
+          "default": "4px 8px",
+          "value": "4px 8px"
+        },
+        {
           "name": "--gv-state--bgc",
           "description": "Background color",
           "type": "color",
@@ -1173,67 +1306,6 @@
           "type": "length",
           "default": "24px",
           "value": "24px"
-        }
-      ]
-    },
-    {
-      "name": "gv-message",
-      "css": [
-        {
-          "name": "--gv-message-success--bgc",
-          "description": "Success background color",
-          "type": "color",
-          "default": "var(--gv-theme-color-light, #86c3d0)",
-          "value": ""
-        },
-        {
-          "name": "--gv-message-success--c",
-          "description": "Success color",
-          "type": "color",
-          "default": "var(--gv-theme-color-darker, #383E3F)",
-          "value": ""
-        },
-        {
-          "name": "--gv-message-info--c",
-          "description": "Info color",
-          "type": "color",
-          "default": "#00529B",
-          "value": "#00529B"
-        },
-        {
-          "name": "--gv-message-info--bgc",
-          "description": "Info background color",
-          "type": "color",
-          "default": "#BDE5F8",
-          "value": "#BDE5F8"
-        },
-        {
-          "name": "--gv-message-warn--c",
-          "description": "Warning color",
-          "type": "color",
-          "default": "#9F6000",
-          "value": "#9F6000"
-        },
-        {
-          "name": "--gv-message-warn--bgc",
-          "description": "Warning background color",
-          "type": "color",
-          "default": "#FEEFB3",
-          "value": "#FEEFB3"
-        },
-        {
-          "name": "--gv-message-error--c",
-          "description": "Error color",
-          "type": "color",
-          "default": "#820014",
-          "value": "#820014"
-        },
-        {
-          "name": "--gv-message-error--bgc",
-          "description": "Error background color",
-          "type": "color",
-          "default": "#FFCCC7",
-          "value": "#FFCCC7"
         }
       ]
     },
@@ -1378,7 +1450,14 @@
           "name": "--gv-icon--c",
           "description": "Color",
           "type": "color",
-          "default": "var(--gv-theme-font-color-dark,  #262626)",
+          "default": "var(--gv-theme-font-color-dark, #262626)",
+          "value": ""
+        },
+        {
+          "name": "--gv-icon-opacity--c",
+          "description": "Opacity color",
+          "type": "color",
+          "default": "var(--gv-theme-font-color-dark, #262626)",
           "value": ""
         },
         {

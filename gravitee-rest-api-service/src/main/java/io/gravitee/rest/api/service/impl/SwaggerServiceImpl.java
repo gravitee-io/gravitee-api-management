@@ -16,14 +16,17 @@
 package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Format;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIConverter;
+import io.gravitee.rest.api.service.impl.swagger.converter.api.OAIToAPIV2Converter;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.parser.WsdlParser;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
@@ -74,6 +77,11 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Override
     public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        return this.createAPI(swaggerDescriptor, DefinitionVersion.V1);
+    }
+
+    @Override
+    public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor, DefinitionVersion definitionVersion) {
         boolean wsdlImport = Format.WSDL.equals(swaggerDescriptor.getFormat());
         SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload(), wsdlImport, true);
         if (wsdlImport) {
@@ -90,6 +98,12 @@ public class SwaggerServiceImpl implements SwaggerService {
                         .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
                         .collect(Collectors.toList());
             }
+
+            if(definitionVersion.equals(DefinitionVersion.V2)){
+                return new OAIToAPIV2Converter(visitors, groupService, tagService)
+                    .convert((OAIDescriptor) descriptor);
+            }
+
             return new OAIToAPIConverter(visitors, groupService, tagService)
                     .convert((OAIDescriptor) descriptor);
 

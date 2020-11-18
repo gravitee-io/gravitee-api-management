@@ -174,6 +174,39 @@
             }
           }
         }
+      },
+      "delete": {
+        "summary": "deletes a single pet based on the ID supplied",
+        "operationId": "deletePet",
+        "tags": [
+          "pets"
+        ],
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "description": "ID of pet to delete",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "pet deleted"
+          },
+          "default": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/definitions/errorModel"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },

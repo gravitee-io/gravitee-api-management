@@ -80,4 +80,21 @@ public class ResourceResource {
 
         return resourceService.getSchema(resource);
     }
+
+    @GET
+    @Path("documentation")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiOperation(value = "Get a resource's documentation",
+        notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
+    })
+    public String getResourceDoc(
+        @PathParam("resource") String resource) {
+        // Check that the policy exists
+        resourceService.findById(resource);
+
+        return resourceService.getDocumentation(resource);
+    }
+
 }

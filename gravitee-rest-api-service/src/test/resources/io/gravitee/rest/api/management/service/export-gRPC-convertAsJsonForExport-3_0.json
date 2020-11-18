@@ -1,8 +1,8 @@
 {
   "description": "Gravitee.io",
-  "paths": {},
+  "gravitee": "1.0.0",
   "resources": [],
-  "properties" : [ ],
+  "properties": [],
   "groups": [
     "My Group"
   ],
@@ -59,10 +59,10 @@
           }
         ]
       },
+      "flows": [],
       "comment_required": false
     }
   ],
-  "path_mappings": [],
   "metadata": [
     {
       "key": "metadata-key",
@@ -73,6 +73,7 @@
       "apiId": "id-api"
     }
   ],
+  "path_mappings": [],
   "proxy": {
     "virtual_hosts": [
       {

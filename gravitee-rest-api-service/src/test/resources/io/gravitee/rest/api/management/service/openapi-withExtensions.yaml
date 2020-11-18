@@ -60,7 +60,7 @@ paths:
               schema:
                 type: string
           content:
-            application/json:    
+            application/json:
               schema:
                 $ref: "#/components/schemas/Pets"
         default:
@@ -103,6 +103,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Pets"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: deletes a single pet based on the ID supplied
+      operationId: deletePet
+      tags:
+        - pets
+      parameters:
+        - name: petId
+          in: path
+          description: ID of pet to delete
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: pet deleted
         default:
           description: unexpected error
           content:

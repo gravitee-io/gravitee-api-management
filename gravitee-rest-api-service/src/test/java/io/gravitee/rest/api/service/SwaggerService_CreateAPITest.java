@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
@@ -31,6 +32,7 @@ import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.OAIPolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,7 +70,7 @@ public class SwaggerService_CreateAPITest {
     private TagService tagService;
 
     @InjectMocks
-    private SwaggerServiceImpl swaggerService;
+    protected SwaggerServiceImpl swaggerService;
 
     @Before
     public void setup() {
@@ -205,14 +207,14 @@ public class SwaggerService_CreateAPITest {
         final Set<String> tags = updateApiEntity.getTags();
         assertEquals(2, tags.size());
         assertTrue(tags.containsAll(asList("tagId1", "tagId2")));
-        
+
         final Map<String, String> properties = updateApiEntity.getProperties().getValues();
         assertEquals(2, properties.size());
         assertTrue(properties.keySet().containsAll(asList("prop1", "prop2")));
         assertTrue(properties.values().containsAll(asList("propValue1", "propValue2")));
 
         final Map<String, String> metadata = updateApiEntity.getMetadata().stream()
-                .collect(Collectors.toMap(ApiMetadataEntity::getName, ApiMetadataEntity::getValue));
+            .collect(Collectors.toMap(ApiMetadataEntity::getName, ApiMetadataEntity::getValue));
         assertEquals(2, metadata.size());
         assertTrue(metadata.keySet().containsAll(asList("meta1", "meta2")));
         assertTrue(metadata.values().containsAll(asList("1234", "metaValue2")));
@@ -221,19 +223,47 @@ public class SwaggerService_CreateAPITest {
         assertEquals("data:image/png;base64,XXXXXXX", updateApiEntity.getPicture());
     }
 
-    private void validate(SwaggerApiEntity api) {
+    protected void validate(SwaggerApiEntity api) {
         assertEquals("1.2.3", api.getVersion());
         assertEquals("Gravitee.io Swagger API", api.getName());
         assertEquals("https://demo.gravitee.io/gateway/echo", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
-        assertEquals(2, api.getPaths().size());
-        assertTrue(api.getPaths().keySet().containsAll(asList("/pets", "/pets/:petId")));
+        validatePolicies(api, 2, 0, asList("/pets", "/pets/:petId"));
+    }
+
+    protected void validatePolicies(SwaggerApiEntity api, int expectedPathSize, int expectedOperationSize, List<String> expectedPaths) {
+        assertEquals(expectedPathSize, api.getPaths().size());
+        assertTrue(api.getPaths().keySet().containsAll(expectedPaths));
+
+        List<HttpMethod> operations = api.getPaths().values().stream()
+            .map(new Function<Path, Set<HttpMethod>>() {
+                @Nullable
+                @Override
+                public Set<HttpMethod> apply(@Nullable Path path) {
+
+                    Set<HttpMethod> collect = path.getRules().stream().map(new Function<Rule, List<HttpMethod>>() {
+                        @Nullable
+                        @Override
+                        public List<HttpMethod> apply(@Nullable Rule rule) {
+                            return new ArrayList(rule.getMethods());
+                        }
+                    })
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toSet());
+
+                    return collect;
+
+                }
+            })
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+        assertEquals(expectedOperationSize, operations.size());
     }
 
     private SwaggerApiEntity prepareInline(String file) throws IOException {
         return prepareInline(file, false);
     }
 
-    private SwaggerApiEntity prepareInline(String file, boolean withPolicyPaths) throws IOException {
+    protected SwaggerApiEntity prepareInline(String file, boolean withPolicyPaths) throws IOException {
         URL url = Resources.getResource(file);
         String descriptor = Resources.toString(url, Charsets.UTF_8);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
@@ -241,7 +271,7 @@ public class SwaggerService_CreateAPITest {
         swaggerDescriptor.setPayload(descriptor);
         swaggerDescriptor.setWithPolicyPaths(withPolicyPaths);
         swaggerDescriptor.setWithPolicies(asList("mock"));
-        return swaggerService.createAPI(swaggerDescriptor);
+        return this.createAPI(swaggerDescriptor);
     }
 
     private SwaggerApiEntity prepareUrl(String file) {
@@ -253,6 +283,10 @@ public class SwaggerService_CreateAPITest {
         } catch (URISyntaxException e) {
             fail(e.getMessage());
         }
+        return this.createAPI(swaggerDescriptor);
+    }
+
+    protected SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
         return swaggerService.createAPI(swaggerDescriptor);
     }
 
@@ -263,13 +297,17 @@ public class SwaggerService_CreateAPITest {
         assertEquals("Simple API overview", api.getName());
         assertEquals("simpleapioverview", api.getProxy().getVirtualHosts().get(0).getPath());
         assertEquals("/", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
-        assertEquals(2, api.getPaths().size());
-        assertTrue(api.getPaths().keySet().containsAll(asList("/", "/v2")));
-        Path path = api.getPaths().get("/");
-        assertEquals(2, path.getRules().size());
-        Rule rule = path.getRules().get(0);
-        assertTrue(rule.getMethods().containsAll(asList(HttpMethod.GET)));
-        assertEquals("List API versions", rule.getDescription());
+
+        validatePolicies(api, 2, 2, asList("/", "/v2"));
+        validateRules(api, "/", 2, asList(HttpMethod.GET), "List API versions");
+    }
+
+    protected void validateRules(SwaggerApiEntity api, String path, int expectedRuleSize, List<HttpMethod> firstRuleMethods, String firstRuleDescription) {
+        Path p = api.getPaths().get(path);
+        assertEquals(expectedRuleSize, p.getRules().size());
+        Rule rule = p.getRules().get(0);
+        assertTrue(rule.getMethods().containsAll(firstRuleMethods));
+        assertEquals(firstRuleDescription, rule.getDescription());
     }
 
     @Test
@@ -279,13 +317,9 @@ public class SwaggerService_CreateAPITest {
         assertEquals("Callback Example", api.getName());
         assertEquals("callbackexample", api.getProxy().getVirtualHosts().get(0).getPath());
         assertEquals("/", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
-        assertEquals(1, api.getPaths().size());
-        assertTrue(api.getPaths().keySet().containsAll(asList("/streams")));
-        Path path = api.getPaths().get("/streams");
-        assertEquals(2, path.getRules().size());
-        Rule rule = path.getRules().get(0);
-        assertTrue(rule.getMethods().containsAll(asList(HttpMethod.POST)));
-        assertEquals("subscribes a client to receive out-of-band data", rule.getDescription());
+
+        validatePolicies(api, 1, 1, asList("/streams"));
+        validateRules(api, "/streams", 2, asList(HttpMethod.POST), "subscribes a client to receive out-of-band data");
     }
 
     @Test
@@ -295,15 +329,15 @@ public class SwaggerService_CreateAPITest {
         assertEquals("Link Example", api.getName());
         assertEquals("linkexample", api.getProxy().getVirtualHosts().get(0).getPath());
         assertEquals("/", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
-        assertEquals(6, api.getPaths().size());
-        final Path usersUsername = api.getPaths().get("/2.0/users/:username");
-        assertEquals("/2.0/users/:username", usersUsername.getPath());
-        final Path repositoriesUsername = api.getPaths().get("/2.0/repositories/:username");
-        assertEquals("/2.0/repositories/:username", repositoriesUsername.getPath());
-        assertEquals("/2.0/repositories/:username/:slug", api.getPaths().get("/2.0/repositories/:username/:slug").getPath());
-        assertEquals("/2.0/repositories/:username/:slug/pullrequests", api.getPaths().get("/2.0/repositories/:username/:slug/pullrequests").getPath());
-        assertEquals("/2.0/repositories/:username/:slug/pullrequests/:pid", api.getPaths().get("/2.0/repositories/:username/:slug/pullrequests/:pid").getPath());
-        assertEquals("/2.0/repositories/:username/:slug/pullrequests/:pid/merge", api.getPaths().get("/2.0/repositories/:username/:slug/pullrequests/:pid/merge").getPath());
+
+        validatePolicies(api, 6, 6, asList(
+            "/2.0/users/:username",
+            "/2.0/repositories/:username/:slug",
+            "/2.0/repositories/:username/:slug/pullrequests",
+            "/2.0/repositories/:username/:slug/pullrequests/:pid",
+            "/2.0/repositories/:username/:slug/pullrequests/:pid/merge"
+        ));
+
     }
 
     @Test
@@ -313,11 +347,8 @@ public class SwaggerService_CreateAPITest {
         assertEquals("/v1", api.getProxy().getVirtualHosts().get(0).getPath());
         assertEquals("Swagger Petstore", api.getName());
         assertEquals("http://petstore.swagger.io/v1", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
-        assertEquals(2, api.getPaths().size());
-        final Path pets = api.getPaths().get("/pets");
-        assertNotNull(pets);
-        final Path petsId = api.getPaths().get("/pets/:petId");
-        assertNotNull(petsId);
+
+        validatePolicies(api, 2, 3, asList("/pets", "/pets/:petId"));
     }
 
     @Test
@@ -327,11 +358,7 @@ public class SwaggerService_CreateAPITest {
         assertEquals("Swagger Petstore", api.getName());
         assertEquals("/api", api.getProxy().getVirtualHosts().get(0).getPath());
         assertEquals("http://petstore.swagger.io/api", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
-        assertEquals(2, api.getPaths().size());
-        final Path pets = api.getPaths().get("/pets");
-        assertEquals("/pets", pets.getPath());
-        final Path petsId = api.getPaths().get("/pets/:id");
-        assertEquals("/pets/:id", petsId.getPath());
+        validatePolicies(api, 2, 4, asList("/pets", "/pets/:id"));
     }
 
     @Test
@@ -342,16 +369,12 @@ public class SwaggerService_CreateAPITest {
         assertEquals("/ds-api", api.getProxy().getVirtualHosts().get(0).getPath());
 
         final List<String> endpoints = api.getProxy().getGroups().iterator().next().getEndpoints().stream().map(Endpoint::getTarget).collect(Collectors.toList());
-        assertEquals(2, endpoints.size());
+        assertEquals(2, 4, endpoints.size());
         assertTrue(endpoints.contains("http://developer.uspto.gov/ds-api"));
         assertTrue(endpoints.contains("https://developer.uspto.gov/ds-api"));
-        assertEquals(3, api.getPaths().size());
-        final Path metadata = api.getPaths().get("/");
-        assertNotNull(metadata);
-        final Path fields = api.getPaths().get("/:dataset/:version/fields");
-        assertNotNull(fields);
-        final Path searchRecords = api.getPaths().get("/:dataset/:version/records");
-        assertNotNull(searchRecords);
+
+        validatePolicies(api, 3, 3, asList("/", "/:dataset/:version/fields", "/:dataset/:version/records"));
+
     }
 
     @Test
@@ -364,9 +387,8 @@ public class SwaggerService_CreateAPITest {
         final List<String> endpoints = api.getProxy().getGroups().iterator().next().getEndpoints().stream().map(Endpoint::getTarget).collect(Collectors.toList());
         assertEquals(1, endpoints.size());
         assertTrue(endpoints.contains("/"));
-        assertEquals(1, api.getPaths().size());
-        final Path swaggerPath = api.getPaths().get("/");
-        assertNotNull(swaggerPath);
+
+        validatePolicies(api, 1, 1, asList("/"));
     }
 
     @Test
@@ -375,7 +397,7 @@ public class SwaggerService_CreateAPITest {
         assertEquals("/v1", api.getProxy().getVirtualHosts().get(0).getPath());
 
         final List<String> endpoints = api.getProxy().getGroups().iterator().next().getEndpoints().stream().map(Endpoint::getTarget).collect(Collectors.toList());
-        assertEquals(1, endpoints.size());
+        assertEquals(1, 2, endpoints.size());
         assertTrue(endpoints.contains("https://development.gigantic-server.com/v1"));
     }
 
@@ -415,9 +437,6 @@ public class SwaggerService_CreateAPITest {
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithComplexReferences() throws IOException {
         final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/json-api.yml", true);
-
-        assertEquals(2, api.getPaths().size());
-        final Path swaggerPath = api.getPaths().get("/drives");
-        assertNotNull(swaggerPath);
+        validatePolicies(api, 2, 5, asList("/drives"));
     }
 }

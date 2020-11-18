@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.PolicyDevelopmentEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.PolicyListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -62,30 +63,29 @@ public class PoliciesResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List policies",
-            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+        notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public Collection<PolicyListItem> getPolicies(@QueryParam("expand") List<String> expand) {
         Stream<PolicyListItem> stream = policyService.findAll().stream().map(this::convert);
 
-        if(expand != null && !expand.isEmpty()) {
+        if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
                         stream = stream.peek(policyListItem -> policyListItem.setSchema(policyService.getSchema(policyListItem.getId())));
-                        break;
                     case "icon":
                         stream = stream.peek(policyListItem -> policyListItem.setIcon(policyService.getIcon(policyListItem.getId())));
+                    default:
                         break;
-                    default: break;
                 }
             }
         }
 
         return stream
-                .sorted(Comparator.comparing(PolicyListItem::getName))
-                .collect(Collectors.toList());
+            .sorted(Comparator.comparing(PolicyListItem::getName))
+            .collect(Collectors.toList());
     }
 
     @Path("{policy}")
@@ -97,9 +97,9 @@ public class PoliciesResource {
     @Path("swagger")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List policies which are handling Swagger / OAI definition",
-            notes = "These policies are used when importing an OAI to create an API")
+        notes = "These policies are used when importing an OAI to create an API")
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
     })
     public List<PolicyListItem> getSwaggerPolicy() {
         return policyOperationVisitorManager.getPolicyVisitors()
@@ -117,13 +117,20 @@ public class PoliciesResource {
 
     private PolicyListItem convert(PolicyEntity policy) {
         PolicyListItem item = new PolicyListItem();
-
         item.setId(policy.getId());
         item.setName(policy.getName());
         item.setDescription(policy.getDescription());
         item.setVersion(policy.getVersion());
         item.setType(policy.getType());
-
+        item.setCategory(policy.getCategory());
+        PolicyDevelopmentEntity development = policy.getDevelopment();
+        if (development != null) {
+            item.setOnRequest(development.getOnRequestMethod() != null);
+            item.setOnResponse(development.getOnResponseMethod() != null);
+        } else {
+            item.setOnRequest(false);
+            item.setOnResponse(false);
+        }
         return item;
     }
 }

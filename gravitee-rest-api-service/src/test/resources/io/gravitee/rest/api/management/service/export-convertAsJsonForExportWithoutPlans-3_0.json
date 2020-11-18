@@ -1,6 +1,6 @@
 {
   "description": "Gravitee.io",
-  "paths": {},
+  "gravitee": "1.0.0",
   "resources": [],
   "properties" : [ ],
   "groups": [

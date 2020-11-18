@@ -1,8 +1,8 @@
 {
   "description": "Gravitee.io",
-  "paths": {},
+  "gravitee": "1.0.0",
   "resources": [],
-  "properties" : [ ],
+  "properties": [],
   "groups": [
     "My Group"
   ],
@@ -59,6 +59,7 @@
           }
         ]
       },
+      "flows": [],
       "comment_required": false
     }
   ],
@@ -106,7 +107,8 @@
               "useCompression": true,
               "followRedirects": false
             }
-          },{
+          },
+          {
             "name": "EndPoint GRPC",
             "target": "grpc://localhost:8888",
             "weight": 1,

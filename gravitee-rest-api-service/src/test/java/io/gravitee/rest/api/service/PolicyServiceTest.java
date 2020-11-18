@@ -16,13 +16,18 @@
 package io.gravitee.rest.api.service;
 
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.flow.Step;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.policy.api.PolicyChain;
+import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PolicyEntity;
-import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.impl.PolicyServiceImpl;
 
@@ -32,17 +37,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.reflections.ReflectionUtils;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -84,11 +88,22 @@ public class PolicyServiceTest {
     private JsonSchemaFactory jsonSchemaFactory = new ServiceConfiguration().jsonSchemaFactory();
 
 
+    class PolicyMock {
+
+        @OnRequest
+        public void onRequest() {
+        }
+
+    }
+
     @Before
     public void before() {
 
         // Manually set the jsonSchemaFactory.
         ReflectionTestUtils.setField(policyService, "jsonSchemaFactory", jsonSchemaFactory);
+        when(policyDefinition.path()).thenReturn(mock(Path.class));
+        when(policyDefinition.type()).thenReturn("");
+        when(policyDefinition.policy()).thenReturn(PolicyMock.class);
     }
 
 //    @Mock
@@ -120,6 +135,16 @@ public class PolicyServiceTest {
         policyService.validatePolicyConfiguration(policy);
     }
 
+    @Test(expected = InvalidDataException.class)
+    public void shouldRejectInvalidJsonStep() throws Exception {
+
+        Step step = new Step();
+        step.setPolicy("my-policy");
+        step.setConfiguration("{ Invalid: \"test\", \"valid\": false }");
+
+        policyService.validatePolicyConfiguration(step);
+    }
+
     @Test
     public void shouldAcceptValidJsonConfigurationWithNoSchema() throws Exception {
 
@@ -130,6 +155,18 @@ public class PolicyServiceTest {
         when(policyManager.getSchema("my-policy")).thenReturn("");
 
         policyService.validatePolicyConfiguration(policy);
+    }
+
+    @Test
+    public void shouldAcceptValidJsonConfigurationWithNoSchemaStep() throws Exception {
+
+        Step step = new Step();
+        step.setPolicy("my-policy");
+        step.setConfiguration("{ \"name\": \"test\", \"valid\": true }");
+
+        when(policyManager.getSchema("my-policy")).thenReturn("");
+
+        policyService.validatePolicyConfiguration(step);
     }
 
     @Test
@@ -146,18 +183,28 @@ public class PolicyServiceTest {
 
     @Test
     public void shouldAcceptNoConfiguration() {
-
         Policy policy = new Policy();
         policy.setName("my-policy");
         policy.setConfiguration(null);
-
         policyService.validatePolicyConfiguration(policy);
     }
 
     @Test
-    public void shouldAcceptNullPolicy() {
+    public void shouldAcceptNoConfigurationStep() {
+        Step step = new Step();
+        step.setPolicy("my-policy");
+        step.setConfiguration(null);
+        policyService.validatePolicyConfiguration(step);
+    }
 
-        policyService.validatePolicyConfiguration(null);
+    @Test
+    public void shouldAcceptNullPolicy() {
+        policyService.validatePolicyConfiguration((Policy) null);
+    }
+
+    @Test
+    public void shouldAcceptNullStep() {
+        policyService.validatePolicyConfiguration((Step) null);
     }
 
     @Test

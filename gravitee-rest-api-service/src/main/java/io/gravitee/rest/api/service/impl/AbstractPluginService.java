@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+
 import io.gravitee.plugin.core.api.ConfigurablePlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -95,6 +97,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
             throw new TechnicalManagementException("An error occurs while trying to get plugin icon for plugin " + pluginId, ioex);
         }
     }
+
 
     @Override
     public String getDocumentation(String pluginId) {

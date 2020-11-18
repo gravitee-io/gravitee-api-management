@@ -20,9 +20,19 @@ import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ListProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.MethodInfoList;
+import io.github.classgraph.ScanResult;
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.plugin.core.api.Plugin;
+import io.gravitee.plugin.core.api.PluginClassLoader;
+import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
+import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
 import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.model.PolicyDevelopmentEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
@@ -32,7 +42,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValues;
@@ -47,11 +60,16 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
     @Autowired
     private JsonSchemaFactory jsonSchemaFactory;
 
+    @Autowired
+    private PolicyClassLoaderFactory policyClassLoaderFactory;
+
+    private final Map<String, PolicyDevelopmentEntity> policies = new HashMap<>();
+
     @Override
     public Set<PolicyEntity> findAll() {
         return super.list()
                 .stream()
-                .map(policyDefinition -> convert(policyDefinition, false))
+                .map(policyDefinition -> convert(policyDefinition, true))
                 .collect(Collectors.toSet());
     }
 
@@ -61,15 +79,13 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
         return convert(policyDefinition, true);
     }
 
-    @Override
-    public void validatePolicyConfiguration(Policy policy) {
-
-        if (policy != null && policy.getConfiguration() != null) {
-            String schema = getSchema(policy.getName());
+    private String validatePolicyConfiguration(String policyName, String configuration) {
+        if (policyName != null && configuration != null) {
+            String schema = getSchema(policyName);
 
             try {
                 // At least, validate json.
-                String safePolicyConfiguration = clearNullValues(policy.getConfiguration());
+                String safePolicyConfiguration = clearNullValues(configuration);
                 JsonNode jsonConfiguration = JsonLoader.fromString(safePolicyConfiguration);
 
                 if (schema != null && !schema.equals("")) {
@@ -85,65 +101,110 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
                     }
                 }
 
-                policy.setConfiguration(safePolicyConfiguration);
+                return safePolicyConfiguration;
 
             } catch (IOException | ProcessingException e) {
                 throw new InvalidDataException("Unable to validate policy configuration", e);
             }
         }
+        return configuration;
     }
 
-    private PolicyEntity convert(PolicyPlugin policyPlugin, boolean withPlugin) {
+    @Override
+    public void validatePolicyConfiguration(Step step) {
+        if (step != null) {
+            step.setConfiguration(validatePolicyConfiguration(step.getPolicy(), step.getConfiguration()));
+        }
+    }
+
+    @Override
+    public void validatePolicyConfiguration(Policy policy) {
+        if (policy != null) {
+            policy.setConfiguration(validatePolicyConfiguration(policy.getName(), policy.getConfiguration()));
+        }
+    }
+
+    private PolicyEntity convert(PolicyPlugin policyPlugin, Boolean withPlugin) {
         PolicyEntity entity = new PolicyEntity();
 
         entity.setId(policyPlugin.id());
         entity.setDescription(policyPlugin.manifest().description());
         entity.setName(policyPlugin.manifest().name());
         entity.setVersion(policyPlugin.manifest().version());
-
-        /*
-        if (policyDefinition.onRequestMethod() != null && policyDefinition.onResponseMethod() != null) {
-            entity.setType(PolicyType.REQUEST_RESPONSE);
-        } else if (policyDefinition.onRequestMethod() != null) {
-            entity.setType(PolicyType.REQUEST);
-        } else if (policyDefinition.onResponseMethod() != null) {
-            entity.setType(PolicyType.RESPONSE);
-        }
-        */
+        entity.setCategory(policyPlugin.manifest().category());
 
         if (withPlugin) {
             // Plugin information
-            Plugin plugin = policyPlugin;
             PluginEntity pluginEntity = new PluginEntity();
 
-            pluginEntity.setPlugin(plugin.clazz());
-            pluginEntity.setPath(plugin.path().toString());
-            pluginEntity.setType(plugin.type().toString().toLowerCase());
-            pluginEntity.setDependencies(plugin.dependencies());
+            pluginEntity.setPlugin(policyPlugin.clazz());
+            pluginEntity.setPath(policyPlugin.path().toString());
+            pluginEntity.setType(((Plugin) policyPlugin).type().toLowerCase());
+            pluginEntity.setDependencies(policyPlugin.dependencies());
 
             entity.setPlugin(pluginEntity);
-
-            // Policy development information
-            PolicyDevelopmentEntity developmentEntity = new PolicyDevelopmentEntity();
-            developmentEntity.setClassName(policyPlugin.policy().getName());
-
-            /*
-            if (policy.configuration() != null) {
-                developmentEntity.setConfiguration(policyDefinition.configuration().getName());
-            }
-
-            if (policyDefinition.onRequestMethod() != null) {
-                developmentEntity.setOnRequestMethod(policyDefinition.onRequestMethod().toGenericString());
-            }
-
-            if (policyDefinition.onResponseMethod() != null) {
-                developmentEntity.setOnResponseMethod(policyDefinition.onResponseMethod().toGenericString());
-            }
-            */
-
-            entity.setDevelopment(developmentEntity);
+            entity.setDevelopment(loadPolicy(policyPlugin));
         }
 
         return entity;
+    }
+
+    private PolicyDevelopmentEntity loadPolicy(PolicyPlugin policy) {
+        return policies.computeIfAbsent(policy.id(), new Function<String, PolicyDevelopmentEntity>() {
+            @Override
+            public PolicyDevelopmentEntity apply(String s) {
+                // Policy development information
+                PolicyDevelopmentEntity developmentEntity = new PolicyDevelopmentEntity();
+                developmentEntity.setClassName(policy.policy().getName());
+
+                ScanResult scan = null;
+                PluginClassLoader policyClassLoader = null;
+
+                try {
+                    policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policy);
+
+                    scan = new ClassGraph()
+                            .enableMethodInfo()
+                            .enableAnnotationInfo()
+                            .acceptClasses(policy.policy().getName())
+                            .ignoreParentClassLoaders()
+                            .overrideClassLoaders(policyClassLoader)
+                            .scan(1);
+
+                    MethodInfoList methodInfo = scan.getClassInfo(policy.policy().getName()).getMethodInfo();
+
+                    MethodInfoList filter = methodInfo.filter(methodInfo1 -> methodInfo1.hasAnnotation(OnRequest.class.getName())
+                            || methodInfo1.hasAnnotation(OnRequestContent.class.getName()));
+
+                    if (!filter.isEmpty()) {
+                        developmentEntity.setOnRequestMethod(filter.get(0).getName());
+                    }
+
+                    filter = methodInfo.filter(methodInfo12 -> methodInfo12.hasAnnotation(OnResponse.class.getName())
+                            || methodInfo12.hasAnnotation(OnResponseContent.class.getName()));
+
+                    if (!filter.isEmpty()) {
+                        developmentEntity.setOnResponseMethod(filter.get(0).getName());
+                    }
+
+                    return developmentEntity;
+                } catch (Throwable ex) {
+                    logger.error("An unexpected error occurs while loading policy", ex);
+                    return null;
+                } finally {
+                    if (policyClassLoader != null) {
+                        try {
+                            policyClassLoader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (scan != null) {
+                        scan.close();
+                    }
+                }
+            }
+        });
     }
 }

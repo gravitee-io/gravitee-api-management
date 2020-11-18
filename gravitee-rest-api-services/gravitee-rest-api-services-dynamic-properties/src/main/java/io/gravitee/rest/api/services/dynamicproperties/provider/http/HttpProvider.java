@@ -17,7 +17,6 @@ package io.gravitee.rest.api.services.dynamicproperties.provider.http;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.node.api.Node;
@@ -93,7 +92,6 @@ public class HttpProvider implements Provider {
                     requestUri.getHost(),
                     requestUri.toString()
             );
-
             request.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
             request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
 

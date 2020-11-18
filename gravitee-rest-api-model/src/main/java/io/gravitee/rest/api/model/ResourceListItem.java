@@ -44,6 +44,8 @@ public class ResourceListItem {
 
     private String schema;
 
+    private String icon;
+
     public String getDescription() {
         return description;
     }
@@ -82,6 +84,14 @@ public class ResourceListItem {
 
     public void setSchema(String schema) {
         this.schema = schema;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
 
     @Override

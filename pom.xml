@@ -35,9 +35,9 @@
     <properties>
         <gravitee-node.version>1.9.0</gravitee-node.version>
         <spring.version>5.2.5.RELEASE</spring.version>
-        <gravitee-definition.version>1.23.3</gravitee-definition.version>
         <gravitee-common.version>1.18.0</gravitee-common.version>
-        <gravitee-plugin.version>1.15.0</gravitee-plugin.version>
+        <gravitee-definition.version>1.24.0-SNAPSHOT</gravitee-definition.version>
+        <gravitee-plugin.version>1.16.0-SNAPSHOT</gravitee-plugin.version>
         <gravitee-repository.version>3.4.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-gateway-api.version>1.20.0</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
@@ -67,6 +67,7 @@
         <jackson.version>2.10.3</jackson.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
         <json-patch.version>1.13</json-patch.version>
+        <classgraph.version>4.8.90</classgraph.version>
     </properties>
 
     <modules>

@@ -39,6 +39,11 @@ public class PluginEntity {
     private String description;
 
     /**
+     * The plugin category
+     */
+    private String category;
+
+    /**
      * The plugin version
      */
     private String version;
@@ -73,6 +78,14 @@ public class PluginEntity {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     @Override

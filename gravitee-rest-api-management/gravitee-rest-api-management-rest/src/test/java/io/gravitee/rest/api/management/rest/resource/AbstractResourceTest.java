@@ -22,6 +22,7 @@ import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
@@ -370,5 +371,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public TicketService ticketService() {
             return mock(TicketService.class);
         }
+
+        @Bean
+        public FlowService flowService() {
+            return mock(FlowService.class);
+        }
+
     }
 }

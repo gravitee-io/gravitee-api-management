@@ -72,12 +72,9 @@ public class ResourcesResource {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
-                        stream = stream.map(resourceListItem -> {
-                            resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId()));
-                            return resourceListItem;
-                        });
-                        break;
-                    default: break;
+                        stream = stream.peek(resourceListItem -> resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId())));
+                    case "icon":
+                        stream = stream.peek(resourceListItem -> resourceListItem.setIcon(resourceService.getIcon(resourceListItem.getId())));
                 }
             }
         }

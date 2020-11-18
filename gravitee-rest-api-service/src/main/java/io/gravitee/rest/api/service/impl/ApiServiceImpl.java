@@ -19,11 +19,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -73,6 +79,7 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +91,8 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -200,20 +209,23 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         if (swaggerApiEntity != null && swaggerDescriptor != null) {
 
-            final String defaultDeclaredPath = "/";
-            Map<String, Path> paths = new HashMap<>();
+            if (DefinitionVersion.V1.equals(swaggerApiEntity.getGraviteeDefinitionVersion()) || swaggerApiEntity.getGraviteeDefinitionVersion() == null) {
+                final String defaultDeclaredPath = "/";
+                Map<String, Path> paths = new HashMap<>();
 
-            final Path defaultPath = new Path();
-            defaultPath.setPath(defaultDeclaredPath);
-            paths.put(defaultDeclaredPath, defaultPath);
+                final Path defaultPath = new Path();
+                defaultPath.setPath(defaultDeclaredPath);
+                paths.put(defaultDeclaredPath, defaultPath);
 
-            if (!swaggerDescriptor.isWithPolicyPaths()) {
-                swaggerApiEntity.setPaths(paths);
+                if (!swaggerDescriptor.isWithPolicyPaths()) {
+                    swaggerApiEntity.setPaths(paths);
+                }
+
+                if (!swaggerDescriptor.isWithPathMapping()) {
+                    swaggerApiEntity.setPathMappings(singleton(defaultDeclaredPath));
+                }
             }
 
-            if (!swaggerDescriptor.isWithPathMapping()) {
-                swaggerApiEntity.setPathMappings(singleton(defaultDeclaredPath));
-            }
         }
 
         final ApiEntity createdApi = createFromUpdateApiEntity(swaggerApiEntity, userId, swaggerDescriptor);
@@ -237,15 +249,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private void createMetadata(List<ApiMetadataEntity> apiMetadata, String apiId) {
         if (apiMetadata != null && !apiMetadata.isEmpty()) {
             apiMetadata.stream()
-                    .map(data -> {
-                        NewApiMetadataEntity newMD = new NewApiMetadataEntity();
-                        newMD.setFormat(data.getFormat());
-                        newMD.setName(data.getName());
-                        newMD.setValue(data.getValue());
-                        newMD.setApiId(apiId);
-                        return newMD;
-                    })
-                    .forEach(this.apiMetadataService::create);
+                .map(data -> {
+                    NewApiMetadataEntity newMD = new NewApiMetadataEntity();
+                    newMD.setFormat(data.getFormat());
+                    newMD.setName(data.getName());
+                    newMD.setValue(data.getValue());
+                    newMD.setApiId(apiId);
+                    return newMD;
+                })
+                .forEach(this.apiMetadataService::create);
         }
     }
 
@@ -288,14 +300,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             declaredPaths.add(0, "/");
         }
 
-        // Initialize with a default path and provided paths
-        Map<String, Path> paths = declaredPaths.stream().map(sPath -> {
-            Path path = new Path();
-            path.setPath(sPath);
-            return path;
-        }).collect(toMap(Path::getPath, path -> path));
-
-        apiEntity.setPaths(paths);
         apiEntity.setPathMappings(new HashSet<>(declaredPaths));
 
         return createFromUpdateApiEntity(apiEntity, userId, null);
@@ -311,9 +315,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                              final ApiEntity api, boolean isForCreation) {
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
             List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder()
-                    .api(api.getId())
-                    .type(PageType.SWAGGER)
-                    .build());
+                .api(api.getId())
+                .type(PageType.SWAGGER)
+                .build());
 
             if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
                 final NewPageEntity page = new NewPageEntity();
@@ -359,10 +363,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return this.create0(api, userId, createSystemFolder, null);
     }
 
-    private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder, String apiId) throws ApiAlreadyExistsException {
+    private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder, JsonNode apiDefinition) throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for user {}", api, userId);
 
+            String apiId = apiDefinition != null && apiDefinition.has("id") ? apiDefinition.get("id").asText() : null;
             String id = apiId != null && UUID.fromString(apiId) != null ? apiId : RandomString.generate();
 
             Optional<Api> checkApi = apiRepository.findById(id);
@@ -391,7 +396,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check policy configurations.
             checkPolicyConfigurations(api);
 
-            Api repoApi = convert(id, api);
+            if (apiDefinition != null) {
+                apiDefinition = ((ObjectNode) apiDefinition).put("id", id);
+            }
+
+            Api repoApi = convert(id, api, apiDefinition != null ? apiDefinition.toString() : null);
 
             if (repoApi != null) {
                 repoApi.setId(id);
@@ -399,9 +408,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Set date fields
                 repoApi.setCreatedAt(new Date());
                 repoApi.setUpdatedAt(repoApi.getCreatedAt());
-
                 // Be sure that lifecycle is set to STOPPED by default and visibility is private
                 repoApi.setLifecycleState(LifecycleState.STOPPED);
+
                 if (api.getVisibility() == null) {
                     repoApi.setVisibility(Visibility.PRIVATE);
                 } else {
@@ -885,15 +894,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (virtualHostsToAdd != null && !virtualHostsToAdd.isEmpty()) {
                 // Sanitize both current vHost and vHost to add to avoid duplicates
                 virtualHostsToAdd = virtualHostsToAdd.stream()
-                        .map(this.virtualHostService::sanitize)
-                        .collect(toList());
+                    .map(this.virtualHostService::sanitize)
+                    .collect(toList());
                 proxy.setVirtualHosts(
-                        new ArrayList<>(
-                                merge(
-                                    proxy.getVirtualHosts().stream().map(this.virtualHostService::sanitize).collect(toSet()),
-                                    virtualHostsToAdd
-                                )
+                    new ArrayList<>(
+                        merge(
+                            proxy.getVirtualHosts().stream().map(this.virtualHostService::sanitize).collect(toSet()),
+                            virtualHostsToAdd
                         )
+                    )
                 );
             }
             updateApiEntity.setProxy(proxy);
@@ -905,7 +914,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             updateApiEntity.setPicture(swaggerApiEntity.getPicture());
         }
         updateApiEntity.setTags(merge(updateApiEntity.getTags(), swaggerApiEntity.getTags()));
-        if (swaggerApiEntity.getVisibility() != null){
+        if (swaggerApiEntity.getVisibility() != null) {
             updateApiEntity.setVisibility(swaggerApiEntity.getVisibility());
         }
 
@@ -1008,12 +1017,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             checkGroupExistence(updateApiEntity.getGroups());
 
             // add a default path
-            if (updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty()) {
+            if ((updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty())) {
                 updateApiEntity.setPaths(singletonMap("/", new Path()));
             }
 
+            if (updateApiEntity.getPlans() == null) {
+                updateApiEntity.setPlans(new ArrayList<>());
+            }
+
             Api apiToUpdate = optApiToUpdate.get();
-            Api api = convert(apiId, updateApiEntity);
+            Api api = convert(apiId, updateApiEntity, apiToUpdate.getDefinition());
 
             if (api != null) {
                 api.setId(apiId.trim());
@@ -1083,12 +1096,54 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    private String buildApiDefinition(String apiDefinition, UpdateApiEntity updateApiEntity) {
+        try {
+            io.gravitee.definition.model.Api updateApiDefinition;
+            if (apiDefinition == null || apiDefinition.isEmpty()) {
+                updateApiDefinition = new io.gravitee.definition.model.Api();
+                updateApiDefinition.setDefinitionVersion(DefinitionVersion.valueOfLabel(updateApiEntity.getGraviteeDefinitionVersion()));
+            } else {
+                updateApiDefinition = objectMapper.readValue(apiDefinition, io.gravitee.definition.model.Api.class);
+            }
+            updateApiDefinition.setName(updateApiEntity.getName());
+            updateApiDefinition.setVersion(updateApiEntity.getVersion());
+            updateApiDefinition.setProxy(updateApiEntity.getProxy());
+
+            if (updateApiEntity.getPaths() != null) {
+                updateApiDefinition.setPaths(updateApiEntity.getPaths());
+            }
+            if (updateApiEntity.getPathMappings() != null) {
+                updateApiDefinition.setPathMappings(updateApiEntity.getPathMappings().stream()
+                    .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
+            }
+            if (updateApiEntity.getFlows() != null) {
+                updateApiDefinition.setFlows(updateApiEntity.getFlows());
+            }
+            if (updateApiEntity.getPlans() != null) {
+                List<Plan> plans = updateApiEntity.getPlans().stream().filter(plan -> plan.getId() != null).collect(toList());
+                updateApiDefinition.setPlans(plans);
+            }
+
+            updateApiDefinition.setServices(updateApiEntity.getServices());
+            updateApiDefinition.setResources(updateApiEntity.getResources());
+            updateApiDefinition.setProperties(updateApiEntity.getProperties());
+            updateApiDefinition.setTags(updateApiEntity.getTags());
+
+            updateApiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
+            return objectMapper.writeValueAsString(updateApiDefinition);
+
+        } catch (JsonProcessingException jse) {
+            LOGGER.error("Unexpected error while generating API definition", jse);
+            throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
+        }
+    }
+
     private void checkAllowOriginFormat(UpdateApiEntity updateApiEntity) {
         if (updateApiEntity.getProxy() != null && updateApiEntity.getProxy().getCors() != null) {
             final Set<String> accessControlAllowOrigin = updateApiEntity.getProxy().getCors().getAccessControlAllowOrigin();
             if (accessControlAllowOrigin != null && !accessControlAllowOrigin.isEmpty()) {
                 for (String allowOriginItem : accessControlAllowOrigin) {
-                    if (! CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
+                    if (!CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
                         throw new AllowOriginNotAllowedException(allowOriginItem);
                     }
                 }
@@ -1116,12 +1171,26 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void checkPolicyConfigurations(final UpdateApiEntity updateApiEntity) {
-
-        updateApiEntity.getPaths().forEach((s, path) ->
+        if (updateApiEntity.getPaths() != null) {
+            updateApiEntity.getPaths().forEach((s, path) ->
                 path.getRules().stream()
-                        .filter(Rule::isEnabled)
-                        .map(Rule::getPolicy)
-                        .forEach(policy -> policyService.validatePolicyConfiguration(policy)));
+                    .filter(Rule::isEnabled)
+                    .map(Rule::getPolicy)
+                    .forEach(policy -> policyService.validatePolicyConfiguration(policy)));
+        }
+        if (updateApiEntity.getFlows() != null) {
+            updateApiEntity.getFlows().stream()
+                .filter(flow -> flow.getPre() != null)
+                .forEach(flow -> flow.getPre().stream()
+                    .filter(Step::isEnabled)
+                    .forEach(step -> policyService.validatePolicyConfiguration(step)));
+
+            updateApiEntity.getFlows().stream()
+                .filter(flow -> flow.getPost() != null)
+                .forEach(flow -> flow.getPost().stream()
+                    .filter(Step::isEnabled)
+                    .forEach(step -> policyService.validatePolicyConfiguration(step)));
+        }
     }
 
     private void validateRegexfields(final UpdateApiEntity updateApiEntity) {
@@ -1479,9 +1548,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
-            String apiId = jsonNode.has("id") ? jsonNode.get("id").asText() : null;
-            UpdateApiEntity importedApi = this.convertToEntity(apiDefinition, jsonNode, apiId);
-            ApiEntity createdApiEntity = create0(importedApi, userId, false, apiId);
+            UpdateApiEntity importedApi = this.convertToEntity(apiDefinition, jsonNode);
+            ApiEntity createdApiEntity = create0(importedApi, userId, false, jsonNode);
             createPageAndMedia(createdApiEntity, jsonNode);
             updateApiReferences(createdApiEntity, jsonNode);
             return createdApiEntity;
@@ -1532,10 +1600,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private UpdateApiEntity convertToEntity(String apiDefinition, JsonNode jsonNode) throws JsonProcessingException {
-        return convertToEntity(apiDefinition, jsonNode, null);
-    }
-
-    private UpdateApiEntity convertToEntity(String apiDefinition, JsonNode jsonNode, String apiId) throws JsonProcessingException {
         final UpdateApiEntity importedApi = objectMapper
             // because definition could contains other values than the api itself (pages, members)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
@@ -1958,9 +2022,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (decodeTemplate) {
                 try {
                     String decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
-                            apiModelEntity.getId(),
-                            new StringReader(mapMetadata.toString()),
-                            Collections.singletonMap("api", apiModelEntity));
+                        apiModelEntity.getId(),
+                        new StringReader(mapMetadata.toString()),
+                        Collections.singletonMap("api", apiModelEntity));
                     Map<String, String> metadataDecoded = Arrays
                         .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
                         .map(entry -> entry.split("="))
@@ -2043,9 +2107,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         entities.forEach(entity -> {
             if (entity.getValue().contains("${")) {
                 String entityValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
-                        entity.getId() + entity.getUpdatedAt().toString(),
-                        entity.getValue(),
-                        model);
+                    entity.getId() + entity.getUpdatedAt().toString(),
+                    entity.getValue(),
+                    model);
                 entity.setValue(entityValue);
             }
         });
@@ -2123,6 +2187,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setDescription(apiEntity.getDescription());
         updateApiEntity.setName(apiEntity.getName());
         updateApiEntity.setVersion(apiEntity.getVersion());
+        updateApiEntity.setGraviteeDefinitionVersion(apiEntity.getGraviteeDefinitionVersion());
         updateApiEntity.setGroups(apiEntity.getGroups());
         updateApiEntity.setLabels(apiEntity.getLabels());
         updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
@@ -2137,6 +2202,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setCategories(apiEntity.getCategories());
         updateApiEntity.setVisibility(apiEntity.getVisibility());
         updateApiEntity.setPaths(apiEntity.getPaths());
+        updateApiEntity.setFlows(apiEntity.getFlows());
         updateApiEntity.setPathMappings(apiEntity.getPathMappings());
         updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
         return updateApiEntity;
@@ -2159,12 +2225,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
             List<String> reviewersEmail = findAllReviewersEmail(apiId);
             this.emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                    .params(new NotificationParamsBuilder().api(apiEntity).user(user).build())
-                    .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
-                    .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
-                    .build()
+                .params(new NotificationParamsBuilder().api(apiEntity).user(user).build())
+                .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
+                .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
+                .build()
             );
-        };
+        }
+        ;
 
         Map<Audit.AuditProperties, String> properties = new HashMap<>();
         properties.put(Audit.AuditProperties.USER, userId);
@@ -2184,42 +2251,42 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         auditService.createApiAuditLog(
-                apiId,
-                properties,
-                evtType,
-                new Date(),
-                null,
-                workflow);
+            apiId,
+            properties,
+            evtType,
+            new Date(),
+            null,
+            workflow);
         return apiEntity;
     }
 
     private List<String> findAllReviewersEmail(String apiId) {
-        final RolePermissionAction[] acls = { RolePermissionAction.UPDATE };
+        final RolePermissionAction[] acls = {RolePermissionAction.UPDATE};
 
         // find direct members of the API
         Set<String> reviewerEmails = roleService.findByScope(RoleScope.API).stream()
+            .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
+            .flatMap(role -> this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.API, apiId, role.getId()).stream())
+            .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
+            .map(MembershipEntity::getMemberId)
+            .distinct()
+            .map(this.userService::findById)
+            .map(UserEntity::getEmail)
+            .filter(Objects::nonNull)
+            .collect(toSet());
+
+        // find reviewers in group attached to the API
+        this.findById(apiId).getGroups().forEach(group -> {
+            reviewerEmails.addAll(roleService.findByScope(RoleScope.API).stream()
                 .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
-                .flatMap(role -> this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.API, apiId, role.getId()).stream())
+                .flatMap(role -> this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.GROUP, group, role.getId()).stream())
                 .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
                 .map(MembershipEntity::getMemberId)
                 .distinct()
                 .map(this.userService::findById)
                 .map(UserEntity::getEmail)
                 .filter(Objects::nonNull)
-                .collect(toSet());
-
-        // find reviewers in group attached to the API
-        this.findById(apiId).getGroups().forEach(group -> {
-            reviewerEmails.addAll(roleService.findByScope(RoleScope.API).stream()
-                    .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
-                    .flatMap(role -> this.membershipService.getMembershipsByReferenceAndRole(MembershipReferenceType.GROUP, group, role.getId()).stream())
-                    .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
-                    .map(MembershipEntity::getMemberId)
-                    .distinct()
-                    .map(this.userService::findById)
-                    .map(UserEntity::getEmail)
-                    .filter(Objects::nonNull)
-                    .collect(toSet()));
+                .collect(toSet()));
 
         });
 
@@ -2412,6 +2479,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
+                if (apiDefinition.getDefinitionVersion() != null) {
+                    apiEntity.setGraviteeDefinitionVersion(apiDefinition.getDefinitionVersion().getLabel());
+                }
+                if (DefinitionVersion.V2.equals(apiDefinition.getDefinitionVersion())) {
+                    apiEntity.setFlows(apiDefinition.getFlows());
+                    apiEntity.setPlans(new ArrayList<>(apiDefinition.getPlans()));
+                } else {
+                    apiEntity.setFlows(null);
+                    apiEntity.setPlans(null);
+                }
 
                 // Issue https://github.com/gravitee-io/issues/issues/3356
                 if (apiDefinition.getProxy().getVirtualHosts() != null &&
@@ -2427,6 +2504,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 LOGGER.error("Unexpected error while generating API definition", ioe);
             }
         }
+
         apiEntity.setUpdatedAt(api.getUpdatedAt());
         apiEntity.setVersion(api.getVersion());
         apiEntity.setDescription(api.getDescription());
@@ -2472,9 +2550,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return apiEntity;
     }
 
-    private Api convert(String apiId, UpdateApiEntity updateApiEntity) {
+    private Api convert(String apiId, UpdateApiEntity updateApiEntity, String apiDefinition) {
         Api api = new Api();
-
+        api.setId(apiId);
         if (updateApiEntity.getVisibility() != null) {
             api.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
         }
@@ -2484,6 +2562,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setDescription(updateApiEntity.getDescription().trim());
         api.setPicture(updateApiEntity.getPicture());
         api.setBackground(updateApiEntity.getBackground());
+
+        api.setDefinition(buildApiDefinition(apiDefinition, updateApiEntity));
 
         final Set<String> apiCategories = updateApiEntity.getCategories();
         if (apiCategories != null) {
@@ -2504,37 +2584,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setGroups(updateApiEntity.getGroups());
         api.setDisableMembershipNotifications(updateApiEntity.isDisableMembershipNotifications());
 
-        try {
-            io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
-            apiDefinition.setId(apiId);
-            apiDefinition.setName(updateApiEntity.getName());
-            apiDefinition.setVersion(updateApiEntity.getVersion());
-            apiDefinition.setProxy(updateApiEntity.getProxy());
-
-            apiDefinition.setPaths(updateApiEntity.getPaths());
-            if (updateApiEntity.getPathMappings() != null) {
-                apiDefinition.setPathMappings(updateApiEntity.getPathMappings().stream()
-                    .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
-            }
-
-            apiDefinition.setServices(updateApiEntity.getServices());
-            apiDefinition.setResources(updateApiEntity.getResources());
-            apiDefinition.setProperties(updateApiEntity.getProperties());
-            apiDefinition.setTags(updateApiEntity.getTags());
-
-            apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
-
-            String definition = objectMapper.writeValueAsString(apiDefinition);
-            api.setDefinition(definition);
-            if (updateApiEntity.getLifecycleState() != null) {
-                api.setApiLifecycleState(ApiLifecycleState.valueOf(updateApiEntity.getLifecycleState().name()));
-            }
-            return api;
-        } catch (JsonProcessingException jse) {
-            LOGGER.error("Unexpected error while generating API definition", jse);
+        if (updateApiEntity.getLifecycleState() != null) {
+            api.setApiLifecycleState(ApiLifecycleState.valueOf(updateApiEntity.getLifecycleState().name()));
         }
-
-        return null;
+        return api;
     }
 
     private LifecycleState convert(EventType eventType) {
@@ -2616,6 +2669,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             result = 31 * result + sourceId.hashCode();
             return result;
         }
+
     }
 
     private ProxyModelEntity convert(Proxy proxy) {

@@ -48,6 +48,14 @@ public class PolicyListItem {
 
     private String icon;
 
+    private String category;
+
+    private String documentation;
+
+    private boolean onRequest;
+
+    private boolean onResponse;
+
     public String getDescription() {
         return description;
     }
@@ -104,6 +112,22 @@ public class PolicyListItem {
         this.icon = icon;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getDocumentation() {
+        return documentation;
+    }
+
+    public void setDocumentation(String documentation) {
+        this.documentation = documentation;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("PolicyEntity{");
@@ -126,5 +150,21 @@ public class PolicyListItem {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public void setOnRequest(boolean onRequest) {
+        this.onRequest = onRequest;
+    }
+
+    public boolean isOnRequest() {
+        return onRequest;
+    }
+
+    public boolean isOnResponse() {
+        return onResponse;
+    }
+
+    public void setOnResponse(boolean onResponse) {
+        this.onResponse = onResponse;
     }
 }

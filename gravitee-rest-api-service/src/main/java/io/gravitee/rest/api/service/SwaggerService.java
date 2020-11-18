@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
@@ -36,6 +37,16 @@ public interface SwaggerService {
      * @return The API from the Swagger descriptor
      */
     SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor);
+
+    /**
+     * Create an API from a Swagger descriptor. This method does not create an API but
+     * extract data from Swagger to prepare an API to then create.
+     *
+     * @param swaggerDescriptor Swagger descriptor
+     * @param definitionVersion Definition version
+     * @return The API from the Swagger descriptor
+     */
+    SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor, DefinitionVersion definitionVersion);
 
     /**
      * This method is used to transform a Swagger descriptor specification using swagger transformers.

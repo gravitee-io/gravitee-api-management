@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.flow.Step;
 import io.gravitee.rest.api.model.PolicyEntity;
 
 /**
@@ -25,4 +26,7 @@ import io.gravitee.rest.api.model.PolicyEntity;
 public interface PolicyService extends PluginService<PolicyEntity> {
 
     void validatePolicyConfiguration(Policy policy);
+
+    void validatePolicyConfiguration(Step step);
+
 }

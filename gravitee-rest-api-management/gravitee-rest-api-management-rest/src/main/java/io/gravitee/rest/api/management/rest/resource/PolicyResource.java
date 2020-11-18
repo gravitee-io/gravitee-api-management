@@ -92,7 +92,7 @@ public class PolicyResource {
     }
 
     @GET
-    @Path("doc")
+    @Path("documentation")
     @Produces(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Get a policy's documentation",
             notes = "User must have the MANAGEMENT_API[READ] permission to use this service")

@@ -46,6 +46,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -289,6 +290,34 @@ public class ApiService_CreateWithDefinitionTest {
         when(userService.findById(admin.getId())).thenReturn(admin);
 
         apiService.createWithImportedDefinition(null, toBeImport, "admin");
+
+        verify(pageService, times(1)).createPage(any(), any(NewPageEntity.class));
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
+    }
+
+    @Test
+    public void shouldCreateImportApiWithOnlyNewDefinition() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/import-new-api.definition.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        admin.setSource(SOURCE);
+        admin.setSourceId(API_ID);
+        UserEntity user = new UserEntity();
+        user.setId("user");
+        user.setSource(SOURCE);
+        user.setSourceId(API_ID);
+        when(userService.findById(admin.getId())).thenReturn(admin);
+
+        ApiEntity apiEntityCreated = apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
         verify(pageService, times(1)).createPage(any(), any(NewPageEntity.class));
         verify(apiRepository, never()).update(any());

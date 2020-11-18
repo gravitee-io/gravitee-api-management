@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
@@ -113,6 +114,8 @@ public interface ApiService {
         updateApiEntity.setLabels(apiEntity.getLabels());
         updateApiEntity.setPathMappings(apiEntity.getPathMappings());
         updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
+        updateApiEntity.setPlans(apiEntity.getPlans());
+        updateApiEntity.setFlows(apiEntity.getFlows());
 
         return updateApiEntity;
     }

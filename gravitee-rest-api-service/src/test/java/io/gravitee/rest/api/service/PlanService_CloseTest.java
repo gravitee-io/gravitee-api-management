@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -47,6 +47,7 @@ public class PlanService_CloseTest {
     private static final String PLAN_ID = "my-plan";
     private static final String SUBSCRIPTION_ID = "my-subscription";
     private static final String USER = "user";
+    private static final String API_ID = "my-api";
 
     @InjectMocks
     private PlanService planService = new PlanServiceImpl();
@@ -66,6 +67,11 @@ public class PlanService_CloseTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private ApiService apiService;
+
+    @Mock
+    private ApiEntity api;
 
     @Test(expected = PlanNotFoundException.class)
     public void shouldNotCloseBecauseNotFound() throws TechnicalException {
@@ -98,7 +104,8 @@ public class PlanService_CloseTest {
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
-        when(plan.getApi()).thenReturn("id");
+        when(plan.getApi()).thenReturn(API_ID);
+        when(apiService.findById(API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(PLAN_ID, USER);
@@ -118,7 +125,8 @@ public class PlanService_CloseTest {
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
-        when(plan.getApi()).thenReturn("id");
+        when(plan.getApi()).thenReturn(API_ID);
+        when(apiService.findById(API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(PLAN_ID, USER);
@@ -137,8 +145,10 @@ public class PlanService_CloseTest {
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
-        when(plan.getApi()).thenReturn("id");
+        when(plan.getApi()).thenReturn(API_ID);
+        when(apiService.findById(API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+
 
         planService.close(PLAN_ID, USER);
 
@@ -157,7 +167,8 @@ public class PlanService_CloseTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
-        when(plan.getApi()).thenReturn("id");
+        when(plan.getApi()).thenReturn(API_ID);
+        when(apiService.findById(API_ID)).thenReturn(api);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(PLAN_ID, USER);
