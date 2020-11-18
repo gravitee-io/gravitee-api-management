@@ -28,6 +28,8 @@ class ThemeController {
 
   private currentHref: any;
   private handleEventHandlers: any;
+  private themeOptionalLogoURL: string;
+  private themeBackgroundURL: string;
 
   constructor(private $http,
               private $scope,
@@ -177,6 +179,8 @@ class ThemeController {
     } else {
       this.loadTheme();
     }
+
+    this.initThemeImagesURL();
   }
 
   $onDestroy = () => {
@@ -333,6 +337,12 @@ class ThemeController {
   setTheme(theme) {
     this.$scope.theme = theme;
     this.$scope.themeComponent = theme.definition.data.find((element) => element.name === 'gv-theme');
+    this.initThemeImagesURL();
+  }
+
+  initThemeImagesURL = () => {
+    this.themeOptionalLogoURL = this.getOptionalLogoUrl();
+    this.themeBackgroundURL = this.getBackgroundImageUrl();
   }
 
   loadTheme = () => {
