@@ -39,7 +39,7 @@ public class GrpcConnector extends HttpConnector<GrpcEndpoint> {
     protected HttpClientOptions getOptions() throws EndpointException {
         HttpClientOptions options = super.getOptions();
 
-        // For GRPC, force HTTP/2 protocol
+        // For gRPC, force HTTP/2 protocol
         options.setProtocolVersion(HttpVersion.HTTP_2)
                 .setHttp2ClearTextUpgrade(false);
 

@@ -82,7 +82,7 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     private final Map<Context, HttpClient> httpClients = new ConcurrentHashMap<>();
 
-    private AtomicInteger runningRequests = new AtomicInteger(0);
+    private final AtomicInteger requestTracker = new AtomicInteger(0);
 
     @Override
     public ProxyConnection request(ProxyRequest proxyRequest) {
@@ -110,11 +110,11 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
         // Grab an instance of the HTTP client
         final HttpClient client = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
 
-        runningRequests.incrementAndGet();
+        requestTracker.incrementAndGet();
 
         // Connect to the upstream
         return connection.connect(client, port, uri.getHost(),
-                (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery());
+                (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery(), result -> requestTracker.decrementAndGet());
     }
 
     protected abstract AbstractHttpProxyConnection create(ProxyRequest proxyRequest);
@@ -271,15 +271,15 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("Graceful shutdown of HTTP Client for endpoint[{}] target[{}] requests[{}]", endpoint.getName(), endpoint.getTarget(), runningRequests.get());
+        LOGGER.info("Graceful shutdown of HTTP Client for endpoint[{}] target[{}] requests[{}]", endpoint.getName(), endpoint.getTarget(), requestTracker.get());
         long shouldEndAt = System.currentTimeMillis() + endpoint.getHttpClientOptions().getReadTimeout();
 
-        while (runningRequests.get() != 0 && System.currentTimeMillis() <= shouldEndAt) {
+        while (requestTracker.get() != 0 && System.currentTimeMillis() <= shouldEndAt) {
             TimeUnit.MILLISECONDS.sleep(100);
         }
 
-        if (runningRequests.get() > 0) {
-            LOGGER.warn("Cancel requests[{}] for endpoint[{}] target[{}]", runningRequests.get(), endpoint.getName(), endpoint.getTarget());
+        if (requestTracker.get() > 0) {
+            LOGGER.warn("Cancel requests[{}] for endpoint[{}] target[{}]", requestTracker.get(), endpoint.getName(), endpoint.getTarget());
         }
 
         httpClients.values().forEach(httpClient -> {
