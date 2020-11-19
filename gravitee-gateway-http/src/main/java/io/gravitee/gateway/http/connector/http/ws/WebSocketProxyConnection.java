@@ -18,6 +18,7 @@ package io.gravitee.gateway.http.connector.http.ws;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ws.WebSocketProxyRequest;
@@ -28,8 +29,8 @@ import io.gravitee.gateway.http.connector.AbstractHttpProxyConnection;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpConnection;
+import io.vertx.core.http.UpgradeRejectedException;
 import io.vertx.core.http.WebSocket;
-import io.vertx.core.http.WebsocketRejectedException;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -65,7 +66,7 @@ public class WebSocketProxyConnection extends AbstractHttpProxyConnection {
     }
 
     @Override
-    public ProxyConnection connect(HttpClient httpClient, int port, String host, String uri) {
+    public ProxyConnection connect(HttpClient httpClient, int port, String host, String uri, Handler<Void> tracker) {
         // Remove hop-by-hop headers.
         for (CharSequence header : WS_HOP_HEADERS) {
             wsProxyRequest.headers().remove(header);
@@ -106,13 +107,17 @@ public class WebSocketProxyConnection extends AbstractHttpProxyConnection {
                 // From client to server
                 event.frameHandler(frame -> wsProxyRequest.write(new WebSocketFrame(frame)));
 
-                event.closeHandler(event1 -> wsProxyRequest.close());
+                event.closeHandler(event1 -> {
+                    wsProxyRequest.close();
+                    tracker.handle(null);
+                });
 
                 event.exceptionHandler(new io.vertx.core.Handler<Throwable>() {
                     @Override
                     public void handle(Throwable throwable) {
                         wsProxyRequest.reject(HttpStatusCode.BAD_REQUEST_400);
                         sendToClient(new EmptyProxyResponse(HttpStatusCode.BAD_REQUEST_400));
+                        tracker.handle(null);
                     }
                 });
 
@@ -120,13 +125,15 @@ public class WebSocketProxyConnection extends AbstractHttpProxyConnection {
                 sendToClient(new SwitchProtocolProxyResponse());
             }
         }, throwable -> {
-            if (throwable instanceof WebsocketRejectedException) {
-                wsProxyRequest.reject(((WebsocketRejectedException) throwable).getStatus());
-                sendToClient(new EmptyProxyResponse(((WebsocketRejectedException) throwable).getStatus()));
+            if (throwable instanceof UpgradeRejectedException) {
+                wsProxyRequest.reject(((UpgradeRejectedException) throwable).getStatus());
+                sendToClient(new EmptyProxyResponse(((UpgradeRejectedException) throwable).getStatus()));
             } else {
                 wsProxyRequest.reject(HttpStatusCode.BAD_GATEWAY_502);
                 sendToClient(new EmptyProxyResponse(HttpStatusCode.BAD_GATEWAY_502));
             }
+
+            tracker.handle(null);
         });
 
         return this;

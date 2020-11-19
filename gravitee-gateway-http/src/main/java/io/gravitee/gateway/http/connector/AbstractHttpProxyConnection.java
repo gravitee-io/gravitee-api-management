@@ -21,8 +21,6 @@ import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.vertx.core.http.HttpClient;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -31,14 +29,13 @@ public abstract class AbstractHttpProxyConnection implements ProxyConnection {
 
     protected final HttpEndpoint endpoint;
     protected Handler<ProxyResponse> responseHandler;
-    protected AtomicInteger runningRequests = new AtomicInteger(0);
 
     public AbstractHttpProxyConnection(HttpEndpoint endpoint) {
         this.endpoint = endpoint;
     }
 
     public abstract ProxyConnection connect(
-            HttpClient httpClient, int port, String host, String uri);
+            HttpClient httpClient, int port, String host, String uri, Handler<Void> tracker);
 
     protected void sendToClient(ProxyResponse proxyResponse) {
         this.responseHandler.handle(proxyResponse);

@@ -87,7 +87,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
     }
 
     @Override
-    public ProxyConnection connect(HttpClient httpClient, int port, String host, String uri) {
+    public ProxyConnection connect(HttpClient httpClient, int port, String host, String uri, Handler<Void> tracker) {
         // Remove HOP-by-HOP headers
         for (CharSequence header : HOP_HEADERS) {
             proxyRequest.headers().remove(header.toString());
@@ -97,7 +97,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
         httpClientRequest.handler(event -> {
             // Prepare upstream response
-            handleUpstreamResponse(event);
+            handleUpstreamResponse(event, tracker);
 
             // And send it to the client
             sendToClient(proxyResponse);
@@ -126,7 +126,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
                     clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
                     sendToClient(clientResponse);
-                    runningRequests.decrementAndGet();
+                    tracker.handle(null);
                 }
             }
         });
@@ -153,7 +153,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
         return (T) new HttpProxyResponse(clientResponse);
     }
 
-    protected T handleUpstreamResponse(final HttpClientResponse clientResponse) {
+    protected T handleUpstreamResponse(final HttpClientResponse clientResponse, Handler<Void> tracker) {
         this.proxyResponse = createProxyResponse(clientResponse);
 
         // Copy HTTP headers
@@ -173,7 +173,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
             }
 
             proxyResponse.endHandler().handle(null);
-            runningRequests.decrementAndGet();
+            tracker.handle(null);
         });
 
         clientResponse.exceptionHandler(throwable -> {
@@ -181,7 +181,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
                     httpClientRequest.method(), httpClientRequest.absoluteURI(), throwable.getMessage());
 
             proxyResponse.endHandler().handle(null);
-            runningRequests.decrementAndGet();
+            tracker.handle(null);
         });
 
         clientResponse.customFrameHandler(frame -> proxyResponse.writeCustomFrame(
