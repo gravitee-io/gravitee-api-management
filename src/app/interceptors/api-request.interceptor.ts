@@ -45,12 +45,21 @@ export class ApiRequestInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
+    let headers = {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+
+    if (this.xsrfToken) {
+      headers['X-Xsrf-Token'] = this.xsrfToken;
+    }
+
+    let currentReCaptchaToken = this.reCaptchaService.getCurrentToken();
+    if (currentReCaptchaToken) {
+      headers['X-Recaptcha-Token'] = currentReCaptchaToken;
+    }
+
     request = request.clone({
-      setHeaders: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-Xsrf-Token': [ this.xsrfToken ],
-        'X-Recaptcha-Token': [ this.reCaptchaService.getCurrentToken() ]
-      },
+      setHeaders: headers,
       withCredentials: true
     });
 
