@@ -38,7 +38,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -128,7 +127,7 @@ public class ApiPagesResource extends AbstractResource {
         PageEntity newPage = pageService.createPage(api, newPageEntity);
         if (newPage != null) {
             return Response
-                    .created(URI.create("/apis/" + api + "/pages/" + newPage.getId()))
+                    .created(this.getLocationHeader(newPage.getId()))
                     .entity(newPage)
                     .build();
         }

@@ -40,7 +40,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +49,7 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 @Api(tags = {"Application Subscriptions"})
-public class ApplicationSubscriptionsResource {
+public class ApplicationSubscriptionsResource extends AbstractResource {
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -104,7 +103,7 @@ public class ApplicationSubscriptionsResource {
         newSubscriptionEntity.setPlan(plan);
         Subscription subscription = convert(subscriptionService.create(newSubscriptionEntity));
         return Response
-                .created(URI.create("/applications/" + application + "/subscriptions/" + subscription.getId()))
+                .created(this.getRequestUriBuilder().path(subscription.getId()).replaceQueryParam("plan", null).build())
                 .entity(subscription)
                 .build();
     }
@@ -223,8 +222,7 @@ public class ApplicationSubscriptionsResource {
             @PathParam("subscription") String subscription) {
         ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription);
         return Response
-                .created(URI.create("/applications/" + application + "/subscriptions/" + subscription +
-                        "/keys" + apiKeyEntity.getKey()))
+                .created(this.getLocationHeader("keys", apiKeyEntity.getKey()))
                 .entity(apiKeyEntity)
                 .build();
     }

@@ -45,6 +45,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import java.util.*;
 
@@ -439,5 +440,13 @@ public abstract class AbstractResource {
             return Objects.hash(data, metadata, links);
         }
 
+    }
+
+    protected URI getLocationHeader(String...paths) {
+        final UriBuilder requestUriBuilder = this.uriInfo.getRequestUriBuilder();
+        for(String path: paths) {
+            requestUriBuilder.path(path);
+        }
+        return requestUriBuilder.build();
     }
 }

@@ -22,6 +22,9 @@ import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
+import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
+import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,7 +127,10 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected TagService tagService;
 
     @Autowired
-    private ApiMetadataService apiMetadataService;
+    protected ApiMetadataService apiMetadataService;
+
+    @Autowired
+    protected ApplicationMetadataService applicationMetadataService;
 
     @Autowired
     protected ParameterService parameterService;
@@ -149,6 +155,27 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected AuthoritiesProvider authoritiesProvider;
+
+    @Autowired
+    protected DictionaryService dictionaryService;
+
+    @Autowired
+    protected TicketService ticketService;
+
+    @Autowired
+    protected PlanService planService;
+
+    @Autowired
+    protected SubscriptionService subscriptionService;
+
+    @Autowired
+    protected ApiKeyService apiKeyService;
+
+    @Autowired
+    protected IdentityProviderService identityProviderService;
+
+    @Autowired
+    protected ClientRegistrationService clientRegistrationService;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -280,6 +307,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
+        public ApplicationMetadataService applicationMetadataService() {
+    	    return mock(ApplicationMetadataService.class);
+        }
+
+        @Bean
         public VirtualHostService virtualHostService() {
             return mock(VirtualHostService.class);
         }
@@ -312,6 +344,41 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public AuthoritiesProvider authoritiesProvider() {
             return mock(AuthoritiesProvider.class);
+        }
+
+        @Bean
+        public DictionaryService dictionaryService() {
+            return mock(DictionaryService.class);
+        }
+
+        @Bean
+        public TicketService ticketService() {
+            return mock(TicketService.class);
+        }
+
+        @Bean
+        public PlanService planService() {
+            return mock(PlanService.class);
+        }
+
+        @Bean
+        public SubscriptionService subscriptionService() {
+            return mock(SubscriptionService.class);
+        }
+
+        @Bean
+        public ApiKeyService apiKeyService() {
+            return mock(ApiKeyService.class);
+        }
+
+        @Bean
+        public IdentityProviderService identityProviderService() {
+            return mock(IdentityProviderService.class);
+        }
+
+        @Bean
+        public ClientRegistrationService clientRegistrationService() {
+            return mock(ClientRegistrationService.class);
         }
     }
 }

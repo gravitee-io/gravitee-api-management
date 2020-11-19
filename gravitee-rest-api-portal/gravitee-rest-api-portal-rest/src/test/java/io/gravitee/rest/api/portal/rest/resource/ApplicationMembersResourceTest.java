@@ -31,15 +31,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,16 +49,16 @@ import static org.mockito.Mockito.doThrow;
  */
 public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
-    @Override
-    protected String contextPath() {
-        return "applications/";
-    }
-
     private static final String APPLICATION = "my-application";
     private static final String UNKNOWN_APPLICATION = "unknown-application";
     private static final String MEMBER_1 = "my-member";
     private static final String MEMBER_2 = "my-member-2";
     private static final String UNKNOWN_MEMBER = "unknown-member";
+
+    @Override
+    protected String contextPath() {
+        return "applications/";
+    }
 
     @Before
     public void init() {
@@ -72,7 +74,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         doReturn(new HashSet<>(Arrays.asList(memberEntity1, memberEntity2))).when(membershipService).getMembersByReference(MembershipReferenceType.APPLICATION, APPLICATION);
         doReturn(memberEntity1).when(membershipService).getUserMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1);
         doReturn(null).when(membershipService).getUserMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_2);
-        
+
 
         doThrow(ApplicationNotFoundException.class).when(applicationService).findById(UNKNOWN_APPLICATION);
         doThrow(UserNotFoundException.class).when(userService).findById(UNKNOWN_MEMBER);
@@ -127,7 +129,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     public void shouldGetNoMemberAndNoLink() {
 
         doReturn(new HashSet<>()).when(membershipService).getMembersByReference(any(), any());
-        
+
         //Test with default limit
         final Response response = target(APPLICATION).path("members").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -164,15 +166,20 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
     public void shouldDeleteMember() {
         final Response response = target(APPLICATION).path("members").path(MEMBER_1).request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-        
+
         Mockito.verify(membershipService).deleteReferenceMember(MembershipReferenceType.APPLICATION, APPLICATION, MembershipMemberType.USER, MEMBER_1);
     }
 
     @Test
     public void shouldCreateMember() {
         MemberInput memberInput = new MemberInput().role("USER").user(MEMBER_1);
+        MemberEntity returnedMemberEntity = mock(MemberEntity.class);
+        doReturn(MEMBER_1).when(returnedMemberEntity).getId();
+        doReturn(returnedMemberEntity).when(membershipService).addRoleToMemberOnReference(any(), any(), any());
+
         final Response response = target(APPLICATION).path("members").request().post(Entity.json(memberInput));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertEquals(target(APPLICATION).path("members").path(MEMBER_1).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
         ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
@@ -289,6 +296,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("members").path(MEMBER_2).request().put(Entity.json(memberInput));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
+
     @Test
     public void shouldHaveBadRequestWhileUpdatingMemberToPrimaryOwner() {
         MemberInput memberInput = new MemberInput().role("PRIMARY_OWNER").user(MEMBER_1);
@@ -323,6 +331,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         final Response response = target(UNKNOWN_APPLICATION).path("members").path(MEMBER_1).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
+
     @Test
     public void shouldHaveNotFoundWhileGettingMemberUnknownMember() {
         final Response response = target(APPLICATION).path("members").path(UNKNOWN_MEMBER).request().get();

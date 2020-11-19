@@ -35,7 +35,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -154,7 +153,7 @@ public class PortalPagesResource extends AbstractResource {
         PageEntity newPage = pageService.createPage(newPageEntity);
         if (newPage != null) {
             return Response
-                    .created(URI.create("/portal/pages/" + newPage.getId()))
+                    .created(this.getLocationHeader(newPage.getId()))
                     .entity(newPage)
                     .build();
         }

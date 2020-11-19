@@ -97,7 +97,7 @@ public class ApiMetadataResource extends AbstractResource {
 
         final ApiMetadataEntity apiMetadataEntity = metadataService.create(metadata);
         return Response
-                .created(URI.create("/apis/" + api + "/metadata/" + apiMetadataEntity.getKey()))
+                .created(this.getLocationHeader(apiMetadataEntity.getKey()))
                 .entity(apiMetadataEntity)
                 .build();
     }

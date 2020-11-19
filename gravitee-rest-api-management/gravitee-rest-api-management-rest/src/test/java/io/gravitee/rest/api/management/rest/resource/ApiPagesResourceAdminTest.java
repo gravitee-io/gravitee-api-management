@@ -15,12 +15,13 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import org.junit.Test;
-import com.sun.research.ws.wadl.HTTPMethods;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import org.junit.Test;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
@@ -40,7 +41,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "apis/"+API_NAME+"/pages/";
+        return "apis/" + API_NAME + "/pages/";
     }
 
     @Test
@@ -114,7 +115,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         verify(pageService, times(1)).findById(PAGE_NAME, null);
         verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
-    
+
     @Test
     public void shouldNotCreateSystemFolder() {
         NewPageEntity newPageEntity = new NewPageEntity();
@@ -122,9 +123,9 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final Response response = target().request().post(Entity.json(newPageEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
-        
+
     }
-    
+
     @Test
     public void shouldNotDeleteSystemFolder() {
         reset(apiService, pageService, membershipService);
@@ -132,13 +133,13 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
-        
+
         final Response response = target(PAGE_NAME).request().delete();
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
-        
+
     }
-    
+
     @Test
     public void shouldNotUpdateSystemFolder() {
         reset(apiService, pageService, membershipService);
@@ -146,12 +147,12 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
-        
+
         final Response response = target(PAGE_NAME).request().put(Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }
-    
+
     @Test
     public void shouldNotUpdatePatchSystemFolder() {
         reset(apiService, pageService, membershipService);
@@ -159,9 +160,27 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
-        
+
         final Response response = target(PAGE_NAME).request().method(javax.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldCreateApiPage() {
+        reset(pageService);
+        NewPageEntity newPageEntity = new NewPageEntity();
+        newPageEntity.setName("my-page-name");
+        newPageEntity.setType(PageType.MARKDOWN);
+
+        PageEntity returnedPage = new PageEntity();
+        returnedPage.setId("my-beautiful-page");
+        doReturn(returnedPage).when(pageService).createPage(eq(API_NAME), any());
+        doReturn(0).when(pageService).findMaxPortalPageOrder();
+
+        final Response response = target().request().post(Entity.json(newPageEntity));
+
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertEquals(target().path("my-beautiful-page").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 }

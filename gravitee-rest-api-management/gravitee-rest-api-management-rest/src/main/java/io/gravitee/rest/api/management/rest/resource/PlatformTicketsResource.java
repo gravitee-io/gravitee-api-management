@@ -50,6 +50,6 @@ public class PlatformTicketsResource extends AbstractResource  {
 
     public Response createPlatformTicket(@Valid @NotNull final NewTicketEntity ticketEntity) {
         ticketService.create(getAuthenticatedUser(), ticketEntity);
-        return Response.created(URI.create("")).build();
+        return Response.status(Response.Status.CREATED).build();
     }
 }

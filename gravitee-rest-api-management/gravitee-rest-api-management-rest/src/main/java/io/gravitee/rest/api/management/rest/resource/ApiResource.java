@@ -67,9 +67,6 @@ import static java.util.Collections.singletonList;
 public class ApiResource extends AbstractResource {
 
     @Context
-    private UriInfo uriInfo;
-
-    @Context
     private ResourceContext resourceContext;
 
     @Inject

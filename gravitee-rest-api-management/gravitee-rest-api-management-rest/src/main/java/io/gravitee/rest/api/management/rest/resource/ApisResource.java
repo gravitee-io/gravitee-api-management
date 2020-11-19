@@ -63,8 +63,6 @@ import static java.util.stream.Collectors.toSet;
 public class ApisResource extends AbstractResource {
 
     @Context
-    private UriInfo uriInfo;
-    @Context
     private ResourceContext resourceContext;
 
     @Inject
@@ -156,8 +154,9 @@ public class ApisResource extends AbstractResource {
             @Valid @NotNull final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
         ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUser());
         if (newApi != null) {
+
             return Response
-                    .created(URI.create("/apis/" + newApi.getId()))
+                    .created(this.getLocationHeader(newApi.getId()))
                     .entity(newApi)
                     .build();
         }
@@ -189,7 +188,7 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create an API definition from a Swagger descriptor")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "API definition from Swagger descriptor", response = ApiEntity.class),
+            @ApiResponse(code = 201, message = "API definition from Swagger descriptor", response = ApiEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
@@ -198,7 +197,7 @@ public class ApisResource extends AbstractResource {
             @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final ApiEntity api = apiService.create(swaggerService.createAPI(swaggerDescriptor), getAuthenticatedUser(), swaggerDescriptor);
         return Response
-                .created(URI.create("/apis/" + api.getId()))
+                .created(URI.create(this.uriInfo.getRequestUri().getRawPath().replaceAll("import/swagger", "") + api.getId()))
                 .entity(api)
                 .build();
     }

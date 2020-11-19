@@ -88,7 +88,7 @@ public class GroupsResource extends AbstractResource {
         GroupEntity groupEntity = groupService.create(newGroupEntity);
         if (groupEntity != null) {
             return Response
-                    .created(URI.create("/groups/" + groupEntity.getId()))
+                    .created(this.getLocationHeader(groupEntity.getId()))
                     .entity(groupEntity)
                     .build();
         }

@@ -45,6 +45,6 @@ public class TicketsResource extends AbstractResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid @NotNull(message = "Input must not be null.") final TicketInput ticketInput) {
         ticketService.create(getAuthenticatedUser(), ticketMapper.convert(ticketInput));
-        return Response.created(URI.create("")).build();
+        return Response.status(Response.Status.CREATED).build();
     }
 }

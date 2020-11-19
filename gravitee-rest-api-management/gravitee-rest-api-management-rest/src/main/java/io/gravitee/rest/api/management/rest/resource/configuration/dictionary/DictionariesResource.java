@@ -34,7 +34,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -105,7 +104,7 @@ public class DictionariesResource extends AbstractResource {
 
         if (newDictionary != null) {
             return Response
-                    .created(URI.create("/configuration/dictionaries/" + newDictionary.getId()))
+                    .created(this.getLocationHeader(newDictionary.getId()))
                     .entity(newDictionary)
                     .build();
         }
