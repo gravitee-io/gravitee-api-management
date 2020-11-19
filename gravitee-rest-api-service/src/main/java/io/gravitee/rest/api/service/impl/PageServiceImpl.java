@@ -1757,7 +1757,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 if (!sanitizeInfos.isSafe()) {
                     throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
                 }
-            } else if (PageType.SWAGGER.name().equals(pageEntity.getType())) {
+            } else if (PageType.SWAGGER.name().equals(pageEntity.getType())  && pageEntity.getContent() != null) {
                 OAIDescriptor openApiDescriptor = new OAIParser().parse(pageEntity.getContent());
                 if (openApiDescriptor != null && openApiDescriptor.getMessages() != null) {
                     return openApiDescriptor.getMessages();
