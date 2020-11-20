@@ -55,7 +55,7 @@
                  ngf-select="$ctrl.importTheme($file,$invalidFiles)"
                  ngf-pattern="'application/json'"
                  ngf-accept="'application/json'"
-                 ngf-max-size="1MB"
+                 ngf-max-size="{{maxSize}}"
                  permission permission-only="['environment-theme-u']">
         Import
       </md-button>
