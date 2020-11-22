@@ -136,13 +136,13 @@ public class ApiMembersResource extends AbstractResource {
             }
         }
         if (membership == null) {
-            membership = membershipService.addRoleToMemberOnReference(
+            membershipService.addRoleToMemberOnReference(
                     reference,
                     member,
                     role);
         }
 
-        return Response.created(URI.create("/apis/" + api + "/members/" + membership.getId())).build();
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @POST

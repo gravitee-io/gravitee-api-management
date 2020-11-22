@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.service.impl.swagger.parser;
 
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
+import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.parser.OpenAPIParser;
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
 import java.io.BufferedWriter;
@@ -28,14 +28,14 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
+public class OAIParser extends AbstractSwaggerParser<OAIDescriptor> {
 
     static {
         System.setProperty(String.format("%s.trustAll", io.swagger.v3.parser.util.RemoteUrl.class.getName()), Boolean.TRUE.toString());
     }
 
     @Override
-    public OpenAPI parse(String content) {
+    public OAIDescriptor parse(String content) {
         OpenAPIParser parser = new OpenAPIParser();
         SwaggerParseResult parseResult;
         String path = content;
@@ -47,13 +47,13 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
 
         parseResult = parser.readLocation(path, null, null);
 
-        if (parseResult != null && parseResult.getOpenAPI() != null &&
-                (parseResult.getMessages() != null && !parseResult.getMessages().isEmpty())) {
-            throw new SwaggerDescriptorException(parseResult.getMessages());
+        if (parseResult == null || parseResult.getOpenAPI() == null) {
+            throw new SwaggerDescriptorException("Malformed descriptor");
         }
 
-        return (parseResult != null && parseResult.getOpenAPI() != null && parseResult.getOpenAPI().getInfo() != null)
-                ? parseResult.getOpenAPI() : null;
+        OAIDescriptor descriptor = new OAIDescriptor(parseResult.getOpenAPI());
+        descriptor.setMessages(parseResult.getMessages());
+        return descriptor;
     }
 
     private File createTempFile(String content) {

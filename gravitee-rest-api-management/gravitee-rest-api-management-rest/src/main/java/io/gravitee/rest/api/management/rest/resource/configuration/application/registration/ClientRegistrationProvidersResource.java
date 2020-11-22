@@ -35,7 +35,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,7 +99,7 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
 
         if (newClientRegistrationProvider != null) {
             return Response
-                    .created(URI.create("/configuration/application/registration/providers/" + newClientRegistrationProvider.getId()))
+                    .created(this.getLocationHeader(newClientRegistrationProvider.getId()))
                     .entity(newClientRegistrationProvider)
                     .build();
         }

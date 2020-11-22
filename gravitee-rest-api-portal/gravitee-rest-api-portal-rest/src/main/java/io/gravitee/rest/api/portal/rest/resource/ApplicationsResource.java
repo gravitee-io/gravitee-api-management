@@ -106,7 +106,7 @@ public class ApplicationsResource extends AbstractResource {
         ApplicationEntity createdApplicationEntity = applicationService.create(newApplicationEntity, getAuthenticatedUser());
 
         return Response
-                .status(Response.Status.CREATED)
+                .created(this.getLocationHeader(createdApplicationEntity.getId()))
                 .entity(applicationMapper.convert(createdApplicationEntity, uriInfo))
                 .build();
     }

@@ -141,11 +141,12 @@ public class SwaggerServiceImpl implements SwaggerService {
                 return new OAIDescriptor(descriptor);
             }
         } else {
-            descriptor = new OAIParser().parse(content);
-
-            if (descriptor != null) {
-                return new OAIDescriptor(descriptor);
+            OAIDescriptor oaiDescriptor = new OAIParser().parse(content);
+            if (oaiDescriptor == null || oaiDescriptor.getSpecification() == null) {
+                throw new SwaggerDescriptorException();
             }
+
+            return oaiDescriptor;
         }
 
         throw new SwaggerDescriptorException();

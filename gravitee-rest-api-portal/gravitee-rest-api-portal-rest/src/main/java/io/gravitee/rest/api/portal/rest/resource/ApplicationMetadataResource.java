@@ -34,7 +34,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,7 +76,7 @@ public class ApplicationMetadataResource extends AbstractResource {
 
         final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(newApplicationMetadataEntity);
         return Response
-                .created(URI.create("/applications/" + applicationId + "/metadata/" + applicationMetadataEntity.getKey()))
+                .created(this.getLocationHeader(applicationMetadataEntity.getKey()))
                 .entity(this.referenceMetadataMapper.convert(applicationMetadataEntity))
                 .build();
     }

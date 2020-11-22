@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.portal.rest.resource;
+package io.gravitee.rest.api.management.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.NewTicketEntity;
+import org.junit.Test;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.portal.rest.model.TicketInput;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TicketsResourceTest extends AbstractResourceTest {
+public class PlatformTicketsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
@@ -44,17 +43,17 @@ public class TicketsResourceTest extends AbstractResourceTest {
     
     @Test
     public void shouldCreate() {
-        resetAllMocks();
-        
-        TicketInput input = new TicketInput()
-                .subject("A")
-                .content("B");
-        final Response response = target().request().post(Entity.json(input));
+        reset(ticketService);
+
+        NewTicketEntity ticketEntity = new NewTicketEntity();
+        ticketEntity.setSubject("my-subject");
+        ticketEntity.setContent("my-content");
+
+        final Response response = target().request().post(Entity.json(ticketEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
 
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        Mockito.verify(ticketMapper).convert(input);
-        Mockito.verify(ticketService).create(eq(USER_NAME), any());
+        verify(ticketService).create(eq(USER_NAME), any());
     }
 }

@@ -201,8 +201,7 @@ public class ApiSubscriptionResource extends AbstractResource {
             @PathParam("subscription") String subscription) {
         ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription);
         return Response
-                .created(URI.create("/apis/" + api + "/subscriptions/" + subscription +
-                        "/keys" + apiKeyEntity.getKey()))
+                .created(this.getLocationHeader("keys", apiKeyEntity.getKey()))
                 .entity(apiKeyEntity)
                 .build();
     }

@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.idp.api.identity;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -36,4 +39,6 @@ public interface User {
     String getSource();
     
     String getPicture();
+
+    default Map<String, String> getRoles() {return Collections.emptyMap(); };
 }

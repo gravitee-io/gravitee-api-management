@@ -119,7 +119,7 @@ public class ApiPlansResource extends AbstractResource {
         PlanEntity planEntity = planService.create(newPlanEntity);
 
         return Response
-                .created(URI.create("/apis/" + api + "/plans/" + planEntity.getId()))
+                .created(this.getLocationHeader(planEntity.getId()))
                 .entity(planEntity)
                 .build();
     }
