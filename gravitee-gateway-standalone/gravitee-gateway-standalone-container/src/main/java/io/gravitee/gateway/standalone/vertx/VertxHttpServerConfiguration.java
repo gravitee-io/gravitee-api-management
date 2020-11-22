@@ -42,6 +42,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.alpn:false}")
     private boolean alpn;
 
+    @Value("${http.ssl.tlsProtocols:#{null}}")
+    private String tlsProtocols;
+
     private ClientAuthMode clientAuth;
 
     @Value("${http.ssl.keystore.type:#{null}}")
@@ -76,6 +79,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     @Value("${http.maxChunkSize:8192}")
     private int maxChunkSize;
+
+    @Value("${http.maxInitialLineLength:4096}")
+    private int maxInitialLineLength;
 
     @Value("${http.websocket.enabled:false}")
     private boolean websocketEnabled;
@@ -185,6 +191,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
         this.alpn = alpn;
     }
 
+    public String getTlsProtocols() {
+        return tlsProtocols;
+    }
+
+    public void setTlsProtocols(String tlsProtocols) {
+        this.tlsProtocols = tlsProtocols;
+    }
+
     public int getMaxHeaderSize() {
         return maxHeaderSize;
     }
@@ -231,6 +245,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setWebsocketSubProtocols(String websocketSubProtocols) {
         this.websocketSubProtocols = websocketSubProtocols;
+    }
+
+    public int getMaxInitialLineLength() {
+        return maxInitialLineLength;
+    }
+
+    public void setMaxInitialLineLength(int maxInitialLineLength) {
+        this.maxInitialLineLength = maxInitialLineLength;
     }
 
     public boolean isPerMessageWebSocketCompressionSupported() {
