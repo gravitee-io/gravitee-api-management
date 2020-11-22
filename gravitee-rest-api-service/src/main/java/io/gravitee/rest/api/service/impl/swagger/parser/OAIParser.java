@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.swagger.parser;
 
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
+import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
+public class OAIParser extends AbstractSwaggerParser<OAIDescriptor> {
 
     private final Logger logger = LoggerFactory.getLogger(OAIParser.class);
 
@@ -44,11 +45,11 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
     }
 
     @Override
-    public OpenAPI parse(String content, boolean failIfErrors) {
-        return this.parse(content, true, null, failIfErrors);
+    public OAIDescriptor parse(String content) {
+        return this.parse(content, true, null);
     }
 
-    private OpenAPI parse(String content, boolean reparse, ParseOptions options, boolean failIfErrors) {
+    private OAIDescriptor parse(String content, boolean reparse, ParseOptions options) {
         OpenAPIParser parser = new OpenAPIParser();
         SwaggerParseResult parseResult;
         String path = content;
@@ -75,10 +76,8 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
             parseResult.setMessages(filteredMessages);
         }
 
-        if (failIfErrors && parseResult != null && parseResult.getOpenAPI() != null &&
-                (parseResult.getMessages() != null && !parseResult.getMessages().isEmpty())) {
-            throw new SwaggerDescriptorException(parseResult.getMessages());
-
+        if (parseResult == null || parseResult.getOpenAPI() == null) {
+            throw new SwaggerDescriptorException("Malformed descriptor");
         }
 
 
@@ -90,11 +89,13 @@ public class OAIParser extends AbstractSwaggerParser<OpenAPI> {
                 ParseOptions reparseOptions = new ParseOptions();
                 reparseOptions.setResolveFully(true);
 
-                return this.parse(Yaml.pretty(parseResult.getOpenAPI()), false, reparseOptions, failIfErrors);
+                return this.parse(Yaml.pretty(parseResult.getOpenAPI()), false, reparseOptions);
             }
-            return parseResult.getOpenAPI();
+
         }
-        return null;
+        OAIDescriptor descriptor = new OAIDescriptor(parseResult.getOpenAPI());
+        descriptor.setMessages(parseResult.getMessages());
+        return descriptor;
     }
 
 

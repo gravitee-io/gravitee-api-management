@@ -96,7 +96,7 @@ public class ApplicationMetadataResource extends AbstractResource {
 
         final ApplicationMetadataEntity applicationMetadataEntity = metadataService.create(metadata);
         return Response
-                .created(URI.create("/applications/" + application + "/metadata/" + applicationMetadataEntity.getKey()))
+                .created(this.getLocationHeader(applicationMetadataEntity.getKey()))
                 .entity(applicationMetadataEntity)
                 .build();
     }

@@ -39,7 +39,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -148,7 +147,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         return Response
-                .created(URI.create("/apis/" + api + "/subscriptions/" + subscription.getId()))
+                .created(this.getRequestUriBuilder().path(subscription.getId()).replaceQueryParam("application", null).replaceQueryParam("plan", null).build())
                 .entity(convert(subscription))
                 .build();
     }

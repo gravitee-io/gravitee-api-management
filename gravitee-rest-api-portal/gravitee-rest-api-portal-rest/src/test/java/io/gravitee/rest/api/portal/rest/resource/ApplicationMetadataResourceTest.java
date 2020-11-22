@@ -30,6 +30,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,11 +46,6 @@ import static org.mockito.Mockito.*;
  */
 public class ApplicationMetadataResourceTest extends AbstractResourceTest {
 
-    @Override
-    protected String contextPath() {
-        return "applications/";
-    }
-
     private static final String APPLICATION = "my-application";
     private static final String UNKNOWN_APPLICATION = "unknown-application";
     private static final String METADATA_1 = "my-metadata-1";
@@ -58,8 +54,12 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
     private static final String METADATA_1_VALUE = "my-metadata-1-value";
     private static final String METADATA_1_DEFAULT_VALUE = "my-metadata-1-defaut-value";
     private static final String METADATA_2 = "my-metadata-2";
-
     private static final String UNKNOWN_METADATA = "unknown-metadata";
+
+    @Override
+    protected String contextPath() {
+        return "applications/";
+    }
 
     @Before
     public void init() {
@@ -205,6 +205,7 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
                 .value(METADATA_1_VALUE);
         final Response response = target(APPLICATION).path("metadata").request().post(Entity.json(metadataInput));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertEquals(target(APPLICATION).path("metadata").path(METADATA_1).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         ArgumentCaptor<NewApplicationMetadataEntity> newMetadataEntityCaptor = ArgumentCaptor.forClass(NewApplicationMetadataEntity.class);
 

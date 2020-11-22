@@ -16,16 +16,19 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -91,5 +94,23 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertEquals(envTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+    }
+
+    @Test
+    public void shouldImportApiFromSwager() {
+        reset(apiService, swaggerService);
+        ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        swaggerDescriptor.setPayload("my-payload");
+
+        ApiEntity createdApi = new ApiEntity();
+        createdApi.setId("my-beautiful-api");
+        doReturn(createdApi).when(apiService).createFromSwagger(any(), any(), any());
+
+        final Response response = envTarget().path("import").path("swagger").request().post(Entity.json(swaggerDescriptor));
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertEquals(envTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+
+        verify(swaggerService).createAPI(argThat(argument -> argument.getPayload().equalsIgnoreCase(swaggerDescriptor.getPayload())));
     }
 }

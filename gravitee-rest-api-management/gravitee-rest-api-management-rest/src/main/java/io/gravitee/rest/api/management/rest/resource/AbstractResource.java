@@ -32,6 +32,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +57,8 @@ public abstract class AbstractResource {
 
     @Context
     protected SecurityContext securityContext;
+    @Context
+    protected UriInfo uriInfo;
 
     @Inject
     protected MembershipService membershipService;
@@ -137,5 +142,17 @@ public abstract class AbstractResource {
                 throw new ForbiddenAccessException();
             }
         }
+    }
+
+    protected UriBuilder getRequestUriBuilder() {
+        return this.uriInfo.getRequestUriBuilder();
+    }
+
+    protected URI getLocationHeader(String...paths) {
+        final UriBuilder requestUriBuilder = this.uriInfo.getRequestUriBuilder();
+        for(String path: paths) {
+            requestUriBuilder.path(path);
+        }
+        return requestUriBuilder.build();
     }
 }

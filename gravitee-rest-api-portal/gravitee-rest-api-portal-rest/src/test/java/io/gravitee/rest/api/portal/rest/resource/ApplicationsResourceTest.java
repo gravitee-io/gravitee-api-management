@@ -29,13 +29,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -43,12 +43,12 @@ import static org.mockito.Mockito.times;
  */
 public class ApplicationsResourceTest extends AbstractResourceTest {
 
+    private static final String APPLICATION = "my-application";
+
     @Override
     protected String contextPath() {
         return "applications";
     }
-
-    private static final String APPLICATION = "my-application";
 
     @Before
     public void init() {
@@ -69,7 +69,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         doReturn(new Application().id("B").name("B")).when(applicationMapper).convert(eq(applicationListItem2), any());
 
 
-        ApplicationEntity createdEntity = new ApplicationEntity();
+        ApplicationEntity createdEntity = mock(ApplicationEntity.class);
+        doReturn("NEW").when(createdEntity).getId();
         doReturn(createdEntity).when(applicationService).create(any(), any());
         doReturn(new Application().id("NEW")).when(applicationMapper).convert(eq(createdEntity), any());
 
@@ -217,6 +218,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         final Response response = target().request().post(Entity.json(input));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertEquals(target().path("NEW").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         ArgumentCaptor<NewApplicationEntity> captor = ArgumentCaptor.forClass(NewApplicationEntity.class);
         Mockito.verify(applicationService).create(captor.capture(), any());

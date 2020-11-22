@@ -142,13 +142,13 @@ public class ApplicationMembersResource extends AbstractResource {
             }
         }
         if (membership == null) {
-            membership = membershipService.addRoleToMemberOnReference(
+            membershipService.addRoleToMemberOnReference(
                     reference,
                     member,
                     role);
         }
 
-        return Response.created(URI.create("/applications/" + application + "/members/" + membership.getId())).build();
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @DELETE

@@ -38,7 +38,6 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
@@ -720,7 +719,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
             page.setCreatedAt(new Date());
             page.setUpdatedAt(page.getCreatedAt());
 
-            Page createdPage = validateContentAndCreate(page);
+            List<String> messages = validateSafeContent(page) ;
+            Page createdPage = this.pageRepository.create(page);
 
             if (createRevision) {
                 createPageRevision(createdPage);
@@ -731,6 +731,9 @@ public class PageServiceImpl extends TransactionalService implements PageService
             createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
                     PAGE_CREATED, page.getCreatedAt(), null, page);
             PageEntity pageEntity = convert(createdPage);
+            if (messages != null && messages.size() > 0) {
+                pageEntity.setMessages(messages);
+            }
 
             // add document in search engine
             index(pageEntity);
@@ -990,7 +993,8 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
                 return null;
             } else {
-                Page updatedPage = validateContentAndUpdate(page);
+                List<String> messages = validateSafeContent(page) ;
+                Page updatedPage = pageRepository.update(page);
 
                 if (pageToUpdate.isPublished() != page.isPublished()
                         && !PageType.LINK.name().equalsIgnoreCase(pageType)
@@ -1007,6 +1011,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 }
 
                 PageEntity pageEntity = convert(updatedPage);
+                pageEntity.setMessages(messages);
 
                 // update document in search engine
                 if (pageToUpdate.isPublished() && !page.isPublished()) {
@@ -1591,13 +1596,15 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 page.setCreatedAt(new Date());
                 page.setUpdatedAt(page.getCreatedAt());
                 page.setId(RandomString.generate());
-                return validateContentAndCreate(page);
+                validateSafeContent(page) ;
+                return pageRepository.create(page) ;
             } else {
                 page.setId(searchResult.get(0).getId());
                 final FetcherConfiguration configuration = this.getFetcher(searchResult.get(0).getSource()).getConfiguration();
                 mergeSensitiveData(configuration, page);
                 page.setUpdatedAt(new Date());
-                return validateContentAndUpdate(page);
+                validateSafeContent(page) ;
+                return pageRepository.update(page);
             }
         } catch (TechnicalException | FetcherException ex) {
             logger.error("An error occurs while trying to save the configuration", ex);
@@ -1838,14 +1845,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
         page.setUpdatedAt(new Date());
         page.setLastContributor(contributor);
 
-        Page updatedPage = validateContentAndUpdate(page);
+        List<String> messages = validateSafeContent(page);
+        Page updatedPage = pageRepository.update(page);
         if (isSwaggerOrMarkdown(updatedPage.getType()) && pageHasChanged(updatedPage, previousPage)) {
             createPageRevision(updatedPage);
         }
 
         createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
                 PAGE_UPDATED, page.getUpdatedAt(), page, page);
-        return convert(updatedPage);
+        PageEntity pageEntity = convert(updatedPage);
+        pageEntity.setMessages(messages);
+        return pageEntity;
     }
 
     private List<PageEntity> fetchPages(final String apiId, ImportPageEntity pageEntity) {
@@ -2055,36 +2065,33 @@ public class PageServiceImpl extends TransactionalService implements PageService
         this.applicationContext = applicationContext;
     }
 
-    private Page validateContentAndCreate(Page page) throws TechnicalException {
-
-        validateSafeContent(page);
-        return pageRepository.create(page);
-    }
-
-    private Page validateContentAndUpdate(Page page) throws TechnicalException {
-
-        validateSafeContent(page);
-        return pageRepository.update(page);
-    }
-
-    private void validateSafeContent(Page page) {
-
-        if (markdownSanitize && PageType.MARKDOWN.name().equals(page.getType())) {
-            String apiId = null;
-            if (page.getReferenceType().equals(PageReferenceType.API)) {
-                apiId = page.getReferenceId();
-            }
-
-            PageEntity newPageEntity = convert(page);
-            this.transformWithTemplate(newPageEntity, apiId);
-            HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(newPageEntity.getContent());
-
-            if (!sanitizeInfos.isSafe()) {
-                throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
-            }
-        } else if (PageType.SWAGGER.name().equals(page.getType())) {
-            new OAIParser().parse(page.getContent(), false);
+    private List<String> validateSafeContent(Page page) {
+        String apiId = null;
+        if (PageReferenceType.API.equals(page.getReferenceType())) {
+            apiId = page.getReferenceId();
         }
+
+        return validateSafeContent(convert(page), apiId);
+    }
+
+    @Override
+    public List<String> validateSafeContent(PageEntity pageEntity, String apiId) {
+        if (pageEntity != null) {
+            if (markdownSanitize && PageType.MARKDOWN.name().equals(pageEntity.getType())) {
+                this.transformWithTemplate(pageEntity, apiId);
+                HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(pageEntity.getContent());
+
+                if (!sanitizeInfos.isSafe()) {
+                    throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
+                }
+            } else if (PageType.SWAGGER.name().equals(pageEntity.getType())  && pageEntity.getContent() != null) {
+                OAIDescriptor openApiDescriptor = new OAIParser().parse(pageEntity.getContent());
+                if (openApiDescriptor != null && openApiDescriptor.getMessages() != null) {
+                    return openApiDescriptor.getMessages();
+                }
+            }
+        }
+        return new ArrayList<>() ;
     }
 
     private void validateSafeSource(Page page) {
