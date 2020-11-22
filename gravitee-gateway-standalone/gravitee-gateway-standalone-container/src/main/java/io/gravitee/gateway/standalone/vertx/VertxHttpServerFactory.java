@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,6 +60,11 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         if (httpServerConfiguration.isSecured()) {
             options.setSsl(httpServerConfiguration.isSecured());
             options.setUseAlpn(httpServerConfiguration.isAlpn());
+
+            // TLS protocol support
+            if(httpServerConfiguration.getTlsProtocols() != null) {
+                options.setEnabledSecureTransportProtocols(new HashSet<>(Arrays.asList(httpServerConfiguration.getTlsProtocols().split("\\s*,\\s*"))));
+            }
 
             if (httpServerConfiguration.isClientAuth() == VertxHttpServerConfiguration.ClientAuthMode.NONE) {
                 options.setClientAuth(ClientAuth.NONE);
@@ -109,6 +115,7 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         options.setTcpKeepAlive(httpServerConfiguration.isTcpKeepAlive());
         options.setMaxChunkSize(httpServerConfiguration.getMaxChunkSize());
         options.setMaxHeaderSize(httpServerConfiguration.getMaxHeaderSize());
+        options.setMaxInitialLineLength(httpServerConfiguration.getMaxInitialLineLength());
 
         // Configure websocket
         System.setProperty("vertx.disableWebsockets", Boolean.toString(!httpServerConfiguration.isWebsocketEnabled()));
