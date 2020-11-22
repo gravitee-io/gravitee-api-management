@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
 import RoleService from '../../../../../services/role.service';
 import ApiService from '../../../../../services/api.service';
+import * as _ from 'lodash';
 
 function DialogAddMemberApiController($scope, $mdDialog, api, members, ApiService: ApiService, NotificationService,
-  RoleService: RoleService, UserService) {
+                                      RoleService: RoleService) {
   'ngInject';
 
   RoleService.list('API').then(function (roles) {
@@ -28,32 +28,13 @@ function DialogAddMemberApiController($scope, $mdDialog, api, members, ApiServic
   $scope.api = api;
   $scope.members = members;
   $scope.usersSelected = [];
-  $scope.searchText = '';
+
+  $scope.userFilterFn = (user: any) => {
+    return _.findIndex($scope.members, { id: user.id }) === -1;
+  };
 
   $scope.hide = function () {
     $mdDialog.cancel();
-  };
-
-  $scope.searchUser = function (query) {
-    if (query) {
-      return UserService.search(query).then(function (response) {
-        return _.filter(response.data, (user: any) => { return _.findIndex($scope.members, { id: user.id }) === -1; });
-      });
-    }
-  };
-
-  $scope.getUserAvatar = function (id?: string) {
-    return (id) ? UserService.getUserAvatar(id) : 'assets/default_photo.png';
-  };
-
-  $scope.selectUser = function (user) {
-    if (user && user.reference) {
-      let selected = _.find($scope.usersSelected, { reference: user.reference });
-      if (!selected) {
-        $scope.usersSelected.push(user);
-      }
-      $scope.searchText = '';
-    }
   };
 
   $scope.addMembers = function () {

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import UserService from '../../../../services/user.service';
 
 export class Role {
   default: boolean;
@@ -23,7 +22,6 @@ export class Role {
 
 function DialogAddGroupMemberController(
   $mdDialog: angular.material.IDialogService,
-  UserService: UserService,
   group: any,
   defaultApiRole: string,
   defaultApplicationRole: string,
@@ -41,7 +39,6 @@ function DialogAddGroupMemberController(
   this.defaultApiRole = defaultApiRole;
   this.defaultApplicationRole = defaultApplicationRole;
   this.usersSelected = [];
-  this.searchText = '';
   this.defaultApiRole = (defaultApiRole) ? defaultApiRole : _.find(apiRoles, {default: true}).name;
   this.defaultApplicationRole = (defaultApplicationRole) ? defaultApplicationRole : _.find(applicationRoles, {default: true}).name;
 
@@ -50,28 +47,6 @@ function DialogAddGroupMemberController(
 
   this.hide = () => {
     $mdDialog.cancel();
-  };
-
-  this.searchUser = (query) => {
-    if (query) {
-      return UserService.search(query).then((response) =>
-        response.data
-    );
-    }
-  };
-
-  this.getUserAvatar = (id?: string) => {
-    return (id) ? UserService.getUserAvatar(id) : 'assets/default_photo.png';
-  };
-
-  this.selectUser = (user) => {
-    if (user && user.reference) {
-      let selected = _.find(this.usersSelected, {reference: user.reference});
-      if (!selected) {
-        this.usersSelected.push(user);
-      }
-      this.searchText = '';
-    }
   };
 
   this.addMembers = () => {

@@ -400,6 +400,8 @@ import AlertTriggerMetricsSimpleConditionComponent
   from '../components/alerts/alert/triggers/trigger-metrics-simple-condition.component';
 import AlertTriggerMetricsAggregationComponent
   from '../components/alerts/alert/triggers/trigger-metrics-aggregation.component';
+import AlertTriggerMissingDataComponent
+  from '../components/alerts/alert/triggers/trigger-missing-data.component';
 import AlertTriggerMetricsRateComponent from '../components/alerts/alert/triggers/trigger-metrics-rate.component';
 import AlertTriggerApiHealthCheckEndpointStatusChangedComponent
   from '../components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component';
@@ -453,6 +455,12 @@ import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/token/generateTokenDialog.controller';
 // Newsletter
 import NewsletterSubscriptionComponent from '../components/newsletter-subcription/newsletter-subscription.component';
+
+
+// User-Autocomplete
+import UserAutocompleteComponent from '../components/user-autocomplete/user-autocomplete.component';
+import UserAutocompleteController from '../components/user-autocomplete/user-autocomplete.controller';
+
 import DialogReviewController from './api/review/reviewDialog.controller';
 import DialogRequestForChangesController from './api/portal/general/dialog/requestForChanges.controller';
 import ApplicationSubscribeComponent from './application/details/subscribe/application-subscribe.component';
@@ -1003,6 +1011,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('gvAlertTriggerConditionCompare', AlertTriggerConditionCompareComponent)
   .component('gvAlertTriggerMetricsSimpleCondition', AlertTriggerMetricsSimpleConditionComponent)
   .component('gvAlertTriggerMetricsAggregation', AlertTriggerMetricsAggregationComponent)
+  .component('gvAlertTriggerMissingData', AlertTriggerMissingDataComponent)
   .component('gvAlertTriggerMetricsRate', AlertTriggerMetricsRateComponent)
   .component('gvAlertTriggerApiHealthCheckStatusChanged', AlertTriggerApiHealthCheckEndpointStatusChangedComponent)
   .component('gvAlertTriggerNodeLifecycleChanged', AlertTriggerNodeLifecycleChangedComponent)
@@ -1030,6 +1039,10 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('platformLogs', PlatformLogsComponent)
   .component('platformLog', PlatformLogComponent)
   .controller('PlatformLogsController', PlatformLogsController)
+
+  // User-Autocomplete
+  .component('gvUserAutocomplete', UserAutocompleteComponent)
+  .controller('UserAutocompleteController', UserAutocompleteController)
 
   .filter('humanDateFilter', function () {
     return function (input) {

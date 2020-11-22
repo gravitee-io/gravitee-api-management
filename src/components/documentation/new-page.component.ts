@@ -196,7 +196,11 @@ const NewPageComponent: ng.IComponentOptions = {
       DocumentationService.create(this.page, this.apiId)
         .then( (response: any) => {
           const page = response.data;
-          NotificationService.show('\'' + page.name + '\' has been created');
+          if (page.messages && page.messages.length > 0) {
+            NotificationService.showError('\'' + page.name + '\' has been created (with validation errors - check the bottom of the page for details)');
+          } else {
+            NotificationService.show('\'' + page.name + '\' has been created');
+          }
           if (page.type === 'FOLDER') {
             this.gotoParent();
           } else {
