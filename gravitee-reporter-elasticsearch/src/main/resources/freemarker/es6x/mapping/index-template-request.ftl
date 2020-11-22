@@ -4,7 +4,16 @@
     "settings": {
         "index.number_of_shards":${numberOfShards},
         "index.number_of_replicas":${numberOfReplicas},
-        "index.refresh_interval": "${refreshInterval}"
+        "index.refresh_interval": "${refreshInterval}",
+        "index.search.slowlog.threshold.query.warn": "${slowLogThresholdQueryWarn}",
+        "index.search.slowlog.threshold.query.info": "${slowLogThresholdQueryInfo}",
+        "index.search.slowlog.threshold.query.debug": "${slowLogThresholdQueryDebug}",
+        "index.search.slowlog.threshold.query.trace": "${slowLogThresholdQueryTrace}",
+        "index.search.slowlog.threshold.fetch.warn": "${slowLogThresholdFetchWarn}",
+        "index.search.slowlog.threshold.fetch.info": "${slowLogThresholdFetchInfo}",
+        "index.search.slowlog.threshold.fetch.debug": "${slowLogThresholdFetchDebug}",
+        "index.search.slowlog.threshold.fetch.trace": "${slowLogThresholdFetchTrace}",
+        "index.search.slowlog.level": "${slowLogLevel}"
     },
     "mappings": {
         "request": {
@@ -106,34 +115,12 @@
                 },
                 "user_agent": {
                     "properties": {
-                        "device": {
-                            "properties": {
-                                "name": {
-                                    "type": "keyword"
-                                }
-                            }
-                        },
                         "name": {
                             "type": "keyword",
                             "index": true
                         },
                         "original": {
                             "type": "text"
-                        },
-                        "os": {
-                            "properties": {
-                                "full": {
-                                    "type": "text"
-                                },
-                                "name": {
-                                    "type": "keyword",
-                                    "index": true
-                                },
-                                "version": {
-                                    "type": "keyword",
-                                    "index": true
-                                }
-                            }
                         },
                         "os_name": {
                             "type": "keyword",
