@@ -271,7 +271,7 @@
         <nimbus-jwt.version>8.19</nimbus-jwt.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <protobuf-java.version>3.12.2</protobuf-java.version>
-        <hazelcast.version>3.12.9</hazelcast.version>
+        <hazelcast.version>4.1</hazelcast.version>
         <jmh.version>1.26</jmh.version>
     </properties>
 
