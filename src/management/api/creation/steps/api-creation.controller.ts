@@ -17,7 +17,6 @@ import * as _ from 'lodash';
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import ApiEditPlanController from '../../portal/plans/plan/edit-plan.controller';
 import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';
 
 class ApiCreationController {
@@ -245,8 +244,6 @@ class ApiCreationController {
             api.data.etag = response.headers('etag');
             _this.api = api.data;
             _this.$rootScope.$broadcast('apiChangeSuccess', {api: api.data});
-        _this.ApiService.deploy(api.data.id).then(function() {
-          _this.ApiService.start(api.data).then(function() {
           });
         }
         return api;
