@@ -123,6 +123,8 @@ class ApiPolicyStudioController {
   setApi(api) {
     if (api !== this.api) {
       this.api = api;
+      // force refresh
+      this.studio.removeAttribute('definition');
       this.studio.setAttribute('definition', JSON.stringify({
         'name': this.api.name,
         'version': this.api.version,
@@ -131,6 +133,8 @@ class ApiPolicyStudioController {
         'plans': this.api.plans != null ? this.api.plans : [],
         'properties': this.api.properties,
       }));
+      // force refresh
+      this.studio.removeAttribute('services');
       this.studio.setAttribute('services', JSON.stringify(this.api.services));
       this.studio.removeAttribute('dirty');
     }
@@ -157,6 +161,7 @@ class ApiPolicyStudioController {
   fetchResourceDocumentation(event) {
     this.studio.setAttribute('documentation', null);
     const {detail: {resourceType, target}} = event;
+    // force refresh
     target.setAttribute('documentation', null);
     this.ResourceService.getDocumentation(resourceType.id).then((response) => {
       target.setAttribute('documentation', JSON.stringify({content: response.data, image: resourceType.icon}));
