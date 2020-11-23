@@ -29,6 +29,7 @@ public abstract class AbstractHttpProxyConnection implements ProxyConnection {
 
     protected final HttpEndpoint endpoint;
     protected Handler<ProxyResponse> responseHandler;
+    protected Handler<Void> cancelHandler;
 
     public AbstractHttpProxyConnection(HttpEndpoint endpoint) {
         this.endpoint = endpoint;
@@ -45,5 +46,11 @@ public abstract class AbstractHttpProxyConnection implements ProxyConnection {
     public ProxyConnection responseHandler(Handler<ProxyResponse> responseHandler) {
         this.responseHandler = responseHandler;
         return this;
+    }
+
+    @Override
+    public ProxyConnection cancelHandler(Handler<Void> cancelHandler) {
+        this.cancelHandler = cancelHandler;
+        return null;
     }
 }

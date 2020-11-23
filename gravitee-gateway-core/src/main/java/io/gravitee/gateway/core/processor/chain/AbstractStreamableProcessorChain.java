@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
+import io.gravitee.gateway.core.processor.RuntimeProcessorFailure;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 
 /**
@@ -36,27 +37,31 @@ public abstract class AbstractStreamableProcessorChain<T, S, P extends Streamabl
     @Override
     public void handle(T data) {
         if (hasNext()) {
-            P processor = next(data);
+            try {
+                P processor = next(data);
 
-            if (streamableProcessorChain == null) {
-                streamableProcessorChain = processor;
+                if (streamableProcessorChain == null) {
+                    streamableProcessorChain = processor;
+                }
+
+                // Chain policy stream using the previous one
+                if (previousProcessor != null) {
+                    previousProcessor.bodyHandler(processor::write);
+                    previousProcessor.endHandler(result1 -> processor.end());
+                }
+
+                // Previous stream is now the current policy stream
+                previousProcessor = processor;
+
+                processor
+                        .handler(__ -> handle(data))
+                        .errorHandler(failure -> errorHandler.handle(failure))
+                        .exitHandler(stream -> exitHandler.handle(null))
+                        .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
+                        .handle(data);
+            } catch (Exception ex) {
+                errorHandler.handle(new RuntimeProcessorFailure(ex.getMessage()));
             }
-
-            // Chain policy stream using the previous one
-            if (previousProcessor != null) {
-                previousProcessor.bodyHandler(processor::write);
-                previousProcessor.endHandler(result1 -> processor.end());
-            }
-
-            // Previous stream is now the current policy stream
-            previousProcessor = processor;
-
-            processor
-                    .handler(__ -> handle(data))
-                    .errorHandler(failure -> errorHandler.handle(failure))
-                    .exitHandler(stream -> exitHandler.handle(null))
-                    .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
-                    .handle(data);
         } else {
             ReadWriteStream<S> tailPolicyStreamer = previousProcessor;
             if (streamableProcessorChain != null && tailPolicyStreamer != null) {

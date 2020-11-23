@@ -169,8 +169,14 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         proxyResponse.customFrameHandler(frame -> context.response().writeCustomFrame(frame));
 
         chain
-                .errorHandler(failure -> handleError(context, failure))
-                .streamErrorHandler(failure -> handleError(context, failure))
+                .errorHandler(failure -> {
+                    proxyResponse.cancel();
+                    handleError(context, failure);
+                })
+                .streamErrorHandler(failure -> {
+                    proxyResponse.cancel();
+                    handleError(context, failure);
+                })
                 .exitHandler(__ -> handler.handle(context))
                 .handler(stream -> {
                     chain

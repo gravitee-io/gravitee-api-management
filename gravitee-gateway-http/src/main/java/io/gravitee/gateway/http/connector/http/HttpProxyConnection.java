@@ -95,6 +95,8 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
         httpClientRequest = prepareUpstreamRequest(httpClient, port, host, uri);
 
+        cancelHandler(tracker);
+
         httpClientRequest.handler(event -> {
             // Prepare upstream response
             handleUpstreamResponse(event, tracker);
@@ -162,6 +164,8 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
         proxyResponse.pause();
 
+        proxyResponse.cancelHandler(tracker);
+
         // Copy body content
         clientResponse.handler(event -> proxyResponse.bodyHandler().handle(Buffer.buffer(event.getBytes())));
 
@@ -194,6 +198,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
     public ProxyConnection cancel() {
         this.canceled = true;
         this.httpClientRequest.reset();
+        cancelHandler.handle(null);
         if (proxyResponse != null) {
             proxyResponse.bodyHandler(null);
         }
