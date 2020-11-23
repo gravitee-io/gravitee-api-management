@@ -79,6 +79,8 @@
             <exclude>**/*.ttf</exclude>
             <exclude>**/*.woff2</exclude>
             <exclude>**/*.eot</exclude>
+            <exclude>.*</exclude>
+            <exclude>.*/**</exclude>
             <exclude>package-json.lock</exclude>
             <exclude>.tmp/**</exclude>
             <exclude>.vscode/**</exclude>

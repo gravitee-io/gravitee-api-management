@@ -34,7 +34,9 @@ class ApplicationMembersController {
   private groupMembers: any;
   private groupIdsWithMembers: any;
   private resolvedGroups: any;
-  private newPrimaryOwner: any;
+  private usersSelected = [];
+  private userFilterFn;
+  private defaultUsersList: string[];
 
   constructor(
     private ApplicationService: ApplicationService,
@@ -48,11 +50,11 @@ class ApplicationMembersController {
     'ngInject';
 
     const that = this;
-    this.newPrimaryOwner = null;
     RoleService.list('APPLICATION').then(function (roles) {
       that.roles = roles;
       that.newPORoles = _.filter(roles, (role: any) => {
-        return role.name !== 'PRIMARY_OWNER'; });
+        return role.name !== 'PRIMARY_OWNER';
+      });
       that.newPORole = _.find(roles, (role: any) => {
         return role.default;
       });
@@ -81,6 +83,17 @@ class ApplicationMembersController {
         });
       });
     }
+
+    this.userFilterFn = (user: any) => {
+      return user.id === undefined || _.findIndex(this.members,
+        function (member: any) {
+          return member.id === user.id && member.role === 'PRIMARY_OWNER';
+        }) === -1;
+    };
+
+    this.defaultUsersList = _.filter(this.members, (member: any) => {
+      return member.role !== 'PRIMARY_OWNER';
+    });
   }
 
   updateMember(member) {
@@ -133,30 +146,15 @@ class ApplicationMembersController {
       }
     }).then(function (application) {
       if (application) {
-        that.$state.go('management.applications.application.members', {applicationId: that.application.id}, {reload: true});
+        that.$state.go('management.applications.application.members', { applicationId: that.application.id }, { reload: true });
       }
-    }, function() {
-       // You cancelled the dialog
+    }, function () {
+      // You cancelled the dialog
     });
   }
 
-  searchUser(query) {
-    if (query) {
-      return this.UserService.search(query).then((response) => {
-        return _.filter(response.data, (user: any) => {
-          return  user.id === undefined || _.findIndex(this.members,
-              function(member: any) {
-                return member.id === user.id && member.role === 'PRIMARY_OWNER';
-              }) === -1;
-        });
-      });
-    } else {
-      return _.filter(this.members, (member: any) => { return member.role !== 'PRIMARY_OWNER'; });
-    }
-  }
-
   getMembershipDisplay(member): string {
-    if (! member.displayName) {
+    if (!member.displayName) {
       return member.username;
     }
 
@@ -167,16 +165,6 @@ class ApplicationMembersController {
 
   getMembershipAvatar(member): string {
     return (member.id) ? this.UserService.getUserAvatar(member.id) : 'assets/default_photo.png';
-  }
-
-  selectedUserChange(user) {
-    if (user) {
-      this.newPrimaryOwner = user;
-    } else {
-      if (this.newPrimaryOwner !== null) {
-        this.newPrimaryOwner = null;
-      }
-    }
   }
 
   showTransferOwnershipConfirm(ev) {
@@ -216,8 +204,8 @@ class ApplicationMembersController {
 
   private transferOwnership(newRole: string) {
     let ownership = {
-      id: this.newPrimaryOwner.id,
-      reference: this.newPrimaryOwner.reference,
+      id: this.usersSelected[0].id,
+      reference: this.usersSelected[0].reference,
       role: newRole
     };
 

@@ -120,7 +120,9 @@ function interceptorConfig(
   const csrfInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
       request: function (config) {
-        config.headers['X-Xsrf-Token'] = xsrfToken;
+        if (xsrfToken) {
+          config.headers['X-Xsrf-Token'] = xsrfToken;
+        }
         return config;
       },
       response: function (response) {
@@ -145,7 +147,10 @@ function interceptorConfig(
         let reCaptchaService: ReCaptchaService = $injector.get('ReCaptchaService');
 
         if (reCaptchaService && reCaptchaService.isEnabled()) {
-          config.headers[reCaptchaService.getHeaderName()] = reCaptchaService.getCurrentToken();
+          let currentReCaptchaToken = reCaptchaService.getCurrentToken();
+          if (currentReCaptchaToken) {
+            config.headers[reCaptchaService.getHeaderName()] = currentReCaptchaToken;
+          }
         }
         return config;
       }

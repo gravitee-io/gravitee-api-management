@@ -8,7 +8,6 @@
 @import 'proxy/backend/healthcheck/healthcheck';
 @import 'portal/plans/apiPlans';
 @import 'portal/subscriptions/subscriptions';
-@import 'portal/userGroupAccess/members/members';
 
 .gravitee-api-container {
   border: 1px solid;
@@ -110,17 +109,17 @@
 
 .api-box-footer {
   margin-top: 5px;
-  border-top: 1px solid rgba(0,0,0,.12);
+  border-top: 1px solid rgba(0, 0, 0, .12);
   padding: 2px;
 }
 
 .gravitee-api-header-description {
-	background-color: transparent;
+  background-color: transparent;
 }
 
 .gravitee-api-header-read-more {
-	height: 40px;
-	color: grey;
+  height: 40px;
+  color: grey;
 }
 
 .gravitee-api-header-image {
@@ -132,7 +131,7 @@
   min-height: 110px;
   max-height: 110px;
   border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(25,25,34,0.12);
+  box-shadow: 0 1px 2px rgba(25, 25, 34, 0.12);
 }
 
 .gravitee-api-documentation-empty {
@@ -153,16 +152,16 @@
 }
 
 .gravitee-api-banner-content {
-  background:#dfa941;
+  background: #dfa941;
   padding: .5rem;
-  text-align:center;
-  color:white;
+  text-align: center;
+  color: white;
   line-height: 0.7rem;
-  text-shadow: 0 1px 1px rgba(0,0,0,.25);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
 }
 
 .gravitee-api-banner-content:hover {
-  background:#e8ac3c;
+  background: #e8ac3c;
 }
 
 .gravitee-api-banner-content a {
@@ -192,12 +191,12 @@
 }
 
 .gravitee-api-card {
-  background:#fff;
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12)
+  background: #fff;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .2), 0 1px 1px 0 rgba(0, 0, 0, .14), 0 2px 1px -1px rgba(0, 0, 0, .12)
 }
 
 .gravitee-api-card:hover {
-  box-shadow:0 1px 6px 1px rgba(0,0,0,.37);
+  box-shadow: 0 1px 6px 1px rgba(0, 0, 0, .37);
 }
 
 .apis-header-filter {
@@ -213,7 +212,7 @@
   margin-bottom: 20px;
 
   label {
-    color: rgba(0,0,0,0.54);
+    color: rgba(0, 0, 0, 0.54);
     font-size: 11px;
     margin-left: 3px;
     margin-bottom: 10px;
@@ -277,15 +276,16 @@ span.proxy-deactivated {
     text-transform: uppercase;
     line-height: 48px;
   }
-  input[type="file"]{
+
+  input[type="file"] {
     cursor: pointer;
   }
 }
 
 
-.highlight{
-  color: black !important ;
-  font-weight: bolder !important ;
+.highlight {
+  color: black !important;
+  font-weight: bolder !important;
 }
 
 api-creation {
@@ -333,13 +333,17 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
 }
 
 .selectdemoSelectHeader {
-  /* Please note: All these selectors are only applied to children of elements with the 'selectdemoSelectHeader' class */ }
+  /* Please note: All these selectors are only applied to children of elements with the 'selectdemoSelectHeader' class */
+}
+
 .selectdemoSelectHeader .demo-header-searchbox {
   border: none;
   outline: none;
   height: 100%;
   width: 100%;
-  padding: 0; }
+  padding: 0;
+}
+
 .selectdemoSelectHeader .demo-select-header {
   box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(0, 0, 0, 0.14), 0 0 0 0 rgba(0, 0, 0, 0.12);
   padding-left: 10.667px;
@@ -348,9 +352,12 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
   position: relative;
   display: flex;
   align-items: center;
-  width: auto; }
+  width: auto;
+}
+
 .selectdemoSelectHeader md-content._md {
-  max-height: 240px; }
+  max-height: 240px;
+}
 
 /**
  * Quality Metrics
@@ -362,8 +369,9 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
   //}
 }
 
-.gravitee-qm-score{
+.gravitee-qm-score {
 }
+
 .gravitee-qm-score-small {
   text-align: center;
   min-width: 42px;
@@ -374,6 +382,7 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
   display: inline-block;
   font-size: 0.8em;
 }
+
 .gravitee-qm-score-large {
   font-weight: bold;
   text-align: center;
@@ -385,28 +394,35 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
   padding: 18px 0 0 0;
   margin: 4px 0;
 }
+
 .gravitee-qm-score-bad {
   color: red;
   border-color: red;
 }
+
 .gravitee-qm-score-medium {
   color: rgb(232, 172, 60);
   border-color: rgb(232, 172, 60);
 }
+
 .gravitee-qm-score-good {
   color: #429f46;
   border-color: #429f46;
 }
+
 .gravitee-qm-metrics {
   padding-left: 8px;
 }
+
 .gravitee-qm-metrics-list {
   padding-top: 14px;
 }
+
 .gravitee-qm-metrics-passed {
-  font-style: italic ;
+  font-style: italic;
   color: #cccccc;
   text-decoration: line-through;
 }
+
 .gravitee-qm-metrics-failed {
 }

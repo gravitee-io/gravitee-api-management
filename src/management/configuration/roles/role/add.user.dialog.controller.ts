@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import UserService from '../../../../services/user.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
 
 
 function DialogAddUserRoleController($mdDialog: angular.material.IDialogService, role, roleScope, $q: ng.IQService,
-  UserService: UserService, NotificationService: NotificationService, RoleService: RoleService) {
+  NotificationService: NotificationService, RoleService: RoleService) {
   'ngInject';
 
   this.role = role;
@@ -28,7 +27,6 @@ function DialogAddUserRoleController($mdDialog: angular.material.IDialogService,
   this.roleUsers = [];
 
   this.usersSelected = [];
-  this.searchText = '';
 
   const that = this;
   RoleService.listUsers(roleScope, role).then(function (users) {
@@ -37,28 +35,6 @@ function DialogAddUserRoleController($mdDialog: angular.material.IDialogService,
 
   this.hide = function () {
     $mdDialog.cancel();
-  };
-
-  this.searchUser = function (query) {
-    if (query) {
-      return UserService.search(query).then(function (response) {
-        return response.data;
-      });
-    }
-  };
-
-  this.getUserAvatar = function (id?: string) {
-    return (id) ? UserService.getUserAvatar(id) : 'assets/default_photo.png';
-  };
-
-  this.selectUser = function (user) {
-    if (user && user.reference) {
-      let selected = _.find(this.usersSelected, { reference: user.reference });
-      if (!selected) {
-        this.usersSelected.push(user);
-      }
-      this.searchText = '';
-    }
   };
 
   this.addUsers = function () {

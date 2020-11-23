@@ -15,9 +15,4 @@
     limitations under the License.
 
 -->
-<div ng-if="$ctrl.hasErrors()" class="gv-error">
-  <h5>{{ $ctrl.title }}</h5>
-  <ul>
-    <li ng-repeat="msg in $ctrl.messages track by $index">{{msg}}</li>
-  </ul>
-</div>
+<gv-alert-trigger-window label="'No event for'" condition="$ctrl.alert.conditions[0]"></gv-alert-trigger-window>

@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class QualityRule {
-  public id?: string;
-  public name: string;
-  public description: string;
-  public weight: number;
-  public createdAt?: string;
-  public updatedAt?: string;
-}
+const UserAutocompleteComponent: ng.IComponentOptions = {
+  template: require('./user-autocomplete.html'),
+  controller: 'UserAutocompleteController',
+  bindings: {
+    usersSelected: '<',
+    placeHolder: '<',
+    singleUser: '<',
+    selectedUser: '<',
+    userFilterFn: '<',
+    defaultUsersList: '<',
+  }
+};
+
+
+export default UserAutocompleteComponent;

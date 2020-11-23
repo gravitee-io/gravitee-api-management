@@ -58,7 +58,7 @@ class DashboardFilterController {
     };
 
     let label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + ' = \'' + filter.name + '\'';
-    let query = '(' + _.map(_.keys(field.filters), (key) => filter.field.includes('path') ?
+    let query = '(' + _.map(_.keys(field.filters), (key) => filter.field.includes('path') || filter.field.includes('host') ?
       filter.field + ':' + '\\"' + key + '\\"' : filter.field + ':' + key).join(' OR ') + ')';
 
     this.filters.push({
@@ -114,7 +114,7 @@ class DashboardFilterController {
     }
 
     if (! _.isEmpty(fieldObject.filters)) {
-      fieldObject.query = '(' + _.map(_.keys(fieldObject.filters), (key) => field.includes('path') ?
+      fieldObject.query = '(' + _.map(_.keys(fieldObject.filters), (key) => field.includes('path') || field.includes('host') ?
         field + ':' + '\\"' + key + '\\"' : field + ':' + key).join(' OR ') + ')';
       this.fields[field] = fieldObject;
     } else {

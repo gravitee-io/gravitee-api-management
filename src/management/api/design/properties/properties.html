@@ -35,20 +35,20 @@
 
   <form ng-if="apiPropertiesCtrl.hasPropertiesDefined()" name="formApiProperties" ng-submit="apiPropertiesCtrl.update(apiPropertiesCtrl.api)" novalidate>
     <md-table-container>
-      <table md-table ng-init="order = 'name'">
-        <thead md-head md-order="order">
+      <table md-table ng-init="reverse = false">
+        <thead md-head md-order="name">
           <tr md-row>
             <th md-column>
               <md-checkbox aria-label="Select all" ng-model="apiPropertiesCtrl.selectAll" ng-change="apiPropertiesCtrl.toggleSelectAll(apiPropertiesCtrl.selectAll)"></md-checkbox>
             </th>
-            <th md-column md-order-by="name">Name</th>
+            <th md-column md-order-by="name" ng-click="reverse = !reverse">Name</th>
             <th md-column>Value</th>
             <th md-column hide-gt-xs show-gt-sm>Dynamic</th>
             <th md-column width="80px" nowrap></th>
           </tr>
         </thead>
         <tbody md-body>
-          <tr md-row ng-repeat="property in apiPropertiesCtrl.api.properties">
+          <tr md-row ng-repeat="property in apiPropertiesCtrl.api.properties|orderBy:name:reverse">
             <td md-cell><md-checkbox aria-label="Select {{property.key}}" ng-model="apiPropertiesCtrl.selectedProperties[property.key]" ng-change="apiPropertiesCtrl.checkSelectAll()"></md-checkbox></td>
             <td md-cell>{{property.key}}</td>
             <td permission permission-only="'api-definition-u'" md-cell ng-click="apiPropertiesCtrl.editValue($event, property)"

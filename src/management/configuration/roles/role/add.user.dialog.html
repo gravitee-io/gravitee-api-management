@@ -18,56 +18,7 @@
 <md-dialog aria-label="Add member" layout-padding flex="30">
   <md-dialog-content class="searchMembers">
     <form name="formMember" ng-submit="$event.preventDefault()">
-      <md-autocomplete
-        md-selected-item="$ctrl.selectedItem"
-        md-search-text="$ctrl.searchText"
-        md-selected-item-change="$ctrl.selectUser(user)"
-        md-items="user in $ctrl.searchUser($ctrl.searchText)"
-        md-item-text="user.reference"
-        md-min-length="1"
-        md-delay="500"
-        placeholder="Search user..."
-        md-autofocus="true"
-        md-menu-class="autocomplete-search-user"
-        flex>
-        <md-item-template>
-          <md-list-item class="md-2-line contact-item">
-            <gravitee-identity-picture 
-              image-id="user.id"
-              image-url="getUserAvatar(user.id)"
-              image-name="user.displayName"
-              image-width="40"
-              image-border-radius="true"
-              class="md-avatar"
-            ></gravitee-identity-picture>
-            <div class="md-list-item-text compact">
-              <h3>{{user.displayName}}</h3>
-            </div>
-          </md-list-item>
-        </md-item-template>
-        <md-not-found>
-          No user matching "{{searchText}}" were found, or users already selected.
-        </md-not-found>
-      </md-autocomplete>
-
-      <br />
-
-      <md-list class="fixedRows" ng-show="$ctrl.usersSelected.length > 0">
-        <md-subheader class="md-no-sticky">Selected users</md-subheader>
-        <md-list-item class="md-2-line contact-item" ng-repeat="(index, user) in $ctrl.usersSelected">
-          <gravitee-identity-picture 
-            image-id="user.id"
-            image-url="getUserAvatar(user.id)"
-            image-name="user.displayName"
-            image-width="40"
-            image-border-radius="true"
-            class="md-avatar"
-          ></gravitee-identity-picture>
-          <div class="md-list-item-text compact">
-            <h3>{{user.displayName}}</h3>
-          </div>
-        </md-list-item>
-      </md-list>
+      <gv-user-autocomplete users-selected="$ctrl.usersSelected"></gv-user-autocomplete>
     </form>
   </md-dialog-content>
 
