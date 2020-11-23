@@ -55,17 +55,7 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         data.put("indexLifecyclePolicyRequest", this.configuration.getIndexLifecyclePolicyRequest());
         data.put("indexLifecyclePolicyLog", this.configuration.getIndexLifecyclePolicyLog());
         data.put("extendedRequestMappingTemplate", this.configuration.getExtendedRequestMappingTemplate());
-
-        data.put("slowLogLevel", this.configuration.getSlowLogLevel());
-        data.put("slowLogThresholdFetchDebug", this.configuration.getSlowLogThresholdFetchDebug());
-        data.put("slowLogThresholdFetchInfo", this.configuration.getSlowLogThresholdFetchInfo());
-        data.put("slowLogThresholdFetchTrace", this.configuration.getSlowLogThresholdFetchTrace());
-        data.put("slowLogThresholdFetchWarn", this.configuration.getSlowLogThresholdFetchWarn());
-        data.put("slowLogThresholdQueryDebug", this.configuration.getSlowLogThresholdQueryDebug());
-        data.put("slowLogThresholdQueryInfo", this.configuration.getSlowLogThresholdQueryInfo());
-        data.put("slowLogThresholdQueryTrace", this.configuration.getSlowLogThresholdQueryTrace());
-        data.put("slowLogThresholdQueryWarn", this.configuration.getSlowLogThresholdQueryWarn());
-
+        data.put("extendedSettingsTemplate", this.configuration.getExtendedSettingsTemplate());
         return data;
     }
 
