@@ -15,7 +15,6 @@
  */
 import * as _ from 'lodash';
 import ApplicationService from '../../../../services/application.service';
-import UserService from '../../../../services/user.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
 
@@ -25,7 +24,6 @@ function DialogAddMemberController(
   application,
   members,
   ApplicationService: ApplicationService,
-  UserService: UserService,
   NotificationService: NotificationService,
   RoleService: RoleService
 ) {
@@ -38,32 +36,13 @@ function DialogAddMemberController(
   $scope.application = application;
   $scope.members = members;
   $scope.usersSelected = [];
-  $scope.searchText = '';
+
+  $scope.userFilterFn = (user: any) => {
+    return _.findIndex($scope.members, { id: user.id }) === -1;
+  };
 
   $scope.hide = function () {
     $mdDialog.cancel();
-  };
-
-  $scope.searchUser = function (query) {
-    if (query) {
-      return UserService.search(query).then(function (response) {
-        return _.filter(response.data, (user: any) => { return _.findIndex($scope.members, { id: user.id }) === -1; });
-      });
-    }
-  };
-
-  $scope.getUserAvatar = function (id?: string) {
-    return (id) ? UserService.getUserAvatar(id) : 'assets/default_photo.png';
-  };
-
-  $scope.selectUser = function (user) {
-    if (user && user.reference) {
-      let selected = _.find($scope.usersSelected, { reference: user.reference });
-      if (!selected) {
-        $scope.usersSelected.push(user);
-      }
-      $scope.searchText = '';
-    }
   };
 
   $scope.addMembers = function () {

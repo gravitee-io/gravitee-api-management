@@ -66,6 +66,12 @@ const EditPageComponent: ng.IComponentOptions = {
 
     this.$onInit = () => {
       this.page = this.resolvedPage;
+      if (this.resolvedPage.messages && this.resolvedPage.messages.length > 0) {
+        this.error = {
+          title: 'Validation messages',
+          message: this.resolvedPage.messages
+        };
+      }
       this.groups = this.resolvedGroups;
       this.fetchers = this.resolvedFetchers;
 
@@ -317,7 +323,11 @@ const EditPageComponent: ng.IComponentOptions = {
       this.error = null;
       DocumentationService.update(this.page, this.apiId)
         .then( (response) => {
-          NotificationService.show('\'' + this.page.name + '\' has been updated');
+          if (response.data.messages && response.data.messages.length > 0) {
+            NotificationService.showError('\'' + this.page.name + '\' has been updated (with validation errors - check the bottom of the page for details)');
+          } else {
+            NotificationService.show('\'' + this.page.name + '\' has been updated');
+          }
           if (this.apiId) {
             $state.go('management.apis.detail.portal.editdocumentation', {pageId: this.page.id, tab: this.currentTab}, {reload: true});
           } else {

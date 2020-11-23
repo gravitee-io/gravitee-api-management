@@ -20,33 +20,19 @@
 
   <div class="gv-form">
     <h2></h2>
-    <div class="gv-form-content" layout="column"  layout-align="start stretch">
+    <div class="gv-form-content" layout="column" layout-align="start stretch">
       <div ng-if="apiTransferOwnershipCtrl.isAllowedToTransferOwnership()">
         <p>
           Give full access to this API to an other user.
         </p>
-        <md-autocomplete
-                md-search-text="searchText"
-                md-selected-item-change="apiTransferOwnershipCtrl.selectedUserChange(user)"
-                md-items="user in apiTransferOwnershipCtrl.searchUser(searchText)"
-                md-item-text="user.displayName"
-                placeholder="Select a user"
-                md-autofocus="false"
-                md-delay="500"
-                md-min-length="0"
-                md-menu-class="autocomplete-custom-template">
-          <md-item-template>
-            <md-list-item class="md-2-line contact-item">
-              <div class="md-list-item-text compact">
-                <span style="font-size: medium;">{{user.displayName}}</span>
-                <span style="padding-left: 24px; font-size: small;" ng-if="user.email">{{user.email}}</span>
-              </div>
-            </md-list-item>
-          </md-item-template>
-          <md-not-found>
-            No user matching "{{searchText}}" were found.
-          </md-not-found>
-        </md-autocomplete>
+        <gv-user-autocomplete
+          users-selected="apiTransferOwnershipCtrl.usersSelected"
+          place-holder="'Select a user'"
+          single-user="true"
+          user-filter-fn="apiTransferOwnershipCtrl.userFilterFn"
+          default-users-list="apiTransferOwnershipCtrl.defaultUsersList"
+        >
+        </gv-user-autocomplete>
         <br/>
         <md-input-container class="md-block">
           <label>New role for current Primary Owner</label>
@@ -56,7 +42,7 @@
         </md-input-container>
 
         <div class="md-actions gravitee-api-save-button" layout="row">
-          <md-button ng-disabled="apiTransferOwnershipCtrl.newPrimaryOwner == null" class="md-primary md-raised" ng-click="apiTransferOwnershipCtrl.showTransferOwnershipConfirm($event)">Transfer</md-button>
+          <md-button ng-disabled="!apiTransferOwnershipCtrl.usersSelected || !apiTransferOwnershipCtrl.usersSelected[0]" class="md-primary md-raised" ng-click="apiTransferOwnershipCtrl.showTransferOwnershipConfirm($event)">Transfer</md-button>
         </div>
 
       </div>

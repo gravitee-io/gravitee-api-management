@@ -127,9 +127,6 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
                   // All series are hidden: display all !
                   _(hidden)
                     .forEach((serie: any) => serie.show());
-                } else {
-                  let selected = event.target.chart.series[event.target.index];
-                  this.updateQuery(selected, false);
                 }
               }
             };

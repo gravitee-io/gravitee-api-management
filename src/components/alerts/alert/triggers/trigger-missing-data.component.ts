@@ -13,21 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DurationTimeUnit} from '../../../../entities/alert';
 
-const AlertTriggerWindowComponent: ng.IComponentOptions = {
+const AlertTriggerMissingDataComponent: ng.IComponentOptions = {
   bindings: {
-    label: '<',
-    condition: '<'
+    alert: '<'
   },
-  template: require('./trigger-window.html'),
-  controller: function () {
+  require: {
+    parent: '^alertComponent'
+  },
+  template: require('./trigger-missing-data.html'),
+  controller: function() {
     'ngInject';
 
     this.$onInit = () => {
-      this.timeUnits = DurationTimeUnit.TIME_UNITS;
+      // New alert, initialize it with the condition model
+      if (this.alert.id === undefined) {
+        this.alert.conditions = [{
+          'type': 'MISSING_DATA'
+        }];
+
+        this.alert.dampening = {
+          'mode': 'strict_count',
+          'trueEvaluations': 1,
+          'totalEvaluations': 1
+        };
+      }
     };
   }
 };
 
-export default AlertTriggerWindowComponent;
+export default AlertTriggerMissingDataComponent;

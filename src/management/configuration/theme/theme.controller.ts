@@ -28,6 +28,8 @@ class ThemeController {
 
   private currentHref: any;
   private handleEventHandlers: any;
+  private themeOptionalLogoURL: string;
+  private themeBackgroundURL: string;
 
   constructor(private $http,
               private $scope,
@@ -39,6 +41,7 @@ class ThemeController {
     'ngInject';
     $scope.themeForm = {};
     $scope.targetURL = Constants.portal.url;
+    $scope.maxSize = Constants.portal.uploadMedia.maxSizeInOctet;
 
     $scope.trustSrc = function (src) {
       return $sce.trustAsResourceUrl(src);
@@ -177,6 +180,8 @@ class ThemeController {
     } else {
       this.loadTheme();
     }
+
+    this.initThemeImagesURL();
   }
 
   $onDestroy = () => {
@@ -333,6 +338,12 @@ class ThemeController {
   setTheme(theme) {
     this.$scope.theme = theme;
     this.$scope.themeComponent = theme.definition.data.find((element) => element.name === 'gv-theme');
+    this.initThemeImagesURL();
+  }
+
+  initThemeImagesURL = () => {
+    this.themeOptionalLogoURL = this.getOptionalLogoUrl();
+    this.themeBackgroundURL = this.getBackgroundImageUrl();
   }
 
   loadTheme = () => {
@@ -420,6 +431,7 @@ class ThemeController {
     const theme = this.$scope.theme;
     const data = {
       name: theme.name,
+      enabled: theme.enabled,
       definition: theme.definition,
       logo: theme.logo,
       optionalLogo: theme.optionalLogo,
@@ -444,6 +456,11 @@ class ThemeController {
       const reader = new FileReader();
       reader.readAsText(file);
       reader.onload = (event) => {
+        let jsonFromFile = JSON.parse(event.target.result);
+
+        // force to false, to force the user to validate the imported theme before saving and enabling it.
+        jsonFromFile.enabled = false;
+
         // @ts-ignore
         const theme = Object.assign({}, this.$scope.theme, JSON.parse(event.target.result));
         this.setTheme(theme);
@@ -457,7 +474,7 @@ class ThemeController {
     if (invalidFiles && invalidFiles.length > 0) {
       const fileError = invalidFiles[0];
       if (fileError.$error === 'maxSize') {
-        this.NotificationService.showError(`Theme "${fileError.name}" exceeds the maximum authorized size (${this.$scope.maxSize})`);
+        this.NotificationService.showError(`Theme "${fileError.name}" exceeds the maximum authorized size (${this.$scope.maxSize}B)`);
       } else {
         this.NotificationService.showError(`File is not valid (error: ${fileError.$error})`);
       }

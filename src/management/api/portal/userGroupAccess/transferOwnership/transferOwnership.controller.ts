@@ -21,7 +21,6 @@ import UserService from '../../../../../services/user.service';
 class ApiTransferOwnershipController {
   private api: any;
   private members: any;
-  private newPrimaryOwner: any;
   private groupMembers: any;
   private groupIdsWithMembers: any;
   private roles: any;
@@ -29,7 +28,11 @@ class ApiTransferOwnershipController {
   private newPORole: any;
   private groupById: any;
   private displayGroups: any;
-  constructor (
+  private usersSelected = [];
+  private userFilterFn;
+  private defaultUsersList: string[];
+
+  constructor(
     private ApiService: ApiService,
     private resolvedApi,
     private resolvedMembers,
@@ -46,8 +49,6 @@ class ApiTransferOwnershipController {
     'ngInject';
     this.api = resolvedApi.data;
     this.members = resolvedMembers.data;
-    this.newPrimaryOwner = null;
-    this.$scope.searchText = '';
     this.groupById = _.keyBy(resolvedGroups, 'id');
     this.displayGroups = {};
     _.forEach(resolvedGroups, (grp) => {
@@ -75,10 +76,24 @@ class ApiTransferOwnershipController {
     RoleService.list('API').then(function (roles) {
       that.roles = roles;
       that.newPORoles = _.filter(roles, (role: any) => {
-        return role.name !== 'PRIMARY_OWNER'; });
+        return role.name !== 'PRIMARY_OWNER';
+      });
       that.newPORole = _.find(roles, (role: any) => {
         return role.default;
       });
+    });
+  }
+
+  $onInit() {
+    this.userFilterFn = (user: any) => {
+      return user.id === undefined || _.findIndex(this.members,
+        function (apiMember: any) {
+          return apiMember.id === user.id && apiMember.role === 'PRIMARY_OWNER';
+        }) === -1;
+    };
+
+    this.defaultUsersList = _.filter(this.members, (member: any) => {
+      return member.role !== 'PRIMARY_OWNER';
     });
   }
 
@@ -110,36 +125,10 @@ class ApiTransferOwnershipController {
     return this.UserService.currentUser.isAdmin() || this.isPrimaryOwner();
   }
 
-  searchUser(query) {
-    if (query) {
-      return this.UserService.search(query).then((response) => {
-        var usersFound = response.data;
-        return _.filter(usersFound, (user: any) => {
-          return user.id === undefined || _.findIndex(this.members,
-            function(apiMember: any) {
-              return apiMember.id === user.id && apiMember.role === 'PRIMARY_OWNER';
-            }) === -1;
-        });
-      });
-    } else {
-      return _.filter(this.members, (member: any) => { return member.role !== 'PRIMARY_OWNER'; });
-    }
-  }
-
-  selectedUserChange(user) {
-    if (user) {
-      this.newPrimaryOwner = user;
-    } else {
-      if (this.newPrimaryOwner !== null) {
-        this.newPrimaryOwner = null;
-      }
-    }
-  }
-
   private transferOwnership(newRole: string) {
     let ownership = {
-      id: this.newPrimaryOwner.id,
-      reference: this.newPrimaryOwner.reference,
+      id: this.usersSelected[0].id,
+      reference: this.usersSelected[0].reference,
       role: newRole
     };
 

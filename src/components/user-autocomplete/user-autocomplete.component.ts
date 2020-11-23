@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DurationTimeUnit} from '../../../../entities/alert';
-
-const AlertTriggerWindowComponent: ng.IComponentOptions = {
+const UserAutocompleteComponent: ng.IComponentOptions = {
+  template: require('./user-autocomplete.html'),
+  controller: 'UserAutocompleteController',
   bindings: {
-    label: '<',
-    condition: '<'
-  },
-  template: require('./trigger-window.html'),
-  controller: function () {
-    'ngInject';
-
-    this.$onInit = () => {
-      this.timeUnits = DurationTimeUnit.TIME_UNITS;
-    };
+    usersSelected: '<',
+    placeHolder: '<',
+    singleUser: '<',
+    selectedUser: '<',
+    userFilterFn: '<',
+    defaultUsersList: '<',
   }
 };
 
-export default AlertTriggerWindowComponent;
+
+export default UserAutocompleteComponent;

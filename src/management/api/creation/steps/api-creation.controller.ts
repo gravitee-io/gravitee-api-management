@@ -232,31 +232,42 @@ class ApiCreationController {
     if (deployAndStart) {
       this.api.lifecycle_state = 'PUBLISHED';
     }
-    this.ApiService.import(null, this.api).then(function(api) {
-      _this.vm.showBusyText = false;
-      if (readyForReview) {
-        _this.ApiService.askForReview(api.data).then((response) => {
-          api.data.workflow_state = 'in_review';
-          api.data.etag = response.headers('etag');
-          _this.api = api.data;
-          _this.$rootScope.$broadcast('apiChangeSuccess', {api: api.data});
-        });
-      }
-      if (deployAndStart) {
+    this.ApiService.import(null, this.api)
+      .then(api => {
+          _this.vm.showBusyText = false;
+          return api;
+        }
+      )
+      .then(api => {
+        if (readyForReview) {
+          _this.ApiService.askForReview(api.data).then((response) => {
+            api.data.workflow_state = 'in_review';
+            api.data.etag = response.headers('etag');
+            _this.api = api.data;
+            _this.$rootScope.$broadcast('apiChangeSuccess', {api: api.data});
         _this.ApiService.deploy(api.data.id).then(function() {
           _this.ApiService.start(api.data).then(function() {
-            _this.NotificationService.show('API created, deployed and started');
-            _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
           });
-        });
-      } else {
-        _this.NotificationService.show('API created');
-        _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
-      }
-      return api;
-    }).catch(function() {
-      _this.vm.showBusyText = false;
-    });
+        }
+        return api;
+      })
+      .then( api => {
+        if (deployAndStart) {
+          _this.ApiService.deploy(api.data.id).then(function () {
+            _this.ApiService.start(api.data).then(function () {
+              _this.NotificationService.show('API created, deployed and started');
+              _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+            });
+          });
+        } else {
+          _this.NotificationService.show('API created');
+          _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+        }
+        return api;
+      })
+      .catch(function () {
+        _this.vm.showBusyText = false;
+      });
   }
 
   /*
@@ -475,7 +486,7 @@ class ApiCreationController {
   }
 
   hasPage() {
-    return this.api.pages.length > 0;
+    return this.api.pages && this.api.pages.length > 0;
   }
 
   removePage(page) {

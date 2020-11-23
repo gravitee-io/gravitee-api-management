@@ -55,7 +55,7 @@
                  ngf-select="$ctrl.importTheme($file,$invalidFiles)"
                  ngf-pattern="'application/json'"
                  ngf-accept="'application/json'"
-                 ngf-max-size="1MB"
+                 ngf-max-size="{{maxSize}}"
                  permission permission-only="['environment-theme-u']">
         Import
       </md-button>
@@ -95,7 +95,7 @@
                   <gravitee-image image-id="'theme-optionalLogo'"
                                   image="theme.optionalLogo"
                                   image-default="theme.logo"
-                                  image-url="$ctrl.getOptionalLogoUrl()"
+                                  image-url="$ctrl.themeOptionalLogoURL"
                                   image-form="themeForm"
                                   success-event-name="themePictureChangeSuccess"
                                   no-default-image="true"
@@ -116,7 +116,7 @@
                   <label class="theme-component-label">Homepage background image</label>
                   <gravitee-image image-id="'theme-backgroundImage'"
                                   image="theme.backgroundImage"
-                                  image-url="$ctrl.getBackgroundImageUrl()"
+                                  image-url="$ctrl.themeBackgroundURL"
                                   image-form="themeForm"
                                   success-event-name="themePictureChangeSuccess"
                                   no-default-image="true"

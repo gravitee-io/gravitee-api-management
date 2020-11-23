@@ -16,60 +16,13 @@
 
 -->
 <md-dialog aria-label="Add member" layout-padding flex="30">
-	<md-dialog-content class="searchMembers">
-		<form name="formMember" ng-submit="$event.preventDefault()">
-			<md-autocomplete
-					md-selected-item="selectedItem"
-					md-search-text="searchText"
-					md-selected-item-change="selectUser(user)"
-					md-items="user in searchUser(searchText)"
-					md-item-text="user.reference"
-					md-min-length="1"
-          md-delay="500"
-					placeholder="Search user..."
-					md-autofocus="true"
-          md-menu-class="autocomplete-search-user"
-					flex>
-				<md-item-template>
-          <md-list-item class="contact-item">
-            <gravitee-identity-picture
-              image-id="user.id"
-              image-url="getUserAvatar(user.id)"
-              image-name="user.displayName"
-              image-width="40"
-              image-border-radius="true"
-              class="md-avatar"
-            ></gravitee-identity-picture>
-            <div class="md-list-item-text compact">
-              <span class="contact-name">{{user.displayName}}</span>
-              <span ng-if="user.email">{{user.email}}</span>
-            </div>
-          </md-list-item>
-				</md-item-template>
-				<md-not-found>
-					No user matching "{{searchText}}" were found, or users already selected.
-				</md-not-found>
-			</md-autocomplete>
-
-      <br />
-
-      <md-list class="fixedRows" ng-show="usersSelected.length > 0">
-        <md-subheader class="md-no-sticky">Selected users</md-subheader>
-        <md-list-item class="contact-item" ng-repeat="(index, user) in usersSelected">
-          <gravitee-identity-picture
-            image-id="user.id"
-            image-url="getUserAvatar(user.id)"
-            image-name="user.displayName"
-            image-width="40"
-            image-border-radius="true"
-            class="md-avatar"
-            ></gravitee-identity-picture>
-
-          <div class="md-list-item-text compact">
-            <span class="contact-name">{{user.displayName}}</span>
-          </div>
-        </md-list-item>
-      </md-list>
+  <md-dialog-content class="searchMembers">
+    <form name="formMember" ng-submit="$event.preventDefault()">
+      <gv-user-autocomplete
+        users-selected="usersSelected"
+        user-filter-fn="userFilterFn"
+      >
+      </gv-user-autocomplete>
 
       <div ng-show="usersSelected.length > 0">
         <md-subheader class="md-no-sticky">Select role</md-subheader>
@@ -83,14 +36,14 @@
         </md-input-container>
       </div>
     </form>
-	</md-dialog-content>
+  </md-dialog-content>
 
-	<md-dialog-actions layout="row">
-		<md-button ng-click="hide()">
-			Cancel
-		</md-button>
-		<md-button type="submit" class="md-raised md-primary" ng-click="addMembers()" ng-disabled="formMember.$invalid || usersSelected.length === 0">
-			Add
-		</md-button>
-	</md-dialog-actions>
+  <md-dialog-actions layout="row">
+    <md-button ng-click="hide()">
+      Cancel
+    </md-button>
+    <md-button type="submit" class="md-raised md-primary" ng-click="addMembers()" ng-disabled="formMember.$invalid || usersSelected.length === 0">
+      Add
+    </md-button>
+  </md-dialog-actions>
 </md-dialog>
