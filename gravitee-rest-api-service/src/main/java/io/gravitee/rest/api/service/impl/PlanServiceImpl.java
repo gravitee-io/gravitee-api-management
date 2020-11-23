@@ -664,7 +664,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         entity.setOrder(plan.getOrder());
         entity.setExcludedGroups(plan.getExcludedGroups());
 
-
         if (plan.getDefinition() != null && !plan.getDefinition().isEmpty()) {
             try {
                 HashMap<String, Path> rules = objectMapper.readValue(plan.getDefinition(),
@@ -673,6 +672,16 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 entity.setPaths(rules);
             } catch (IOException ioe) {
                 logger.error("Unexpected error while generating policy definition", ioe);
+            }
+        }
+        ApiEntity api = apiService.findById(plan.getApi());
+        if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
+            Optional<List<Flow>> planFlows = api.getPlans().stream()
+                .filter(pl -> plan.getId().equals(pl.getId()))
+                .map(plan1 -> plan1.getFlows())
+                .findFirst();
+            if (planFlows.isPresent()) {
+                entity.setFlows(planFlows.get());
             }
         }
 

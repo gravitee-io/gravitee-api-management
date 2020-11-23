@@ -19,7 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
@@ -44,19 +44,26 @@ import static org.mockito.Mockito.when;
 public class PlanService_FindByIdTest {
 
     private static final String PLAN_ID = "my-plan";
+    private static final String API_ID = "my-api";
 
     @InjectMocks
     private PlanService planService = new PlanServiceImpl();
 
     @Mock
+    private ApiService apiService;
+    @Mock
     private PlanRepository planRepository;
     @Mock
     private Plan plan;
+    @Mock
+    private ApiEntity api;
 
     @Test
     public void shouldFindById() throws TechnicalException {
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(apiService.findById(API_ID)).thenReturn(api);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         final PlanEntity planEntity = planService.findById(PLAN_ID);
