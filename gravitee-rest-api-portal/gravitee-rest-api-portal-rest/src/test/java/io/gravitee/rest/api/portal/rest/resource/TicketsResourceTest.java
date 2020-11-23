@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import io.gravitee.common.data.domain.Page;
@@ -59,7 +61,9 @@ public class TicketsResourceTest extends AbstractResourceTest {
                 .content("B");
         final Response response = target().request().post(Entity.json(input));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        
+
+        assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
+
         verify(ticketMapper).convert(input);
         verify(ticketService).create(eq(USER_NAME), any());
     }

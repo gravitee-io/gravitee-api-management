@@ -61,6 +61,7 @@ public class IdentityServiceImpl implements IdentityService {
         user.setLastname(identity.getLastname());
         user.setDisplayName(identity.getDisplayName());
         user.setPicture(identity.getPicture());
+        user.setRoles(identity.getRoles());
         return user;
     }
 }

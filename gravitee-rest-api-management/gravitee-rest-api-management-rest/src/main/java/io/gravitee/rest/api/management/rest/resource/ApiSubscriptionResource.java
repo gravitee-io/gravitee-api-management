@@ -218,8 +218,7 @@ public class ApiSubscriptionResource extends AbstractResource {
 
         ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription, customApiKey);
         return Response
-                .created(URI.create("/apis/" + api + "/subscriptions/" + subscription +
-                        "/keys/" + apiKeyEntity.getKey()))
+                .created(this.getLocationHeader("keys", apiKeyEntity.getKey()))
                 .entity(apiKeyEntity)
                 .build();
     }

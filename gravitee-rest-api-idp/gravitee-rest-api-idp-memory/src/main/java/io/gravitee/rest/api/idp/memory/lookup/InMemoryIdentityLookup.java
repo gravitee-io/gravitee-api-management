@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.idp.memory.lookup;
 
+import io.gravitee.rest.api.idp.api.authentication.UserDetailRole;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.api.identity.IdentityReference;
@@ -128,6 +129,13 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
         user.setEmail(userDetails.getEmail());
         user.setFirstname(userDetails.getFirstname());
         user.setLastname(userDetails.getLastname());
+
+        if (userDetails.getAuthorities() != null && !userDetails.getAuthorities().isEmpty()) {
+            final Map<String, String> roles = userDetails.getAuthorities().stream()
+                    .map(g -> g.getAuthority().split(":"))
+                    .collect(Collectors.toMap(values-> values[0], values -> values[1]));
+            user.setRoles(roles);
+        }
         return user;
     }
 

@@ -39,7 +39,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,9 +67,6 @@ public class PortalApisResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-
-    @Context
-    private UriInfo uriInfo;
 
     @Inject
     private ConfigService configService;

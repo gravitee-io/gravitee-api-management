@@ -80,6 +80,8 @@ public interface PageService {
 
 	PageEntity create(String apiId, PageEntity pageEntity);
 
+	List<String> validateSafeContent(PageEntity pageEntity, String apiId);
+
 	Map<SystemFolderType, String> initialize(String environmentId);
 
 	PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId);

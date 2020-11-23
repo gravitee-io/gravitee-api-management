@@ -124,12 +124,12 @@ public class RoleUsersResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("Can't determine context").build();
         }
 
-        MemberEntity membership = membershipService.addRoleToMemberOnReference(
+        membershipService.addRoleToMemberOnReference(
                 new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
                 new MembershipService.MembershipMember(roleMembership.getId(), roleMembership.getReference(), MembershipMemberType.USER),
                 new MembershipService.MembershipRole(roleScope, roleName));
 
-        return Response.created(URI.create("/users/" + membership.getId() + "/roles/" + membership.getId())).build();
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @Path("{userId}")

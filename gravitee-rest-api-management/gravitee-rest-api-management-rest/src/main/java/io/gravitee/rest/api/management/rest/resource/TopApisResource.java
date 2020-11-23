@@ -34,9 +34,7 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -48,9 +46,6 @@ import static java.util.stream.Collectors.toList;
  */
 @Api(tags = {"Top APIs"})
 public class TopApisResource extends AbstractResource  {
-
-    @Context
-    private UriInfo uriInfo;
 
     @Inject
     private TopApiService topApiService;
