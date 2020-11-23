@@ -31,13 +31,14 @@ public class HttpProxyResponse implements ProxyResponse {
 
     private Handler<Buffer> bodyHandler;
     private Handler<Void> endHandler;
+    private Handler<Void> cancelHandler;
     private Handler<HttpFrame> frameHandler;
 
     private final HttpHeaders httpHeaders = new HttpHeaders();
     private HttpHeaders trailers;
     private final HttpClientResponse httpClientResponse;
 
-    public HttpProxyResponse(final HttpClientResponse httpClientResponse) {
+    HttpProxyResponse(final HttpClientResponse httpClientResponse) {
         this.httpClientResponse = httpClientResponse;
     }
 
@@ -107,5 +108,18 @@ public class HttpProxyResponse implements ProxyResponse {
         }
 
         return trailers;
+    }
+
+    @Override
+    public ProxyResponse cancelHandler(Handler<Void> cancelHandler) {
+        this.cancelHandler = cancelHandler;
+        return null;
+    }
+
+    @Override
+    public void cancel() {
+        if (this.cancelHandler != null) {
+            this.cancelHandler.handle(null);
+        }
     }
 }
