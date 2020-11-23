@@ -20,12 +20,14 @@
 #  compressionSupported: false
 #  maxHeaderSize: 8192
 #  maxChunkSize: 8192
+#  maxInitialLineLength: 4096
 #  instances: 0
 #  requestTimeout: 0
 #  secured: false
 #  alpn: false
 #  ssl:
 #    clientAuth: none # Supports none, request, requires
+#    tlsProtocols: TLSv1.2, TLSv1.3
 #    keystore:
 #      type: jks # Supports jks, pem, pkcs12
 #      path: ${gravitee.home}/security/keystore.jks
