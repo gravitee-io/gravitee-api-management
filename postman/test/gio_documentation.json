@@ -1,0 +1,3185 @@
+{
+	"info": {
+		"_postman_id": "92bfd526-78db-47c8-8631-ae0cbc76ca8a",
+		"name": "Documentation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "-- Prepare --",
+			"item": [
+				{
+					"name": "Create READER group",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ed4eb8ed-f40b-4661-870e-a945d1dc0ba8",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.collectionVariables.set(\"created_reader_group\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_reader_group_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Postman Reader\",\n    \"event_rules\": [\n        {\n            \"event\": \"API_CREATE\"\n        }\n    ],\n    \"lock_api_role\": false,\n    \"lock_application_role\": false,\n    \"disable_membership_notifications\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/groups",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"configuration",
+								"groups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User member",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2088040e-efbf-469a-9b4d-8a733b3c83a2",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    ",
+									"    var user = pm.response.json().find(user => user.displayName === pm.request.url.query.get(\"q\"));",
+									"    pm.collectionVariables.set(\"user_member\", JSON.stringify(user));",
+									"    pm.collectionVariables.set(\"user_member_reference\", user.reference);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "d77df610-9a9b-4b3b-aaa4-be5500e4da8b",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/search/users/?q=user",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"search",
+								"users",
+								""
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "user"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add READER member to group",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "629345f6-4553-4313-8e3b-4d60eeba8c06",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "827594f2-0bc5-4d54-b057-433e2d5bf65f",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"reference\": \"{{user_member_reference}}\",\n        \"roles\": [\n            {\n                \"scope\": \"API\",\n                \"name\": \"USER\"\n            },\n            {\n                \"scope\": \"APPLICATION\",\n                \"name\": \"USER\"\n            }\n        ]\n    }\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/groups/:reviewerGroupId/members",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"configuration",
+								"groups",
+								":reviewerGroupId",
+								"members"
+							],
+							"variable": [
+								{
+									"key": "reviewerGroupId",
+									"value": "{{created_reader_group_id}}"
+								}
+							]
+						},
+						"description": "Use a group a reviewer which is not directly linked to the API."
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "admin",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "admin",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "03ab5b33-7ffc-4751-8bd4-ca0289f15f1c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "eed89720-f2dd-468b-8a6a-98fd166e5e03",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Create UNPUBLISHED homepage and page",
+			"item": [
+				{
+					"name": "Create homepage",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "48b5280d-c79d-4366-b6c6-57c8b7099eac",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not have parentPath\", function () {",
+									"    pm.expect(jsonData.parentPath).to.eql(\"\");",
+									"});",
+									"",
+									"pm.test(\"Should be unpublished\", function () {",
+									"    pm.expect(jsonData.published).to.be.false;",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_homepage\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_homepage_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Homepage\",\n    \"type\": \"MARKDOWN\",\n    \"parentId\": \"\",\n    \"content\": \"This is my homepage\",\n    \"homepage\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "52594ff6-3d1b-4db3-8e06-251464ccf00e",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not have parentPath\", function () {",
+									"    pm.expect(jsonData.parentPath).to.eql(\"\");",
+									"});",
+									"",
+									"pm.test(\"Should be unpublished\", function () {",
+									"    pm.expect(jsonData.published).to.be.false;",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_page\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_page_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"documentation.md\",\n    \"type\": \"MARKDOWN\",\n    \"parentId\": \"\",\n    \"content\": \"# Here is a documentation file\\n\\nFake documentation\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "admin",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "admin",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "ad4f1774-f1ab-45f1-88ea-2df8f4b60ae7",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "5a170770-6875-45bf-bbb2-e6ca4a794bbb",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Check documentation on portal",
+			"item": [
+				{
+					"name": "Get homepage",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d3a30820-d07f-47da-9ba0-558f575764b5",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should be empty\", function () {",
+									"    pm.expect(jsonData.data).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?homepage=true",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "homepage",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get pages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "85b27692-fb2a-4afe-a431-28a699ee39d9",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not be empty\", function () {",
+									"    pm.expect(jsonData.data).to.be.not.empty;",
+									"});",
+									"",
+									"// This is the topbar link in portal",
+									"var documentation = jsonData.data.find(page => page.name === \"Documentation\");",
+									"",
+									"pm.test(\"Should contain a link named 'Documentation'\", function () {",
+									"    pm.expect(documentation).to.be.not.null;",
+									"    pm.expect(documentation.type).to.eql(\"link\");",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"default_documentation_page_id\", documentation.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "-1"
+								},
+								{
+									"key": "homepage",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "application1",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "application1",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "8f762c47-d4f0-4820-9fc6-fc945afa38e2",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "9fe8a380-952b-4c7a-aa3d-65e3b03d4f27",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Publish previous pages",
+			"item": [
+				{
+					"name": "Publish homepage",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a39f4078-f954-4d08-b0a3-73f58bfe1f4c",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not have parentPath\", function () {",
+									"    pm.expect(jsonData.parentPath).to.eql(\"\");",
+									"});",
+									"",
+									"pm.test(\"Should be published\", function () {",
+									"    pm.expect(jsonData.published).to.be.true;",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_homepage\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_homepage_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"published\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_homepage_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c92176f4-f13f-434f-81fa-5c79896b8292",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not have parentPath\", function () {",
+									"    pm.expect(jsonData.parentPath).to.eql(\"\");",
+									"});",
+									"",
+									"pm.test(\"Should be published\", function () {",
+									"    pm.expect(jsonData.published).to.be.true;",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_page\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_page_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"published\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "admin",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "admin",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "268b66b9-73d8-4456-b213-5462e3ad4570",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "b4860fac-5bd0-4cf7-b583-3ce56e768da4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Check documentation on portal",
+			"item": [
+				{
+					"name": "Get homepage",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3429345e-7309-4966-8fef-7abf26b593c2",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not be empty\", function () {",
+									"    pm.expect(jsonData.data).to.be.not.empty;",
+									"});",
+									"",
+									"var page = jsonData.data.find(page => page.id === pm.collectionVariables.get('created_homepage_id'))",
+									"",
+									"pm.test(\"Page should be present\", function (){",
+									"    pm.expect(page).to.be.not.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?homepage=true",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "homepage",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get pages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "45a8f301-8781-42b9-a7af-90d7f472c85d",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not be empty\", function () {",
+									"    pm.expect(jsonData.data).to.be.not.empty;",
+									"});",
+									"",
+									"var page = jsonData.data.find(page => page.id === pm.collectionVariables.get('created_homepage_id'))",
+									"",
+									"pm.test(\"Page should be present\", function (){",
+									"    pm.expect(page).to.be.not.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "-1"
+								},
+								{
+									"key": "homepage",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "application1",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "application1",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "9077817f-df1e-45b0-b4c8-a6c71377742b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "b3475865-725a-4c0b-ad32-f748a06b5ac6",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Create FOLDER with one page and move one into it",
+			"item": [
+				{
+					"name": "Create folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "442b89f1-1d48-4b4b-8fdf-6f9ba8317164",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not have parentPath\", function () {",
+									"    pm.expect(jsonData.parentPath).to.eql(\"\");",
+									"});",
+									"",
+									"pm.test(\"Should be unpublished\", function () {",
+									"    pm.expect(jsonData.published).to.be.false;",
+									"});",
+									"",
+									"pm.test(\"Should be a folder\", function () {",
+									"    pm.expect(jsonData.type).to.eql(\"FOLDER\");",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_folder\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_folder_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Folder\",\n    \"type\": \"FOLDER\",\n    \"parentId\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0245111-a81a-4b4f-809d-5cdc8f8bab3f",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not have parentPath\", function () {",
+									"    pm.expect(jsonData.parentPath).to.eql(\"\");",
+									"});",
+									"",
+									"pm.test(\"Should be published\", function () {",
+									"    pm.expect(jsonData.published).to.be.true;",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_folder\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_folder_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"published\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_folder_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create PUBLISHED page inside folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "05a9de71-a41c-417b-959d-b10592a255b0",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should have parentId\", function () {",
+									"    pm.expect(jsonData.parentId).to.eql(pm.collectionVariables.get(\"created_folder_id\"));",
+									"});",
+									"",
+									"pm.test(\"Should be published\", function () {",
+									"    pm.expect(jsonData.published).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Should be a folder\", function () {",
+									"    pm.expect(jsonData.type).to.eql(\"MARKDOWN\");",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_page_inside_folder\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_page_inside_folder_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"In folder page\",\n    \"type\": \"MARKDOWN\",\n    \"parentId\": \"{{created_folder_id}}\",\n    \"content\": \"this page is created directly inside folder\",\n    \"published\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create PUBLISHED page outside folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3944d076-aa05-4858-be01-1a5d3f436e07",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not have parentPath\", function () {",
+									"    pm.expect(jsonData.parentPath).to.eql(\"\");",
+									"});",
+									"",
+									"pm.test(\"Should be published\", function () {",
+									"    pm.expect(jsonData.published).to.be.true;",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_page_outside_folder\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_page_outside_folder_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Outside folder\",\n    \"type\": \"MARKDOWN\",\n    \"parentId\": \"\",\n    \"content\": \"This is a page created outside the folder\",\n    \"published\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Move outside page inside folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "91386120-0adf-4e74-ab8a-4edb6bdb40b2",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should have parentId\", function () {",
+									"    pm.expect(jsonData.parentId).to.eql(pm.collectionVariables.get(\"created_folder_id\"));",
+									"});",
+									"",
+									"pm.test(\"Should be published\", function () {",
+									"    pm.expect(jsonData.published).to.be.true;",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_page_outside_folder\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_page_outside_folder_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"parentId\": \"{{created_folder_id}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_outside_folder_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "admin",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "admin",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "e6d4a50d-3b41-4c24-adf0-da700dc89bd8",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "d0ce9866-3675-477b-986c-60e46eadec42",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Check documentation on portal",
+			"item": [
+				{
+					"name": "Get homepage",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1eea54eb-14a6-46c8-b398-7d2306e6caf8",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not be empty\", function () {",
+									"    pm.expect(jsonData.data).to.be.not.empty;",
+									"});",
+									"",
+									"var page = jsonData.data.find(page => page.id === pm.collectionVariables.get('created_homepage_id'))",
+									"",
+									"pm.test(\"Page should be present\", function (){",
+									"    pm.expect(page).to.be.not.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?homepage=true",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "homepage",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get pages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "948ed948-ec3b-44e8-817b-3bfbb34ce157",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not be empty\", function () {",
+									"    pm.expect(jsonData.data).to.be.not.empty;",
+									"});",
+									"",
+									"var pageIds = jsonData.data.map(page => page.id);",
+									"",
+									"pm.test(\"Pages should be present\", function (){",
+									"    pm.expect(pageIds).to.have.members([",
+									"        pm.collectionVariables.get(\"created_page_id\"),",
+									"        pm.collectionVariables.get(\"created_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_inside_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_outside_folder_id\"),",
+									"        pm.collectionVariables.get(\"default_documentation_page_id\")",
+									"    ]);",
+									"});",
+									"",
+									"pm.test(\"Homepage should not be present\", function() {",
+									"    pm.expect(pageIds).to.not.include(pm.collectionVariables.get(\"created_homepage_id\"))",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "-1"
+								},
+								{
+									"key": "homepage",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dbc67b58-1a26-444d-87c4-766bdfb338d2",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"var page = JSON.parse(pm.collectionVariables.get(\"created_page_outside_folder\"));",
+									"",
+									"pm.test(\"Should have same title\", function () {",
+									"    pm.expect(jsonData.name).to.eql(page.name);",
+									"});",
+									"",
+									"pm.test(\"Should have same content\", function () {",
+									"    pm.expect(jsonData.content).to.eql(page.content);",
+									"});",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages",
+								":pageId"
+							],
+							"query": [
+								{
+									"key": "include",
+									"value": "content"
+								}
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_outside_folder_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "application1",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "application1",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "caf04ea3-d81f-497b-8651-8f72e5876956",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "dd1d04a0-1ba0-4e75-bf7a-42a661a106ea",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Add metadata with templating",
+			"item": [
+				{
+					"name": "Add metadata",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0d77b5ce-eefc-4008-9e12-3648d055cd06",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should have key\", function () {",
+									"    pm.expect(jsonData.key).to.eql(\"postman-metadata\");",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"created_metadata\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_metadata_id\", jsonData.key);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"format\": \"string\",\n    \"name\": \"postman-metadata\",\n    \"value\": \"metadata-value\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/metadata",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"configuration",
+								"metadata"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create PUBLISHED page using templating",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c66fdc1b-23c0-44cd-a00f-0f4db0bbf122",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not have parentPath\", function () {",
+									"    pm.expect(jsonData.parentPath).to.eql(\"\");",
+									"});",
+									"",
+									"pm.test(\"Should be published\", function () {",
+									"    pm.expect(jsonData.published).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Should contain template string\", function() {",
+									"    pm.expect(jsonData.content).to.eql(\"${metadata['postman-metadata']}\");",
+									"});",
+									"",
+									"",
+									"pm.collectionVariables.set(\"created_page_metadata\", JSON.stringify(jsonData));",
+									"pm.collectionVariables.set(\"created_page_metadata_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"metadata\",\n    \"type\": \"MARKDOWN\",\n    \"parentId\": \"\",\n    \"content\": \"${metadata['postman-metadata']}\",\n    \"published\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "admin",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "admin",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "65f137bc-27da-4929-ab99-5c7dc3eadfb4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "0c8ec2da-2417-42a7-936d-4b65e37aae7b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Check documentation on portal",
+			"item": [
+				{
+					"name": "Get page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a89c550-6e1d-4276-8f61-ec8f35378225",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"var page = JSON.parse(pm.collectionVariables.get(\"created_page_metadata\"));",
+									"",
+									"pm.test(\"Should have same title\", function () {",
+									"    pm.expect(jsonData.name).to.eql(page.name);",
+									"});",
+									"",
+									"pm.test(\"Should have interpolated content\", function () {",
+									"    pm.expect(jsonData.content).to.eql(\"metadata-value\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages",
+								":pageId"
+							],
+							"query": [
+								{
+									"key": "include",
+									"value": "content"
+								}
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_metadata_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "application1",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "application1",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "8d413a54-8279-48ba-8c2c-000844bcfeb8",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "3f67103f-faec-4c90-9821-c59b95d608db",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Exclude group",
+			"item": [
+				{
+					"name": "READER can get pages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "51aa4d2e-c83b-44ba-8f18-835fa3fdde12",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not be empty\", function () {",
+									"    pm.expect(jsonData.data).to.be.not.empty;",
+									"});",
+									"",
+									"var pageIds = jsonData.data.map(page => page.id);",
+									"",
+									"pm.test(\"Pages should be present\", function (){",
+									"    pm.expect(pageIds).to.have.members([",
+									"        pm.collectionVariables.get(\"created_page_id\"),",
+									"        pm.collectionVariables.get(\"created_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_inside_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_outside_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_metadata_id\"),",
+									"        pm.collectionVariables.get(\"default_documentation_page_id\")",
+									"    ]);",
+									"});",
+									"",
+									"pm.test(\"Homepage should not be present\", function() {",
+									"    pm.expect(pageIds).to.not.include(pm.collectionVariables.get(\"created_homepage_id\"))",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "user",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "-1"
+								},
+								{
+									"key": "homepage",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "READER can get page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "06818b66-45e3-4869-a2b9-06ddd2b18e14",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"var page = JSON.parse(pm.collectionVariables.get(\"created_page\"));",
+									"",
+									"pm.test(\"Should have same title\", function () {",
+									"    pm.expect(jsonData.name).to.eql(page.name);",
+									"});",
+									"",
+									"pm.test(\"Should have same content\", function () {",
+									"    pm.expect(jsonData.content).to.eql(page.content);",
+									"});",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "user",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages",
+								":pageId"
+							],
+							"query": [
+								{
+									"key": "include",
+									"value": "content"
+								}
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Exclude READER group",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "85799569-e681-4d27-a59a-4bc15be27c19",
+								"exec": [
+									"var page = JSON.parse(pm.collectionVariables.get(\"created_page\"));",
+									"",
+									"delete page.id;",
+									"delete page.type;",
+									"delete page.lastModificationDate;",
+									"delete page.contentType;",
+									"delete page.parentPath;",
+									"delete page.messages;",
+									"delete page.api;",
+									"",
+									"page.excluded_groups = [pm.collectionVariables.get(\"created_reader_group_id\")];",
+									"",
+									"pm.collectionVariables.set(\"created_page\", JSON.stringify(page));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "1e91781d-f962-4a7d-b419-cfebb010c6a2",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var page = pm.response.json();",
+									"",
+									"pm.test(\"Should have excluded group\", function() {",
+									"    pm.expect(page.excluded_groups).to.have.members([pm.collectionVariables.get(\"created_reader_group_id\")]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{created_page}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "READER cannot get pages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2f161bbc-d95e-46f4-a3ba-10b2218b67bb",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not be empty\", function () {",
+									"    pm.expect(jsonData.data).to.be.not.empty;",
+									"});",
+									"",
+									"var pageIds = jsonData.data.map(page => page.id);",
+									"",
+									"pm.test(\"Pages should be present\", function (){",
+									"    pm.expect(pageIds).to.have.members([",
+									"        pm.collectionVariables.get(\"created_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_inside_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_outside_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_metadata_id\"),",
+									"        pm.collectionVariables.get(\"default_documentation_page_id\")",
+									"    ]);",
+									"});",
+									"",
+									"pm.test(\"Homepage should not be present\", function() {",
+									"    pm.expect(pageIds).to.not.include(pm.collectionVariables.get(\"created_homepage_id\"))",
+									"});",
+									"",
+									"pm.test(\"Excluded page should not be present\", function() {",
+									"    pm.expect(pageIds).to.not.include(pm.collectionVariables.get(\"created_page_id\"))",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "user",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "-1"
+								},
+								{
+									"key": "homepage",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "READER cannot get page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3de2b3ba-e657-46e5-a50e-8a85db4ba3cf",
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "password",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "user",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages",
+								":pageId"
+							],
+							"query": [
+								{
+									"key": "include",
+									"value": "content"
+								}
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "admin",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "admin",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "848ce6f5-6dd4-4a8f-abf9-18b16bc2d05f",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "1029098f-5bbd-4f5f-8e00-6f6efe96e8d6",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Translate",
+			"item": [
+				{
+					"name": "Translate page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6cc1104e-5794-44b8-b576-b98642d86b40",
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var page = pm.response.json();",
+									"",
+									"pm.test(\"Type is translation\", function() {",
+									"    pm.expect(page.type).to.eql(\"TRANSLATION\");",
+									"});",
+									"",
+									"pm.test(\"Should be published\", function() {",
+									"    pm.expect(page.published).to.be.true;",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"TRANSLATION\",\n    \"parentId\": \"{{created_page_id}}\",\n    \"configuration\": {\n        \"inheritContent\": \"false\",\n        \"lang\": \"fr\"\n    },\n    \"name\": \"Fausse documentation\",\n    \"content\": \"Fausse documentation\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "admin",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "admin",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "81c8a006-8691-4dfe-89a3-d54bbce2b165",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "a8352cb5-c717-4e68-874c-e82d2355a1be",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Check documentation on portal",
+			"item": [
+				{
+					"name": "Get pages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0d9ae6d1-abfc-41b0-9b96-5aa4affb9bf7",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should not be empty\", function () {",
+									"    pm.expect(jsonData.data).to.be.not.empty;",
+									"});",
+									"",
+									"var pageIds = jsonData.data.map(page => page.id);",
+									"",
+									"pm.test(\"Pages should be present\", function (){",
+									"    pm.expect(pageIds).to.have.members([",
+									"        pm.collectionVariables.get(\"created_page_id\"),",
+									"        pm.collectionVariables.get(\"created_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_inside_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_outside_folder_id\"),",
+									"        pm.collectionVariables.get(\"created_page_metadata_id\"),",
+									"        pm.collectionVariables.get(\"default_documentation_page_id\")",
+									"    ]);",
+									"});",
+									"",
+									"pm.test(\"Homepage should not be present\", function() {",
+									"    pm.expect(pageIds).to.not.include(pm.collectionVariables.get(\"created_homepage_id\"));",
+									"});",
+									"",
+									"var translatedPage = jsonData.data.find(page => page.id === pm.collectionVariables.get(\"created_page_id\"));",
+									"",
+									"pm.test(\"Page should be translated\", function() {",
+									"    pm.expect(translatedPage.name).to.eql(\"Fausse documentation\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "fr-FR,fr;q=0.9",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "-1"
+								},
+								{
+									"key": "homepage",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "087b4e7c-db2b-430f-a296-9b9197b784cc",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should have same title\", function () {",
+									"    pm.expect(jsonData.name).to.eql(\"Fausse documentation\");",
+									"});",
+									"",
+									"pm.test(\"Should have interpolated content\", function () {",
+									"    pm.expect(jsonData.content).to.eql(\"Fausse documentation\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept-Language",
+								"value": "fr-FR,fr;q=0.9",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages",
+								":pageId"
+							],
+							"query": [
+								{
+									"key": "include",
+									"value": "content"
+								}
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "application1",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "application1",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "070a9628-4ae4-4bbb-9bab-168635068610",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "afb8b5c3-e3b4-4b82-b1e9-425147907b8f",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "-- Clean up --",
+			"item": [
+				{
+					"name": "Delete metadata page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "48471fc8-45c8-43ee-ab87-dc440d750a3e",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_metadata_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete metadata",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "79cdb737-0ec8-42f2-9adc-c3b058283d01",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/metadata/:metadataId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"configuration",
+								"metadata",
+								":metadataId"
+							],
+							"variable": [
+								{
+									"key": "metadataId",
+									"value": "{{created_metadata_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete page outside folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "45e339f8-b93f-4573-a663-b52bebf45438",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_outside_folder_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete page inside folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bae72cba-774b-4ca1-bb3f-1b67071e0b73",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_inside_folder_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "57174920-a7db-4f80-bd20-e045717ad9db",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_folder_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete page",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f9c82910-b60f-433d-98a8-818ab06537e4",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_page_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete homepage",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "06f89436-ed36-4ec4-96fd-98da3cebc759",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"portal",
+								"pages",
+								":pageId"
+							],
+							"variable": [
+								{
+									"key": "pageId",
+									"value": "{{created_homepage_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete READER group",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "436af34d-f32c-4c5c-9554-44bba720444c",
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/groups/:reviewerGroupId",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"management",
+								"organizations",
+								"DEFAULT",
+								"environments",
+								"DEFAULT",
+								"configuration",
+								"groups",
+								":reviewerGroupId"
+							],
+							"variable": [
+								{
+									"key": "reviewerGroupId",
+									"value": "{{created_reader_group_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get pages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "da6ed3de-6126-4975-83e7-8e72329c69b0",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"",
+									"pm.test(\"Should be only one element\", function () {",
+									"    pm.expect(jsonData.data.length).to.eql(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"host": [
+								"{{GRAVITEEIO_PORTAL_URL}}"
+							],
+							"path": [
+								"portal",
+								"environments",
+								"DEFAULT",
+								"pages"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "-1"
+								},
+								{
+									"key": "homepage",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "admin",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "admin",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "772ae47c-04e2-4c88-8018-c82fd8aef269",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "8b9f11bd-631c-4798-8bee-a8c416630cd6",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"variable": [
+		{
+			"id": "432b9ee3-f331-44f2-9bf9-599104f8f437",
+			"key": "created_homepage",
+			"value": ""
+		},
+		{
+			"id": "f622484d-07f0-46e4-85b0-c99eac74cce5",
+			"key": "created_homepage_id",
+			"value": ""
+		},
+		{
+			"id": "6a76bb71-53d6-4254-a0cd-3d6c01ed39fb",
+			"key": "created_reader_group",
+			"value": ""
+		},
+		{
+			"id": "e044951f-2aa2-462c-a07c-b30d7f13459c",
+			"key": "created_reader_group_id",
+			"value": ""
+		},
+		{
+			"id": "31214580-2158-43fb-a356-9c03b3d5b6f5",
+			"key": "user_member",
+			"value": ""
+		},
+		{
+			"id": "6469bca4-d84b-4b36-87d2-ef6979218024",
+			"key": "user_member_reference",
+			"value": ""
+		},
+		{
+			"id": "4acee636-6b2b-48b5-9115-dd234d438fbf",
+			"key": "created_page",
+			"value": ""
+		},
+		{
+			"id": "573c4f6e-68f5-4d08-a507-115ac053a53c",
+			"key": "created_page_id",
+			"value": ""
+		},
+		{
+			"id": "15b2c1ff-c01c-4177-a2ac-6be1a7968b61",
+			"key": "created_folder",
+			"value": ""
+		},
+		{
+			"id": "b0668fa8-1421-4cc9-adc3-d02d06b769e5",
+			"key": "created_folder_id",
+			"value": ""
+		},
+		{
+			"id": "a0f4baff-b97b-42b8-b7dc-3b8fa1d3fa92",
+			"key": "created_page_inside_folder",
+			"value": ""
+		},
+		{
+			"id": "dfd54151-39e7-4985-b547-c4a481f4d503",
+			"key": "created_page_inside_folder_id",
+			"value": ""
+		},
+		{
+			"id": "5b16d3d1-94ef-40ac-ae59-3bc5bf1b5b10",
+			"key": "created_page_outside_folder",
+			"value": ""
+		},
+		{
+			"id": "0e1e1785-8cb5-42d2-b82d-67ecc5c89852",
+			"key": "created_page_outside_folder_id",
+			"value": ""
+		},
+		{
+			"id": "ed9199a1-1f35-486c-b3fd-da22c50e04e4",
+			"key": "default_documentation_page_id",
+			"value": ""
+		},
+		{
+			"id": "ea65fb45-d196-42e3-8d32-fd82ec255548",
+			"key": "created_metadata",
+			"value": ""
+		},
+		{
+			"id": "bba95a33-6579-402d-b074-3b7bd1cff8c1",
+			"key": "created_metadata_id",
+			"value": ""
+		},
+		{
+			"id": "5ec99ffa-3bbe-471b-b07f-9ce11f44b8fa",
+			"key": "created_page_metadata",
+			"value": ""
+		},
+		{
+			"id": "1761d32e-5d84-4557-b90e-abb444737fe0",
+			"key": "created_page_metadata_id",
+			"value": ""
+		}
+	],
+	"protocolProfileBehavior": {}
+}

@@ -54,5 +54,7 @@ Stop the containers, delete data on databases and start the containers
 
 === Run Postman tests
 
+Your environment need to be up. A message will be prompted if it is not the case.
+
 `make postman`
 

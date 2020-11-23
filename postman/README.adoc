@@ -1,12 +1,44 @@
-# Run postman collections
+= Run postman collections
 
-## Run collection locally using newman.
+== Run collection locally using newman.
 ```
 newman run postman/test/collections/[...]collection.json -e postman/env/Gravitee.io-Localhost-Environment.json --bail
 
 ```
 
-## Run all the tests collections locally using shell script.
+== Run all the tests collections locally using shell script.
 ```
 sh scripts/tests.sh
 ```
+
+== Good practices
+
+=== Scenarios must be auto-sufficient
+
+Each scenario must be able to run on its own. For that, we need to create the scenario need *before* executing it, and clean data *after* execution.
+
+You can structure your collections like this:
+
+```
+MyCollection
+|-- --Prepare--
+|-- Scenario name
+|-- --Clean Up--
+MySecondCollection
+|-- SubCollection#1
+    |-- --Prepare--
+    |-- Scenario name
+    |-- --Clean Up--
+|-- SubCollection#2
+    |-- --Prepare--
+    |-- Scenario name
+    |-- --Clean Up--
+```
+
+=== Variable scopes
+
+As explain in link:https://learning.postman.com/docs/sending-requests/variables/#choosing-variables[Postman documentation - Choosing variables], we should prefer `Collection variables` inside collections.
+
+We use `Environment variables` for auth and URL details.
+
+⚠️ If you run your tests with Postman, do not forget to *clear* your environment from old variables. They will take precedence over collection variables.

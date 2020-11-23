@@ -133,7 +133,7 @@ license: ## Generate license header
 	@mvn license:format
 
 postman: ## Run postman non regression test (require newman npm module)
-	sh ./postman/scripts/tests.sh ./postman
+	sh ./postman/scripts/tests.sh --postman-dir=./postman --container-name=gio_apim_management_api
 
 startAll: start ## Start all running containers
 
