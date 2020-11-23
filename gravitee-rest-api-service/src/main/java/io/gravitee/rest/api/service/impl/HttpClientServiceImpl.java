@@ -85,6 +85,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
         final HttpClientOptions options = new HttpClientOptions()
                 .setSsl(ssl)
                 .setTrustAll(true)
+                .setVerifyHost(false)
                 .setMaxPoolSize(1)
                 .setKeepAlive(false)
                 .setTcpKeepAlive(false)
