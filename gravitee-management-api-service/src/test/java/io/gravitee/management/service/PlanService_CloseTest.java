@@ -19,6 +19,7 @@ import io.gravitee.management.model.SubscriptionEntity;
 import io.gravitee.management.model.SubscriptionStatus;
 import io.gravitee.management.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.management.service.exceptions.PlanNotFoundException;
+import io.gravitee.management.service.exceptions.PlanWithPausedSubscriptionsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.management.service.impl.PlanServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -128,24 +129,17 @@ public class PlanService_CloseTest {
         verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
     }
 
-    @Test
-    public void shouldClosePlanAndPausedSubscription() throws TechnicalException {
+    @Test(expected = PlanWithPausedSubscriptionsException.class)
+    public void shouldNotClosePlanWithPausedSubscription() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(planRepository.update(plan)).thenAnswer(returnsFirstArg());
-        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getStatus()).thenReturn(SubscriptionStatus.PAUSED);
         when(subscriptionService.findByPlan(PLAN_ID)).thenReturn(Collections.singleton(subscription));
         when(plan.getApis()).thenReturn(Collections.singleton("id"));
-        when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.close(PLAN_ID, USER);
-
-        verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
-        verify(planRepository, times(1)).update(plan);
-        verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
-        verify(subscriptionService, never()).process(any(), any());
     }
 
 

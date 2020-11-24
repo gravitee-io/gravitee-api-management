@@ -308,6 +308,21 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new PlanAlreadyClosedException(planId);
             }
 
+            Collection<SubscriptionEntity> subscriptions = plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS ?
+                subscriptionService.findByPlan(planId)
+                : null;
+
+            if (subscriptions != null) {
+                List<SubscriptionEntity> pausedSubscriptions = subscriptions
+                    .stream()
+                    .filter((subscriptionEntity -> SubscriptionStatus.PAUSED.equals(subscriptionEntity.getStatus())))
+                    .collect(Collectors.toList());
+                if (pausedSubscriptions.size() > 0) {
+                    throw new PlanWithPausedSubscriptionsException();
+                }
+            }
+
+
             // Update plan status
             plan.setStatus(Plan.Status.CLOSED);
             plan.setClosedAt(new Date());
@@ -315,8 +330,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setNeedRedeployAt(plan.getClosedAt());
 
             // Close subscriptions
-            if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
-                subscriptionService.findByPlan(planId)
+            if (subscriptions != null) {
+                subscriptions
                         .stream()
                         .forEach(subscription -> {
                             try {
