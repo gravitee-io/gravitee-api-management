@@ -175,7 +175,6 @@ public class PageService_UpdateTest {
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setOrder(2);
-        updatePageEntity.setPublished(false);
 
         pageService.update(PAGE_ID, updatePageEntity);
 
@@ -224,7 +223,6 @@ public class PageService_UpdateTest {
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setOrder(1);
-        updatePageEntity.setPublished(false);
 
         pageService.update("3", updatePageEntity);
 
