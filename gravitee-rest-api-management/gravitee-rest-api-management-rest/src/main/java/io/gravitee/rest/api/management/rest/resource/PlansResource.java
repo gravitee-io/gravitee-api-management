@@ -26,18 +26,13 @@ import io.swagger.annotations.ApiResponses;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = {"Plans"})
-public class PlansResource extends AbstractResource  {
-
-    @Context
-    private UriInfo uriInfo;
+public class PlansResource extends AbstractResource {
 
     @Inject
     private PlanService planService;

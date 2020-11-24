@@ -39,8 +39,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -54,8 +52,6 @@ import java.util.stream.Collectors;
 @Api(tags = {"Applications"})
 public class ApplicationsResource extends AbstractResource {
 
-    @Context
-    private UriInfo uriInfo;
     @Context
     private ResourceContext resourceContext;
 
@@ -148,7 +144,7 @@ public class ApplicationsResource extends AbstractResource {
         ApplicationEntity newApplication = applicationService.create(application, getAuthenticatedUser());
         if (newApplication != null) {
             return Response
-                    .created(URI.create("/applications/" + newApplication.getId()))
+                    .created(this.getLocationHeader(newApplication.getId()))
                     .entity(newApplication)
                     .build();
         }

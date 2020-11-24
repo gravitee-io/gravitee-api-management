@@ -301,7 +301,7 @@ public class PageService_UpdateTest {
         unpublishedPage.setOrder(1);
         unpublishedPage.setReferenceId("DEFAULT");
         unpublishedPage.setReferenceType(PageReferenceType.ENVIRONMENT);
-        unpublishedPage.setType("SWAGGER");
+        unpublishedPage.setType("MARKDOWN");
         unpublishedPage.setPublished(false);
         doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
 

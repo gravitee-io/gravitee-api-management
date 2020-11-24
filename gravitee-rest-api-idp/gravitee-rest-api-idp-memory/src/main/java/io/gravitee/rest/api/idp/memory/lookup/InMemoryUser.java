@@ -18,6 +18,8 @@ package io.gravitee.rest.api.idp.memory.lookup;
 import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
 
+import java.util.Map;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -26,6 +28,7 @@ public class InMemoryUser implements User {
 
     private final String reference;
     private String firstname, lastname, email, picture;
+    private Map<String, String> roles;
 
     InMemoryUser(String reference) {
         this.reference = reference;
@@ -84,5 +87,14 @@ public class InMemoryUser implements User {
 
     public void setPicture(String picture) {
         this.picture = picture;
+    }
+
+    @Override
+    public Map<String, String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Map<String, String> roles) {
+        this.roles = roles;
     }
 }

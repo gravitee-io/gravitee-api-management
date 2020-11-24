@@ -39,7 +39,7 @@
         <gravitee-definition.version>1.24.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-plugin.version>1.16.0-SNAPSHOT</gravitee-plugin.version>
         <gravitee-repository.version>3.4.0-SNAPSHOT</gravitee-repository.version>
-        <gravitee-gateway-api.version>1.20.0</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>1.20.1</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-expression-language.version>1.4.2</gravitee-expression-language.version>
         <gravitee-alert-api.version>1.5.0</gravitee-alert-api.version>

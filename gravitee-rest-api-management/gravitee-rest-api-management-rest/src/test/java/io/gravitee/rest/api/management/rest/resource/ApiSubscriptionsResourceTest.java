@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -107,7 +108,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 .process(any(ProcessSubscriptionEntity.class), any());
         assertEquals(customApiKeyCaptor.getValue(), customApiKey);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals("/apis/" + API_NAME + "/subscriptions/" + FAKE_SUBSCRIPTION_ID, response.getLocation().getPath());
+        assertEquals(envTarget().path(FAKE_SUBSCRIPTION_ID).queryParam("customApiKey", customApiKey).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
@@ -158,6 +159,6 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 .process(any(ProcessSubscriptionEntity.class), any());
         assertEquals(customApiKeyCaptor.getValue(), customApiKey);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals("/apis/" + API_NAME + "/subscriptions/" + FAKE_SUBSCRIPTION_ID, response.getLocation().getPath());
+        assertEquals(envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 }

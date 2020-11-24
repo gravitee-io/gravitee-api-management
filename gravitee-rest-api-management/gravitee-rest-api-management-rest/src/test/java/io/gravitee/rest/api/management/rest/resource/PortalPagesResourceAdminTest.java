@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.NewPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
@@ -22,10 +23,12 @@ import io.gravitee.rest.api.model.UpdatePageEntity;
 import org.junit.Test;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
@@ -91,5 +94,24 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         final Response response = envTarget(PAGE_NAME).request().method(javax.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldCreatePortalPage() {
+        reset(pageService);
+
+        NewPageEntity newPageEntity = new NewPageEntity();
+        newPageEntity.setName("my-page-name");
+        newPageEntity.setType(PageType.MARKDOWN);
+
+        PageEntity returnedPage = new PageEntity();
+        returnedPage.setId("my-beautiful-page");
+        doReturn(returnedPage).when(pageService).createPage(any());
+        doReturn(0).when(pageService).findMaxPortalPageOrder();
+
+        final Response response = envTarget().request().post(Entity.json(newPageEntity));
+
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertEquals(envTarget().path("my-beautiful-page").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 }
