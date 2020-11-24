@@ -1,7 +1,4 @@
 {
-  "company" : {
-    "name" : "Gravitee.io"
-  },
   "portal" : {
     "entrypoint" : "https://api.company.com",
     "apikeyHeader" : "X-Gravitee-Api-Key",
@@ -48,17 +45,6 @@
     },
     "localLogin" : {
       "enabled" : true
-    },
-    "google" : {
-      "clientId" : "googleId"
-    },
-    "github" : {
-      "clientId" : "githubId"
-    },
-    "oauth2" : {
-      "clientId" : "oauth2Id",
-      "color" : "#0076b4",
-      "scope" : [ ]
     }
   },
   "scheduler" : {

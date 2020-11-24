@@ -26,7 +26,10 @@ public enum OrganizationPermission implements Permission {
     CUSTOM_USER_FIELDS              (   "CUSTOM_USER_FIELDS",           1300    ),
     IDENTITY_PROVIDER               (   "IDENTITY_PROVIDER",            1400    ),
     IDENTITY_PROVIDER_ACTIVATION    (   "IDENTITY_PROVIDER_ACTIVATION", 1500    ),
-    NOTIFICATION_TEMPLATES          (   "NOTIFICATION_TEMPLATES",       1600    );
+    NOTIFICATION_TEMPLATES          (   "NOTIFICATION_TEMPLATES",       1600    ),
+    SETTINGS                        (   "SETTINGS",                     1700    ),
+    ;
+
 
     String name;
     int mask;

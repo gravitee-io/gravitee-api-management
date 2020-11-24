@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
@@ -103,10 +104,10 @@ public class ApiResource extends AbstractResource {
             }
 
             api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), apiEntity.getUpdatedAt()));
-            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER)) {
+            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_TAGS_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)) {
                 api.setLabels(new ArrayList<>());
             }
-            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER)) {
+            if (!parameterService.findAsBoolean(Key.PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER, ParameterReferenceType.ENVIRONMENT)) {
                 api.setCategories(new ArrayList<>());
             }
             return Response.ok(api).build();

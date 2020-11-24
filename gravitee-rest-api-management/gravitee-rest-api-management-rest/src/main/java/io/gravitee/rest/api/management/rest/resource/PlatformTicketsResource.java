@@ -24,7 +24,9 @@ import io.gravitee.rest.api.model.TicketEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.TicketService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -33,13 +35,7 @@ import io.swagger.annotations.ApiResponses;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
@@ -61,7 +57,7 @@ public class PlatformTicketsResource extends AbstractResource  {
             @ApiResponse(code = 500, message = "Internal server error")})
 
     public Response createPlatformTicket(@Valid @NotNull final NewTicketEntity ticketEntity) {
-        ticketService.create(getAuthenticatedUser(), ticketEntity);
+        ticketService.create(getAuthenticatedUser(), ticketEntity, GraviteeContext.getCurrentOrganization(), ParameterReferenceType.ORGANIZATION);
         return Response.status(Response.Status.CREATED).build();
     }
 

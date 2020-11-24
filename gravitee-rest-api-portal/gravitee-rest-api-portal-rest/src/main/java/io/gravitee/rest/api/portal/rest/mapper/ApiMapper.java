@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
@@ -107,7 +108,7 @@ public class ApiMapper {
 
         apiItem.setVersion(api.getVersion());
 
-        boolean isCategoryModeEnabled = this.parameterService.findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED);
+        boolean isCategoryModeEnabled = this.parameterService.findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
         if (isCategoryModeEnabled && api.getCategories() != null) {
             apiItem.setCategories(api.getCategories().stream().filter(categoryId -> {
                 try {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.filter;
 
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.exceptions.MaintenanceModeException;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class MaintenanceFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (parameterService.findAsBoolean(MAINTENANCE_MODE_ENABLED)
+        if (parameterService.findAsBoolean(MAINTENANCE_MODE_ENABLED, ParameterReferenceType.ORGANIZATION)
                 && !requestContext.getUriInfo().getPath().equals("portal")
                 && !requestContext.getUriInfo().getPath().equals("portal/")) {
             throw new MaintenanceModeException();

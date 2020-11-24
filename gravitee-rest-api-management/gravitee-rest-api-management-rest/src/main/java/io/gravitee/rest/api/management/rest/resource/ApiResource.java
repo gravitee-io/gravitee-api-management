@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.security.utils.ImageUtils;
@@ -750,7 +751,7 @@ public class ApiResource extends AbstractResource {
                     throw new BadRequestException("API is already stopped");
                 }
 
-                final boolean apiReviewEnabled = parameterService.findAsBoolean(Key.API_REVIEW_ENABLED);
+                final boolean apiReviewEnabled = parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
                 if (apiReviewEnabled) {
                     if (api.getWorkflowState() != null && !WorkflowState.REVIEW_OK.equals(api.getWorkflowState())) {
                         throw new BadRequestException("API can not be started without being reviewed");

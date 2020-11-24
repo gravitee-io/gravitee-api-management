@@ -17,14 +17,13 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.PortalConfigEntity.Management;
+import io.gravitee.rest.api.model.parameters.ConsoleConfigEntity.Management;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserConfig;
 import io.gravitee.rest.api.portal.rest.model.UserInput;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.ConfigService;
-import io.gravitee.rest.api.service.UserMetadataService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -40,7 +39,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.util.List;
 
 import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.userURL;
 import static javax.ws.rs.core.Response.status;
@@ -73,7 +71,7 @@ public class UserResource extends AbstractResource {
             User currentUser = userMapper.convert(userEntity);
             boolean withManagement = (authenticatedUser != null && permissionService.hasManagementRights(authenticatedUser));
             if (withManagement) {
-                Management managementConfig = this.configService.getPortalConfig().getManagement();
+                Management managementConfig = this.configService.getConsoleConfig().getManagement();
                 if (managementConfig != null && managementConfig.getUrl() != null) {
                     UserConfig userConfig = new UserConfig();
                     userConfig.setManagementUrl(managementConfig.getUrl());

@@ -52,7 +52,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
@@ -152,10 +151,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        GraviteeCorsConfiguration graviteeCorsConfiguration = new GraviteeCorsConfiguration(parameterService, eventManager);
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", graviteeCorsConfiguration);
-        return source;
+        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, eventManager);
     }
 
     @Override

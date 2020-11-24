@@ -15,15 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import io.gravitee.rest.api.model.PortalConfigEntity;
-import io.gravitee.rest.api.model.PortalConfigEntity.Application;
-import io.gravitee.rest.api.model.PortalConfigEntity.*;
-import io.gravitee.rest.api.model.PortalConfigEntity.Plan;
-import io.gravitee.rest.api.model.PortalConfigEntity.Application.ApplicationTypes;
-import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalRating;
-import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalRating.RatingComment;
-import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalUploadMedia;
-import io.gravitee.rest.api.portal.rest.model.Enabled;
+import io.gravitee.rest.api.model.parameters.ConsoleConfigEntity;
+import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.springframework.stereotype.Component;
 
@@ -34,28 +27,34 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigurationMapper {
 
-    public ConfigurationResponse convert(PortalConfigEntity configEntity) {
+    public ConfigurationResponse convert(PortalConfigEntity portalConfigEntity, ConsoleConfigEntity consoleConfigEntity) {
         ConfigurationResponse configuration = new ConfigurationResponse();
-        configuration.setAnalytics(convert(configEntity.getAnalytics()));
-        configuration.setApiReview(convert(configEntity.getApiReview().getEnabled()));
-        configuration.setApplication(convert(configEntity.getApplication()));
-        configuration.setAuthentication(convert(configEntity.getAuthentication()));
-        configuration.setCompany(convert(configEntity.getCompany()));
-        configuration.setDocumentation(convert(configEntity.getDocumentation()));
-        configuration.setPlan(convert(configEntity.getPlan()));
-        configuration.setPortal(convert(configEntity.getPortal(), configEntity.getApplication()));
-        configuration.setScheduler(convert(configEntity.getScheduler()));
-        configuration.setRecaptcha(convert(configEntity.getReCaptcha()));
+        configuration.setAnalytics(convert(consoleConfigEntity.getAnalytics()));
+        configuration.setApiReview(convert(portalConfigEntity.getApiReview().getEnabled()));
+        configuration.setApplication(convert(portalConfigEntity.getApplication()));
+        configuration.setAuthentication(convert(portalConfigEntity.getAuthentication()));
+        configuration.setDocumentation(convert(portalConfigEntity.getDocumentation()));
+        configuration.setPlan(convert(portalConfigEntity.getPlan()));
+        configuration.setPortal(convert(portalConfigEntity.getPortal(), portalConfigEntity.getApplication()));
+        configuration.setScheduler(convert(portalConfigEntity.getScheduler()));
+        configuration.setRecaptcha(convert(portalConfigEntity.getReCaptcha()));
         return configuration;
     }
 
-    private ConfigurationScheduler convert(Scheduler scheduler) {
+    private ConfigurationAnalytics convert(ConsoleConfigEntity.Analytics analytics) {
+        ConfigurationAnalytics configuration = new ConfigurationAnalytics();
+        configuration.setClientTimeout(analytics.getClientTimeout());
+        return configuration;
+
+    }
+
+    private ConfigurationScheduler convert(PortalConfigEntity.Scheduler scheduler) {
         ConfigurationScheduler configuration = new ConfigurationScheduler();
         configuration.setNotificationsInSeconds(scheduler.getNotificationsInSeconds());
         return configuration;
     }
 
-    private ConfigurationPortal convert(Portal portal, Application application) {
+    private ConfigurationPortal convert(PortalConfigEntity.Portal portal, PortalConfigEntity.Application application) {
         ConfigurationPortal configuration = new ConfigurationPortal();
         configuration.setAnalytics(convert(portal.getAnalytics()));
         configuration.setApikeyHeader(portal.getApikeyHeader());
@@ -66,7 +65,7 @@ public class ConfigurationMapper {
         configuration.setSupport(convert(portal.getSupport()));
         configuration.setUserCreation(convert(portal.getUserCreation().getEnabled()));
 
-        ApplicationTypes types = application.getTypes();
+        PortalConfigEntity.Application.ApplicationTypes types = application.getTypes();
         if (!application.getRegistration().getEnabled() && !types.getSimpleType().isEnabled()
                 || !types.getSimpleType().isEnabled() &&
                 !types.getWebType().isEnabled() &&
@@ -82,27 +81,27 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationPortalRating convert(PortalRating rating) {
+    private ConfigurationPortalRating convert(PortalConfigEntity.Portal.PortalRating rating) {
         ConfigurationPortalRating configuration = new ConfigurationPortalRating();
         configuration.setComment(convert(rating.getComment()));
         configuration.setEnabled(rating.isEnabled());
         return configuration;
     }
 
-    private ConfigurationPortalRatingComment convert(RatingComment comment) {
+    private ConfigurationPortalRatingComment convert(PortalConfigEntity.Portal.PortalRating.RatingComment comment) {
         ConfigurationPortalRatingComment configuration = new ConfigurationPortalRatingComment();
         configuration.setMandatory(comment.isMandatory());
         return configuration;
     }
 
-    private ConfigurationPortalMedia convert(PortalUploadMedia uploadMedia) {
+    private ConfigurationPortalMedia convert(PortalConfigEntity.Portal.PortalUploadMedia uploadMedia) {
         ConfigurationPortalMedia configuration = new ConfigurationPortalMedia();
         configuration.setEnabled(uploadMedia.getEnabled());
         configuration.setMaxSizeInBytes(uploadMedia.getMaxSizeInOctet());
         return configuration;
     }
 
-    private ConfigurationPortalApis convert(PortalApis apis) {
+    private ConfigurationPortalApis convert(PortalConfigEntity.Portal.PortalApis apis) {
         ConfigurationPortalApis configuration = new ConfigurationPortalApis();
         configuration.setApiHeaderShowTags(convert(apis.getApiHeaderShowTags()));
         configuration.setApiHeaderShowCategories(convert(apis.getApiHeaderShowCategories()));
@@ -111,20 +110,20 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationPortalAnalytics convert(PortalAnalytics analytics) {
+    private ConfigurationPortalAnalytics convert(PortalConfigEntity.Portal.PortalAnalytics analytics) {
         ConfigurationPortalAnalytics configuration = new ConfigurationPortalAnalytics();
         configuration.setEnabled(analytics.isEnabled());
         configuration.setTrackingId(analytics.getTrackingId());
         return configuration;
     }
 
-    private ConfigurationPlan convert(Plan plan) {
+    private ConfigurationPlan convert(PortalConfigEntity.Plan plan) {
         ConfigurationPlan configuration = new ConfigurationPlan();
         configuration.setSecurity(convert(plan.getSecurity()));
         return configuration;
     }
 
-    private ConfigurationPlanSecurity convert(PlanSecurity security) {
+    private ConfigurationPlanSecurity convert(PortalConfigEntity.Plan.PlanSecurity security) {
         ConfigurationPlanSecurity configuration = new ConfigurationPlanSecurity();
         configuration.setApikey(convert(security.getApikey()));
         configuration.setJwt(convert(security.getJwt()));
@@ -133,59 +132,27 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationDocumentation convert(Documentation documentation) {
+    private ConfigurationDocumentation convert(PortalConfigEntity.Documentation documentation) {
         ConfigurationDocumentation configuration = new ConfigurationDocumentation();
         configuration.setUrl(documentation.getUrl());
         return configuration;
     }
 
-    private ConfigurationCompany convert(Company company) {
-        ConfigurationCompany configuration = new ConfigurationCompany();
-        configuration.setName(company.getName());
-        return configuration;
-    }
-
-    private ConfigurationAuthentication convert(Authentication authentication) {
+    private ConfigurationAuthentication convert(PortalConfigEntity.Authentication authentication) {
         ConfigurationAuthentication configuration = new ConfigurationAuthentication();
         configuration.setForceLogin(convert(authentication.getForceLogin()));
-        configuration.setGithub(convert(authentication.getGithub()));
-        configuration.setGoogle(convert(authentication.getGoogle()));
         configuration.setLocalLogin(convert(authentication.getLocalLogin()));
-        configuration.setOauth2(convert(authentication.getOauth2()));
         return configuration;
     }
 
-    private ConfigurationOAuth2Authentication convert(OAuth2Authentication oauth2) {
-        ConfigurationOAuth2Authentication configuration = new ConfigurationOAuth2Authentication();
-        configuration.setAuthorizationEndpoint(oauth2.getAuthorizationEndpoint());
-        configuration.setClientId(oauth2.getClientId());
-        configuration.setColor(oauth2.getColor());
-        configuration.setName(oauth2.getName());
-        configuration.setScope(oauth2.getScope());
-        configuration.setUserLogoutEndpoint(oauth2.getUserLogoutEndpoint());
-        return configuration;
-    }
-
-    private ConfigurationGoogleAuthentication convert(GoogleAuthentication google) {
-        ConfigurationGoogleAuthentication configuration = new ConfigurationGoogleAuthentication();
-        configuration.setClientId(google.getClientId());
-        return configuration;
-    }
-
-    private ConfigurationGithubAuthentication convert(GithubAuthentication github) {
-        ConfigurationGithubAuthentication configuration = new ConfigurationGithubAuthentication();
-        configuration.setClientId(github.getClientId());
-        return configuration;
-    }
-
-    private ConfigurationApplication convert(Application application) {
+    private ConfigurationApplication convert(PortalConfigEntity.Application application) {
         ConfigurationApplication configuration = new ConfigurationApplication();
         configuration.setRegistration(convert(application.getRegistration().getEnabled()));
         configuration.setTypes(convert(application.getTypes()));
         return configuration;
     }
 
-    private ConfigurationApplicationTypes convert(ApplicationTypes types) {
+    private ConfigurationApplicationTypes convert(PortalConfigEntity.Application.ApplicationTypes types) {
         ConfigurationApplicationTypes configuration = new ConfigurationApplicationTypes();
         configuration.setBackendToBackend(convert(types.getBackendToBackendType()));
         configuration.setBrowser(convert(types.getBrowserType()));
@@ -196,13 +163,7 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationAnalytics convert(Analytics analytics) {
-        ConfigurationAnalytics configuration = new ConfigurationAnalytics();
-        configuration.setClientTimeout(analytics.getClientTimeout());
-        return configuration;
-    }
-
-    private ConfigurationReCaptcha convert(ReCaptcha reCaptcha) {
+    private ConfigurationReCaptcha convert(PortalConfigEntity.ReCaptcha reCaptcha) {
         ConfigurationReCaptcha configuration = new ConfigurationReCaptcha();
         configuration.setEnabled(reCaptcha.getEnabled());
         configuration.setSiteKey(reCaptcha.getSiteKey());

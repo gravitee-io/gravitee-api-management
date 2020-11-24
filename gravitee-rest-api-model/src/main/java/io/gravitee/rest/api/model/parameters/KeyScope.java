@@ -13,18 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.model.parameters;
 
-import io.gravitee.rest.api.service.common.GraviteeContext;
-
-/**
- * @author Azize Elamrani (azize dot elamrani at gmail dot com)
- */
-public interface EmailService {
-
-    String[] DEFAULT_MAIL_TO = { "DEFAULT_MAIL_TO" };
-
-    void sendEmailNotification(EmailNotification emailNotification);
-
-    void sendAsyncEmailNotification(EmailNotification emailNotification, GraviteeContext.ReferenceContext context);
+public enum KeyScope {
+    ENVIRONMENT, ORGANIZATION, SYSTEM;
 }

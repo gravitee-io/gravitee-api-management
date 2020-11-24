@@ -15,7 +15,12 @@
  */
 package io.gravitee.rest.api.model.parameters;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static io.gravitee.rest.api.model.parameters.KeyScope.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -23,143 +28,155 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public enum Key {
-    COMPANY_NAME("company.name", "Gravitee.io"),
+    COMPANY_NAME("company.name", "Gravitee.io", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    PORTAL_TOP_APIS("portal.top-apis", List.class, false),
-    PORTAL_TITLE("portal.title", "Gravitee.io Portal"),
-    PORTAL_ENTRYPOINT("portal.entrypoint", "https://api.company.com"),
-    PORTAL_APIKEY_HEADER("portal.apikey.header", "X-Gravitee-Api-Key"),
-    PORTAL_SUPPORT_ENABLED("portal.support.enabled", "true"),
-    PORTAL_RATING_ENABLED("portal.rating.enabled", "true"),
-    PORTAL_RATING_COMMENT_MANDATORY("portal.rating.comment.mandatory", "false"),
-    PORTAL_USERCREATION_ENABLED("portal.userCreation.enabled", "true"),
-    PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED("portal.userCreation.automaticValidation.enabled", "true"),
-    PORTAL_ANALYTICS_ENABLED("portal.analytics.enabled", "false"),
-    PORTAL_ANALYTICS_TRACKINGID("portal.analytics.trackingId"),
-    PORTAL_APIS_TILESMODE_ENABLED("portal.apis.tilesMode.enabled", "true"),
-    PORTAL_APIS_CATEGORY_ENABLED("portal.apis.categoryMode.enabled", "true"),
-    PORTAL_APIS_SHOW_TAGS_IN_APIHEADER("portal.apis.apiheader.showtags.enabled", "true"),
-    PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER("portal.apis.apiheader.showcategories.enabled", "true"),
-    PORTAL_UPLOAD_MEDIA_ENABLED("portal.uploadMedia.enabled", "false"),
-    PORTAL_UPLOAD_MEDIA_MAXSIZE("portal.uploadMedia.maxSizeInOctet", "1000000"),
-    PORTAL_URL("portal.url"),
+    PORTAL_TOP_APIS("portal.top-apis", List.class, false, new HashSet<>(Arrays.asList(ENVIRONMENT))),
+    PORTAL_ENTRYPOINT("portal.entrypoint", "https://api.company.com", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_APIKEY_HEADER("portal.apikey.header", "X-Gravitee-Api-Key", new HashSet<>(Arrays.asList(SYSTEM))),
+    PORTAL_SUPPORT_ENABLED("portal.support.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_RATING_ENABLED("portal.rating.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_RATING_COMMENT_MANDATORY("portal.rating.comment.mandatory", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_USERCREATION_ENABLED("portal.userCreation.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED("portal.userCreation.automaticValidation.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_ANALYTICS_ENABLED("portal.analytics.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_ANALYTICS_TRACKINGID("portal.analytics.trackingId", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_APIS_TILESMODE_ENABLED("portal.apis.tilesMode.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_APIS_CATEGORY_ENABLED("portal.apis.categoryMode.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_APIS_SHOW_TAGS_IN_APIHEADER("portal.apis.apiheader.showtags.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER("portal.apis.apiheader.showcategories.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_UPLOAD_MEDIA_ENABLED("portal.uploadMedia.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    PORTAL_UPLOAD_MEDIA_MAXSIZE("portal.uploadMedia.maxSizeInOctet", "1000000", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    PORTAL_URL("portal.url", new HashSet<>(Arrays.asList(ENVIRONMENT, SYSTEM))),
 
-    MANAGEMENT_TITLE("management.title", "Gravitee.io Management"),
-    MANAGEMENT_URL("management.url"),
+    MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    THEME_NAME("theme.name", "default"),
-    THEME_LOGO("theme.logo", "themes/assets/GRAVITEE_LOGO1-01.png"),
-    THEME_LOADER("theme.loader", "assets/gravitee_logo_anim.gif"),
-    THEME_CSS("theme.css"),
+    THEME_NAME("theme.name", "default", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    THEME_LOGO("theme.logo", "themes/assets/GRAVITEE_LOGO1-01.png", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    THEME_LOADER("theme.loader", "assets/gravitee_logo_anim.gif", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    THEME_CSS("theme.css", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    AUTHENTICATION_FORCELOGIN_ENABLED("authentication.forceLogin.enabled", "false"),
-    AUTHENTICATION_LOCALLOGIN_ENABLED("authentication.localLogin.enabled", "true"),
-    AUTHENTICATION_GOOGLE_CLIENTID("authentication.google.clientId"),
-    AUTHENTICATION_GITHUB_CLIENTID("authentication.github.clientId"),
-    AUTHENTICATION_OAUTH2_CLIENTID("authentication.oauth2.clientId"),
-    AUTHENTICATION_OAUTH2_NAME("authentication.oauth2.name"),
-    AUTHENTICATION_OAUTH2_COLOR("authentication.oauth2.color", "#0076b4"),
-    AUTHENTICATION_OAUTH2_AUTHORIZATION_ENDPOINT("authentication.oauth2.authorization.endpoint"),
-    AUTHENTICATION_OAUTH2_USER_LOGOUT_ENDPOINT("authentication.oauth2.user.logout.endpoint"),
-    AUTHENTICATION_OAUTH2_SCOPE("authentication.oauth2.scopes", List.class),
+    PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED("portal.authentication.forceLogin.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_AUTHENTICATION_LOCALLOGIN_ENABLED("portal.authentication.localLogin.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    SCHEDULER_TASKS("scheduler.tasks", "10"),
-    SCHEDULER_NOTIFICATIONS("scheduler.notifications", "10"),
+    PORTAL_SCHEDULER_TASKS("portal.scheduler.tasks", "10", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_SCHEDULER_NOTIFICATIONS("portal.scheduler.notifications", "10", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    DOCUMENTATION_URL("documentation.url", "https://docs.gravitee.io"),
+    DOCUMENTATION_URL("documentation.url", "https://docs.gravitee.io", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled", "true"),
-    PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled", "true"),
-    PLAN_SECURITY_APIKEY_ENABLED("plan.security.apikey.enabled", "true"),
-    PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED("plan.security.apikey.allowCustom.enabled", "false"),
-    PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true"),
+    PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PLAN_SECURITY_APIKEY_ENABLED("plan.security.apikey.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED("plan.security.apikey.allowCustom.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    OPEN_API_DOC_TYPE_SWAGGER_ENABLED("open.api.doc.type.swagger.enabled", "true"),
-    OPEN_API_DOC_TYPE_REDOC_ENABLED("open.api.doc.type.redoc.enabled", "true"),
-    OPEN_API_DOC_TYPE_DEFAULT("open.api.doc.type.default", "Swagger"),
+    OPEN_API_DOC_TYPE_SWAGGER_ENABLED("open.api.doc.type.swagger.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    OPEN_API_DOC_TYPE_REDOC_ENABLED("open.api.doc.type.redoc.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    OPEN_API_DOC_TYPE_DEFAULT("open.api.doc.type.default", "Swagger", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    API_QUALITY_METRICS_ENABLED("api.quality.metrics.enabled", "false"),
-    API_QUALITY_METRICS_FUNCTIONAL_DOCUMENTATION_WEIGHT("api.quality.metrics.functional.documentation.weight", "0"),
-    API_QUALITY_METRICS_TECHNICAL_DOCUMENTATION_WEIGHT("api.quality.metrics.technical.documentation.weight", "0"),
-    API_QUALITY_METRICS_HEALTHCHECK_WEIGHT("api.quality.metrics.healthcheck.weight", "0"),
-    API_QUALITY_METRICS_DESCRIPTION_WEIGHT("api.quality.metrics.description.weight", "0"),
-    API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH("api.quality.metrics.description.min.length", "100"),
-    API_QUALITY_METRICS_LOGO_WEIGHT("api.quality.metrics.logo.weight", "0"),
-    API_QUALITY_METRICS_CATEGORIES_WEIGHT("api.quality.metrics.categories.weight", "0"),
-    API_QUALITY_METRICS_LABELS_WEIGHT("api.quality.metrics.labels.weight", "0"),
+    API_QUALITY_METRICS_ENABLED("api.quality.metrics.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_QUALITY_METRICS_FUNCTIONAL_DOCUMENTATION_WEIGHT("api.quality.metrics.functional.documentation.weight", "0", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_QUALITY_METRICS_TECHNICAL_DOCUMENTATION_WEIGHT("api.quality.metrics.technical.documentation.weight", "0", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_QUALITY_METRICS_HEALTHCHECK_WEIGHT("api.quality.metrics.healthcheck.weight", "0", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_QUALITY_METRICS_DESCRIPTION_WEIGHT("api.quality.metrics.description.weight", "0", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH("api.quality.metrics.description.min.length", "100", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_QUALITY_METRICS_LOGO_WEIGHT("api.quality.metrics.logo.weight", "0", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_QUALITY_METRICS_CATEGORIES_WEIGHT("api.quality.metrics.categories.weight", "0", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_QUALITY_METRICS_LABELS_WEIGHT("api.quality.metrics.labels.weight", "0", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    ALERT_ENABLED("alert.enabled", "false"),
+    ALERT_ENABLED("alert.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0"),
-    LOGGING_AUDIT_ENABLED("logging.audit.enabled", "false"),
-    LOGGING_AUDIT_TRAIL_ENABLED("logging.audit.trail.enabled", "false"),
-    LOGGING_USER_DISPLAYED("logging.user.displayed", "false"),
+    LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    LOGGING_AUDIT_ENABLED("logging.audit.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    LOGGING_AUDIT_TRAIL_ENABLED("logging.audit.trail.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    LOGGING_USER_DISPLAYED("logging.user.displayed", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000"),
+    ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    APPLICATION_TYPE_SIMPLE_ENABLED("application.types.simple.enabled", "true"),
-    APPLICATION_TYPE_BROWSER_ENABLED("application.types.browser.enabled", "true"),
-    APPLICATION_TYPE_WEB_ENABLED("application.types.web.enabled", "true"),
-    APPLICATION_TYPE_NATIVE_ENABLED("application.types.native.enabled", "true"),
-    APPLICATION_TYPE_BACKEND_TO_BACKEND_ENABLED("application.types.backend_to_backend.enabled", "true"),
-    APPLICATION_REGISTRATION_ENABLED("application.registration.enabled", "false"),
+    APPLICATION_TYPE_SIMPLE_ENABLED("application.types.simple.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    APPLICATION_TYPE_BROWSER_ENABLED("application.types.browser.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    APPLICATION_TYPE_WEB_ENABLED("application.types.web.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    APPLICATION_TYPE_NATIVE_ENABLED("application.types.native.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    APPLICATION_TYPE_BACKEND_TO_BACKEND_ENABLED("application.types.backend_to_backend.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    APPLICATION_REGISTRATION_ENABLED("application.registration.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    API_REVIEW_ENABLED("api.review.enabled", "false"),
-    MAINTENANCE_MODE_ENABLED("maintenance.enabled", "false"),
-    NEWSLETTER_ENABLED("newsletter.enabled", "true"),
+    API_REVIEW_ENABLED("api.review.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    MAINTENANCE_MODE_ENABLED("maintenance.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    NEWSLETTER_ENABLED("newsletter.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    RECAPTCHA_ENABLED("reCaptcha.enabled", "false"),
-    RECAPTCHA_SITE_KEY("reCaptcha.siteKey"),
+    PORTAL_RECAPTCHA_ENABLED("portal.reCaptcha.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_RECAPTCHA_SITE_KEY("portal.reCaptcha.siteKey", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    HTTP_CORS_ALLOW_ORIGIN("http.cors.allow-origin", "*", List.class),
-    HTTP_CORS_ALLOW_HEADERS("http.cors.allow-headers", "Cache-Control;Pragma;Origin;Authorization;Content-Type;X-Requested-With;If-Match;X-Xsrf-Token;X-Recaptcha-Token", List.class),
-    HTTP_CORS_ALLOW_METHODS("http.cors.allow-methods", "OPTIONS;GET;POST;PUT;DELETE;PATCH", List.class),
-    HTTP_CORS_EXPOSED_HEADERS("http.cors.exposed-headers", "ETag;X-Xsrf-Token", List.class),
-    HTTP_CORS_MAX_AGE("http.cors.max-age", "1728000"),
+    PORTAL_HTTP_CORS_ALLOW_ORIGIN("portal.http.cors.allow-origin", "*", List.class, new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_HTTP_CORS_ALLOW_HEADERS("portal.http.cors.allow-headers", "Cache-Control;Pragma;Origin;Authorization;Content-Type;X-Requested-With;If-Match;X-Xsrf-Token;X-Recaptcha-Token", List.class, new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_HTTP_CORS_ALLOW_METHODS("portal.http.cors.allow-methods", "OPTIONS;GET;POST;PUT;DELETE;PATCH", List.class, new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_HTTP_CORS_EXPOSED_HEADERS("portal.http.cors.exposed-headers", "ETag;X-Xsrf-Token", List.class, new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_HTTP_CORS_MAX_AGE("portal.http.cors.max-age", "1728000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    EMAIL_ENABLED("email.enabled", "false"),
-    EMAIL_HOST("email.host", "smtp.my.domain"),
-    EMAIL_PORT("email.port", "587"),
-    EMAIL_USERNAME("email.username", "user@my.domain"),
-    EMAIL_PASSWORD("email.password", "password"),
-    EMAIL_PROTOCOL("email.protocol", "smtp"),
-    EMAIL_SUBJECT("email.subject", "[Gravitee.io] %s"),
-    EMAIL_FROM("email.from", "noreply@my.domain"),
-    EMAIL_PROPERTIES_AUTH_ENABLED("email.properties.auth"),
-    EMAIL_PROPERTIES_STARTTLS_ENABLE("email.properties.starttls.enable"),
-    EMAIL_PROPERTIES_SSL_TRUST("email.properties.ssl.trust"),
+    EMAIL_ENABLED("email.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_HOST("email.host", "smtp.my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_PORT("email.port", "587", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_USERNAME("email.username", "user@my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_PASSWORD("email.password", "password", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_PROTOCOL("email.protocol", "smtp", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_SUBJECT("email.subject", "[Gravitee.io] %s", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_FROM("email.from", "noreply@my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_PROPERTIES_AUTH_ENABLED("email.properties.auth", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_PROPERTIES_STARTTLS_ENABLE("email.properties.starttls.enable", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_PROPERTIES_SSL_TRUST("email.properties.ssl.trust", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    API_LABELS_DICTIONARY("api.labelsDictionary", List.class);
+    API_LABELS_DICTIONARY("api.labelsDictionary", List.class, new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+
+    CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED("console.authentication.localLogin.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_SCHEDULER_TASKS("console.scheduler.tasks", "10", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_SCHEDULER_NOTIFICATIONS("console.scheduler.notifications", "10", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_RECAPTCHA_ENABLED("console.reCaptcha.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_RECAPTCHA_SITE_KEY("console.reCaptcha.siteKey", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_HTTP_CORS_ALLOW_ORIGIN("console.http.cors.allow-origin", "*", List.class, new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_HTTP_CORS_ALLOW_HEADERS("console.http.cors.allow-headers", "Cache-Control;Pragma;Origin;Authorization;Content-Type;X-Requested-With;If-Match;X-Xsrf-Token;X-Recaptcha-Token", List.class, new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_HTTP_CORS_ALLOW_METHODS("console.http.cors.allow-methods", "OPTIONS;GET;POST;PUT;DELETE;PATCH", List.class, new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_HTTP_CORS_EXPOSED_HEADERS("console.http.cors.exposed-headers", "ETag;X-Xsrf-Token", List.class, new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_HTTP_CORS_MAX_AGE("console.http.cors.max-age", "1728000", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_USERCREATION_ENABLED("console.userCreation.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED("console.userCreation.automaticValidation.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_SUPPORT_ENABLED("console.support.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    ;
 
     String key;
     String defaultValue;
     Class<?> type;
     boolean isOverridable = true;
+    Set<KeyScope> scopes;
 
-    Key(String key) {
+    Key(String key, Set<KeyScope> scopes) {
         this.key = key;
+        this.scopes = scopes;
     }
 
-    Key(String key, String defaultValue, Class<?> type) {
+    Key(String key, String defaultValue, Class<?> type, Set<KeyScope> scopes) {
         this.key = key;
         this.type = type;
         this.defaultValue = defaultValue;
+        this.scopes = scopes;
     }
 
-    Key(String key, Class<?> type) {
+    Key(String key, Class<?> type, Set<KeyScope> scopes) {
         this.key = key;
         this.type = type;
+        this.scopes = scopes;
     }
 
-    Key(String key, Class<?> type, boolean isOverridable) {
+    Key(String key, Class<?> type, boolean isOverridable, Set<KeyScope> scopes) {
         this.key = key;
         this.type = type;
         this.isOverridable = isOverridable;
+        this.scopes = scopes;
     }
 
-    Key(String key, String defaultValue) {
+    Key(String key, String defaultValue, Set<KeyScope> scopes) {
         this.key = key;
         this.defaultValue = defaultValue;
+        this.scopes = scopes;
     }
 
     public String key() {
@@ -170,10 +187,16 @@ public enum Key {
         return defaultValue;
     }
 
-    public Class<?> type() { return type; }
+    public Class<?> type() {
+        return type;
+    }
 
     public boolean isOverridable() {
         return isOverridable;
+    }
+
+    public Set<KeyScope> scopes() {
+        return scopes;
     }
 
     public static Key findByKey(String value) {

@@ -16,6 +16,12 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.analytics.query.*;
+import io.gravitee.repository.analytics.query.tabular.TabularResponse;
+import io.gravitee.repository.log.api.LogRepository;
+import io.gravitee.repository.log.model.ExtendedLog;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -24,14 +30,9 @@ import io.gravitee.rest.api.model.log.*;
 import io.gravitee.rest.api.model.log.extended.Request;
 import io.gravitee.rest.api.model.log.extended.Response;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.*;
-import io.gravitee.repository.analytics.query.tabular.TabularResponse;
-import io.gravitee.repository.log.api.LogRepository;
-import io.gravitee.repository.log.model.ExtendedLog;
-import io.gravitee.repository.management.model.ApplicationStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
@@ -147,7 +148,7 @@ public class LogsServiceImpl implements LogsService {
     public ApiRequest findApiLog(String id, Long timestamp) {
         try {
             final ExtendedLog log = logRepository.findById(id, timestamp);
-            if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_ENABLED)) {
+            if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ORGANIZATION)) {
                 auditService.createApiAuditLog(log.getApi(),
                         Collections.singletonMap(REQUEST_ID, id),
                         LOG_READ,

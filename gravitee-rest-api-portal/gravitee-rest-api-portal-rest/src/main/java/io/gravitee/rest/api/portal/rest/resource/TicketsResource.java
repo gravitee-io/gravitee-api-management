@@ -22,20 +22,18 @@ import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.model.TicketInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.resource.param.TicketsParam;
 import io.gravitee.rest.api.service.TicketService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.HashMap;
@@ -57,7 +55,7 @@ public class TicketsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid @NotNull(message = "Input must not be null.") final TicketInput ticketInput) {
-        ticketService.create(getAuthenticatedUser(), ticketMapper.convert(ticketInput));
+        ticketService.create(getAuthenticatedUser(), ticketMapper.convert(ticketInput), GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT);
         return Response.status(Response.Status.CREATED).build();
     }
 

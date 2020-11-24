@@ -53,13 +53,13 @@ public class DefaultParameterUpgrader implements Upgrader, Ordered {
         try {
             String envPortalURL = environment.getProperty("portalURL", Key.MANAGEMENT_URL.defaultValue());
 
-            final Optional<Parameter> optionalParameter = parameterRepository.findById(Key.MANAGEMENT_URL.key());
+            final Optional<Parameter> optionalParameter = parameterRepository.findById(Key.MANAGEMENT_URL.key(), GraviteeContext.getDefaultOrganization(), ParameterReferenceType.ORGANIZATION);
             if (!optionalParameter.isPresent()) {
                 Parameter managementURLParam = new Parameter();
                 managementURLParam.setKey(Key.MANAGEMENT_URL.key());
                 managementURLParam.setValue(envPortalURL);
-                managementURLParam.setReferenceType(ParameterReferenceType.ENVIRONMENT);
-                managementURLParam.setReferenceId(GraviteeContext.getDefaultEnvironment());
+                managementURLParam.setReferenceType(ParameterReferenceType.ORGANIZATION);
+                managementURLParam.setReferenceId(GraviteeContext.getDefaultOrganization());
                 parameterRepository.create(managementURLParam);
             } else if (StringUtils.isEmpty(optionalParameter.get().getValue())) {
                 Parameter managementURLParam = optionalParameter.get();

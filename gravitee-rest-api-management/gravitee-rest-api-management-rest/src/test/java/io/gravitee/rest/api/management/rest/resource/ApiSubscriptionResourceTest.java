@@ -19,13 +19,14 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -87,7 +88,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     @Test
     public void shouldRenewApiKeyWithCustomApiKey() {
         when(apiKeyService.renew(anyString(), anyString())).thenReturn(fakeApiKeyEntity);
-        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED)).thenReturn(true);
+        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
 
         Response response = envTarget(SUBSCRIPTION_ID)
                 .queryParam("customApiKey", "atLeast10CharsButLessThan64")
@@ -104,7 +105,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotRenewApiKeyWithCustomApiKeyIfNotAllowed() {
         when(apiKeyService.renew(anyString(), anyString())).thenReturn(fakeApiKeyEntity);
-        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED)).thenReturn(false);
+        when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)).thenReturn(false);
 
         Response response = envTarget(SUBSCRIPTION_ID)
                 .queryParam("customApiKey", "atLeast10CharsButLessThan64")

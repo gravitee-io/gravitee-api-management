@@ -42,6 +42,7 @@ import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -312,8 +313,15 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
     }
 
-    private void checkUserRegistrationEnabled() {
-        if (!parameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)) {
+    private void checkUserRegistrationEnabled(GraviteeContext.ReferenceContext currentContext) {
+        boolean userCreationEnabled;
+        if (currentContext.getReferenceType().equals(GraviteeContext.ReferenceContextType.ORGANIZATION)) {
+            userCreationEnabled = parameterService.findAsBoolean(Key.CONSOLE_USERCREATION_ENABLED, currentContext.getReferenceId(), ParameterReferenceType.ORGANIZATION);
+        } else {
+            userCreationEnabled = parameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED, currentContext.getReferenceId(), ParameterReferenceType.ENVIRONMENT);
+        }
+
+        if (!userCreationEnabled) {
             throw new UserRegistrationUnavailableException();
         }
     }
@@ -334,7 +342,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
 
             if (USER_REGISTRATION.name().equals(action)) {
-                checkUserRegistrationEnabled();
+                checkUserRegistrationEnabled(GraviteeContext.getCurrentContext());
             } else if (GROUP_INVITATION.name().equals(action)) {
                 // check invitations
                 final String email = jwt.getClaim(Claims.EMAIL).asString();
@@ -524,6 +532,10 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     private UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole, boolean autoRegistrationEnabled) {
         try {
+            /*
+             TODO: getCurrentEnvironnemenet and call database to fetch the corresponding organization OR add parameters in methods
+              Because, this method is called by portal and console. And in portal, we don't have a "current organization" in path.
+             */
             String organizationId = GraviteeContext.getCurrentOrganization();
 
             // First we check that organization exist
@@ -614,10 +626,19 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity, final String confirmationPageUrl) {
-        checkUserRegistrationEnabled();
-        boolean autoRegistrationEnabled = parameterService.findAsBoolean(Key.PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED);
+        final GraviteeContext.ReferenceContext currentContext = GraviteeContext.getCurrentContext();
+
+        checkUserRegistrationEnabled(currentContext);
+        boolean autoRegistrationEnabled = isAutoRegistrationEnabled(currentContext);
 
         return createAndSendEmail(newExternalUserEntity, USER_REGISTRATION, confirmationPageUrl, autoRegistrationEnabled);
+    }
+
+    private boolean isAutoRegistrationEnabled(GraviteeContext.ReferenceContext currentContext) {
+        if (currentContext.getReferenceType().equals(GraviteeContext.ReferenceContextType.ORGANIZATION)) {
+            return parameterService.findAsBoolean(Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED, currentContext.getReferenceId(), ParameterReferenceType.ORGANIZATION);
+        }
+        return parameterService.findAsBoolean(Key.PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED, currentContext.getReferenceId(), ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override
@@ -671,7 +692,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION)
                     .params(params)
                     .param("registrationAction", USER_REGISTRATION.equals(action) ? "registration" : "creation")
-                    .build()
+                    .build(),
+                    GraviteeContext.getCurrentContext()
             );
 
             if (autoRegistrationEnabled) {
@@ -698,7 +720,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED)
                 .params(params)
                 .param("registrationStatus", accepted ? "accepted" : "rejected")
-                .build()
+                .build(),
+                GraviteeContext.getCurrentContext()
         );
         auditService.createEnvironmentAuditLog(
                 Collections.singletonMap(USER, processedUser.getId()),
@@ -762,7 +785,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 .withClaim(Claims.ACTION, action.name())
                 .sign(algorithm);
 
-        String managementURL = parameterService.find(Key.MANAGEMENT_URL);
+        String managementURL = parameterService.find(Key.MANAGEMENT_URL, ParameterReferenceType.ORGANIZATION);
         String userURL = "";
         if (!StringUtils.isEmpty(managementURL)) {
             if (managementURL.endsWith("/")) {
@@ -783,7 +806,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         } else {
             // This value is used as a fallback when no Management URL has been configured by the platform admin.
             registrationUrl = DEFAULT_MANAGEMENT_URL + managementUri + token;
-            LOGGER.warn("An email has been sent with a default '" + managementUri.substring(4, managementUri.indexOf('/', 4)) + "' link. You may want to change this default configuration of the 'Management URL' in the Settings.");
+            LOGGER.warn("An email will be sent with a default '" + managementUri.substring(4, managementUri.indexOf('/', 4)) + "' link. You may want to change this default configuration of the 'Management URL' in the Settings.");
         }
 
         // send a confirm email with the token
@@ -1100,7 +1123,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     .to(user.getEmail())
                     .template(EmailNotificationBuilder.EmailTemplate.PORTAL_PASSWORD_RESET)
                     .params(params)
-                    .build()
+                    .build(),
+                    GraviteeContext.getCurrentContext()
             );
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to reset password for user " + id;

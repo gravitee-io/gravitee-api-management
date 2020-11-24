@@ -32,10 +32,7 @@ import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
-import io.gravitee.rest.api.service.ConfigService;
-import io.gravitee.rest.api.service.CustomUserFieldService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
@@ -69,11 +66,16 @@ public class ConfigurationResource extends AbstractResource {
     private CustomUserFieldService customUserFieldService;
     @Autowired
     private IdentityProviderActivationService identityProviderActivationService;
+    @Autowired
+    private EnvironmentService environmentService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalConfiguration() {
-        return Response.ok(configMapper.convert(configService.getPortalConfig())).build();
+        // Get the current organization from the environment since it is not in the path
+        String organizationId = this.environmentService.findById(GraviteeContext.getCurrentEnvironment()).getOrganizationId();
+
+        return Response.ok(configMapper.convert(configService.getPortalConfig(), configService.getConsoleConfig(organizationId))).build();
     }
 
     @GET

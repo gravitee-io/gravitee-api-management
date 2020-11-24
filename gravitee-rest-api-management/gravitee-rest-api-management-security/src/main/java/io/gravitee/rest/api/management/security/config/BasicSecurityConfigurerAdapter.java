@@ -17,9 +17,6 @@ package io.gravitee.rest.api.management.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
@@ -33,7 +30,10 @@ import io.gravitee.rest.api.security.filter.RecaptchaFilter;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
+import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
@@ -156,10 +155,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        GraviteeCorsConfiguration graviteeCorsConfiguration = new GraviteeCorsConfiguration(parameterService, eventManager);
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", graviteeCorsConfiguration);
-        return source;
+        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, eventManager);
     }
 
     @Override
@@ -220,6 +216,12 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 /*
                  * organizations resources
                  */
+                // Console resource
+                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/console/**").permitAll()
+
+                // Environments resource
+                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/environments").permitAll()
+
                 // Auth resource
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/auth/**").permitAll()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/social-identities").permitAll()
@@ -228,7 +230,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/user/login").permitAll()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/user/**").authenticated()
 
-                //Users management
+                // Users management
                 .antMatchers(HttpMethod.GET,uriOrgPrefix + "/users/custom-fields").permitAll()
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**").permitAll()
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/**/changePassword").permitAll()
@@ -237,12 +239,12 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, uriOrgPrefix + "/users/**").authenticated()
 
-                //Organization configuration
+                // Organization configuration
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/rolescopes/**").permitAll()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/custom-user-fields").permitAll()
                 .antMatchers(uriOrgPrefix + "/configuration/**").authenticated()
 
-                //Search for users
+                // Search for users
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/search/users").authenticated()
 
                 /*
@@ -258,7 +260,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.GET, uriPrefix + "/user/**").authenticated()
 
                 // DEPRECATED
-                //Users management
+                // Users management
                 .antMatchers(HttpMethod.GET,uriPrefix + "/users/custom-fields").permitAll()
                 .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
                 .antMatchers(HttpMethod.GET, uriPrefix + "/users").authenticated()
@@ -271,7 +273,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**").permitAll()
 
                 // DEPRECATED
-                //Search for users
+                // Search for users
                 .antMatchers(HttpMethod.GET, uriPrefix + "/search/users").authenticated()
 
 

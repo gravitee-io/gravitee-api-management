@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.RandomString;
@@ -295,7 +296,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             final PrimaryOwnerEntity apiOwner = api.getPrimaryOwner();
             //final PrimaryOwnerEntity appOwner = applicationEntity.getPrimaryOwner();
 
-            String managementURL = parameterService.find(Key.MANAGEMENT_URL);
+            String managementURL = parameterService.find(Key.MANAGEMENT_URL, ParameterReferenceType.ORGANIZATION);
 
             String subscriptionsUrl = "";
 

@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntit
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -561,12 +562,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
 
     private boolean isClientRegistrationEnabled() {
-        return parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED);
+        return parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, ParameterReferenceType.ENVIRONMENT);
     }
 
     private boolean isApplicationTypeAllowed(String applicationType) {
         Key key = Key.valueOf("APPLICATION_TYPE_" + applicationType.toUpperCase() + "_ENABLED");
-        return parameterService.findAsBoolean(key);
+        return parameterService.findAsBoolean(key, ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override

@@ -15,31 +15,28 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.TicketEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.portal.rest.model.TicketInput;
 import io.gravitee.rest.api.portal.rest.model.TicketsResponse;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.portal.rest.model.TicketInput;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -65,7 +62,7 @@ public class TicketsResourceTest extends AbstractResourceTest {
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
         verify(ticketMapper).convert(input);
-        verify(ticketService).create(eq(USER_NAME), any());
+        verify(ticketService).create(eq(USER_NAME), any(), eq("DEFAULT"), eq(ParameterReferenceType.ENVIRONMENT));
     }
 
     @Test

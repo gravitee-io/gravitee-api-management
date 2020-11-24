@@ -15,15 +15,14 @@
  */
 package io.gravitee.rest.api.repository.proxy;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -33,13 +32,13 @@ import io.gravitee.repository.management.model.ParameterReferenceType;
 public class ParameterRepositoryProxy extends AbstractProxy<ParameterRepository> implements ParameterRepository {
 
     @Override
-    public Optional<Parameter> findById(String s) throws TechnicalException {
-        return target.findById(s);
+    public Optional<Parameter> findById(String key, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+        return target.findById(key, referenceId, referenceType);
     }
 
     @Override
-    public List<Parameter> findAll(List<String> keys) throws TechnicalException {
-        return target.findAll(keys);
+    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+        return target.findByKeys(keys, referenceId, referenceType);
     }
 
     @Override
@@ -53,13 +52,13 @@ public class ParameterRepositoryProxy extends AbstractProxy<ParameterRepository>
     }
 
     @Override
-    public void delete(String s) throws TechnicalException {
-        target.delete(s);
+    public void delete(String key, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+        target.delete(key, referenceId, referenceType);
     }
 
     @Override
-    public List<Parameter> findAllByReferenceIdAndReferenceType(List<String> keys, String referenceId,
-            ParameterReferenceType referenceType) throws TechnicalException {
-        return target.findAllByReferenceIdAndReferenceType(keys, referenceId, referenceType);
+    public List<Parameter> findAll(String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+        return target.findAll(referenceId, referenceType);
+
     }
 }

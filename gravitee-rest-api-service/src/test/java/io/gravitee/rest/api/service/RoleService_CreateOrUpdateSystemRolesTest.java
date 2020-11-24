@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.service.impl.RoleServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,32 +44,8 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
 
     private static final String REFERENCE_ID = "DEFAULT";
     private static final RoleReferenceType REFERENCE_TYPE = RoleReferenceType.ORGANIZATION;
-    private static int[] envtAdminPermissions = new int[]{
-            1015,
-            1215,
-            1315,
-            1415,
-            1515,
-            1715,
-            1815,
-            1915,
-            2015,
-            2215,
-            2315,
-            2415,
-            2515,
-            2615,
-            2715,
-            2815,
-            2915,
-            3015,
-            3115,
-            3215,
-            3315,
-            3515,
-            3615,
-            3715
-    };
+    private static int[] envtAdminPermissions = Arrays.stream(EnvironmentPermission.values()).mapToInt(ep -> ep.getMask() + 15).toArray();
+
     @InjectMocks
     private RoleServiceImpl roleService = new RoleServiceImpl();
     @Mock

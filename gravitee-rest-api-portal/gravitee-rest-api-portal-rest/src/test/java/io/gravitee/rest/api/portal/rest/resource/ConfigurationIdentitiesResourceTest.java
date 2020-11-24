@@ -16,12 +16,12 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.PortalConfigEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.am.AMIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.github.GitHubIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.google.GoogleIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.oidc.OIDCIdentityProviderEntity;
+import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationIdentitiesResponse;
 import org.junit.Test;
 import org.mockito.internal.util.collections.Sets;

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 
 import java.util.List;
 import java.util.Map;
@@ -26,22 +27,119 @@ import java.util.function.Predicate;
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ParameterService {
 
-    String find(Key key);
-    boolean findAsBoolean(Key key);
-    List<String> findAll(Key key);
-    Map<String, List<String>> findAll(List<Key> keys);
+    /**
+     * Find parameter for current context
+     */
+    String find(Key key, ParameterReferenceType referenceType);
 
-    <T> List<T> findAll(Key key, Function<String, T> mapper);
-    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper);
+    /**
+     * Find parameter for a specific context
+     */
+    String find(Key key, String referenceId, ParameterReferenceType referenceType);
 
-    <T> List<T> findAll(Key key, Function<String, T> mapper, Predicate<String> filter);
-    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter);
+    /**
+     * Find parameter as boolean for current context
+     */
+    boolean findAsBoolean(Key key, ParameterReferenceType referenceType);
 
-    Parameter save(Key key, String value);
-    Parameter save(Key key, List<String> value);
-    Parameter save(Key key, Map<String, String> values);
+    /**
+     * Find parameter as boolean for a specific context
+     */
+    boolean findAsBoolean(Key key, String referenceId, ParameterReferenceType referenceType);
+
+    /**
+     * Find parameter as list for current context
+     */
+    List<String> findAll(Key key, ParameterReferenceType referenceType);
+
+    /**
+     * Find parameter as list for a specific context
+     */
+    List<String> findAll(Key key, String referenceId, ParameterReferenceType referenceType);
+
+    /**
+     * Find list of parameters for current context
+     */
+    Map<String, List<String>> findAll(List<Key> keys, ParameterReferenceType referenceType);
+
+    /**
+     * Find list of parameters for a specific context
+     */
+    Map<String, List<String>> findAll(List<Key> keys, String referenceId, ParameterReferenceType referenceType);
+
+    /**
+     * Find parameter as list with mapper for current context
+     */
+    <T> List<T> findAll(Key key, Function<String, T> mapper, ParameterReferenceType referenceType);
+
+    /**
+     * Find parameter as list with mapper for a specific context
+     */
+    <T> List<T> findAll(Key key, Function<String, T> mapper, String referenceId, ParameterReferenceType referenceType);
+
+    /**
+     * Find list of parameters with mapper for current context
+     */
+    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, ParameterReferenceType referenceType);
+
+    /**
+     * Find list of parameters with mapper for a specific context
+     */
+    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, String referenceId, ParameterReferenceType referenceType);
+
+
+    /**
+     * Find parameter as list with filter and mapper for current context
+     */
+    <T> List<T> findAll(Key key, Function<String, T> mapper, Predicate<String> filter, ParameterReferenceType referenceType);
+
+    /**
+     * Find parameter as list with filter and mapper for a specific context
+     */
+    <T> List<T> findAll(Key key, Function<String, T> mapper, Predicate<String> filter, String referenceId, ParameterReferenceType referenceType);
+
+    /**
+     * Find list of parameters with filter and mapper for current context
+     */
+    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter, ParameterReferenceType referenceType);
+
+    /**
+     * Find list of parameters with filter and mapper for a specific context
+     */
+    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter, String referenceId, ParameterReferenceType referenceType);
+
+    /**
+     * Save parameter for current context
+     */
+    Parameter save(Key key, String value, ParameterReferenceType referenceType);
+
+    /**
+     * Save parameter for a specific context
+     */
+    Parameter save(Key key, String value, String referenceId, ParameterReferenceType referenceType);
+
+    /**
+     * Save parameter as list for current context
+     */
+    Parameter save(Key key, List<String> value, ParameterReferenceType referenceType);
+
+    /**
+     * Save parameter as list for a specific context
+     */
+    Parameter save(Key key, List<String> value, String referenceId, ParameterReferenceType referenceType);
+
+    /**
+     * Save parameter as map for current context
+     */
+    Parameter save(Key key, Map<String, String> values, ParameterReferenceType referenceType);
+
+    /**
+     * Save parameter as map for a specific context
+     */
+    Parameter save(Key key, Map<String, String> values, String referenceId, ParameterReferenceType referenceType);
 }

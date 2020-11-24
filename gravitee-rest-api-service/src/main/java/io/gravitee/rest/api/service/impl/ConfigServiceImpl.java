@@ -15,14 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.rest.api.model.PortalConfigEntity;
-import io.gravitee.rest.api.model.PortalConfigEntity.Enabled;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
-import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.*;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static io.gravitee.rest.api.model.parameters.AbstractCommonConfigEntity.Enabled;
 import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.KV_SEPARATOR;
 import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.SEPARATOR;
 import static java.util.Collections.*;
@@ -71,9 +71,37 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Override
     public PortalConfigEntity getPortalConfig() {
+        return this.getPortalConfig(GraviteeContext.getCurrentEnvironment());
+    }
+
+    @Override
+    public PortalConfigEntity getPortalConfig(String environmentId) {
         PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
         Object[] objects = getObjectArray(portalConfigEntity);
 
+        loadConfigByReference(objects, portalConfigEntity, environmentId, ParameterReferenceType.ENVIRONMENT);
+        enhanceFromConfigFile(portalConfigEntity);
+
+        return portalConfigEntity;
+    }
+
+    @Override
+    public ConsoleConfigEntity getConsoleConfig() {
+        return this.getConsoleConfig(GraviteeContext.getCurrentOrganization());
+    }
+
+    @Override
+    public ConsoleConfigEntity getConsoleConfig(String organizationId) {
+        ConsoleConfigEntity consoleConfigEntity = new ConsoleConfigEntity();
+        Object[] objects = getObjectArray(consoleConfigEntity);
+
+        loadConfigByReference(objects, consoleConfigEntity, organizationId, ParameterReferenceType.ORGANIZATION);
+        enhanceFromConfigFile(consoleConfigEntity);
+
+        return consoleConfigEntity;
+    }
+
+    private void loadConfigByReference(Object[] objects, AbstractCommonConfigEntity configEntity, String referenceId, ParameterReferenceType referenceType) {
         // get values from DB
         final List<Key> parameterKeys = new ArrayList<>();
         for (Object o : objects) {
@@ -84,7 +112,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                 }
             }
         }
-        Map<String, List<String>> parameterMap = parameterService.findAll(parameterKeys);
+        Map<String, List<String>> parameterMap = parameterService.findAll(parameterKeys, referenceId, referenceType);
 
         // set values
         for (Object o : objects) {
@@ -96,7 +124,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     try {
                         List<String> values = parameterMap.get(parameterKey.value().key());
                         if (environment.containsProperty(parameterKey.value().key())) {
-                            portalConfigEntity.getMetadata().add(PortalConfigEntity.METADATA_READONLY, parameterKey.value().key());
+                            configEntity.getMetadata().add(PortalConfigEntity.METADATA_READONLY, parameterKey.value().key());
                         }
                         final String defaultValue = parameterKey.value().defaultValue();
                         if (Enabled.class.isAssignableFrom(f.getType())) {
@@ -146,9 +174,6 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                 }
             }
         }
-
-        enhanceFromConfigFile(portalConfigEntity);
-        return portalConfigEntity;
     }
 
     private String getFirstValueOrDefault(final List<String> values, final String defaultValue) {
@@ -160,7 +185,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         return values.get(0);
     }
 
-    private void enhanceFromConfigFile(PortalConfigEntity portalConfigEntity) {
+    private void enhanceAuthenticationFromConfigFile(AbstractCommonConfigEntity.CommonAuthentication authenticationConfig) {
         //hack until authent config takes place in the database
         boolean found = true;
         int idx = 0;
@@ -171,30 +196,51 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             if (found) {
                 String clientId = environment.getProperty("security.providers[" + idx + "].clientId");
                 if ("google".equals(type)) {
-                    portalConfigEntity.getAuthentication().getGoogle().setClientId(clientId);
+                    authenticationConfig.getGoogle().setClientId(clientId);
                 } else if ("github".equals(type)) {
-                    portalConfigEntity.getAuthentication().getGithub().setClientId(clientId);
+                    authenticationConfig.getGithub().setClientId(clientId);
                 } else if ("oauth2".equals(type)) {
-                    portalConfigEntity.getAuthentication().getOauth2().setClientId(clientId);
+                    authenticationConfig.getOauth2().setClientId(clientId);
                 }
             }
             idx++;
         }
+    }
 
+
+    private void enhanceFromConfigFile(PortalConfigEntity portalConfigEntity) {
+        enhanceAuthenticationFromConfigFile(portalConfigEntity.getAuthentication());
         final PortalConfigEntity.ReCaptcha reCaptcha = new PortalConfigEntity.ReCaptcha();
         reCaptcha.setEnabled(reCaptchaService.isEnabled());
         reCaptcha.setSiteKey(reCaptchaService.getSiteKey());
         portalConfigEntity.setReCaptcha(reCaptcha);
+    }
 
-        final PortalConfigEntity.Newsletter newsletter = new PortalConfigEntity.Newsletter();
+    private void enhanceFromConfigFile(ConsoleConfigEntity consoleConfigEntity) {
+        enhanceAuthenticationFromConfigFile(consoleConfigEntity.getAuthentication());
+        final ConsoleConfigEntity.ConsoleReCaptcha reCaptcha = new ConsoleConfigEntity.ConsoleReCaptcha();
+        reCaptcha.setEnabled(reCaptchaService.isEnabled());
+        reCaptcha.setSiteKey(reCaptchaService.getSiteKey());
+        consoleConfigEntity.setReCaptcha(reCaptcha);
+
+        final ConsoleConfigEntity.Newsletter newsletter = new ConsoleConfigEntity.Newsletter();
         newsletter.setEnabled(newsletterService.isEnabled());
-        portalConfigEntity.setNewsletter(newsletter);
+        consoleConfigEntity.setNewsletter(newsletter);
     }
 
     @Override
     public void save(PortalConfigEntity portalConfigEntity) {
         Object[] objects = getObjectArray(portalConfigEntity);
+        saveConfigByReference(objects, GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT);
+    }
 
+    @Override
+    public void save(ConsoleConfigEntity consoleConfigEntity) {
+        Object[] objects = getObjectArray(consoleConfigEntity);
+        saveConfigByReference(objects, GraviteeContext.getCurrentOrganization(), ParameterReferenceType.ORGANIZATION);
+    }
+
+    private void saveConfigByReference(Object[] objects, String referenceId, ParameterReferenceType referenceType) {
         for (Object o : objects) {
             for (Field f : o.getClass().getDeclaredFields()) {
                 ParameterKey parameterKey = f.getAnnotation(ParameterKey.class);
@@ -204,19 +250,19 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     try {
                         if (f.get(o) != null) {
                             if (Enabled.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), Boolean.toString(((Enabled) f.get(o)).isEnabled()));
+                                parameterService.save(parameterKey.value(), Boolean.toString(((Enabled) f.get(o)).isEnabled()), referenceId, referenceType);
                             } else if (Boolean.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), Boolean.toString((Boolean) f.get(o)));
+                                parameterService.save(parameterKey.value(), Boolean.toString((Boolean) f.get(o)), referenceId, referenceType);
                             } else if (Integer.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), Integer.toString((Integer) f.get(o)));
+                                parameterService.save(parameterKey.value(), Integer.toString((Integer) f.get(o)), referenceId, referenceType);
                             } else if (Long.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), Long.toString((Long) f.get(o)));
+                                parameterService.save(parameterKey.value(), Long.toString((Long) f.get(o)), referenceId, referenceType);
                             } else if (List.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), (List) f.get(o));
+                                parameterService.save(parameterKey.value(), (List) f.get(o), referenceId, referenceType);
                             } else if (Map.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), (Map) f.get(o));
+                                parameterService.save(parameterKey.value(), (Map) f.get(o), referenceId, referenceType);
                             } else {
-                                parameterService.save(parameterKey.value(), (String) f.get(o));
+                                parameterService.save(parameterKey.value(), (String) f.get(o), referenceId, referenceType);
                             }
                         }
                     } catch (IllegalAccessException e) {
@@ -231,13 +277,29 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private Object[] getObjectArray(PortalConfigEntity portalConfigEntity) {
         return new Object[]{
                 portalConfigEntity,
+                // Common config
+                portalConfigEntity.getAnalytics(),
+                portalConfigEntity.getEmail(),
+                portalConfigEntity.getEmail().getProperties(),
+
+                // Portal Config
+                portalConfigEntity.getApi(),
+                portalConfigEntity.getApiQualityMetrics(),
+                portalConfigEntity.getApiReview(),
+                portalConfigEntity.getApplication(),
+                portalConfigEntity.getApplication().getRegistration(),
+                portalConfigEntity.getApplication().getTypes(),
                 portalConfigEntity.getAuthentication(),
                 portalConfigEntity.getAuthentication().getGithub(),
                 portalConfigEntity.getAuthentication().getGoogle(),
                 portalConfigEntity.getAuthentication().getOauth2(),
                 portalConfigEntity.getCompany(),
+                portalConfigEntity.getCors(),
                 portalConfigEntity.getDocumentation(),
-                portalConfigEntity.getManagement(),
+                portalConfigEntity.getOpenAPIDocViewer(),
+                portalConfigEntity.getOpenAPIDocViewer().getOpenAPIDocType(),
+                portalConfigEntity.getPlan(),
+                portalConfigEntity.getPlan().getSecurity(),
                 portalConfigEntity.getPortal(),
                 portalConfigEntity.getPortal().getApis(),
                 portalConfigEntity.getPortal().getAnalytics(),
@@ -245,28 +307,36 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                 portalConfigEntity.getPortal().getRating().getComment(),
                 portalConfigEntity.getPortal().getUploadMedia(),
                 portalConfigEntity.getPortal().getUserCreation(),
+                portalConfigEntity.getReCaptcha(),
                 portalConfigEntity.getScheduler(),
-                portalConfigEntity.getTheme(),
-                portalConfigEntity.getPlan(),
-                portalConfigEntity.getPlan().getSecurity(),
-                portalConfigEntity.getOpenAPIDocViewer(),
-                portalConfigEntity.getOpenAPIDocViewer().getOpenAPIDocType(),
-                portalConfigEntity.getApiQualityMetrics(),
-                portalConfigEntity.getApiReview(),
-                portalConfigEntity.getLogging(),
-                portalConfigEntity.getLogging().getAudit(),
-                portalConfigEntity.getLogging().getUser(),
-                portalConfigEntity.getAnalytics(),
-                portalConfigEntity.getApplication(),
-                portalConfigEntity.getApplication().getRegistration(),
-                portalConfigEntity.getApplication().getTypes(),
-                portalConfigEntity.getLogging().getAudit().getTrail(),
-                portalConfigEntity.getAlert(),
-                portalConfigEntity.getMaintenance(),
-                portalConfigEntity.getApi(),
-                portalConfigEntity.getCors(),
-                portalConfigEntity.getEmail(),
-                portalConfigEntity.getEmail().getProperties()
+        };
+    }
+
+    private Object[] getObjectArray(ConsoleConfigEntity consoleConfigEntity) {
+        return new Object[]{
+                consoleConfigEntity,
+                // Common config
+                consoleConfigEntity.getAnalytics(),
+                consoleConfigEntity.getEmail(),
+                consoleConfigEntity.getEmail().getProperties(),
+
+                // Console Config
+                consoleConfigEntity.getAlert(),
+                consoleConfigEntity.getAuthentication(),
+                consoleConfigEntity.getAuthentication().getGithub(),
+                consoleConfigEntity.getAuthentication().getGoogle(),
+                consoleConfigEntity.getAuthentication().getOauth2(),
+                consoleConfigEntity.getCors(),
+                consoleConfigEntity.getReCaptcha(),
+                consoleConfigEntity.getScheduler(),
+                consoleConfigEntity.getLogging(),
+                consoleConfigEntity.getLogging().getAudit(),
+                consoleConfigEntity.getLogging().getAudit().getTrail(),
+                consoleConfigEntity.getLogging().getAudit().getTrail(),
+                consoleConfigEntity.getMaintenance(),
+                consoleConfigEntity.getManagement(),
+                consoleConfigEntity.getNewsletter(),
+                consoleConfigEntity.getTheme(),
         };
     }
 }

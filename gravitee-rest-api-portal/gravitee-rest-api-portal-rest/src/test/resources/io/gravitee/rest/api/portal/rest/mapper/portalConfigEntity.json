@@ -1,9 +1,101 @@
 {
-  "company" : {
-    "name" : "Gravitee.io"
+  "api": {
+    "labelsDictionary": [
+      "label1",
+      "label2"
+    ]
   },
-  "management" : {
-    "title" : "Gravitee.io Management"
+  "apiQualityMetrics" : {
+    "enabled" : false,
+    "functionalDocumentationWeight" : 0,
+    "technicalDocumentationWeight" : 0,
+    "descriptionWeight" : 0,
+    "descriptionMinLength" : 100,
+    "logoWeight" : 0,
+    "categoriesWeight" : 0,
+    "labelsWeight" : 0,
+    "healthcheckWeight" : 0
+  },
+  "apiReview" : {
+    "enabled" : false
+  },
+  "application" : {
+    "registration" : {
+      "enabled" : true
+    },
+    "types" : {
+      "simple" : {
+        "enabled" : true
+      },
+      "browser" : {
+        "enabled" : true
+      },
+      "web" : {
+        "enabled" : true
+      },
+      "native" : {
+        "enabled" : true
+      },
+      "backend_to_backend" : {
+        "enabled" : true
+      }
+    }
+  },
+  "authentication" : {
+    "forceLogin" : {
+      "enabled" : false
+    },
+    "localLogin" : {
+      "enabled" : true
+    }
+  },
+  "company": {
+    "name": "MyCompany"
+  },
+  "cors": {
+    "allowOrigin": [
+      "*"
+    ],
+    "allowHeaders": [
+      "Authorization"
+    ],
+    "allowMethods": [
+      "GET"
+    ],
+    "exposedHeaders": [
+      "X-Exposed-Header"
+    ],
+    "maxAge": 1
+  },
+  "documentation" : {
+    "url" : "https://docs.gravitee.io"
+  },
+  "openAPIDocViewer": {
+    "openAPIDocType": {
+      "swagger": {
+        "enabled": true
+      },
+      "redoc": {
+        "enabled": false
+      },
+      "defaultType": "Swagger"
+    }
+  },
+  "plan" : {
+    "security" : {
+      "apikey" : {
+        "enabled" : true
+      },
+      "oauth2" : {
+        "enabled" : true
+      },
+      "keyless" : {
+        "enabled" : true
+      },
+      "jwt" : {
+        "enabled" : true
+      }
+    }
   },
   "portal" : {
     "entrypoint" : "https://api.company.com",
@@ -42,101 +134,12 @@
       "maxSizeInOctet" : 1000000
     }
   },
-  "authentication" : {
-    "forceLogin" : {
-      "enabled" : false
-    },
-    "localLogin" : {
-      "enabled" : true
-    },
-    "google" : {
-      "clientId" : "googleId"
-    },
-    "github" : {
-      "clientId" : "githubId"
-    },
-    "oauth2" : {
-      "clientId" : "oauth2Id",
-      "color" : "#0076b4",
-      "scope" : []
-    }
+  "reCaptcha": {
+    "enabled": true,
+    "siteKey": "testSiteKey"
   },
   "scheduler" : {
     "tasks" : 10,
     "notifications" : 10
-  },
-  "documentation" : {
-    "url" : "https://docs.gravitee.io"
-  },
-  "plan" : {
-    "security" : {
-      "apikey" : {
-        "enabled" : true
-      },
-      "oauth2" : {
-        "enabled" : true
-      },
-      "keyless" : {
-        "enabled" : true
-      },
-      "jwt" : {
-        "enabled" : true
-      }
-    }
-  },
-  "apiQualityMetrics" : {
-    "enabled" : false,
-    "functionalDocumentationWeight" : 0,
-    "technicalDocumentationWeight" : 0,
-    "descriptionWeight" : 0,
-    "descriptionMinLength" : 100,
-    "logoWeight" : 0,
-    "categoriesWeight" : 0,
-    "labelsWeight" : 0,
-    "healthcheckWeight" : 0
-  },
-  "apiReview" : {
-    "enabled" : false
-  },
-  "logging" : {
-    "maxDurationMillis" : 0,
-    "audit" : {
-      "enabled" : false,
-      "trail" : {
-        "enabled" : false
-      }
-    },
-    "user" : {
-      "displayed" : false
-    }
-  },
-  "analytics" : {
-    "clientTimeout" : 30000
-  },
-  "application" : {
-    "registration" : {
-      "enabled" : true
-    },
-    "types" : {
-      "simple" : {
-        "enabled" : true
-      },
-      "browser" : {
-        "enabled" : true
-      },
-      "web" : {
-        "enabled" : true
-      },
-      "native" : {
-        "enabled" : true
-      },
-      "backend_to_backend" : {
-        "enabled" : true
-      }
-    }
-  },
-  "reCaptcha": {
-    "enabled": true,
-    "siteKey": "testSiteKey"
   }
 }

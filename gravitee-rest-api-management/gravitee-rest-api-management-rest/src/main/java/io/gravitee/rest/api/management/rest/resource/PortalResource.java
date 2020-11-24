@@ -20,7 +20,7 @@ import io.gravitee.rest.api.management.rest.resource.portal.PortalApisResource;
 import io.gravitee.rest.api.management.rest.resource.portal.SocialIdentityProvidersResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.PortalConfigEntity;
+import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.ConfigService;
 import io.swagger.annotations.*;

@@ -171,7 +171,8 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                                 .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_GENERIC_MESSAGE)
                                 .param("message", message.getText())
                                 .param("messageSubject", message.getTitle())
-                                .build());
+                                .build(),
+                                GraviteeContext.getCurrentContext());
                 }
                 return mails.size();
 

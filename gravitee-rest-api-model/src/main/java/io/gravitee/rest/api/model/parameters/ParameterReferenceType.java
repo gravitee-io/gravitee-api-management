@@ -13,28 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
-
-import io.gravitee.rest.api.model.parameters.ConsoleConfigEntity;
-import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
+package io.gravitee.rest.api.model.parameters;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ConfigService {
-    boolean portalLoginForced();
-
-    PortalConfigEntity getPortalConfig();
-
-    PortalConfigEntity getPortalConfig(String environmentId);
-
-    void save(PortalConfigEntity portalConfigEntity);
-
-    ConsoleConfigEntity getConsoleConfig();
-
-    ConsoleConfigEntity getConsoleConfig(String organizationId);
-
-    void save(ConsoleConfigEntity consoleConfigEntity);
+public enum ParameterReferenceType {
+    ENVIRONMENT, ORGANIZATION, SYSTEM;
 }

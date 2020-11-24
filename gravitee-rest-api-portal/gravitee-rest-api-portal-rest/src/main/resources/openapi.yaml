@@ -4012,8 +4012,6 @@ components:
           $ref: '#/components/schemas/ThemeLinks'
     ConfigurationResponse:
       properties:
-        company:
-          $ref: '#/components/schemas/ConfigurationCompany'
         portal:
           $ref: '#/components/schemas/ConfigurationPortal'
         authentication:
@@ -4032,11 +4030,6 @@ components:
           $ref: '#/components/schemas/ConfigurationApplication'
         recaptcha:
           $ref: '#/components/schemas/ConfigurationReCaptcha'
-    ConfigurationCompany:
-      properties:
-        name:
-          description: The company name
-          type: string
     ConfigurationPortal:
       properties:
         title:
@@ -4106,44 +4099,6 @@ components:
           $ref: '#/components/schemas/Enabled'
         localLogin:
           $ref: '#/components/schemas/Enabled'
-        google:
-          $ref: '#/components/schemas/ConfigurationGoogleAuthentication'
-        github:
-          $ref: '#/components/schemas/ConfigurationGithubAuthentication'
-        oauth2:
-          $ref: '#/components/schemas/ConfigurationOAuth2Authentication'
-    ConfigurationGoogleAuthentication:
-      properties:
-        clientId:
-          description: client Id if a Google Identity Provider is used
-          type: string
-    ConfigurationGithubAuthentication:
-      properties:
-        clientId:
-          description: client Id if a Github Identity Provider is used
-          type: string
-    ConfigurationOAuth2Authentication:
-      properties:
-        clientId:
-          description: client Id if an OAuth2 Identity Provider is used
-          type: string
-        name:
-          description: name of the OAuth2 provider if used
-          type: string
-        color:
-          description: color to display for an OAuth2 Identity Provider if used
-          type: string
-        authorizationEndpoint:
-          description: Authorization endpoint of an OAuth2 Identity Provider if used
-          type: string
-        userLogoutEndpoint:
-          description: User logout endpoint of an OAuth2 Identity Provider if used
-          type: string
-        scope:
-          description: List of scopes of an OAuth2 Identity Provider if used
-          type: array
-          items:
-            type: string
     ConfigurationScheduler:
       properties:
         notificationsInSeconds:

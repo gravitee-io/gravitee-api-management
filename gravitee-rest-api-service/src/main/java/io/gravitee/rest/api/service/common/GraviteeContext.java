@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.common;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -62,5 +63,48 @@ public class GraviteeContext {
 
     public static String getDefaultOrganization() {
         return DEFAULT_ORGANIZATION;
+    }
+
+    public static ReferenceContext getCurrentContext() {
+        if (getCurrentEnvironment() == null) {
+            return new ReferenceContext(getCurrentOrganization(), ReferenceContextType.ORGANIZATION);
+        }
+        return new ReferenceContext(getCurrentEnvironment(), ReferenceContextType.ENVIRONMENT);
+    }
+
+    public static class ReferenceContext {
+        String referenceId;
+        ReferenceContextType referenceType;
+
+        public ReferenceContext(String referenceId, ReferenceContextType referenceType) {
+            this.referenceId = referenceId;
+            this.referenceType = referenceType;
+        }
+
+        public String getReferenceId() {
+            return referenceId;
+        }
+
+        public ReferenceContextType getReferenceType() {
+            return referenceType;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ReferenceContext that = (ReferenceContext) o;
+            return Objects.equals(referenceId, that.referenceId) &&
+                    referenceType == that.referenceType;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(referenceId, referenceType);
+        }
+    }
+
+    public enum ReferenceContextType {
+        ENVIRONMENT, ORGANIZATION;
     }
 }

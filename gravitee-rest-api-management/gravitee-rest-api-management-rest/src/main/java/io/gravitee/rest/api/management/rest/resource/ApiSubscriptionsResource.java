@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
@@ -146,7 +147,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
             @CustomApiKey @QueryParam("customApiKey") String customApiKey) {
 
         if (StringUtils.isNotEmpty(customApiKey)  &&
-                !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED)) {
+                !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("You are not allowed to provide a custom API Key")
                     .build();

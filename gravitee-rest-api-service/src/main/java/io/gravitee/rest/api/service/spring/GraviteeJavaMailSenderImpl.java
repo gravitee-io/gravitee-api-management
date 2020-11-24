@@ -20,15 +20,14 @@ import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import javax.mail.Session;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class GraviteeJavaMailSenderImpl extends JavaMailSenderImpl implements EventListener<Key, Parameter> {
 
@@ -38,6 +37,8 @@ public class GraviteeJavaMailSenderImpl extends JavaMailSenderImpl implements Ev
     private final ParameterService parameterService;
     private boolean initialized = false;
 
+    private Map<GraviteeContext.ReferenceContext, JavaMailSenderImpl> mailSenderByReference = new HashMap<>();
+
     public GraviteeJavaMailSenderImpl(ParameterService parameterService, EventManager eventManager) {
         this.parameterService = parameterService;
 
@@ -46,61 +47,77 @@ public class GraviteeJavaMailSenderImpl extends JavaMailSenderImpl implements Ev
 
     @Override
     public synchronized Session getSession() {
-        if (!initialized) {
-            this.setHost(parameterService.find(Key.EMAIL_HOST));
-            String port = parameterService.find(Key.EMAIL_PORT);
+        GraviteeContext.ReferenceContext ref = GraviteeContext.getCurrentContext();
+        JavaMailSenderImpl mailSender = this.getMailSenderByReference(ref);
+        if (mailSender == null) {
+            mailSender = new JavaMailSenderImpl();
+            mailSender.setHost(parameterService.find(Key.EMAIL_HOST, ref.getReferenceId(), ParameterReferenceType.valueOf(ref.getReferenceType().name())));
+            String port = parameterService.find(Key.EMAIL_PORT, ref.getReferenceId(), ParameterReferenceType.valueOf(ref.getReferenceType().name()));
             if (StringUtils.isNumeric(port)) {
-                this.setPort(Integer.parseInt(port));
+                mailSender.setPort(Integer.parseInt(port));
             }
-            this.setUsername(parameterService.find(Key.EMAIL_USERNAME));
-            this.setPassword(parameterService.find(Key.EMAIL_PASSWORD));
-            this.setProtocol(parameterService.find(Key.EMAIL_PROTOCOL));
-            this.setJavaMailProperties(loadProperties());
+            mailSender.setUsername(parameterService.find(Key.EMAIL_USERNAME, ref.getReferenceId(), ParameterReferenceType.valueOf(ref.getReferenceType().name())));
+            mailSender.setPassword(parameterService.find(Key.EMAIL_PASSWORD, ref.getReferenceId(), ParameterReferenceType.valueOf(ref.getReferenceType().name())));
+            mailSender.setProtocol(parameterService.find(Key.EMAIL_PROTOCOL, ref.getReferenceId(), ParameterReferenceType.valueOf(ref.getReferenceType().name())));
+            mailSender.setJavaMailProperties(loadProperties(ref.getReferenceId(), ParameterReferenceType.valueOf(ref.getReferenceType().name())));
 
-            initialized = true;
+            this.mailSenderByReference.put(ref, mailSender);
         }
 
-        return super.getSession();
+        return mailSender.getSession();
     }
 
     @Override
     public void onEvent(Event<Key, Parameter> event) {
-        switch (event.type()) {
-            case EMAIL_HOST:
-                this.setHost(event.content().getValue());
-                break;
-            case EMAIL_PORT:
-                if (StringUtils.isNumeric(event.content().getValue())) {
-                    this.setPort(Integer.parseInt(event.content().getValue()));
-                }
-                break;
-            case EMAIL_USERNAME:
-                this.setUsername(event.content().getValue());
-                break;
-            case EMAIL_PASSWORD:
-                this.setPassword(event.content().getValue());
-                break;
-            case EMAIL_PROTOCOL:
-                this.setProtocol(event.content().getValue());
-                break;
-            case EMAIL_PROPERTIES_AUTH_ENABLED:
-            case EMAIL_PROPERTIES_SSL_TRUST:
-            case EMAIL_PROPERTIES_STARTTLS_ENABLE:
-                this.getJavaMailProperties()
-                        .setProperty(computeMailProperty(event.type().key()), event.content().getValue());
-                break;
+        JavaMailSenderImpl mailSender = this.getMailSenderByReference(event.content().getReferenceId(), ParameterReferenceType.valueOf(event.content().getReferenceType().name()));
+        if (mailSender != null) {
+            switch (event.type()) {
+                case EMAIL_HOST:
+                    mailSender.setHost(event.content().getValue());
+                    break;
+                case EMAIL_PORT:
+                    if (StringUtils.isNumeric(event.content().getValue())) {
+                        mailSender.setPort(Integer.parseInt(event.content().getValue()));
+                    }
+                    break;
+                case EMAIL_USERNAME:
+                    mailSender.setUsername(event.content().getValue());
+                    break;
+                case EMAIL_PASSWORD:
+                    mailSender.setPassword(event.content().getValue());
+                    break;
+                case EMAIL_PROTOCOL:
+                    mailSender.setProtocol(event.content().getValue());
+                    break;
+                case EMAIL_PROPERTIES_AUTH_ENABLED:
+                case EMAIL_PROPERTIES_SSL_TRUST:
+                case EMAIL_PROPERTIES_STARTTLS_ENABLE:
+                    mailSender.getJavaMailProperties()
+                            .setProperty(computeMailProperty(event.type().key()), event.content().getValue());
+                    break;
+            }
         }
+    }
+
+    public JavaMailSenderImpl getMailSenderByReference(GraviteeContext.ReferenceContext ref) {
+        return this.mailSenderByReference.get(ref);
+    }
+
+    public JavaMailSenderImpl getMailSenderByReference(String referenceId, ParameterReferenceType referenceType) {
+        return this.getMailSenderByReference(new GraviteeContext.ReferenceContext(referenceId, GraviteeContext.ReferenceContextType.valueOf(referenceType.name())));
     }
 
     private String computeMailProperty(String graviteeProperty) {
         return MAILAPI_PROPERTIES_PREFIX + graviteeProperty.substring(EMAIL_PROPERTIES_PREFIX.length() + 1);
     }
 
-    private Properties loadProperties() {
+    private Properties loadProperties(String referenceId, ParameterReferenceType referenceType) {
         Map<String, List<String>> parameters = parameterService.findAll(Arrays.asList(
                 Key.EMAIL_PROPERTIES_AUTH_ENABLED,
                 Key.EMAIL_PROPERTIES_STARTTLS_ENABLE,
-                Key.EMAIL_PROPERTIES_SSL_TRUST));
+                Key.EMAIL_PROPERTIES_SSL_TRUST),
+                referenceId,
+                referenceType);
 
         Properties properties = new Properties();
         parameters.forEach((key, value) -> {

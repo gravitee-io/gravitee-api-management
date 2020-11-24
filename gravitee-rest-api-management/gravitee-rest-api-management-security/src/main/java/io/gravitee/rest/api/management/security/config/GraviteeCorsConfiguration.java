@@ -20,6 +20,7 @@ import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -32,43 +33,46 @@ import static java.util.Arrays.asList;
 public class GraviteeCorsConfiguration extends CorsConfiguration implements EventListener<Key, Parameter> {
 
     private ParameterService parameterService;
+    private String organizationId;
 
-    public GraviteeCorsConfiguration(ParameterService parameterService, EventManager eventManager) {
+    public GraviteeCorsConfiguration(ParameterService parameterService, EventManager eventManager, String organizationId) {
         this.parameterService = parameterService;
-
+        this.organizationId = organizationId;
         eventManager.subscribeForEvents(this, Key.class);
 
         this.setAllowCredentials(true);
-        this.setAllowedOrigins(getPropertiesAsList(Key.HTTP_CORS_ALLOW_ORIGIN, "*"));
-        this.setAllowedHeaders(getPropertiesAsList(Key.HTTP_CORS_ALLOW_HEADERS, "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, " + DEFAULT_CSRF_HEADER_NAME + ", " + DEFAULT_RECAPTCHA_HEADER_NAME));
-        this.setAllowedMethods(getPropertiesAsList(Key.HTTP_CORS_ALLOW_METHODS, "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
-        this.setExposedHeaders(getPropertiesAsList(Key.HTTP_CORS_EXPOSED_HEADERS, "ETag, " + DEFAULT_CSRF_HEADER_NAME));
-        this.setMaxAge(Long.valueOf(parameterService.find(Key.HTTP_CORS_MAX_AGE)));
+        this.setAllowedOrigins(getPropertiesAsList(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, "*"));
+        this.setAllowedHeaders(getPropertiesAsList(Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, " + DEFAULT_CSRF_HEADER_NAME + ", " + DEFAULT_RECAPTCHA_HEADER_NAME));
+        this.setAllowedMethods(getPropertiesAsList(Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
+        this.setExposedHeaders(getPropertiesAsList(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS, "ETag, " + DEFAULT_CSRF_HEADER_NAME));
+        this.setMaxAge(Long.valueOf(parameterService.find(Key.CONSOLE_HTTP_CORS_MAX_AGE, organizationId, ParameterReferenceType.ORGANIZATION)));
     }
 
     @Override
     public void onEvent(Event<Key, Parameter> event) {
-        switch (event.type()) {
-            case HTTP_CORS_ALLOW_ORIGIN:
-                this.setAllowedOrigins(semicolonStringToList(event.content().getValue()));
-                break;
-            case HTTP_CORS_ALLOW_HEADERS:
-                this.setAllowedHeaders(semicolonStringToList(event.content().getValue()));
-                break;
-            case HTTP_CORS_ALLOW_METHODS:
-                this.setAllowedMethods(semicolonStringToList(event.content().getValue()));
-                break;
-            case HTTP_CORS_EXPOSED_HEADERS:
-                this.setExposedHeaders(semicolonStringToList(event.content().getValue()));
-                break;
-            case HTTP_CORS_MAX_AGE:
-                this.setMaxAge(Long.parseLong(event.content().getValue()));
-                break;
+        if (organizationId.equals(event.content().getReferenceId())) {
+            switch (event.type()) {
+                case CONSOLE_HTTP_CORS_ALLOW_ORIGIN:
+                    this.setAllowedOrigins(semicolonStringToList(event.content().getValue()));
+                    break;
+                case CONSOLE_HTTP_CORS_ALLOW_HEADERS:
+                    this.setAllowedHeaders(semicolonStringToList(event.content().getValue()));
+                    break;
+                case CONSOLE_HTTP_CORS_ALLOW_METHODS:
+                    this.setAllowedMethods(semicolonStringToList(event.content().getValue()));
+                    break;
+                case CONSOLE_HTTP_CORS_EXPOSED_HEADERS:
+                    this.setExposedHeaders(semicolonStringToList(event.content().getValue()));
+                    break;
+                case CONSOLE_HTTP_CORS_MAX_AGE:
+                    this.setMaxAge(Long.parseLong(event.content().getValue()));
+                    break;
+            }
         }
     }
 
     private List<String> getPropertiesAsList(final Key propertyKey, final String defaultValue) {
-        String property = parameterService.find(propertyKey);
+        String property = parameterService.find(propertyKey, organizationId, ParameterReferenceType.ORGANIZATION);
         if (property == null) {
             property = defaultValue;
         }

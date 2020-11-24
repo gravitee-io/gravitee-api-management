@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.RandomString;
@@ -82,14 +83,14 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     @Inject
     private TicketRepository ticketRepository;
 
-    private boolean isEnabled() {
-        return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED);
+    private boolean isEnabled(String referenceId, ParameterReferenceType referenceType) {
+        return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, referenceId, referenceType);
     }
 
     @Override
-    public TicketEntity create(final String userId, final NewTicketEntity ticketEntity) {
+    public TicketEntity create(final String userId, final NewTicketEntity ticketEntity, final String referenceId, final ParameterReferenceType referenceType) {
         try {
-            if (!isEnabled()) {
+            if (!isEnabled(referenceId, referenceType)) {
                 throw new SupportUnavailableException();
             }
             LOGGER.info("Creating a support ticket: {}", ticketEntity);

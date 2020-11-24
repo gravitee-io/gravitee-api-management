@@ -162,7 +162,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     if (shouldNotify) {
                         EmailNotification emailNotification = buildEmailNotification(userEntity, reference.getType(), reference.getId());
                         if (emailNotification != null) {
-                            emailService.sendAsyncEmailNotification(emailNotification);
+                            emailService.sendAsyncEmailNotification(emailNotification, GraviteeContext.getCurrentContext());
                         }
                     }
                     

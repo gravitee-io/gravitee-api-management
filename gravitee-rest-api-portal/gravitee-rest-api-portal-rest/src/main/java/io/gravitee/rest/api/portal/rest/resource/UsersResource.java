@@ -161,6 +161,7 @@ public class UsersResource extends AbstractResource {
         // use serialVersionUID from JDK 1.2.2 for interoperability
         private static final long serialVersionUID = 8575799808933029326L;
 
+        @Override
         public int compare(String s1, String s2) {
             if (s1 == null) return 1;
             if (s2 == null) return -1;

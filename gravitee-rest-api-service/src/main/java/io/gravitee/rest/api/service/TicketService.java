@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.TicketEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -28,7 +29,7 @@ import io.gravitee.rest.api.model.common.Sortable;
  */
 public interface TicketService {
 
-    TicketEntity create(String username, NewTicketEntity ticketEntity);
+    TicketEntity create(String username, NewTicketEntity ticketEntity, final String referenceId, final ParameterReferenceType referenceType);
 
     Page<TicketEntity> search(TicketQuery query, Sortable sortable, Pageable pageable);
 

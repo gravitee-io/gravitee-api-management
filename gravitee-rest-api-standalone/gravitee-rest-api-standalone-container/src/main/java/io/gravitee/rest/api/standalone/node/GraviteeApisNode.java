@@ -19,8 +19,8 @@ import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.node.container.AbstractNode;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
-import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.rest.api.service.InitializerService;
+import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 
 import java.util.List;
 
@@ -44,8 +44,8 @@ public class GraviteeApisNode extends AbstractNode {
     @Override
     public List<Class<? extends LifecycleComponent>> components() {
         final List<Class<? extends LifecycleComponent>> components = super.components();
-        components.add(JettyEmbeddedContainer.class);
         components.add(InitializerService.class);
+        components.add(JettyEmbeddedContainer.class);
         components.add(AlertTriggerProviderManager.class);
         components.add(AlertEventProducerManager.class);
         return components;

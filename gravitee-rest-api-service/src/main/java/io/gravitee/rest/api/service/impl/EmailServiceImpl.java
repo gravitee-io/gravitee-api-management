@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.EmailNotification;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import org.jsoup.Jsoup;
@@ -38,18 +40,12 @@ import org.springframework.stereotype.Component;
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static io.gravitee.rest.api.model.parameters.Key.EMAIL_ENABLED;
-import static io.gravitee.rest.api.model.parameters.Key.EMAIL_FROM;
-import static io.gravitee.rest.api.model.parameters.Key.EMAIL_SUBJECT;
+import static io.gravitee.rest.api.model.parameters.Key.*;
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -75,8 +71,12 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
     @Override
     public void sendEmailNotification(final EmailNotification emailNotification) {
+        final GraviteeContext.ReferenceContext context = GraviteeContext.getCurrentContext();
+        this.sendEmailNotification(emailNotification, context.getReferenceId(), ParameterReferenceType.valueOf(context.getReferenceType().name()));
+    }
 
-        Map<Key, String> mailParameters = getMailSenderConfiguration();
+    private void sendEmailNotification(final EmailNotification emailNotification, String referenceId, ParameterReferenceType referenceType) {
+        Map<Key, String> mailParameters = getMailSenderConfiguration(referenceId, referenceType);
 
         if (Boolean.parseBoolean(mailParameters.get(EMAIL_ENABLED))
                 && emailNotification.getTo() != null
@@ -135,8 +135,8 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
     @Override
     @Async
-    public void sendAsyncEmailNotification(final EmailNotification emailNotification) {
-        sendEmailNotification(emailNotification);
+    public void sendAsyncEmailNotification(final EmailNotification emailNotification, GraviteeContext.ReferenceContext context) {
+        sendEmailNotification(emailNotification, context.getReferenceId(), ParameterReferenceType.valueOf(context.getReferenceType().name()));
     }
 
     private String addResourcesInMessage(final MimeMessageHelper mailMessage, final String htmlText) throws Exception {
@@ -194,12 +194,12 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         return matcher.group(1).toLowerCase();
     }
 
-    private Map<Key, String> getMailSenderConfiguration() {
+    private Map<Key, String> getMailSenderConfiguration(String referenceId, ParameterReferenceType referenceType) {
         return parameterService.findAll(Arrays.asList(
                 EMAIL_ENABLED,
                 EMAIL_SUBJECT,
                 EMAIL_FROM
-        ))
+        ), referenceId, referenceType)
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(

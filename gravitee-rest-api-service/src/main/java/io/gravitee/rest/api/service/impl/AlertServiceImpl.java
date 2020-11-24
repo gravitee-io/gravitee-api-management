@@ -40,6 +40,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
@@ -147,7 +148,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     public AlertStatusEntity getStatus() {
         AlertStatusEntity status = new AlertStatusEntity();
 
-        status.setEnabled(parameterService.findAsBoolean(Key.ALERT_ENABLED));
+        status.setEnabled(parameterService.findAsBoolean(Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION));
         status.setPlugins(triggerProviderManager.findAll().size());
 
         return status;
@@ -456,14 +457,14 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         EmailNotifierConfiguration configuration = new EmailNotifierConfiguration();
 
         if (host == null) {
-            configuration.setHost(parameterService.find(Key.EMAIL_HOST));
-            final String emailPort = parameterService.find(Key.EMAIL_PORT);
+            configuration.setHost(parameterService.find(Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION));
+            final String emailPort = parameterService.find(Key.EMAIL_PORT, ParameterReferenceType.ORGANIZATION);
             if (emailPort != null) {
                 configuration.setPort(Integer.parseInt(emailPort));
             }
-            configuration.setUsername(parameterService.find(Key.EMAIL_USERNAME));
-            configuration.setPassword(parameterService.find(Key.EMAIL_PASSWORD));
-            configuration.setStartTLSEnabled(parameterService.findAsBoolean(Key.EMAIL_HOST));
+            configuration.setUsername(parameterService.find(Key.EMAIL_USERNAME, ParameterReferenceType.ORGANIZATION));
+            configuration.setPassword(parameterService.find(Key.EMAIL_PASSWORD, ParameterReferenceType.ORGANIZATION));
+            configuration.setStartTLSEnabled(parameterService.findAsBoolean(Key.EMAIL_HOST, ParameterReferenceType.ORGANIZATION));
         } else {
             configuration.setHost(host);
             configuration.setPort(Integer.parseInt(port));
@@ -490,7 +491,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     }
 
     private void checkAlert() {
-        if (!parameterService.findAsBoolean(Key.ALERT_ENABLED) || triggerProviderManager.findAll().isEmpty()) {
+        if (!parameterService.findAsBoolean(Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION) || triggerProviderManager.findAll().isEmpty()) {
             throw new AlertUnavailableException();
         }
     }

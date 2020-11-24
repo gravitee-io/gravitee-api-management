@@ -24,14 +24,15 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -121,7 +122,7 @@ public class ApiMapperTest {
         doReturn(true).when(ratingService).isEnabled();
         doReturn(ratingSummaryEntity).when(ratingService).findSummaryByApi(API_ID);
 
-        doReturn(true).when(parameterService).findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED);
+        doReturn(true).when(parameterService).findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/foo")));
         apiEntity.setProxy(proxy);
@@ -183,7 +184,7 @@ public class ApiMapperTest {
         doReturn(false).when(ratingService).isEnabled();
 
         apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
-        doReturn(false).when(parameterService).findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED);
+        doReturn(false).when(parameterService).findAsBoolean(Key.PORTAL_APIS_CATEGORY_ENABLED, ParameterReferenceType.ENVIRONMENT);
 
         apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
 

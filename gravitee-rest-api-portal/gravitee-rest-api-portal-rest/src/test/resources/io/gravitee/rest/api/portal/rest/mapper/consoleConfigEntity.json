@@ -1,0 +1,5 @@
+{
+  "analytics" : {
+    "clientTimeout" : 30000
+  }
+}

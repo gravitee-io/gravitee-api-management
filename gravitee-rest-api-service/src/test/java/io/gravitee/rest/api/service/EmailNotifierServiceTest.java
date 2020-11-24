@@ -54,17 +54,17 @@ public class EmailNotifierServiceTest {
     @Test
     public void shouldNotSendEmailIfNoConfig() {
         service.trigger(ApiHook.API_STARTED, null, null);
-        verify(mockEmailService, never()).sendAsyncEmailNotification(any());
+        verify(mockEmailService, never()).sendAsyncEmailNotification(any(), any());
         verify(mockEmailService, never()).sendEmailNotification(any());
 
         service.trigger(ApiHook.API_STARTED, new GenericNotificationConfig(), null);
-        verify(mockEmailService, never()).sendAsyncEmailNotification(any());
+        verify(mockEmailService, never()).sendAsyncEmailNotification(any(), any());
         verify(mockEmailService, never()).sendEmailNotification(any());
 
         GenericNotificationConfig cfg = new GenericNotificationConfig();
         cfg.setConfig("");
         service.trigger(ApiHook.API_STARTED, cfg, null);
-        verify(mockEmailService, never()).sendAsyncEmailNotification(any());
+        verify(mockEmailService, never()).sendAsyncEmailNotification(any(), any());
         verify(mockEmailService, never()).sendEmailNotification(any());
     }
 
@@ -73,7 +73,7 @@ public class EmailNotifierServiceTest {
         GenericNotificationConfig cfg = new GenericNotificationConfig();
         cfg.setConfig("test@mail.com");
         service.trigger(null, cfg, null);
-        verify(mockEmailService, never()).sendAsyncEmailNotification(any());
+        verify(mockEmailService, never()).sendAsyncEmailNotification(any(), any());
         verify(mockEmailService, never()).sendEmailNotification(any());
     }
 
@@ -97,7 +97,7 @@ public class EmailNotifierServiceTest {
                         notification.getTo() != null
                                 && notification.getTo().length == 1
                                 && notification.getTo()[0].equals("test@mail.com")
-                ));
+                ), any());
                 verify(mockEmailService, never()).sendEmailNotification(any());
             }
         }
@@ -121,7 +121,7 @@ public class EmailNotifierServiceTest {
                     notification.getTo() != null
                             && notification.getTo().length == 1
                             && notification.getTo()[0].equals("test@mail.com")
-            ));
+            ), any());
             verify(mockEmailService, never()).sendEmailNotification(any());
         }
     }
@@ -138,7 +138,7 @@ public class EmailNotifierServiceTest {
                         notification.getTo() != null
                                 && notification.getTo().length == 1
                                 && notification.getTo()[0].equals("test@mail.com")
-                ));
+                ), any());
                 verify(mockEmailService, never()).sendEmailNotification(any());
             }
         }
@@ -171,7 +171,7 @@ public class EmailNotifierServiceTest {
                             && notification.getTo().length == 2
                             && notification.getTo()[0].equals("test@mail.com")
                             && notification.getTo()[1].equals("primary@owner.com")
-            ));
+            ), any());
             verify(mockEmailService, never()).sendEmailNotification(any());
         }
     }

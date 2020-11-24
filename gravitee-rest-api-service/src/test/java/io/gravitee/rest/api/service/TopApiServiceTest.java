@@ -19,11 +19,8 @@ import io.gravitee.rest.api.model.NewTopApiEntity;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.UpdateTopApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.impl.TopApiServiceImpl;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -31,6 +28,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_TOP_APIS;
 import static java.util.Arrays.asList;
@@ -66,7 +65,7 @@ public class TopApiServiceTest {
         final ApiEntity api2 = new ApiEntity();
         api2.setId("2");
 
-        when(parameterService.findAll(eq(PORTAL_TOP_APIS), any(), any())).thenReturn(asList(api1, api2, api1));
+        when(parameterService.findAll(eq(PORTAL_TOP_APIS), any(Function.class), any(Predicate.class), any(ParameterReferenceType.class))).thenReturn(asList(api1, api2, api1));
 
         final List<TopApiEntity> topApis = topApiService.findAll();
 
@@ -88,8 +87,8 @@ public class TopApiServiceTest {
 
         topApiService.create(topApi);
 
-        verify(parameterService).save(PORTAL_TOP_APIS, singletonList("api"));
-        verify(parameterService).findAll(eq(PORTAL_TOP_APIS), any(), any());
+        verify(parameterService).save(PORTAL_TOP_APIS, singletonList("api"), ParameterReferenceType.ENVIRONMENT);
+        verify(parameterService).findAll(eq(PORTAL_TOP_APIS), any(Function.class), any(Predicate.class), any(ParameterReferenceType.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -97,7 +96,7 @@ public class TopApiServiceTest {
         final NewTopApiEntity topApi = new NewTopApiEntity();
         topApi.setApi("api");
 
-        when(parameterService.findAll(PORTAL_TOP_APIS)).thenReturn(singletonList("api"));
+        when(parameterService.findAll(PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT)).thenReturn(singletonList("api"));
 
         topApiService.create(topApi);
     }
@@ -111,12 +110,12 @@ public class TopApiServiceTest {
         topApi2.setApi("api2");
         topApi.setOrder(1);
 
-        when(parameterService.findAll(PORTAL_TOP_APIS)).thenReturn(asList("api", "api2"));
+        when(parameterService.findAll(PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT)).thenReturn(asList("api", "api2"));
 
         topApiService.update(asList(topApi, topApi2));
 
-        verify(parameterService).save(PORTAL_TOP_APIS, asList("api2", "api"));
-        verify(parameterService).findAll(eq(PORTAL_TOP_APIS), any(), any());
+        verify(parameterService).save(PORTAL_TOP_APIS, asList("api2", "api"), ParameterReferenceType.ENVIRONMENT);
+        verify(parameterService).findAll(eq(PORTAL_TOP_APIS), any(Function.class), any(Predicate.class), any(ParameterReferenceType.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -128,7 +127,7 @@ public class TopApiServiceTest {
         topApi2.setApi("api2");
         topApi.setOrder(1);
 
-        when(parameterService.findAll(PORTAL_TOP_APIS)).thenReturn(singletonList("api"));
+        when(parameterService.findAll(PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT)).thenReturn(singletonList("api"));
 
         topApiService.update(asList(topApi, topApi2));
     }
@@ -143,10 +142,10 @@ public class TopApiServiceTest {
         final ApiEntity api2 = new ApiEntity();
         api2.setId("2");
 
-        when(parameterService.findAll(eq(PORTAL_TOP_APIS), any(), any())).thenReturn(asList(api1, api2));
+        when(parameterService.findAll(eq(PORTAL_TOP_APIS), any(Function.class), any(Predicate.class), any(ParameterReferenceType.class))).thenReturn(asList(api1, api2));
 
         topApiService.delete("1");
 
-        verify(parameterService).save(PORTAL_TOP_APIS, singletonList("2"));
+        verify(parameterService).save(PORTAL_TOP_APIS, singletonList("2"), ParameterReferenceType.ENVIRONMENT);
     }
 }

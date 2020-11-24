@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.rest.api.model.ApiQualityMetricsEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.quality.ApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
@@ -27,7 +28,6 @@ import io.gravitee.rest.api.service.QualityRuleService;
 import io.gravitee.rest.api.service.exceptions.ApiQualityMetricsDisableException;
 import io.gravitee.rest.api.service.quality.ApiQualityMetric;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -69,7 +69,7 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
                 .collect(Collectors.toList());
 
         return Collections.unmodifiableMap(
-                parameterService.findAll(keys, Integer::parseInt)
+                parameterService.findAll(keys, Integer::parseInt, ParameterReferenceType.ENVIRONMENT)
                         .entrySet()
                         .stream()
                         .collect(Collectors.toMap(
@@ -78,8 +78,9 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
                         )) ;
     }
 
+    @Override
     public boolean isApiMetricsEnabled() {
-        return parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED);
+        return parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override

@@ -15,24 +15,27 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiHeaderService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.exceptions.BadOrganizationException;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

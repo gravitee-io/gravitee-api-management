@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.notifiers.impl;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
@@ -62,7 +63,8 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
                 .to(mails)
                 .template(emailTemplate)
                 .params(params)
-                .build());
+                .build(),
+                GraviteeContext.getCurrentContext());
     }
 
     private List<String> getMails(final GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {

@@ -20,15 +20,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
@@ -54,6 +51,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -79,7 +77,6 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,8 +88,6 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -429,7 +424,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
-                if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED)) {
+                if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
                     workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
                 }
 
@@ -577,7 +572,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void addLoggingMaxDuration(Logging logging) {
         if (logging != null && !LoggingMode.NONE.equals(logging.getMode())) {
-            Optional<Long> optionalMaxDuration = parameterService.findAll(Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf).stream().findFirst();
+            Optional<Long> optionalMaxDuration = parameterService.findAll(Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf, ParameterReferenceType.ORGANIZATION).stream().findFirst();
             if (optionalMaxDuration.isPresent() && optionalMaxDuration.get() > 0) {
 
                 long maxEndDate = System.currentTimeMillis() + optionalMaxDuration.get();
@@ -667,7 +662,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
         if (api.getProxy() != null) {
-            String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT);
+            String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT, ParameterReferenceType.ENVIRONMENT);
             final String scheme = getScheme(defaultEntrypoint);
             if (api.getTags() != null && !api.getTags().isEmpty()) {
                 List<EntrypointEntity> entrypoints = entrypointService.findAll();
@@ -1078,7 +1073,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     apiToUpdate,
                     updatedApi);
 
-                if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED)) {
+                if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
                     // Audit API logging if option is enabled
                     auditApiLogging(apiToUpdate, updatedApi);
                 }
@@ -2225,13 +2220,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
             List<String> reviewersEmail = findAllReviewersEmail(apiId);
             this.emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                .params(new NotificationParamsBuilder().api(apiEntity).user(user).build())
-                .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
-                .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
-                .build()
+                            .params(new NotificationParamsBuilder().api(apiEntity).user(user).build())
+                            .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
+                            .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
+                            .build(),
+                    GraviteeContext.getCurrentContext()
             );
         }
-        ;
 
         Map<Audit.AuditProperties, String> properties = new HashMap<>();
         properties.put(Audit.AuditProperties.USER, userId);
@@ -2540,7 +2535,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
         }
 
-        if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED)) {
+        if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
             final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {
                 apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));

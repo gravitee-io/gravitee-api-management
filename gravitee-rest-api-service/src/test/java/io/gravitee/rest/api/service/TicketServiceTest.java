@@ -23,16 +23,13 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.model.Ticket;
-import io.gravitee.rest.api.model.ApiModelEntity;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.NewTicketEntity;
-import io.gravitee.rest.api.model.TicketEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
@@ -47,22 +44,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUPPORT_TICKET;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -81,6 +69,9 @@ public class TicketServiceTest {
     private static final String EMAIL_SUBJECT = "Email\nSubject";
     private static final boolean EMAIL_COPY_TO_SENDER = false;
     private static final String EMAIL_SUPPORT = "email@support.com";
+
+    private static final String REFERENCE_ID = "DEFAULT";
+    private static final ParameterReferenceType REFERENCE_TYPE = ParameterReferenceType.ORGANIZATION;
 
     @InjectMocks
     private TicketService ticketService = new TicketServiceImpl();
@@ -113,35 +104,35 @@ public class TicketServiceTest {
 
     @Test(expected = SupportUnavailableException.class)
     public void shouldNotCreateIfSupportDisabled() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.FALSE);
-        ticketService.create(USERNAME, newTicketEntity);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.FALSE);
+        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
         verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = EmailRequiredException.class)
     public void shouldNotCreateIfUserEmailIsMissing() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(userService.findById(USERNAME)).thenReturn(user);
 
-        ticketService.create(USERNAME, newTicketEntity);
+        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
         verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportIsMissing() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(apiService.findByIdForTemplates(API_ID, true)).thenReturn(api);
 
-        ticketService.create(USERNAME, newTicketEntity);
+        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
         verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportHasNotBeenChanged() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
 
         when(userService.findById(USERNAME)).thenReturn(user);
@@ -152,13 +143,13 @@ public class TicketServiceTest {
         metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, DefaultMetadataUpgrader.DEFAULT_METADATA_EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
-        ticketService.create(USERNAME, newTicketEntity);
+        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
         verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateIfRepositoryThrowTechnicalException() throws TechnicalException {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
@@ -178,12 +169,12 @@ public class TicketServiceTest {
         metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
-        ticketService.create(USERNAME, newTicketEntity);
+        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
     }
 
     @Test
     public void shouldCreateWithApi() throws TechnicalException {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
@@ -211,7 +202,7 @@ public class TicketServiceTest {
         metadata.put(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY, EMAIL_SUPPORT);
         when(api.getMetadata()).thenReturn(metadata);
 
-        TicketEntity createdTicket = ticketService.create(USERNAME, newTicketEntity);
+        TicketEntity createdTicket = ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
 
         verify(emailService).sendEmailNotification(
                 new EmailNotificationBuilder()

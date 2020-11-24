@@ -97,7 +97,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         verify(membershipRepository, times(2)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(userEntity.getId(), io.gravitee.repository.management.model.MembershipMemberType.USER ,io.gravitee.repository.management.model.MembershipReferenceType.GROUP, GROUP_ID);
         verify(membershipRepository, times(1)).create(any());
         verify(membershipRepository, never()).update(any());
-        verify(emailService, times(1)).sendAsyncEmailNotification(any());
+        verify(emailService, times(1)).sendAsyncEmailNotification(any(), any());
     }
 
     @Test(expected = RoleNotFoundException.class)
