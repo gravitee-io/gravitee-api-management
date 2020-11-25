@@ -45,7 +45,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
-    let headers = {
+    const headers = {
       'X-Requested-With': 'XMLHttpRequest'
     }
 
@@ -53,7 +53,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
       headers['X-Xsrf-Token'] = this.xsrfToken;
     }
 
-    let currentReCaptchaToken = this.reCaptchaService.getCurrentToken();
+    const currentReCaptchaToken = this.reCaptchaService.getCurrentToken();
     if (currentReCaptchaToken) {
       headers['X-Recaptcha-Token'] = currentReCaptchaToken;
     }
