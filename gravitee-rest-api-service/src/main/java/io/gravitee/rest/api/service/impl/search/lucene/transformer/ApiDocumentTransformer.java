@@ -38,7 +38,9 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
     private final static String FIELD_OWNER = "ownerName";
     private final static String FIELD_OWNER_MAIL = "ownerMail";
     private final static String FIELD_LABELS = "labels";
+    private final static String FIELD_LABELS_SPLIT = "labels_split";
     private final static String FIELD_CATEGORIES = "categories";
+    private final static String FIELD_CATEGORIES_SPLIT = "categories_split";
     private final static String FIELD_CREATED_AT = "createdAt";
     private final static String FIELD_UPDATED_AT = "updatedAt";
     private final static String FIELD_PATHS = "paths";
@@ -46,6 +48,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
     private final static String FIELD_PATHS_SPLIT = "paths_split";
     private final static String FIELD_HOSTS_SPLIT = "hosts_split";
     private final static String FIELD_TAGS = "tags";
+    private final static String FIELD_TAGS_SPLIT = "tags_split";
 
     @Override
     public Document transform(io.gravitee.rest.api.model.api.ApiEntity api) {
@@ -82,21 +85,24 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
         // labels
         if (api.getLabels() != null) {
             for (String label : api.getLabels()) {
-                doc.add(new TextField(FIELD_LABELS, label, Field.Store.NO));
+                doc.add(new StringField(FIELD_LABELS, label, Field.Store.NO));
+                doc.add(new TextField(FIELD_LABELS_SPLIT, label, Field.Store.NO));
             }
         }
 
         // categories
         if (api.getCategories() != null) {
             for (String category : api.getCategories()) {
-                doc.add(new TextField(FIELD_CATEGORIES, category, Field.Store.NO));
+                doc.add(new StringField(FIELD_CATEGORIES, category, Field.Store.NO));
+                doc.add(new TextField(FIELD_CATEGORIES_SPLIT, category, Field.Store.NO));
             }
         }
 
         // tags
         if (api.getTags() != null) {
             for (String tag : api.getTags()) {
-                doc.add(new TextField(FIELD_TAGS, tag, Field.Store.NO));
+                doc.add(new StringField(FIELD_TAGS, tag, Field.Store.NO));
+                doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
             }
         }
 

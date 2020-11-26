@@ -134,7 +134,6 @@ public class ApplicationLogsResource extends AbstractResource {
             @BeanParam LogsParam logsParam) {
         //Does application exists ?
         applicationService.findById(applicationId);
-        
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
         return Response
                 .ok(logsService.exportAsCsv(searchLogResponse))
