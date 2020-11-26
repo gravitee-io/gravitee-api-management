@@ -169,6 +169,7 @@ reporters:
 #    template_mapping:
 #      path: ${gravitee.home}/config/reporter/elasticsearch/templates
 #      extended_request_mapping: request.ftl
+#      extended_settings: settings.ftl
 
 # Gateway service configurations. Provided values are default values.
 # All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the

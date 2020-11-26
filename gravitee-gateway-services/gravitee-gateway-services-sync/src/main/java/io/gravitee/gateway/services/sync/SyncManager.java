@@ -91,17 +91,23 @@ public class SyncManager {
 
     private long lastRefreshAt = -1;
 
+    private int totalErrors = 0;
+
+    private int errors = 0;
+
+    private String lastErrorMessage;
+
     public void refresh() {
         logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
         logger.debug("Refreshing gateway state...");
 
         long nextLastRefreshAt = System.currentTimeMillis();
-
         boolean error = false;
         try {
             synchronizeApis(nextLastRefreshAt);
         } catch (Exception ex) {
             error = true;
+            lastErrorMessage = ex.getMessage();
             logger.error("An error occurs while synchronizing APIs", ex);
         }
 
@@ -109,14 +115,18 @@ public class SyncManager {
             synchronizeDictionaries(nextLastRefreshAt);
         } catch (Exception ex) {
             error = true;
+            lastErrorMessage = ex.getMessage();
             logger.error("An error occurs while synchronizing dictionaries", ex);
         }
 
-        // If there was no error during the sync process, let's continue it with the next period of time
-        if (! error) {
-            lastRefreshAt = nextLastRefreshAt;
+        if (error) {
+            errors++;
+            totalErrors++;
+        } else {
+            errors = 0;
         }
 
+        lastRefreshAt = nextLastRefreshAt;
         logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
     }
 
@@ -334,7 +344,8 @@ public class SyncManager {
     private List<Event> getLatestDictionaryEvents(long nextLastRefreshAt) {
         final EventCriteria.Builder builder = new EventCriteria.Builder()
                 .types(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
-                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                // Search window is extended by 5 seconds for each sync error to ensure that we are never missing data
+                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY - (5000 * errors) )
                 .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
 
         return eventRepository.search(builder.build());
@@ -343,7 +354,8 @@ public class SyncManager {
     private List<Event> getLatestApiEvents(long nextLastRefreshAt) {
         final EventCriteria.Builder builder = new EventCriteria.Builder()
                 .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
-                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                // Search window is extended by 5 seconds for each sync error to ensure that we are never missing data
+                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY - (5000 * errors) )
                 .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
 
         return eventRepository.search(builder.build());
@@ -437,5 +449,17 @@ public class SyncManager {
 
     public long getCounter() {
         return counter.longValue();
+    }
+
+    public int getTotalErrors() {
+        return totalErrors;
+    }
+
+    public int getErrors() {
+        return errors;
+    }
+
+    public String getLastErrorMessage() {
+        return lastErrorMessage;
     }
 }
