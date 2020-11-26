@@ -211,7 +211,10 @@ class ApiService {
   }
 
   exportLogsAsCSV(api: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs/export?'), { timeout: 30000 });
+    const logsQuery = this.cloneQuery(query);
+    logsQuery.page = 1;
+    logsQuery.size = 10000;
+    return this.$http.get(this.buildURLWithQuery(logsQuery, this.apisURL + api + '/logs/export?'), { timeout: 30000 });
   }
 
   getLog(api, logId, timestamp): ng.IPromise<any> {
