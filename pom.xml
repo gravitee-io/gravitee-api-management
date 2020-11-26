@@ -28,7 +28,7 @@
 
 	<groupId>io.gravitee.elasticsearch</groupId>
 	<artifactId>gravitee-elasticsearch</artifactId>
-	<version>3.0.9</version>
+	<version>3.0.10-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Gravitee.io APIM - Elasticsearch Connector</name>
