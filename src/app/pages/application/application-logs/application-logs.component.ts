@@ -283,7 +283,10 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     const queryParams = this.route.snapshot.queryParams;
     const application = this.route.snapshot.data.application;
     this.isExporting = true;
-    this.applicationService.exportApplicationLogsByApplicationId(this.getRequestParameters(queryParams, application)).toPromise()
+    const logsQuery = this.getRequestParameters(queryParams, application);
+    logsQuery.page = 1;
+    logsQuery.size = 10000;
+    this.applicationService.exportApplicationLogsByApplicationId(logsQuery).toPromise()
       .then((response) => {
         const hiddenElement = document.createElement('a');
         hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response);
