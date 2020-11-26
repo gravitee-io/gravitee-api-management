@@ -177,8 +177,6 @@ class ApiListPlansController {
             that.$scope.$parent.apiCtrl.checkAPISynchronization({id: that.$stateParams.apiId});
             that.selectedStatus = ['closed'];
             that.list();
-          }).catch(function (error) {
-            that.NotificationService.show('Error while closing plan ' + plan.name);
           });
         }
       });
