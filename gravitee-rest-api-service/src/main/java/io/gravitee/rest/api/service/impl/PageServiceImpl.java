@@ -970,7 +970,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             // if the page is used as general condition for a plan,
             // we can't unpublish it until the plan is closed
             if (PageReferenceType.API.equals(pageToUpdate.getReferenceType())) {
-                if (!updatePageEntity.isPublished()) {
+                if (updatePageEntity.isPublished() != null && !updatePageEntity.isPublished()) {
                     Optional<PlanEntity> activePlan = planService.findByApi(pageToUpdate.getReferenceId()).stream()
                             .filter(plan -> plan.getGeneralConditions() != null)
                             .filter(plan -> pageToUpdate.getId().equals(plan.getGeneralConditions()))
