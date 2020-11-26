@@ -203,32 +203,11 @@ public class ReporterConfiguration {
 	@Value("${reporters.elasticsearch.lifecycle.policy_property_name:index.lifecycle.name}")
 	private String indexLifecyclePolicyPropertyName;
 
-	@Value("${reporters.elasticsearch.slowlog.threshold.query.warn:10s}")
-	private String slowLogThresholdQueryWarn;
-
-	@Value("${reporters.elasticsearch.slowlog.threshold.query.info:5s}")
-	private String slowLogThresholdQueryInfo;
-
-	@Value("${reporters.elasticsearch.slowlog.threshold.query.debug:2s}")
-	private String slowLogThresholdQueryDebug;
-
-	@Value("${reporters.elasticsearch.slowlog.threshold.query.trace:500ms}")
-	private String slowLogThresholdQueryTrace;
-
-	@Value("${reporters.elasticsearch.slowlog.threshold.fetch.warn:1s}")
-	private String slowLogThresholdFetchWarn;
-
-	@Value("${reporters.elasticsearch.slowlog.threshold.fetch.info:800ms}")
-	private String slowLogThresholdFetchInfo;
-
-	@Value("${reporters.elasticsearch.slowlog.threshold.fetch.debug:500ms}")
-	private String slowLogThresholdFetchDebug;
-
-	@Value("${reporters.elasticsearch.slowlog.threshold.fetch.trace:200ms}")
-	private String slowLogThresholdFetchTrace;
-
-	@Value("${reporters.elasticsearch.slowlog.level:info}")
-	private String slowLogLevel;
+	/**
+	 * Extended settings template
+	 */
+	@Value("${reporters.elasticsearch.template_mapping.extended_settings:#{null}}")
+	private String extendedSettingsTemplate;
 
 	public List<Endpoint> getEndpoints() {
 		if(endpoints == null){
@@ -514,75 +493,11 @@ public class ReporterConfiguration {
 				"reporters.elasticsearch.http.proxy").isEmpty();
 	}
 
-	public String getSlowLogThresholdQueryWarn() {
-		return slowLogThresholdQueryWarn;
+	public String getExtendedSettingsTemplate() {
+		return extendedSettingsTemplate;
 	}
 
-	public void setSlowLogThresholdQueryWarn(String slowLogThresholdQueryWarn) {
-		this.slowLogThresholdQueryWarn = slowLogThresholdQueryWarn;
-	}
-
-	public String getSlowLogThresholdQueryInfo() {
-		return slowLogThresholdQueryInfo;
-	}
-
-	public void setSlowLogThresholdQueryInfo(String slowLogThresholdQueryInfo) {
-		this.slowLogThresholdQueryInfo = slowLogThresholdQueryInfo;
-	}
-
-	public String getSlowLogThresholdQueryDebug() {
-		return slowLogThresholdQueryDebug;
-	}
-
-	public void setSlowLogThresholdQueryDebug(String slowLogThresholdQueryDebug) {
-		this.slowLogThresholdQueryDebug = slowLogThresholdQueryDebug;
-	}
-
-	public String getSlowLogThresholdQueryTrace() {
-		return slowLogThresholdQueryTrace;
-	}
-
-	public void setSlowLogThresholdQueryTrace(String slowLogThresholdQueryTrace) {
-		this.slowLogThresholdQueryTrace = slowLogThresholdQueryTrace;
-	}
-
-	public String getSlowLogThresholdFetchWarn() {
-		return slowLogThresholdFetchWarn;
-	}
-
-	public void setSlowLogThresholdFetchWarn(String slowLogThresholdFetchWarn) {
-		this.slowLogThresholdFetchWarn = slowLogThresholdFetchWarn;
-	}
-
-	public String getSlowLogThresholdFetchInfo() {
-		return slowLogThresholdFetchInfo;
-	}
-
-	public void setSlowLogThresholdFetchInfo(String slowLogThresholdFetchInfo) {
-		this.slowLogThresholdFetchInfo = slowLogThresholdFetchInfo;
-	}
-
-	public String getSlowLogThresholdFetchDebug() {
-		return slowLogThresholdFetchDebug;
-	}
-
-	public void setSlowLogThresholdFetchDebug(String slowLogThresholdFetchDebug) {
-		this.slowLogThresholdFetchDebug = slowLogThresholdFetchDebug;
-	}
-
-	public String getSlowLogThresholdFetchTrace() {
-		return slowLogThresholdFetchTrace;
-	}
-
-	public void setSlowLogThresholdFetchTrace(String slowLogThresholdFetchTrace) {
-		this.slowLogThresholdFetchTrace = slowLogThresholdFetchTrace;
-	}
-
-	public String getSlowLogLevel() {
-		return slowLogLevel;
-	}
-
-	public void setSlowLogLevel(String slowLogLevel) {
-		this.slowLogLevel = slowLogLevel;
+	public void setExtendedSettingsTemplate(String extendedSettingsTemplate) {
+		this.extendedSettingsTemplate = extendedSettingsTemplate;
 	}
 }
