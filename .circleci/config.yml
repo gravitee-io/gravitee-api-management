@@ -9,9 +9,21 @@ parameters:
     type: boolean
     default: true
     description: "Run in dry run mode?"
+  maven_profile_id:
+    type: string
+    default: "gravitee-dry-run"
+    description: "Maven ID of the Maven profile to use for a dry run ?"
+  secrethub_org:
+    type: string
+    default: "graviteeio"
+    description: "SecretHub Org to use to fetch secrets ?"
+  secrethub_repo:
+    type: string
+    default: "cicd"
+    description: "SecretHub Repo to use to fetch secrets ?"
 
 orbs:
-  gravitee: gravitee-io/gravitee@1.0
+  gravitee: gravitee-io/gravitee@dev:1.0.2
 
 workflows:
   version: 2.1
@@ -25,6 +37,10 @@ workflows:
     when:
       equal: [ release, << pipeline.parameters.gio_action >> ]
     jobs:
+      # return to simple definition :
       - gravitee/release:
           context: cicd-orchestrator
           dry_run: << pipeline.parameters.dry_run >>
+          secrethub_org: << pipeline.parameters.secrethub_org >>
+          secrethub_repo: << pipeline.parameters.secrethub_repo >>
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
