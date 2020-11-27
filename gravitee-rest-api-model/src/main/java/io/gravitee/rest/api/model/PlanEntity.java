@@ -286,6 +286,10 @@ public class PlanEntity {
         this.selectionRule = selectionRule;
     }
 
+    /**
+     * Identifier of general condition page
+     * @return id
+     */
     public String getGeneralConditions() {
         return generalConditions;
     }

@@ -292,6 +292,20 @@ public class PageEntity implements Indexable {
         }
 
         @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            PageRevisionId that = (PageRevisionId) o;
+            return revision == that.revision &&
+                Objects.equals(pageId, that.pageId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(pageId, revision);
+        }
+
+        @Override
         public String toString() {
             return "PageRevisionId{" +
                     "pageId='" + pageId + '\'' +
