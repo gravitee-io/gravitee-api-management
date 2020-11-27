@@ -24,6 +24,7 @@ i18n([
   'errors.plan.notSubscribable',
   'errors.plan.subscribed',
   'errors.plan.general_conditions_accept',
+  'errors.plan.general_conditions_revision',
   'errors.plan.general_conditions_status',
   'errors.support.disabled',
   'errors.unexpected',

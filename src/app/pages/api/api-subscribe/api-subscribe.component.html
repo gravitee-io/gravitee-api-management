@@ -44,10 +44,10 @@
           </div>
 
         </div>
-   
+
         <div class="step step-2">
           <div class="message">
-     
+
             <p>{{ 'apiSubscribe.apps.description' | translate }}</p>
             <p *ngIf="hasConnectedApps()"
                [innerHTML]="'apiSubscribe.apps.connectedApps' | translate:{ count: getConnectedAppsCount(), apiName: apiName }"></p>
@@ -71,7 +71,22 @@
         </div>
 
         <div class="step step-3">
-          <div class="message" *ngIf="!subscribeForm.valid">
+
+          <div *ngIf="displayGeneralConditions()">
+            <h3>{{'common.general_conditions.title' | translate}}</h3>
+
+            <app-gv-page *ngIf="!this.subscribeForm.valid" class="general_conditions" [page]="getCurrentGeneralConditions()"> </app-gv-page>
+
+            <gv-checkbox
+                formControlName="general_conditions_accepted"
+                label="{{ 'common.general_conditions.accept' | translate }}"
+                name="general_conditions_accepted"
+                ngDefaultControl>
+            </gv-checkbox>
+
+          </div>
+
+          <div class="message" *ngIf="!subscribeForm.valid && !displayGeneralConditions()">
             <p
               [innerHTML]="'apiSubscribe.validate.notCompleted' | translate: {apiName: apiName}"></p>
           </div>
@@ -130,20 +145,7 @@
             <p
               [innerHTML]="'apiSubscribe.success.subscriptionRejected' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
           </div>
-          
-          <div *ngIf="planHasGeneralConditions() && displayGeneralConditions()">
-            <h3>{{'common.general_conditions.title' | translate}}</h3>
 
-            <app-gv-page class="general_conditions general_conditions_content" [page]="getCurrentGeneralConditions()"> </app-gv-page>
-              
-            <gv-checkbox
-                formControlName="general_conditions_accepted"
-                label="{{ 'common.general_conditions.accept' | translate }}"
-                name="general_conditions_accepted"
-                ngDefaultControl>
-            </gv-checkbox>
-
-          </div>
         </div>
       </form>
     </div>

@@ -98,16 +98,15 @@ app-application-creation-step4 {
   margin: 2rem 0;
 }
 
-.application-creation__subscription-form__plans__gc {
-  padding: 0.5rem;
+.application-creation__subscription-form__plans__gcu {
+  margin: 1rem 0.2rem;
+  box-sizing: border-box;
+  border-left: 6px double var(--gv-theme-neutral-color-dark);
   background-color: var(--gv-theme-neutral-color-lighter);
   font-size: var(--gv-theme-font-size-m);
-}
-
-.application-creation__subscription-form__plans__gccontent {
   overflow-y: auto;
   overflow-x: hidden;
-  height: 18rem;
+  height: 320px;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -215,6 +214,8 @@ gv-input, gv-text, gv-option, gv-select, .form-control-grants, gv-switch {
 
 .application-types {
   --gv-option-button--maw: 220px;
+  display: flex;
+  justify-content: center;
 }
 
 .form-control-redirect-uri {
@@ -291,6 +292,11 @@ gv-input, gv-text, gv-option, gv-select, .form-control-grants, gv-switch {
 }
 
 .application-creation__autocomplete {
-  max-width: 600px;
   align-self: center;
+}
+
+.application-creation__subscription-errors li {
+  display: flex;
+  align-items: center;
+  font-size: var(--gv-theme-font-size-m);
 }

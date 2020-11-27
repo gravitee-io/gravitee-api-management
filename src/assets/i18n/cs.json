@@ -430,6 +430,7 @@
         "description": "Najděte API pro vaši aplikaci a přidejte plány, které chcete přihlásit k odběru"
       },
       "remove": "Odstranit",
+      "resubscribe": "Zkus to znovu",
       "subscribe": "Předplatit",
       "validation": {
         "auto": "Automatické",
@@ -646,8 +647,9 @@
       "invalid": "Heslo není platné podle platných pravidel\n"
     },
     "plan": {
-      "general_conditions_accept": "Plán {plan} vyžadoval přijetí obecných podmínek.",
-      "general_conditions_status": "Plan {plan} odkazuje na nezveřejněnou stránku jako obecné podmínky.",
+      "general_conditions_accept": "Plán {plan} vyžaduje souhlas s obecnými podmínkami použití.",
+      "general_conditions_revision": "Obecné podmínky používání plánu {plan} se změnily.",
+      "general_conditions_status": "Odkazy na plán {plan} na nepublikovanou stránku podmínek použití.",
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
     },
