@@ -81,7 +81,7 @@ public class PageMapper {
             final List<PageMedia> pageMedia = mediaService.findAllWithoutContent(page.getAttachedMedia(), apiId).stream()
                     .map(media -> new PageMedia()
                             .name(media.getFileName())
-                            .link(mediaUrl + "/" + media.getId())
+                            .link(mediaUrl + "/" + media.getHash())
                             .type(media.getType())
                     )
                     .collect(Collectors.toList());
@@ -111,7 +111,7 @@ public class PageMapper {
         String tryItAnonymous = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS);
         String tryItURL = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL);
         String viewer = configuration.get(PageConfigurationKeys.SWAGGER_VIEWER);
-        
+
         if (displayOperationId != null) {
             pageConfiguration.setDisplayOperationId(Boolean.parseBoolean(displayOperationId));
         }

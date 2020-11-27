@@ -1821,7 +1821,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 newPage.setPublished(pageEntityToImport.isPublished());
                 newPage.setSource(pageEntityToImport.getSource());
                 newPage.setType(PageType.valueOf(pageEntityToImport.getType()));
-
+                newPage.setAttachedMedia(pageEntityToImport.getAttachedMedia());
                 createdOrUpdatedPage = pageService.createPage(apiId, newPage);
             } else {
                 UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -1835,6 +1835,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updatePageEntity.setParentId(pageEntityToImport.getParentId());
                 updatePageEntity.setPublished(pageEntityToImport.isPublished());
                 updatePageEntity.setSource(pageEntityToImport.getSource());
+                updatePageEntity.setAttachedMedia(pageEntityToImport.getAttachedMedia());
 
                 createdOrUpdatedPage = pageService.update(pageEntityToImport.getId(), updatePageEntity);
             }

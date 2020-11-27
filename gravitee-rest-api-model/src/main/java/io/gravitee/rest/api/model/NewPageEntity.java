@@ -24,7 +24,7 @@ import java.util.Map;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
- * @author Guillaume GILLON 
+ * @author Guillaume GILLON
  * @author GraviteeSource Team
  */
 public class NewPageEntity {
@@ -35,9 +35,9 @@ public class NewPageEntity {
 
 	@NotNull
 	private PageType type;
-	
+
 	private String content;
-	
+
 	private int order;
 
 	private boolean published;
@@ -52,6 +52,9 @@ public class NewPageEntity {
 
 	@JsonProperty("excluded_groups")
 	private List<String> excludedGroups;
+
+	@JsonProperty("attached_media")
+	private List<PageMediaEntity> attachedMedia;
 
 	private String parentId;
 
@@ -150,5 +153,12 @@ public class NewPageEntity {
         sb.append('}');
         return sb.toString();
     }
-	
+
+	public List<PageMediaEntity> getAttachedMedia() {
+		return attachedMedia;
+	}
+
+	public void setAttachedMedia(List<PageMediaEntity> attachedMedia) {
+		this.attachedMedia = attachedMedia;
+	}
 }
