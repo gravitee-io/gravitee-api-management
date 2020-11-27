@@ -106,8 +106,16 @@ export class SubscriptionsComponent implements OnInit {
     this.optionsSubscriptions = {
       selectable: true,
       data: [
-        { field: 'api._links.picture', type: 'image', alt: (item) => getPictureDisplayName(item.api) },
-        { field: 'api.name', tag: 'api.version', label: i18n('subscriptions.subscriptions.api') },
+        {
+          field: (item) => this.subscriptionsMetadata[item.subscription.api].pictureUrl,
+          type: 'image',
+          alt: (item) => getPictureDisplayName(item.api)
+        },
+        {
+          field: (item) => this.subscriptionsMetadata[item.subscription.api].name,
+          tag: 'api.version',
+          label: i18n('subscriptions.subscriptions.api'),
+        },
         { field: 'plan.name', label: i18n('subscriptions.subscriptions.plan') },
         { field: 'subscription.start_at', type: 'date', label: i18n('subscriptions.subscriptions.start_date') },
         { field: 'subscription.end_at', type: 'date', label: i18n('subscriptions.subscriptions.end_date') },
@@ -142,16 +150,8 @@ export class SubscriptionsComponent implements OnInit {
   async displayCurlExample(sub: any) {
     delete this.curlExample;
     this.ref.detectChanges();
-    let entrypoints = [];
-    if (!sub.api.entrypoints || !sub.api.entrypoints[0]) {
-      const subscribedApi = await this.apiService.getApiByApiId({ apiId: sub.api.id }).toPromise();
-      entrypoints = subscribedApi.entrypoints;
-      this.apis.find((api) => sub.api.id === api.id).entrypoints = subscribedApi.entrypoints;
-    } else {
-      entrypoints = sub.api.entrypoints;
-    }
 
-    let keys = [];
+    let keys;
     if (!sub.subscription.keys || !sub.subscription.keys[0]) {
       const subscriptionDetail = await this.subscriptionService.getSubscriptionById({
         subscriptionId: sub.subscription.id,
@@ -163,8 +163,10 @@ export class SubscriptionsComponent implements OnInit {
       keys = sub.subscription.keys;
     }
 
-    if (entrypoints[0] && keys[0]) {
-      this.curlExample = `curl ${entrypoints[0]} -H "${this.apikeyHeader}:${keys[0].id}"`;
+    const entrypoints = this.subscriptionsMetadata[sub.subscription.api].entrypoints;
+    const entrypoint = entrypoints && entrypoints[0] && entrypoints[0].target;
+    if (entrypoint && keys[0]) {
+      this.curlExample = `curl ${entrypoint} -H "${this.apikeyHeader}:${keys[0].id}"`;
     }
   }
 
