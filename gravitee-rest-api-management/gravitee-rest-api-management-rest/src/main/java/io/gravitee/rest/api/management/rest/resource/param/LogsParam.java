@@ -138,5 +138,9 @@ public class LogsParam {
         if (size < 0) {
             size = 20;
         }
+
+        if (size > 10000) {
+            size = 10000;
+        }
     }
 }

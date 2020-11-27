@@ -52,19 +52,20 @@ public class DefaultParameterUpgrader implements Upgrader, Ordered {
     public boolean upgrade() {
         try {
             String envPortalURL = environment.getProperty("portalURL", Key.MANAGEMENT_URL.defaultValue());
-
-            final Optional<Parameter> optionalParameter = parameterRepository.findById(Key.MANAGEMENT_URL.key());
-            if (!optionalParameter.isPresent()) {
-                Parameter managementURLParam = new Parameter();
-                managementURLParam.setKey(Key.MANAGEMENT_URL.key());
-                managementURLParam.setValue(envPortalURL);
-                managementURLParam.setReferenceType(ParameterReferenceType.ENVIRONMENT);
-                managementURLParam.setReferenceId(GraviteeContext.getDefaultEnvironment());
-                parameterRepository.create(managementURLParam);
-            } else if (StringUtils.isEmpty(optionalParameter.get().getValue())) {
-                Parameter managementURLParam = optionalParameter.get();
-                managementURLParam.setValue(envPortalURL);
-                parameterRepository.update(managementURLParam);
+            if (envPortalURL != null) {
+                final Optional<Parameter> optionalParameter = parameterRepository.findById(Key.MANAGEMENT_URL.key());
+                if (!optionalParameter.isPresent()) {
+                    Parameter managementURLParam = new Parameter();
+                    managementURLParam.setKey(Key.MANAGEMENT_URL.key());
+                    managementURLParam.setValue(envPortalURL);
+                    managementURLParam.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+                    managementURLParam.setReferenceId(GraviteeContext.getDefaultEnvironment());
+                    parameterRepository.create(managementURLParam);
+                } else if (StringUtils.isEmpty(optionalParameter.get().getValue())) {
+                    Parameter managementURLParam = optionalParameter.get();
+                    managementURLParam.setValue(envPortalURL);
+                    parameterRepository.update(managementURLParam);
+                }
             }
         } catch (TechnicalException e) {
             logger.error("Error while updating 'management.url' parameter : {}", e);

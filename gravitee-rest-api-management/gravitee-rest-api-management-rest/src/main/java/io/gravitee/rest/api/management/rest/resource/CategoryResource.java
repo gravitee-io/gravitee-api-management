@@ -81,7 +81,7 @@ public class CategoryResource extends AbstractCategoryResource {
             @ApiResponse(code = 200, message = "Category's picture"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response getCategoryPicture(@Context Request request) throws CategoryNotFoundException {
-        return getImageResponse(request, categoryId, categoryService.getPicture(categoryId));
+        return getImageResponse(request, categoryService.getPicture(categoryId));
     }
 
     @GET
@@ -92,10 +92,10 @@ public class CategoryResource extends AbstractCategoryResource {
             @ApiResponse(code = 200, message = "Category's background"),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response getCategoryBackground(@Context Request request) throws CategoryNotFoundException {
-        return getImageResponse(request, categoryId, categoryService.getBackground(categoryId));
+        return getImageResponse(request, categoryService.getBackground(categoryId));
     }
 
-    private Response getImageResponse(Request request, String categoryId, InlinePictureEntity image) {
+    private Response getImageResponse(Request request, InlinePictureEntity image) {
         boolean canShowCategory = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.READ);
         CategoryEntity category = categoryService.findById(categoryId);
 
