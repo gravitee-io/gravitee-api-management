@@ -37,6 +37,8 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
     private final static String FIELD_API = "api";
     private final static String FIELD_TYPE_VALUE = "page";
     private final static String FIELD_NAME = "name";
+    private final static String FIELD_NAME_LOWERCASE = "name_lowercase";
+    private final static String FIELD_NAME_SPLIT = "name_split";
     private final static String FIELD_CONTENT = "content";
 
     @Override
@@ -46,7 +48,9 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
         doc.add(new StringField(FIELD_ID, page.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
         if (page.getName() != null) {
-            doc.add(new TextField(FIELD_NAME, page.getName(), Field.Store.NO));
+            doc.add(new StringField(FIELD_NAME, page.getName(), Field.Store.NO));
+            doc.add(new StringField(FIELD_NAME_LOWERCASE, page.getName().toLowerCase(), Field.Store.NO));
+            doc.add(new TextField(FIELD_NAME_SPLIT, page.getName(), Field.Store.NO));
         }
 
         if (page.getContent() != null) {
