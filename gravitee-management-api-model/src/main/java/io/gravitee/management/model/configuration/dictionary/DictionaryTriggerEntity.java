@@ -16,6 +16,7 @@
 package io.gravitee.management.model.configuration.dictionary;
 
 import javax.validation.constraints.NotNull;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,5 +45,19 @@ public class DictionaryTriggerEntity {
 
     public void setUnit(TimeUnit unit) {
         this.unit = unit;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DictionaryTriggerEntity that = (DictionaryTriggerEntity) o;
+        return rate == that.rate &&
+                unit == that.unit;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rate, unit);
     }
 }

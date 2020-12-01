@@ -21,5 +21,5 @@ package io.gravitee.management.service.event;
  */
 public enum DictionaryEvent {
 
-    START, STOP;
+    START, STOP, RESTART;
 }

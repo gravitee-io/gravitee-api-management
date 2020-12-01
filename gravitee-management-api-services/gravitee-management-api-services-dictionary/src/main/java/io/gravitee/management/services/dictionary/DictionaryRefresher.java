@@ -68,10 +68,12 @@ public class DictionaryRefresher implements Handler<Long> {
                         dynamicProperty -> (dynamicProperty.getValue() == null) ? "" : dynamicProperty.getValue()));
 
         // Compare properties with latest values
-        if (! properties.equals(dictionary.getProperties())) {
-            dictionary.setProperties(properties);
+        if (!properties.equals(dictionary.getProperties())) {
 
             try {
+                // Get a fresh version of the dictionary before updating its properties.
+                dictionary = dictionaryService.findById(dictionary.getId());
+                dictionary.setProperties(properties);
                 dictionary = dictionaryService.update(dictionary.getId(), convert(dictionary));
                 dictionaryService.deploy(dictionary.getId());
             } catch (Exception ex) {

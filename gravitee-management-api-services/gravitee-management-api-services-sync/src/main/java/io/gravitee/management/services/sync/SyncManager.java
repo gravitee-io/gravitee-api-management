@@ -64,7 +64,7 @@ public class SyncManager {
     @Autowired
     private ApiRepository apiRepository;
     @Autowired
-    private DictionaryService dictionaryService;
+    private DictionaryManager dictionaryManager;
     @Autowired
     private DictionaryRepository dictionaryRepository;
     @Autowired
@@ -190,16 +190,10 @@ public class SyncManager {
 
             switch (event.getType()) {
                 case START_DICTIONARY:
-                    // Read dictionary
-                    DictionaryEntity dictionary = dictionaryService.findById(id);
-                    eventManager.publishEvent(DictionaryEvent.START, dictionary);
+                    dictionaryManager.start(id);
                     break;
                 case STOP_DICTIONARY:
-                    // We get a stop, which can be a follow-up to a deleted dictionary
-                    // In that case just pass a dictionary with a reference only
-                    DictionaryEntity stoppedDictionary = new DictionaryEntity();
-                    stoppedDictionary.setId(id);
-                    eventManager.publishEvent(DictionaryEvent.STOP, stoppedDictionary);
+                    dictionaryManager.stop(id);
                     break;
             }
         });

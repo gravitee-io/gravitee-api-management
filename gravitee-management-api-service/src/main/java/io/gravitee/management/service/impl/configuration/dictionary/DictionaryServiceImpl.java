@@ -73,7 +73,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to retrieve dictionaries", ex);
             throw new TechnicalManagementException(
-                "An error occurs while trying to retrieve dictionaries", ex);
+                    "An error occurs while trying to retrieve dictionaries", ex);
         }
     }
 
@@ -254,7 +254,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             dictionary.setUpdatedAt(new Date());
             dictionary.setState(optDictionary.get().getState());
 
-            Dictionary updatedDictionary =  dictionaryRepository.update(dictionary);
+            Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
+
+            // Force a new start event if the dictionary is already started when updating.
+            if (updatedDictionary.getState() == LifecycleState.STARTED) {
+                Map<String, String> properties = new HashMap<>();
+                properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), id);
+                eventService.create(EventType.START_DICTIONARY, null, properties);
+            }
 
             // Audit
             createAuditLog(
@@ -318,13 +325,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private void createAuditLog(Audit.AuditEvent event, Date createdAt, Dictionary oldValue, Dictionary newValue) {
         String dictionaryName = oldValue != null ? oldValue.getName() : newValue.getName();
 
-            auditService.createPortalAuditLog(
-                    Collections.singletonMap(DICTIONARY, dictionaryName),
-                    event,
-                    createdAt,
-                    oldValue,
-                    newValue
-            );
+        auditService.createPortalAuditLog(
+                Collections.singletonMap(DICTIONARY, dictionaryName),
+                event,
+                createdAt,
+                oldValue,
+                newValue
+        );
     }
 
     private DictionaryEntity convert(Dictionary dictionary) {

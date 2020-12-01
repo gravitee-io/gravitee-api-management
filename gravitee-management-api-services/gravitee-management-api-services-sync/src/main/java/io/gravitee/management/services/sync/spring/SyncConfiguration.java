@@ -16,6 +16,7 @@
 package io.gravitee.management.services.sync.spring;
 
 import io.gravitee.management.services.sync.ApiManager;
+import io.gravitee.management.services.sync.DictionaryManager;
 import io.gravitee.management.services.sync.SyncManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +39,12 @@ public class SyncConfiguration {
     public ApiManager apiManager() {
         return new ApiManager();
     }
+
+    @Bean
+    public DictionaryManager dictionaryManager() {
+        return new DictionaryManager();
+    }
+
     @Bean
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
