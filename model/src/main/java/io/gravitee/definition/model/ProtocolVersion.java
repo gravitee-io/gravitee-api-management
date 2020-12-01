@@ -15,12 +15,14 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum ProtocolVersion {
-
+    @JsonEnumDefaultValue
     HTTP_1_1,
     HTTP_2
 }

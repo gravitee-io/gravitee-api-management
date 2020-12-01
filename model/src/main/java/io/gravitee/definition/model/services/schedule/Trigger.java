@@ -15,6 +15,10 @@
  */
 package io.gravitee.definition.model.services.schedule;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +31,18 @@ public class Trigger implements Serializable {
     private long rate;
 
     private TimeUnit unit;
+
+    public Trigger() {
+    }
+
+    @JsonCreator
+    public Trigger(
+            @JsonProperty(value = "rate", required = true) long rate,
+            @JsonProperty(value = "unit", required = true) TimeUnit unit)
+    {
+        this.rate = rate;
+        this.unit = unit;
+    }
 
     public long getRate() {
         return rate;

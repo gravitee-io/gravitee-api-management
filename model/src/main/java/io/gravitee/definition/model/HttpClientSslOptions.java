@@ -15,8 +15,10 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.definition.model.ssl.KeyStore;
 import io.gravitee.definition.model.ssl.TrustStore;
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 
 import java.io.Serializable;
 
@@ -64,5 +66,14 @@ public class HttpClientSslOptions implements Serializable {
 
     public void setKeyStore(KeyStore keyStore) {
         this.keyStore = keyStore;
+    }
+
+    @JsonSetter
+    public void setPem(String sPem) {
+        if (sPem != null && !sPem.equals("null")) {
+            PEMTrustStore trustStore = new PEMTrustStore();
+            trustStore.setContent(sPem);
+            setTrustStore(trustStore);
+        }
     }
 }

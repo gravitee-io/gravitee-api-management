@@ -1,0 +1,181 @@
+{
+  "id" : "my-api",
+  "name" : "my-api",
+  "version" : "undefined",
+  "gravitee" : "2.0.0",
+  "flow_mode" : "DEFAULT",
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/my-api"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false
+  },
+  "flows" : [ {
+    "name" : "ALL",
+    "path-operator" : {
+      "operator" : "STARTS_WITH",
+      "path" : ""
+    },
+    "methods" : [ "GET", "POST", "PUT" ],
+    "pre" : [ {
+      "name" : "Rate Limit",
+      "description" : "",
+      "enabled" : true,
+      "policy" : "rate-limit",
+      "configuration" : {"description":"Step description","rate":"1 req/s"}
+    }, {
+      "name" : "Check API Key",
+      "description" : "",
+      "enabled" : true,
+      "policy" : "api-key",
+      "configuration" : {"description":"Step description","propagateApiKey":true}
+    }, {
+      "name" : "Add HTTP headers",
+      "description" : "",
+      "enabled" : true,
+      "policy" : "transform-headers",
+      "configuration" : {"description":"Step description","add-headers":"...."}
+    } ],
+    "post" : [ {
+      "name" : "URL rewriting",
+      "description" : "",
+      "enabled" : true,
+      "policy" : "url-rewriting",
+      "configuration" : {"description":"Description of the URL Rewriting Gravitee Policy"}
+    }, {
+      "name" : "XML to JSON",
+      "description" : "",
+      "enabled" : true,
+      "policy" : "xml-json",
+      "configuration" : {"description":"Step description","condition":"#request.headers['content-type'] == 'application/json'"}
+    } ],
+    "enabled" : true
+  } ],
+  "plans" : [ {
+    "id" : "plan-2",
+    "name" : "Plan 2",
+    "paths" : { },
+    "flows" : [ {
+      "name" : "ALL",
+      "path-operator" : {
+        "operator" : "STARTS_WITH",
+        "path" : ""
+      },
+      "methods" : [ ],
+      "pre" : [ {
+        "name" : "Rate Limit",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "rate-limit",
+        "configuration" : {"description":"Step description","rate":"1 req/s"}
+      }, {
+        "name" : "Check API Key",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "api-key",
+        "configuration" : {"description":"Step description","propagateApiKey":true}
+      }, {
+        "name" : "Add HTTP headers",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "transform-headers",
+        "configuration" : {"description":"Step description","add-headers":"...."}
+      } ],
+      "post" : [ {
+        "name" : "URL rewriting",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "url-rewriting",
+        "configuration" : {"description":"Description of the URL Rewriting Gravitee Policy"}
+      }, {
+        "name" : "XML to JSON",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "xml-json",
+        "configuration" : {"description":"Step description","condition":"#request.headers['content-type'] == 'application/json'"}
+      } ],
+      "enabled" : true
+    } ]
+  }, {
+    "id" : "plan-1",
+    "name" : "Plan 1",
+    "paths" : { },
+    "flows" : [ {
+      "name" : "ALL",
+      "path-operator" : {
+        "operator" : "STARTS_WITH",
+        "path" : ""
+      },
+      "methods" : [ ],
+      "pre" : [ {
+        "name" : "Rate Limit",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "rate-limit",
+        "configuration" : {"description":"Step description","rate":"1 req/s"}
+      }, {
+        "name" : "Check API Key",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "api-key",
+        "configuration" : {"description":"Step description","propagateApiKey":true}
+      }, {
+        "name" : "Add HTTP headers",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "transform-headers",
+        "configuration" : {"description":"Step description","add-headers":"...."}
+      } ],
+      "post" : [ {
+        "name" : "URL rewriting",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "url-rewriting",
+        "configuration" : {"description":"Description of the URL Rewriting Gravitee Policy"}
+      }, {
+        "name" : "XML to JSON",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "xml-json",
+        "configuration" : {"description":"Step description","condition":"#request.headers['content-type'] == 'application/json'"}
+      } ],
+      "enabled" : true
+    }, {
+      "name" : "Other",
+      "path-operator" : {
+        "operator" : "STARTS_WITH",
+        "path" : ""
+      },
+      "methods" : [ ],
+      "pre" : [ {
+        "name" : "Rate Limit",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "rate-limit",
+        "configuration" : {"description":"Step description","rate":"1 req/s"}
+      }, {
+        "name" : "Check API Key",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "api-key",
+        "configuration" : {"description":"Step description","propagateApiKey":true}
+      }, {
+        "name" : "Add HTTP headers",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "transform-headers",
+        "configuration" : {"description":"Step description","add-headers":"...."}
+      } ],
+      "post" : [ {
+        "name" : "XML to JSON",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "xml-json",
+        "configuration" : {"description":"Step description","condition":"#request.headers['content-type'] == 'application/json'"}
+      } ],
+      "enabled" : true
+    } ]
+  } ],
+  "properties" : [ ]
+}

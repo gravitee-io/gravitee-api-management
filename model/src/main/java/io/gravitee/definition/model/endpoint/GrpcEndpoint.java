@@ -15,7 +15,11 @@
  */
 package io.gravitee.definition.model.endpoint;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.EndpointType;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.ProtocolVersion;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -23,7 +27,28 @@ import io.gravitee.definition.model.EndpointType;
  */
 public class GrpcEndpoint extends HttpEndpoint {
 
+    @JsonCreator
+    public GrpcEndpoint(@JsonProperty("name") String name, @JsonProperty("target") String target, @JsonProperty("inherit") Boolean inherit) {
+        super(EndpointType.GRPC, name, target, inherit);
+    }
+
     public GrpcEndpoint(String name, String target) {
-        super(EndpointType.GRPC, name, target);
+        this(name, target, null);
+    }
+
+    @Override
+    public HttpClientOptions getHttpClientOptionsJson() {
+        final HttpClientOptions httpClientOptions = super.getHttpClientOptionsJson();
+        if (httpClientOptions != null) {
+            httpClientOptions.setVersion(ProtocolVersion.HTTP_2);
+            return httpClientOptions;
+        }
+        return null;
+    }
+
+    @Override
+    public void setHttpClientOptionsJson(HttpClientOptions httpClientOptions) {
+        httpClientOptions.setVersion(ProtocolVersion.HTTP_2);
+        super.setHttpClientOptionsJson(httpClientOptions);
     }
 }

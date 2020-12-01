@@ -17,6 +17,13 @@ package io.gravitee.definition.model.flow;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
@@ -27,7 +34,7 @@ public class Step implements Serializable {
     private String name;
     private String policy;
     private String description;
-    private String configuration;
+    private Object configuration;
     private boolean enabled = true;
 
     public boolean isEnabled() {
@@ -54,19 +61,37 @@ public class Step implements Serializable {
         return policy;
     }
 
+    @JsonIgnore
     public String getDescription() {
         return description;
     }
 
+    @JsonGetter("description")
+    public String getDescriptionJson() {
+        if (description == null) {
+            return "";
+        }
+        return description;
+    }
+
+    @JsonSetter("description")
     public void setDescription(String description) {
         this.description = description;
     }
 
+    @Schema(implementation = Object.class)
+    @JsonRawValue
     public String getConfiguration() {
-        return configuration;
+        return configuration == null ? null : configuration.toString();
     }
 
+    @JsonIgnore
     public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    @JsonSetter
+    public void setConfiguration(JsonNode configuration) {
         this.configuration = configuration;
     }
 }

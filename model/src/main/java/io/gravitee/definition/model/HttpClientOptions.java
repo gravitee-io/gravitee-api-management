@@ -15,12 +15,18 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSetter;
+
 import java.io.Serializable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@JsonIgnoreProperties("configuration")
 public class HttpClientOptions implements Serializable {
 
     public static long DEFAULT_IDLE_TIMEOUT = 60000;
@@ -42,7 +48,7 @@ public class HttpClientOptions implements Serializable {
     private int maxConcurrentConnections = DEFAULT_MAX_CONCURRENT_CONNECTIONS;
     private boolean useCompression = DEFAULT_USE_COMPRESSION;
     private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
-    private boolean clearTextUpgrade = DEFAULT_CLEAR_TEXT_UPGRADE;
+    private Boolean clearTextUpgrade = DEFAULT_CLEAR_TEXT_UPGRADE;
     private ProtocolVersion version = DEFAULT_PROTOCOL_VERSION;
 
     public long getConnectTimeout() {
@@ -109,18 +115,31 @@ public class HttpClientOptions implements Serializable {
         this.followRedirects = followRedirects;
     }
 
-    public boolean isClearTextUpgrade() {
-        return clearTextUpgrade;
+    public Boolean isClearTextUpgrade() {
+        if (version == ProtocolVersion.HTTP_2) {
+            return clearTextUpgrade;
+        }
+        return null;
     }
 
-    public void setClearTextUpgrade(boolean clearTextUpgrade) {
+    public void setClearTextUpgrade(Boolean clearTextUpgrade) {
         this.clearTextUpgrade = clearTextUpgrade;
     }
 
+    @JsonGetter("version")
+    public ProtocolVersion getVersionJson() {
+        if (version == ProtocolVersion.HTTP_2) {
+            return version;
+        }
+        return null;
+    }
+
+    @JsonIgnore
     public ProtocolVersion getVersion() {
         return version;
     }
 
+    @JsonSetter("version")
     public void setVersion(ProtocolVersion version) {
         this.version = version;
     }

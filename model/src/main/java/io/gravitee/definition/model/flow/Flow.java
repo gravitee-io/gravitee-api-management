@@ -15,12 +15,12 @@
  */
 package io.gravitee.definition.model.flow;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,12 +30,11 @@ import java.util.Set;
 public class Flow implements Serializable {
 
     private String name;
+    private PathOperator pathOperator = new PathOperator();
     private List<Step> pre = new ArrayList<>();
     private List<Step> post = new ArrayList<>();
-    private boolean enabled;
-    private Set<HttpMethod> methods;
-    private String path;
-    private Operator operator = Operator.STARTS_WITH;
+    private boolean enabled = true;
+    private Set<HttpMethod> methods = new HashSet<>();
     private String condition;
 
     public String getName() {
@@ -79,26 +78,73 @@ public class Flow implements Serializable {
     }
 
     public Set<HttpMethod> getMethods() {
-        return methods;
+        if (methods instanceof TreeSet) {
+            return methods;
+        }
+        return new TreeSet<>(methods);
     }
 
     public void setMethods(Set<HttpMethod> methods) {
-        this.methods = methods;
+        if (methods instanceof TreeSet) {
+            this.methods = methods;
+        } else {
+            this.methods = new TreeSet<>(methods);
+        }
     }
 
+    @JsonIgnore
     public String getPath() {
-        return path;
+        return pathOperator == null ? null : pathOperator.getPath();
     }
 
     public void setPath(String path) {
-        this.path = path;
+        if (pathOperator == null) {
+            pathOperator = new PathOperator();
+        }
+        pathOperator.setPath(path);
     }
 
+    @JsonIgnore
     public Operator getOperator() {
-        return operator;
+        return pathOperator == null ? null : pathOperator.getOperator();
     }
 
     public void setOperator(Operator operator) {
-        this.operator = operator;
+        if (pathOperator == null) {
+            pathOperator = new PathOperator();
+        }
+        pathOperator.setOperator(operator);
+    }
+
+    @JsonProperty("path-operator")
+    private PathOperator getPathOperator() {
+        return pathOperator;
+    }
+
+    private void setPathOperator(PathOperator pathOperator) {
+        this.pathOperator = pathOperator;
+    }
+
+    private static class PathOperator implements Serializable {
+        private String path = "";
+        private Operator operator = Operator.STARTS_WITH;
+
+        public String getPath() {
+            return path;
+        }
+
+        public PathOperator setPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        public Operator getOperator() {
+            return operator;
+        }
+
+        public PathOperator setOperator(Operator operator) {
+            this.operator = operator;
+            return this;
+        }
     }
 }

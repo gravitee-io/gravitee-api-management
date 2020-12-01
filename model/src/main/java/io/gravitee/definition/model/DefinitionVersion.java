@@ -19,12 +19,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum DefinitionVersion {
 
+    @JsonEnumDefaultValue
     V1("1.0.0"),
     V2("2.0.0");
 
@@ -42,10 +47,12 @@ public enum DefinitionVersion {
         this.label = label;
     }
 
+    @JsonCreator
     public static DefinitionVersion valueOfLabel(String label) {
         return BY_LABEL.get(label);
     }
 
+    @JsonValue
     public String getLabel() {
         return label;
     }

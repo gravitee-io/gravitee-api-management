@@ -15,6 +15,8 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -26,7 +28,7 @@ public abstract class Service implements Serializable {
 
     private final String name;
 
-    private boolean enabled;
+    private boolean enabled = true;
 
     public Service(String name) {
         this.name = name;
@@ -40,6 +42,7 @@ public abstract class Service implements Serializable {
         this.enabled = enabled;
     }
 
+    @JsonIgnore
     public String getName() {
         return name;
     }

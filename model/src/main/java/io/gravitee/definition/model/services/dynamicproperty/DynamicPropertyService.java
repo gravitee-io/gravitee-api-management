@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.services.dynamicproperty;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
 
 /**
@@ -25,13 +26,14 @@ public class DynamicPropertyService extends ScheduledService {
 
     public final static String SERVICE_KEY = "dynamic-property";
 
+    private DynamicPropertyProvider provider;
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "provider")
+    private DynamicPropertyProviderConfiguration configuration;
+
     public DynamicPropertyService() {
         super(SERVICE_KEY);
     }
-
-    private DynamicPropertyProvider provider;
-
-    private DynamicPropertyProviderConfiguration configuration;
 
     public DynamicPropertyProvider getProvider() {
         return provider;

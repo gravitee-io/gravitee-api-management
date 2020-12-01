@@ -15,10 +15,10 @@
  */
 package io.gravitee.definition.model;
 
-import io.gravitee.definition.model.flow.Flow;
-
 import java.io.Serializable;
 import java.util.*;
+
+import io.gravitee.definition.model.flow.Flow;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,7 +34,7 @@ public class Plan implements Serializable {
 
     private String securityDefinition;
 
-    private Map<String, Path> paths = new HashMap<>();
+    private Map<String, List<Rule>> paths = new HashMap<>();
 
     private String api;
 
@@ -62,11 +62,11 @@ public class Plan implements Serializable {
         this.name = name;
     }
 
-    public Map<String, Path> getPaths() {
+    public Map<String, List<Rule>> getPaths() {
         return paths;
     }
 
-    public void setPaths(Map<String, Path> paths) {
+    public void setPaths(Map<String, List<Rule>> paths) {
         this.paths = paths;
     }
 

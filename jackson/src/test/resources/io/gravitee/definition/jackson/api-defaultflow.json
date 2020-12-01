@@ -19,6 +19,7 @@
         "path": "/",
         "operator": "STARTS_WITH"
       },
+      "condition": "#request.headers['content-type'] == 'application/json'",
       "pre": [
         {
           "policy": "rate-limit",
@@ -57,7 +58,6 @@
           "policy": "xml-json",
           "name": "XML to JSON",
           "description": "Step description",
-          "condition": "#request.headers['content-type'] == 'application/json'",
           "configuration": {
           }
         }
@@ -72,10 +72,14 @@
       "security": "OAUTH2",
       "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
       "selectionRule": "#context.attributes['jwt'].claims['iss'] == 'toto'",
-      "tags": [ "tag1", "tag2" ],
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
       "flows": [
         {
           "name": "ALL",
+          "condition": "#request.headers['content-type'] == 'application/json'",
           "pre": [
             {
               "policy": "rate-limit",
@@ -114,7 +118,6 @@
               "policy": "xml-json",
               "name": "XML to JSON",
               "description": "Step description",
-              "condition": "#request.headers['content-type'] == 'application/json'",
               "configuration": {
               }
             }
@@ -122,6 +125,7 @@
         },
         {
           "name": "Other",
+          "condition": "#request.headers['content-type'] == 'application/json'",
           "pre": [
             {
               "policy": "rate-limit",
@@ -153,7 +157,6 @@
               "policy": "xml-json",
               "name": "XML to JSON",
               "description": "Step description",
-              "condition": "#request.headers['content-type'] == 'application/json'",
               "configuration": {
               }
             }
@@ -168,10 +171,14 @@
       "security": "OAUTH2",
       "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
       "selectionRule": "#context.attributes['jwt'].claims['iss'] == 'toto'",
-      "tags": [ "tag1", "tag2" ],
+      "tags": [
+        "tag1",
+        "tag2"
+      ],
       "flows": [
         {
           "name": "ALL",
+          "condition": "#request.headers['content-type'] == 'application/json'",
           "pre": [
             {
               "policy": "rate-limit",
@@ -210,7 +217,6 @@
               "policy": "xml-json",
               "name": "XML to JSON",
               "description": "Step description",
-              "condition": "#request.headers['content-type'] == 'application/json'",
               "configuration": {
               }
             }

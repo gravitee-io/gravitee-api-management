@@ -15,13 +15,14 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum FlowMode {
-
-    BEST_MATCH,
-    DEFAULT
-
+    @JsonEnumDefaultValue
+    DEFAULT,
+    BEST_MATCH
 }

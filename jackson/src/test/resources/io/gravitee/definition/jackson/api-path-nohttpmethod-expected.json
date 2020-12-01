@@ -1,0 +1,22 @@
+{
+  "id" : "my-api",
+  "name" : "my-api",
+  "version" : "undefined",
+  "gravitee" : "1.0.0",
+  "flow_mode" : "DEFAULT",
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/my-api"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false
+  },
+  "paths" : {
+    "/*" : [ {
+      "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE", "OTHER" ],
+      "rate-limit" : {"rate":1000,"per":60,"unit":"SECOND"},
+      "enabled" : true
+    } ]
+  },
+  "properties" : [ ]
+}

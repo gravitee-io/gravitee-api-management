@@ -15,12 +15,15 @@
  */
 package io.gravitee.definition.model.flow;
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum Operator {
 
+    @JsonEnumDefaultValue
+    STARTS_WITH,
     EQUALS,
-    STARTS_WITH
 }

@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.services.healthcheck;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,10 +24,10 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class Response implements Serializable {
-
+    public final static Response DEFAULT_RESPONSE = new Response();
     public final static String DEFAULT_ASSERTION = "#response.status == 200";
 
-    private List<String> assertions;
+    private List<String> assertions = Collections.singletonList(Response.DEFAULT_ASSERTION);
 
     public List<String> getAssertions() {
         return assertions;

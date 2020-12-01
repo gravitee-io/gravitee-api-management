@@ -15,7 +15,15 @@
  */
 package io.gravitee.definition.model.services.discovery;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.Service;
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -24,6 +32,7 @@ import io.gravitee.definition.model.Service;
 public class EndpointDiscoveryService extends Service {
 
     public final static String SERVICE_KEY = "discovery";
+    public final static Map<String, String> PROVIDERS_PLUGIN_MAPPING = Collections.singletonMap("CONSUL", "consul-service-discovery");
 
     public EndpointDiscoveryService() {
         super(SERVICE_KEY);
@@ -31,21 +40,33 @@ public class EndpointDiscoveryService extends Service {
 
     private String provider;
 
-    private String configuration;
+    private Object configuration;
 
     public String getProvider() {
         return provider;
     }
 
     public void setProvider(String provider) {
-        this.provider = provider;
+        if (provider == null) {
+            this.provider = null;
+        } else {
+            this.provider = PROVIDERS_PLUGIN_MAPPING.getOrDefault(provider.toUpperCase(), provider.toLowerCase());
+        }
     }
 
+    @Schema(implementation = Object.class)
+    @JsonRawValue
     public String getConfiguration() {
-        return configuration;
+        return configuration == null ? null : configuration.toString();
     }
 
+    @JsonIgnore
     public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    @JsonSetter
+    public void setConfiguration(JsonNode configuration) {
         this.configuration = configuration;
     }
 

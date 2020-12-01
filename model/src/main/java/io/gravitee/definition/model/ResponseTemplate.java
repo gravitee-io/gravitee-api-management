@@ -15,6 +15,8 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 import java.util.Map;
 
@@ -24,6 +26,7 @@ import java.util.Map;
  */
 public class ResponseTemplate implements Serializable {
 
+    @JsonProperty("status")
     private int statusCode;
 
     private Map<String, String> headers;

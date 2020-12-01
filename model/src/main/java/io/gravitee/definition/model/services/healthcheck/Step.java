@@ -15,6 +15,9 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
 /**
@@ -23,11 +26,19 @@ import java.io.Serializable;
  */
 public class Step implements Serializable {
 
-    private String name;
+    private String name = "default-step";
 
     private Request request;
 
-    private Response response;
+    private Response response = Response.DEFAULT_RESPONSE;
+
+    public Step() {
+    }
+
+    @JsonCreator
+    public Step(@JsonProperty(value = "request", required = true) Request request) {
+        this.request = request;
+    }
 
     public String getName() {
         return name;

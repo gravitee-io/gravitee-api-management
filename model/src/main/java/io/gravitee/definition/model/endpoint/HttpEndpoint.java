@@ -15,10 +15,16 @@
  */
 package io.gravitee.definition.model.endpoint;
 
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,57 +32,143 @@ import java.util.Map;
  */
 public class HttpEndpoint extends Endpoint {
 
+    @JsonProperty("proxy")
     private HttpProxy httpProxy;
+
+    @JsonProperty("http")
     private HttpClientOptions httpClientOptions;
+
+    @JsonProperty("ssl")
     private HttpClientSslOptions httpClientSslOptions;
+
     private Map<String, String> headers;
+
+    @JsonProperty("healthcheck")
     private EndpointHealthCheckService healthCheck;
 
-    public HttpEndpoint(String name, String target) {
-        this(EndpointType.HTTP, name, target);
+    @JsonCreator
+    public HttpEndpoint(@JsonProperty("name") String name, @JsonProperty("target") String target, @JsonProperty("inherit") Boolean inherit) {
+        this(EndpointType.HTTP, name, target, inherit);
     }
 
-    HttpEndpoint(EndpointType type, String name, String target) {
+    public HttpEndpoint(String name, String target) {
+        this(name, target, null);
+    }
+
+    HttpEndpoint(EndpointType type, String name, String target, Boolean inherit) {
         super(type, name, target);
+        this.setInherit(inherit);
+        if (inherit == null || inherit == Boolean.FALSE) {
+            this.httpClientOptions = new HttpClientOptions();
+        }
     }
 
     public HttpProxy getHttpProxy() {
-        return httpProxy;
+        if (getInherit() == null || getInherit() == Boolean.FALSE) {
+            return httpProxy;
+        }
+        return null;
     }
 
     public void setHttpProxy(HttpProxy httpProxy) {
         this.httpProxy = httpProxy;
     }
 
+    @JsonIgnore
     public HttpClientOptions getHttpClientOptions() {
         return httpClientOptions;
     }
 
+    @JsonIgnore
     public void setHttpClientOptions(HttpClientOptions httpClientOptions) {
         this.httpClientOptions = httpClientOptions;
     }
 
+    @JsonGetter("http")
+    public HttpClientOptions getHttpClientOptionsJson() {
+        if (getInherit() == null || getInherit() == Boolean.FALSE) {
+            if (httpClientOptions == null) {
+                return new HttpClientOptions();
+            }
+            return httpClientOptions;
+        }
+        return null;
+    }
+
+    @JsonSetter("http")
+    public void setHttpClientOptionsJson(HttpClientOptions httpClientOptions) {
+        if (getInherit() == null || getInherit() == Boolean.FALSE) {
+            if (httpClientOptions == null) {
+                this.httpClientOptions = new HttpClientOptions();
+            } else {
+                this.httpClientOptions = httpClientOptions;
+            }
+        } else {
+            this.httpClientOptions = null;
+        }
+    }
+
     public HttpClientSslOptions getHttpClientSslOptions() {
-        return httpClientSslOptions;
+        if (getInherit() == null || getInherit() == Boolean.FALSE) {
+            return httpClientSslOptions;
+        }
+        return null;
     }
 
     public void setHttpClientSslOptions(HttpClientSslOptions httpClientSslOptions) {
         this.httpClientSslOptions = httpClientSslOptions;
     }
 
+    @JsonGetter("headers")
     public Map<String, String> getHeaders() {
-        return headers;
+        if (getInherit() == null || getInherit() == Boolean.FALSE) {
+            return headers;
+        }
+        return null;
     }
 
+    @JsonIgnore
     public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
 
+    @JsonSetter("headers")
+    private void setHeadersJson(Map<String, String> headers) {
+        if (this.headers != null) {
+            if (headers != null) {
+                headers.forEach(this.headers::putIfAbsent);
+            }
+        } else {
+            this.headers = headers;
+        }
+    }
+
+    @JsonSetter("healthcheck")
+    public void setHealthCheckJson(Object healthCheck) {
+        if (healthCheck instanceof Boolean) {
+            return;
+        }
+        this.healthCheck = EndpointHealthCheckService.fromMap((HashMap<String, Object>) healthCheck);
+    }
+
+    @JsonGetter("healthcheck")
     public EndpointHealthCheckService getHealthCheck() {
         return healthCheck;
     }
 
+    @JsonIgnore
     public void setHealthCheck(EndpointHealthCheckService healthCheck) {
         this.healthCheck = healthCheck;
     }
+
+    @JsonSetter
+    private void setHostHeader(String hostHeader) {
+        if (!hostHeader.trim().isEmpty()) {
+            Map<String, String> headers = Optional.ofNullable(getHeaders()).orElseGet(LinkedHashMap::new);
+            headers.put(HttpHeaders.HOST, hostHeader);
+            setHeaders(headers);
+        }
+    }
+    // TODO Inherit handling
+
 }
