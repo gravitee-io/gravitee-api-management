@@ -33,16 +33,16 @@ class ComponentCtrl implements ng.IComponentController {
     private $mdDialog: angular.material.IDialogService,
   ) {
     'ngInject';
-    var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
+    var lastElement = Constants.env.settings.portal.uploadMedia.maxSizeInOctet;
   }
 
   $onChanges() {
     const initialValue = this.page && this.page.content ? this.page.content : '';
     let mediaURL;
     if (this.$state.params.apiId) {
-      mediaURL = this.Constants.envBaseURL + '/apis/' + this.$state.params.apiId + '/media/';
+      mediaURL = this.Constants.env.baseURL + '/apis/' + this.$state.params.apiId + '/media/';
     } else {
-      mediaURL = this.Constants.envBaseURL + '/portal/media/';
+      mediaURL = this.Constants.env.baseURL + '/portal/media/';
     }
     var toolbarItems = [
       'heading',
@@ -71,7 +71,7 @@ class ComponentCtrl implements ng.IComponentController {
     let Constants = this.Constants;
     let maxSize = this.maxSize;
 
-    if (Constants.portal.uploadMedia.enabled) {
+    if (Constants.env.settings.portal.uploadMedia.enabled) {
       // toolbarItems
       toolbarItems.splice(15, 0, 'image');
     }
@@ -101,8 +101,8 @@ class ComponentCtrl implements ng.IComponentController {
           let fd = new FormData();
           fd.append('file', blob);
 
-          if (blob.size > Constants.portal.uploadMedia.maxSizeInOctet) {
-            callback('file uploaded to big, you\'re limited at ' + Constants.portal.uploadMedia.maxSizeInOctet, ' bytes');
+          if (blob.size > Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {
+            callback('file uploaded to big, you\'re limited at ' + Constants.env.settings.portal.uploadMedia.maxSizeInOctet, ' bytes');
             return false;
           }
 
@@ -120,7 +120,7 @@ class ComponentCtrl implements ng.IComponentController {
     this.tuiEditor.eventManager.addEventType('addLinkToPage');
     const toolbar = this.tuiEditor.getUI().getToolbar();
     toolbar.insertItem(
-      (Constants.portal.uploadMedia.enabled ? 17 : 16), // index depends on image button
+      (Constants.env.settings.portal.uploadMedia.enabled ? 17 : 16), // index depends on image button
       {
       type: 'button',
       options: {

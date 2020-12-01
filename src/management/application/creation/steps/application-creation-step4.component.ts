@@ -20,8 +20,8 @@ const ApplicationCreationStep4Component: ng.IComponentOptions = {
   template: require('./application-creation-step4.html'),
   controller: function(Constants) {
     'ngInject';
-    if (Constants.documentation && Constants.documentation.url) {
-      this.url = Constants.documentation.url;
+    if (Constants.env.settings.documentation && Constants.env.settings.documentation.url) {
+      this.url = Constants.env.settings.documentation.url;
     } else {
       this.url = 'https://docs.gravitee.io';
     }

@@ -27,9 +27,9 @@ class ReCaptchaService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.enabled = Constants.reCaptcha && !!Constants.reCaptcha.enabled;
+    this.enabled = Constants.org.settings.reCaptcha && !!Constants.org.settings.reCaptcha.enabled;
     if (this.enabled) {
-      this.siteKey = Constants.reCaptcha.siteKey;
+      this.siteKey = Constants.org.settings.reCaptcha.siteKey;
       this.load().then();
     }
   }

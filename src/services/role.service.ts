@@ -21,7 +21,7 @@ class RoleService {
 
   constructor(private $http, Constants, private $q) {
     'ngInject';
-    this.roleURL = `${Constants.orgBaseURL}/configuration/rolescopes/`;
+    this.roleURL = `${Constants.org.baseURL}/configuration/rolescopes/`;
   }
 
   listRights() {

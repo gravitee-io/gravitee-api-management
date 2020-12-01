@@ -18,7 +18,7 @@ class EntrypointService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.entrypointsURL = `${Constants.envBaseURL}/configuration/entrypoints/`;
+    this.entrypointsURL = `${Constants.env.baseURL}/configuration/entrypoints/`;
   }
 
   findById(entrypoint) {

@@ -16,16 +16,16 @@
 
 class PortalConfigService {
   private portalURL: string;
-  private Constants: any;
+  private settings: any;
 
   constructor(private $http, private $q, Constants) {
     'ngInject';
-    this.portalURL = `${Constants.envBaseURL}/portal/`;
-    this.Constants = Constants;
+    this.portalURL = `${Constants.env.baseURL}/portal/`;
+    this.settings = Constants.env.settings;
   }
 
   save(config?) {
-    return this.$http.post(this.portalURL, config ? config : this.Constants);
+    return this.$http.post(this.portalURL, config ? config : this.settings);
   }
 
   get() {

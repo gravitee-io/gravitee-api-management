@@ -43,9 +43,9 @@ const PageSwaggerComponent: ng.IComponentOptions = {
     this.$onChanges = () => {
       this.pageId = (this.page === undefined) ? $state.params.pageId : this.page.id;
       if ($state.params.apiId) {
-        this.url = Constants.envBaseURL + '/apis/' + $state.params.apiId + '/pages/' + this.pageId + '/content';
+        this.url = Constants.env.baseURL + '/apis/' + $state.params.apiId + '/pages/' + this.pageId + '/content';
       } else {
-        this.url = Constants.envBaseURL + '/portal/pages/' + this.pageId + '/content';
+        this.url = Constants.env.baseURL + '/portal/pages/' + this.pageId + '/content';
       }
 
       this.tryItEnabled = () => {

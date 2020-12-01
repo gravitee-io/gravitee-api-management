@@ -42,8 +42,8 @@ class LoginController {
     private ReCaptchaService: ReCaptchaService
   ) {
     'ngInject';
-    this.userCreationEnabled = Constants.portal.userCreation.enabled;
-    this.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
+    this.userCreationEnabled = Constants.org.settings.management.userCreation.enabled;
+    this.localLoginDisabled = (!Constants.org.settings.authentication.localLogin.enabled) || false;
     this.$state = $state;
     this.$rootScope = $rootScope;
     this.$scope = $scope;

@@ -23,7 +23,7 @@ class NotificationTemplatesService {
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
     this.Constants = Constants;
-    this.notificationTemplatesURL = `${Constants.orgBaseURL}/configuration/notification-templates/`;
+    this.notificationTemplatesURL = `${Constants.org.baseURL}/configuration/notification-templates/`;
   }
 
   getNotificationTemplates(hook?: string, scope?: string): IHttpPromise<any> {

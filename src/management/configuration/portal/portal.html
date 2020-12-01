@@ -38,21 +38,8 @@
 
 
   <div class="gv-form">
-    <h2>Management</h2>
+    <h2>API Management</h2>
     <div class="gv-form-content" layout="column">
-      <md-input-container class="md-block" flex>
-        <label>Title</label>
-        <input ng-model="$ctrl.settings.management.title"
-               ng-disabled="$ctrl.isReadonlySetting('management.title')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('management.title')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Management URL</label>
-        <input type="text"
-               ng-model="$ctrl.settings.management.url"
-               ng-disabled="$ctrl.isReadonlySetting('management.url')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('management.url')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
       <h3>Security plans type available</h3>
       <md-input-container class="gv-input-container-dense">
         <md-checkbox ng-model="$ctrl.settings.plan.security.keyless.enabled"
@@ -93,49 +80,6 @@
         </md-checkbox>
       </md-input-container>
 
-      <h3>OpenAPI viewers</h3>
-      <table md-table class="gv-table-dense" style="width: auto">
-        <tr>
-          <td>
-            <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled" aria-label="swagger"
-                       ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled || $ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')"
-                       ng-change="$ctrl.toggleDocType()">
-              Swagger-UI
-              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-            </md-switch>
-          </td>
-          <td>
-            <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
-              <md-radio-button value="Swagger" class="md-primary"
-                               ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.default')"
-                               style="margin-bottom: 0px;"
-              >Set as default
-              </md-radio-button>
-              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.default')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-            </md-radio-group>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled" aria-label="swagger"
-                       ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')"
-                       ng-change="$ctrl.toggleDocType()">
-              Redoc
-              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-            </md-switch>
-          </td>
-          <td>
-            <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
-              <md-radio-button value="Redoc" class="md-primary"
-                               ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled  || $ctrl.isReadonlySetting('open.api.doc.type.default')"
-                               style="margin-bottom: 0px;">Set as default
-              </md-radio-button>
-              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.default')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-            </md-radio-group>
-          </td>
-        </tr>
-      </table>
-
       <h3>API labels dictionary</h3>
       <md-input-container class="md-block">
         <label>Labels
@@ -148,32 +92,13 @@
         </md-chips>
         <md-tooltip ng-if="$ctrl.isReadonlySetting('api.labelsDictionary')">Configuration provided by the system</md-tooltip>
       </md-input-container>
-
-      <h3>Theme</h3>
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Name</label>
-        <input ng-model="$ctrl.settings.theme.name"
-               ng-disabled="$ctrl.isReadonlySetting('theme.name')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('theme.name')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Logo</label>
-        <input ng-model="$ctrl.settings.theme.logo"
-               ng-disabled="$ctrl.isReadonlySetting('theme.logo')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('theme.logo')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Loader</label>
-        <input ng-model="$ctrl.settings.theme.loader"
-               ng-disabled="$ctrl.isReadonlySetting('theme.loader')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('theme.loader')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
     </div>
   </div>
 
   <div class="gv-form">
     <h2>Portal</h2>
     <div class="gv-form-content" layout="column">
+      <h3>General</h3>
       <md-input-container class="md-block" flex-gt-xs>
         <label>Api-key Header
           <small>(Used by portal to display the CURL command, change the YAML configuration to impact the
@@ -251,7 +176,7 @@
                      ng-disabled="$ctrl.isReadonlySetting('portal.uploadMedia.enabled')"
                      aria-label="Allow upload media">
           Allow Upload Images
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.uploadMedia.enabled')">Configuration provided by the system</md-tooltip>
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.uploadMedia.enabled')">Configuration provided by the system</md-tooltip>
         </md-checkbox>
       </md-input-container>
       <md-input-container class="md-block" flex-gt-xs>
@@ -266,51 +191,75 @@
                ng-disabled="$ctrl.isReadonlySetting('portal.url')">
         <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.url')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
-    </div>
-  </div>
 
-  <div class="gv-form">
-    <h2>Schedulers</h2>
-    <div class="gv-form-content" layout="column">
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Tasks (in seconds)</label>
-        <input type="number" min="0" ng-model="$ctrl.settings.scheduler.tasks"
-               ng-disabled="$ctrl.isReadonlySetting('scheduler.tasks')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('scheduler.tasks')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Notifications (in seconds)</label>
-        <input type="number" min="0" ng-model="$ctrl.settings.scheduler.notifications"
-               ng-disabled="$ctrl.isReadonlySetting('scheduler.notifications')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('scheduler.notifications')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
-    </div>
-  </div>
+      <h3>OpenAPI viewers</h3>
+      <table md-table class="gv-table-dense" style="width: auto">
+        <tr>
+          <td>
+            <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled" aria-label="swagger"
+                       ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled || $ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')"
+                       ng-change="$ctrl.toggleDocType()">
+              Swagger-UI
+              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+            </md-switch>
+          </td>
+          <td>
+            <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
+              <md-radio-button value="Swagger" class="md-primary"
+                               ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.default')"
+                               style="margin-bottom: 0px;"
+              >Set as default
+              </md-radio-button>
+              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.default')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+            </md-radio-group>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled" aria-label="swagger"
+                       ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')"
+                       ng-change="$ctrl.toggleDocType()">
+              Redoc
+              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+            </md-switch>
+          </td>
+          <td>
+            <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
+              <md-radio-button value="Redoc" class="md-primary"
+                               ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled  || $ctrl.isReadonlySetting('open.api.doc.type.default')"
+                               style="margin-bottom: 0px;">Set as default
+              </md-radio-button>
+              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.default')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+            </md-radio-group>
+          </td>
+        </tr>
+      </table>
 
+      <h3>Schedulers</h3>
+      <div class="gv-form-content" layout="column">
+        <md-input-container class="md-block" flex-gt-xs>
+          <label>Tasks (in seconds)</label>
+          <input type="number" min="0" ng-model="$ctrl.settings.scheduler.tasks"
+                 ng-disabled="$ctrl.isReadonlySetting('portal.scheduler.tasks')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.scheduler.tasks')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+          <label>Notifications (in seconds)</label>
+          <input type="number" min="0" ng-model="$ctrl.settings.scheduler.notifications"
+                 ng-disabled="$ctrl.isReadonlySetting('portal.scheduler.notifications')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.scheduler.notifications')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-input-container>
+      </div>
 
-    <div class="gv-form">
-        <h2>Documentation</h2>
-        <div class="gv-form-content" layout="column">
-            <md-input-container class="md-block" flex-gt-xs>
-                <label>Documentation URL</label>
-                <input ng-model="$ctrl.settings.documentation.url"
-                       ng-disabled="$ctrl.isReadonlySetting('documentation.url')">
-              <md-tooltip ng-if="$ctrl.isReadonlySetting('documentation.url')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container></div>
-    </div>
-  </div>
-
-  <div class="gv-form">
-    <h2>Alerting</h2>
-    <div class="gv-form-content" layout="column">
-      <md-input-container class="md-block" flex-gt-xs>
-        <md-checkbox ng-model="$ctrl.settings.alert.enabled"
-                     aria-label="Alerting enabled"
-                     ng-disabled="$ctrl.isReadonlySetting('alert.enabled')">
-          Enable Alerting
-          <md-tooltip ng-if="$ctrl.isReadonlySetting('alert.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-        </md-checkbox>
-      </md-input-container>
+      <h3>Documentation</h3>
+      <div class="gv-form-content" layout="column">
+        <md-input-container class="md-block" flex-gt-xs>
+          <label>Documentation URL</label>
+          <input ng-model="$ctrl.settings.documentation.url"
+                 ng-disabled="$ctrl.isReadonlySetting('documentation.url')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('documentation.url')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-input-container>
+      </div>
     </div>
   </div>
 
@@ -323,17 +272,18 @@
                   placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
                   md-on-add="$ctrl.controlAllowOrigin($chip, $index)"
                   md-add-on-blur="true"
-                  readonly="$ctrl.isReadonlySetting('http.cors.allow-origin')">
+                  readonly="$ctrl.isReadonlySetting('portal.http.cors.allow-origin')">
           <md-chip-template>
             <strong>{{$chip}}</strong>
           </md-chip-template>
         </md-chips>
         <div class="hint">
-          The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the <i>same-origin</i> definition.<br>
+          The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
+          <i>same-origin</i> definition.<br>
           If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
         </div>
         <div ng-if="!$ctrl.isRegexValid()" style="color: red">Regex is invalid</div>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.cors.allow-origin')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.http.cors.allow-origin')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
       <md-input-container class="md-block" flex-gt-sm>
         <label>Access-Control-Allow-Methods</label>
@@ -341,7 +291,7 @@
                    md-on-close="clearSearchTerm()"
                    data-md-container-class="selectdemoSelectHeader"
                    multiple
-                   ng-disabled="$ctrl.isReadonlySetting('http.cors.allow-methods')">
+                   ng-disabled="$ctrl.isReadonlySetting('portal.http.cors.allow-methods')">
           <md-select-header class="demo-select-header">
             <input ng-model="searchTerm"
                    type="search"
@@ -350,11 +300,12 @@
           </md-select-header>
           <md-optgroup label="HTTPMethods">
             <md-option ng-value="method" ng-repeat="method in $ctrl.methods |
-              filter:searchTerm">{{method}}</md-option>
+              filter:searchTerm">{{method}}
+            </md-option>
           </md-optgroup>
         </md-select>
         <div class="hint">Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.</div>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.cors.allow-methods')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.http.cors.allow-methods')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
       <md-input-container class="md-block">
         <label>Allow-Headers</label>
@@ -362,7 +313,7 @@
                   md-autocomplete-snap
                   md-add-on-blur="true"
                   md-require-match="false"
-                  readonly="$ctrl.isReadonlySetting('http.cors.allow-headers')">
+                  readonly="$ctrl.isReadonlySetting('portal.http.cors.allow-headers')">
           <md-autocomplete
             md-search-text="searchHeaders"
             md-items="item in $ctrl.querySearchHeaders(searchHeaders)"
@@ -379,7 +330,7 @@
            Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
         </span>
         </md-chips>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.cors.allow-headers')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.http.cors.allow-headers')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
       <md-input-container class="md-block">
         <label>Exposed-Headers</label>
@@ -387,7 +338,7 @@
                   md-autocomplete-snap
                   md-add-on-blur="true"
                   md-require-match="false"
-                  readonly="$ctrl.isReadonlySetting('http.cors.exposed-headers')">
+                  readonly="$ctrl.isReadonlySetting('portal.http.cors.exposed-headers')">
           <md-autocomplete
             md-search-text="searchHeaders"
             md-items="item in $ctrl.querySearchHeaders(searchHeaders)"
@@ -404,13 +355,13 @@
            Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
         </span>
         </md-chips>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.cors.exposed-headers')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.http.cors.exposed-headers')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
       <md-input-container class="md-block" flex-gt-xs>
         <label>Max age (seconds) <small>How long the response from a pre-flight request can be cached by clients</small></label>
         <input type="number" min="0" ng-model="$ctrl.settings.cors.maxAge"
-               ng-disabled="$ctrl.isReadonlySetting('http.cors.max-age')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.cors.max-age')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+               ng-disabled="$ctrl.isReadonlySetting('portal.http.cors.max-age')">
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.http.cors.max-age')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
     </div>
   </div>
@@ -420,7 +371,7 @@
     <div class="gv-form-content" layout="column">
       <md-input-container class="gv-input-container-dense">
         <md-checkbox ng-model="$ctrl.settings.email.enabled"
-                     aria-label="Alerting enabled"
+                     aria-label="Email enabled"
                      ng-disabled="$ctrl.isReadonlySetting('email.enabled')">
           Enable Emailing
           <md-tooltip ng-if="$ctrl.isReadonlySetting('email.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>

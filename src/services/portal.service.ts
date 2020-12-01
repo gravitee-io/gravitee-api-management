@@ -20,7 +20,7 @@ class PortalService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.portalURL = `${Constants.envBaseURL}/portal/`;
+    this.portalURL = `${Constants.env.baseURL}/portal/`;
     this.Constants = Constants;
   }
 

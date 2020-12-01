@@ -49,7 +49,7 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
           'id': 'key_less',
           'name': 'Keyless (public)'
         }], (security) => {
-        return Constants.plan.security[_.replace(security.id, '_', '')].enabled;
+        return Constants.env.settings.plan.security[_.replace(security.id, '_', '')].enabled;
       });
     }
 

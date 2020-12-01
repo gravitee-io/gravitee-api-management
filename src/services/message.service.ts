@@ -19,7 +19,7 @@ class MessageService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.envBaseURL = Constants.envBaseURL;
+    this.envBaseURL = Constants.env.baseURL;
   }
 
   sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {

@@ -17,10 +17,10 @@ import InstancesService from '../services/instances.service';
 import AuditService from '../services/audit.service';
 import ApiService from '../services/api.service';
 import ApplicationService from '../services/application.service';
-import {User} from '../entities/user';
+import { User } from '../entities/user';
 import RoleService from '../services/role.service';
 import DashboardService from '../services/dashboard.service';
-import {StateParams} from '@uirouter/core';
+import { StateParams } from '@uirouter/core';
 import AnalyticsService from '../services/analytics.service';
 import TicketsListController from './support/tickets-list.controller';
 import TicketService from '../services/ticket.service';
@@ -32,7 +32,7 @@ function managementRouterConfig($stateProvider) {
       redirectTo: 'management.apis.list',
       parent: 'withSidenav',
       controller: function ($rootScope, Constants) {
-        $rootScope.portalTitle = Constants.management.title;
+        $rootScope.portalTitle = Constants.org.settings.management.title;
       }
     })
     .state('management.instances', {

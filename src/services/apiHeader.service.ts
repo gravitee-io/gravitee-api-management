@@ -22,7 +22,7 @@ class ApiHeaderService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.URL = `${Constants.envBaseURL}/configuration/apiheaders/`;
+    this.URL = `${Constants.env.baseURL}/configuration/apiheaders/`;
   }
 
   list(): IHttpPromise<ApiPortalHeader[]> {

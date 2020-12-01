@@ -14,34 +14,33 @@
  * limitations under the License.
  */
 import NotificationService from '../../../services/notification.service';
-import PortalConfigService from '../../../services/portalConfig.service';
+import ConsoleConfigService from '../../../services/consoleConfig.service';
 import { StateService } from '@uirouter/core';
 import CorsService from '../../../services/cors.service';
 import ApiService from '../../../services/api.service';
 import _ = require('lodash');
 
-const PortalSettingsComponent: ng.IComponentOptions = {
+const ConsoleSettingsComponent: ng.IComponentOptions = {
   bindings: {
     tags: '<'
   },
-  template: require('./portal.html'),
+  template: require('./console.html'),
   controller: function(
     NotificationService: NotificationService,
-    PortalConfigService: PortalConfigService,
+    ConsoleConfigService: ConsoleConfigService,
     CorsService: CorsService,
     ApiService: ApiService,
     $state: StateService,
     Constants: any
   ) {
     'ngInject';
-    this.settings = _.cloneDeep(Constants.env.settings);
+    this.settings = _.cloneDeep(Constants.org.settings);
     this.methods = CorsService.getHttpMethods();
     this.headers = ApiService.defaultHttpHeaders();
     this.searchHeaders = null;
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.$onInit = () => {
-      this.settings.api.labelsDictionary = this.settings.api.labelsDictionary || [];
       this.settings.cors.allowOrigin = this.settings.cors.allowOrigin || [];
       this.settings.cors.allowHeaders = this.settings.cors.allowHeaders || [];
       this.settings.cors.allowMethods = this.settings.cors.allowMethods || [];
@@ -50,14 +49,13 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     };
 
     this.save = () => {
-      PortalConfigService.save(this.settings).then( (response) => {
+      ConsoleConfigService.save(this.settings).then( (response) => {
         // We have to manually set this property because lodash's merge do not handle well the case of label deletion
-        Constants.env.settings.api.labelsDictionary = response.data.api.labelsDictionary;
-        Constants.env.settings.cors.allowOrigin = response.data.cors.allowOrigin;
-        Constants.env.settings.cors.allowHeaders = response.data.cors.allowHeaders;
-        Constants.env.settings.cors.allowMethods = response.data.cors.allowMethods;
-        Constants.env.settings.cors.exposedHeaders = response.data.cors.exposedHeaders;
-        _.merge(Constants.env.settings, response.data);
+        Constants.org.settings.cors.allowOrigin = response.data.cors.allowOrigin;
+        Constants.org.settings.cors.allowHeaders = response.data.cors.allowHeaders;
+        Constants.org.settings.cors.allowMethods = response.data.cors.allowMethods;
+        Constants.org.settings.cors.exposedHeaders = response.data.cors.exposedHeaders;
+        _.merge(Constants.org.settings, response.data);
         NotificationService.show('Configuration saved');
         this.reset();
         $state.reload();
@@ -65,28 +63,18 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     };
 
     this.reset = () => {
-      this.settings = _.cloneDeep(Constants.env.settings);
+      this.settings = _.cloneDeep(Constants.org.settings);
       this.formSettings.$setPristine();
-
     };
 
     this.hasIdpDefined = () => {
       return this.settings.authentication.google.clientId ||
-       this.settings.authentication.github.clientId ||
-       this.settings.authentication.oauth2.clientId;
-    };
-
-    this.toggleDocType = () => {
-      if (!this.settings.openAPIDocViewer.openAPIDocType.swagger.enabled) {
-        this.settings.openAPIDocViewer.openAPIDocType.defaultType = 'Redoc';
-      }
-      if (!this.settings.openAPIDocViewer.openAPIDocType.redoc.enabled) {
-        this.settings.openAPIDocViewer.openAPIDocType.defaultType = 'Swagger';
-      }
+        this.settings.authentication.github.clientId ||
+        this.settings.authentication.oauth2.clientId;
     };
 
     this.isReadonlySetting = (property: string): boolean => {
-      return PortalConfigService.isReadonly(this.settings, property);
+      return ConsoleConfigService.isReadonly(this.settings, property);
     };
 
     this.controlAllowOrigin = (chip, index) => {
@@ -103,4 +91,4 @@ const PortalSettingsComponent: ng.IComponentOptions = {
   }
 };
 
-export default PortalSettingsComponent;
+export default ConsoleSettingsComponent;

@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 class CorsService {
-  private Constants: any;
 
   private allowOriginPattern = '^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$';
 
-  constructor(private $mdDialog, Constants) {
+  constructor(private $mdDialog) {
     'ngInject';
-    this.Constants = Constants;
   }
 
   getHttpMethods() {

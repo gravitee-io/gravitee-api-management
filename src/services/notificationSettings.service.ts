@@ -27,9 +27,9 @@ class NotificationSettingsService {
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
     this.Constants = Constants;
-    this.applicationsURL = `${Constants.envBaseURL}/applications/`;
-    this.apisURL = `${Constants.envBaseURL}/apis/`;
-    this.portalgCfgURL = `${Constants.envBaseURL}/configuration/`;
+    this.applicationsURL = `${Constants.env.baseURL}/applications/`;
+    this.apisURL = `${Constants.env.baseURL}/apis/`;
+    this.portalgCfgURL = `${Constants.env.baseURL}/configuration/`;
   }
 
   getHooks(scope: Scope): IHttpPromise<any> {

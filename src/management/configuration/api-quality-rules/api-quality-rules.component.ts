@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import QualityRuleService from '../../../services/qualityRule.service';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 import NotificationService from '../../../services/notification.service';
 import PortalConfigService from '../../../services/portalConfig.service';
+
 const ApiQualityRulesComponent: ng.IComponentOptions = {
   bindings: {
     qualityRules: '<'
@@ -31,19 +31,19 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
     $mdDialog: angular.material.IDialogService) {
     'ngInject';
     this.$rootScope = $rootScope;
-    this.settings = _.cloneDeep(Constants);
+    this.settings = _.cloneDeep(Constants.env.settings);
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.save = () => {
       PortalConfigService.save(this.settings).then( (response) => {
-        _.merge(Constants, response.data);
+        _.merge(Constants.env.settings, response.data);
         NotificationService.show('API Quality settings saved!');
         this.formQuality.$setPristine();
       });
     };
 
     this.reset = () => {
-      this.settings = _.cloneDeep(Constants);
+      this.settings = _.cloneDeep(Constants.env.settings);
       this.formQuality.$setPristine();
     };
 

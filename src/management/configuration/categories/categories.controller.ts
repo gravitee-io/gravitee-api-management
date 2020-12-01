@@ -18,7 +18,7 @@ import CategoryService from '../../../services/category.service';
 import NotificationService from '../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 import PortalConfigService from '../../../services/portalConfig.service';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 
 class CategoriesController {
 
@@ -39,7 +39,7 @@ class CategoriesController {
     private $rootScope: IScope) {
     'ngInject';
     this.$rootScope = $rootScope;
-    this.settings = _.cloneDeep(Constants);
+    this.settings = _.cloneDeep(Constants.env.settings);
     this.Constants = Constants;
     this.categoriesToUpdate = [];
   }
@@ -73,7 +73,7 @@ class CategoriesController {
 
   toggleDisplayMode() {
     this.PortalConfigService.save(this.settings).then( (response) => {
-      _.merge(this.Constants, response.data);
+      _.merge(this.Constants.env.settings, response.data);
       this.NotificationService.show('Display mode saved!');
     });
   }

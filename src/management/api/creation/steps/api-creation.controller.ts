@@ -17,7 +17,10 @@ import * as _ from 'lodash';
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';
+import NewApiController, {
+  getDefinitionVersionDescription,
+  getDefinitionVersionTitle
+} from '../newApiPortal.controller';
 
 class ApiCreationController {
 
@@ -83,13 +86,13 @@ class ApiCreationController {
 
     this.pages = {};
     this.securityTypes = [];
-    if (this.Constants.plan.security.apikey.enabled) {
+    if (this.Constants.env.settings.plan.security.apikey.enabled) {
       this.securityTypes.push({
         'id': 'API_KEY',
         'name': 'API Key'
       });
     }
-    if (this.Constants.plan.security.keyless.enabled) {
+    if (this.Constants.env.settings.plan.security.keyless.enabled) {
       this.securityTypes.push({
         'id': 'KEY_LESS',
         'name': 'Keyless (public)'

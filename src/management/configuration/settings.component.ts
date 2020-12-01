@@ -68,6 +68,11 @@ const SettingsComponent: ng.IComponentOptions = {
           ['environment-metadata-r']),
         goTo: 'management.settings.metadata'
       },
+      consoleSettings: {
+        perm: UserService.isUserHasPermissions(
+          ['organization-settings-r']),
+        goTo: 'management.settings.console'
+      },
       portalSettings: {
         perm: UserService.isUserHasPermissions(
           ['environment-settings-r']),
@@ -155,7 +160,7 @@ const SettingsComponent: ng.IComponentOptions = {
         goTo: 'management.settings.notificationTemplates'
       },
       alerts: {
-        perm: UserService.isUserHasPermissions(['environment-alert-r']) && Constants.alert && Constants.alert.enabled,
+        perm: UserService.isUserHasPermissions(['environment-alert-r']) && Constants.org.settings.alert && Constants.org.settings.alert.enabled,
         goTo: 'management.settings.alerts.list'
       }
     };

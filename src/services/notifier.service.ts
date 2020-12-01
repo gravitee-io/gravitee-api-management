@@ -18,7 +18,7 @@ class NotifierService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.notifiersURL = `${Constants.envBaseURL}/notifiers/`;
+    this.notifiersURL = `${Constants.env.baseURL}/notifiers/`;
   }
 
   list() {

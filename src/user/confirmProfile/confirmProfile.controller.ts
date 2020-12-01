@@ -25,7 +25,7 @@ class ConfirmProfileController {
 
     $scope.user = UserService.currentUser;
     this.hasEmail = !!$scope.user.email;
-    this.newsletterEnabled = Constants.newsletter.enabled;
+    this.newsletterEnabled = Constants.org.settings.newsletter.enabled;
 
     $scope.save = () => {
       UserService.save($scope.user).then(() => {

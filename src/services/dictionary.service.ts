@@ -21,7 +21,7 @@ class DictionaryService {
     private $http: ng.IHttpService,
     Constants) {
     'ngInject';
-    this.dictionariesURL = `${Constants.envBaseURL}/configuration/dictionaries`;
+    this.dictionariesURL = `${Constants.env.baseURL}/configuration/dictionaries`;
   }
 
   list(): ng.IPromise<any> {

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
@@ -56,7 +55,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     }
 
     $onInit() {
-      this.canUseCustomApiKey = this.Constants.plan.security.customApiKey.enabled;
+      this.canUseCustomApiKey = this.Constants.env.settings.plan.security.customApiKey.enabled;
       this.listApiKeys();
       this.getApiPlans();
     }

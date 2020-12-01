@@ -16,9 +16,9 @@
 import NotificationService from '../../../services/notification.service';
 import PortalConfigService from '../../../services/portalConfig.service';
 import { StateService } from '@uirouter/core';
-import _ = require('lodash');
 import DashboardService from '../../../services/dashboard.service';
-import {Dashboard} from '../../../entities/dashboard';
+import { Dashboard } from '../../../entities/dashboard';
+import _ = require('lodash');
 
 const AnalyticsSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -37,7 +37,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     $rootScope
   ) {
     'ngInject';
-    this.settings = _.cloneDeep(Constants);
+    this.settings = _.cloneDeep(Constants.env.settings);
     this.$rootScope = $rootScope;
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
@@ -55,14 +55,14 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
 
     this.save = () => {
       PortalConfigService.save(this.settings).then( (response) => {
-        _.merge(Constants, response.data);
+        _.merge(Constants.env.settings, response.data);
         NotificationService.show('Configuration saved');
         this.formSettings.$setPristine();
       });
     };
 
     this.reset = () => {
-      this.settings = _.cloneDeep(Constants);
+      this.settings = _.cloneDeep(Constants.env.settings);
       this.formSettings.$setPristine();
     };
 

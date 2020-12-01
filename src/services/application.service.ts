@@ -45,8 +45,8 @@ class ApplicationService {
 
   constructor(private $http: ng.IHttpService, Constants) {
     'ngInject';
-    this.applicationsURL = `${Constants.envBaseURL}/applications/`;
-    this.analyticsHttpTimeout = Constants.analyticsHttpTimeout as number;
+    this.applicationsURL = `${Constants.env.baseURL}/applications/`;
+    this.analyticsHttpTimeout = Constants.env.settings.analytics.clientTimeout as number;
   }
 
   get(applicationId: string): ng.IHttpPromise<any> {

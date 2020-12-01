@@ -15,7 +15,7 @@
  */
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
-import {ApplicationType} from '../../../../entities/application';
+import { ApplicationType } from '../../../../entities/application';
 import _ = require('lodash');
 
 class ApplicationCreationController {
@@ -100,7 +100,7 @@ class ApplicationCreationController {
   }
 
   clientRegistrationEnabled() {
-    return this.Constants.application && this.Constants.application.registration && this.Constants.application.registration.enabled;
+    return this.Constants.env.settings.application && this.Constants.env.settings.application.registration && this.Constants.env.settings.application.registration.enabled;
   }
 
   isOAuthClient() {

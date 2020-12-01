@@ -23,7 +23,7 @@ class DashboardService {
 
   constructor(private $http, Constants, AnalyticsService: AnalyticsService) {
     'ngInject';
-    this.dashboardsURL = `${Constants.envBaseURL}/configuration/dashboards/`;
+    this.dashboardsURL = `${Constants.env.baseURL}/configuration/dashboards/`;
     this.AnalyticsService = AnalyticsService;
   }
 

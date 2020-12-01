@@ -18,7 +18,7 @@ class PolicyService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.policiesURL = `${Constants.envBaseURL}/policies/`;
+    this.policiesURL = `${Constants.env.baseURL}/policies/`;
   }
 
   list(expandSchema = false, expandIcon = false) {

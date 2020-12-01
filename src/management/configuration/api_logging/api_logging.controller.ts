@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import NotificationService from '../../../services/notification.service';
-import PortalConfigService from '../../../services/portalConfig.service';
+import ConsoleConfigService from '../../../services/consoleConfig.service';
 
 class ApiLoggingController {
 
   public providedConfigurationMessage = 'Configuration provided by the system';
   private formApiLogging: any;
 
-  constructor(private PortalConfigService: PortalConfigService,
+  constructor(private ConsoleConfigService: ConsoleConfigService,
               private NotificationService: NotificationService,
               private Constants: any) {
     'ngInject';
@@ -29,14 +29,14 @@ class ApiLoggingController {
   }
 
   save() {
-    this.PortalConfigService.save().then( () => {
+    this.ConsoleConfigService.save().then( () => {
       this.NotificationService.show('API logging saved');
       this.formApiLogging.$setPristine();
     });
   }
 
   isReadonlySetting(property: string): boolean {
-    return this.PortalConfigService.isReadonly(this.Constants, property);
+    return this.ConsoleConfigService.isReadonly(this.Constants.org.settings, property);
   }
 }
 

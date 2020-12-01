@@ -53,8 +53,7 @@ import DialogAddPropertyController from '../management/api/design/properties/add
 import DialogAddMemberApiController from '../management/api/portal/userGroupAccess/members/addMemberDialog.controller';
 import DialogTransferApiController
   from '../management/api/portal/userGroupAccess/transferOwnership/transferAPIDialog.controller';
-import DialogApiKeyExpirationController
-  from './api/portal/subscriptions/dialog/apikey.expiration.dialog.controller';
+import DialogApiKeyExpirationController from './api/portal/subscriptions/dialog/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
 import FileLoaderDirective from '../components/fileloader/fileloader.directive';
@@ -179,7 +178,7 @@ import DialogConfigureLoggingEditorController
 // Others
 import ThemeElementDirective from '../components/theme/theme-element.directive';
 import EnvironmentService from '../services/environment.service';
-import OrganizationService from '../services/organization.service';
+import ConsoleService from '../services/console.service';
 
 import ErrorComponent from '../components/error/error.component';
 import ErrorController from '../components/error/error.controller';
@@ -319,6 +318,7 @@ import ApiAuditController from '../management/api/audit/general/audit.controller
 import AuditComponent from '../components/audit/audit.component';
 // Configuration
 import SettingsComponent from '../management/configuration/settings.component';
+import ConsoleConfigService from '../services/consoleConfig.service';
 import PortalConfigService from '../services/portalConfig.service';
 import ApiLoggingComponent from '../management/configuration/api_logging/api_logging.component';
 import ApiLoggingController from '../management/configuration/api_logging/api_logging.controller';
@@ -373,6 +373,7 @@ import TopApisComponent from '../management/configuration/top-apis/top-apis.comp
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
 import ApiProxyController from './api/proxy/apiProxy.controller';
+import ConsoleSettingsComponent from './configuration/console/console.component';
 import PortalSettingsComponent from './configuration/portal/portal.component';
 import DialogAddPathMappingController from './api/analytics/pathMappings/modal/add-pathMapping.dialog.controller';
 import DialogImportPathMappingController from './api/analytics/pathMappings/modal/import-pathMapping.dialog.controller';
@@ -415,8 +416,7 @@ import AlertTriggerMetricsSimpleConditionComponent
   from '../components/alerts/alert/triggers/trigger-metrics-simple-condition.component';
 import AlertTriggerMetricsAggregationComponent
   from '../components/alerts/alert/triggers/trigger-metrics-aggregation.component';
-import AlertTriggerMissingDataComponent
-  from '../components/alerts/alert/triggers/trigger-missing-data.component';
+import AlertTriggerMissingDataComponent from '../components/alerts/alert/triggers/trigger-missing-data.component';
 import AlertTriggerMetricsRateComponent from '../components/alerts/alert/triggers/trigger-metrics-rate.component';
 import AlertTriggerApiHealthCheckEndpointStatusChangedComponent
   from '../components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component';
@@ -503,20 +503,23 @@ import ConfirmProfileController from '../user/confirmProfile/confirmProfile.cont
 import CustomUserFieldsComponent from './configuration/custom-user-fields/custom-user-fields.component';
 import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
 import CustomUserFieldsService from '../services/custom-user-fields.service';
-import NewFieldDialogController from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
-import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
-import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
+import NewFieldDialogController
+  from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
+import DeleteFieldDialogController
+  from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
+import UpdateFieldDialogController
+  from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from '../services/flow.service';
 import ApiPolicyStudioController from './api/design/policy-studio/policy-studio.controller';
+import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
+import TicketsListController from './support/tickets-list.controller';
+import TicketDetailComponent from './support/ticket-detail.component';
 
 (<any>window).jQuery = jQuery;
 
 import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
-import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
-import TicketsListController from './support/tickets-list.controller';
-import TicketDetailComponent from './support/ticket-detail.component';
 
 (<any>window).traverse = traverse;
 
@@ -798,7 +801,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .service('ReCaptchaService', ReCaptchaService)
   .service('TokenService', TokenService)
   .service('EnvironmentService', EnvironmentService)
-  .service('OrganizationService', OrganizationService)
+  .service('ConsoleService', ConsoleService)
   .service('FlowService', FlowService)
   .controller('DialogGenerateTokenController', DialogGenerateTokenController)
 
@@ -838,6 +841,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
   .component('roleMembers', RoleMembersComponent)
   .component('theme', ThemeComponent)
   .component('topApis', TopApisComponent)
+  .component('consoleSettings', ConsoleSettingsComponent)
   .component('portalSettings', PortalSettingsComponent)
   .component('analyticsSettings', AnalyticsSettingsComponent)
   .directive('gvMetadataValidator', () => MetadataValidatorDirective)
@@ -978,6 +982,7 @@ angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMa
 
   // Configuration
   .component('settings', SettingsComponent)
+  .service('ConsoleConfigService', ConsoleConfigService)
   .service('PortalConfigService', PortalConfigService)
   .component('apiLogging', ApiLoggingComponent)
   .controller('ApiLoggingController', ApiLoggingController)

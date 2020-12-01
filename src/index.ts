@@ -44,17 +44,20 @@ function fetchData() {
       let build = responses[1].data;
       angular.module('gravitee-management').constant('Build', build);
       ConstantsJSON = computeBaseURLs(ConstantsJSON);
-      return $http.get(`${ConstantsJSON.envBaseURL}/portal`);
+      return $q.all([$http.get(`${ConstantsJSON.env.baseURL}/portal`), $http.get(`${ConstantsJSON.org.baseURL}/console`)]);
     })
-    .then((response: any) => {
-      let constants = _.merge(response.data, ConstantsJSON);
+    .then((responses: any) => {
+      let constants = _.assign(ConstantsJSON);
+      constants.env.settings = responses[0].data;
+      constants.org.settings = responses[1].data;
+
       angular.module('gravitee-management').constant('Constants', constants);
 
-      if (constants.theme.css) {
+      if (constants.org.settings.theme.css) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.type = 'text/css';
-        link.href = constants.theme.css;
+        link.href = constants.org.settings.theme.css;
         document.head.appendChild(link);
       }
       return constants;
@@ -78,8 +81,10 @@ function computeBaseURLs(constants: any): any {
     basePath = constants.baseURL.substr(0, orgEnvIndex);
   }
 
-  constants.orgBaseURL = `${basePath}/organizations/DEFAULT`;
-  constants.envBaseURL = `${constants.orgBaseURL}/environments/DEFAULT`;
+  constants.org = {};
+  constants.org.baseURL = `${basePath}/organizations/DEFAULT`;
+  constants.env = {};
+  constants.env.baseURL = `${constants.org.baseURL}/environments/DEFAULT`;
 
   return constants;
 }
@@ -87,7 +92,7 @@ function computeBaseURLs(constants: any): any {
 function initLoader(constants: any) {
   const img = document.createElement('img');
   img.classList.add('gravitee-splash-screen');
-  img.setAttribute('src', constants.theme.loader);
+  img.setAttribute('src', constants.org.settings.theme.loader);
 
   document.getElementById('loader').appendChild(img);
 
@@ -95,7 +100,7 @@ function initLoader(constants: any) {
 }
 
 function initTheme(constants: any) {
-  return $http.get(`./themes/${constants.theme.name}-theme.json`, configNoCache)
+  return $http.get(`./themes/${constants.org.settings.theme.name}-theme.json`, configNoCache)
     .then((response: any) => {
       angular.module('gravitee-management').constant('Theme', response.data);
     }).catch(() => {

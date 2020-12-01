@@ -26,13 +26,13 @@ class TaskService {
   constructor(private $http: ng.IHttpService, Constants, UserService: UserService) {
     'ngInject';
     this.Constants = Constants;
-    this.URL = this.Constants.orgBaseURL + '/user/tasks';
+    this.URL = this.Constants.org.baseURL + '/user/tasks';
     this.UserService = UserService;
   }
 
   getTaskSchedulerInSeconds(): number {
-    if (this.Constants.scheduler && this.Constants.scheduler.tasks) {
-      return this.Constants.scheduler.tasks;
+    if (this.Constants.org.settings.scheduler && this.Constants.org.settings.scheduler.tasks) {
+      return this.Constants.org.settings.scheduler.tasks;
     }
     return 10;
   }

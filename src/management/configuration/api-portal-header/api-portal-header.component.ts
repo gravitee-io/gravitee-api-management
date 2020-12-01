@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 import NotificationService from '../../../services/notification.service';
-import {StateService} from '@uirouter/core';
 import ApiHeaderService from '../../../services/apiHeader.service';
-import {ApiPortalHeader} from '../../../entities/apiPortalHeader';
+import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
 import PortalConfigService from '../../../services/portalConfig.service';
+import { IScope } from 'angular';
 import _ = require('lodash');
-import {IScope} from 'angular';
 
 const ApiPortalHeaderComponent: ng.IComponentOptions = {
   bindings: {
@@ -37,7 +36,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
-    this.settings = _.cloneDeep(Constants);
+    this.settings = _.cloneDeep(Constants.env.settings);
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     // tslint:disable-next-line:no-empty
@@ -126,7 +125,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         }
       }).then( response => {
         NotificationService.show('Categories are now ' + (this.settings.portal.apis.apiHeaderShowCategories.enabled ? 'visible' : 'hidden'));
-        Constants.portal.apis.apiHeaderShowCategories = response.data.portal.apis.apiHeaderShowCategories;
+        Constants.env.settings.portal.apis.apiHeaderShowCategories = response.data.portal.apis.apiHeaderShowCategories;
       });
     };
 
@@ -141,7 +140,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         }
       }).then( response => {
         NotificationService.show('Tags are now ' + (this.settings.portal.apis.apiHeaderShowTags.enabled ? 'visible' : 'hidden'));
-        Constants.portal.apis.apiHeaderShowTags = response.data.portal.apis.apiHeaderShowTags;
+        Constants.env.settings.portal.apis.apiHeaderShowTags = response.data.portal.apis.apiHeaderShowTags;
       });
     };
 

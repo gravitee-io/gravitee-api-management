@@ -19,8 +19,9 @@ import IdentityProviderService from '../../services/identityProvider.service';
 import NotificationService from '../../services/notification.service';
 import PortalConfigService from '../../services/portalConfig.service';
 import { IScope } from 'angular';
-import OrganizationService from '../../services/organization.service';
+import ConsoleService from '../../services/console.service';
 import EnvironmentService from '../../services/environment.service';
+import ConsoleConfigService from '../../services/consoleConfig.service';
 import _ = require('lodash');
 
 const IdentityProvidersComponent: ng.IComponentOptions = {
@@ -35,7 +36,8 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     $mdDialog: angular.material.IDialogService,
     IdentityProviderService: IdentityProviderService,
     EnvironmentService: EnvironmentService,
-    OrganizationService: OrganizationService,
+    ConsoleService: ConsoleService,
+    ConsoleConfigService: ConsoleConfigService,
     PortalConfigService: PortalConfigService,
     NotificationService: NotificationService,
     $state: StateService,
@@ -45,10 +47,16 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     'ngInject';
     this.$rootScope = $rootScope;
     this.activatedIdps = {};
-    this.settings = _.cloneDeep(Constants);
+
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.$onInit = () => {
+      if (this.target === 'ENVIRONMENT') {
+        this.settings = _.cloneDeep(Constants.env.settings);
+      } else {
+        this.settings = _.cloneDeep(Constants.org.settings);
+      }
+
       this.identities.forEach((ipa: IdentityProviderActivation) => this.activatedIdps[ipa.identityProvider] = true);
     };
 
@@ -94,21 +102,34 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
         }
       }).then(response => {
         NotificationService.show('Authentication is now ' + (this.settings.authentication.forceLogin.enabled ? 'mandatory' : 'optional'));
-        Constants.authentication.forceLogin = response.data.authentication.forceLogin;
+        Constants.env.authentication.forceLogin = response.data.authentication.forceLogin;
       });
     };
 
     this.saveShowLoginForm = () => {
-      PortalConfigService.save({
-        authentication: {
-          localLogin: {
-            enabled: this.settings.authentication.localLogin.enabled
+      if (this.target === 'ENVIRONMENT') {
+        PortalConfigService.save({
+          authentication: {
+            localLogin: {
+              enabled: this.settings.authentication.localLogin.enabled
+            }
           }
-        }
-      }).then(response => {
-        NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
-        Constants.authentication.localLogin = response.data.authentication.localLogin;
-      });
+        }).then(response => {
+          NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
+          Constants.env.authentication.localLogin = response.data.authentication.localLogin;
+        });
+      } else {
+        ConsoleConfigService.save({
+          authentication: {
+            localLogin: {
+              enabled: this.settings.authentication.localLogin.enabled
+            }
+          }
+        }).then(response => {
+          NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
+          Constants.org.authentication.localLogin = response.data.authentication.localLogin;
+        });
+      }
     };
 
     this.toggleActivatedIdp = (identityProviderId: string) => {
@@ -116,19 +137,23 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
         _.filter(Object.keys(this.activatedIdps), idpId => this.activatedIdps[idpId] === true)
           .map(idpId => ({ identityProvider: idpId }));
 
-      if (this.target === 'ORGANIZATION') {
-        OrganizationService.updateOrganizationIdentities(updatedIPA).then(response =>
+      if (this.target === 'ENVIRONMENT') {
+        EnvironmentService.updateEnvironmentIdentities(this.targetId, updatedIPA).then(response =>
           NotificationService.show(identityProviderId + ' is now ' + (this.activatedIdps[identityProviderId] ? 'enabled' : 'disabled'))
         );
-      } else if (this.target === 'ENVIRONMENT') {
-        EnvironmentService.updateEnvironmentIdentities(this.targetId, updatedIPA).then(response =>
+      } else {
+        ConsoleService.updateOrganizationIdentities(updatedIPA).then(response =>
           NotificationService.show(identityProviderId + ' is now ' + (this.activatedIdps[identityProviderId] ? 'enabled' : 'disabled'))
         );
       }
     };
 
     this.isReadonlySetting = (property: string): boolean => {
-      return PortalConfigService.isReadonly(this.settings, property);
+      if (this.target === 'ENVIRONMENT') {
+        return PortalConfigService.isReadonly(this.settings, property);
+      } else {
+        return ConsoleConfigService.isReadonly(this.settings, property);
+      }
     };
   }
 };

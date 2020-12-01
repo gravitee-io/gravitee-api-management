@@ -14,27 +14,30 @@
  * limitations under the License.
  */
 
-import { IdentityProviderActivation } from '../entities/identityProvider';
+class ConsoleConfigService {
+  private consoleURL: string;
+  private settings: any;
 
-class OrganizationService {
-  private organizationURL: string;
-
-  constructor(private $http, Constants, private $q) {
+  constructor(private $http, private $q, Constants) {
     'ngInject';
-    this.organizationURL = `${Constants.orgBaseURL}`;
+    this.consoleURL = `${Constants.org.baseURL}/console/`;
+    this.settings = Constants.org.settings;
   }
 
-  listSocialIdentityProviders() {
-    return this.$http.get(this.organizationURL + '/social-identities');
+  save(config?) {
+    return this.$http.post(this.consoleURL, config ? config : this.settings);
   }
 
-  listOrganizationIdentities() {
-    return this.$http.get(`${this.organizationURL}/identities`);
+  get() {
+    return this.$http.get(this.consoleURL);
   }
 
-  updateOrganizationIdentities(updatedIPA: IdentityProviderActivation[]) {
-    return this.$http.put(`${this.organizationURL}/identities`, updatedIPA);
+  isReadonly(settings: any, property: string): boolean {
+    if (settings && settings.metadata && settings.metadata.readonly) {
+      return settings.metadata.readonly.some(key => key === property);
+    }
+    return false;
   }
 }
 
-export default OrganizationService;
+export default ConsoleConfigService;

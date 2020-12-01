@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import ApiService  from '../../../../../services/api.service';
+import ApiService from '../../../../../services/api.service';
 import ApplicationService from '../../../../../services/application.service';
 import PortalConfigService from '../../../../../services/portalConfig.service';
 
@@ -35,7 +35,7 @@ function DialogSubscriptionCreateController(
   this.plansWithSubscriptions = [];
 
   this.$onInit = () => {
-    this.canUseCustomApiKey = Constants.plan.security.customApiKey.enabled;
+    this.canUseCustomApiKey = Constants.env.settings.plan.security.customApiKey.enabled;
   };
 
   this.hide = function () {

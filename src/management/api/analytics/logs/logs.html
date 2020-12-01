@@ -44,7 +44,7 @@
             <th md-column width="1%" md-order-by="@timestamp" nowrap>Date</th>
             <th md-column width="1%" md-order-by="status" nowrap>Status</th>
             <th md-column width="1%" nowrap>Application</th>
-            <th ng-if="logsCtrl.Constants.logging.user.displayed" md-column width="1%" md-order-by="user" nowrap>User</th>
+            <th ng-if="logsCtrl.Constants.org.settings.logging.user.displayed" md-column width="1%" md-order-by="user" nowrap>User</th>
             <th md-column width="1%" nowrap>Plan</th>
             <th md-column width="1%" md-order-by="method" nowrap>Method</th>
             <th md-column md-order-by="path">Path</th>
@@ -72,7 +72,7 @@
             </td>
             <td md-cell nowrap><span class="gv-statuscode-{{log.status / 100 | number:0}}xx">{{log.status}}</span></td>
             <td md-cell nowrap>{{logsCtrl.getMetadata(log.application).name}}</td>
-            <td ng-if="logsCtrl.Constants.logging.user.displayed" md-cell nowrap>{{log.user}}</td>
+            <td ng-if="logsCtrl.Constants.org.settings.logging.user.displayed" md-cell nowrap>{{log.user}}</td>
             <td md-cell nowrap>{{logsCtrl.getMetadata(log.plan).name}}</td>
             <td md-cell nowrap style="text-align: center">
               <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{log.method | uppercase}}-selected">

@@ -50,10 +50,10 @@ class UserService {
               private StringService: StringService,
               private Base64Service: Base64Service) {
     'ngInject';
-    this.searchUsersURL = `${Constants.orgBaseURL}/search/users/`;
-    this.usersURL = `${Constants.orgBaseURL}/users/`;
-    this.userURL = `${Constants.orgBaseURL}/user/`;
-    this.customUserFieldsURL = `${Constants.orgBaseURL}/configuration/custom-user-fields`;
+    this.searchUsersURL = `${Constants.org.baseURL}/search/users/`;
+    this.usersURL = `${Constants.org.baseURL}/users/`;
+    this.userURL = `${Constants.org.baseURL}/user/`;
+    this.customUserFieldsURL = `${Constants.org.baseURL}/configuration/custom-user-fields`;
   }
 
   list(query?: string, page = 1, size = 10): ng.IPromise<any> {

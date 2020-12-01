@@ -18,7 +18,7 @@ import { User } from './entities/user';
 import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 import { StateProvider, UrlService } from '@uirouter/angularjs';
-import OrganizationService from './services/organization.service';
+import ConsoleService from './services/console.service';
 
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   'ngInject';
@@ -87,7 +87,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
             $state.go('management');
           }
         },
-        identityProviders: (OrganizationService: OrganizationService) => OrganizationService.listSocialIdentityProviders().then(response => response.data)
+        identityProviders: (ConsoleService: ConsoleService) => ConsoleService.listSocialIdentityProviders().then(response => response.data)
       },
       params: {
         redirectUri: {

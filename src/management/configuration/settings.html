@@ -77,9 +77,13 @@
             ui-sref-active="aui-nav-selected">
           <a class="execute" ui-sref="{{$ctrl.settingsMenu.metadata.goTo}}">Metadata</a>
         </li>
+        <li class="iterable-item" ng-if="$ctrl.settingsMenu.consoleSettings.perm"
+            ui-sref-active="aui-nav-selected">
+          <a class="execute" ui-sref="{{$ctrl.settingsMenu.consoleSettings.goTo}}">Settings - Console</a>
+        </li>
         <li class="iterable-item" ng-if="$ctrl.settingsMenu.portalSettings.perm"
             ui-sref-active="aui-nav-selected">
-          <a class="execute" ui-sref="{{$ctrl.settingsMenu.portalSettings.goTo}}">Settings</a>
+          <a class="execute" ui-sref="{{$ctrl.settingsMenu.portalSettings.goTo}}">Settings - Portal</a>
         </li>
         <li class="iterable-item" ng-if="$ctrl.settingsMenu.theme.perm"
             ui-sref-active="aui-nav-selected">

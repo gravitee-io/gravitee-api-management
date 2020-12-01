@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-import { ApplicationType } from '../entities/application';
+import { IdentityProviderActivation } from '../entities/identityProvider';
 
-class ApplicationTypesService {
-  private URL: string;
+class ConsoleService {
+  private consoleURL: string;
 
-  constructor(private $http: ng.IHttpService, Constants) {
+  constructor(private $http, Constants, private $q) {
     'ngInject';
-    this.URL = `${Constants.env.baseURL}/configuration/applications/types`;
+    this.consoleURL = `${Constants.org.baseURL}`;
   }
 
-  getEnabledApplicationTypes(): ng.IHttpPromise<Array<ApplicationType>> {
-    return this.$http.get(this.URL);
+  listSocialIdentityProviders() {
+    return this.$http.get(this.consoleURL + '/social-identities');
   }
 
+  listOrganizationIdentities() {
+    return this.$http.get(`${this.consoleURL}/identities`);
+  }
+
+  updateOrganizationIdentities(updatedIPA: IdentityProviderActivation[]) {
+    return this.$http.put(`${this.consoleURL}/identities`, updatedIPA);
+  }
 }
 
-export default ApplicationTypesService;
+export default ConsoleService;

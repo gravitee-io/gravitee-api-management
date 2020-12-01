@@ -39,9 +39,9 @@ class ApiService {
 
   constructor(private $http, private $rootScope, Constants) {
     'ngInject';
-    this.apisURL = `${Constants.envBaseURL}/apis/`;
+    this.apisURL = `${Constants.env.baseURL}/apis/`;
     this.Constants = Constants;
-    this.analyticsHttpTimeout = Constants.analytics.clientTimeout as number;
+    this.analyticsHttpTimeout = Constants.env.settings.analytics.clientTimeout as number;
   }
 
   defaultHttpHeaders(): string[] {
@@ -518,7 +518,7 @@ class ApiService {
    */
 
   isRatingEnabled(): boolean {
-    return this.Constants.portal.rating.enabled;
+    return this.Constants.env.settings.portal.rating.enabled;
   }
 
   getApiRatings(api, pageNumber): ng.IPromise<any> {

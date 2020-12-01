@@ -68,7 +68,7 @@ class IdentityProviderController {
         };
       }
     } else {
-      this.tokenExchangeEndpoint = this.Constants.envBaseURL + '/auth/oauth2/' + this.identityProvider.id;
+      this.tokenExchangeEndpoint = this.Constants.env.baseURL + '/auth/oauth2/' + this.identityProvider.id;
     }
     this.initialIdentityProvider = _.cloneDeep(this.identityProvider);
   }

@@ -69,12 +69,12 @@
         <ng-md-icon icon="warning" style="fill: orange;"></ng-md-icon> No documentation provided, remember to provide consumers understandable and accurate information about your API.
       </p>
       <h5>Confirmation</h5>
-      <p style="padding-top: 0px;" ng-if="!$ctrl.parent.Constants.apiReview.enabled">
+      <p style="padding-top: 0px;" ng-if="!$ctrl.parent.Constants.env.settings.apiReview.enabled">
         You can now either
         <strong><md-button class="md-raised" ng-click="$ctrl.parent.createAPI(false)">create the API without deploying it</md-button></strong> letting you continue configure the API or
         <strong><md-button class="md-raised" ng-click="$ctrl.parent.createAPI(true)">create and start the API</md-button></strong> to make it immediately available for the application developers.
       </p>
-      <p style="padding-top: 0px;" ng-if="$ctrl.parent.Constants.apiReview.enabled">
+      <p style="padding-top: 0px;" ng-if="$ctrl.parent.Constants.env.settings.apiReview.enabled">
         You can now either
         <strong><md-button class="md-raised" ng-click="$ctrl.parent.createAPI(false, false)">create the API in draft</md-button></strong> letting you continue configure the API or
         <strong><md-button class="md-raised" ng-click="$ctrl.parent.createAPI(false, true)">create the API and ask for review</md-button></strong> before publishing/starting it.

@@ -22,8 +22,8 @@ class EnvironmentService {
 
   constructor(private $http, Constants, private $q) {
     'ngInject';
-    this.environmentsURL = `${Constants.orgBaseURL}/environments`;
-    this.environmentURL = Constants.envBaseURL;
+    this.environmentsURL = `${Constants.org.baseURL}/environments`;
+    this.environmentURL = Constants.env.baseURL;
   }
 
   list() {

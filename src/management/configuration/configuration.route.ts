@@ -34,7 +34,7 @@ import QualityRuleService from '../../services/qualityRule.service';
 import DashboardService from '../../services/dashboard.service';
 import CustomUserFieldsService from '../../services/custom-user-fields.service';
 import EnvironmentService from '../../services/environment.service';
-import OrganizationService from '../../services/organization.service';
+import ConsoleService from '../../services/console.service';
 import _ = require('lodash');
 
 export default configurationRouterConfig;
@@ -703,6 +703,22 @@ function configurationRouterConfig($stateProvider) {
         }
       }
     })
+    .state('management.settings.console', {
+      url: '/console',
+      component: 'consoleSettings',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-console'
+        },
+        perms: {
+          only: ['organization-settings-r']
+        }
+      }
+    })
     .state('management.settings.portal', {
       url: '/portal',
       component: 'portalSettings',
@@ -922,8 +938,8 @@ function configurationRouterConfig($stateProvider) {
         identityProviders: (IdentityProviderService: IdentityProviderService) =>
           IdentityProviderService.list().then(response => response),
 
-        identities: (OrganizationService: OrganizationService) =>
-          OrganizationService.listOrganizationIdentities().then(response => response.data)
+        identities: (ConsoleService: ConsoleService) =>
+          ConsoleService.listOrganizationIdentities().then(response => response.data)
       },
       data: {
         menu: null,

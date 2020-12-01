@@ -16,7 +16,7 @@
 
 import ThemeService from '../../../services/theme.service';
 import NotificationService from '../../../services/notification.service';
-import {Theme} from '../../../entities/theme';
+import { Theme } from '../../../entities/theme';
 import angular = require('angular');
 
 class ThemeController {
@@ -40,8 +40,8 @@ class ThemeController {
               private $sce) {
     'ngInject';
     $scope.themeForm = {};
-    $scope.targetURL = Constants.portal.url;
-    $scope.maxSize = Constants.portal.uploadMedia.maxSizeInOctet;
+    $scope.targetURL = Constants.env.settings.portal.url;
+    $scope.maxSize = Constants.env.settings.portal.uploadMedia.maxSizeInOctet;
 
     $scope.trustSrc = function (src) {
       return $sce.trustAsResourceUrl(src);

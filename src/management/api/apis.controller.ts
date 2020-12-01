@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 
 import UserService from '../../services/user.service';
-import {StateParams, StateService, TransitionService} from '@uirouter/core';
+import { StateParams, StateService, TransitionService } from '@uirouter/core';
 import ApiService from '../../services/api.service';
 
 interface IApisScope extends ng.IScope {
@@ -36,7 +36,6 @@ export class ApisController {
   private syncStatus: any[];
   private qualityScores: any[];
   private NotificationService: any;
-  private portalTitle: string;
   private selectedApis: any[];
   private isQualityDisplayed: boolean;
   private timer: any;
@@ -61,7 +60,6 @@ export class ApisController {
     this.$q = $q;
     this.graviteeUser = graviteeUser;
     this.graviteeUIVersion = Build.version;
-    this.portalTitle = Constants.portal.title;
     this.query = $state.params.q;
     this.apisProvider = resolvedApis.data;
     if (!this.apisProvider.length) {
@@ -74,7 +72,7 @@ export class ApisController {
     this.selectedApis = [];
     this.syncStatus = [];
     this.qualityScores = [];
-    this.isQualityDisplayed = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
+    this.isQualityDisplayed = Constants.env.settings.apiQualityMetrics && Constants.env.settings.apiQualityMetrics.enabled;
 
     $scope.$watch('$ctrl.query', (query: string, previousQuery: string) => {
       $timeout.cancel(this.timer);

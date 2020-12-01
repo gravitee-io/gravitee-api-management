@@ -63,9 +63,9 @@ class DocumentationService {
 
   url = (apiId: string, pageId?: string, importFiles?: boolean): string => {
     if (apiId) {
-      return `${this.Constants.envBaseURL}/apis/${apiId}/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
+      return `${this.Constants.env.baseURL}/apis/${apiId}/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
     }
-    return `${this.Constants.envBaseURL}/portal/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
+    return `${this.Constants.env.baseURL}/portal/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
   }
 
   supportedTypes = (folderSituation: FolderSituation): string[] => {

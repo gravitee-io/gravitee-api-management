@@ -53,7 +53,7 @@
                   <td md-cell style="width: 1%; font-weight: bold;" nowrap>Plan</td>
                   <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
                 </tr>
-                <tr md-row ng-if="$ctrl.log.user && $ctrl.Constants.logging.user.displayed">
+                <tr md-row ng-if="$ctrl.log.user && $ctrl.Constants.org.settings.logging.user.displayed">
                   <td md-cell style="width: 1%; font-weight: bold;" nowrap>User</td>
                   <td md-cell>{{$ctrl.log.user}}</td>
                 </tr>

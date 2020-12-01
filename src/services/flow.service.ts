@@ -19,7 +19,7 @@ class FlowService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.flowURL = `${Constants.baseURL}/configuration/flow/`;
+    this.flowURL = `${Constants.env.baseURL}/configuration/flow/`;
   }
 
   getSchema() {

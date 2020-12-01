@@ -18,7 +18,7 @@ class EventsService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.eventsURL = `${Constants.envBaseURL}/platform/events`;
+    this.eventsURL = `${Constants.env.baseURL}/platform/events`;
   }
 
   search(type, apis, from, to, page, size) {

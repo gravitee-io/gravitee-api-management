@@ -16,7 +16,7 @@
 import _ = require('lodash');
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 import UserService from '../../../../services/user.service';
-import {QualityMetrics} from '../../../../entities/qualityMetrics';
+import { QualityMetrics } from '../../../../entities/qualityMetrics';
 import ApiService from '../../../../services/api.service';
 import PolicyService from '../../../../services/policy.service';
 
@@ -132,8 +132,8 @@ class ApiPortalController {
       this.computeQualityMetrics();
     });
 
-    this.isQualityEnabled = Constants.apiQualityMetrics && Constants.apiQualityMetrics.enabled;
-    this.apiLabelsDictionary = Constants.api.labelsDictionary;
+    this.isQualityEnabled = Constants.env.settings.apiQualityMetrics && Constants.env.settings.apiQualityMetrics.enabled;
+    this.apiLabelsDictionary = Constants.env.settings.api.labelsDictionary;
     this.qualityMetricsDescription = new Map<string, string>();
     this.qualityMetricsDescription.set('api.quality.metrics.functional.documentation.weight', 'A functional page must be published');
     this.qualityMetricsDescription.set('api.quality.metrics.technical.documentation.weight', 'A swagger page must be published');
@@ -440,16 +440,16 @@ class ApiPortalController {
   }
 
   canAskForReview(): boolean {
-    return this.Constants.apiReview.enabled &&
+    return this.Constants.env.settings.apiReview.enabled &&
       (this.api.workflow_state === 'draft' || this.api.workflow_state === 'request_for_changes' || !this.api.workflow_state);
   }
 
   canChangeLifecycle(): boolean {
-    return !this.Constants.apiReview.enabled || (this.Constants.apiReview.enabled && (!this.api.workflow_state || this.api.workflow_state === 'review_ok'));
+    return !this.Constants.env.settings.apiReview.enabled || (this.Constants.env.settings.apiReview.enabled && (!this.api.workflow_state || this.api.workflow_state === 'review_ok'));
   }
 
   canChangeApiLifecycle(): boolean {
-    if (this.Constants.apiReview.enabled) {
+    if (this.Constants.env.settings.apiReview.enabled) {
       return !this.api.workflow_state || this.api.workflow_state === 'review_ok';
     } else {
       return this.api.lifecycle_state === 'created' || this.api.lifecycle_state === 'published' || this.api.lifecycle_state === 'unpublished';

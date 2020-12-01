@@ -35,7 +35,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
 
-    this.settings = _.cloneDeep(Constants);
+    this.settings = _.cloneDeep(Constants.env.settings);
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.select = (provider: ClientRegistrationProvider) => {
@@ -76,7 +76,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         }
       }).then( response => {
         NotificationService.show('Client registration is now ' + (this.settings.application.registration.enabled ? 'mandatory' : 'optional') );
-        _.merge(Constants, response.data);
+        _.merge(Constants.env.settings, response.data);
       });
     };
 
@@ -97,7 +97,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
 
       PortalConfigService.save(appType).then( response => {
         NotificationService.show('Application type \'' + type  + '\' is now ' + (this.settings.application.types[type].enabled ? 'allowed' : 'disallowed') );
-        _.merge(Constants, response.data);
+        _.merge(Constants.env.settings, response.data);
       });
     };
 

@@ -25,8 +25,8 @@ function FileChooserDialogController($scope, $mdDialog, locals, Constants, Notif
   };
 
   this.confirm = function() {
-    if ($scope.selectedFile && $scope.selectedFile.size > Constants.portal.uploadMedia.maxSizeInOctet) {
-      NotificationService.showError('file uploaded to big, you\'re limited at ' + Constants.portal.uploadMedia.maxSizeInOctet + ' bytes');
+    if ($scope.selectedFile && $scope.selectedFile.size > Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {
+      NotificationService.showError('file uploaded to big, you\'re limited at ' + Constants.env.settings.portal.uploadMedia.maxSizeInOctet + ' bytes');
     } else {
     $mdDialog.hide({file: $scope.selectedFile, filename: $scope.filename});
     }

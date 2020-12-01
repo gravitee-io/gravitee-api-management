@@ -19,7 +19,7 @@ import { IIntervalService, IScope } from 'angular';
 import { PagedResult } from '../../entities/pagedResult';
 import UserNotificationService from '../../services/userNotification.service';
 import { StateService } from '@uirouter/core';
-import OrganizationService from '../../services/organization.service';
+import ConsoleService from '../../services/console.service';
 import AuthenticationService from '../../services/authentication.service';
 
 export const NavbarComponent: ng.IComponentOptions = {
@@ -28,7 +28,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     UserService: UserService,
     TaskService: TaskService,
     UserNotificationService: UserNotificationService,
-    OrganizationService: OrganizationService,
+    ConsoleService: ConsoleService,
     $scope: IScope,
     Constants,
     $rootScope: IScope,
@@ -51,7 +51,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.$rootScope = $rootScope;
     vm.displayContextualDocumentationButton = false;
     vm.visible = true;
-    vm.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
+    vm.localLoginDisabled = (!Constants.org.settings.authentication.localLogin.enabled) || false;
     vm.refreshUser(UserService.currentUser);
 
     $scope.$on('graviteeUserRefresh', (event, { user, refresh }) => {
@@ -106,9 +106,9 @@ export const NavbarComponent: ng.IComponentOptions = {
     });
 
     vm.$onInit = function () {
-      vm.supportEnabled = Constants.portal.support.enabled;
+      vm.supportEnabled = Constants.org.settings.management.support.enabled;
       $scope.$emit('graviteeUserRefresh', { user: undefined, refresh: true });
-      vm.portalURL = Constants.portal.url;
+      vm.portalURL = Constants.env.settings.portal.url;
     };
 
     vm.userShortName = function () {
@@ -130,7 +130,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     };
 
     vm.getLogo = function () {
-      return Constants.theme.logo;
+      return Constants.org.settings.theme.logo;
     };
 
     vm.getUserPicture = function () {
@@ -170,7 +170,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     };
 
     vm.authenticate = function () {
-      OrganizationService.listSocialIdentityProviders().then((response) => {
+      ConsoleService.listSocialIdentityProviders().then((response) => {
         let providers = response.data;
         if (vm.localLoginDisabled && providers.length === 1) {
           AuthenticationService.authenticate(providers[0]);

@@ -17,9 +17,9 @@ import SidenavService from '../../components/sidenav/sidenav.service';
 import UserService from '../../services/user.service';
 import NotificationService from '../../services/notification.service';
 import ApiService from '../../services/api.service';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import QualityRuleService from '../../services/qualityRule.service';
 
 class ApiAdminController {
@@ -196,7 +196,7 @@ class ApiAdminController {
   }
 
   canDeploy(): boolean {
-    if (this.Constants.apiReview.enabled) {
+    if (this.Constants.env.settings.apiReview.enabled) {
       return !this.api.workflow_state || this.api.workflow_state === 'review_ok';
     } else {
       return true;
@@ -204,19 +204,19 @@ class ApiAdminController {
   }
 
   canReview(): boolean {
-    return this.Constants.apiReview.enabled && this.api.workflow_state === 'in_review';
+    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'in_review';
   }
 
   isRequestForChanges(): boolean {
-    return this.Constants.apiReview.enabled && this.api.workflow_state === 'request_for_changes';
+    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'request_for_changes';
   }
 
   isInDraft(): boolean {
-    return this.Constants.apiReview.enabled && this.api.workflow_state === 'draft';
+    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'draft';
   }
 
   isReviewOK(): boolean {
-    return this.Constants.apiReview.enabled && this.api.workflow_state === 'review_ok';
+    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'review_ok';
   }
 
   isDeprecated(): boolean {

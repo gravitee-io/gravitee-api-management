@@ -20,8 +20,8 @@ const ApiCreationStep5Component: ng.IComponentOptions = {
   template: require('./api-creation-step5.html'),
   controller: function(Constants) {
     'ngInject';
-    if (Constants.documentation && Constants.documentation.url) {
-      this.url = Constants.documentation.url;
+    if (Constants.org.settings.documentation && Constants.org.settings.documentation.url) {
+      this.url = Constants.org.settings.documentation.url;
     } else {
       this.url = 'https://docs.gravitee.io';
     }

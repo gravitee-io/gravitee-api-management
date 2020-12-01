@@ -40,7 +40,7 @@ class ApiLoggingConfigurationController {
     this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.initLoggingMode();
-    this.maxDuration = Constants.logging.maxDurationMillis;
+    this.maxDuration = Constants.org.settings.logging.maxDurationMillis;
 
     this.$scope.loggingModes = [
       {

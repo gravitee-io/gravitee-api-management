@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService, { isV2 } from '../services/api.service';
 /* global setInterval:false, clearInterval:false, screen:false */
 import UserService from '../services/user.service';
 
@@ -25,9 +24,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     to: (state) => state.name !== 'login' && state.name !== 'registration'
       && state.name !== 'confirm' && state.name !== 'confirmProfile' && state.name !== 'resetPassword'
   }, (trans) => {
-    let forceLogin = Constants.authentication.forceLogin.enabled;
-
-    if (forceLogin && !UserService.isAuthenticated()) {
+    if (!UserService.isAuthenticated()) {
       return trans.router.stateService.target('login');
     }
     if (UserService.isAuthenticated() && UserService.currentUser.firstLogin && !$window.localStorage.getItem('profileConfirmed')) {
@@ -57,7 +54,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     let fromState = trans.from();
     let toState = trans.to();
 
-    let notEligibleForUserCreation = !Constants.portal.userCreation.enabled && (fromState.name === 'registration' || fromState === 'confirm');
+    let notEligibleForUserCreation = !Constants.org.settings.management.userCreation.enabled && (fromState.name === 'registration' || fromState === 'confirm');
 
     if (notEligibleForUserCreation) {
       return trans.router.stateService.target('login');

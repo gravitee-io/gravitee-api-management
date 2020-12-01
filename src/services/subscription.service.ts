@@ -18,7 +18,7 @@ class SubscriptionService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.subscriptionsURL = `${Constants.envBaseURL}/subscriptions/`;
+    this.subscriptionsURL = `${Constants.env.baseURL}/subscriptions/`;
   }
 
   list(plan, application) {

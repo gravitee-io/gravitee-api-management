@@ -20,7 +20,7 @@ class TopApiService {
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.topApisURL = `${Constants.envBaseURL}/configuration/top-apis/`;
+    this.topApisURL = `${Constants.env.baseURL}/configuration/top-apis/`;
   }
 
   list() {
