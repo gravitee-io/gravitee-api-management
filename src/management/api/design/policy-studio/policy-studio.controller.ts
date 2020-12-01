@@ -116,6 +116,13 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('configurationSchema', JSON.stringify(this.resolvedConfigurationSchema.data));
     this.studio.setAttribute('configurationInformation', 'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.');
     this.studio.setAttribute('property-providers', JSON.stringify(propertyProviders));
+    this.studio.setAttribute('flows-title', 'API Flows');
+    this.studio.setAttribute('has-properties', 'true');
+    this.studio.setAttribute('has-resources', 'true');
+    this.studio.setAttribute('has-policy-filter', 'true');
+    this.studio.setAttribute('sortable', 'true');
+    this.studio.setAttribute('can-add', 'true');
+    this.studio.setAttribute('has-plans', 'true');
     this.studio.addEventListener('gv-policy-studio:save', this.onSave.bind(this));
     this.studio.addEventListener('gv-policy-studio:select-flows', this.onSelectFlows.bind(this));
     this.studio.addEventListener('gv-policy-studio:change-tab', this.onChangeTab.bind(this));
