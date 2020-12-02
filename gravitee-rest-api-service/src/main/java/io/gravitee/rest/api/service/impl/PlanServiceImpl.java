@@ -19,6 +19,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Path;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -28,9 +31,6 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -308,21 +308,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new PlanAlreadyClosedException(planId);
             }
 
-            Collection<SubscriptionEntity> subscriptions = plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS ?
-                subscriptionService.findByPlan(planId)
-                : null;
-
-            if (subscriptions != null) {
-                List<SubscriptionEntity> pausedSubscriptions = subscriptions
-                    .stream()
-                    .filter((subscriptionEntity -> SubscriptionStatus.PAUSED.equals(subscriptionEntity.getStatus())))
-                    .collect(Collectors.toList());
-                if (pausedSubscriptions.size() > 0) {
-                    throw new PlanWithPausedSubscriptionsException();
-                }
-            }
-
-
             // Update plan status
             plan.setStatus(Plan.Status.CLOSED);
             plan.setClosedAt(new Date());
@@ -330,8 +315,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setNeedRedeployAt(plan.getClosedAt());
 
             // Close subscriptions
-            if (subscriptions != null) {
-                subscriptions
+            if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
+                subscriptionService.findByPlan(planId)
                         .stream()
                         .forEach(subscription -> {
                             try {
