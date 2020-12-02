@@ -382,7 +382,7 @@ class ApiService {
   }
 
   getAllPlanSubscriptions(apiId, planId): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/subscriptions?plan=' + planId + '&status=accepted,pending,rejected,closed');
+    return this.$http.get(this.apisURL + apiId + '/subscriptions?plan=' + planId + '&status=accepted,pending,rejected,closed,paused');
   }
 
   subscribe(apiId: string, applicationId: string, planId: string): ng.IHttpPromise<any> {
