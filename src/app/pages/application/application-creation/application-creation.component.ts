@@ -26,6 +26,7 @@ import { ConfigurationService } from '../../../services/configuration.service';
 
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import {
+  Api,
   ApiService,
   Application,
   ApplicationInput,
@@ -73,6 +74,7 @@ export class ApplicationCreationComponent implements OnInit {
   applicationType: ApplicationTypeOption;
   private stepOneForm: FormGroup;
   private stepTwoForm: FormGroup;
+  subscriptionErrors: { api: Api, message: string }[];
 
   constructor(private translateService: TranslateService,
               private configurationService: ConfigurationService,
@@ -88,6 +90,7 @@ export class ApplicationCreationComponent implements OnInit {
               private ref: ChangeDetectorRef) {
     this.currentStep = 1;
     this.readSteps = [1];
+    this.subscriptionErrors = [];
   }
 
   async ngOnInit() {
@@ -284,44 +287,47 @@ export class ApplicationCreationComponent implements OnInit {
     this.creationSuccess = false;
     this.creationError = false;
     this.creationInProgress = true;
+    this.subscriptionErrors = [];
     const applicationInput = this.applicationForm.getRawValue() as ApplicationInput;
 
     this.applicationService.createApplication({ ApplicationInput: applicationInput })
       .toPromise()
       .then((application) => {
         this.createdApplication = application;
-        const subscriptions = this.subscribeList.map(async (s) => {
-          const subscriptionInput: any = {
-            application: application.id,
-            plan: s.plan.id,
-            request: s.request
-          };
+        this.subscribeList
+          .forEach(async (subscription) => {
+            const subscriptionInput: any = {
+              application: application.id,
+              plan: subscription.plan.id,
+              request: subscription.request
+            };
 
-          if (s.general_conditions_accepted) {
-            subscriptionInput.general_conditions_accepted = s.general_conditions_accepted;
-            subscriptionInput.general_conditions_content_revision = s.general_conditions_content_revision;
-          }
+            if (subscription.general_conditions_accepted) {
+              subscriptionInput.general_conditions_accepted = subscription.general_conditions_accepted;
+              subscriptionInput.general_conditions_content_revision = subscription.general_conditions_content_revision;
+            }
 
-          return this.subscriptionService.createSubscription({
-            SubscriptionInput: subscriptionInput
-          }).toPromise();
-        });
-
-        Promise.all(subscriptions)
-          .then(() => {
-            this.creationSuccess = true;
-            this.creationInProgress = false;
-            setTimeout(() => {
-              this.updateSteps();
-            }, 200);
-          }).catch((e) => {
-          this.creationError = true;
-          this.creationInProgress = false;
-        });
-      }).catch(() => {
-      this.creationError = true;
-      this.creationInProgress = false;
-    });
+            try {
+              await this.subscriptionService.createSubscription({
+                SubscriptionInput: subscriptionInput
+              }).toPromise();
+            } catch (exception) {
+              let message = null;
+              if (exception.error && exception.error.errors) {
+                const error = exception.error.errors[0];
+                message = await this.translateService.get(error.code, error.parameters).toPromise();
+              }
+              this.subscriptionErrors.push({ api: subscription.api, message });
+            }
+          });
+        this.creationSuccess = true;
+        this.creationInProgress = false;
+        setTimeout(this.updateSteps.bind(this), 200);
+      })
+      .catch(() => {
+        this.creationError = true;
+        this.creationInProgress = false;
+      });
   }
 
 

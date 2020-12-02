@@ -79,6 +79,20 @@ describe('GvPageMarkdownComponent', () => {
     expect(renderer).toEqual('<gv-button link data-page-id="123456789">text</gv-button>');
   });
 
+  it('should use gv-button[data-page-id] for render an portal page link', () => {
+    const renderer = component.renderer.link('/#!/settings/pages/123456789', 'title', 'text');
+
+    expect(renderer).not.toBeNull();
+    expect(renderer).toEqual('<gv-button link data-page-id="123456789">text</gv-button>');
+  });
+
+  it('should use gv-button[data-page-id] for render an api page link', () => {
+    const renderer = component.renderer.link('/#!/apis/1A2Z3E4R5T6Y/documentation/123456789', 'title', 'text');
+
+    expect(renderer).not.toBeNull();
+    expect(renderer).toEqual('<gv-button link data-page-id="123456789">text</gv-button>');
+  });
+
   it('should use gv-button[href] for render an anchor', () => {
     const renderer = component.renderer.link('#anchor', 'Anchor', '');
 

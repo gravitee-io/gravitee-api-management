@@ -86,9 +86,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         }
         return defaultRenderer.image(href, title, text);
       },
-
-      link( href, title, text ) {
-        // is it a portal page URL ?
+      link(href, title, text) {        // is it a portal page URL ?
         let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
         if (!parsedURL) {
           // is it a API page URL ?

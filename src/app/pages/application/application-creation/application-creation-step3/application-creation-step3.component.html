@@ -61,13 +61,13 @@
           </div>
         </div>
       </div>
-           
+
       <div class="step-grid-column" *ngIf="hasGeneralConditions && !canAddPlan && !generalConditionsAcceptedAndPlanSubscribed">
 
-        <div class="application-creation__subscription-form__plans__gc">
-          <app-gv-page class="application-creation__subscription-form__plans__gc application-creation__subscription-form__plans__gccontent" 
-                      [page]="getCurrentGeneralConditions()" (loaded)="refeshGeneralCondition()"> </app-gv-page>
-              
+        <div >
+          <app-gv-page class="application-creation__subscription-form__plans__gcu"
+                       [page]="getCurrentGeneralConditions()" (loaded)="refeshGeneralCondition()"></app-gv-page>
+
           <gv-checkbox
             id="general_conditions_accepted"
             formControlName="general_conditions_accepted"

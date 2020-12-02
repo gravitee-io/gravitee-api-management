@@ -33,6 +33,12 @@
   align-items: stretch;
 }
 
+.form.aside .form__actions gv-confirm,
+.form .aside .form__actions gv-confirm,
+.form .form__actions-column gv-confirm {
+  align-self: center;
+}
+
 .form gv-input,
 .form gv-text,
 .form gv-select {
