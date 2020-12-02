@@ -43,6 +43,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -52,10 +53,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
@@ -343,6 +341,16 @@ public class ApiService_UpdateTest {
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+    }
+
+    @Test
+    public void shouldNotDuplicateLabels() throws TechnicalException {
+        prepareUpdate();
+        when(existingApi.getLabels()).thenReturn(Arrays.asList("label1", "label1"));
+        when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}");
+        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+        verify(apiRepository).update(argThat(api -> api.getLabels().size() == 1));
+        assertNotNull(apiEntity);
     }
 
     @Test

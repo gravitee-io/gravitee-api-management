@@ -1048,7 +1048,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     api.setGroups(apiToUpdate.getGroups());
                 }
                 if (updateApiEntity.getLabels() == null) {
-                    api.setLabels(apiToUpdate.getLabels());
+                    api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));
                 }
                 if (updateApiEntity.getCategories() == null) {
                     api.setCategories(apiToUpdate.getCategories());
@@ -2579,7 +2579,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         if (updateApiEntity.getLabels() != null) {
-            api.setLabels(updateApiEntity.getLabels());
+            api.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));
         }
 
         api.setGroups(updateApiEntity.getGroups());
