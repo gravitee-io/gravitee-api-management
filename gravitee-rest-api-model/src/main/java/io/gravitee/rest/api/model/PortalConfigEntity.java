@@ -28,7 +28,7 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(value = {"baseURL", "orgBaseURL", "envBaseURL"})
+@JsonIgnoreProperties(value = {"baseURL", "orgBaseURL", "envBaseURL"}, ignoreUnknown = true)
 public class PortalConfigEntity {
 
     public static final String METADATA_READONLY = "readonly";
@@ -259,6 +259,7 @@ public class PortalConfigEntity {
         this.metadata = metadata;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class GoogleAuthentication {
         //        @ParameterKey(Key.AUTHENTICATION_GOOGLE_CLIENTID)
         private String clientId;
@@ -272,6 +273,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class GithubAuthentication {
         //        @ParameterKey(Key.AUTHENTICATION_GITHUB_CLIENTID)
         private String clientId;
@@ -349,6 +351,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Enabled {
         private boolean enabled;
 
@@ -368,6 +371,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PortalAnalytics {
 
         @ParameterKey(Key.PORTAL_ANALYTICS_ENABLED)
@@ -393,6 +397,7 @@ public class PortalConfigEntity {
 
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Alert {
         @ParameterKey(Key.ALERT_ENABLED)
         private Boolean enabled;
@@ -406,6 +411,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PortalApis {
         @ParameterKey(Key.PORTAL_APIS_TILESMODE_ENABLED)
         private Enabled tilesMode;
@@ -452,6 +458,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PlanSecurity {
         @ParameterKey(Key.PLAN_SECURITY_APIKEY_ENABLED)
         private Enabled apikey;
@@ -509,6 +516,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Newsletter {
         @ParameterKey(Key.NEWSLETTER_ENABLED)
         private Boolean enabled;
@@ -522,6 +530,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ReCaptcha {
         @ParameterKey(Key.RECAPTCHA_ENABLED)
         private Boolean enabled;
@@ -545,6 +554,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Api {
         @ParameterKey(Key.API_LABELS_DICTIONARY)
         private List<String> labelsDictionary;
@@ -558,6 +568,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Cors {
         @ParameterKey(Key.HTTP_CORS_ALLOW_ORIGIN)
         private List<String> allowOrigin;
@@ -615,6 +626,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Email {
         @ParameterKey(Key.EMAIL_ENABLED)
         private Boolean enabled;
@@ -718,6 +730,7 @@ public class PortalConfigEntity {
             this.properties = properties;
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public class EmailProperties {
             @ParameterKey(Key.EMAIL_PROPERTIES_AUTH_ENABLED)
             private Boolean auth;
@@ -754,6 +767,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Company {
 
         @ParameterKey(Key.COMPANY_NAME)
@@ -768,6 +782,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Portal {
         @ParameterKey(Key.PORTAL_ENTRYPOINT)
         private String entrypoint;
@@ -866,6 +881,7 @@ public class PortalConfigEntity {
             this.media = media;
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public class PortalRating {
             @ParameterKey(Key.PORTAL_RATING_ENABLED)
             private Boolean enabled;
@@ -906,6 +922,7 @@ public class PortalConfigEntity {
             }
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public class PortalUploadMedia {
             @ParameterKey(Key.PORTAL_UPLOAD_MEDIA_ENABLED)
             private Boolean enabled;
@@ -929,6 +946,7 @@ public class PortalConfigEntity {
             }
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public class PortalUserCreation {
             @ParameterKey(Key.PORTAL_USERCREATION_ENABLED)
             private Boolean enabled;
@@ -953,6 +971,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Management {
         @ParameterKey(Key.MANAGEMENT_TITLE)
         private String title;
@@ -976,6 +995,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Theme {
         @ParameterKey(Key.THEME_NAME)
         private String name;
@@ -1019,6 +1039,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Authentication {
         @ParameterKey(Key.AUTHENTICATION_FORCELOGIN_ENABLED)
         private Enabled forceLogin;
@@ -1075,6 +1096,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Scheduler {
         @JsonProperty("tasks")
         @ParameterKey(Key.SCHEDULER_TASKS)
@@ -1101,6 +1123,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Documentation {
         @ParameterKey(Key.DOCUMENTATION_URL)
         String url;
@@ -1114,6 +1137,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class OpenAPIDocViewer {
         private OpenAPIDocType openAPIDocType;
 
@@ -1126,6 +1150,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class OpenAPIDocType {
         @ParameterKey(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED)
         private Enabled swagger;
@@ -1161,6 +1186,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Plan {
         private PlanSecurity security;
 
@@ -1177,6 +1203,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class ApiQualityMetrics {
 
         @ParameterKey(Key.API_QUALITY_METRICS_ENABLED)
@@ -1279,6 +1306,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class ApiReview {
         @ParameterKey(Key.API_REVIEW_ENABLED)
         private Boolean enabled;
@@ -1292,6 +1320,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Logging {
         @ParameterKey(Key.LOGGING_DEFAULT_MAX_DURATION)
         private Long maxDurationMillis;
@@ -1322,6 +1351,7 @@ public class PortalConfigEntity {
             this.user = user;
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public class Audit {
             @ParameterKey(Key.LOGGING_AUDIT_ENABLED)
             private Boolean enabled;
@@ -1343,6 +1373,7 @@ public class PortalConfigEntity {
                 this.trail = trail;
             }
 
+            @JsonIgnoreProperties(ignoreUnknown = true)
             public class AuditTrail {
                 @ParameterKey(Key.LOGGING_AUDIT_TRAIL_ENABLED)
                 private Boolean enabled;
@@ -1357,6 +1388,7 @@ public class PortalConfigEntity {
             }
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public class User {
             @ParameterKey(Key.LOGGING_USER_DISPLAYED)
             private Boolean displayed;
@@ -1371,6 +1403,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Analytics {
         @ParameterKey(Key.ANALYTICS_CLIENT_TIMEOUT)
         private Long clientTimeout;
@@ -1384,6 +1417,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Application {
 
         private ClientRegistration registration = new ClientRegistration();
@@ -1401,6 +1435,7 @@ public class PortalConfigEntity {
             return types;
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public class ApplicationTypes {
             @JsonProperty("simple")
             @ParameterKey(Key.APPLICATION_TYPE_SIMPLE_ENABLED)
@@ -1463,6 +1498,7 @@ public class PortalConfigEntity {
             }
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public class ClientRegistration {
             @ParameterKey(Key.APPLICATION_REGISTRATION_ENABLED)
             private Boolean enabled;
@@ -1477,6 +1513,7 @@ public class PortalConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public class Maintenance {
         @ParameterKey(Key.MAINTENANCE_MODE_ENABLED)
         private Boolean enabled;
