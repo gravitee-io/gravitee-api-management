@@ -132,8 +132,30 @@ reset: stop deleteData start ## Stop containers, delete mongodb data and restart
 license: ## Generate license header
 	@mvn license:format
 
-postman: ## Run postman non regression test (require newman npm module)
-	sh ./postman/scripts/tests.sh --postman-dir=./postman --container-name=gio_apim_management_api
+postman: ## Run postman non regression test (require newman npm module and nc command). You can specify environment with `make postman env=nightly|demo` or let it empty to run on localhost
+ifneq ($(env),$(filter $(env), nightly demo)) # Check if environment is valid
+	@echo "\033[0;31m '$(env)' is not a valid env. Please provide 'ENV=nightly|demo' or let it empty for 'localhost' testing \033[0m"
+	@exit 1
+endif
+ifeq ($(env), nightly)
+	$(eval POSTMAN_ENV = $(env))
+	$(eval POSTMAN_URL = $(env).gravitee.io:443)
+	$(eval POSTMAN_HEALTH_URL = $(env).gravitee.io/api/management/swagger.json)
+endif
+ifeq ($(env), demo)
+	$(eval POSTMAN_ENV = $(env))
+	$(eval POSTMAN_URL = $(env).gravitee.io:443)
+	$(eval POSTMAN_HEALTH_URL = $(env).gravitee.io/management/swagger.json)
+endif
+ifeq ($(env),) # If no environment is provided, use localhost.
+	@echo "No environment provided. Choosing localhost by default"
+	$(eval POSTMAN_ENV = localhost)
+	$(eval POSTMAN_URL = localhost:8083)
+	$(eval POSTMAN_HEALTH_URL = localhost:8083/management/swagger.json)
+endif
+	@echo "\033[0;32m Waiting for $(POSTMAN_ENV) to be ready on $(POSTMAN_URL) \033[0m"
+	sh ./postman/scripts/wait-for.sh $(POSTMAN_URL) --timeout=30 -- \
+	sh ./postman/scripts/tests.sh --postman-dir=./postman --postman-env=$(POSTMAN_ENV) --postman-health-url=$(POSTMAN_HEALTH_URL)
 
 startAll: start ## Start all running containers
 

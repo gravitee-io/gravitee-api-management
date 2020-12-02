@@ -16,12 +16,11 @@
 #
 
 POSTMAN_DIR=../postman
-API_CONTAINER_NAME=gio_apim_management_api
+POSTMAN_ENV=localhost
+POSTMAN_HEALTH_URL=localhost:8083/management/swagger.json
 
 echoerr() { echo "\033[0;31m $@ \033[0m"; }
 echosuccess() { echo "\033[0;32m $@ \033[0m"; }
-
-set -e;
 
 # Read args
 for i in "$@"
@@ -31,42 +30,58 @@ do
     POSTMAN_DIR="${i#*=}"
     shift
     ;;
-    -c=*|--container-name=*)
-    API_CONTAINER_NAME="${i#*=}"
+    -e=*|--postman-env=*)
+    POSTMAN_ENV="${i#*=}"
+    shift
+    ;;
+    -u=*|--postman-health-url=*)
+    POSTMAN_HEALTH_URL="${i#*=}"
   esac
 done
 
-# Get container status and health, without quotes
-CONTAINER_STATUS=$(docker inspect ${API_CONTAINER_NAME} --format='{{json .State.Status}}' | sed -e 's/^"//' -e 's/"$//')
-CONTAINER_HEALTH=$(docker inspect ${API_CONTAINER_NAME} --format='{{json .State.Health.Status}}' | sed -e 's/^"//' -e 's/"$//')
-
 echo "--------------------- INFOS ---------------------"
 echo "POSTMAN_DIR           = ${POSTMAN_DIR}"
-echo "API_CONTAINER_NAME    = ${API_CONTAINER_NAME}"
-echo "CONTAINER_STATUS      = ${CONTAINER_STATUS}"
-echo "CONTAINER_HEALTH      = ${CONTAINER_HEALTH}"
+echo "POSTMAN_ENV           = ${POSTMAN_ENV}"
+echo "POSTMAN_HEALTH_URL    = ${POSTMAN_HEALTH_URL}"
 echo "-------------------------------------------------"
 echo ""
 
-# Verify container is ready before running newman tests
-if [ $CONTAINER_STATUS = "running" ]; then
-  if [ $CONTAINER_HEALTH = "healthy" ]; then
-    echosuccess "Your container is 'healthy' ✅";
-    echosuccess "Proceed Newman testing 🚀";
-  else
-    echo "Your container is not 'healthy', please retry in few seconds 🚧";
-    exit;
-  fi
-elif [ $CONTAINER_STATUS = "starting" ]; then
-  echo "Container is ${CONTAINER_STATUS} 🚧";
-  echo "You should wait for your container to be 'running' and 'healthy'";
-  echo "Please retry";
-  exit;
-else
-  echoerr "Container is ${CONTAINER_STATUS} ❌";
-  echoerr "Start your container and retry";
+# Check if POSTMAN_ENV value is a valid environment
+if [ $POSTMAN_ENV != "demo" ] && [ $POSTMAN_ENV != "nightly" ] && [ $POSTMAN_ENV != "localhost" ]; then
+  echoerr "$POSTMAN_ENV is not a valid environment ❌";
+  echoerr "You should try with nightly, demo or localhost (default)";
   exit;
 fi
 
+echo "Tests will be run on $POSTMAN_ENV"
+
+STATUS=0
+RETRY_LIMIT=10
+RETRY_COUNT=1
+INTERVAL=5
+
+echo "Check availability of environment every $INTERVAL seconds for $RETRY_LIMIT iterations"
+while [ $STATUS -ne 200 ] && [ $RETRY_COUNT -lt $RETRY_LIMIT ]
+do
+  echo "Try to $POSTMAN_HEALTH_URL, retry number: $RETRY_COUNT"
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" --location $POSTMAN_HEALTH_URL );
+  RETRY_COUNT=$((RETRY_COUNT + 1));
+  echo "Status $STATUS";
+  if [ $STATUS -eq 200 ]; then
+    INTERVAL=0
+  fi
+  sleep $INTERVAL;
+done ;
+
+if [ $STATUS -ne 200 ]; then
+  echoerr "$POSTMAN_ENV is not available ❌";
+  exit;
+else
+  echosuccess "$POSTMAN_ENV is available ✅"
+  echosuccess "Proceed Newman testing 🚀";
+fi
+
+set -e;
+
 # Run all collections
-for f in $POSTMAN_DIR/test/*;do if [[ -f $f ]]; then newman run $f -e $POSTMAN_DIR/env/Gravitee.io-Localhost-Environment.json --bail; fi; done;
+for f in $POSTMAN_DIR/test/*;do if [[ -f $f ]]; then newman run $f -e $POSTMAN_DIR/env/Gravitee.io-$POSTMAN_ENV-Environment.json --bail; fi; done;

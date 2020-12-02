@@ -6,9 +6,54 @@ newman run postman/test/collections/[...]collection.json -e postman/env/Gravitee
 
 ```
 
+== Arguments
+
+
+
+|===
+|Argument |Short version |Long version |Default Value |Description
+
+|POSTMAN_DIR
+|`-p`
+|`--postman-dir`
+|../postman
+|The folder containing "test" folder. Relative to your `pwd`
+
+|POSTMAN_ENV
+|`-e`
+|`--postman-env`
+|localhost
+|The name of the environment to use. Allow to load the environment file from postman/env/Gravitee.io-*_env_*-Environment.json
+
+|POSTMAN_URL
+|`-u`
+|`--postman-health-url`
+|localhost:8083/management/swagger.json
+|The endpoint to check if environment is healthy. The script will try 10 times with an interval of 5 seconds between calls before failing. *This endpoint must return a 200 status to be successful.*
+|===
+
+
+
+
 == Run all the tests collections locally using shell script.
 ```
 sh scripts/tests.sh
+```
+
+== Run all the tests collections on Nightly or Demo environment
+
+*Nightly*
+
+```
+sh scripts/tests.sh --postman-env=nightly --postman-health-url=nightly.gravitee.io/api/management/swagger.json
+
+```
+
+*Demo*
+
+```
+sh scripts/tests.sh --postman-env=demo --postman-health-url=demo.gravitee.io/management/swagger.json
+
 ```
 
 == Good practices

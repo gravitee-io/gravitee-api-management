@@ -56,5 +56,11 @@ Stop the containers, delete data on databases and start the containers
 
 Your environment need to be up. A message will be prompted if it is not the case.
 
-`make postman`
+`make postman` will run postman collections on localhost.
+
+You can specify `nightly` or `demo` parameters to choose where to run collections.
+
+`make postman env=nightly`
+
+`make postman env=demo`
 

@@ -1,0 +1,29 @@
+{
+  "id": "a79f46ae-90a4-cdeb-a76c-81a8d8b6507f",
+  "name": "Gravitee.io Demo Environment",
+  "values": [
+    {
+      "key": "GRAVITEEIO_REST_URL",
+      "value": "https://demo.gravitee.io/management",
+      "enabled": true
+    },
+    {
+      "key": "AUTHORIZATION_APPLICATION1",
+      "value": "Basic YXBwbGljYXRpb24xOmFwcGxpY2F0aW9uMQ==",
+      "enabled": true
+    },
+    {
+      "key": "AUTHORIZATION_API1",
+      "value": "Basic YXBpMTphcGkx",
+      "enabled": true
+    },
+    {
+      "key": "AUTHORIZATION_ADMIN",
+      "value": "Basic YWRtaW46YWRtaW4=",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2016-11-06T18:05:11.002Z",
+  "_postman_exported_using": "Postman/4.8.1"
+}

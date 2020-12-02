@@ -24,7 +24,6 @@ services:
   mongodb:
     image: mongo:${MONGODB_VERSION:-3.6}
     container_name: gio_apim_mongodb
-    restart: always
     volumes:
       - ./data/data-mongo:/data/db
       - ./logs/apim-mongodb:/var/log/mongodb
@@ -32,7 +31,6 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.7.0}
     container_name: gio_apim_elasticsearch
-    restart: always
     volumes:
       - ./data/data-elasticsearch:/usr/share/elasticsearch/data
     environment:
@@ -53,7 +51,6 @@ services:
   management_api:
     image: graviteeio/apim-management-api:${GIO_APIM_VERSION}
     container_name: gio_apim_management_api
-    restart: always
     ports:
       - "8083:8083"
     links:
