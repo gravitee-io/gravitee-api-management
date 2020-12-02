@@ -1096,7 +1096,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private String buildApiDefinition(String apiDefinition, UpdateApiEntity updateApiEntity) {
+    private String buildApiDefinition(String apiId, String apiDefinition, UpdateApiEntity updateApiEntity) {
         try {
             io.gravitee.definition.model.Api updateApiDefinition;
             if (apiDefinition == null || apiDefinition.isEmpty()) {
@@ -1105,6 +1105,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             } else {
                 updateApiDefinition = objectMapper.readValue(apiDefinition, io.gravitee.definition.model.Api.class);
             }
+            updateApiDefinition.setId(apiId);
             updateApiDefinition.setName(updateApiEntity.getName());
             updateApiDefinition.setVersion(updateApiEntity.getVersion());
             updateApiDefinition.setProxy(updateApiEntity.getProxy());
@@ -2563,7 +2564,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setPicture(updateApiEntity.getPicture());
         api.setBackground(updateApiEntity.getBackground());
 
-        api.setDefinition(buildApiDefinition(apiDefinition, updateApiEntity));
+        api.setDefinition(buildApiDefinition(apiId, apiDefinition, updateApiEntity));
 
         final Set<String> apiCategories = updateApiEntity.getCategories();
         if (apiCategories != null) {
