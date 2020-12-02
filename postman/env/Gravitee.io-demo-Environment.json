@@ -3,13 +3,13 @@
   "name": "Gravitee.io Demo Environment",
   "values": [
     {
-      "key": "GRAVITEEIO_REST_URL",
+      "key": "GRAVITEEIO_MGMT_URL",
       "value": "https://demo.gravitee.io/management",
       "enabled": true
     },
     {
-      "key": "AUTHORIZATION_APPLICATION1",
-      "value": "Basic YXBwbGljYXRpb24xOmFwcGxpY2F0aW9uMQ==",
+      "key": "GRAVITEEIO_PORTAL_URL",
+      "value": "https://demo.gravitee.io/management",
       "enabled": true
     },
     {

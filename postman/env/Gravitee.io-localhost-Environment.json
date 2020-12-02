@@ -4,12 +4,12 @@
   "values": [
     {
       "key": "GRAVITEEIO_MGMT_URL",
-      "value": "http://localhost:8083",
+      "value": "http://localhost:8083/management/organizations/DEFAULT/environments/DEFAULT",
       "enabled": true
     },
     {
       "key": "GRAVITEEIO_PORTAL_URL",
-      "value": "http://localhost:8083",
+      "value": "http://localhost:8083/portal/environments/DEFAULT",
       "enabled": true
     },
     {

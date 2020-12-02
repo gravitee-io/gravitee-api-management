@@ -66,7 +66,7 @@ do
   echo "Try to $POSTMAN_HEALTH_URL, retry number: $RETRY_COUNT"
   STATUS=$(curl -s -o /dev/null -w "%{http_code}" --location $POSTMAN_HEALTH_URL );
   RETRY_COUNT=$((RETRY_COUNT + 1));
-  echo "Status $STATUS";
+  echo "Request returned status $STATUS";
   if [ $STATUS -eq 200 ]; then
     INTERVAL=0
   fi

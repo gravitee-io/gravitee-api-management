@@ -41,16 +41,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/groups",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/groups",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"configuration",
 								"groups"
 							]
@@ -104,14 +99,11 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/search/users/?q=user",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/search/users/?q=user",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
 								"search",
 								"users",
 								""
@@ -165,16 +157,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/groups/:reviewerGroupId/members",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/groups/:reviewerGroupId/members",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"configuration",
 								"groups",
 								":reviewerGroupId",
@@ -277,16 +264,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								""
@@ -338,16 +320,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								""
@@ -437,14 +414,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?homepage=true",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages?homepage=true",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages"
 							],
 							"query": [
@@ -505,14 +479,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages?size=-1&homepage=false",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages"
 							],
 							"query": [
@@ -615,16 +586,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -682,16 +648,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -793,14 +754,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?homepage=true",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages?homepage=true",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages"
 							],
 							"query": [
@@ -857,14 +815,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages?size=-1&homepage=false",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages"
 							],
 							"query": [
@@ -971,16 +926,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								""
@@ -1032,16 +982,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -1103,16 +1048,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								""
@@ -1164,16 +1104,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								""
@@ -1225,16 +1160,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -1336,14 +1266,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?homepage=true",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages?homepage=true",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages"
 							],
 							"query": [
@@ -1408,14 +1335,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages?size=-1&homepage=false",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages"
 							],
 							"query": [
@@ -1478,14 +1402,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages/:pageId?include=content",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages",
 								":pageId"
 							],
@@ -1586,16 +1507,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/metadata",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/metadata",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"configuration",
 								"metadata"
 							]
@@ -1650,16 +1566,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								""
@@ -1754,14 +1665,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages/:pageId?include=content",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages",
 								":pageId"
 							],
@@ -1892,14 +1800,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages?size=-1&homepage=false",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages"
 							],
 							"query": [
@@ -1977,14 +1882,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages/:pageId?include=content",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages",
 								":pageId"
 							],
@@ -2061,16 +1963,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -2156,14 +2053,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages?size=-1&homepage=false",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages"
 							],
 							"query": [
@@ -2228,14 +2122,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages/:pageId?include=content",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages",
 								":pageId"
 							],
@@ -2338,16 +2229,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								""
@@ -2464,14 +2350,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages?size=-1&homepage=false",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages"
 							],
 							"query": [
@@ -2536,14 +2419,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages/:pageId?include=content",
+							"raw": "{{GRAVITEEIO_PORTAL_URL}}/pages/:pageId?include=content",
 							"host": [
 								"{{GRAVITEEIO_PORTAL_URL}}"
 							],
 							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
 								"pages",
 								":pageId"
 							],
@@ -2626,16 +2506,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -2670,16 +2545,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/metadata/:metadataId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/metadata/:metadataId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"configuration",
 								"metadata",
 								":metadataId"
@@ -2714,16 +2584,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -2758,16 +2623,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -2802,16 +2662,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -2846,16 +2701,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -2890,16 +2740,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/portal/pages/:pageId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages/:pageId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"portal",
 								"pages",
 								":pageId"
@@ -2949,16 +2794,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/management/organizations/DEFAULT/environments/DEFAULT/configuration/groups/:reviewerGroupId",
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/groups/:reviewerGroupId",
 							"host": [
 								"{{GRAVITEEIO_MGMT_URL}}"
 							],
 							"path": [
-								"management",
-								"organizations",
-								"DEFAULT",
-								"environments",
-								"DEFAULT",
 								"configuration",
 								"groups",
 								":reviewerGroupId"
