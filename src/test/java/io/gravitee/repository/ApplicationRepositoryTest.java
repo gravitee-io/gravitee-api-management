@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 
 /**
@@ -224,6 +225,14 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(apps);
         assertEquals(1, apps.size());
         assertEquals("grouped-app2", apps.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindByEmptyGroups() throws Exception {
+        Set<Application> apps = applicationRepository.findByGroups(emptyList());
+
+        assertNotNull(apps);
+        assertTrue(apps.isEmpty());
     }
 
     @Test
