@@ -1047,7 +1047,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (updateApiEntity.getGroups() == null) {
                     api.setGroups(apiToUpdate.getGroups());
                 }
-                if (updateApiEntity.getLabels() == null) {
+                if (updateApiEntity.getLabels() == null && apiToUpdate.getLabels() != null) {
                     api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));
                 }
                 if (updateApiEntity.getCategories() == null) {
