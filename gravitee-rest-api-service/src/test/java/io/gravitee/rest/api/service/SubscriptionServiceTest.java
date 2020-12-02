@@ -107,6 +107,10 @@ public class SubscriptionServiceTest {
     private ParameterService parameterService;
     @Mock
     private UserService userService;
+    @Mock
+    private PageEntity generalConditionPage;
+    @Mock
+    private PageService pageService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -294,18 +298,20 @@ public class SubscriptionServiceTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
         when(plan.getValidation()).thenReturn(PlanValidationType.MANUAL);
-
+        PageEntity.PageRevisionId pageRevisionId = new PageEntity.PageRevisionId(PAGE_ID, 2);
+        when(generalConditionPage.getContentRevisionId()).thenReturn(pageRevisionId);
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+        when(pageService.findById(PAGE_ID)).thenReturn(generalConditionPage);
 
         SecurityContextHolder.setContext(generateSecurityContext());
 
         // Run
         final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
-        newSubscriptionEntity.setGeneralConditionsContentRevision(new PageEntity.PageRevisionId(plan.getGeneralConditions()+"-1", 2));
+        newSubscriptionEntity.setGeneralConditionsContentRevision(new PageEntity.PageRevisionId(PAGE_ID, 2));
         newSubscriptionEntity.setGeneralConditionsAccepted(true);
         final SubscriptionEntity subscriptionEntity = subscriptionService.create(newSubscriptionEntity);
 
@@ -327,6 +333,25 @@ public class SubscriptionServiceTest {
         assertEquals(newSubscriptionEntity.getGeneralConditionsContentRevision().getPageId(), capturedSuscription.getGeneralConditionsContentPageId());
         assertEquals(Integer.valueOf(newSubscriptionEntity.getGeneralConditionsContentRevision().getRevision()), capturedSuscription.getGeneralConditionsContentRevision());
 
+    }
+
+    @Test(expected = PlanGeneralConditionRevisionException.class)
+    public void shouldNotCreateWithoutProcess_AcceptedOutdatedGCU() throws Exception {
+        // Prepare data
+        when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
+        PageEntity.PageRevisionId pageRevisionId = new PageEntity.PageRevisionId(PAGE_ID, 2);
+        when(generalConditionPage.getContentRevisionId()).thenReturn(pageRevisionId);
+        // Stub
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(pageService.findById(PAGE_ID)).thenReturn(generalConditionPage);
+
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        // Run
+        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+        newSubscriptionEntity.setGeneralConditionsContentRevision(new PageEntity.PageRevisionId(PAGE_ID, 1));
+        newSubscriptionEntity.setGeneralConditionsAccepted(true);
+        subscriptionService.create(newSubscriptionEntity);
     }
 
     @Test(expected = PlanGeneralConditionAcceptedException.class)

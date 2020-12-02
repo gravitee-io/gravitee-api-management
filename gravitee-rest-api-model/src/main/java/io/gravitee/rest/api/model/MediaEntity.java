@@ -24,6 +24,7 @@ import java.util.Objects;
 public class MediaEntity {
 
     private String id;
+    private String hash;
     private String type;
     private String subType;
     private String fileName;
@@ -89,6 +90,14 @@ public class MediaEntity {
 
     public String getMimeType() {
         return this.type + '/' + this.subType;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 
     @Override

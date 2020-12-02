@@ -19,19 +19,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
-
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.*;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,6 +40,7 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
         QueryParser parser = new MultiFieldQueryParser(new String[]{
                 "name",
+                "name_lowercase",
                 "content"
         }, analyzer);
         parser.setFuzzyMinSim(0.6f);
@@ -53,11 +48,17 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
         try {
             final Query parse = parser.parse(QueryParserBase.escape(query.getQuery()));
 
-            BooleanQuery.Builder bq = new BooleanQuery.Builder();
-            bq.add(parse, BooleanClause.Occur.MUST);
-            bq.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
+            BooleanQuery.Builder pageQuery = new BooleanQuery.Builder();
+            BooleanQuery.Builder pageFieldsQuery = new BooleanQuery.Builder();
 
-            return search(bq.build());
+            pageFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(new WildcardQuery(new Term("content", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+
+            pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
+            pageQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
+            return search(pageQuery.build());
         } catch (ParseException pe) {
             logger.error("Invalid query to search for page documents", pe);
             throw new TechnicalException("Invalid query to search for page documents", pe);

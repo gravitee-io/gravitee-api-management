@@ -217,11 +217,11 @@ public class CurrentUserResource extends AbstractResource {
     @Path("/subscribeNewsletter")
     @ApiOperation(value = "Subscribe to the newsletter the authenticated user")
     @ApiResponses({
-        @ApiResponse(code = 200, message = "Updated user", response = UserEntity.class),
-        @ApiResponse(code = 400, message = "Invalid user profile"),
-        @ApiResponse(code = 404, message = "User not found"),
-        @ApiResponse(code = 500, message = "Internal server error")})
-    public Response subscribeNewsletter(@Valid @NotNull final String email) {
+            @ApiResponse(code = 200, message = "Updated user", response = UserEntity.class),
+            @ApiResponse(code = 400, message = "Invalid user profile"),
+            @ApiResponse(code = 404, message = "User not found"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public Response subscribeNewsletterToCurrentUser(@Valid @NotNull final String email) {
         UserEntity userEntity = userService.findById(getAuthenticatedUser());
         UpdateUserEntity user = new UpdateUserEntity(userEntity);
         user.setNewsletter(true);

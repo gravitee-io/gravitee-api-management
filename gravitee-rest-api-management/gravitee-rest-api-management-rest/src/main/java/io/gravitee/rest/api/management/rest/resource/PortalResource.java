@@ -56,7 +56,7 @@ public class PortalResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Portal configuration", response = PortalConfigEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PortalConfigEntity getConfig() {
+    public PortalConfigEntity getPortalConfig() {
         return configService.getPortalConfig();
     }
 

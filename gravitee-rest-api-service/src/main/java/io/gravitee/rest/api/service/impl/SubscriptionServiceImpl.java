@@ -95,6 +95,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private ParameterService parameterService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private PageService pageService;
 
     @Override
     public SubscriptionEntity findById(String subscription) {
@@ -193,11 +195,16 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
             }
 
-            if (planEntity.getGeneralConditions() != null
-                    && !planEntity.getGeneralConditions().isEmpty()
-                    && (Boolean.FALSE.equals(newSubscriptionEntity.getGeneralConditionsAccepted())
+            if(planEntity.getGeneralConditions() != null && !planEntity.getGeneralConditions().isEmpty()){
+                if ((Boolean.FALSE.equals(newSubscriptionEntity.getGeneralConditionsAccepted())
                     || (newSubscriptionEntity.getGeneralConditionsContentRevision() == null))) {
-                throw new PlanGeneralConditionAcceptedException(planEntity.getName());
+                    throw new PlanGeneralConditionAcceptedException(planEntity.getName());
+                }
+
+                PageEntity generalConditions = pageService.findById(planEntity.getGeneralConditions());
+                if(!generalConditions.getContentRevisionId().equals(newSubscriptionEntity.getGeneralConditionsContentRevision())) {
+                    throw new PlanGeneralConditionRevisionException(planEntity.getName());
+                }
             }
 
             ApplicationEntity applicationEntity = applicationService.findById(application);
