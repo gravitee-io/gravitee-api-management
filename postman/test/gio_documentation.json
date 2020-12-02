@@ -400,7 +400,7 @@
 			"name": "Check documentation on portal",
 			"item": [
 				{
-					"name": "Get homepage",
+					"name": "Get homepage empty result",
 					"event": [
 						{
 							"listen": "test",
@@ -458,7 +458,7 @@
 					"response": []
 				},
 				{
-					"name": "Get pages",
+					"name": "Get pages contains topbar link",
 					"event": [
 						{
 							"listen": "test",
@@ -750,7 +750,7 @@
 			"name": "Check documentation on portal",
 			"item": [
 				{
-					"name": "Get homepage",
+					"name": "Get homepage contains created homepage",
 					"event": [
 						{
 							"listen": "test",
@@ -814,7 +814,7 @@
 					"response": []
 				},
 				{
-					"name": "Get pages",
+					"name": "Get pages contains created page",
 					"event": [
 						{
 							"listen": "test",
@@ -831,7 +831,7 @@
 									"    pm.expect(jsonData.data).to.be.not.empty;",
 									"});",
 									"",
-									"var page = jsonData.data.find(page => page.id === pm.collectionVariables.get('created_homepage_id'))",
+									"var page = jsonData.data.find(page => page.id === pm.collectionVariables.get('created_page_id'))",
 									"",
 									"pm.test(\"Page should be present\", function (){",
 									"    pm.expect(page).to.be.not.null;",
@@ -1293,7 +1293,7 @@
 			"name": "Check documentation on portal",
 			"item": [
 				{
-					"name": "Get homepage",
+					"name": "Get homepage ok",
 					"event": [
 						{
 							"listen": "test",
@@ -1357,7 +1357,7 @@
 					"response": []
 				},
 				{
-					"name": "Get pages",
+					"name": "Get pages contains pages",
 					"event": [
 						{
 							"listen": "test",
@@ -1377,13 +1377,11 @@
 									"var pageIds = jsonData.data.map(page => page.id);",
 									"",
 									"pm.test(\"Pages should be present\", function (){",
-									"    pm.expect(pageIds).to.have.members([",
-									"        pm.collectionVariables.get(\"created_page_id\"),",
-									"        pm.collectionVariables.get(\"created_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_inside_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_outside_folder_id\"),",
-									"        pm.collectionVariables.get(\"default_documentation_page_id\")",
-									"    ]);",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_inside_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_outside_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"default_documentation_page_id\"));",
 									"});",
 									"",
 									"pm.test(\"Homepage should not be present\", function() {",
@@ -1435,7 +1433,7 @@
 					"response": []
 				},
 				{
-					"name": "Get page",
+					"name": "Get page ok",
 					"event": [
 						{
 							"listen": "test",
@@ -1714,7 +1712,7 @@
 			"name": "Check documentation on portal",
 			"item": [
 				{
-					"name": "Get page",
+					"name": "Get page ok",
 					"event": [
 						{
 							"listen": "test",
@@ -1847,14 +1845,12 @@
 									"var pageIds = jsonData.data.map(page => page.id);",
 									"",
 									"pm.test(\"Pages should be present\", function (){",
-									"    pm.expect(pageIds).to.have.members([",
-									"        pm.collectionVariables.get(\"created_page_id\"),",
-									"        pm.collectionVariables.get(\"created_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_inside_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_outside_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_metadata_id\"),",
-									"        pm.collectionVariables.get(\"default_documentation_page_id\")",
-									"    ]);",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_inside_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_outside_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_metadata_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"default_documentation_page_id\"));",
 									"});",
 									"",
 									"pm.test(\"Homepage should not be present\", function() {",
@@ -2110,13 +2106,11 @@
 									"var pageIds = jsonData.data.map(page => page.id);",
 									"",
 									"pm.test(\"Pages should be present\", function (){",
-									"    pm.expect(pageIds).to.have.members([",
-									"        pm.collectionVariables.get(\"created_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_inside_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_outside_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_metadata_id\"),",
-									"        pm.collectionVariables.get(\"default_documentation_page_id\")",
-									"    ]);",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_inside_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_outside_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_metadata_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"default_documentation_page_id\"));",
 									"});",
 									"",
 									"pm.test(\"Homepage should not be present\", function() {",
@@ -2406,7 +2400,7 @@
 			"name": "Check documentation on portal",
 			"item": [
 				{
-					"name": "Get pages",
+					"name": "Get pages contains translated page",
 					"event": [
 						{
 							"listen": "test",
@@ -2426,14 +2420,12 @@
 									"var pageIds = jsonData.data.map(page => page.id);",
 									"",
 									"pm.test(\"Pages should be present\", function (){",
-									"    pm.expect(pageIds).to.have.members([",
-									"        pm.collectionVariables.get(\"created_page_id\"),",
-									"        pm.collectionVariables.get(\"created_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_inside_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_outside_folder_id\"),",
-									"        pm.collectionVariables.get(\"created_page_metadata_id\"),",
-									"        pm.collectionVariables.get(\"default_documentation_page_id\")",
-									"    ]);",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_inside_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_outside_folder_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"created_page_metadata_id\"));",
+									"    pm.expect(pageIds).to.include(pm.collectionVariables.get(\"default_documentation_page_id\"));",
 									"});",
 									"",
 									"pm.test(\"Homepage should not be present\", function() {",
@@ -2497,7 +2489,7 @@
 					"response": []
 				},
 				{
-					"name": "Get page",
+					"name": "Get page translated",
 					"event": [
 						{
 							"listen": "test",
@@ -2530,8 +2522,8 @@
 						"header": [
 							{
 								"key": "Accept-Language",
-								"value": "fr-FR,fr;q=0.9",
-								"type": "text"
+								"type": "text",
+								"value": "fr-FR,fr;q=0.9"
 							}
 						],
 						"body": {
@@ -2980,68 +2972,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "Get pages",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "da6ed3de-6126-4975-83e7-8e72329c69b0",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"",
-									"pm.test(\"Should be only one element\", function () {",
-									"    pm.expect(jsonData.data.length).to.eql(1);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/portal/environments/DEFAULT/pages?size=-1&homepage=false",
-							"host": [
-								"{{GRAVITEEIO_PORTAL_URL}}"
-							],
-							"path": [
-								"portal",
-								"environments",
-								"DEFAULT",
-								"pages"
-							],
-							"query": [
-								{
-									"key": "size",
-									"value": "-1"
-								},
-								{
-									"key": "homepage",
-									"value": "false"
-								}
-							]
-						}
-					},
-					"response": []
 				}
 			],
 			"auth": {
@@ -3086,97 +3016,97 @@
 	],
 	"variable": [
 		{
-			"id": "432b9ee3-f331-44f2-9bf9-599104f8f437",
+			"id": "31e8e09d-af7a-48f9-a5a3-23a12fd82f5c",
 			"key": "created_homepage",
 			"value": ""
 		},
 		{
-			"id": "f622484d-07f0-46e4-85b0-c99eac74cce5",
+			"id": "d5fbc818-61ce-42b7-8c74-0768fb313333",
 			"key": "created_homepage_id",
 			"value": ""
 		},
 		{
-			"id": "6a76bb71-53d6-4254-a0cd-3d6c01ed39fb",
+			"id": "c896285b-3086-4e66-b027-540af6aec38b",
 			"key": "created_reader_group",
 			"value": ""
 		},
 		{
-			"id": "e044951f-2aa2-462c-a07c-b30d7f13459c",
+			"id": "a674952d-18f4-4ca8-9934-945522e4f547",
 			"key": "created_reader_group_id",
 			"value": ""
 		},
 		{
-			"id": "31214580-2158-43fb-a356-9c03b3d5b6f5",
+			"id": "69ab917d-3901-46c9-97d3-4a80fe81cb87",
 			"key": "user_member",
 			"value": ""
 		},
 		{
-			"id": "6469bca4-d84b-4b36-87d2-ef6979218024",
+			"id": "307d589b-18e6-43fa-b2cc-553a73cf4a7c",
 			"key": "user_member_reference",
 			"value": ""
 		},
 		{
-			"id": "4acee636-6b2b-48b5-9115-dd234d438fbf",
+			"id": "8b8f3585-7aa2-4372-af3b-b55c841db4c1",
 			"key": "created_page",
 			"value": ""
 		},
 		{
-			"id": "573c4f6e-68f5-4d08-a507-115ac053a53c",
+			"id": "51057caa-9e38-4f4f-9ad1-f71318ba36fc",
 			"key": "created_page_id",
 			"value": ""
 		},
 		{
-			"id": "15b2c1ff-c01c-4177-a2ac-6be1a7968b61",
+			"id": "02f35380-edfa-45ac-b8b7-1663ab5af8f7",
 			"key": "created_folder",
 			"value": ""
 		},
 		{
-			"id": "b0668fa8-1421-4cc9-adc3-d02d06b769e5",
+			"id": "4598e01d-8ebf-488c-b6ca-89660c759b66",
 			"key": "created_folder_id",
 			"value": ""
 		},
 		{
-			"id": "a0f4baff-b97b-42b8-b7dc-3b8fa1d3fa92",
+			"id": "38ce4cb7-d459-446b-8620-001c8de7f41a",
 			"key": "created_page_inside_folder",
 			"value": ""
 		},
 		{
-			"id": "dfd54151-39e7-4985-b547-c4a481f4d503",
+			"id": "d65350a2-2555-430b-969f-cabd22c66038",
 			"key": "created_page_inside_folder_id",
 			"value": ""
 		},
 		{
-			"id": "5b16d3d1-94ef-40ac-ae59-3bc5bf1b5b10",
+			"id": "88a730ad-1287-4c4d-9572-cb7b737bae17",
 			"key": "created_page_outside_folder",
 			"value": ""
 		},
 		{
-			"id": "0e1e1785-8cb5-42d2-b82d-67ecc5c89852",
+			"id": "b40fd936-6c84-4c07-b93d-febfa71ad003",
 			"key": "created_page_outside_folder_id",
 			"value": ""
 		},
 		{
-			"id": "ed9199a1-1f35-486c-b3fd-da22c50e04e4",
+			"id": "7fb65954-578e-4c32-b46d-7c8952017c6d",
 			"key": "default_documentation_page_id",
 			"value": ""
 		},
 		{
-			"id": "ea65fb45-d196-42e3-8d32-fd82ec255548",
+			"id": "12122b37-9ab9-4cb3-ac53-c46db456cb42",
 			"key": "created_metadata",
 			"value": ""
 		},
 		{
-			"id": "bba95a33-6579-402d-b074-3b7bd1cff8c1",
+			"id": "f8bf0a9f-982d-423b-9c84-db70e019e879",
 			"key": "created_metadata_id",
 			"value": ""
 		},
 		{
-			"id": "5ec99ffa-3bbe-471b-b07f-9ce11f44b8fa",
+			"id": "e7e5eb4b-c45b-4c8b-8ef7-9baac745d2c4",
 			"key": "created_page_metadata",
 			"value": ""
 		},
 		{
-			"id": "1761d32e-5d84-4557-b90e-abb444737fe0",
+			"id": "7df00cdd-294a-4c17-afe8-0eac4be10217",
 			"key": "created_page_metadata_id",
 			"value": ""
 		}

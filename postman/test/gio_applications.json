@@ -351,7 +351,7 @@
 			"name": "Check on portal",
 			"item": [
 				{
-					"name": "Get applications",
+					"name": "Get applications does not contain created application",
 					"event": [
 						{
 							"listen": "test",
@@ -398,7 +398,7 @@
 					"response": []
 				},
 				{
-					"name": "Get application",
+					"name": "Get application forbidden",
 					"event": [
 						{
 							"listen": "test",
@@ -661,7 +661,7 @@
 			"name": "Check on portal",
 			"item": [
 				{
-					"name": "Get applications",
+					"name": "Get applications contains created application",
 					"event": [
 						{
 							"listen": "test",
@@ -708,7 +708,7 @@
 					"response": []
 				},
 				{
-					"name": "Get application",
+					"name": "Get application ok",
 					"event": [
 						{
 							"listen": "test",
@@ -1228,52 +1228,52 @@
 	],
 	"variable": [
 		{
-			"id": "799e51dd-de7b-4790-8651-ed942c2e5eb7",
+			"id": "b9afac99-8a05-4a57-b62d-928025ce0013",
 			"key": "api1_member",
 			"value": ""
 		},
 		{
-			"id": "352b0fb5-b885-4081-9282-b6e6e1993176",
+			"id": "db94c25d-a036-4212-a0c0-6a6225f8e1f9",
 			"key": "api1_member_reference",
 			"value": ""
 		},
 		{
-			"id": "b34a81aa-0010-4781-ae78-c3786e3d6719",
+			"id": "fa7b98bb-ade9-43fe-ab8b-ddacbcfd29c2",
 			"key": "created_application_id",
 			"value": ""
 		},
 		{
-			"id": "ac6edcdf-0d70-4d9b-b976-d95c5dca6040",
+			"id": "f0329c08-283f-4913-83ec-52b837c65d6f",
 			"key": "created_excluded_group",
 			"value": ""
 		},
 		{
-			"id": "d38d8453-7674-4665-9aa9-84ce79c5cbd2",
+			"id": "258a2972-ea93-45e7-9d0c-311ff325efb3",
 			"key": "created_excluded_group_id",
 			"value": ""
 		},
 		{
-			"id": "7eda22f4-e5ec-4c94-a8c5-91ac02a1de07",
+			"id": "fbb9f0b1-8dcc-48b9-abe6-4e48ba1352fc",
 			"key": "user_member",
 			"value": ""
 		},
 		{
-			"id": "a6a2a69b-57c1-4aca-9d7b-e26cdf5de49c",
+			"id": "9edda829-6fc7-457d-a49f-f76f13b941fa",
 			"key": "user_member_reference",
 			"value": ""
 		},
 		{
-			"id": "9931fd83-087e-4f0c-91a1-58421d422eb7",
+			"id": "6c3f8dd3-ff83-4bde-bf95-7c0b2566abcc",
 			"key": "created_application",
 			"value": ""
 		},
 		{
-			"id": "9f1fc984-dd9b-4d77-af23-85b43a8e0738",
+			"id": "b52a7d3f-0c12-4aa4-ab98-1bf056f3f135",
 			"key": "created_included_group",
 			"value": ""
 		},
 		{
-			"id": "faddaac6-4963-4096-bab4-c9fb5fea3e84",
+			"id": "b3eba21d-217f-47ae-a475-6bc8468e93fb",
 			"key": "created_included_group_id",
 			"value": ""
 		}
