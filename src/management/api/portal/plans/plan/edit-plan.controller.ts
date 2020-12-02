@@ -176,8 +176,8 @@ class ApiEditPlanController {
 
   saveOrUpdate() {
     // Transform security definition to json
-    this.plan.securityDefinition = JSON.stringify(this.plan.securityDefinition);
-    this.ApiService.savePlan(this.api, this.plan).then(() => {
+    const plan = { ...this.plan, securityDefinition: JSON.stringify(this.plan.securityDefinition) };
+    this.ApiService.savePlan(this.api, plan).then(() => {
       this.NotificationService.show(this.plan.name + ' has been saved successfully');
       this.$state.go(
         'management.apis.detail.portal.plans.list',
