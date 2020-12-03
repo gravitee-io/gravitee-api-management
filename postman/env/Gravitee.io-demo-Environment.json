@@ -13,6 +13,11 @@
       "enabled": true
     },
     {
+      "key": "GRAVITEEIO_PORTAL_URL_OPENAPI",
+      "value": "https://demo.gravitee.io/management/swagger.json",
+      "enabled": true
+    },
+    {
       "key": "AUTHORIZATION_API1",
       "value": "Basic YXBpMTphcGkx",
       "enabled": true
