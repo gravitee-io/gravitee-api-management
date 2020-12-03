@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.builder.JerseyClientBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
@@ -111,7 +112,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @PostConstruct
     public void initClient() throws NoSuchAlgorithmException, KeyManagementException {
         final boolean trustAllEnabled = environment.getProperty("security.trustAll", Boolean.class, false);
-        final ClientBuilder builder = ClientBuilder.newBuilder();
+        final ClientBuilder builder =  JerseyClientBuilder.newBuilder(environment);
         if (trustAllEnabled) {
             SSLContext sc = SSLContext.getInstance("TLSv1.2");
             sc.init(null, new TrustManager[]{new BlindTrustManager()}, null);
@@ -412,7 +413,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      * @param types The types of user memberships to manage
      */
     private void refreshUserMemberships(String userId, String identityProviderId, List<MembershipService.Membership> memberships,
-                                        MembershipReferenceType ... types) {
+                                        MembershipReferenceType... types) {
         // Get existing memberships for a given type
         List<UserMembership> userMemberships = new ArrayList<>();
 

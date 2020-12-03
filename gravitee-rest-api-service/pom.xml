@@ -205,6 +205,14 @@
 			</exclusions>
 		</dependency>
 
+		<!-- Jaxrs -->
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>org.assertj</groupId>

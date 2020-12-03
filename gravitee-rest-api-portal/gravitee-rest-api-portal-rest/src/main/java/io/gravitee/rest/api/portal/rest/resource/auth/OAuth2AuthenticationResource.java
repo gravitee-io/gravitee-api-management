@@ -24,6 +24,7 @@ import io.gravitee.rest.api.portal.rest.model.PayloadInput;
 import io.gravitee.rest.api.portal.rest.utils.BlindTrustManager;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.builder.JerseyClientBuilder;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @PostConstruct
     public void initClient() throws NoSuchAlgorithmException, KeyManagementException {
         final boolean trustAllEnabled = environment.getProperty("security.trustAll", Boolean.class, false);
-        final ClientBuilder builder = ClientBuilder.newBuilder();
+        final ClientBuilder builder = JerseyClientBuilder.newBuilder(environment);
         if (trustAllEnabled) {
             SSLContext sc = SSLContext.getInstance("TLSv1.2");
             sc.init(null, new TrustManager[]{new BlindTrustManager()}, null);
