@@ -23,6 +23,12 @@
     min-width: 490px;
   }
 
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
   .card,
   .card-import {
     border-radius: 2px;
@@ -30,19 +36,17 @@
     box-shadow: 0 0 0 1px var(--gv-theme-neutral-color, #F5F5F5), 0 1px 3px var(--gv-theme-neutral-color-dark, #BFBFBF);
 
     margin: 0 1rem;
-
-    display: flex;
-    flex-direction: column;
     padding: 1rem;
     color: #262626;
     transition: all .3s ease-in-out;
-    align-items: center;
+
 
     .title {
       padding: 0.5rem;
       text-transform: uppercase;
       letter-spacing: 0.5rem;
       font-size: 18px;
+      text-align: center;
     }
 
     .description {
