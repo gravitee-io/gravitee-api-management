@@ -62,8 +62,17 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
             options.setUseAlpn(httpServerConfiguration.isAlpn());
 
             // TLS protocol support
-            if(httpServerConfiguration.getTlsProtocols() != null) {
+            if (httpServerConfiguration.getTlsProtocols() != null) {
                 options.setEnabledSecureTransportProtocols(new HashSet<>(Arrays.asList(httpServerConfiguration.getTlsProtocols().split("\\s*,\\s*"))));
+            }
+
+            // TLS ciphers support
+            if (httpServerConfiguration.getTlsCiphers() != null) {
+                String[] incomingCipherSuites = httpServerConfiguration.getTlsCiphers().split("\\s*,\\s*");
+                options.getEnabledCipherSuites().clear();
+                for (String cipherSuite: incomingCipherSuites) {
+                    options.addEnabledCipherSuite(cipherSuite);
+                }
             }
 
             if (httpServerConfiguration.isClientAuth() == VertxHttpServerConfiguration.ClientAuthMode.NONE) {
