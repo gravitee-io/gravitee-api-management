@@ -45,6 +45,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.ssl.tlsProtocols:#{null}}")
     private String tlsProtocols;
 
+    @Value("${http.ssl.tlsCiphers:#{null}}")
+    private String tlsCiphers;
+
     private ClientAuthMode clientAuth;
 
     @Value("${http.ssl.keystore.type:#{null}}")
@@ -197,6 +200,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setTlsProtocols(String tlsProtocols) {
         this.tlsProtocols = tlsProtocols;
+    }
+
+    public String getTlsCiphers() {
+        return tlsCiphers;
+    }
+
+    public void setTlsCiphers(String tlsCiphers) {
+        this.tlsCiphers = tlsCiphers;
     }
 
     public int getMaxHeaderSize() {
