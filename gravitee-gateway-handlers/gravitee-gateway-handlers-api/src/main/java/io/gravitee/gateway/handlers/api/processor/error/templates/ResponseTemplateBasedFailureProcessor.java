@@ -36,6 +36,7 @@ import java.util.Map;
 public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcessor {
 
     static final String WILDCARD_CONTENT_TYPE = "*/*";
+    static final String DEFAULT_RESPONSE_TEMPLATE = "DEFAULT";
 
     private final Map<String, ResponseTemplates> templates;
 
@@ -50,7 +51,14 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
 
             // No template associated to the error key, process the error message as usual
             if (responseTemplates == null) {
-                super.handleFailure(context, failure);
+                // Try to fallback to default response template
+
+                ResponseTemplates defaultResponseTemplate = templates.get(DEFAULT_RESPONSE_TEMPLATE);
+                if (defaultResponseTemplate != null) {
+                    handleAcceptHeader(context, defaultResponseTemplate, failure);
+                } else {
+                    super.handleFailure(context, failure);
+                }
             } else {
                 handleAcceptHeader(context, responseTemplates, failure);
             }
