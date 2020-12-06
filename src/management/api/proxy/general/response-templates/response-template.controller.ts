@@ -64,6 +64,7 @@ class ApiResponseTemplateController {
     }
 
     this.keys = [
+      'DEFAULT',
       'API_KEY_MISSING',
       'API_KEY_INVALID',
       'QUOTA_TOO_MANY_REQUESTS',
