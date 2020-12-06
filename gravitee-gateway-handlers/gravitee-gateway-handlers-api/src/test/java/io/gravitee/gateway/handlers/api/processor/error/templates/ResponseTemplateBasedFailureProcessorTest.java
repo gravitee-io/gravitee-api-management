@@ -130,6 +130,35 @@ public class ResponseTemplateBasedFailureProcessorTest {
     }
 
     @Test
+    public void shouldFallbackToDefaultHandler_withProcessorFailureKey_fallbackToDefault() {
+        ResponseTemplate template = new ResponseTemplate();
+        template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
+
+        Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
+        mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
+
+        ResponseTemplates responseTemplates = new ResponseTemplates();
+        responseTemplates.setTemplates(mapTemplates);
+
+        Map<String, ResponseTemplates> templates = new HashMap<>();
+        templates.put("DEFAULT", responseTemplates);
+
+        processor = new ResponseTemplateBasedFailureProcessor(templates);
+        processor.handler(next);
+
+        // Set failure
+        DummyProcessorFailure failure = new DummyProcessorFailure();
+        failure.setKey("POLICY_ERROR_KEY");
+        failure.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+
+        when(context.getAttribute(ExecutionContext.ATTR_PREFIX + "failure")).thenReturn(failure);
+
+        processor.handle(context);
+
+        verify(response, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
+    }
+
+    @Test
     public void shouldFallbackToDefaultHandler_withProcessorFailureKey_unmappedAcceptHeader() {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
