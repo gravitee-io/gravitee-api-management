@@ -146,7 +146,6 @@ else
 	fi
 
 	exec "$JAVA" $JAVA_OPTS \
-        -javaagent:$GRAVITEE_HOME/boot/jetty-alpn-agent-2.0.10.jar \
         -Dvertx.disableFileCaching=true \
         -Dvertx.disableFileCPResolving=true \
         -Dvertx.disableContextTiming=true \
