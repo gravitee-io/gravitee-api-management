@@ -35,6 +35,11 @@
 		<dependencySet>
 			<outputDirectory>lib</outputDirectory>
 			<useProjectArtifact>false</useProjectArtifact>
+			<excludes>
+				<exclude>org.springframework:spring-core</exclude>
+				<exclude>org.springframework:spring-beans</exclude>
+				<exclude>org.springframework:spring-jcl</exclude>
+			</excludes>
 		</dependencySet>
 	</dependencySets>
 </assembly>
