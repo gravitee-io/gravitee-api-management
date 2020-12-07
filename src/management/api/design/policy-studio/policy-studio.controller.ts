@@ -19,7 +19,7 @@ import { StateService } from '@uirouter/core';
 require('@gravitee/ui-components/wc/gv-policy-studio');
 
 class ApiPolicyStudioController {
-  private studio: Element;
+  private studio: any;
   private api: any;
   private CATEGORY_POLICY = ['security', 'performance', 'transformation', 'others'];
 
@@ -111,7 +111,7 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('selected-flows-id', JSON.stringify(selectedFlows));
     this.studio.setAttribute('resource-types', JSON.stringify(this.resolvedResources.data));
     this.studio.setAttribute('policies', JSON.stringify(this.resolvedPolicies.data));
-    this.studio.setAttribute('flowSettingsForm', JSON.stringify(this.resolvedFlowSchema.data));
+    this.studio.setAttribute('flowSchema', JSON.stringify(this.resolvedFlowSchema.data));
     this.studio.setAttribute('property-providers', JSON.stringify(propertyProviders));
     this.studio.addEventListener('gv-policy-studio:save', this.onSave.bind(this));
     this.studio.addEventListener('gv-policy-studio:select-flows', this.onSelectFlows.bind(this));
@@ -123,19 +123,15 @@ class ApiPolicyStudioController {
   setApi(api) {
     if (api !== this.api) {
       this.api = api;
-      // force refresh
-      this.studio.removeAttribute('definition');
-      this.studio.setAttribute('definition', JSON.stringify({
+      this.studio.definition = {
         'name': this.api.name,
         'version': this.api.version,
         'flows': this.api.flows != null ? this.api.flows : [],
         'resources': this.api.resources,
         'plans': this.api.plans != null ? this.api.plans : [],
         'properties': this.api.properties,
-      }));
-      // force refresh
-      this.studio.removeAttribute('services');
-      this.studio.setAttribute('services', JSON.stringify(this.api.services));
+      };
+      this.studio.services = this.api.services;
       this.studio.removeAttribute('dirty');
     }
   }
@@ -152,20 +148,20 @@ class ApiPolicyStudioController {
 
   fetchPolicyDocumentation({detail}) {
     const policy = detail.policy;
-    this.studio.setAttribute('documentation', null);
-    this.PolicyService.getDocumentation(policy.id).then((response) => {
-      this.studio.setAttribute('documentation', JSON.stringify({content: response.data, image: policy.icon, id: policy.id}));
-    });
+    this.PolicyService.getDocumentation(policy.id)
+      .then((response) => {
+        this.studio.documentation = {content: response.data, image: policy.icon, id: policy.id};
+      })
+      .catch(() => this.studio.documentation = null);
   }
 
   fetchResourceDocumentation(event) {
-    this.studio.setAttribute('documentation', null);
     const {detail: {resourceType, target}} = event;
-    // force refresh
-    target.setAttribute('documentation', null);
-    this.ResourceService.getDocumentation(resourceType.id).then((response) => {
-      target.setAttribute('documentation', JSON.stringify({content: response.data, image: resourceType.icon}));
-    });
+    this.ResourceService.getDocumentation(resourceType.id)
+      .then((response) => {
+        target.documentation = {content: response.data, image: resourceType.icon};
+      })
+      .catch(() => target.documentation = null);
   }
 
   onSave({detail: {definition, services}}) {
@@ -176,7 +172,7 @@ class ApiPolicyStudioController {
     this.api.services = services;
     this.ApiService.update(this.api).then((updatedApi) => {
       this.NotificationService.show('Design of api has been updated');
-      this.setApi(updatedApi.data);
+      this.studio.saved();
       this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
     });
   }
