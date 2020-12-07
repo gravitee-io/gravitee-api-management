@@ -65,6 +65,9 @@
             <includes>
                 <include>**/*</include>
             </includes>
+            <excludes>
+                <exclude>**/.work/**</exclude>
+            </excludes>
             <fileMode>755</fileMode>
         </fileSet>
 
