@@ -110,6 +110,7 @@
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-rx-java2</artifactId>
 			<version>${vertx.version}</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
