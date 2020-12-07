@@ -37,6 +37,8 @@
             <unpack>false</unpack>
             <excludes>
                 <exclude>io.gravitee.*:*</exclude>
+                <exclude>org.springframework:*</exclude>
+                <exclude>org.springframework.security:spring-security-core</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>

@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.rest.api</groupId>
         <artifactId>gravitee-rest-api</artifactId>
-    <version>3.5.0-SNAPSHOT</version>
+        <version>3.5.0-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.rest.api.idp</groupId>
@@ -40,6 +40,22 @@
         <module>gravitee-rest-api-idp-memory</module>
         <module>gravitee-rest-api-idp-repository</module>
     </modules>
+
+    <dependencies>
+        <!-- Exclude from plugin zip -->
+        <dependency>
+            <groupId>io.gravitee.common</groupId>
+            <artifactId>gravitee-common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Exclude from plugin zip -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
     <dependencyManagement>
         <dependencies>
@@ -58,6 +74,7 @@
                 <version>${spring.security.version}</version>
                 <scope>provided</scope>
             </dependency>
+
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-config</artifactId>
