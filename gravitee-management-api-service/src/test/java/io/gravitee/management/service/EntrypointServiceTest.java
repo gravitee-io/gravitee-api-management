@@ -19,7 +19,6 @@ import io.gravitee.management.model.EntrypointEntity;
 import io.gravitee.management.model.NewEntryPointEntity;
 import io.gravitee.management.model.UpdateEntryPointEntity;
 import io.gravitee.management.service.exceptions.EntrypointNotFoundException;
-import io.gravitee.management.service.exceptions.EntrypointTagsAlreadyExistsException;
 import io.gravitee.management.service.impl.EntrypointServiceImpl;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
@@ -113,9 +112,6 @@ public class EntrypointServiceTest {
 
     @Test
     public void shouldUpdateWithSameTags() throws Exception {
-        // use to check existing tags excluding current entry point
-        when(entrypointRepository.findAll()).thenReturn(newHashSet(singletonList(entrypointUpdated)));
-
         final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
         entrypoint.setId(ID);
         entrypoint.setValue(NEW_VALUE);
@@ -153,23 +149,4 @@ public class EntrypointServiceTest {
         entrypointService.delete(UNKNOWN_ID);
     }
 
-    @Test(expected = EntrypointTagsAlreadyExistsException.class)
-    public void shouldNotCreateWithSameTags() throws Exception {
-        when(entrypointRepository.findAll()).thenReturn(newHashSet(singletonList(entrypointCreated)));
-
-        final NewEntryPointEntity entrypoint = new NewEntryPointEntity();
-        entrypoint.setTags(new String[]{"product", "private"});
-        entrypointService.create(entrypoint);
-    }
-
-    @Test(expected = EntrypointTagsAlreadyExistsException.class)
-    public void shouldNotUpdateWithSameTags() throws Exception {
-        when(entrypointRepository.findAll()).thenReturn(newHashSet(singletonList(entrypointUpdated)));
-
-        final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
-        entrypoint.setId("new ID");
-        entrypoint.setValue(VALUE);
-        entrypoint.setTags(NEW_TAGS);
-        entrypointService.update(entrypoint);
-    }
 }

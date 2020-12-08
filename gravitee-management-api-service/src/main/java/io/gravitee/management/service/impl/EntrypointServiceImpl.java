@@ -22,7 +22,6 @@ import io.gravitee.management.model.UpdateEntryPointEntity;
 import io.gravitee.management.service.AuditService;
 import io.gravitee.management.service.EntrypointService;
 import io.gravitee.management.service.exceptions.EntrypointNotFoundException;
-import io.gravitee.management.service.exceptions.EntrypointTagsAlreadyExistsException;
 import io.gravitee.management.service.exceptions.TechnicalManagementException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EntrypointRepository;
@@ -32,12 +31,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENTRYPOINT;
 import static io.gravitee.repository.management.model.Entrypoint.AuditEvent.*;
-import static java.util.Arrays.sort;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -85,7 +86,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     @Override
     public EntrypointEntity create(final NewEntryPointEntity entrypointEntity) {
         try {
-            checkTagsOnExistingEntryPoints(entrypointEntity.getTags(), null);
             final Entrypoint entrypoint = convert(entrypointEntity);
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
             auditService.createPortalAuditLog(
@@ -104,7 +104,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     @Override
     public EntrypointEntity update(final UpdateEntryPointEntity entrypointEntity) {
         try {
-            checkTagsOnExistingEntryPoints(entrypointEntity.getTags(), entrypointEntity.getId());
             final Optional<Entrypoint> entrypointOptional = entrypointRepository.findById(entrypointEntity.getId());
             if (entrypointOptional.isPresent()) {
                 final Entrypoint entrypoint = convert(entrypointEntity);
@@ -122,21 +121,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update entrypoint {}", entrypointEntity.getValue(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update entrypoint " + entrypointEntity.getValue(), ex);
-        }
-    }
-
-    private void checkTagsOnExistingEntryPoints(final String[] tags, final String entrypointIdToIgnore) throws TechnicalException {
-        // first check for existing entry point with same tags
-        final boolean tagsAlreadyDefined = entrypointRepository.findAll().stream()
-                .filter(entrypoint -> entrypointIdToIgnore == null || !entrypoint.getId().equals(entrypointIdToIgnore))
-                .anyMatch(entrypoint -> {
-                    final String[] entrypointTags = entrypoint.getTags().split(SEPARATOR);
-                    sort(entrypointTags);
-                    sort(tags);
-                    return Arrays.equals(entrypointTags, tags);
-                });
-        if (tagsAlreadyDefined) {
-            throw new EntrypointTagsAlreadyExistsException();
         }
     }
 
