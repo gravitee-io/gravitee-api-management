@@ -28,7 +28,7 @@
 
     <groupId>io.gravitee.repository</groupId>
     <artifactId>gravitee-repository-test</artifactId>
-    <version>3.4.1-SNAPSHOT</version>
+    <version>3.4.1</version>
     <name>Gravitee.io APIM - Repository - Test</name>
 
     <properties>
