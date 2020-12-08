@@ -28,12 +28,12 @@
 
     <groupId>io.gravitee.repository</groupId>
     <artifactId>gravitee-repository-jdbc</artifactId>
-    <version>3.4.1-SNAPSHOT</version>
+    <version>3.4.1</version>
     <name>Gravitee.io APIM - Repository - JDBC</name>
 
     <properties>
         <gravitee-repository.version>3.4.0</gravitee-repository.version>
-        <gravitee-repository-test.version>3.4.1-SNAPSHOT</gravitee-repository-test.version>
+        <gravitee-repository-test.version>3.4.1</gravitee-repository-test.version>
         <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
         <HikariCP.version>3.4.1</HikariCP.version>
         <liquibase.version>3.8.0</liquibase.version>
