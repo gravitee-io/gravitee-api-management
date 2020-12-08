@@ -22,6 +22,23 @@
   ng-class="{'md-sidenav-min': $ctrl.reducedMode}"
   style="overflow: inherit;">
 
+  <div class="sidenav-header" ng-if="!$ctrl.reducedMode">
+    <md-select
+      aria-label="environments"
+      ng-model="$ctrl.Constants.org.currentEnv"
+      ng-model-options="{trackBy: '$value.id'}"
+      ng-change="$ctrl.changeCurrentEnv()"
+      ng-disabled="$ctrl.Constants.org.environments.length <= 1"
+    >
+      <md-option
+        ng-value="environment"
+        ng-repeat="environment in $ctrl.Constants.org.environments"
+      >
+        {{environment.name}}
+      </md-option>
+    </md-select>
+  </div>
+
   <md-list class="sidenav-list">
     <md-list-item ng-repeat="menuItem in $ctrl.menuItems|orderBy:'data.menu.order' track by menuItem.name">
       <md-tooltip md-delay="400">{{menuItem.data.menu.label}}</md-tooltip>
@@ -36,14 +53,27 @@
   </md-list>
 
   <div class="sidenav-footer">
-      <md-button
-        class="md-fab md-mini sidenav-toggle"
-        md-no-ink
-        md-no-focus-style
-        ng-click="$ctrl.toggleReducedMode()"
-        aria-label="Mini FAB">
-        <ng-md-icon class="sidenav-toggle-icon" size="16"
-                    icon="{{$ctrl.reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon>
-      </md-button>
+    <md-list permission permission-only="'organization-settings-r'">
+      <hr>
+      <md-list-item>
+        <md-tooltip md-delay="400" md-direction="top">Organization settings</md-tooltip>
+        <a ui-sref="organization" title="Organization settings">
+          <ng-md-icon icon="settings_applications"></ng-md-icon>
+          <span>Organization settings</span>
+        </a>
+      </md-list-item>
+    </md-list>
+
+
+    <md-button
+      class="md-fab md-mini sidenav-toggle"
+      md-no-ink
+      md-no-focus-style
+      ng-click="$ctrl.toggleReducedMode()"
+      aria-label="Mini FAB">
+
+      <ng-md-icon class="sidenav-toggle-icon" size="16"
+                  icon="{{$ctrl.reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon>
+    </md-button>
   </div>
 </md-sidenav>

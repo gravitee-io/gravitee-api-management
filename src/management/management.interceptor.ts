@@ -157,11 +157,25 @@ function interceptorConfig(
     };
   };
 
+  const replaceEnvInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
+    return {
+      request: function (config) {
+        let constants: any = $injector.get('Constants');
+        if (config.url.includes('{:envId}')) {
+          config.url = config.url.replace('{:envId}', constants.org.currentEnv.id);
+        }
+        return config;
+      }
+    };
+  };
+
+
   if ($httpProvider.interceptors) {
     $httpProvider.interceptors.push(csrfInterceptor);
     $httpProvider.interceptors.push(reCaptchaInterceptor);
     $httpProvider.interceptors.push(interceptorUnauthorized);
     $httpProvider.interceptors.push(interceptorTimeout);
+    $httpProvider.interceptors.push(replaceEnvInterceptor);
   }
 }
 

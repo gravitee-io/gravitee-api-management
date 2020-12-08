@@ -19,7 +19,7 @@ import TagService from '../../services/tag.service';
 import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
 import ApiService from '../../services/api.service';
-import {StateProvider} from '../../../node_modules/@uirouter/angularjs';
+import { StateProvider } from '../../../node_modules/@uirouter/angularjs';
 import TenantService from '../../services/tenant.service';
 import UserService from '../../services/user.service';
 import PolicyService from '../../services/policy.service';

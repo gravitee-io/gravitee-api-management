@@ -44,12 +44,11 @@ function fetchData() {
       let build = responses[1].data;
       angular.module('gravitee-management').constant('Build', build);
       ConstantsJSON = computeBaseURLs(ConstantsJSON);
-      return $q.all([$http.get(`${ConstantsJSON.env.baseURL}/portal`), $http.get(`${ConstantsJSON.org.baseURL}/console`)]);
+      return $http.get(`${ConstantsJSON.org.baseURL}/console`);
     })
     .then((responses: any) => {
       let constants = _.assign(ConstantsJSON);
-      constants.env.settings = responses[0].data;
-      constants.org.settings = responses[1].data;
+      constants.org.settings = responses.data;
 
       angular.module('gravitee-management').constant('Constants', constants);
 
@@ -84,7 +83,8 @@ function computeBaseURLs(constants: any): any {
   constants.org = {};
   constants.org.baseURL = `${basePath}/organizations/DEFAULT`;
   constants.env = {};
-  constants.env.baseURL = `${constants.org.baseURL}/environments/DEFAULT`;
+  // we use a placeholder here ({:envId}) that will be replaced in management.interceptor
+  constants.env.baseURL = `${constants.org.baseURL}/environments/{:envId}`;
 
   return constants;
 }

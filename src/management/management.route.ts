@@ -32,7 +32,7 @@ function managementRouterConfig($stateProvider) {
       redirectTo: 'management.apis.list',
       parent: 'withSidenav',
       controller: function ($rootScope, Constants) {
-        $rootScope.portalTitle = Constants.org.settings.management.title;
+        $rootScope.consoleTitle = Constants.org.settings.management.title;
       }
     })
     .state('management.instances', {

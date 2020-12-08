@@ -18,7 +18,9 @@ import { User } from './entities/user';
 import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 import { StateProvider, UrlService } from '@uirouter/angularjs';
-import ConsoleService from './services/console.service';
+import OrganizationService from './services/organization.service';
+import PortalConfigService from './services/portalConfig.service';
+import EnvironmentService from './services/environment.service';
 
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   'ngInject';
@@ -33,6 +35,55 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           '</div>',
         resolve: {
           graviteeUser: (UserService: UserService) => UserService.current()
+        },
+        onEnter: (PortalConfigService: PortalConfigService, EnvironmentService: EnvironmentService, Constants, $window) => {
+          if (!Constants.org.currentEnv) {
+            return EnvironmentService.list()
+              .then(response => {
+                Constants.org.environments = response.data;
+
+                const lastEnvironmentLoaded = 'gv-last-environment-loaded';
+                const lastEnv = $window.localStorage.getItem(lastEnvironmentLoaded);
+                if (lastEnv !== null) {
+                  const foundEnv = Constants.org.environments.find(env => env.id === lastEnv);
+                  if (foundEnv) {
+                    Constants.org.currentEnv = Constants.org.environments.find(env => env.id === lastEnv);
+                  } else {
+                    Constants.org.currentEnv = Constants.org.environments[0];
+                    $window.localStorage.removeItem(lastEnvironmentLoaded);
+                  }
+                } else {
+                  Constants.org.currentEnv = Constants.org.environments[0];
+                }
+
+                return response.data;
+              })
+              .then((environments) => {
+                if (environments && environments.length >= 1) {
+                  return PortalConfigService.get();
+                }
+              })
+              .then(response => {
+                if (response) {
+                  Constants.env.settings = response.data;
+                }
+              });
+          }
+        }
+      }
+    )
+    .state(
+      'withoutSidenav',
+      {
+        parent: 'root',
+        abstract: true,
+        views: {
+          '': {
+            template: '<div flex layout="row">' +
+              '<div class="gv-main-container" ui-view layout="column" flex></div>' +
+              '<gv-contextual-doc></gv-contextual-doc>' +
+              '</div>'
+          }
         }
       }
     )
@@ -81,13 +132,14 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       template: require('./user/login/login.html'),
       controller: 'LoginController',
       controllerAs: '$ctrl',
+      redirectTo: transition => {
+        const UserService = transition.injector().get('UserService');
+        if (UserService.currentUser && UserService.currentUser.id) {
+          return 'management';
+        }
+      },
       resolve: {
-        checkUser: function (UserService, $state) {
-          if (UserService.currentUser && UserService.currentUser.id) {
-            $state.go('management');
-          }
-        },
-        identityProviders: (ConsoleService: ConsoleService) => ConsoleService.listSocialIdentityProviders().then(response => response.data)
+        identityProviders: (OrganizationService: OrganizationService) => OrganizationService.listSocialIdentityProviders().then(response => response.data)
       },
       params: {
         redirectUri: {
@@ -100,13 +152,12 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       template: require('./user/registration/registration.html'),
       controller: 'RegistrationController',
       controllerAs: '$ctrl',
-      resolve: {
-        checkUser: function (UserService, $state) {
-          if (UserService.currentUser && UserService.currentUser.id) {
-            $state.go('management');
-          }
+      redirectTo: transition => {
+        const UserService = transition.injector().get('UserService');
+        if (UserService.currentUser && UserService.currentUser.id) {
+          return 'management';
         }
-      }
+      },
     })
     .state('confirm', {
       url: '/registration/confirm/:token',
@@ -122,7 +173,9 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
     })
     .state('logout', {
       template: '<div class="gravitee-no-sidenav-container"></div>',
-      controller: (UserService: UserService, $state: StateService, $rootScope: IScope, $window: ng.IWindowService) => {
+      controller: (UserService: UserService, $state: StateService, $rootScope: IScope, $window: ng.IWindowService, Constants) => {
+        delete Constants.org.currentEnv;
+        delete Constants.org.environments;
         UserService.logout().then(
           () => {
             $state.go('login');

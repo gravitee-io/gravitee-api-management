@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import ApiService from '../../../services/api.service';
-import {StateParams} from '@uirouter/core';
+import { StateParams } from '@uirouter/core';
 import TenantService from '../../../services/tenant.service';
 import DashboardService from '../../../services/dashboard.service';
 

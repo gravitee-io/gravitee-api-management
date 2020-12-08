@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {IScope, IWindowService} from 'angular';
+import { IScope, IWindowService } from 'angular';
 import { StateService } from '@uirouter/core';
+import PortalConfigService from '../../services/portalConfig.service';
+
 
 export const SidenavComponent: ng.IComponentOptions = {
   template: require('./sidenav.html'),
@@ -24,19 +26,33 @@ export const SidenavComponent: ng.IComponentOptions = {
     allMenuItems: '<'
   },
   controller: function(
+    Constants,
     $window: IWindowService,
     $scope: IScope,
     $state: StateService,
-    $rootScope: IScope) {
+    $rootScope: IScope,
+    PortalConfigService: PortalConfigService) {
     'ngInject';
+    const lastEnvironmentLoaded = 'gv-last-environment-loaded';
     const reduceModeKey = 'gv-sidenav-reduce-mode';
     this.$window = $window;
     this.reducedMode = false;
+    this.Constants = Constants;
+    this.PortalConfigService = PortalConfigService;
+    this.$state = $state;
 
     this.$onInit = () => {
+      this.updateCurrentEnvSettings();
       if (this.$window.localStorage.getItem(reduceModeKey) !== null) {
         this.reducedMode = JSON.parse(this.$window.localStorage.getItem(reduceModeKey));
       }
+    };
+
+    this.updateCurrentEnvSettings = () => {
+      PortalConfigService.get().then(response => {
+        Constants.env.settings = response.data;
+        $rootScope.$broadcast('graviteePortalUrlRefresh', Constants.env.settings.portal.url);
+      });
     };
 
     this.toggleReducedMode = () => {
@@ -57,5 +73,12 @@ export const SidenavComponent: ng.IComponentOptions = {
         this.toggleReducedMode();
       }
     });
+
+    this.changeCurrentEnv = () => {
+      this.updateCurrentEnvSettings();
+      $window.localStorage.setItem(lastEnvironmentLoaded, Constants.org.currentEnv.id);
+
+      $state.go('management', {}, {reload: true});
+    };
   }
 };

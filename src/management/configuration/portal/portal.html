@@ -99,141 +99,149 @@
     <h2>Portal</h2>
     <div class="gv-form-content" layout="column">
       <h3>General</h3>
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Api-key Header
-          <small>(Used by portal to display the CURL command, change the YAML configuration to impact the
-            gateway)</small>
-        </label>
-        <input ng-model="$ctrl.settings.portal.apikeyHeader"
-               ng-disabled="$ctrl.isReadonlySetting('portal.apikey.header')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apikey.header')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
-      <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.portal.apis.tilesMode.enabled"
-                     aria-label="Tiles Mode"
-                     ng-disabled="$ctrl.isReadonlySetting('portal.apis.tilesMode.enabled')">
-          Use Tiles Mode for apis by default (if not overridden by user)
-          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apis.tilesMode.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-        </md-checkbox>
-      </md-input-container>
-      <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.portal.support.enabled"
-                     aria-label="Support"
-                     ng-disabled="$ctrl.isReadonlySetting('portal.support.enabled')">
-          Activate Support
-          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.support.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-        </md-checkbox>
-      </md-input-container>
-      <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.portal.rating.enabled"
-                     aria-label="Rating"
-                     ng-disabled="$ctrl.isReadonlySetting('portal.rating.enabled')">
-          Activate Rating
-          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.rating.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-        </md-checkbox>
-      </md-input-container>
-      <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.portal.rating.comment.mandatory"
-                     ng-disabled="$ctrl.isReadonlySetting('portal.rating.comment.mandatory')"
-                     aria-label="Rating comment mandatory"
-        >
-          Force user to fill comment before to save a rating
-          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.rating.comment.mandatory')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-        </md-checkbox>
-      </md-input-container>
-      <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.portal.userCreation.enabled"
-                     aria-label="Allow user creation"
-                     ng-disabled="$ctrl.isReadonlySetting('portal.userCreation.enabled')">
-          Allow User Registration
-          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.userCreation.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-        </md-checkbox>
-      </md-input-container>
-      <md-input-container class="gv-input-container-dense  portal-component__sub-input">
-        <md-checkbox ng-model="$ctrl.settings.portal.userCreation.automaticValidation.enabled"
-                     ng-disabled="!$ctrl.settings.portal.userCreation.enabled || $ctrl.isReadonlySetting('portal.userCreation.automaticValidation.enabled')"
-                     aria-label="Enable auto validation of creation">
-          Enable automatic validation of registration requests.
-          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.userCreation.automaticValidation.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-        </md-checkbox>
-      </md-input-container>
-      <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.portal.analytics.enabled"
-                     aria-label="Add Google Analytics"
-                     ng-disabled="$ctrl.isReadonlySetting('portal.analytics.enabled')">
-          Add Google Analytics
-          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.analytics.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-        </md-checkbox>
-      </md-input-container>
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Google Analytics TrackingId</label>
-        <input ng-model="$ctrl.settings.portal.analytics.trackingId"
-               ng-disabled="$ctrl.isReadonlySetting('portal.analytics.trackingId')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.analytics.trackingId')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
-      <md-input-container class="gv-input-container-dense">
-        <md-checkbox ng-model="$ctrl.settings.portal.uploadMedia.enabled"
-                     ng-disabled="$ctrl.isReadonlySetting('portal.uploadMedia.enabled')"
-                     aria-label="Allow upload media">
-          Allow Upload Images
-          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.uploadMedia.enabled')">Configuration provided by the system</md-tooltip>
-        </md-checkbox>
-      </md-input-container>
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Max size upload file (bytes)</label>
-        <input type="number" min="0" ng-model="$ctrl.settings.portal.uploadMedia.maxSizeInOctet"
-               ng-disabled="$ctrl.isReadonlySetting('portal.uploadMedia.maxSizeInOctet')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.uploadMedia.maxSizeInOctet')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
-      <md-input-container class="md-block" flex-gt-xs>
-        <label>Portal URL</label>
-        <input type="text" ng-model="$ctrl.settings.portal.url"
-               ng-disabled="$ctrl.isReadonlySetting('portal.url')">
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.url')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-      </md-input-container>
+      <div class="gv-form-content" layout="column">
+        <md-input-container class="md-block" flex-gt-xs>
+          <label>Api-key Header
+            <small>(Used by portal to display the CURL command, change the YAML configuration to impact the
+              gateway)</small>
+          </label>
+          <input ng-model="$ctrl.settings.portal.apikeyHeader"
+                 ng-disabled="$ctrl.isReadonlySetting('portal.apikey.header')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apikey.header')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+          <label>Portal URL</label>
+          <input type="text" ng-model="$ctrl.settings.portal.url"
+                 ng-disabled="$ctrl.isReadonlySetting('portal.url')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.url')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-input-container>
+      </div>
+
+      <h3>Options</h3>
+      <div class="gv-form-content" layout="column">
+        <md-input-container class="gv-input-container-dense">
+          <md-checkbox ng-model="$ctrl.settings.portal.apis.tilesMode.enabled"
+                       aria-label="Tiles Mode"
+                       ng-disabled="$ctrl.isReadonlySetting('portal.apis.tilesMode.enabled')">
+            Use Tiles Mode for apis by default (if not overridden by user)
+            <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apis.tilesMode.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+          </md-checkbox>
+        </md-input-container>
+        <md-input-container class="gv-input-container-dense">
+          <md-checkbox ng-model="$ctrl.settings.portal.support.enabled"
+                       aria-label="Support"
+                       ng-disabled="$ctrl.isReadonlySetting('portal.support.enabled')">
+            Activate Support
+            <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.support.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+          </md-checkbox>
+        </md-input-container>
+        <md-input-container class="gv-input-container-dense">
+          <md-checkbox ng-model="$ctrl.settings.portal.rating.enabled"
+                       aria-label="Rating"
+                       ng-disabled="$ctrl.isReadonlySetting('portal.rating.enabled')">
+            Activate Rating
+            <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.rating.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+          </md-checkbox>
+        </md-input-container>
+        <md-input-container class="gv-input-container-dense">
+          <md-checkbox ng-model="$ctrl.settings.portal.rating.comment.mandatory"
+                       ng-disabled="$ctrl.isReadonlySetting('portal.rating.comment.mandatory')"
+                       aria-label="Rating comment mandatory"
+          >
+            Force user to fill comment before to save a rating
+            <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.rating.comment.mandatory')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+          </md-checkbox>
+        </md-input-container>
+        <md-input-container class="gv-input-container-dense">
+          <md-checkbox ng-model="$ctrl.settings.portal.userCreation.enabled"
+                       aria-label="Allow user creation"
+                       ng-disabled="$ctrl.isReadonlySetting('portal.userCreation.enabled')">
+            Allow User Registration
+            <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.userCreation.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+          </md-checkbox>
+        </md-input-container>
+        <md-input-container class="gv-input-container-dense  portal-component__sub-input">
+          <md-checkbox ng-model="$ctrl.settings.portal.userCreation.automaticValidation.enabled"
+                       ng-disabled="!$ctrl.settings.portal.userCreation.enabled || $ctrl.isReadonlySetting('portal.userCreation.automaticValidation.enabled')"
+                       aria-label="Enable auto validation of creation">
+            Enable automatic validation of registration requests.
+            <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.userCreation.automaticValidation.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+          </md-checkbox>
+        </md-input-container>
+        <md-input-container class="gv-input-container-dense">
+          <md-checkbox ng-model="$ctrl.settings.portal.analytics.enabled"
+                       aria-label="Add Google Analytics"
+                       ng-disabled="$ctrl.isReadonlySetting('portal.analytics.enabled')">
+            Add Google Analytics
+            <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.analytics.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+          </md-checkbox>
+        </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+          <label>Google Analytics TrackingId</label>
+          <input ng-model="$ctrl.settings.portal.analytics.trackingId"
+                 ng-disabled="$ctrl.isReadonlySetting('portal.analytics.trackingId')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.analytics.trackingId')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-input-container>
+        <md-input-container class="gv-input-container-dense">
+          <md-checkbox ng-model="$ctrl.settings.portal.uploadMedia.enabled"
+                       ng-disabled="$ctrl.isReadonlySetting('portal.uploadMedia.enabled')"
+                       aria-label="Allow upload media">
+            Allow Upload Images
+            <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.uploadMedia.enabled')">Configuration provided by the system</md-tooltip>
+          </md-checkbox>
+        </md-input-container>
+        <md-input-container class="md-block" flex-gt-xs>
+          <label>Max size upload file (bytes)</label>
+          <input type="number" min="0" ng-model="$ctrl.settings.portal.uploadMedia.maxSizeInOctet"
+                 ng-disabled="$ctrl.isReadonlySetting('portal.uploadMedia.maxSizeInOctet')">
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.uploadMedia.maxSizeInOctet')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-input-container>
+      </div>
 
       <h3>OpenAPI viewers</h3>
-      <table md-table class="gv-table-dense" style="width: auto">
-        <tr>
-          <td>
-            <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled" aria-label="swagger"
-                       ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled || $ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')"
-                       ng-change="$ctrl.toggleDocType()">
-              Swagger-UI
-              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-            </md-switch>
-          </td>
-          <td>
-            <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
-              <md-radio-button value="Swagger" class="md-primary"
-                               ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.default')"
-                               style="margin-bottom: 0px;"
-              >Set as default
-              </md-radio-button>
-              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.default')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-            </md-radio-group>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled" aria-label="swagger"
-                       ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')"
-                       ng-change="$ctrl.toggleDocType()">
-              Redoc
-              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-            </md-switch>
-          </td>
-          <td>
-            <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
-              <md-radio-button value="Redoc" class="md-primary"
-                               ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled  || $ctrl.isReadonlySetting('open.api.doc.type.default')"
-                               style="margin-bottom: 0px;">Set as default
-              </md-radio-button>
-              <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.default')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
-            </md-radio-group>
-          </td>
-        </tr>
-      </table>
+      <div class="gv-form-content" layout="column">
+        <table md-table class="gv-table-dense" style="width: auto">
+          <tr>
+            <td>
+              <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled" aria-label="swagger"
+                         ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled || $ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')"
+                         ng-change="$ctrl.toggleDocType()">
+                Swagger-UI
+                <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+              </md-switch>
+            </td>
+            <td>
+              <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
+                <md-radio-button value="Swagger" class="md-primary"
+                                 ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.default')"
+                                 style="margin-bottom: 0px;"
+                >Set as default
+                </md-radio-button>
+                <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.default')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+              </md-radio-group>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <md-switch ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled" aria-label="swagger"
+                         ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')"
+                         ng-change="$ctrl.toggleDocType()">
+                Redoc
+                <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+              </md-switch>
+            </td>
+            <td>
+              <md-radio-group ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.defaultType">
+                <md-radio-button value="Redoc" class="md-primary"
+                                 ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled  || $ctrl.isReadonlySetting('open.api.doc.type.default')"
+                                 style="margin-bottom: 0px;">Set as default
+                </md-radio-button>
+                <md-tooltip ng-if="$ctrl.isReadonlySetting('open.api.doc.type.default')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+              </md-radio-group>
+            </td>
+          </tr>
+        </table>
+      </div>
 
       <h3>Schedulers</h3>
       <div class="gv-form-content" layout="column">

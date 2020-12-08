@@ -40,11 +40,11 @@ $backgroundColor: #fdfdfd;
 @import 'management/api/api';
 @import 'management/api/creation/newApi';
 @import 'management/application/applications';
-@import 'management/configuration/notification-templates/components/notificationTemplateByType';
+@import 'organization/configuration/notification-templates/components/notificationTemplateByType';
 @import 'management/configuration/theme/theme';
 @import 'management/configuration/portal/portal';
-@import 'management/configuration/user/user';
-@import 'management/configuration/users/users';
+@import 'organization/configuration/user/user';
+@import 'organization/configuration/users/users';
 @import 'management/configuration/groups/group/group';
 @import 'management/configuration/categories/category/category';
 @import 'management/datatable';
@@ -138,9 +138,11 @@ body {
 md-toolbar {
   font-size: 18px;
   min-height: 49px;
+
   .md-tall {
     min-height: 100px;
   }
+
   z-index: 10;
 }
 
@@ -183,6 +185,7 @@ table {
     position: relative;
     top: 0;
   }
+
   code {
     position: relative;
     top: -6px;
@@ -255,9 +258,11 @@ tbody {
 
 md-toast {
   position: fixed;
+
   &.md-toast-success-theme .md-toast-content {
     background-color: #4ea44d;
   }
+
   &.md-toast-error-theme .md-toast-content {
     background-color: #bd362f;
   }
@@ -376,9 +381,11 @@ md-list-item::before {
 
 .api-box-icon {
   height: 50px;
+
   &.api-box-icon-figure {
     width: 150px;
   }
+
   img {
     display: block;
     max-width: 150px;
@@ -386,6 +393,7 @@ md-list-item::before {
     width: auto;
     height: auto;
   }
+
   &.default {
     background-size: auto 100%;
   }
@@ -409,19 +417,24 @@ md-list-item::before {
     md-card-header {
       padding: 0px 0px 20px 0px;
     }
+
     md-card-avatar {
       width: 35px;
       height: 20px;
     }
+
     md-card-content {
       padding: 0px;
     }
+
     md-card-footer {
       padding: 0px 5px 5px 5px;
     }
+
     .api-box-description {
       text-align: center;
     }
+
     .api-box-name-version {
       font-size: 14px;
       font-weight: 700;
@@ -434,9 +447,11 @@ md-list-item::before {
         padding: 0px;
       }
     }
+
     .api-box-state {
       font-size: 12px;
     }
+
     .api-box-footer {
       color: #cdcdcd;
     }
@@ -495,11 +510,11 @@ md-card.no-box-shadow {
 }
 
 .md-content {
-  padding-top: $sidenavHeaderHeight;
+  padding-top: $navbarHeaderHeight;
 }
 
 .gv-main-container {
-  height: calc(100vh - #{$sidenavHeaderHeight});
+  height: calc(100vh - #{$navbarHeaderHeight});
 }
 
 .gv-button-toggled {
@@ -533,9 +548,9 @@ md-card.no-box-shadow {
   font-family: 'gravitee';
   src: url('./assets/font/gravitee.eot');
   src: url('./assets/font/gravitee.eot#iefix') format('embedded-opentype'),
-       url('./assets/font/gravitee.woff') format('woff'),
-       url('./assets/font/gravitee.ttf') format('truetype'),
-       url('./assets/font/gravitee.svg#gravitee') format('svg');
+  url('./assets/font/gravitee.woff') format('woff'),
+  url('./assets/font/gravitee.ttf') format('truetype'),
+  url('./assets/font/gravitee.svg#gravitee') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -619,7 +634,7 @@ md-progress-circular {
   top: 200px;
 }
 
-.ipsum{
+.ipsum {
   font-size: 11px;
   line-height: 14px;
   color: grey;

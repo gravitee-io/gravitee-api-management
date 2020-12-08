@@ -44,7 +44,7 @@ const RolesComponent: ng.IComponentOptions = {
     };
 
     this.newRole = (roleScope) => {
-      $state.go('management.settings.rolenew', {roleScope: roleScope});
+      $state.go('organization.settings.rolenew', {roleScope: roleScope});
     };
 
     this.deleteRole = (role) => {
@@ -73,7 +73,7 @@ const RolesComponent: ng.IComponentOptions = {
     };
 
     this.manageMembers = (role) => {
-      $state.go('management.settings.rolemembers', {roleScope: role.scope, role: role.name});
+      $state.go('organization.settings.rolemembers', {roleScope: role.scope, role: role.name});
     };
   }
 };

@@ -67,7 +67,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     $state.go('login', {redirectUri: params.redirectUri});
   });
 
-  $rootScope.$watch(function() {
+  $rootScope.$watch(function () {
     return $http.pendingRequests.length > 0;
   }, function(hasPendingRequests) {
     $rootScope.isLoading = hasPendingRequests;

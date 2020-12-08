@@ -68,7 +68,7 @@ class IdentityProviderController {
         };
       }
     } else {
-      this.tokenExchangeEndpoint = this.Constants.env.baseURL + '/auth/oauth2/' + this.identityProvider.id;
+      this.tokenExchangeEndpoint = this.Constants.org.baseURL + '/auth/oauth2/' + this.identityProvider.id;
     }
     this.initialIdentityProvider = _.cloneDeep(this.identityProvider);
   }
@@ -102,7 +102,7 @@ class IdentityProviderController {
     if (!this.updateMode) {
       this.IdentityProviderService.create(this.identityProvider).then((response: any) => {
         this.NotificationService.show('Identity provider ' + this.identityProvider.name + ' has been created');
-        this.$state.go('management.settings.organization.identityproviders.identityprovider', { id: response.data.id }, { reload: true });
+        this.$state.go('organization.settings.identityproviders.identityprovider', { id: response.data.id }, { reload: true });
       });
     } else {
       this.IdentityProviderService.update(this.identityProvider).then((response) => {

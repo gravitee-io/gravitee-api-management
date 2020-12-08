@@ -38,7 +38,7 @@ const NewUserComponent: ng.IComponentOptions = {
     this.create = () => {
       UserService.create(this.user).then(() => {
         NotificationService.show('User registered with success');
-        $state.go('management.settings.users');
+        $state.go('organization.settings.users');
       });
     };
   }

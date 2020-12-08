@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 import NotificationSettingsService from '../../../../services/notificationSettings.service';
-import {Scope} from '../../../../entities/scope';
+import { Scope } from '../../../../entities/scope';
 import AlertService from '../../../../services/alert.service';
-import ApplicationService from '../../../../services/application.service';
-import NotifierService from '../../../../services/notifier.service';
 
 export default applicationsNotificationsRouterConfig;
 

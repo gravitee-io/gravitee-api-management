@@ -20,7 +20,6 @@ import MetadataService from '../../services/metadata.service';
 import RoleService from '../../services/role.service';
 import GroupService from '../../services/group.service';
 import TopApiService from '../../services/top-api.service';
-import UserService from '../../services/user.service';
 import ApiService from '../../services/api.service';
 import DictionaryService from '../../services/dictionary.service';
 import ApiHeaderService from '../../services/apiHeader.service';
@@ -34,7 +33,6 @@ import QualityRuleService from '../../services/qualityRule.service';
 import DashboardService from '../../services/dashboard.service';
 import CustomUserFieldsService from '../../services/custom-user-fields.service';
 import EnvironmentService from '../../services/environment.service';
-import ConsoleService from '../../services/console.service';
 import _ = require('lodash');
 
 export default configurationRouterConfig;
@@ -56,9 +54,9 @@ function configurationRouterConfig($stateProvider) {
           only: [
             // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
             'environment-category-r', 'environment-metadata-r', 'environment-top_apis-r', 'environment-group-r',
-            'environment-tag-c', 'environment-tenant-c', 'environment-group-c', 'organization-role-c', 'environment-documentation-c',
-            'environment-tag-u', 'environment-tenant-u', 'environment-group-u', 'organization-role-u', 'environment-documentation-u',
-            'environment-tag-d', 'environment-tenant-d', 'environment-group-d', 'organization-role-d', 'environment-documentation-d',
+            'environment-tag-c', 'environment-tenant-c', 'environment-group-c', 'environment-documentation-c',
+            'environment-tag-u', 'environment-tenant-u', 'environment-group-u', 'environment-documentation-u',
+            'environment-tag-d', 'environment-tenant-d', 'environment-group-d', 'environment-documentation-d',
             'environment-api_header-r'
           ]
         }
@@ -496,83 +494,6 @@ function configurationRouterConfig($stateProvider) {
         }
       }
     })
-    .state('management.settings.roles', {
-      url: '/roles',
-      component: 'roles',
-      resolve: {
-        roleScopes: (RoleService: RoleService) => RoleService.listScopes(),
-        organizationRoles: (RoleService: RoleService) => RoleService.list('ORGANIZATION'),
-        environmentRoles: (RoleService: RoleService) => RoleService.list('ENVIRONMENT'),
-        apiRoles: (RoleService: RoleService) => RoleService.list('API'),
-        applicationRoles: (RoleService: RoleService) => RoleService.list('APPLICATION')
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-roles'
-        },
-        perms: {
-          only: ['organization-role-r']
-        }
-      },
-      params: {
-        roleScope: {
-          type: 'string',
-          value: 'ORGANIZATION',
-          squash: false
-        }
-      }
-    })
-    .state('management.settings.rolenew', {
-      url: '/role/:roleScope/new',
-      component: 'role',
-      resolve: {
-        roleScopes: (RoleService: RoleService) => RoleService.listScopes()
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-roles'
-        },
-        perms: {
-          only: ['organization-role-c']
-        }
-      }
-    })
-    .state('management.settings.roleedit', {
-      url: '/role/:roleScope/:role',
-      component: 'role',
-      resolve: {
-        roleScopes: (RoleService: RoleService) => RoleService.listScopes()
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-roles'
-        },
-        perms: {
-          only: ['organization-role-u']
-        }
-      }
-    })
-    .state('management.settings.rolemembers', {
-      url: '/role/:roleScope/:role/members',
-      component: 'roleMembers',
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-roles'
-        },
-        perms: {
-          only: ['organization-role-u']
-        }
-      },
-      resolve: {
-        members: (RoleService: RoleService, $stateParams) =>
-          RoleService.listUsers($stateParams.roleScope, $stateParams.role).then((response) => response
-          )
-      }
-    })
     .state('management.settings.customUserFields', {
       url: '/custom-user-fields',
       component: 'customUserFields',
@@ -618,104 +539,6 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['environment-top_apis-r']
-        }
-      }
-    })
-    .state('management.settings.users', {
-      url: '/users?q&page',
-      component: 'users',
-      resolve: {
-        usersPage: (UserService: UserService, $state, $stateParams) =>
-          UserService.list($stateParams.q, $stateParams.page).then(response => response.data)
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-users'
-        },
-        perms: {
-          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d']
-        }
-      },
-      params: {
-        page: {
-          value: '1',
-          dynamic: true
-        }
-      }
-    })
-    .state('management.settings.user', {
-      url: '/users/:userId',
-      component: 'userDetail',
-      resolve: {
-        selectedUser: (UserService: UserService, $stateParams) =>
-          UserService.get($stateParams.userId).then(response =>
-            response
-          ),
-        groups: (UserService: UserService, $stateParams) =>
-          UserService.getUserGroups($stateParams.userId).then(response =>
-            response.data
-          ),
-        organizationRoles: (RoleService: RoleService) =>
-          RoleService.list('ORGANIZATION').then((roles) =>
-            roles
-          ),
-        environments: (EnvironmentService: EnvironmentService) =>
-          EnvironmentService.list().then(response => response.data
-          ),
-        environmentRoles: (RoleService: RoleService) =>
-          RoleService.list('ENVIRONMENT').then((roles) =>
-            roles
-          ),
-        apiRoles: (RoleService: RoleService) =>
-          RoleService.list('API').then((roles) =>
-            [{ 'scope': 'API', 'name': '', 'system': false }].concat(roles)
-          ),
-        applicationRoles: (RoleService: RoleService) =>
-          RoleService.list('APPLICATION').then( (roles) =>
-            [{'scope': 'APPLICATION', 'name': '', 'system': false}].concat(roles)
-          ),
-        customUserFields: (CustomUserFieldsService: CustomUserFieldsService) => CustomUserFieldsService.list().then(response => response.data)
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-user'
-        },
-        perms: {
-          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d']
-        }
-      }
-    })
-    .state('management.settings.newuser', {
-      url: '/users/new',
-      component: 'newUser',
-      resolve: {
-        identityProviders: (IdentityProviderService: IdentityProviderService) => IdentityProviderService.list()
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-create-user'
-        },
-        perms: {
-          only: ['organization-user-c']
-        }
-      }
-    })
-    .state('management.settings.console', {
-      url: '/console',
-      component: 'consoleSettings',
-      resolve: {
-        tags: (TagService: TagService) => TagService.list().then(response => response.data)
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-console'
-        },
-        perms: {
-          only: ['organization-settings-r']
         }
       }
     })
@@ -904,12 +727,12 @@ function configurationRouterConfig($stateProvider) {
       component: 'identityProviders',
       resolve: {
         target: () => 'ENVIRONMENT',
-        targetId: () => 'DEFAULT',
+        targetId: (Constants) => Constants.org.currentEnv.id,
         identityProviders: (IdentityProviderService: IdentityProviderService) =>
           IdentityProviderService.list().then(response => response),
 
-        identities: (EnvironmentService: EnvironmentService) =>
-          EnvironmentService.listEnvironmentIdentities('DEFAULT').then(response => response.data)
+        identities: (EnvironmentService: EnvironmentService, Constants) =>
+          EnvironmentService.listEnvironmentIdentities(Constants.org.currentEnv.id).then(response => response.data)
       },
       data: {
         menu: null,
@@ -918,79 +741,6 @@ function configurationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['environment-identity_provider_activation-r']
-        }
-      }
-    })
-    .state('management.settings.organization', {
-      abstract: true,
-      url: '/organization'
-    })
-    .state('management.settings.organization.identityproviders', {
-      abstract: true,
-      url: '/identities'
-    })
-    .state('management.settings.organization.identityproviders.list', {
-      url: '/',
-      component: 'identityProviders',
-      resolve: {
-        target: () => 'ORGANIZATION',
-        targetId: () => 'DEFAULT',
-        identityProviders: (IdentityProviderService: IdentityProviderService) =>
-          IdentityProviderService.list().then(response => response),
-
-        identities: (ConsoleService: ConsoleService) =>
-          ConsoleService.listOrganizationIdentities().then(response => response.data)
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-identityproviders'
-        },
-        perms: {
-          only: ['organization-identity_provider-r']
-        }
-      }
-    })
-    .state('management.settings.organization.identityproviders.new', {
-      url: '/new?:type',
-      component: 'identityProvider',
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-identityprovider'
-        },
-        perms: {
-          only: ['organization-identity_provider-c']
-        }
-      }
-    })
-    .state('management.settings.organization.identityproviders.identityprovider', {
-      url: '/:id',
-      component: 'identityProvider',
-      resolve: {
-        identityProvider: (IdentityProviderService: IdentityProviderService, $stateParams) =>
-          IdentityProviderService.get($stateParams.id).then(response => response),
-
-        groups: (GroupService: GroupService) =>
-          GroupService.list().then(response => response.data),
-
-        environmentRoles: (RoleService: RoleService) =>
-          RoleService.list('ENVIRONMENT').then((roles) =>
-            roles
-          ),
-
-        organizationRoles: (RoleService: RoleService) =>
-          RoleService.list('ORGANIZATION').then((roles) =>
-            roles
-          )
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-identityprovider'
-        },
-        perms: {
-          only: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d']
         }
       }
     })

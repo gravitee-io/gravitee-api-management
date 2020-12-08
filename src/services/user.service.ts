@@ -35,6 +35,7 @@ class UserService {
   private customUserFieldsURL: string;
   private routerInitialized: boolean = false;
   private isLogout: boolean = false;
+  private Constants: any;
 
   constructor(private $http: ng.IHttpService,
               private $q: ng.IQService,
@@ -54,6 +55,7 @@ class UserService {
     this.usersURL = `${Constants.org.baseURL}/users/`;
     this.userURL = `${Constants.org.baseURL}/user/`;
     this.customUserFieldsURL = `${Constants.org.baseURL}/configuration/custom-user-fields`;
+    this.Constants = Constants;
   }
 
   list(query?: string, page = 1, size = 10): ng.IPromise<any> {
@@ -145,19 +147,20 @@ class UserService {
             });
           });
 
-          if (response[1]) {
-            if (_.includes(response[1].config.url, 'applications')) {
+          const apiOrApplicationResponse = response[1];
+          if (apiOrApplicationResponse) {
+            if (_.includes(apiOrApplicationResponse.config.url, 'applications')) {
               this.currentUser.userApplicationPermissions = [];
-              _.forEach(_.keys(response[1].data), function (permission) {
-                _.forEach(response[1].data[permission], function (right) {
+              _.forEach(_.keys(apiOrApplicationResponse.data), function (permission) {
+                _.forEach(apiOrApplicationResponse.data[permission], function (right) {
                   let permissionName = 'APPLICATION-' + permission + '-' + right;
                   that.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
                 });
               });
-            } else if (_.includes(response[1].config.url, 'apis')) {
+            } else if (_.includes(apiOrApplicationResponse.config.url, 'apis')) {
               this.currentUser.userApiPermissions = [];
-              _.forEach(_.keys(response[1].data), function (permission) {
-                _.forEach(response[1].data[permission], function (right) {
+              _.forEach(_.keys(apiOrApplicationResponse.data), function (permission) {
+                _.forEach(apiOrApplicationResponse.data[permission], function (right) {
                   let permissionName = 'API-' + permission + '-' + right;
                   that.currentUser.userApiPermissions.push(_.toLower(permissionName));
                 });

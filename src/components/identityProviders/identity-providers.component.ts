@@ -19,7 +19,7 @@ import IdentityProviderService from '../../services/identityProvider.service';
 import NotificationService from '../../services/notification.service';
 import PortalConfigService from '../../services/portalConfig.service';
 import { IScope } from 'angular';
-import ConsoleService from '../../services/console.service';
+import OrganizationService from '../../services/organization.service';
 import EnvironmentService from '../../services/environment.service';
 import ConsoleConfigService from '../../services/consoleConfig.service';
 import _ = require('lodash');
@@ -36,7 +36,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     $mdDialog: angular.material.IDialogService,
     IdentityProviderService: IdentityProviderService,
     EnvironmentService: EnvironmentService,
-    ConsoleService: ConsoleService,
+    OrganizationService: OrganizationService,
     ConsoleConfigService: ConsoleConfigService,
     PortalConfigService: PortalConfigService,
     NotificationService: NotificationService,
@@ -58,6 +58,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
       }
 
       this.identities.forEach((ipa: IdentityProviderActivation) => this.activatedIdps[ipa.identityProvider] = true);
+
     };
 
     this.availableProviders = [
@@ -68,7 +69,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     ];
 
     this.create = (type) => {
-      $state.go('management.settings.organization.identityproviders.new', { type: type });
+      $state.go('organization.settings.identityproviders.new', { type: type });
     };
 
     this.delete = (provider: IdentityProvider) => {
@@ -87,10 +88,14 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
         if (response) {
           IdentityProviderService.delete(provider).then(response => {
             NotificationService.show('Identity provider \'' + provider.name + '\' has been deleted');
-            $state.go('management.settings.organization.identityproviders.list', {}, { reload: true });
+            $state.go('organization.settings.identityproviders.list', {}, { reload: true });
           });
         }
       });
+    };
+
+    this.hasActivatedIdp = () => {
+      return Object.keys(this.activatedIdps).length > 0;
     };
 
     this.saveForceLogin = () => {
@@ -138,13 +143,26 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
           .map(idpId => ({ identityProvider: idpId }));
 
       if (this.target === 'ENVIRONMENT') {
-        EnvironmentService.updateEnvironmentIdentities(this.targetId, updatedIPA).then(response =>
-          NotificationService.show(identityProviderId + ' is now ' + (this.activatedIdps[identityProviderId] ? 'enabled' : 'disabled'))
-        );
+        EnvironmentService.updateEnvironmentIdentities(this.targetId, updatedIPA).then(this._updateHandler(identityProviderId));
       } else {
-        ConsoleService.updateOrganizationIdentities(updatedIPA).then(response =>
-          NotificationService.show(identityProviderId + ' is now ' + (this.activatedIdps[identityProviderId] ? 'enabled' : 'disabled'))
-        );
+        OrganizationService.updateOrganizationIdentities(updatedIPA).then(this._updateHandler(identityProviderId));
+      }
+    };
+
+    this._updateHandler = (identityProviderId) => {
+      return response => {
+        NotificationService.show(identityProviderId + ' is now ' + (this.activatedIdps[identityProviderId] ? 'enabled' : 'disabled'));
+        if (!this.activatedIdps[identityProviderId]) {
+          delete this.activatedIdps[identityProviderId];
+          this.updateLocalLoginState();
+        }
+      };
+    };
+
+    this.updateLocalLoginState = () => {
+      if (!this.hasActivatedIdp() && !this.settings.authentication.localLogin.enabled) {
+        this.settings.authentication.localLogin.enabled = true;
+        this.saveShowLoginForm();
       }
     };
 

@@ -16,25 +16,25 @@
 
 import { IdentityProviderActivation } from '../entities/identityProvider';
 
-class ConsoleService {
-  private consoleURL: string;
+class OrganizationService {
+  private organizationURL: string;
 
   constructor(private $http, Constants, private $q) {
     'ngInject';
-    this.consoleURL = `${Constants.org.baseURL}`;
+    this.organizationURL = `${Constants.org.baseURL}`;
   }
 
   listSocialIdentityProviders() {
-    return this.$http.get(this.consoleURL + '/social-identities');
+    return this.$http.get(this.organizationURL + '/social-identities');
   }
 
   listOrganizationIdentities() {
-    return this.$http.get(`${this.consoleURL}/identities`);
+    return this.$http.get(`${this.organizationURL}/identities`);
   }
 
   updateOrganizationIdentities(updatedIPA: IdentityProviderActivation[]) {
-    return this.$http.put(`${this.consoleURL}/identities`, updatedIPA);
+    return this.$http.put(`${this.organizationURL}/identities`, updatedIPA);
   }
 }
 
-export default ConsoleService;
+export default OrganizationService;

@@ -15,9 +15,9 @@
  */
 import UserService from '../../../services/user.service';
 import NotificationService from '../../../services/notification.service';
-import {User} from '../../../entities/user';
-import {StateService} from '@uirouter/core';
-import {IScope} from 'angular';
+import { User } from '../../../entities/user';
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 
 const UsersComponent: ng.IComponentOptions = {
   bindings: {
@@ -81,7 +81,7 @@ const UsersComponent: ng.IComponentOptions = {
     };
 
     this.newUser = () => {
-      $state.go('management.settings.newuser');
+      $state.go('organization.settings.newuser');
     };
   }
 };

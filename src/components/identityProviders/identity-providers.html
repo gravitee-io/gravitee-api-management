@@ -34,7 +34,7 @@
         <md-checkbox aria-label="Show login form"
                      ng-change="$ctrl.saveShowLoginForm()"
                      ng-model="$ctrl.settings.authentication.localLogin.enabled"
-                     ng-disabled="$ctrl.isReadonlySetting('portal.authentication.localLogin.enabled') || $ctrl.identityProviders.length === 0">
+                     ng-disabled="$ctrl.isReadonlySetting('portal.authentication.localLogin.enabled') || !$ctrl.hasActivatedIdp()">
           Show login form on portal
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.authentication.localLogin.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
@@ -88,7 +88,7 @@
         <md-checkbox aria-label="Show login form"
                      ng-change="$ctrl.saveShowLoginForm()"
                      ng-model="$ctrl.settings.authentication.localLogin.enabled"
-                     ng-disabled="$ctrl.isReadonlySetting('console.authentication.localLogin.enabled') || $ctrl.identityProviders.length === 0">
+                     ng-disabled="$ctrl.isReadonlySetting('console.authentication.localLogin.enabled') || !$ctrl.hasActivatedIdp()">
           Show login form on management console
           <md-tooltip ng-if="$ctrl.isReadonlySetting('console.authentication.localLogin.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-checkbox>
@@ -118,7 +118,7 @@
               ></md-icon>
             </td>
             <td md-cell>
-              <a ui-sref="management.settings.organization.identityproviders.identityprovider({id: identityProvider.id})">{{identityProvider.id}}</a>
+              <a ui-sref="organization.settings.identityproviders.identityprovider({id: identityProvider.id})">{{identityProvider.id}}</a>
             </td>
             <td md-cell>{{identityProvider.name}}</td>
             <td md-cell>{{identityProvider.description}}</td>

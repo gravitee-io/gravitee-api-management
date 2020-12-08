@@ -48,6 +48,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
     border-bottom: 1px solid #e2e5e7;
+
+    a {
+      display: flex;
+      align-items: center;
+      font-size: small;
+
+
+      ng-md-icon {
+        top: initial;
+        line-height: 18px;
+      }
+    }
   }
   .menu {
     padding: 0 16px 0 0;

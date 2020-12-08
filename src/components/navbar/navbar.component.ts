@@ -19,7 +19,7 @@ import { IIntervalService, IScope } from 'angular';
 import { PagedResult } from '../../entities/pagedResult';
 import UserNotificationService from '../../services/userNotification.service';
 import { StateService } from '@uirouter/core';
-import ConsoleService from '../../services/console.service';
+import OrganizationService from '../../services/organization.service';
 import AuthenticationService from '../../services/authentication.service';
 
 export const NavbarComponent: ng.IComponentOptions = {
@@ -28,7 +28,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     UserService: UserService,
     TaskService: TaskService,
     UserNotificationService: UserNotificationService,
-    ConsoleService: ConsoleService,
+    OrganizationService: OrganizationService,
     $scope: IScope,
     Constants,
     $rootScope: IScope,
@@ -53,6 +53,10 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.visible = true;
     vm.localLoginDisabled = (!Constants.org.settings.authentication.localLogin.enabled) || false;
     vm.refreshUser(UserService.currentUser);
+
+    $scope.$on('graviteePortalUrlRefresh', (event, portalURL) => {
+      vm.portalURL = portalURL;
+    });
 
     $scope.$on('graviteeUserRefresh', (event, { user, refresh }) => {
 
@@ -108,7 +112,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.$onInit = function () {
       vm.supportEnabled = Constants.org.settings.management.support.enabled;
       $scope.$emit('graviteeUserRefresh', { user: undefined, refresh: true });
-      vm.portalURL = Constants.env.settings.portal.url;
+      vm.portalURL = Constants.env.settings ? Constants.env.settings.portal.url : undefined;
     };
 
     vm.userShortName = function () {
@@ -170,7 +174,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     };
 
     vm.authenticate = function () {
-      ConsoleService.listSocialIdentityProviders().then((response) => {
+      OrganizationService.listSocialIdentityProviders().then((response) => {
         let providers = response.data;
         if (vm.localLoginDisabled && providers.length === 1) {
           AuthenticationService.authenticate(providers[0]);

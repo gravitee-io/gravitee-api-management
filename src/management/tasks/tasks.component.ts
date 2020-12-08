@@ -67,7 +67,7 @@ const TasksComponent: ng.IComponentOptions = {
           $state.go('management.apis.detail.portal.general', { apiId: task.data.referenceId });
           break;
         case 'user_registration_approval':
-          $state.go('management.settings.user', { userId: task.data.id });
+          $state.go('organization.settings.user', { userId: task.data.id });
           break;
       }
     };

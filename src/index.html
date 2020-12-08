@@ -19,10 +19,10 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title ng-bind="portalTitle"></title>
+  <title ng-bind="consoleTitle"></title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width">
-  <link rel="icon" href="favicon.ico" />
+  <link rel="icon" href="favicon.ico"/>
   <style type="text/css">
     [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak],
     .ng-cloak, .x-ng-cloak,
@@ -75,7 +75,7 @@
      *
      * returns version of IE or false, if browser is not Internet Explorer
      */
-    function detectIE() {
+    function detectIE () {
       let ua = window.navigator.userAgent;
       let msie = ua.indexOf('MSIE ');
       if (msie > 0) {
@@ -97,7 +97,7 @@
       return false;
     }
 
-    window.onload = function() {
+    window.onload = function () {
       let isIE = detectIE();
       if (isIE !== false && isIE < 12) {
         document.getElementById("BrowserNotSupportedBanner").style.display = "";
@@ -107,15 +107,17 @@
 </head>
 
 <body layout="column">
-  <p id="BrowserNotSupportedBanner" class="browsehappy" style="display: none">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<p id="BrowserNotSupportedBanner" class="browsehappy" style="display: none">You are using an
+  <strong>outdated</strong> browser. Please
+  <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
 
-  <div id="gravitee-error"></div>
+<div id="gravitee-error"></div>
 
-  <div id="loader" ng-show="displayLoader" class="gravitee-splash-screen animate-show-hide"></div>
+<div id="loader" ng-show="displayLoader" class="gravitee-splash-screen animate-show-hide"></div>
 
-  <gravitee-navbar></gravitee-navbar>
-  <div flex ui-view></div>
-  <gv-newsletter-subscription></gv-newsletter-subscription>
-  <script src="webcomponents/webcomponents-loader.js"></script>
+<gravitee-navbar></gravitee-navbar>
+<div flex ui-view></div>
+<gv-newsletter-subscription></gv-newsletter-subscription>
+<script src="webcomponents/webcomponents-loader.js"></script>
 </body>
 </html>

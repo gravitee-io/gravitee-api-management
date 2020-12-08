@@ -15,8 +15,8 @@
  */
 import RoleService from '../../../../services/role.service';
 import NotificationService from '../../../../services/notification.service';
+import { StateService } from '@uirouter/core';
 import _ = require('lodash');
-import {StateService} from '@uirouter/core';
 
 const RoleComponent: ng.IComponentOptions = {
   bindings: {
@@ -45,7 +45,7 @@ const RoleComponent: ng.IComponentOptions = {
             }))
           };
         } else {
-          $state.go('management.settings.roles');
+          $state.go('organization.settings.roles');
         }
       }
     };
@@ -65,7 +65,7 @@ const RoleComponent: ng.IComponentOptions = {
         that.formRole.$setPristine();
         NotificationService.show(`Role ${that.editMode ? 'updated' : 'created'} with success`);
         if (!that.editMode) {
-          $state.go('management.settings.roleedit', {roleScope: that.role.scope, role: that.role.name});
+          $state.go('organization.settings.roleedit', {roleScope: that.role.scope, role: that.role.name});
         }
       });
     };

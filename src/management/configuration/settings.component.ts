@@ -68,11 +68,6 @@ const SettingsComponent: ng.IComponentOptions = {
           ['environment-metadata-r']),
         goTo: 'management.settings.metadata'
       },
-      consoleSettings: {
-        perm: UserService.isUserHasPermissions(
-          ['organization-settings-r']),
-        goTo: 'management.settings.console'
-      },
       portalSettings: {
         perm: UserService.isUserHasPermissions(
           ['environment-settings-r']),
@@ -92,18 +87,6 @@ const SettingsComponent: ng.IComponentOptions = {
         perm: UserService.isUserHasPermissions(
           ['environment-category-r']),
         goTo: 'management.settings.categories'
-      },
-
-      // MANAGEMENT
-      managementSettings: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-settings-r']),
-        goTo: 'management.settings.management'
-      },
-      organizationIdentityProviders: {
-        perm: UserService.isUserHasAllPermissions(
-          ['organization-identity_provider-r', 'organization-identity_provider_activation-r']),
-        goTo: 'management.settings.organization.identityproviders.list'
       },
 
       // GATEWAYS
@@ -129,20 +112,10 @@ const SettingsComponent: ng.IComponentOptions = {
       },
 
       // USER MANAGEMENT
-      users: {
-        perm: UserService.isUserHasPermissions(
-          ['organization-user-r']),
-        goTo: 'management.settings.users'
-      },
       groups: {
         perm: UserService.isUserHasPermissions(
           ['environment-group-r']),
         goTo: 'management.settings.groups.list'
-      },
-      roles: {
-        perm: UserService.isUserHasPermissions(
-          ['organization-role-c', 'organization-role-u', 'organization-role-d']),
-        goTo: 'management.settings.roles'
       },
       customUserFields: {
         perm: UserService.isUserHasPermissions(
@@ -154,10 +127,6 @@ const SettingsComponent: ng.IComponentOptions = {
       notifications: {
         perm: UserService.isUserHasPermissions(['environment-notification-r']),
         goTo: 'management.settings.notifications'
-      },
-      notificationTemplates: {
-        perm: UserService.isUserHasPermissions(['organization-notification_templates-r']),
-        goTo: 'management.settings.notificationTemplates'
       },
       alerts: {
         perm: UserService.isUserHasPermissions(['environment-alert-r']) && Constants.org.settings.alert && Constants.org.settings.alert.enabled,

@@ -41,7 +41,7 @@ class ApiService {
     'ngInject';
     this.apisURL = `${Constants.env.baseURL}/apis/`;
     this.Constants = Constants;
-    this.analyticsHttpTimeout = Constants.env.settings.analytics.clientTimeout as number;
+    this.analyticsHttpTimeout = Constants.org.settings.analytics.clientTimeout as number;
   }
 
   defaultHttpHeaders(): string[] {

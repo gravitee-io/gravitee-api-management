@@ -1,7 +1,7 @@
 md-toolbar.topnavbar {
-  max-height: 54px;
-  height: 54px;
-  min-height: 54px;
+  max-height: $navbarHeaderHeight;
+  height: $navbarHeaderHeight;
+  min-height: $navbarHeaderHeight;
   position: fixed;
   //dialog popup has a zindex value of 80
   z-index: 75;
@@ -11,7 +11,7 @@ md-toolbar.topnavbar {
   margin-left: 4px;
   img {
     max-width: 80px;
-    max-height: 50px;
+    max-height: #{$navbarHeaderHeight -4px};
   }
 }
 

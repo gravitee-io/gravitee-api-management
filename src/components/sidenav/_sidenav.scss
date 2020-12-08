@@ -4,34 +4,6 @@
   max-width: $width;
 }
 
-.navigation-header {
-  .logo-image {
-    display: block;
-    width: 48px;
-    min-width: 48px;
-    height: 48px;
-    line-height: 48px;
-    text-align: center;
-    font-size: 16px;
-    font-weight: 500;
-    color: #FFF;
-    border-radius: 5px;
-    margin-left: 5px;
-  }
-
-  .logo-text {
-    color: #FFF;
-    font-size: 14px;
-    margin-left: 5px;
-  }
-}
-
-/*
-md-toolbar.md-default-theme:not(.md-menu-toolbar), md-toolbar:not(.md-menu-toolbar) {
-  background-color: rgba(255,255,255,.05);
-}
-*/
-
 md-sidenav {
   @include min-max-width($sidenavWidth);
   background-color: $bgColor;
@@ -52,7 +24,19 @@ md-sidenav {
   margin: 0;
 }
 
-md-sidenav, .sidenav-list md-list-item.subheader::before, md-list-item::before, .sidenav-list h4, .sidenav-list md-list-item.subheader, .sidenav-list hr, .sidenav-list span {
+.md-sidenav-min .sidenav-list {
+  // navbar-header
+  height: calc(100vh - #{$navbarHeaderHeight} - #{$sidenavFooterHeight});
+}
+
+
+md-sidenav,
+md-list-item::before,
+md-list-item.subheader,
+md-list-item.subheader::before,
+.sidenav-list h4,
+.sidenav-list hr, .sidenav-footer hr,
+.sidenav-list span, .sidenav-footer span {
   transition: .40s all;
 	-moz-transition: .40s all;
 	-webkit-transition: .40s all;
@@ -60,7 +44,7 @@ md-sidenav, .sidenav-list md-list-item.subheader::before, md-list-item::before, 
 }
 
 
-.md-sidenav-min .sidenav-list md-list-item.subheader {
+.md-sidenav-min md-list-item.subheader {
   min-height: 0;
 }
 
@@ -68,12 +52,8 @@ md-sidenav, .sidenav-list md-list-item.subheader::before, md-list-item::before, 
   min-height: 0;
 }
 
-.md-sidenav-min .sidenav-list hr {
+.md-sidenav-min .sidenav-list hr  {
   border-top: 1px solid #eee;
-}
-
-.sidenav-list hr {
-  border-top: #28444F;
 }
 
 md-sidenav.md-sidenav-theme {
@@ -84,33 +64,16 @@ md-sidenav:not(._md-locked-open) {
   box-shadow: 0 5px 5px -3px rgba(0,0,0,.2), 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12);
 }
 
-.sidenav-list-button {
-  width: 100%;
-  text-align: left;
-  margin: 0px;
-  text-transform: none;
-}
-
-.sidenav-user-contents {
+.sidenav-header {
   height: $sidenavHeaderHeight;
-  white-space: nowrap;
 
-  img {
-    padding-top: 3px;
-    padding-left: 3px;
-    border-radius: 40px;
-    height: $sidenavHeaderHeight;
-    max-width: 45px;
-    max-height: 45px;
-    vertical-align: middle;
-  }
-}
+  md-select {
+    margin: 12px;
+    background-color: white;
 
-#sidenav-user-name {
-  color: $fontColor;
-
-  & ng-md-icon {
-    fill: $fontColor;
+    md-select-value {
+      padding-left: 2px;
+    }
   }
 }
 
@@ -118,7 +81,8 @@ md-sidenav:not(._md-locked-open) {
   overflow-y: auto;
   overflow-x: hidden;
 
-  height: calc(100vh - #{$sidenavHeaderHeight});
+  // must take into account: navbar-header, sidenav-header & sidenav-footer
+  height: calc(100vh - #{$navbarHeaderHeight} - #{$sidenavHeaderHeight} - #{$sidenavFooterHeight});
   padding: 0;
 
   & md-list-item {
@@ -172,6 +136,8 @@ md-sidenav:not(._md-locked-open) {
 }
 
 .sidenav-footer {
+  height: $sidenavFooterHeight;
+  overflow-x: hidden;
   padding: 0;
 
   ng-md-icon {
@@ -188,7 +154,7 @@ md-sidenav:not(._md-locked-open) {
   }
 
   .md-button.sidenav-toggle {
-    bottom: 20px;
+    bottom: calc(20px + #{$sidenavFooterHeight});
     position: absolute;
     right: -15px;
     width: 18px !important;
@@ -208,8 +174,27 @@ md-sidenav:not(._md-locked-open) {
     font-weight: bold;
   }
 
-  md-list-item:last-child {
-    margin-top: -100px;
+  md-list {
+    display: initial;
+  }
+
+  md-list-item {
+    min-height: 40px;
+    padding: 0;
+    width: 200px;
+
+    a {
+      color: $fontColor;
+      text-decoration: none;
+      width: 100%;
+      padding: 0 0 8px $sidenavItemLeftWidth;
+
+      &:hover {
+        font-weight: bold;
+        background-color: #1C1C25;
+      }
+
+    }
   }
 }
 

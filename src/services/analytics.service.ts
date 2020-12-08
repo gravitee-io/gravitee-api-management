@@ -35,7 +35,7 @@ class AnalyticsService {
     'ngInject';
     this.platformUrl = `${Constants.env.baseURL}/platform`;
     this.analyticsURL = `${Constants.env.baseURL}/platform/analytics`;
-    this.analyticsHttpTimeout = Constants.env.settings.analytics.clientTimeout as number;
+    this.analyticsHttpTimeout = Constants.org.settings.analytics.clientTimeout as number;
   }
 
   /*
