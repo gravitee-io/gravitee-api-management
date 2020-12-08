@@ -36,13 +36,19 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
 
+import static io.gravitee.management.service.impl.AbstractService.MANAGEMENT_ADMIN;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -108,7 +114,6 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
 
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(SUBSCRIPTION_ID);
-
         assertNotNull(subscriptionEntity);
     }
 
@@ -927,7 +932,60 @@ public class SubscriptionServiceTest {
         final GroupEntity group = new GroupEntity();
         group.setId("excl2");
 
+        final SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authMock = new TestingAuthenticationToken(null, null, "USER");
+        when(securityContext.getAuthentication()).thenReturn(authMock);
+        SecurityContextHolder.setContext(securityContext);
+
         // Run
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+    }
+
+    public void shouldCreateWithGroupRestriction_BecauseAdmin() throws Exception {
+        // Prepare data
+        when(plan.getExcludedGroups()).thenReturn(asList("excl1", "excl2"));
+        when(plan.getApis()).thenReturn(singleton("api1"));
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+
+        // subscription object is not a mock since its state is updated by the call to subscriptionService.create()
+        Subscription subscription = new Subscription();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setPlan(PLAN_ID);
+        subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
+
+        // Stub
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
+        when(apiService.findByIdForTemplates("api1")).thenReturn(apiModelEntity);
+
+        when(subscriptionRepository.create(any())).thenAnswer(new Answer<Subscription>() {
+            @Override
+            public Subscription answer(InvocationOnMock invocation) throws Throwable {
+                Subscription subscription = (Subscription) invocation.getArguments()[0];
+                subscription.setId(SUBSCRIPTION_ID);
+                return subscription;
+            }
+        });
+
+        final SecurityContext securityContext = mock(SecurityContext.class);
+        UserDetails principal = new UserDetails("toto", "pwdtoto", asList(new SimpleGrantedAuthority(MANAGEMENT_ADMIN)));
+        Authentication authMock = new TestingAuthenticationToken(principal, null, MANAGEMENT_ADMIN);
+        when(securityContext.getAuthentication()).thenReturn(authMock);
+        SecurityContextHolder.setContext(securityContext);
+
+        // Run
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+
+        // Verify
+        verify(subscriptionRepository, times(1)).create(any(Subscription.class));
+        assertNotNull(subscriptionEntity.getId());
+        assertNotNull(subscriptionEntity.getApplication());
+        assertNotNull(subscriptionEntity.getCreatedAt());
     }
 }
