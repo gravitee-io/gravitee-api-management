@@ -69,6 +69,8 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
             } else {
               policy.model = {};
             }
+          } else {
+            policy.model = {};
           }
         });
       });
@@ -100,14 +102,14 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
       if (!this.parent.hasPoliciesStep()) {
         const me = this;
         const pre = this.parent.restrictionsPolicies.map((restriction) => {
-          const policyId = restriction.quota ? 'quota' : restriction['rate-limit'] ? 'rate-limit' : restriction['resource-filtering'] ? 'resource-filtering' : null;
+          const {methods, enabled, ...rest} = restriction;
+          const policyId = Object.keys(rest)[0];
           const policy = me.policies.find((policy) => policy.id === policyId);
           const name = policy.title;
           const description = policy.description;
-          const enabled = true;
           const configuration = restriction[policyId];
           return {
-            name, description, enabled, configuration
+            name, description, enabled, configuration, policy: policyId
           };
         });
         this.parent.plan.flows = [
