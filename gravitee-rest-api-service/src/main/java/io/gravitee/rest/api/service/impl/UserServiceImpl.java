@@ -1121,7 +1121,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     null);
             emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
                     .to(user.getEmail())
-                    .template(EmailNotificationBuilder.EmailTemplate.PORTAL_PASSWORD_RESET)
+                    .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_PASSWORD_RESET)
                     .params(params)
                     .build(),
                     GraviteeContext.getCurrentContext()
