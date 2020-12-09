@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.parameters;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 
@@ -133,6 +134,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
     }
 
     //Classes
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Alert {
         @ParameterKey(Key.ALERT_ENABLED)
         private Boolean enabled;
@@ -146,6 +148,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ConsoleAuthentication extends CommonAuthentication{
         @ParameterKey(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED)
         private Enabled localLogin;
@@ -159,6 +162,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ConsoleCors {
         @ParameterKey(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN)
         private List<String> allowOrigin;
@@ -216,6 +220,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ConsoleReCaptcha {
         @ParameterKey(Key.CONSOLE_RECAPTCHA_ENABLED)
         private Boolean enabled;
@@ -239,6 +244,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ConsoleScheduler {
         @JsonProperty("tasks")
         @ParameterKey(Key.CONSOLE_SCHEDULER_TASKS)
@@ -265,6 +271,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Logging {
         @ParameterKey(Key.LOGGING_DEFAULT_MAX_DURATION)
         private Long maxDurationMillis;
@@ -344,6 +351,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Maintenance {
         @ParameterKey(Key.MAINTENANCE_MODE_ENABLED)
         private Boolean enabled;
@@ -357,6 +365,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Management {
         @ParameterKey(Key.CONSOLE_SUPPORT_ENABLED)
         private Enabled support;
@@ -410,6 +419,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Newsletter {
         @ParameterKey(Key.NEWSLETTER_ENABLED)
         private Boolean enabled;
@@ -423,6 +433,7 @@ public class ConsoleConfigEntity extends AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Theme {
         @ParameterKey(Key.THEME_NAME)
         private String name;

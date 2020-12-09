@@ -66,6 +66,7 @@ public abstract class AbstractCommonConfigEntity {
     }
 
     // Classes
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Analytics {
         @ParameterKey(Key.ANALYTICS_CLIENT_TIMEOUT)
         private Long clientTimeout;
@@ -78,6 +79,7 @@ public abstract class AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CommonAuthentication {
         private GoogleAuthentication google = new GoogleAuthentication();
         private GithubAuthentication github = new GithubAuthentication();
@@ -147,6 +149,7 @@ public abstract class AbstractCommonConfigEntity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Email {
         @ParameterKey(Key.EMAIL_ENABLED)
         private Boolean enabled;

@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
-import io.gravitee.repository.exceptions.TechnicalException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -59,6 +58,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     private final static Map<String, Float> PAGE_FIELD_BOOST = new HashMap<String, Float>() {
         {
             put("name", 1.0f);
+            put("name_lowercase", 1.0f);
+            put("name_split", 1.0f);
             put("content", 1.0f);
         }
     };
@@ -74,8 +75,11 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 "ownerName",
                 "ownerMail",
                 "labels",
+                "labels_split",
                 "tags",
+                "tags_split",
                 "categories",
+                "categories_split",
                 "paths",
                 "paths_split",
                 "hosts",
@@ -86,7 +90,9 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
         QueryParser pageParser = new MultiFieldQueryParser(new String[]{
                 "name",
-                "content"
+                "name_lowercase",
+                "name_split",
+                "content",
         }, analyzer, PAGE_FIELD_BOOST);
         pageParser.setFuzzyMinSim(0.6f);
         pageParser.setAllowLeadingWildcard(true);
@@ -107,6 +113,9 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             apiFieldsQuery.add(new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("paths", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("hosts", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("labels", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("categories", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("tags", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
 
             apiQuery.add(apiFieldsQuery.build(), BooleanClause.Occur.MUST);
             apiQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.MUST);
@@ -116,7 +125,14 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
             // Search in page fields
             BooleanQuery.Builder pageQuery = new BooleanQuery.Builder();
-            pageQuery.add(parsePage, BooleanClause.Occur.MUST);
+            BooleanQuery.Builder pageFieldsQuery = new BooleanQuery.Builder();
+
+            pageFieldsQuery.add(parsePage, BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(new WildcardQuery(new Term("content", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+
+            pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
             pageQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_PAGE_TYPE_VALUE)), BooleanClause.Occur.MUST);
 
             apisFilter = getApisFilter(FIELD_API_TYPE_VALUE, query.getFilters());

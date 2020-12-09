@@ -44,11 +44,6 @@ public class FlowServiceTest {
             "      \"description\": \"The name of flow. If empty, the name will be generated with the path and methods\",\n" +
             "      \"type\": \"string\"\n" +
             "    },\n" +
-            "    \"description\": {\n" +
-            "      \"title\": \"Description\",\n" +
-            "      \"description\": \"The description of flow\",\n" +
-            "      \"type\": \"string\"\n" +
-            "    },\n" +
             "    \"path-operator\": {\n" +
             "      \"type\": \"object\",\n" +
             "      \"properties\": {\n" +

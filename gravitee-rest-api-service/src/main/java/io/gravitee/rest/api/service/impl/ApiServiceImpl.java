@@ -1042,8 +1042,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (updateApiEntity.getGroups() == null) {
                     api.setGroups(apiToUpdate.getGroups());
                 }
-                if (updateApiEntity.getLabels() == null) {
-                    api.setLabels(apiToUpdate.getLabels());
+                if (updateApiEntity.getLabels() == null && apiToUpdate.getLabels() != null) {
+                    api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));
                 }
                 if (updateApiEntity.getCategories() == null) {
                     api.setCategories(apiToUpdate.getCategories());
@@ -1091,7 +1091,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private String buildApiDefinition(String apiDefinition, UpdateApiEntity updateApiEntity) {
+    private String buildApiDefinition(String apiId, String apiDefinition, UpdateApiEntity updateApiEntity) {
         try {
             io.gravitee.definition.model.Api updateApiDefinition;
             if (apiDefinition == null || apiDefinition.isEmpty()) {
@@ -1100,6 +1100,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             } else {
                 updateApiDefinition = objectMapper.readValue(apiDefinition, io.gravitee.definition.model.Api.class);
             }
+            updateApiDefinition.setId(apiId);
             updateApiDefinition.setName(updateApiEntity.getName());
             updateApiDefinition.setVersion(updateApiEntity.getVersion());
             updateApiDefinition.setProxy(updateApiEntity.getProxy());
@@ -1884,7 +1885,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 newPage.setPublished(pageEntityToImport.isPublished());
                 newPage.setSource(pageEntityToImport.getSource());
                 newPage.setType(PageType.valueOf(pageEntityToImport.getType()));
-
+                newPage.setAttachedMedia(pageEntityToImport.getAttachedMedia());
                 createdOrUpdatedPage = pageService.createPage(apiId, newPage);
             } else {
                 UpdatePageEntity updatePageEntity = new UpdatePageEntity();
@@ -1898,6 +1899,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updatePageEntity.setParentId(pageEntityToImport.getParentId());
                 updatePageEntity.setPublished(pageEntityToImport.isPublished());
                 updatePageEntity.setSource(pageEntityToImport.getSource());
+                updatePageEntity.setAttachedMedia(pageEntityToImport.getAttachedMedia());
 
                 createdOrUpdatedPage = pageService.update(pageEntityToImport.getId(), updatePageEntity);
             }
@@ -2558,7 +2560,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setPicture(updateApiEntity.getPicture());
         api.setBackground(updateApiEntity.getBackground());
 
-        api.setDefinition(buildApiDefinition(apiDefinition, updateApiEntity));
+        api.setDefinition(buildApiDefinition(apiId, apiDefinition, updateApiEntity));
 
         final Set<String> apiCategories = updateApiEntity.getCategories();
         if (apiCategories != null) {
@@ -2573,7 +2575,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         if (updateApiEntity.getLabels() != null) {
-            api.setLabels(updateApiEntity.getLabels());
+            api.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));
         }
 
         api.setGroups(updateApiEntity.getGroups());

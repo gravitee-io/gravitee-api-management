@@ -79,11 +79,11 @@ public class MediaServiceImpl implements MediaService {
                 checkMedia = mediaRepository.findByHashAndType(hashString, mediaEntity.getType());
             }
 
-
-            if(checkMedia.isPresent()) {
+            if (checkMedia.isPresent()) {
                 return checkMedia.get().getHash();
             } else {
                 Media media = convert(mediaEntity);
+
                 media.setId(id);
                 media.setHash(hashString);
                 media.setSize((long) mediaEntity.getData().length);
@@ -131,7 +131,7 @@ public class MediaServiceImpl implements MediaService {
         } else {
             mediaData = mediaRepository.findByHashAndApiAndType(id, api, "image");
         }
-        return mediaData.isPresent() ? convert(mediaData.get()): null;
+        return mediaData.isPresent() ? convert(mediaData.get()) : null;
     }
 
     @Override
@@ -143,7 +143,7 @@ public class MediaServiceImpl implements MediaService {
     public List<MediaEntity> findAllWithoutContent(List<PageMediaEntity> pageMediaEntities, String api) {
         List<MediaEntity> result = new ArrayList<>();
         if (pageMediaEntities != null && !pageMediaEntities.isEmpty()) {
-            for(PageMediaEntity pme : pageMediaEntities) {
+            for (PageMediaEntity pme : pageMediaEntities) {
                 final Optional<Media> foundMedia = mediaRepository.findByHashAndApi(pme.getMediaHash(), api, false);
                 if (foundMedia.isPresent()) {
                     MediaEntity me = this.convert(foundMedia.get());
@@ -189,7 +189,7 @@ public class MediaServiceImpl implements MediaService {
         final MediaEntity media = objectMapper
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(mediaDefinition, MediaEntity.class);
-        return  media;
+        return media;
     }
 
     private static Media convert(MediaEntity imageEntity) {
@@ -212,7 +212,7 @@ public class MediaServiceImpl implements MediaService {
         mediaEntity.setFileName(media.getFileName());
         mediaEntity.setSize(media.getSize());
         mediaEntity.setUploadDate(media.getCreatedAt());
-        mediaEntity.setId(media.getHash());
+        mediaEntity.setHash(media.getHash());
         return mediaEntity;
     }
 }

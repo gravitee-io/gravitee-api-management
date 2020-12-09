@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.parameters;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 
@@ -163,7 +164,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
     }
 
     // Classes
-
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Api {
         @ParameterKey(Key.API_LABELS_DICTIONARY)
         private List<String> labelsDictionary;
@@ -177,6 +178,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ApiQualityMetrics {
 
         @ParameterKey(Key.API_QUALITY_METRICS_ENABLED)
@@ -279,6 +281,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ApiReview {
         @ParameterKey(Key.API_REVIEW_ENABLED)
         private Boolean enabled;
@@ -292,6 +295,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Application {
 
         private ClientRegistration registration = new ClientRegistration();
@@ -385,6 +389,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Authentication extends CommonAuthentication {
         @ParameterKey(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED)
         private Enabled forceLogin;
@@ -408,6 +413,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Cors {
         @ParameterKey(Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN)
         private List<String> allowOrigin;
@@ -465,6 +471,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Company {
 
         @ParameterKey(Key.COMPANY_NAME)
@@ -480,6 +487,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
 
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Documentation {
 
         @ParameterKey(Key.DOCUMENTATION_URL)
@@ -494,6 +502,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
 
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class OpenAPIDocViewer {
         private OpenAPIDocType openAPIDocType;
 
@@ -541,6 +550,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Plan {
         private PlanSecurity security;
 
@@ -614,6 +624,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Portal {
         @ParameterKey(Key.PORTAL_ENTRYPOINT)
         private String entrypoint;
@@ -871,6 +882,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ReCaptcha {
         @ParameterKey(Key.PORTAL_RECAPTCHA_ENABLED)
         private Boolean enabled;
@@ -894,6 +906,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Scheduler {
         @JsonProperty("tasks")
         @ParameterKey(Key.PORTAL_SCHEDULER_TASKS)
