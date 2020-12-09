@@ -17,9 +17,9 @@ package io.gravitee.reporter.elasticsearch.indexer;
 
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.model.bulk.BulkResponse;
-import io.reactivex.observers.DisposableSingleObserver;
+import io.gravitee.elasticsearch.model.bulk.Failure;
+import io.reactivex.Single;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.reactivex.RxHelper;
 import io.vertx.reactivex.core.Vertx;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -59,20 +59,23 @@ class DocumentBulkProcessor implements Subscriber<List<Buffer>> {
 
     @Override
     public void onNext(List<Buffer> items) {
-        client.bulk(items)
-                .subscribe(new DisposableSingleObserver<BulkResponse>() {
-                    @Override
-                    public void onSuccess(BulkResponse bulkResponse) {
-                        dispose();
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
+        try {
+            client.bulk(items)
+                    .onErrorResumeNext(t -> {
                         logger.error("Unexpected error while indexing data", t);
-                    }
-                });
-
-        subscription.request(1);
+                        Failure failure = new Failure();
+                        failure.setReason(t.getMessage());
+                        BulkResponse bulkResponse = new BulkResponse();
+                        bulkResponse.setErrors(true);
+                        bulkResponse.setError(failure);
+                        return Single.just(bulkResponse);
+                    })
+                    .subscribe();
+        } catch (Exception ex) {
+            logger.error("Unexpected error while bulking data with the ES client", ex);
+        } finally {
+            subscription.request(1);
+        }
     }
 
     @Override
