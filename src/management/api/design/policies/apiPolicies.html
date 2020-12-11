@@ -172,6 +172,19 @@
   </div>
 </div>
 
+<md-button permission permission-only="'api-definition-d'"
+           class="md-fab md-mini md-fab-bottom-right gravitee-policy-migration-button"
+           aria-label="Update to Policy studio"
+           ng-click="apiPoliciesCtrl.migrateApiToPolicyStudio()">
+  <ng-md-icon icon="queue_play_next"></ng-md-icon>
+  <md-tooltip md-direction="top">
+    Migrate API to Policy Studio
+  </md-tooltip>
+</md-button>
+
 <md-button permission permission-only="'api-definition-d'" class="md-fab md-fab-bottom-right" aria-label="Add" ng-click="apiPoliciesCtrl.showAddPathModal($event)">
   <ng-md-icon icon="add"></ng-md-icon>
+  <md-tooltip md-direction="top">
+    Add a path
+  </md-tooltip>
 </md-button>

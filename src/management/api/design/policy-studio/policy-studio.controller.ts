@@ -27,6 +27,7 @@ class ApiPolicyStudioController {
     private resolvedResources,
     private resolvedPolicies,
     private resolvedFlowSchema,
+    private resolvedConfigurationSchema,
     private PolicyService,
     private ResourceService,
     private $scope,
@@ -112,6 +113,8 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('resource-types', JSON.stringify(this.resolvedResources.data));
     this.studio.setAttribute('policies', JSON.stringify(this.resolvedPolicies.data));
     this.studio.setAttribute('flowSchema', JSON.stringify(this.resolvedFlowSchema.data));
+    this.studio.setAttribute('configurationSchema', JSON.stringify(this.resolvedConfigurationSchema.data));
+    this.studio.setAttribute('configurationInformation', 'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.');
     this.studio.setAttribute('property-providers', JSON.stringify(propertyProviders));
     this.studio.addEventListener('gv-policy-studio:save', this.onSave.bind(this));
     this.studio.addEventListener('gv-policy-studio:select-flows', this.onSelectFlows.bind(this));
@@ -130,6 +133,7 @@ class ApiPolicyStudioController {
         'resources': this.api.resources,
         'plans': this.api.plans != null ? this.api.plans : [],
         'properties': this.api.properties,
+        'flow-mode': this.api.flow_mode
       };
       this.studio.services = this.api.services;
       this.studio.removeAttribute('dirty');
@@ -170,6 +174,7 @@ class ApiPolicyStudioController {
     this.api.resources = definition.resources;
     this.api.properties = definition.properties;
     this.api.services = services;
+    this.api.flow_mode = definition['flow-mode'];
     this.ApiService.update(this.api).then((updatedApi) => {
       this.NotificationService.show('Design of api has been updated');
       this.studio.saved();

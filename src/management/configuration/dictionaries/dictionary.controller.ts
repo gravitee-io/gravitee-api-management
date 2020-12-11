@@ -155,7 +155,7 @@ class DictionaryController {
       clickOutsideToClose: true,
       locals: {
         title: 'Are you sure you want to delete this dictionary?',
-        confirmButton: 'Yes, delete it.'
+        confirmButton: 'Yes, delete it'
       }
     }).then((response) => {
       if (response) {

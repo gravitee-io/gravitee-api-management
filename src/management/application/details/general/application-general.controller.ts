@@ -97,7 +97,7 @@ class ApplicationGeneralController {
         msg: 'You will no longer be able to access this application.',
         validationMessage: 'Please, type in the name of the application <code>' + this.application.name + '</code> to confirm.',
         validationValue: this.application.name,
-        confirmButton: 'Yes, delete this application.'
+        confirmButton: 'Yes, delete this application'
       }
     }).then(function(response) {
       if (response) {

@@ -161,7 +161,7 @@ class ApiListPlansController {
       }
       let confirmButton = 'Yes, close this plan.';
       if (subscriptions === 0 && plan.security === 'api_key') {
-        confirmButton = 'Yes, delete this plan.';
+        confirmButton = 'Yes, delete this plan';
       }
       this.$mdDialog.show({
         controller: 'DialogConfirmAndValidateController',

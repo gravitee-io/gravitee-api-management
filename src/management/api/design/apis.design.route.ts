@@ -17,6 +17,7 @@ import FlowService from '../../../services/flow.service';
 import TenantService from '../../../services/tenant.service';
 import ResourceService from '../../../services/resource.service';
 import PolicyService from '../../../services/policy.service';
+import ApiService from '../../../services/api.service';
 
 export default apisDesignRouterConfig;
 
@@ -90,6 +91,7 @@ function apisDesignRouterConfig($stateProvider) {
         resolvedPolicies: (PolicyService: PolicyService) => PolicyService.list(true, true),
         resolvedResources: (ResourceService: ResourceService) => ResourceService.list(true, true),
         resolvedFlowSchema: (FlowService: FlowService) => FlowService.getSchema(),
+        resolvedConfigurationSchema: (ApiService: ApiService) => ApiService.getConfigurationSchema(),
       },
       data: {
         perms: {

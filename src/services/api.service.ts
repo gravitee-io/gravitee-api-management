@@ -107,6 +107,10 @@ class ApiService {
     return this.$http.post(this.apisURL + 'reload/' + name);
   }
 
+  migrateApiToPolicyStudio(apiId): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + apiId + '/_migrate');
+  }
+
   update(api): ng.IPromise<any> {
     // clean endpoint http proxy
     if (api.proxy && api.proxy.endpoints) {
@@ -141,7 +145,8 @@ class ApiService {
         'path_mappings': api.path_mappings,
         'response_templates': api.response_templates,
         'lifecycle_state': api.lifecycle_state,
-        'disable_membership_notifications': api.disable_membership_notifications
+        'disable_membership_notifications': api.disable_membership_notifications,
+        'flow_mode': api.flow_mode
       }, {headers: {'If-Match': api.etag}}
     );
   }
@@ -166,11 +171,12 @@ class ApiService {
     return this.$http.post(this.apisURL + apiId + '/rollback', apiDescriptor);
   }
 
-  import(apiId: string, apiDefinition: string): ng.IPromise<any> {
+  import(apiId: string, apiDefinition: string, definitionVersion?: string): ng.IPromise<any> {
     if (apiId) {
       return this.$http.put(this.apisURL + apiId + '/import', apiDefinition);
     }
-    return this.$http.post(this.apisURL + 'import', apiDefinition);
+    const params = definitionVersion ? `?definitionVersion=${definitionVersion}` : '';
+    return this.$http.post(`${this.apisURL}import${params}`, apiDefinition);
   }
 
   importSwagger(apiId: string, swaggerDescriptor: string, definitionVersion?: string, config?): ng.IPromise<any> {
@@ -610,6 +616,10 @@ class ApiService {
    */
   verifyApiKey(apiId: string, apiKey: string): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/keys/_verify?apiKey=' + apiKey);
+  }
+
+  getConfigurationSchema(): ng.IPromise<any> {
+    return this.$http.get(`${this.apisURL}schema`);
   }
 
   private async syncV2Api(api) {

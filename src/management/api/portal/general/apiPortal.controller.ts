@@ -275,7 +275,7 @@ class ApiPortalController {
         msg: 'The API must be stopped and without any active plans and subscriptions.',
         validationMessage: 'Please, type in the name of the api <code>' + this.api.name + '</code> to confirm.',
         validationValue: this.api.name,
-        confirmButton: 'Yes, delete this API.'
+        confirmButton: 'Yes, delete this API'
       }
     }).then(function (response) {
       if (response) {

@@ -361,6 +361,26 @@ class ApiPoliciesController {
     });
   }
 
+  migrateApiToPolicyStudio() {
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: 'Are you sure you want to migrate to Policy Studio?',
+        msg: 'The migration process will save the API definition, but it will not be deployed. You can still do a rollback from history.',
+        confirmButton: 'Yes, I want to migrate'
+      }
+    }).then((response) => {
+      if (response) {
+        this.ApiService.migrateApiToPolicyStudio(this.$scope.$parent.apiCtrl.api.id).then((response) => {
+          this.$state.go('management.apis.detail.design.policy-studio', {apiId: response.data.id}, {reload: true});
+        });
+      }
+    });
+  }
+
   removePath(path) {
     this.selectedApiPolicy = {};
     let that = this;

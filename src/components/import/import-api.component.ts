@@ -195,7 +195,7 @@ const ImportComponent: ng.IComponentOptions = {
       var id = (this.isForUpdate() ? this.apiId : null);
       var apiDefinition = (this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL);
       var isUpdate = this.isForUpdate();
-      ApiService.import(id, apiDefinition).then(function(api) {
+      ApiService.import(id, apiDefinition, this.definitionVersion).then(function(api) {
         if (isUpdate) {
           NotificationService.show('API updated');
           $state.reload();

@@ -82,7 +82,7 @@ class UserController {
         msg: 'After removing your account, you will be automatically logout.',
         validationMessage: 'Please, type in your username <code>' + this.user.displayName + '</code> to confirm.',
         validationValue: this.user.displayName,
-        confirmButton: 'Yes, delete my account.'
+        confirmButton: 'Yes, delete my account'
       }
     }).then(function (response) {
       if (response) {
