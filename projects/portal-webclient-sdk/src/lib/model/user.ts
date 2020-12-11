@@ -26,6 +26,10 @@ export interface User {
     last_name?: string;
     display_name?: string;
     email?: string;
+    /**
+     * True if the user can edit the MyAccount information
+     */
+    editable_profile?: boolean;
     config?: UserConfig;
     _links?: UserLinks;
 }

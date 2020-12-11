@@ -39,9 +39,15 @@
               <div>
                   <gv-input
                       class="form__control"
-                      label="{{ 'user.display_name' | translate }}"
-                      formControlName="display_name"
-                      name="display_name"
+                      label="{{ 'user.first_name' | translate }}"
+                      formControlName="first_name"
+                      name="first_name"
+                      ngDefaultControl></gv-input>
+                  <gv-input
+                      class="form__control"
+                      label="{{ 'user.last_name' | translate }}"
+                      formControlName="last_name"
+                      name="last_name"
                       ngDefaultControl></gv-input>
                   <gv-input
                       class="form__control"

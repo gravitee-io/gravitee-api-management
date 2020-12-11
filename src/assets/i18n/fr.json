@@ -968,8 +968,9 @@
       "title": "Informations personnelles"
     },
     "change_picture": "Changer la photo",
-    "display_name": "Nom :",
     "email": "Email :",
+    "first_name": "Prénom",
+    "last_name": "Nom",
     "notifications": {
       "empty": "Aucune notification reçue",
       "read": "Lu",

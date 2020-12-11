@@ -49,8 +49,9 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     this.subscription = this.currentUserService.get().subscribe((user) => {
       this.currentUser = user;
       this.userForm = this.formBuilder.group({
-        display_name: new FormControl( { value: this.displayName, disabled: true }, Validators.required),
-        email: new FormControl({ value: this.email, disabled: true }, Validators.required),
+        last_name: new FormControl( { value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
+        first_name: new FormControl( { value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
+        email: new FormControl({ value: this.email, disabled: !this.isProfileEditable }, Validators.email),
         avatar: new FormControl(this.avatar)
       });
 
@@ -69,9 +70,16 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     return this.currentUser._links ? this.currentUser._links.avatar : null;
   }
 
-  get displayName() {
+  get firstName() {
     if (this.currentUser) {
-      return this.currentUser.first_name ? `${this.currentUser.first_name} ${this.currentUser.last_name}` : this.currentUser.display_name;
+      return this.currentUser.first_name;
+    }
+    return '';
+  }
+
+  get lastName() {
+    if (this.currentUser) {
+      return this.currentUser.last_name;
     }
     return '';
   }
@@ -83,13 +91,32 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  get isProfileEditable() {
+    if (this.currentUser) {
+      return this.currentUser.editable_profile;
+    }
+    return false;
+  }
+
   reset() {
     this.userForm.get('avatar').patchValue(this.avatar);
+    this.userForm.get('first_name').patchValue(this.firstName);
+    this.userForm.get('last_name').patchValue(this.lastName);
+    this.userForm.get('email').patchValue(this.email);
     this.userForm.markAsPristine();
   }
 
   submit() {
-    const UserInput = { id:  this.currentUser.id, avatar: this.userForm.get('avatar').value };
+    let avatarValue = this.userForm.get('avatar').value;
+    // if avatar start with "http", the avatar doesn't changed, do not 
+    // send it to the REST API to avoid reset user avatar
+    const UserInput = { 
+      id:  this.currentUser.id, 
+      avatar: avatarValue && avatarValue.startsWith("http") ? null : avatarValue, 
+      first_name: this.userForm.get('first_name').value, 
+      last_name: this.userForm.get('last_name').value, 
+      email: this.userForm.get('email').value 
+    };
     this.isSaving = true;
     this.userService.updateCurrentUser({ UserInput })
       .toPromise()

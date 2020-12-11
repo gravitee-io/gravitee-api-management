@@ -968,8 +968,9 @@
       "title": "Osobní údaje"
     },
     "change_picture": "Změnit fotografii",
-    "display_name": "Jméno:",
     "email": "Email:",
+    "first_name": "Křestní jméno",
+    "last_name": "Přijmení",
     "notifications": {
       "empty": "Nebylo přijato žádné oznámení",
       "read": "Přečtěte si",

@@ -20,5 +20,17 @@ export interface UserInput {
      * Avatar of the user.
      */
     avatar?: string;
+    /**
+     * Firstname of the user.
+     */
+    first_name?: string;
+    /**
+     * Lastname of the user.
+     */
+    last_name?: string;
+    /**
+     * Email of the user.
+     */
+    email?: string;
 }
 
