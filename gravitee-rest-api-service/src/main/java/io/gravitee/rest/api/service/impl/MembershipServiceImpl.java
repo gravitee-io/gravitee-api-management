@@ -49,6 +49,7 @@ import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMB
 import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMBERSHIP_DELETED;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -977,18 +978,23 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     @Override
     public MemberEntity updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member,
                                                       MembershipRole role) {
-        return updateRoleToMemberOnReference(reference, member, role, null, true);
+        return updateRolesToMemberOnReference(reference, member, singleton(role), null, true)
+                .stream()
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
-    public MemberEntity updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member,
-            MembershipRole role, String source, boolean notify) {
+    public List<MemberEntity> updateRolesToMemberOnReference(MembershipReference reference, MembershipMember member,
+                                                             Collection<MembershipRole> roles, String source, boolean notify) {
         try {
             Set<io.gravitee.repository.management.model.Membership> existingMemberships = this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(member.getMemberId(), convert(member.getMemberType()), convert(reference.getType()), reference.getId());
             if (existingMemberships != null && !existingMemberships.isEmpty()) {
                 existingMemberships.forEach(membership -> this.deleteMembership(membership.getId()));
             }
-            return _addRoleToMemberOnReference(reference, member, role, source, false);
+            return roles.stream()
+                    .map(role -> _addRoleToMemberOnReference(reference, member, role, source, notify))
+                    .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update member for {} {}", reference.getType(), reference.getId(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update member for " + reference.getType() + " " + reference.getId(), ex);

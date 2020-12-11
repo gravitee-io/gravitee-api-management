@@ -302,8 +302,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
         if (created || socialProvider.isSyncMappings()) {
             refreshUserMemberships(userId, socialProvider.getId(), groupMemberships, MembershipReferenceType.GROUP);
-            refreshUserMemberships(userId, socialProvider.getId(), roleMemberships,
-                    MembershipReferenceType.ORGANIZATION);
+            refreshUserMemberships(userId, socialProvider.getId(), roleMemberships, MembershipReferenceType.ORGANIZATION
+                    , MembershipReferenceType.ENVIRONMENT
+            );
         }
 
         final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
@@ -379,8 +380,18 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private List<MembershipService.Membership> refreshUserRoles(String userId, String identityProviderId, Collection<RoleEntity> userRoles) {
         return userRoles.stream()
                 .map(roleEntity -> {
+                    MembershipService.MembershipReference reference;
+                    if (roleEntity.getScope() == RoleScope.ENVIRONMENT) {
+                        // TODO setting environment must be reworked, since GraviteeContext.getCurrentEnvironment() is null
+                        String environment = GraviteeContext.getDefaultEnvironment();
+                        reference = new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, environment);
+                    } else if (roleEntity.getScope() == RoleScope.ORGANIZATION) {
+                        reference = new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization());
+                    } else {
+                        throw new IllegalArgumentException("cannot handle role scope " + roleEntity.getScope());
+                    }
                     MembershipService.Membership membership = new MembershipService.Membership(
-                            new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
+                            reference,
                             new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                             new MembershipService.MembershipRole(
                                     RoleScope.valueOf(roleEntity.getScope().name()),
@@ -421,13 +432,20 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             }
         });
 
+        Map<MembershipService.MembershipReference,
+                Map<MembershipService.MembershipMember,
+                        Map<String, Collection<MembershipService.MembershipRole>>>> groupedRoles = new HashMap<>();
+        memberships.forEach(membership -> groupedRoles
+                .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
+                .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
+                .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
+                .add(membership.getRole())
+        );
         // Create updated memberships
-        memberships.forEach(membership -> membershipService.updateRoleToMemberOnReference(
-                membership.getReference(),
-                membership.getMember(),
-                membership.getRole(),
-                membership.getSource(),
-                false));
+        groupedRoles.forEach((reference, memberMapping) ->
+                memberMapping.forEach((member, scopeMapping) ->
+                        scopeMapping.forEach((scope, roles) ->
+                                membershipService.updateRolesToMemberOnReference(reference, member, roles, scope, false))));
     }
 
     /**
@@ -493,16 +511,22 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             // Get roles
             if (match) {
-                if (mapping.getOrganizations() != null) {
-                    try {
+                try {
+                    if (mapping.getOrganizations() != null) {
                         mapping.getOrganizations().forEach(org ->
                                 roleService
                                         .findByScopeAndName(RoleScope.ORGANIZATION, org)
                                         .ifPresent(roles::add)
                         );
-                    } catch (RoleNotFoundException rnfe) {
-                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getOrganizations());
                     }
+                    if (mapping.getEnvironments() != null) {
+                        mapping.getEnvironments().forEach(environmentRoleName ->
+                                roleService
+                                        .findByScopeAndName(RoleScope.ENVIRONMENT, environmentRoleName)
+                                        .ifPresent(roles::add));
+                    }
+                } catch (RoleNotFoundException rnfe) {
+                    LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getOrganizations());
                 }
             }
         }
