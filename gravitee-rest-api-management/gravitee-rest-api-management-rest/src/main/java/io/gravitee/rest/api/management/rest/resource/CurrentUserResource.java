@@ -78,6 +78,7 @@ import static javax.ws.rs.core.Response.status;
 @Api(tags = {"Current User"})
 public class CurrentUserResource extends AbstractResource {
 
+    public static final String IDP_SOURCE_MEMORY = "memory";
     private static Logger LOG = LoggerFactory.getLogger(CurrentUserResource.class);
 
     @Inject
@@ -125,8 +126,9 @@ public class CurrentUserResource extends AbstractResource {
 
             UserDetails userDetails = new UserDetails(userEntity.getId(), password, authorities);
             userDetails.setId(userEntity.getId());
-            userDetails.setFirstname(details.getFirstname());
-            userDetails.setLastname(details.getLastname());
+            // in case of memory user, look at the repository layer to get value updated by the user through the MyAccount page
+            userDetails.setFirstname(IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getFirstname() != null ? userEntity.getFirstname() : details.getFirstname());
+            userDetails.setLastname(IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getLastname() != null ? userEntity.getLastname() : details.getLastname());
             userDetails.setSource(userEntity.getSource());
             userDetails.setSourceId(userEntity.getSourceId());
             userDetails.setPrimaryOwner(userEntity.isPrimaryOwner());
@@ -134,7 +136,7 @@ public class CurrentUserResource extends AbstractResource {
             userDetails.setUpdatedAt(userEntity.getUpdatedAt());
             userDetails.setLastConnectionAt(userEntity.getLastConnectionAt());
 
-            if (details.getEmail() == null && "memory".equals(userEntity.getSource()) && userEntity.getEmail() != null) {
+            if (details.getEmail() == null && IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getEmail() != null) {
                 userDetails.setEmail(userEntity.getEmail());
             } else {
                 userDetails.setEmail(details.getEmail());
@@ -188,6 +190,9 @@ public class CurrentUserResource extends AbstractResource {
         try {
             if (user.getPicture() != null) {
                 user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
+            } else {
+                // preserve the picture if the input picture is empty
+                user.setPicture(userEntity.getPicture());
             }
         } catch (InvalidImageException e) {
             throw new BadRequestException("Invalid image format");

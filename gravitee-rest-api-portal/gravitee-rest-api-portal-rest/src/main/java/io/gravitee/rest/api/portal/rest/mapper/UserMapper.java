@@ -32,6 +32,9 @@ import java.util.Date;
 @Component
 public class UserMapper {
 
+    public static final String IDP_SOURCE_GRAVITEE = "gravitee";
+    public static final String IDP_SOURCE_MEMORY = "memory";
+
     public User convert(UserEntity user) {
         final User userItem = new User();
         userItem.setEmail(user.getEmail());
@@ -39,6 +42,7 @@ public class UserMapper {
         userItem.setLastName(user.getLastname());
         userItem.setDisplayName(user.getDisplayName());    
         userItem.setId(user.getId());
+        userItem.setEditableProfile(IDP_SOURCE_GRAVITEE.equals(user.getSource()) || IDP_SOURCE_MEMORY.equalsIgnoreCase(user.getSource()));
         return userItem;
     }
 

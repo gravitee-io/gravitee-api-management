@@ -42,7 +42,10 @@ import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.permissions.*;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -82,7 +85,6 @@ import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAUL
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.lang.String.format;
-import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -736,7 +738,18 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (updateUserEntity.getLastname() != null) {
                 user.setLastname(updateUserEntity.getLastname());
             }
-            if (updateUserEntity.getEmail() != null) {
+            if (updateUserEntity.getEmail() != null && !updateUserEntity.getEmail().equals(user.getEmail())) {
+                if (isInternalUser(user)) {
+                    // sourceId can be updated only for user registered into the Gravitee Repository
+                    // in that case, check if the email is available before update sourceId
+                    final Optional<User> optionalUser = userRepository.findBySource(user.getSource(),
+                            updateUserEntity.getEmail(), user.getReferenceId(), user.getReferenceType());
+                    if (optionalUser.isPresent()) {
+                        throw new UserAlreadyExistsException(user.getSource(), updateUserEntity.getEmail(),
+                                user.getReferenceId(), user.getReferenceType());
+                    }
+                    user.setSourceId(updateUserEntity.getEmail());
+                }
                 user.setEmail(updateUserEntity.getEmail());
             }
             if (updateUserEntity.getStatus() != null) {
@@ -927,6 +940,10 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
     }
 
+    private boolean isInternalUser(User user) {
+        return IDP_SOURCE_GRAVITEE.equals(user.getSource());
+    }
+
     private void resetPassword(final String id, final String resetPageUrl) {
         try {
             LOGGER.debug("Resetting password of user id {}", id);
@@ -937,7 +954,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 throw new UserNotFoundException(id);
             }
             final User user = optionalUser.get();
-            if (!IDP_SOURCE_GRAVITEE.equals(user.getSource())) {
+            if (!isInternalUser(user)) {
                 throw new UserNotInternallyManagedException(id);
             }
 

@@ -3629,6 +3629,10 @@ components:
           type: string
         email:
           type: string
+        editable_profile:
+          description: True if the user can edit the MyAccount information
+          type: boolean
+          default: false
         config:
           $ref: '#/components/schemas/UserConfig'
         _links:
@@ -4205,6 +4209,18 @@ components:
           type: string
         avatar:
           description: Avatar of the user.
+          type: string
+          writeOnly: true
+        first_name:
+          description: Firstname of the user.
+          type: string
+          writeOnly: true
+        last_name:
+          description: Lastname of the user.
+          type: string
+          writeOnly: true
+        email:
+          description: Email of the user.
           type: string
           writeOnly: true
     ResetUserPasswordInput:
