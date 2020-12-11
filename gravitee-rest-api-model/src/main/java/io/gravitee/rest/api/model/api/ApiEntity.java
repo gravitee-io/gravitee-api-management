@@ -86,6 +86,13 @@ public class ApiEntity implements Indexable, FilterableItem {
     private Proxy proxy;
 
     @DeploymentRequired
+    @JsonProperty(value = "flow_mode")
+    @ApiModelProperty(
+            value = "API's flow mode.",
+            example = "BEST_MATCH")
+    private FlowMode flowMode;
+
+    @DeploymentRequired
     @JsonProperty(value = "paths", required = true)
     @ApiModelProperty(
             // specify a type here because jackson der/ser for Path handle only array of rules
@@ -499,6 +506,14 @@ public class ApiEntity implements Indexable, FilterableItem {
         this.graviteeDefinitionVersion = graviteeDefinitionVersion;
     }
 
+    public FlowMode getFlowMode() {
+        return flowMode;
+    }
+
+    public void setFlowMode(FlowMode flowMode) {
+        this.flowMode = flowMode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -534,6 +549,7 @@ public class ApiEntity implements Indexable, FilterableItem {
                 ", workflowState=" + workflowState +
                 ", disableMembershipNotifications=" + disableMembershipNotifications +
                 ", graviteeDefinitionVersion=" + graviteeDefinitionVersion +
+                ", flowMode=" + flowMode +
                 '}';
     }
 }

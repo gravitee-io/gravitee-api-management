@@ -1,0 +1,56 @@
+{
+  "id" : "api-id",
+  "name" : "Path_based",
+  "version" : "2",
+  "description" : "Test description",
+  "visibility" : "private",
+  "state" : "stopped",
+  "context_path" : "/api1",
+  "flow_mode" : "default",
+  "flows" : [ ],
+  "plans" : [ {
+    "id" : "plan-id",
+    "name" : "plan-name",
+    "security" : "API_KEY",
+    "paths" : {},
+    "flows" : [ {
+      "name" : "",
+      "path-operator" : {
+        "operator" : "STARTS_WITH",
+        "path" : "/"
+      },
+      "condition" : "",
+      "methods" : [ ],
+      "pre" : [ {
+        "name" : "Assign attributes",
+        "description" : "Description of the Assign attributes Policy",
+        "enabled" : true,
+        "policy" : "policy-assign-attributes",
+        "configuration" : {"scope":"REQUEST","attributes":[{"name":"add","value":"yeah"}]}
+      }, {
+        "name" : "Assign content",
+        "description" : "Description of the Assign content Policy",
+        "enabled" : true,
+        "policy" : "policy-assign-content",
+        "configuration" : {"scope":"REQUEST","body":"einkef"}
+      } ],
+      "post" : [ {
+        "name" : "Assign attributes",
+        "description" : "Description of the Assign attributes Policy",
+        "enabled" : true,
+        "policy" : "policy-assign-attributes",
+        "configuration" : {"scope":"RESPONSE","attributes":[{"name":"non","value":"si"}]}
+      } ],
+      "enabled" : true
+    } ],
+    "status" : "PUBLISHED"
+  } ],
+  "gravitee" : "2.0.0",
+  "properties" : [ ],
+  "services" : { },
+  "resources" : [ ],
+  "path_mappings" : [ ],
+  "response_templates" : { },
+  "lifecycle_state" : "created",
+  "disable_membership_notifications" : false
+}

@@ -40,7 +40,7 @@ public class FlowServiceImpl implements FlowService {
             InputStream resourceAsStream = this.getClass().getResourceAsStream(DEFINITION_PATH);
             return IOUtils.toString(resourceAsStream, defaultCharset());
         } catch (IOException e) {
-            throw new TechnicalManagementException("An error occurs while trying load application type definition", e);
+            throw new TechnicalManagementException("An error occurs while trying load flow definition", e);
         }
     }
 }

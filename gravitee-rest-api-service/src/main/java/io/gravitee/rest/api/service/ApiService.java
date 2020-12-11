@@ -116,6 +116,8 @@ public interface ApiService {
         updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
         updateApiEntity.setPlans(apiEntity.getPlans());
         updateApiEntity.setFlows(apiEntity.getFlows());
+        updateApiEntity.setGraviteeDefinitionVersion(apiEntity.getGraviteeDefinitionVersion());
+        updateApiEntity.setFlowMode(apiEntity.getFlowMode());
 
         return updateApiEntity;
     }
@@ -135,4 +137,7 @@ public interface ApiService {
     ApiEntity duplicate(String apiId, DuplicateApiEntity duplicateApiEntity);
 
     InlinePictureEntity getBackground(String apiId);
+
+    ApiEntity migrate(String api);
+    String getConfigurationSchema();
 }

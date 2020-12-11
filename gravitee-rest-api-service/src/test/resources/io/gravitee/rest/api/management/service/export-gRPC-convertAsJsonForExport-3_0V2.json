@@ -3,6 +3,7 @@
   "gravitee": "2.0.0",
   "resources": [],
   "properties": [],
+  "flow_mode": "DEFAULT",
   "groups": [
     "My Group"
   ],

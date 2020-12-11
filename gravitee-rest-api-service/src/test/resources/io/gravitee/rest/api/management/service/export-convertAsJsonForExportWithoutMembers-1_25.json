@@ -3,6 +3,7 @@
   "gravitee": "1.0.0",
   "resources" : [ ],
   "properties" : [ ],
+  "flow_mode": "DEFAULT",
   "path_mappings":[],
   "groups" : [ "My Group" ],
   "pages" : [ {

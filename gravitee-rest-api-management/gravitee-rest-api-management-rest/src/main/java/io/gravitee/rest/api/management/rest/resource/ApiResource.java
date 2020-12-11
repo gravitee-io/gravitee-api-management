@@ -648,6 +648,23 @@ public class ApiResource extends AbstractResource {
         return Response.ok(apiService.duplicate(api, duplicateApiEntity)).build();
     }
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("_migrate")
+    @ApiOperation(
+            value = "Migrate the API definition to be used with Policy Studio",
+            notes = "User must have the MANAGE_API create permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "API definition", response = ApiEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
+    })
+    public Response migrateAPI() {
+        return Response.ok(apiService.migrate(this.api)).build();
+    }
+
     @Path("keys")
     public ApiKeysResource getApiKeyResource() {
         return resourceContext.getResource(ApiKeysResource.class);

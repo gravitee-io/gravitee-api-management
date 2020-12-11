@@ -1,0 +1,66 @@
+{
+  "id" : "api-id",
+  "name" : "Path_based",
+  "version" : "2",
+  "description" : "Test description",
+  "visibility" : "private",
+  "state" : "stopped",
+  "context_path" : "/api1",
+  "flow_mode" : "default",
+  "paths" : {
+    "/thirdpath" : [ {
+      "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE" ],
+      "policy-assign-content" : {"scope":"REQUEST","body":"dzdz"},
+      "description" : "Description of the Assign content Policy",
+      "enabled" : true
+    }, {
+      "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE" ],
+      "policy-assign-content" : {"scope":"RESPONSE","body":"dzedz"},
+      "description" : "Description of the Assign content Policy",
+      "enabled" : true
+    } ],
+    "/secontpath" : [ {
+      "methods" : [ "GET", "POST" ],
+      "api-key" : {"propagateApiKey":true},
+      "description" : "Description of the ApiKey Gravitee Policy",
+      "enabled" : true
+    }, {
+      "methods" : [ "GET", "POST" ],
+      "policy-assign-attributes" : {"scope":"REQUEST","attributes":[{"name":"req","value":"req"}]},
+      "description" : "Description of the Assign attributes Policy",
+      "enabled" : true
+    } ],
+    "/" : [ {
+      "methods" : [ "DELETE", "PUT" ],
+      "policy-assign-content" : {"scope":"REQUEST","body":"dfezf"},
+      "description" : "Description of the Assign content Policy",
+      "enabled" : false
+    }, {
+      "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE" ],
+      "api-key" : {"propagateApiKey":true},
+      "description" : "Description of the ApiKey Gravitee Policy",
+      "enabled" : true
+    }, {
+      "methods" : [ "GET", "POST" ],
+      "policy-assign-attributes" : {"scope":"REQUEST","attributes":[{"name":"req","value":"req"}]},
+      "description" : "Description of the Assign attributes Policy",
+      "enabled" : true
+    }, {
+      "methods" : [ "DELETE", "PUT" ],
+      "policy-assign-content" : {"scope":"RESPONSE","body":"fezfze"},
+      "description" : "Description of the Assign content Policy",
+      "enabled" : true
+    },
+      {
+        "methods" : [ "DELETE", "PUT" ],
+        "url-rewriting" : {"scope":"RESPONSE","body":"fezfze"},
+        "description" : "Description of the Url rewriting Policy",
+        "enabled" : true
+      }]
+  },
+  "gravitee" : "1.0.0",
+  "path_mappings" : [ ],
+  "response_templates" : { },
+  "lifecycle_state" : "created",
+  "disable_membership_notifications" : false
+}

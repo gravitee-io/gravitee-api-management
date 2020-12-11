@@ -1,0 +1,154 @@
+{
+  "id" : "api-id",
+  "name" : "Path_based",
+  "version" : "2",
+  "description" : "Test description",
+  "visibility" : "private",
+  "state" : "stopped",
+  "context_path" : "/api1",
+  "flow_mode" : "default",
+  "flows" : [
+    {
+    "name" : "",
+    "path-operator" : {
+      "operator" : "STARTS_WITH",
+      "path" : "/"
+    },
+    "condition" : "",
+    "methods" : [ "DELETE", "PUT" ],
+    "pre" : [ {
+      "name" : "Assign content",
+      "description" : "Description of the Assign content Policy",
+      "enabled" : false,
+      "policy" : "policy-assign-content",
+      "configuration" : {"scope":"REQUEST","body":"dfezf"}
+    } ],
+    "post" : [ ],
+    "enabled" : true
+  }, {
+    "name" : "",
+    "path-operator" : {
+      "operator" : "STARTS_WITH",
+      "path" : "/"
+    },
+    "condition" : "",
+    "methods" : [],
+    "pre" : [ {
+      "name" : "Api Key",
+      "description" : "Description of the ApiKey Gravitee Policy",
+      "enabled" : true,
+      "policy" : "api-key",
+      "configuration" : {"propagateApiKey":true}
+    } ],
+    "post" : [ ],
+    "enabled" : true
+  }, {
+    "name" : "",
+    "path-operator" : {
+      "operator" : "STARTS_WITH",
+      "path" : "/"
+    },
+    "condition" : "",
+    "methods" : [ "GET", "POST" ],
+    "pre" : [ {
+      "name" : "Assign attributes",
+      "description" : "Description of the Assign attributes Policy",
+      "enabled" : true,
+      "policy" : "policy-assign-attributes",
+      "configuration" : {"scope":"REQUEST","attributes":[{"name":"req","value":"req"}]}
+    } ],
+    "post" : [ ],
+    "enabled" : true
+  }, {
+    "name" : "",
+    "path-operator" : {
+      "operator" : "STARTS_WITH",
+      "path" : "/"
+    },
+    "condition" : "",
+    "methods" : [ "DELETE", "PUT" ],
+    "pre" : [ ],
+    "post" : [ {
+      "name" : "Assign content",
+      "description" : "Description of the Assign content Policy",
+      "enabled" : true,
+      "policy" : "policy-assign-content",
+      "configuration" : {"scope":"RESPONSE","body":"fezfze"}
+    } ],
+    "enabled" : true
+  },
+    {
+      "name" : "",
+      "path-operator" : {
+        "operator" : "STARTS_WITH",
+        "path" : "/"
+      },
+      "condition" : "",
+      "methods" : [ "DELETE", "PUT" ],
+      "pre" : [ ],
+      "post" : [ {
+        "name" : "URL Rewriting",
+        "description" : "Description of the Url rewriting Policy",
+        "enabled" : true,
+        "policy" : "url-rewriting",
+        "configuration" : {"scope":"RESPONSE","body":"fezfze"}
+      } ],
+      "enabled" : true
+    },
+    {
+    "name" : "",
+    "path-operator" : {
+      "operator" : "STARTS_WITH",
+      "path" : "/secontpath"
+    },
+    "condition" : "",
+    "methods" : [ "GET", "POST" ],
+    "pre" : [ {
+      "name" : "Api Key",
+      "description" : "Description of the ApiKey Gravitee Policy",
+      "enabled" : true,
+      "policy" : "api-key",
+      "configuration" : {"propagateApiKey":true}
+    }, {
+      "name" : "Assign attributes",
+      "description" : "Description of the Assign attributes Policy",
+      "enabled" : true,
+      "policy" : "policy-assign-attributes",
+      "configuration" : {"scope":"REQUEST","attributes":[{"name":"req","value":"req"}]}
+    } ],
+    "post" : [ ],
+    "enabled" : true
+  }, {
+    "name" : "",
+    "path-operator" : {
+      "operator" : "STARTS_WITH",
+      "path" : "/thirdpath"
+    },
+    "condition" : "",
+    "methods" : [],
+    "pre" : [ {
+      "name" : "Assign content",
+      "description" : "Description of the Assign content Policy",
+      "enabled" : true,
+      "policy" : "policy-assign-content",
+      "configuration" : {"scope":"REQUEST","body":"dzdz"}
+    } ],
+    "post" : [ {
+      "name" : "Assign content",
+      "description" : "Description of the Assign content Policy",
+      "enabled" : true,
+      "policy" : "policy-assign-content",
+      "configuration" : {"scope":"RESPONSE","body":"dzedz"}
+    } ],
+    "enabled" : true
+  } ],
+  "plans" : [ ],
+  "gravitee" : "2.0.0",
+  "properties" : [ ],
+  "services" : { },
+  "resources" : [ ],
+  "path_mappings" : [ ],
+  "response_templates" : { },
+  "lifecycle_state" : "created",
+  "disable_membership_notifications" : false
+}

@@ -66,6 +66,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
+import io.gravitee.rest.api.service.migration.APIV1toAPIV2Converter;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -77,6 +78,8 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +87,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -102,6 +106,7 @@ import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
+import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.*;
@@ -121,6 +126,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
     private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$");
     private static final String URI_PATH_SEPARATOR = "/";
+    private static final String CONFIGURATION_DEFINITION_PATH = "/api/apim-configuration-schema.json";
 
     @Autowired
     private ApiRepository apiRepository;
@@ -192,6 +198,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private MediaService mediaService;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private APIV1toAPIV2Converter apiv1toAPIV2Converter;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
@@ -645,6 +653,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+        }
+    }
+
+    @Override
+    public String getConfigurationSchema() {
+        try {
+            InputStream resourceAsStream = this.getClass().getResourceAsStream(CONFIGURATION_DEFINITION_PATH);
+            return IOUtils.toString(resourceAsStream, defaultCharset());
+        } catch (IOException e) {
+            throw new TechnicalManagementException("An error occurs while trying load api configuration definition", e);
         }
     }
 
@@ -1104,6 +1122,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             updateApiDefinition.setName(updateApiEntity.getName());
             updateApiDefinition.setVersion(updateApiEntity.getVersion());
             updateApiDefinition.setProxy(updateApiEntity.getProxy());
+
+            if (StringUtils.isNotEmpty(updateApiEntity.getGraviteeDefinitionVersion())) {
+                updateApiDefinition.setDefinitionVersion(DefinitionVersion.valueOfLabel(updateApiEntity.getGraviteeDefinitionVersion()));
+            }
+
+            if (updateApiEntity.getFlowMode() != null) {
+                updateApiDefinition.setFlowMode(updateApiEntity.getFlowMode());
+            }
 
             if (updateApiEntity.getPaths() != null) {
                 updateApiDefinition.setPaths(updateApiEntity.getPaths());
@@ -1939,6 +1965,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
+    public ApiEntity migrate(String apiId) {
+
+        final ApiEntity apiEntity = findById(apiId);
+        final Set<PolicyEntity> policies = policyService.findAll();
+        Set<PlanEntity> plans = planService.findByApi(apiId);
+
+        ApiEntity migratedApi = apiv1toAPIV2Converter.migrateToV2(apiEntity, policies, plans);
+
+        return this.update(apiId, ApiService.convert(migratedApi));
+    }
+
+    @Override
     public void deleteCategoryFromAPIs(final String categoryId) {
         findAll().forEach(api -> {
             if (api.getCategories() != null && api.getCategories().contains(categoryId)) {
@@ -2478,6 +2516,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiEntity.setTags(apiDefinition.getTags());
                 if (apiDefinition.getDefinitionVersion() != null) {
                     apiEntity.setGraviteeDefinitionVersion(apiDefinition.getDefinitionVersion().getLabel());
+                }
+                if (apiDefinition.getFlowMode() != null) {
+                    apiEntity.setFlowMode(apiDefinition.getFlowMode());
                 }
                 if (DefinitionVersion.V2.equals(apiDefinition.getDefinitionVersion())) {
                     apiEntity.setFlows(apiDefinition.getFlows());

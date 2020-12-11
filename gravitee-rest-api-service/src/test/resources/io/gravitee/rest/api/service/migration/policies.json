@@ -1,0 +1,51 @@
+[ {
+  "id" : "api-key",
+  "name" : "Api Key",
+  "description" : "Description of the ApiKey Gravitee Policy",
+  "version" : "2.1.0",
+  "category" : "security",
+  "dev": {
+    "on_request_method": "method"
+  }
+}, {
+  "id" : "policy-assign-attributes",
+  "name" : "Assign attributes",
+  "description" : "Description of the Assign attributes Policy",
+  "version" : "1.4.0",
+  "category" : "transformation",
+  "dev": {
+    "on_request_method": "method",
+    "on_response_method": "method"
+  }
+}, {
+  "id" : "policy-assign-content",
+  "name" : "Assign content",
+  "description" : "Description of the Assign content Policy",
+  "version" : "1.5.0",
+  "category" : "transformation",
+  "dev": {
+    "on_request_method": "method",
+    "on_response_method": "method"
+  }
+},
+  {
+    "id" : "cache",
+    "name" : "Cache",
+    "description" : "Description of the Cache Gravitee Policy",
+    "version" : "1.8.0",
+    "category" : "performance",
+    "dev": {
+      "on_request_method": "method"
+    }
+  },
+  {
+    "id" : "url-rewriting",
+    "name" : "URL Rewriting",
+    "description" : "Description of the URL Rewriting Gravitee Policy",
+    "version" : "1.3.0",
+    "category" : "transformation",
+    "dev": {
+      "on_response_method": "method"
+    }
+  }
+]

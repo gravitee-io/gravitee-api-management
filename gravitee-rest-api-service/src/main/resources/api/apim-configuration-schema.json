@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "id": "apim",
+  "properties": {
+    "flow-mode": {
+      "title": "Flow Mode",
+      "description": "The flow mode",
+      "type": "string",
+      "enum": [ "default", "best_match" ],
+      "default": "default",
+      "x-schema-form": {
+        "titleMap": {
+          "default": "Default",
+          "best_match": "Best match"
+        }
+      }
+    }
+  },
+  "required": [],
+  "disabled": []
+}

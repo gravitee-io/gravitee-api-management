@@ -93,6 +93,10 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             jsonGenerator.writeObjectField("gravitee", apiEntity.getGraviteeDefinitionVersion());
         }
 
+        if (apiEntity.getFlowMode() != null) {
+            jsonGenerator.writeObjectField("flow_mode", apiEntity.getFlowMode().toString().toUpperCase());
+        }
+
         if (apiEntity.getFlows() != null) {
             jsonGenerator.writeObjectField("flows", apiEntity.getFlows());
         }

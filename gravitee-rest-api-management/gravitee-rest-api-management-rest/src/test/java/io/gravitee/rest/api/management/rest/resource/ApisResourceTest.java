@@ -114,4 +114,62 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         verify(swaggerService).createAPI(argThat(argument -> argument.getPayload().equalsIgnoreCase(swaggerDescriptor.getPayload())), eq(DefinitionVersion.valueOfLabel("1.0.0")));
     }
+
+    @Test
+    public void shouldImportApiFromGraviteeIODefinitionV1() {
+        reset(apiService, swaggerService);
+        String apiDefinition = "{}";
+
+        ApiEntity createdApi = new ApiEntity();
+        createdApi.setGraviteeDefinitionVersion("1.0.0");
+        createdApi.setId("my-beautiful-api");
+        doReturn(createdApi).when(apiService).createWithImportedDefinition(any(), any(), any());
+
+        final Response response = envTarget().path("import").request().post(Entity.json(apiDefinition));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        verify(apiService, times(0)).migrate(any());
+    }
+
+    @Test
+    public void shouldImportApiWithoutMigrationFromGraviteeIODefinitionIfAlreadyV2() {
+        reset(apiService, swaggerService);
+        String apiDefinition = "{}";
+
+        ApiEntity createdApi = new ApiEntity();
+        createdApi.setGraviteeDefinitionVersion("2.0.0");
+        createdApi.setId("my-beautiful-api");
+        doReturn(createdApi).when(apiService).createWithImportedDefinition(any(), any(), any());
+
+        final Response response =
+                envTarget()
+                .path("import")
+                .queryParam("definitionVersion", "2.0.0")
+                .request()
+                .post(Entity.json(apiDefinition));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        verify(apiService, times(0)).migrate(any());
+    }
+
+    @Test
+    public void shouldImportApiWithMigrationFromGraviteeIODefinitionIfAlreadyV2() {
+        reset(apiService, swaggerService);
+        String apiDefinition = "{}";
+
+        ApiEntity createdApi = new ApiEntity();
+        createdApi.setGraviteeDefinitionVersion("1.0.0");
+        createdApi.setId("my-beautiful-api");
+        doReturn(createdApi).when(apiService).createWithImportedDefinition(any(), any(), any());
+
+        final Response response =
+                envTarget()
+                        .path("import")
+                        .queryParam("definitionVersion", "2.0.0")
+                        .request()
+                        .post(Entity.json(apiDefinition));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        verify(apiService, times(1)).migrate(any());
+    }
 }

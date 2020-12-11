@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.model.api;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.rest.api.model.DeploymentRequired;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotEmpty;
@@ -73,6 +76,13 @@ public class NewApiEntity {
     @ApiModelProperty(
         value = "API's paths. A json representation of the design of each flow.")
     private List<Flow> flows;
+
+    @JsonProperty(value = "flow_mode")
+    @ApiModelProperty(
+            value = "API's flow mode.",
+            example = "BEST_MATCH")
+    private FlowMode flowMode;
+
 
     public String getName() {
         return name;
@@ -138,6 +148,14 @@ public class NewApiEntity {
         this.flows = flows;
     }
 
+    public FlowMode getFlowMode() {
+        return flowMode;
+    }
+
+    public void setFlowMode(FlowMode flowMode) {
+        this.flowMode = flowMode;
+    }
+
     @Override
     public String toString() {
         return "NewApiEntity{" +
@@ -147,6 +165,7 @@ public class NewApiEntity {
                 ", contextPath='" + contextPath + '\'' +
                 ", endpoint='" + endpoint + '\'' +
                 ", groups='" + groups + '\'' +
+                ", flowMode='" + flowMode + '\'' +
                 '}';
     }
 }
