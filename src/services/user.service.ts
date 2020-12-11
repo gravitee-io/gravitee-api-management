@@ -245,6 +245,8 @@ class UserService {
       picture: user.picture,
       newsletter: user.newsletter,
       email: user.email,
+      firstname: user.firstname,
+      lastname: user.lastname
     });
   }
 
