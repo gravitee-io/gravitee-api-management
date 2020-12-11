@@ -38,6 +38,15 @@ public class ApiSerializerTest extends AbstractTest {
     }
 
     @Test
+    public void definition_bestMatchFlowMode() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-bestMatchFlowMode.json", Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+        Assert.assertTrue(generatedJsonDefinition.contains("BEST_MATCH"));
+    }
+
+    @Test
     public void definition_overridedHttpConfig() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-overridedhttpconfig.json", Api.class);
 

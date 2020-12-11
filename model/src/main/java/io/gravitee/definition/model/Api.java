@@ -33,6 +33,7 @@ public class Api implements Serializable {
     private String id;
     private String name;
     private String version;
+    private FlowMode flowMode;
     private DefinitionVersion definitionVersion;
     private Proxy proxy;
     private Services services = new Services();
@@ -135,6 +136,14 @@ public class Api implements Serializable {
 
     public void setResponseTemplates(Map<String, ResponseTemplates> responseTemplates) {
         this.responseTemplates = responseTemplates;
+    }
+
+    public FlowMode getFlowMode() {
+        return flowMode;
+    }
+
+    public void setFlowMode(FlowMode flowMode) {
+        this.flowMode = flowMode;
     }
 
     public List<Flow> getFlows() {

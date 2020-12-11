@@ -24,6 +24,7 @@ import io.gravitee.definition.model.plugins.resources.Resource;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Locale;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,6 +45,10 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
 
         if (api.getDefinitionVersion() != null) {
             jgen.writeObjectField("gravitee", api.getDefinitionVersion().getLabel());
+        }
+
+        if (api.getFlowMode() != null) {
+            jgen.writeObjectField("flow_mode", api.getFlowMode().toString().toUpperCase());
         }
 
         if (api.getProxy() != null) {

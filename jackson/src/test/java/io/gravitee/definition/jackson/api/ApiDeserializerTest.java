@@ -55,6 +55,12 @@ public class ApiDeserializerTest extends AbstractTest {
     }
 
     @Test
+    public void definition_BestMatchFlowMode() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-bestMatchFlowMode.json", Api.class);
+        Assert.assertEquals(FlowMode.BEST_MATCH, api.getFlowMode());
+    }
+
+    @Test
     public void definition_overridedHttpConfig() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-overridedhttpconfig.json", Api.class);
 
@@ -723,6 +729,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertEquals("OAUTH2", api.getPlan("plan-1").getSecurity());
         Assert.assertEquals(2, api.getPlan("plan-1").getTags().size());
         Assert.assertEquals("PUBLISHED", api.getPlan("plan-1").getStatus());
+
+        Assert.assertEquals(FlowMode.DEFAULT, api.getFlowMode());
     }
 
     @Test(expected = JsonMappingException.class)

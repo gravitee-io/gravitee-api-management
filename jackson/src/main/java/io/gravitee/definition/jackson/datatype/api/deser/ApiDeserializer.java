@@ -122,6 +122,9 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
         // If no version provided, defaults to 1.0.0
         api.setDefinitionVersion(DefinitionVersion.valueOfLabel(node.path("gravitee").asText(DefinitionVersion.V1.getLabel())));
 
+        // If no flow mode provided, defaults to "default"
+        api.setFlowMode(FlowMode.valueOf(node.path("flow_mode").asText(FlowMode.DEFAULT.name())));
+
         if (api.getDefinitionVersion() == DefinitionVersion.V1) {
             if (node.get("flows") != null) {
                 throw ctxt.mappingException("Flows are only available for definition >= 2.x.x ");
