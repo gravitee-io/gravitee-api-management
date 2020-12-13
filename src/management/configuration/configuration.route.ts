@@ -36,6 +36,7 @@ import CustomUserFieldsService from '../../services/custom-user-fields.service';
 import EnvironmentService from '../../services/environment.service';
 import OrganizationService from '../../services/organization.service';
 import _ = require('lodash');
+import PortalConfigService from '../../services/portalConfig.service';
 
 export default configurationRouterConfig;
 
@@ -130,7 +131,8 @@ function configurationRouterConfig($stateProvider) {
       resolve: {
         tags: (TagService: TagService) => TagService.list().then(response => response.data),
         entrypoints: (EntrypointService: EntrypointService) => EntrypointService.list().then(response => response.data),
-        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
+        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
+        settings: (PortalConfigService: PortalConfigService) => PortalConfigService.get().then(response => response.data),
       },
       data: {
         menu: null,
@@ -707,7 +709,8 @@ function configurationRouterConfig($stateProvider) {
       url: '/portal',
       component: 'portalSettings',
       resolve: {
-        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+        tags: (TagService: TagService) => TagService.list().then(response => response.data),
+        settings: (PortalConfigService: PortalConfigService) => PortalConfigService.get().then(response => response.data),
       },
       data: {
         menu: null,
@@ -989,6 +992,9 @@ function configurationRouterConfig($stateProvider) {
         perms: {
           only: ['environment-settings-r']
         }
+      },
+      resolve: {
+        settings: (PortalConfigService: PortalConfigService) => PortalConfigService.get().then(response => response.data),
       }
     })
     .state('management.settings.clientregistrationproviders', {

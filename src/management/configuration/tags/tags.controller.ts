@@ -18,7 +18,8 @@ import TagService from '../../../services/tag.service';
 import NotificationService from '../../../services/notification.service';
 import EntrypointService from '../../../services/entrypoint.service';
 import PortalConfigService from '../../../services/portalConfig.service';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
+import { StateService } from '@uirouter/core';
 
 class TagsController {
 
@@ -27,6 +28,7 @@ class TagsController {
   private groups: Array<any>;
   private entrypoints: Array<any>;
   private formSettings: any;
+  private settings: any;
 
   constructor(
     private TagService: TagService,
@@ -35,9 +37,9 @@ class TagsController {
     private $mdEditDialog,
     private $mdDialog: angular.material.IDialogService,
     private EntrypointService: EntrypointService,
-    private Constants,
     private PortalConfigService: PortalConfigService,
-    private $rootScope: IScope) {
+    private $rootScope: IScope,
+    private $state: StateService) {
     'ngInject';
     this.$rootScope = $rootScope;
   }
@@ -103,17 +105,14 @@ class TagsController {
   }
 
   saveSettings = () => {
-    this.PortalConfigService.save().then( () => {
+    this.PortalConfigService.save(this.settings).then( () => {
       this.NotificationService.show('Configuration saved!');
       this.formSettings.$setPristine();
     });
   }
 
   resetSettings = () => {
-    this.PortalConfigService.get().then((response) => {
-      this.Constants = response.data;
-      this.formSettings.$setPristine();
-    });
+    this.$state.reload();
   }
 
   groupNames = (groups) => {
@@ -124,7 +123,7 @@ class TagsController {
   }
 
   isReadonlySetting(property: string): boolean {
-    return this.PortalConfigService.isReadonly(this.Constants, property);
+    return this.PortalConfigService.isReadonly(this.settings, property);
   }
 }
 

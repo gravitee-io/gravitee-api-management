@@ -22,7 +22,8 @@ import ApiService from '../../../services/api.service';
 
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
-    tags: '<'
+    tags: '<',
+    settings: '<',
   },
   template: require('./portal.html'),
   controller: function(
@@ -34,7 +35,6 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     Constants: any
   ) {
     'ngInject';
-    this.settings = _.cloneDeep(Constants);
     this.methods = CorsService.getHttpMethods();
     this.headers = ApiService.defaultHttpHeaders();
     this.searchHeaders = null;
@@ -53,21 +53,14 @@ const PortalSettingsComponent: ng.IComponentOptions = {
       PortalConfigService.save(this.settings).then( (response) => {
         // We have to manually set this property because lodash's merge do not handle well the case of label deletion
         Constants.api.labelsDictionary = response.data.api.labelsDictionary;
-        Constants.cors.allowOrigin = response.data.cors.allowOrigin;
-        Constants.cors.allowHeaders = response.data.cors.allowHeaders;
-        Constants.cors.allowMethods = response.data.cors.allowMethods;
-        Constants.cors.exposedHeaders = response.data.cors.exposedHeaders;
         _.merge(Constants, response.data);
         NotificationService.show('Configuration saved');
         this.reset();
-        $state.reload();
       });
     };
 
     this.reset = () => {
-      this.settings = _.cloneDeep(Constants);
-      this.formSettings.$setPristine();
-
+      $state.reload();
     };
 
     this.hasIdpDefined = () => {

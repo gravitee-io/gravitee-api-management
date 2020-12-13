@@ -17,7 +17,8 @@ const TagsComponent: ng.IComponentOptions = {
   bindings: {
     tags: '<',
     entrypoints: '<',
-    groups: '<'
+    groups: '<',
+    settings: '<',
   },
   controller: 'TagsController',
   template: require('./tags.html')

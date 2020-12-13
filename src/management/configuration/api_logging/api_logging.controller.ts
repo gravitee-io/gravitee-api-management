@@ -20,23 +20,22 @@ class ApiLoggingController {
 
   public providedConfigurationMessage = 'Configuration provided by the system';
   private formApiLogging: any;
+  private settings: any;
 
   constructor(private PortalConfigService: PortalConfigService,
-              private NotificationService: NotificationService,
-              private Constants: any) {
+              private NotificationService: NotificationService) {
     'ngInject';
-    this.Constants = Constants;
   }
 
   save() {
-    this.PortalConfigService.save().then( () => {
+    this.PortalConfigService.save(this.settings).then( () => {
       this.NotificationService.show('API logging saved');
       this.formApiLogging.$setPristine();
     });
   }
 
   isReadonlySetting(property: string): boolean {
-    return this.PortalConfigService.isReadonly(this.Constants, property);
+    return this.PortalConfigService.isReadonly(this.settings, property);
   }
 }
 
