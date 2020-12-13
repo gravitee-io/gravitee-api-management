@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.PortalConfigEntity;
+import io.gravitee.rest.api.model.config.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.am.AMIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.github.GitHubIdentityProviderEntity;
@@ -78,8 +78,8 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
                 .when(socialIdentityProviderService)
                 .findAll(true);
 
-        PortalConfigEntity configEntity = new PortalConfigEntity();
-        doReturn(configEntity).when(configService).getPortalConfig();
+        ConsoleConfigEntity configEntity = new ConsoleConfigEntity();
+        doReturn(configEntity).when(configService).getConsoleConfig();
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

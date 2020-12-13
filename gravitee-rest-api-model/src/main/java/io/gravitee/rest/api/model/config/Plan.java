@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.model.config;
 
-import io.gravitee.rest.api.model.config.ConsoleConfigEntity;
-import io.gravitee.rest.api.model.config.PortalConfigEntity;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
- * @author GraviteeSource Team
- */
-public interface ConfigService {
-    ConsoleConfigEntity getConsoleConfig();
-    PortalConfigEntity getPortalConfig();
-    boolean portalLoginForced();
-    void save(ConsoleConfigEntity consoleConfigEntity);
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Plan {
+    private ConsoleConfigEntity.PlanSecurity security;
+
+    public Plan() {
+        security = new ConsoleConfigEntity.PlanSecurity();
+    }
+
+    public ConsoleConfigEntity.PlanSecurity getSecurity() {
+        return security;
+    }
+
+    public void setSecurity(ConsoleConfigEntity.PlanSecurity security) {
+        this.security = security;
+    }
 }

@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.model.Parameter;
-import io.gravitee.rest.api.model.PortalConfigEntity;
+import io.gravitee.rest.api.model.config.ConsoleConfigEntity;
+import io.gravitee.rest.api.model.config.PortalConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.impl.ConfigServiceImpl;
 
@@ -34,9 +35,7 @@ import java.util.Map;
 
 import static io.gravitee.rest.api.model.parameters.Key.COMPANY_NAME;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -61,8 +60,7 @@ public class ConfigServiceTest {
     private NewsletterService newsletterService;
 
     @Test
-    public void shouldGetPortalConfig() {
-
+    public void shouldGetConsoleConfig() {
         Map<String, List<String>> params = new HashMap<>();
         params.put(COMPANY_NAME.key(), singletonList("ACME"));
         params.put(Key.AUTHENTICATION_FORCELOGIN_ENABLED.key(), singletonList("true"));
@@ -76,7 +74,7 @@ public class ConfigServiceTest {
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
-        PortalConfigEntity portalConfig = configService.getPortalConfig();
+        ConsoleConfigEntity portalConfig = configService.getConsoleConfig();
 
         assertNotNull(portalConfig);
         assertEquals("company name", "ACME", portalConfig.getCompany().getName());
@@ -94,7 +92,28 @@ public class ConfigServiceTest {
     }
 
     @Test
-    public void shouldGetPortalConfigFromEnvVar() {
+    public void shouldGetPortalConfig() {
+        Map<String, List<String>> params = new HashMap<>();
+        params.put(COMPANY_NAME.key(), singletonList("ACME"));
+        params.put(Key.AUTHENTICATION_FORCELOGIN_ENABLED.key(), singletonList("true"));
+        params.put(Key.AUTHENTICATION_OAUTH2_SCOPE.key(), Arrays.asList("scope1", "scope2"));
+        params.put(Key.SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
+        params.put(Key.PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
+        params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
+        params.put(Key.API_LABELS_DICTIONARY.key(), Arrays.asList("label1", "label2"));
+
+        when(mockParameterService.findAll(any(List.class))).thenReturn(params);
+        when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
+        when(reCaptchaService.isEnabled()).thenReturn(true);
+
+        PortalConfigEntity portalConfig = configService.getPortalConfig();
+
+        assertNotNull(portalConfig);
+        assertEquals("force login", true, portalConfig.getAuthentication().getForceLogin().isEnabled());
+    }
+
+    @Test
+    public void shouldGetConsoleConfigFromEnvVar() {
 
         Map<String, List<String>> params = new HashMap<>();
         params.put(COMPANY_NAME.key(), singletonList("ACME"));
@@ -116,7 +135,7 @@ public class ConfigServiceTest {
         when(environment.containsProperty(Key.PORTAL_ANALYTICS_ENABLED.key())).thenReturn(true);
         when(environment.containsProperty(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key())).thenReturn(true);
 
-        PortalConfigEntity portalConfig = configService.getPortalConfig();
+        ConsoleConfigEntity portalConfig = configService.getConsoleConfig();
 
         assertNotNull(portalConfig);
         assertEquals("company name", "ACME", portalConfig.getCompany().getName());
@@ -127,7 +146,7 @@ public class ConfigServiceTest {
         assertEquals("analytics", Boolean.TRUE, portalConfig.getPortal().getAnalytics().isEnabled());
         assertEquals("open api swagger enabled", Boolean.TRUE, portalConfig.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled());
         assertEquals("cors exposed headers", 1, portalConfig.getCors().getExposedHeaders().size());
-        List<String> readonlyMetadata = portalConfig.getMetadata().get(PortalConfigEntity.METADATA_READONLY);
+        List<String> readonlyMetadata = portalConfig.getMetadata().get(ConsoleConfigEntity.METADATA_READONLY);
         assertEquals("Config metadata size", 7, readonlyMetadata.size());
         assertTrue("Config metadata contains COMPANY_NAME", readonlyMetadata.contains(COMPANY_NAME.key()));
         assertTrue("Config metadata contains AUTHENTICATION_FORCELOGIN_ENABLED", readonlyMetadata.contains(Key.AUTHENTICATION_FORCELOGIN_ENABLED.key()));
@@ -140,11 +159,11 @@ public class ConfigServiceTest {
 
     @Test
     public void shouldCreatePortalConfig() {
-        PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
-        portalConfigEntity.getCompany().setName("ACME");
+        ConsoleConfigEntity consoleConfigEntity = new ConsoleConfigEntity();
+        consoleConfigEntity.getCompany().setName("ACME");
         when(mockParameterService.save(COMPANY_NAME, "ACME")).thenReturn(new Parameter());
 
-        configService.save(portalConfigEntity);
+        configService.save(consoleConfigEntity);
 
         verify(mockParameterService, times(1)).save(COMPANY_NAME, "ACME");
     }

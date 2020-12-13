@@ -17,7 +17,8 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.PortalConfigEntity.Management;
+import io.gravitee.rest.api.model.config.ConsoleConfigEntity;
+import io.gravitee.rest.api.model.config.Management;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,7 +86,7 @@ public class UserResourceTest extends AbstractResourceTest {
     public void shouldGetCurrentUserWithEmptyManagementConfig() {
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
-        when(configService.getPortalConfig()).thenReturn(new PortalConfigEntity());
+        when(configService.getConsoleConfig()).thenReturn(new ConsoleConfigEntity());
         
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -105,9 +106,9 @@ public class UserResourceTest extends AbstractResourceTest {
     public void shouldGetCurrentUserWithManagementConfigWithoutUrl() {
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
-        PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
-        portalConfigEntity.setManagement(portalConfigEntity.new Management());
-        when(configService.getPortalConfig()).thenReturn(portalConfigEntity);
+        ConsoleConfigEntity consoleConfigEntity = new ConsoleConfigEntity();
+        consoleConfigEntity.setManagement(new Management());
+        when(configService.getConsoleConfig()).thenReturn(consoleConfigEntity);
         
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -127,11 +128,11 @@ public class UserResourceTest extends AbstractResourceTest {
     public void shouldGetCurrentUserWithManagementConfigWithUrl() {
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
-        PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
-        Management managementConfig = portalConfigEntity.new Management();
+        ConsoleConfigEntity consoleConfigEntity = new ConsoleConfigEntity();
+        Management managementConfig = new Management();
         managementConfig.setUrl("URL");
-        portalConfigEntity.setManagement(managementConfig);
-        when(configService.getPortalConfig()).thenReturn(portalConfigEntity);
+        consoleConfigEntity.setManagement(managementConfig);
+        when(configService.getConsoleConfig()).thenReturn(consoleConfigEntity);
         
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

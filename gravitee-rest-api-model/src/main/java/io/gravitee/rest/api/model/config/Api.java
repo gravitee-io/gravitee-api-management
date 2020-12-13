@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.model.config;
 
-import io.gravitee.rest.api.model.config.ConsoleConfigEntity;
-import io.gravitee.rest.api.model.config.PortalConfigEntity;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.gravitee.rest.api.model.annotations.ParameterKey;
+import io.gravitee.rest.api.model.parameters.Key;
 
-/**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
- * @author GraviteeSource Team
- */
-public interface ConfigService {
-    ConsoleConfigEntity getConsoleConfig();
-    PortalConfigEntity getPortalConfig();
-    boolean portalLoginForced();
-    void save(ConsoleConfigEntity consoleConfigEntity);
+import java.util.List;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Api {
+    @ParameterKey(Key.API_LABELS_DICTIONARY)
+    private List<String> labelsDictionary;
+
+    public List<String> getLabelsDictionary() {
+        return labelsDictionary;
+    }
+
+    public void setLabelsDictionary(List<String> labelsDictionary) {
+        this.labelsDictionary = labelsDictionary;
+    }
 }

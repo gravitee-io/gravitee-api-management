@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import io.gravitee.rest.api.model.PortalConfigEntity;
-import io.gravitee.rest.api.model.PortalConfigEntity.Application;
-import io.gravitee.rest.api.model.PortalConfigEntity.*;
-import io.gravitee.rest.api.model.PortalConfigEntity.Plan;
-import io.gravitee.rest.api.model.PortalConfigEntity.Application.ApplicationTypes;
-import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalRating;
-import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalRating.RatingComment;
-import io.gravitee.rest.api.model.PortalConfigEntity.Portal.PortalUploadMedia;
+import io.gravitee.rest.api.model.config.*;
+import io.gravitee.rest.api.model.config.Application;
+import io.gravitee.rest.api.model.config.ConsoleConfigEntity.*;
+import io.gravitee.rest.api.model.config.Plan;
+import io.gravitee.rest.api.model.config.Application.ApplicationTypes;
+import io.gravitee.rest.api.model.config.Portal.PortalRating;
+import io.gravitee.rest.api.model.config.Portal.PortalRating.RatingComment;
+import io.gravitee.rest.api.model.config.Portal.PortalUploadMedia;
 import io.gravitee.rest.api.portal.rest.model.Enabled;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.springframework.stereotype.Component;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigurationMapper {
 
-    public ConfigurationResponse convert(PortalConfigEntity configEntity) {
+    public ConfigurationResponse convert(ConsoleConfigEntity configEntity) {
         ConfigurationResponse configuration = new ConfigurationResponse();
         configuration.setAnalytics(convert(configEntity.getAnalytics()));
         configuration.setApiReview(convert(configEntity.getApiReview().getEnabled()));
@@ -213,7 +213,7 @@ public class ConfigurationMapper {
         return new Enabled().enabled(enabled);
     }
 
-    private Enabled convert(PortalConfigEntity.Enabled enabledEntity) {
+    private Enabled convert(ConsoleConfigEntity.Enabled enabledEntity) {
         return new Enabled().enabled(enabledEntity.isEnabled());
     }
 }

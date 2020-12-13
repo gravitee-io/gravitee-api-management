@@ -15,9 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.rest.api.model.PortalConfigEntity;
-import io.gravitee.rest.api.model.PortalConfigEntity.Enabled;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
+import io.gravitee.rest.api.model.config.*;
+import io.gravitee.rest.api.model.config.ConsoleConfigEntity.Enabled;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.NewsletterService;
@@ -36,6 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.KV_SEPARATOR;
 import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.SEPARATOR;
 import static java.util.Collections.*;
@@ -49,6 +51,7 @@ import static java.util.stream.Collectors.toMap;
 public class ConfigServiceImpl extends AbstractService implements ConfigService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ConfigServiceImpl.class);
+    private static final ObjectMapper MAPPER = new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Autowired
     private ParameterService parameterService;
@@ -62,7 +65,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     @Override
     public boolean portalLoginForced() {
         boolean result = false;
-        final PortalConfigEntity.Authentication auth = getPortalConfig().getAuthentication();
+        final Authentication auth = getPortalConfig().getAuthentication();
         if ( auth.getForceLogin() != null) {
             result = auth.getForceLogin().isEnabled();
         }
@@ -70,9 +73,18 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     @Override
+    public ConsoleConfigEntity getConsoleConfig() {
+        return getConfig();
+    }
+
+    @Override
     public PortalConfigEntity getPortalConfig() {
-        PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
-        Object[] objects = getObjectArray(portalConfigEntity);
+        return MAPPER.convertValue(getConfig(), PortalConfigEntity.class);
+    }
+
+    private ConsoleConfigEntity getConfig() {
+        ConsoleConfigEntity ConsoleConfigEntity = new ConsoleConfigEntity();
+        Object[] objects = getObjectArray(ConsoleConfigEntity);
 
         // get values from DB
         final List<Key> parameterKeys = new ArrayList<>();
@@ -96,7 +108,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     try {
                         List<String> values = parameterMap.get(parameterKey.value().key());
                         if (environment.containsProperty(parameterKey.value().key())) {
-                            portalConfigEntity.getMetadata().add(PortalConfigEntity.METADATA_READONLY, parameterKey.value().key());
+                            ConsoleConfigEntity.getMetadata().add(ConsoleConfigEntity.METADATA_READONLY, parameterKey.value().key());
                         }
                         final String defaultValue = parameterKey.value().defaultValue();
                         if (Enabled.class.isAssignableFrom(f.getType())) {
@@ -147,8 +159,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             }
         }
 
-        enhanceFromConfigFile(portalConfigEntity);
-        return portalConfigEntity;
+        enhanceFromConfigFile(ConsoleConfigEntity);
+        return ConsoleConfigEntity;
     }
 
     private String getFirstValueOrDefault(final List<String> values, final String defaultValue) {
@@ -160,7 +172,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         return values.get(0);
     }
 
-    private void enhanceFromConfigFile(PortalConfigEntity portalConfigEntity) {
+    private void enhanceFromConfigFile(ConsoleConfigEntity ConsoleConfigEntity) {
         //hack until authent config takes place in the database
         boolean found = true;
         int idx = 0;
@@ -171,29 +183,29 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             if (found) {
                 String clientId = environment.getProperty("security.providers[" + idx + "].clientId");
                 if ("google".equals(type)) {
-                    portalConfigEntity.getAuthentication().getGoogle().setClientId(clientId);
+                    ConsoleConfigEntity.getAuthentication().getGoogle().setClientId(clientId);
                 } else if ("github".equals(type)) {
-                    portalConfigEntity.getAuthentication().getGithub().setClientId(clientId);
+                    ConsoleConfigEntity.getAuthentication().getGithub().setClientId(clientId);
                 } else if ("oauth2".equals(type)) {
-                    portalConfigEntity.getAuthentication().getOauth2().setClientId(clientId);
+                    ConsoleConfigEntity.getAuthentication().getOauth2().setClientId(clientId);
                 }
             }
             idx++;
         }
 
-        final PortalConfigEntity.ReCaptcha reCaptcha = new PortalConfigEntity.ReCaptcha();
+        final ReCaptcha reCaptcha = new ReCaptcha();
         reCaptcha.setEnabled(reCaptchaService.isEnabled());
         reCaptcha.setSiteKey(reCaptchaService.getSiteKey());
-        portalConfigEntity.setReCaptcha(reCaptcha);
+        ConsoleConfigEntity.setReCaptcha(reCaptcha);
 
-        final PortalConfigEntity.Newsletter newsletter = new PortalConfigEntity.Newsletter();
+        final Newsletter newsletter = new Newsletter();
         newsletter.setEnabled(newsletterService.isEnabled());
-        portalConfigEntity.setNewsletter(newsletter);
+        ConsoleConfigEntity.setNewsletter(newsletter);
     }
 
     @Override
-    public void save(PortalConfigEntity portalConfigEntity) {
-        Object[] objects = getObjectArray(portalConfigEntity);
+    public void save(ConsoleConfigEntity ConsoleConfigEntity) {
+        Object[] objects = getObjectArray(ConsoleConfigEntity);
 
         for (Object o : objects) {
             for (Field f : o.getClass().getDeclaredFields()) {
@@ -228,45 +240,45 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         }
     }
 
-    private Object[] getObjectArray(PortalConfigEntity portalConfigEntity) {
+    private Object[] getObjectArray(ConsoleConfigEntity ConsoleConfigEntity) {
         return new Object[]{
-                portalConfigEntity,
-                portalConfigEntity.getAuthentication(),
-                portalConfigEntity.getAuthentication().getGithub(),
-                portalConfigEntity.getAuthentication().getGoogle(),
-                portalConfigEntity.getAuthentication().getOauth2(),
-                portalConfigEntity.getCompany(),
-                portalConfigEntity.getDocumentation(),
-                portalConfigEntity.getManagement(),
-                portalConfigEntity.getPortal(),
-                portalConfigEntity.getPortal().getApis(),
-                portalConfigEntity.getPortal().getAnalytics(),
-                portalConfigEntity.getPortal().getRating(),
-                portalConfigEntity.getPortal().getRating().getComment(),
-                portalConfigEntity.getPortal().getUploadMedia(),
-                portalConfigEntity.getPortal().getUserCreation(),
-                portalConfigEntity.getScheduler(),
-                portalConfigEntity.getTheme(),
-                portalConfigEntity.getPlan(),
-                portalConfigEntity.getPlan().getSecurity(),
-                portalConfigEntity.getOpenAPIDocViewer(),
-                portalConfigEntity.getOpenAPIDocViewer().getOpenAPIDocType(),
-                portalConfigEntity.getApiQualityMetrics(),
-                portalConfigEntity.getApiReview(),
-                portalConfigEntity.getLogging(),
-                portalConfigEntity.getLogging().getAudit(),
-                portalConfigEntity.getLogging().getUser(),
-                portalConfigEntity.getAnalytics(),
-                portalConfigEntity.getApplication(),
-                portalConfigEntity.getApplication().getRegistration(),
-                portalConfigEntity.getApplication().getTypes(),
-                portalConfigEntity.getLogging().getAudit().getTrail(),
-                portalConfigEntity.getAlert(),
-                portalConfigEntity.getMaintenance(),
-                portalConfigEntity.getApi(),
-                portalConfigEntity.getCors(),
-                portalConfigEntity.getEmail(),
-                portalConfigEntity.getEmail().getProperties()
+                ConsoleConfigEntity,
+                ConsoleConfigEntity.getAuthentication(),
+                ConsoleConfigEntity.getAuthentication().getGithub(),
+                ConsoleConfigEntity.getAuthentication().getGoogle(),
+                ConsoleConfigEntity.getAuthentication().getOauth2(),
+                ConsoleConfigEntity.getCompany(),
+                ConsoleConfigEntity.getDocumentation(),
+                ConsoleConfigEntity.getManagement(),
+                ConsoleConfigEntity.getPortal(),
+                ConsoleConfigEntity.getPortal().getApis(),
+                ConsoleConfigEntity.getPortal().getAnalytics(),
+                ConsoleConfigEntity.getPortal().getRating(),
+                ConsoleConfigEntity.getPortal().getRating().getComment(),
+                ConsoleConfigEntity.getPortal().getUploadMedia(),
+                ConsoleConfigEntity.getPortal().getUserCreation(),
+                ConsoleConfigEntity.getScheduler(),
+                ConsoleConfigEntity.getTheme(),
+                ConsoleConfigEntity.getPlan(),
+                ConsoleConfigEntity.getPlan().getSecurity(),
+                ConsoleConfigEntity.getOpenAPIDocViewer(),
+                ConsoleConfigEntity.getOpenAPIDocViewer().getOpenAPIDocType(),
+                ConsoleConfigEntity.getApiQualityMetrics(),
+                ConsoleConfigEntity.getApiReview(),
+                ConsoleConfigEntity.getLogging(),
+                ConsoleConfigEntity.getLogging().getAudit(),
+                ConsoleConfigEntity.getLogging().getUser(),
+                ConsoleConfigEntity.getAnalytics(),
+                ConsoleConfigEntity.getApplication(),
+                ConsoleConfigEntity.getApplication().getRegistration(),
+                ConsoleConfigEntity.getApplication().getTypes(),
+                ConsoleConfigEntity.getLogging().getAudit().getTrail(),
+                ConsoleConfigEntity.getAlert(),
+                ConsoleConfigEntity.getMaintenance(),
+                ConsoleConfigEntity.getApi(),
+                ConsoleConfigEntity.getCors(),
+                ConsoleConfigEntity.getEmail(),
+                ConsoleConfigEntity.getEmail().getProperties()
         };
     }
 }

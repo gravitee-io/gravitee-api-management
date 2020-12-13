@@ -73,7 +73,7 @@ public class ConfigurationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalConfiguration() {
-        return Response.ok(configMapper.convert(configService.getPortalConfig())).build();
+        return Response.ok(configMapper.convert(configService.getConsoleConfig())).build();
     }
 
     @GET

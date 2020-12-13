@@ -16,19 +16,19 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.rest.resource.portal.PortalApisResource;
-import io.gravitee.rest.api.management.rest.resource.portal.SocialIdentityProvidersResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.config.ConsoleConfigEntity;
-import io.gravitee.rest.api.model.config.PortalConfigEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.ConfigService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -36,13 +36,11 @@ import javax.ws.rs.core.Response;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 
 /**
- * Defines the REST resources to manage Portal.
- *
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Portal"})
-public class PortalResource {
+@Api(tags = {"Settings"})
+public class SettingsResource {
 
     @Inject
     private ConfigService configService;
@@ -57,8 +55,11 @@ public class PortalResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "Portal configuration", response = ConsoleConfigEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PortalConfigEntity getPortalConfig() {
-        return configService.getPortalConfig();
+    @Permissions({
+            @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = READ)
+    })
+    public ConsoleConfigEntity getSettings() {
+        return configService.getConsoleConfig();
     }
 
     @POST
@@ -71,34 +72,12 @@ public class PortalResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = {CREATE, UPDATE, DELETE})
     })
-    @Deprecated
-    public Response savePortalConfig(
+    public Response saveSettings(
             @ApiParam(name = "config", required = true) @NotNull ConsoleConfigEntity consoleConfigEntity) {
         configService.save(consoleConfigEntity);
         return Response
                 .ok()
                 .entity(consoleConfigEntity)
                 .build();
-    }
-
-    @Path("pages")
-    public PortalPagesResource getPortalPagesResource() {
-        return resourceContext.getResource(PortalPagesResource.class);
-    }
-
-    @Path("apis")
-    public PortalApisResource getPortalApisResource() {
-        return resourceContext.getResource(PortalApisResource.class);
-    }
-
-    @Path("media")
-    public PortalMediaResource getPortalMediaResource() {
-        return resourceContext.getResource(PortalMediaResource.class);
-    }
-
-    @Deprecated
-    @Path("identities")
-    public SocialIdentityProvidersResource getSocialIdentityProvidersResource() {
-        return resourceContext.getResource(SocialIdentityProvidersResource.class);
     }
 }
