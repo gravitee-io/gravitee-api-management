@@ -54,6 +54,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static javax.ws.rs.client.Entity.form;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -71,6 +72,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
+    @Override
     protected String contextPath() {
         return "auth/oauth2/"+USER_SOURCE_OAUTH2;
     }
@@ -158,7 +160,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             }
         };
 
-        when(socialIdentityProviderService.findById(USER_SOURCE_OAUTH2)).thenReturn(identityProvider);
+        when(socialIdentityProviderService.findById(eq(USER_SOURCE_OAUTH2), any())).thenReturn(identityProvider);
         cleanEnvironment();
         cleanRolesGroupMapping();
         reset(userService, groupService, roleService, membershipService);

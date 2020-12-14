@@ -25,12 +25,14 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.rest.utils.BlindTrustManager;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -122,7 +124,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             @PathParam(value = "identity") final String identity,
             @QueryParam(value = "token") final String token,
             @Context final HttpServletResponse servletResponse) throws IOException {
-        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);
+        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity, new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION));
 
         if (identityProvider != null) {
             if (identityProvider.getTokenIntrospectionEndpoint() != null) {
@@ -176,7 +178,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             @PathParam(value = "identity") String identity,
             @Valid @NotNull final Payload payload,
             @Context final HttpServletResponse servletResponse) throws IOException {
-        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);
+        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity, new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION));
 
         if (identityProvider != null) {
             // Step 1. Exchange authorization code for access token.

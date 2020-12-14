@@ -161,7 +161,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             }
         };
 
-        when(socialIdentityProviderService.findById(USER_SOURCE_OAUTH2)).thenReturn(identityProvider);
+        when(socialIdentityProviderService.findById(eq(USER_SOURCE_OAUTH2), any())).thenReturn(identityProvider);
         cleanEnvironment();
         cleanRolesGroupMapping();
         reset(userService, groupService, roleService, membershipService);
