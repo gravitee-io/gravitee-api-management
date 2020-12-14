@@ -123,13 +123,13 @@ class UserService {
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       let applicationId = applicationRegex.exec(this.$location.$$path);
-      if (!that.isLogout && applicationId && applicationId[1] !== 'create') {
+      if (this.Constants.org.currentEnv && !that.isLogout && applicationId && applicationId[1] !== 'create') {
         promises.push(this.ApplicationService.getPermissions(applicationId[1]));
       }
 
       const apiRegex = /apis\/([\w|\-]+)/;
       const apiId = apiRegex.exec(this.$location.$$path);
-      if (!that.isLogout && apiId && apiId[1] !== 'new') {
+      if (this.Constants.org.currentEnv && !that.isLogout && apiId && apiId[1] !== 'new') {
         promises.push(this.ApiService.getPermissions(apiId[1]));
       }
 
