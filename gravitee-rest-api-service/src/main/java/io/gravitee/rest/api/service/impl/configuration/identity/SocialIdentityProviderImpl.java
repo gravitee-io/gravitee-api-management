@@ -15,14 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.identity;
 
-import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
-import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
-import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
+import io.gravitee.rest.api.model.configuration.identity.*;
 import io.gravitee.rest.api.model.configuration.identity.am.AMIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.github.GitHubIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.google.GoogleIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.oidc.OIDCIdentityProviderEntity;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -58,18 +57,30 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
     @Autowired
     private IdentityProviderService identityProviderService;
 
-    @Override
-    public Set<SocialIdentityProviderEntity> findAll(boolean findEnabled) {
-        try {
-            Stream<IdentityProviderEntity> identityProviderEntityStream = identityProviderService.findAll().stream();
+    @Autowired
+    private IdentityProviderActivationService identityProviderActivationService;
 
-            if (findEnabled) {
+    @Override
+    public Set<SocialIdentityProviderEntity> findAll(IdentityProviderActivationService.ActivationTarget target) {
+        try {
+            Set<String> allIdpByTarget = identityProviderActivationService.findAllByTarget(target)
+                    .stream()
+                    .map(IdentityProviderActivationEntity::getIdentityProvider)
+                    .collect(Collectors.toSet());
+
+            Stream<IdentityProviderEntity> identityProviderEntityStream = identityProviderService.findAll()
+                    .stream()
+                    .filter(idp -> allIdpByTarget.contains(idp.getId()));
+
+            if (target.getReferenceType() == IdentityProviderActivationReferenceType.ENVIRONMENT) {
                 identityProviderEntityStream = identityProviderEntityStream.filter(IdentityProviderEntity::isEnabled);
             }
 
             return identityProviderEntityStream
+                    .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
                     .map(this::convert)
                     .collect(Collectors.toSet());
+
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to retrieve identity providers", ex);
             throw new TechnicalManagementException(
@@ -78,13 +89,22 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
     }
 
     @Override
-    public SocialIdentityProviderEntity findById(String id) {
+    public SocialIdentityProviderEntity findById(String id, IdentityProviderActivationService.ActivationTarget target) {
         try {
             LOGGER.debug("Find identity provider by ID: {}", id);
 
+            Set<String> allIdpByTarget = identityProviderActivationService.findAllByTarget(target)
+                    .stream()
+                    .map(IdentityProviderActivationEntity::getIdentityProvider)
+                    .collect(Collectors.toSet());
+
+            if (!allIdpByTarget.contains(id)) {
+                throw new IdentityProviderNotFoundException(id);
+            }
+
             IdentityProviderEntity identityProvider = identityProviderService.findById(id);
 
-            if (!identityProvider.isEnabled()) {
+            if (target.getReferenceType() == IdentityProviderActivationReferenceType.ENVIRONMENT && !identityProvider.isEnabled()) {
                 throw new IdentityProviderNotFoundException(identityProvider.getId());
             }
 

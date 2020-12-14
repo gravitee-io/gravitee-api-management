@@ -76,7 +76,7 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
 
         doReturn(Sets.newSet(mockAMIdentityProviderEntity(), mockGoogleIdentityProviderEntity(), mockGitHubIdentityProviderEntity(), mockOIDCIdentityProviderEntity()))
                 .when(socialIdentityProviderService)
-                .findAll(true);
+                .findAll(any());
 
         ConsoleConfigEntity configEntity = new ConsoleConfigEntity();
         doReturn(configEntity).when(configService).getConsoleConfig();
@@ -85,7 +85,7 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         verify(identityProviderMapper, times(4)).convert(any());
-        verify(socialIdentityProviderService).findAll(true);
+        verify(socialIdentityProviderService).findAll(any());
 
         ConfigurationIdentitiesResponse configurationIdentitiesResponse = response.readEntity(ConfigurationIdentitiesResponse.class);
         assertEquals(4, configurationIdentitiesResponse.getData().size());

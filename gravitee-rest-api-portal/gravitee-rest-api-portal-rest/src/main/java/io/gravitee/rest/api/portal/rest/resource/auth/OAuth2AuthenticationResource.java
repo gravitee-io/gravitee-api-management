@@ -19,11 +19,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.portal.rest.model.PayloadInput;
 import io.gravitee.rest.api.portal.rest.utils.BlindTrustManager;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +95,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             @PathParam(value = "identity") final String identity,
             @QueryParam(value = "token") final String token,
             @Context final HttpServletResponse servletResponse) {
-        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);
+        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity, new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT));
 
         if (identityProvider != null) {
             if (identityProvider.getTokenIntrospectionEndpoint() != null) {
@@ -147,7 +150,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             @Valid @NotNull(message = "Input must not be null.") final PayloadInput payloadInput,
             @Context final HttpServletResponse servletResponse) throws IOException {
 
-        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity);
+        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity, new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT));
 
         if (identityProvider != null) {
             // Step 1. Exchange authorization code for access token.
