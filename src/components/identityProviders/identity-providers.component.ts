@@ -95,7 +95,18 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     };
 
     this.hasActivatedIdp = () => {
-      return Object.keys(this.activatedIdps).length > 0;
+      if (this.target === 'ENVIRONMENT') {
+        // activated IDP must also be enabled
+        const enabledIdpIds = this.identityProviders.filter(idp => idp.enabled === true).map(idp => idp.id);
+        for (const idpId of enabledIdpIds) {
+          if (this.activatedIdps[idpId]) {
+            return true;
+          }
+        }
+        return false;
+      } else {
+        return Object.keys(this.activatedIdps).length > 0;
+      }
     };
 
     this.saveForceLogin = () => {
