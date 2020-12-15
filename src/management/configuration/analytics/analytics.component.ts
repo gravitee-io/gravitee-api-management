@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import NotificationService from '../../../services/notification.service';
-import PortalConfigService from '../../../services/portalConfig.service';
+import PortalSettingsService from '../../../services/portalSettings.service';
 import { StateService } from '@uirouter/core';
 import DashboardService from '../../../services/dashboard.service';
 import { Dashboard } from '../../../entities/dashboard';
@@ -29,7 +29,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
   template: require('./analytics.html'),
   controller: function(
     NotificationService: NotificationService,
-    PortalConfigService: PortalConfigService,
+    PortalSettingsService: PortalSettingsService,
     $state: StateService,
     Constants: any,
     $mdDialog: angular.material.IDialogService,
@@ -54,7 +54,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     };
 
     this.save = () => {
-      PortalConfigService.save(this.settings).then( (response) => {
+      PortalSettingsService.save(this.settings).then( (response) => {
         _.merge(Constants.env.settings, response.data);
         NotificationService.show('Configuration saved');
         this.formSettings.$setPristine();
@@ -111,7 +111,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     };
 
     this.isReadonlySetting = (property: string): boolean => {
-      return PortalConfigService.isReadonly(this.settings, property);
+      return PortalSettingsService.isReadonly(this.settings, property);
     };
   }
 };

@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-class PortalConfigService {
-  private portalURL: string;
-  private settings: any;
+class PortalSettingsService {
+  private settingsURL: string;
 
-  constructor(private $http, private $q, Constants) {
+  constructor(private $http, Constants) {
     'ngInject';
-    this.portalURL = `${Constants.env.baseURL}/portal/`;
-    this.settings = Constants.env.settings;
+    this.settingsURL = `${Constants.env.baseURL}/settings/`;
   }
 
-  save(config?) {
-    return this.$http.post(this.portalURL, config ? config : this.settings);
+  save(config) {
+    return this.$http.post(this.settingsURL, config);
   }
 
   get() {
-    return this.$http.get(this.portalURL);
+    return this.$http.get(this.settingsURL);
   }
 
   isReadonly(settings: any, property: string): boolean {
@@ -40,4 +38,4 @@ class PortalConfigService {
   }
 }
 
-export default PortalConfigService;
+export default PortalSettingsService;

@@ -15,7 +15,7 @@
  */
 import { StateService } from '@uirouter/core';
 import NotificationService from '../../../../services/notification.service';
-import PortalConfigService from '../../../../services/portalConfig.service';
+import PortalSettingsService from '../../../../services/portalSettings.service';
 import { ClientRegistrationProvider } from '../../../../entities/clientRegistrationProvider';
 import ClientRegistrationProviderService from '../../../../services/clientRegistrationProvider.service';
 import _ = require('lodash');
@@ -28,7 +28,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
   controller: function(
     $mdDialog: angular.material.IDialogService,
     ClientRegistrationProviderService: ClientRegistrationProviderService,
-    PortalConfigService: PortalConfigService,
+    PortalSettingsService: PortalSettingsService,
     NotificationService: NotificationService,
     $state: StateService,
     Constants
@@ -68,7 +68,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
     };
 
     this.saveClientRegistration = () => {
-      PortalConfigService.save({
+      PortalSettingsService.save({
         application: {
           registration: {
             enabled: this.settings.application.registration.enabled
@@ -95,14 +95,14 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         enabled: this.settings.application.types[type].enabled
       };
 
-      PortalConfigService.save(appType).then( response => {
+      PortalSettingsService.save(appType).then( response => {
         NotificationService.show('Application type \'' + type  + '\' is now ' + (this.settings.application.types[type].enabled ? 'allowed' : 'disallowed') );
         _.merge(Constants.env.settings, response.data);
       });
     };
 
     this.isReadonlySetting = (property: string): boolean => {
-      return PortalConfigService.isReadonly(this.settings, property);
+      return PortalSettingsService.isReadonly(this.settings, property);
     };
   }
 };

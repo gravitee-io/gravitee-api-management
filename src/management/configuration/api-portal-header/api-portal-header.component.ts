@@ -16,7 +16,7 @@
 import NotificationService from '../../../services/notification.service';
 import ApiHeaderService from '../../../services/apiHeader.service';
 import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
-import PortalConfigService from '../../../services/portalConfig.service';
+import PortalSettingsService from '../../../services/portalSettings.service';
 import { IScope } from 'angular';
 import _ = require('lodash');
 
@@ -28,7 +28,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
   controller: function(
     ApiHeaderService: ApiHeaderService,
     NotificationService: NotificationService,
-    PortalConfigService: PortalConfigService,
+    PortalSettingsService: PortalSettingsService,
     $mdDialog: angular.material.IDialogService,
     Constants,
     $rootScope: IScope
@@ -115,7 +115,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     };
 
     this.saveShowCategories = () => {
-      PortalConfigService.save({
+      PortalSettingsService.save({
         portal: {
           apis: {
             apiHeaderShowCategories: {
@@ -130,7 +130,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     };
 
     this.saveShowTags = () => {
-      PortalConfigService.save({
+      PortalSettingsService.save({
         portal: {
           apis: {
             apiHeaderShowTags: {
@@ -145,7 +145,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     };
 
     this.isReadonlySetting = (property: string): boolean => {
-      return PortalConfigService.isReadonly(this.settings, property);
+      return PortalSettingsService.isReadonly(this.settings, property);
     };
   }
 };

@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-class ConsoleConfigService {
-  private consoleURL: string;
-  private settings: any;
+class ConsoleSettingsService {
+  private settingsURL: string;
 
-  constructor(private $http, private $q, Constants) {
+  constructor(private $http, Constants) {
     'ngInject';
-    this.consoleURL = `${Constants.org.baseURL}/console/`;
-    this.settings = Constants.org.settings;
+    this.settingsURL = `${Constants.org.baseURL}/settings/`;
   }
 
-  save(config?) {
-    return this.$http.post(this.consoleURL, config ? config : this.settings);
+  save(config) {
+    return this.$http.post(this.settingsURL, config);
   }
 
   get() {
-    return this.$http.get(this.consoleURL);
+    return this.$http.get(this.settingsURL);
   }
 
   isReadonly(settings: any, property: string): boolean {
@@ -40,4 +38,4 @@ class ConsoleConfigService {
   }
 }
 
-export default ConsoleConfigService;
+export default ConsoleSettingsService;

@@ -16,10 +16,10 @@
 /* global setInterval:false, clearInterval:false, screen:false */
 import UserService from '../services/user.service';
 import EnvironmentService from '../services/environment.service';
-import PortalConfigService from '../services/portalConfig.service';
+import PortalSettingsService from '../services/portalSettings.service';
 
 function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
-                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService, ApiService, EnvironmentService: EnvironmentService, PortalConfigService: PortalConfigService) {
+                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService, ApiService, EnvironmentService: EnvironmentService, PortalSettingsService: PortalSettingsService) {
   'ngInject';
 
   $transitions.onStart({
@@ -58,7 +58,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
         })
         .then((environments) => {
           if (environments && environments.length >= 1) {
-            return PortalConfigService.get();
+            return PortalSettingsService.get();
           }
         })
         .then(response => {

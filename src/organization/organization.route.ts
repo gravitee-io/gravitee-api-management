@@ -20,6 +20,7 @@ import IdentityProviderService from '../services/identityProvider.service';
 import GroupService from '../services/group.service';
 import OrganizationService from '../services/organization.service';
 import NotificationTemplatesService from '../services/notificationTemplates.service';
+import ConsoleSettingsService from '../services/consoleSettings.service';
 
 export default organizationRouterConfig;
 
@@ -34,6 +35,9 @@ function organizationRouterConfig($stateProvider) {
     .state('organization.settings', {
       url: '/settings',
       component: 'organizationSettings',
+      resolve: {
+        settings: (ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then(response => response.data)
+      },
       data: {
         menu: null,
         perms: {

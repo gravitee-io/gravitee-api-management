@@ -16,7 +16,7 @@
 import _ = require('lodash');
 import { IScope } from 'angular';
 import NotificationService from '../../../services/notification.service';
-import PortalConfigService from '../../../services/portalConfig.service';
+import PortalSettingsService from '../../../services/portalSettings.service';
 
 const ApiQualityRulesComponent: ng.IComponentOptions = {
   bindings: {
@@ -26,7 +26,7 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
   controller: function(
     Constants,
     $rootScope: IScope,
-    PortalConfigService: PortalConfigService,
+    PortalSettingsService: PortalSettingsService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService) {
     'ngInject';
@@ -35,7 +35,7 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.save = () => {
-      PortalConfigService.save(this.settings).then( (response) => {
+      PortalSettingsService.save(this.settings).then( (response) => {
         _.merge(Constants.env.settings, response.data);
         NotificationService.show('API Quality settings saved!');
         this.formQuality.$setPristine();
@@ -64,7 +64,7 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
     };
 
     this.isReadonlySetting = (property: string): boolean => {
-      return PortalConfigService.isReadonly(this.settings, property);
+      return PortalSettingsService.isReadonly(this.settings, property);
     };
   }
 };

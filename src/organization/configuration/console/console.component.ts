@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import NotificationService from '../../../services/notification.service';
-import ConsoleConfigService from '../../../services/consoleConfig.service';
+import ConsoleSettingsService from '../../../services/consoleSettings.service';
 import { StateService } from '@uirouter/core';
 import CorsService from '../../../services/cors.service';
 import ApiService from '../../../services/api.service';
@@ -22,19 +22,19 @@ import _ = require('lodash');
 
 const ConsoleSettingsComponent: ng.IComponentOptions = {
   bindings: {
-    tags: '<'
+    tags: '<',
+    settings: '<'
   },
   template: require('./console.html'),
   controller: function(
     NotificationService: NotificationService,
-    ConsoleConfigService: ConsoleConfigService,
+    ConsoleSettingsService: ConsoleSettingsService,
     CorsService: CorsService,
     ApiService: ApiService,
     $state: StateService,
     Constants: any
   ) {
     'ngInject';
-    this.settings = _.cloneDeep(Constants.org.settings);
     this.methods = CorsService.getHttpMethods();
     this.headers = ApiService.defaultHttpHeaders();
     this.searchHeaders = null;
@@ -49,22 +49,11 @@ const ConsoleSettingsComponent: ng.IComponentOptions = {
     };
 
     this.save = () => {
-      ConsoleConfigService.save(this.settings).then( (response) => {
-        // We have to manually set this property because lodash's merge do not handle well the case of label deletion
-        Constants.org.settings.cors.allowOrigin = response.data.cors.allowOrigin;
-        Constants.org.settings.cors.allowHeaders = response.data.cors.allowHeaders;
-        Constants.org.settings.cors.allowMethods = response.data.cors.allowMethods;
-        Constants.org.settings.cors.exposedHeaders = response.data.cors.exposedHeaders;
+      ConsoleSettingsService.save(this.settings).then( (response) => {
         _.merge(Constants.org.settings, response.data);
         NotificationService.show('Configuration saved');
-        this.reset();
         $state.reload();
       });
-    };
-
-    this.reset = () => {
-      this.settings = _.cloneDeep(Constants.org.settings);
-      this.formSettings.$setPristine();
     };
 
     this.hasIdpDefined = () => {
@@ -74,7 +63,7 @@ const ConsoleSettingsComponent: ng.IComponentOptions = {
     };
 
     this.isReadonlySetting = (property: string): boolean => {
-      return ConsoleConfigService.isReadonly(this.settings, property);
+      return ConsoleSettingsService.isReadonly(this.settings, property);
     };
 
     this.controlAllowOrigin = (chip, index) => {

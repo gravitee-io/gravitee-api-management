@@ -33,6 +33,8 @@ import QualityRuleService from '../../services/qualityRule.service';
 import DashboardService from '../../services/dashboard.service';
 import CustomUserFieldsService from '../../services/custom-user-fields.service';
 import EnvironmentService from '../../services/environment.service';
+import PortalSettingsService from '../../services/portalSettings.service';
+import ConsoleSettingsService from '../../services/consoleSettings.service';
 import _ = require('lodash');
 
 export default configurationRouterConfig;
@@ -128,7 +130,8 @@ function configurationRouterConfig($stateProvider) {
       resolve: {
         tags: (TagService: TagService) => TagService.list().then(response => response.data),
         entrypoints: (EntrypointService: EntrypointService) => EntrypointService.list().then(response => response.data),
-        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data)
+        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then(response => response.data),
       },
       data: {
         menu: null,
@@ -546,7 +549,8 @@ function configurationRouterConfig($stateProvider) {
       url: '/portal',
       component: 'portalSettings',
       resolve: {
-        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+        tags: (TagService: TagService) => TagService.list().then(response => response.data),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then(response => response.data),
       },
       data: {
         menu: null,
@@ -747,13 +751,16 @@ function configurationRouterConfig($stateProvider) {
     .state('management.settings.api_logging', {
       url: '/api_logging',
       component: 'apiLogging',
+      resolve: {
+        settings: (ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then(response => response.data)
+      },
       data: {
         menu: null,
         docs: {
           page: 'management-configuration-apilogging'
         },
         perms: {
-          only: ['environment-settings-r']
+          only: ['organization-settings-r']
         }
       }
     })

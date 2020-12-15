@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 const ApiLoggingComponent: ng.IComponentOptions = {
+  bindings: {
+    settings: '<',
+  },
   controller: 'ApiLoggingController',
   template: require('./api_logging.html')
 };

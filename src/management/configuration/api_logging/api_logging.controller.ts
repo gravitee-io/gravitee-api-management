@@ -14,29 +14,28 @@
  * limitations under the License.
  */
 import NotificationService from '../../../services/notification.service';
-import ConsoleConfigService from '../../../services/consoleConfig.service';
+import ConsoleSettingsService from '../../../services/consoleSettings.service';
 
 class ApiLoggingController {
 
   public providedConfigurationMessage = 'Configuration provided by the system';
   private formApiLogging: any;
+  private settings: any;
 
-  constructor(private ConsoleConfigService: ConsoleConfigService,
-              private NotificationService: NotificationService,
-              private Constants: any) {
+  constructor(private ConsoleSettingsService: ConsoleSettingsService,
+              private NotificationService: NotificationService) {
     'ngInject';
-    this.Constants = Constants;
   }
 
   save() {
-    this.ConsoleConfigService.save().then( () => {
+    this.ConsoleSettingsService.save(this.settings).then( () => {
       this.NotificationService.show('API logging saved');
       this.formApiLogging.$setPristine();
     });
   }
 
   isReadonlySetting(property: string): boolean {
-    return this.ConsoleConfigService.isReadonly(this.Constants.org.settings, property);
+    return this.ConsoleSettingsService.isReadonly(this.settings, property);
   }
 }
 

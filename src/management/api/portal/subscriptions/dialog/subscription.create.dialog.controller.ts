@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 import ApiService from '../../../../../services/api.service';
 import ApplicationService from '../../../../../services/application.service';
-import PortalConfigService from '../../../../../services/portalConfig.service';
+import PortalSettingsService from '../../../../../services/portalSettings.service';
 
 function DialogSubscriptionCreateController(
   $mdDialog: angular.material.IDialogService,
@@ -24,7 +24,7 @@ function DialogSubscriptionCreateController(
   api,
   ApplicationService: ApplicationService,
   ApiService: ApiService,
-  PortalConfigService: PortalConfigService,
+  PortalSettingsService: PortalSettingsService,
   Constants: any) {
   'ngInject';
   this.api = api;

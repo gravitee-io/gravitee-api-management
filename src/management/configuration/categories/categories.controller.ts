@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 import CategoryService from '../../../services/category.service';
 import NotificationService from '../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import PortalConfigService from '../../../services/portalConfig.service';
+import PortalSettingsService from '../../../services/portalSettings.service';
 import { IScope } from 'angular';
 
 class CategoriesController {
@@ -34,7 +34,7 @@ class CategoriesController {
     private $q: ng.IQService,
     private $mdDialog: angular.material.IDialogService,
     private $state: StateService,
-    private PortalConfigService: PortalConfigService,
+    private PortalSettingsService: PortalSettingsService,
     Constants: any,
     private $rootScope: IScope) {
     'ngInject';
@@ -72,7 +72,7 @@ class CategoriesController {
   }
 
   toggleDisplayMode() {
-    this.PortalConfigService.save(this.settings).then( (response) => {
+    this.PortalSettingsService.save(this.settings).then( (response) => {
       _.merge(this.Constants.env.settings, response.data);
       this.NotificationService.show('Display mode saved!');
     });
@@ -97,7 +97,7 @@ class CategoriesController {
   }
 
   isReadonlySetting(property: string): boolean {
-    return this.PortalConfigService.isReadonly(this.settings, property);
+    return this.PortalSettingsService.isReadonly(this.settings, property);
   }
 
   private reorder(from, to) {

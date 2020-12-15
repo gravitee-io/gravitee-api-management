@@ -15,7 +15,7 @@
  */
 import { IScope, IWindowService } from 'angular';
 import { StateService } from '@uirouter/core';
-import PortalConfigService from '../../services/portalConfig.service';
+import PortalSettingsService from '../../services/portalSettings.service';
 
 
 export const SidenavComponent: ng.IComponentOptions = {
@@ -31,14 +31,14 @@ export const SidenavComponent: ng.IComponentOptions = {
     $scope: IScope,
     $state: StateService,
     $rootScope: IScope,
-    PortalConfigService: PortalConfigService) {
+    PortalSettingsService: PortalSettingsService) {
     'ngInject';
     const lastEnvironmentLoaded = 'gv-last-environment-loaded';
     const reduceModeKey = 'gv-sidenav-reduce-mode';
     this.$window = $window;
     this.reducedMode = false;
     this.Constants = Constants;
-    this.PortalConfigService = PortalConfigService;
+    this.PortalSettingsService = PortalSettingsService;
     this.$state = $state;
 
     this.$onInit = () => {
@@ -49,7 +49,7 @@ export const SidenavComponent: ng.IComponentOptions = {
     };
 
     this.updateCurrentEnvSettings = () => {
-      PortalConfigService.get().then(response => {
+      PortalSettingsService.get().then(response => {
         Constants.env.settings = response.data;
         $rootScope.$broadcast('graviteePortalUrlRefresh', Constants.env.settings.portal.url);
       });

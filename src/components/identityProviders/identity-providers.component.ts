@@ -17,11 +17,11 @@ import { StateService } from '@uirouter/core';
 import { IdentityProvider, IdentityProviderActivation } from '../../entities/identityProvider';
 import IdentityProviderService from '../../services/identityProvider.service';
 import NotificationService from '../../services/notification.service';
-import PortalConfigService from '../../services/portalConfig.service';
+import PortalSettingsService from '../../services/portalSettings.service';
 import { IScope } from 'angular';
 import OrganizationService from '../../services/organization.service';
 import EnvironmentService from '../../services/environment.service';
-import ConsoleConfigService from '../../services/consoleConfig.service';
+import ConsoleSettingsService from '../../services/consoleSettings.service';
 import _ = require('lodash');
 
 const IdentityProvidersComponent: ng.IComponentOptions = {
@@ -37,8 +37,8 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     IdentityProviderService: IdentityProviderService,
     EnvironmentService: EnvironmentService,
     OrganizationService: OrganizationService,
-    ConsoleConfigService: ConsoleConfigService,
-    PortalConfigService: PortalConfigService,
+    ConsoleSettingsService: ConsoleSettingsService,
+    PortalSettingsService: PortalSettingsService,
     NotificationService: NotificationService,
     $state: StateService,
     Constants,
@@ -99,7 +99,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     };
 
     this.saveForceLogin = () => {
-      PortalConfigService.save({
+      PortalSettingsService.save({
         authentication: {
           forceLogin: {
             enabled: this.settings.authentication.forceLogin.enabled
@@ -113,7 +113,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
 
     this.saveShowLoginForm = () => {
       if (this.target === 'ENVIRONMENT') {
-        PortalConfigService.save({
+        PortalSettingsService.save({
           authentication: {
             localLogin: {
               enabled: this.settings.authentication.localLogin.enabled
@@ -124,7 +124,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
           Constants.env.authentication.localLogin = response.data.authentication.localLogin;
         });
       } else {
-        ConsoleConfigService.save({
+        ConsoleSettingsService.save({
           authentication: {
             localLogin: {
               enabled: this.settings.authentication.localLogin.enabled
@@ -168,9 +168,9 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
 
     this.isReadonlySetting = (property: string): boolean => {
       if (this.target === 'ENVIRONMENT') {
-        return PortalConfigService.isReadonly(this.settings, property);
+        return PortalSettingsService.isReadonly(this.settings, property);
       } else {
-        return ConsoleConfigService.isReadonly(this.settings, property);
+        return ConsoleSettingsService.isReadonly(this.settings, property);
       }
     };
   }

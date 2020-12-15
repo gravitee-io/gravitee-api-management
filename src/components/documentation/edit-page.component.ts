@@ -16,7 +16,7 @@
 
 import NotificationService from '../../services/notification.service';
 import DocumentationService, { FolderSituation, SystemFolderName } from '../../services/documentation.service';
-import PortalConfigService from '../../services/portalConfig.service';
+import PortalSettingsService from '../../services/portalSettings.service';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import UserService from '../../services/user.service';
@@ -46,7 +46,7 @@ const EditPageComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
     UserService: UserService,
-    PortalConfigService: PortalConfigService,
+    PortalSettingsService: PortalSettingsService,
     $mdDialog: angular.material.IDialogService,
     $state: StateService,
     $scope: IPageScope,
@@ -114,7 +114,7 @@ const EditPageComponent: ng.IComponentOptions = {
         }
       }
 
-      PortalConfigService.get().then((response) => {
+      PortalSettingsService.get().then((response) => {
         this.settings = response.data;
         this.shouldShowOpenApiDocFormat = this.settings &&
           this.settings.openAPIDocViewer &&

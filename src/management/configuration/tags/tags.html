@@ -66,7 +66,7 @@
       <div class="gv-form-content" layout="column">
         <md-input-container class="md-block" flex-gt-xs>
           <label>Entrypoint</label>
-          <input ng-model="$ctrl.Constants.env.settings.portal.entrypoint"
+          <input ng-model="$ctrl.settings.portal.entrypoint"
                  ng-disabled="$ctrl.isReadonlySetting('portal.entrypoint')">
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.entrypoint')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>

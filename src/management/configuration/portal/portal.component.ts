@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import NotificationService from '../../../services/notification.service';
-import PortalConfigService from '../../../services/portalConfig.service';
+import PortalSettingsService from '../../../services/portalSettings.service';
 import { StateService } from '@uirouter/core';
 import CorsService from '../../../services/cors.service';
 import ApiService from '../../../services/api.service';
@@ -22,19 +22,19 @@ import _ = require('lodash');
 
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
-    tags: '<'
+    tags: '<',
+    settings: '<'
   },
   template: require('./portal.html'),
   controller: function(
     NotificationService: NotificationService,
-    PortalConfigService: PortalConfigService,
+    PortalSettingsService: PortalSettingsService,
     CorsService: CorsService,
     ApiService: ApiService,
     $state: StateService,
     Constants: any
   ) {
     'ngInject';
-    this.settings = _.cloneDeep(Constants.env.settings);
     this.methods = CorsService.getHttpMethods();
     this.headers = ApiService.defaultHttpHeaders();
     this.searchHeaders = null;
@@ -50,24 +50,11 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     };
 
     this.save = () => {
-      PortalConfigService.save(this.settings).then( (response) => {
-        // We have to manually set this property because lodash's merge do not handle well the case of label deletion
-        Constants.env.settings.api.labelsDictionary = response.data.api.labelsDictionary;
-        Constants.env.settings.cors.allowOrigin = response.data.cors.allowOrigin;
-        Constants.env.settings.cors.allowHeaders = response.data.cors.allowHeaders;
-        Constants.env.settings.cors.allowMethods = response.data.cors.allowMethods;
-        Constants.env.settings.cors.exposedHeaders = response.data.cors.exposedHeaders;
+      PortalSettingsService.save(this.settings).then( (response) => {
         _.merge(Constants.env.settings, response.data);
         NotificationService.show('Configuration saved');
-        this.reset();
         $state.reload();
       });
-    };
-
-    this.reset = () => {
-      this.settings = _.cloneDeep(Constants.env.settings);
-      this.formSettings.$setPristine();
-
     };
 
     this.hasIdpDefined = () => {
@@ -86,7 +73,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     };
 
     this.isReadonlySetting = (property: string): boolean => {
-      return PortalConfigService.isReadonly(this.settings, property);
+      return PortalSettingsService.isReadonly(this.settings, property);
     };
 
     this.controlAllowOrigin = (chip, index) => {
