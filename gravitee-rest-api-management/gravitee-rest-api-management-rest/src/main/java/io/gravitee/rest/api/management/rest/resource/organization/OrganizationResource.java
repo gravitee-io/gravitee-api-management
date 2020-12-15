@@ -169,6 +169,11 @@ public class OrganizationResource extends AbstractResource {
         return resourceContext.getResource(SearchResource.class);
     }
 
+    @Path("settings")
+    public ConsoleSettingsResource getConsoleSettingsResource() {
+        return resourceContext.getResource(ConsoleSettingsResource.class);
+    }
+
     @Path("users")
     public UsersResource getUsersResource() {
         return resourceContext.getResource(UsersResource.class);

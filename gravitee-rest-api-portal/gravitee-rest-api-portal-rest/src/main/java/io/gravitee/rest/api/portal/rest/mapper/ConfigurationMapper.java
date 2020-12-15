@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
+import io.gravitee.rest.api.model.settings.PortalAuthentication;
+import io.gravitee.rest.api.model.settings.PortalReCaptcha;
+import io.gravitee.rest.api.model.settings.PortalScheduler;
+import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +29,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigurationMapper {
 
-    public ConfigurationResponse convert(PortalConfigEntity portalConfigEntity) {
+    public ConfigurationResponse convert(PortalSettingsEntity portalConfigEntity) {
         ConfigurationResponse configuration = new ConfigurationResponse();
         configuration.setAnalytics(convert(portalConfigEntity.getAnalytics()));
         configuration.setApiReview(convert(portalConfigEntity.getApiReview().getEnabled()));
@@ -40,20 +43,20 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationAnalytics convert(PortalConfigEntity.Analytics analytics) {
+    private ConfigurationAnalytics convert(PortalSettingsEntity.Analytics analytics) {
         ConfigurationAnalytics configuration = new ConfigurationAnalytics();
         configuration.setClientTimeout(analytics.getClientTimeout());
         return configuration;
 
     }
 
-    private ConfigurationScheduler convert(PortalConfigEntity.Scheduler scheduler) {
+    private ConfigurationScheduler convert(PortalScheduler scheduler) {
         ConfigurationScheduler configuration = new ConfigurationScheduler();
         configuration.setNotificationsInSeconds(scheduler.getNotificationsInSeconds());
         return configuration;
     }
 
-    private ConfigurationPortal convert(PortalConfigEntity.Portal portal, PortalConfigEntity.Application application) {
+    private ConfigurationPortal convert(PortalSettingsEntity.Portal portal, PortalSettingsEntity.Application application) {
         ConfigurationPortal configuration = new ConfigurationPortal();
         configuration.setAnalytics(convert(portal.getAnalytics()));
         configuration.setApikeyHeader(portal.getApikeyHeader());
@@ -64,7 +67,7 @@ public class ConfigurationMapper {
         configuration.setSupport(convert(portal.getSupport()));
         configuration.setUserCreation(convert(portal.getUserCreation().getEnabled()));
 
-        PortalConfigEntity.Application.ApplicationTypes types = application.getTypes();
+        PortalSettingsEntity.Application.ApplicationTypes types = application.getTypes();
         if (!application.getRegistration().getEnabled() && !types.getSimpleType().isEnabled()
                 || !types.getSimpleType().isEnabled() &&
                 !types.getWebType().isEnabled() &&
@@ -80,27 +83,27 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationPortalRating convert(PortalConfigEntity.Portal.PortalRating rating) {
+    private ConfigurationPortalRating convert(PortalSettingsEntity.Portal.PortalRating rating) {
         ConfigurationPortalRating configuration = new ConfigurationPortalRating();
         configuration.setComment(convert(rating.getComment()));
         configuration.setEnabled(rating.isEnabled());
         return configuration;
     }
 
-    private ConfigurationPortalRatingComment convert(PortalConfigEntity.Portal.PortalRating.RatingComment comment) {
+    private ConfigurationPortalRatingComment convert(PortalSettingsEntity.Portal.PortalRating.RatingComment comment) {
         ConfigurationPortalRatingComment configuration = new ConfigurationPortalRatingComment();
         configuration.setMandatory(comment.isMandatory());
         return configuration;
     }
 
-    private ConfigurationPortalMedia convert(PortalConfigEntity.Portal.PortalUploadMedia uploadMedia) {
+    private ConfigurationPortalMedia convert(PortalSettingsEntity.Portal.PortalUploadMedia uploadMedia) {
         ConfigurationPortalMedia configuration = new ConfigurationPortalMedia();
         configuration.setEnabled(uploadMedia.getEnabled());
         configuration.setMaxSizeInBytes(uploadMedia.getMaxSizeInOctet());
         return configuration;
     }
 
-    private ConfigurationPortalApis convert(PortalConfigEntity.Portal.PortalApis apis) {
+    private ConfigurationPortalApis convert(PortalSettingsEntity.Portal.PortalApis apis) {
         ConfigurationPortalApis configuration = new ConfigurationPortalApis();
         configuration.setApiHeaderShowTags(convert(apis.getApiHeaderShowTags()));
         configuration.setApiHeaderShowCategories(convert(apis.getApiHeaderShowCategories()));
@@ -109,20 +112,20 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationPortalAnalytics convert(PortalConfigEntity.Portal.PortalAnalytics analytics) {
+    private ConfigurationPortalAnalytics convert(PortalSettingsEntity.Portal.PortalAnalytics analytics) {
         ConfigurationPortalAnalytics configuration = new ConfigurationPortalAnalytics();
         configuration.setEnabled(analytics.isEnabled());
         configuration.setTrackingId(analytics.getTrackingId());
         return configuration;
     }
 
-    private ConfigurationPlan convert(PortalConfigEntity.Plan plan) {
+    private ConfigurationPlan convert(PortalSettingsEntity.Plan plan) {
         ConfigurationPlan configuration = new ConfigurationPlan();
         configuration.setSecurity(convert(plan.getSecurity()));
         return configuration;
     }
 
-    private ConfigurationPlanSecurity convert(PortalConfigEntity.Plan.PlanSecurity security) {
+    private ConfigurationPlanSecurity convert(PortalSettingsEntity.Plan.PlanSecurity security) {
         ConfigurationPlanSecurity configuration = new ConfigurationPlanSecurity();
         configuration.setApikey(convert(security.getApikey()));
         configuration.setJwt(convert(security.getJwt()));
@@ -131,27 +134,27 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationDocumentation convert(PortalConfigEntity.Documentation documentation) {
+    private ConfigurationDocumentation convert(PortalSettingsEntity.Documentation documentation) {
         ConfigurationDocumentation configuration = new ConfigurationDocumentation();
         configuration.setUrl(documentation.getUrl());
         return configuration;
     }
 
-    private ConfigurationAuthentication convert(PortalConfigEntity.Authentication authentication) {
+    private ConfigurationAuthentication convert(PortalAuthentication authentication) {
         ConfigurationAuthentication configuration = new ConfigurationAuthentication();
         configuration.setForceLogin(convert(authentication.getForceLogin()));
         configuration.setLocalLogin(convert(authentication.getLocalLogin()));
         return configuration;
     }
 
-    private ConfigurationApplication convert(PortalConfigEntity.Application application) {
+    private ConfigurationApplication convert(PortalSettingsEntity.Application application) {
         ConfigurationApplication configuration = new ConfigurationApplication();
         configuration.setRegistration(convert(application.getRegistration().getEnabled()));
         configuration.setTypes(convert(application.getTypes()));
         return configuration;
     }
 
-    private ConfigurationApplicationTypes convert(PortalConfigEntity.Application.ApplicationTypes types) {
+    private ConfigurationApplicationTypes convert(PortalSettingsEntity.Application.ApplicationTypes types) {
         ConfigurationApplicationTypes configuration = new ConfigurationApplicationTypes();
         configuration.setBackendToBackend(convert(types.getBackendToBackendType()));
         configuration.setBrowser(convert(types.getBrowserType()));
@@ -162,7 +165,7 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationReCaptcha convert(PortalConfigEntity.ReCaptcha reCaptcha) {
+    private ConfigurationReCaptcha convert(PortalReCaptcha reCaptcha) {
         ConfigurationReCaptcha configuration = new ConfigurationReCaptcha();
         configuration.setEnabled(reCaptcha.getEnabled());
         configuration.setSiteKey(reCaptcha.getSiteKey());
@@ -173,7 +176,7 @@ public class ConfigurationMapper {
         return new Enabled().enabled(enabled);
     }
 
-    private Enabled convert(PortalConfigEntity.Enabled enabledEntity) {
+    private Enabled convert(io.gravitee.rest.api.model.settings.Enabled enabledEntity) {
         return new Enabled().enabled(enabledEntity.isEnabled());
     }
 }

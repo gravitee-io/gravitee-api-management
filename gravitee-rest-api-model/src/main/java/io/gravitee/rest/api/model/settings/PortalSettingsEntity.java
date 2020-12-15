@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.parameters;
+package io.gravitee.rest.api.model.settings;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
+import io.gravitee.rest.api.model.parameters.Key;
 
 import java.util.List;
 
@@ -25,39 +26,39 @@ import java.util.List;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PortalConfigEntity extends AbstractCommonConfigEntity{
+public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private Analytics analytics;
     private Api api;
     private ApiQualityMetrics apiQualityMetrics;
     private ApiReview apiReview;
     private Application application;
-    private Authentication authentication;
+    private PortalAuthentication authentication;
     private Company company;
-    private Cors cors;
+    private PortalCors cors;
     private Documentation documentation;
     private OpenAPIDocViewer openAPIDocViewer;
     private Plan plan;
     private Portal portal;
-    private ReCaptcha reCaptcha;
-    private Scheduler scheduler;
+    private PortalReCaptcha reCaptcha;
+    private PortalScheduler scheduler;
 
 
-    public PortalConfigEntity() {
+    public PortalSettingsEntity() {
         super();
         analytics = new Analytics();
         api = new Api();
         apiQualityMetrics = new ApiQualityMetrics();
         apiReview = new ApiReview();
         application = new Application();
-        authentication = new Authentication();
+        authentication = new PortalAuthentication();
         company = new Company();
-        cors = new Cors();
+        cors = new PortalCors();
         documentation = new Documentation();
         openAPIDocViewer = new OpenAPIDocViewer();
         plan = new Plan();
         portal = new Portal();
-        reCaptcha = new ReCaptcha();
-        scheduler = new Scheduler();
+        reCaptcha = new PortalReCaptcha();
+        scheduler = new PortalScheduler();
     }
 
      // Getters & Setters
@@ -101,11 +102,11 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         this.application = application;
     }
 
-    public Authentication getAuthentication() {
+    public PortalAuthentication getAuthentication() {
         return authentication;
     }
 
-    public void setAuthentication(Authentication authentication) {
+    public void setAuthentication(PortalAuthentication authentication) {
         this.authentication = authentication;
     }
 
@@ -117,11 +118,11 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         this.company = company;
     }
 
-    public Cors getCors() {
+    public PortalCors getCors() {
         return cors;
     }
 
-    public void setCors(Cors cors) {
+    public void setCors(PortalCors cors) {
         this.cors = cors;
     }
 
@@ -157,19 +158,19 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
         this.portal = portal;
     }
 
-    public ReCaptcha getReCaptcha() {
+    public PortalReCaptcha getReCaptcha() {
         return reCaptcha;
     }
 
-    public void setReCaptcha(ReCaptcha reCaptcha) {
+    public void setReCaptcha(PortalReCaptcha reCaptcha) {
         this.reCaptcha = reCaptcha;
     }
 
-    public Scheduler getScheduler() {
+    public PortalScheduler getScheduler() {
         return scheduler;
     }
 
-    public void setScheduler(Scheduler scheduler) {
+    public void setScheduler(PortalScheduler scheduler) {
         this.scheduler = scheduler;
     }
 
@@ -413,31 +414,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Authentication extends CommonAuthentication {
-        @ParameterKey(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED)
-        private Enabled forceLogin;
-        @ParameterKey(Key.PORTAL_AUTHENTICATION_LOCALLOGIN_ENABLED)
-        private Enabled localLogin;
-
-        public Enabled getForceLogin() {
-            return forceLogin;
-        }
-
-        public void setForceLogin(Enabled forceLogin) {
-            this.forceLogin = forceLogin;
-        }
-
-        public Enabled getLocalLogin() {
-            return localLogin;
-        }
-
-        public void setLocalLogin(Enabled localLogin) {
-            this.localLogin = localLogin;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Cors {
+    public static class PortalCors {
         @ParameterKey(Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN)
         private List<String> allowOrigin;
 
@@ -902,57 +879,6 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
             public void setAutomaticValidation(Enabled automaticValidation) {
                 this.automaticValidation = automaticValidation;
             }
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ReCaptcha {
-        @ParameterKey(Key.PORTAL_RECAPTCHA_ENABLED)
-        private Boolean enabled;
-        @ParameterKey(Key.PORTAL_RECAPTCHA_SITE_KEY)
-        private String siteKey;
-
-        public Boolean getEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(Boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        public String getSiteKey() {
-            return siteKey;
-        }
-
-        public void setSiteKey(String siteKey) {
-            this.siteKey = siteKey;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Scheduler {
-        @JsonProperty("tasks")
-        @ParameterKey(Key.PORTAL_SCHEDULER_TASKS)
-        private Integer tasksInSeconds;
-
-        @JsonProperty("notifications")
-        @ParameterKey(Key.PORTAL_SCHEDULER_NOTIFICATIONS)
-        private Integer notificationsInSeconds;
-
-        public Integer getTasksInSeconds() {
-            return tasksInSeconds;
-        }
-
-        public void setTasksInSeconds(Integer tasksInSeconds) {
-            this.tasksInSeconds = tasksInSeconds;
-        }
-
-        public Integer getNotificationsInSeconds() {
-            return notificationsInSeconds;
-        }
-
-        public void setNotificationsInSeconds(Integer notificationsInSeconds) {
-            this.notificationsInSeconds = notificationsInSeconds;
         }
     }
 }

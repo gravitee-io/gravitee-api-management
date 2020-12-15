@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.rest.resource.portal.PortalApisResource;
-import io.gravitee.rest.api.management.rest.resource.portal.SocialIdentityProvidersResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -27,7 +25,10 @@ import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -40,8 +41,8 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Portal"})
-public class PortalResource {
+@Api(tags = {"Settings"})
+public class PortalSettingsResource {
 
     @Inject
     private ConfigService configService;
@@ -49,56 +50,35 @@ public class PortalResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Deprecated
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get the portal configuration",
-            notes = "Every users can use this service")
+    @ApiOperation(value = "Get the portal settings")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Portal configuration", response = PortalSettingsEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PortalSettingsEntity getPortalConfig() {
+    @Permissions({
+            @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = READ)
+    })
+    public PortalSettingsEntity getPortalSettings() {
         return configService.getPortalSettings();
     }
 
-    @Deprecated
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Save the portal configuration")
+    @ApiOperation(value = "Save the portal settings")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Updated portal configuration", response = PortalSettingsEntity.class),
+            @ApiResponse(code = 200, message = "Updated portal settings", response = PortalSettingsEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = {CREATE, UPDATE, DELETE})
     })
-    public Response savePortalConfig(
+    public Response savePortalSettings(
             @ApiParam(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
         configService.save(portalSettingsEntity);
         return Response
                 .ok()
                 .entity(portalSettingsEntity)
                 .build();
-    }
-
-    @Path("pages")
-    public PortalPagesResource getPortalPagesResource() {
-        return resourceContext.getResource(PortalPagesResource.class);
-    }
-
-    @Path("apis")
-    public PortalApisResource getPortalApisResource() {
-        return resourceContext.getResource(PortalApisResource.class);
-    }
-
-    @Path("media")
-    public PortalMediaResource getPortalMediaResource() {
-        return resourceContext.getResource(PortalMediaResource.class);
-    }
-
-    @Deprecated
-    @Path("identities")
-    public SocialIdentityProvidersResource getSocialIdentityProvidersResource() {
-        return resourceContext.getResource(SocialIdentityProvidersResource.class);
     }
 }

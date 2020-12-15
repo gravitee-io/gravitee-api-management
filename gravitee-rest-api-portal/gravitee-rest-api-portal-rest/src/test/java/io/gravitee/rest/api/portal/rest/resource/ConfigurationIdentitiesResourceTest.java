@@ -21,7 +21,7 @@ import io.gravitee.rest.api.model.configuration.identity.am.AMIdentityProviderEn
 import io.gravitee.rest.api.model.configuration.identity.github.GitHubIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.google.GoogleIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.oidc.OIDCIdentityProviderEntity;
-import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
+import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationIdentitiesResponse;
 import org.junit.Test;
 import org.mockito.internal.util.collections.Sets;
@@ -78,8 +78,8 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
                 .when(socialIdentityProviderService)
                 .findAll(true);
 
-        PortalConfigEntity configEntity = new PortalConfigEntity();
-        doReturn(configEntity).when(configService).getPortalConfig();
+        PortalSettingsEntity configEntity = new PortalSettingsEntity();
+        doReturn(configEntity).when(configService).getPortalSettings();
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

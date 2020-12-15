@@ -17,7 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.parameters.ConsoleConfigEntity.Management;
+import io.gravitee.rest.api.model.settings.Management;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserConfig;
@@ -71,7 +71,7 @@ public class UserResource extends AbstractResource {
             User currentUser = userMapper.convert(userEntity);
             boolean withManagement = (authenticatedUser != null && permissionService.hasManagementRights(authenticatedUser));
             if (withManagement) {
-                Management managementConfig = this.configService.getConsoleConfig().getManagement();
+                Management managementConfig = this.configService.getConsoleSettings().getManagement();
                 if (managementConfig != null && managementConfig.getUrl() != null) {
                     UserConfig userConfig = new UserConfig();
                     userConfig.setManagementUrl(managementConfig.getUrl());

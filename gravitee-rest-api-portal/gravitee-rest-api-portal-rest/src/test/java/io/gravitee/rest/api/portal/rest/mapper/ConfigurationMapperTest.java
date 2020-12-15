@@ -18,7 +18,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
+import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationResponse;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -36,10 +36,10 @@ public class ConfigurationMapperTest {
     @Test
     public void testConvert() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        PortalConfigEntity portalConfigEntity = mapper.readValue(this.getClass().getResourceAsStream("portalConfigEntity.json"), PortalConfigEntity.class);
+        PortalSettingsEntity portalSettingsEntity = mapper.readValue(this.getClass().getResourceAsStream("portalSettingsEntity.json"), PortalSettingsEntity.class);
         String expected = IOUtils.toString(this.getClass().getResourceAsStream("expectedPortalConfiguration.json"), "UTF-8");
         ConfigurationMapper configurationMapper = new ConfigurationMapper();
-        ConfigurationResponse configuration = configurationMapper.convert(portalConfigEntity);
+        ConfigurationResponse configuration = configurationMapper.convert(portalSettingsEntity);
 
         mapper.setSerializationInclusion(Include.NON_NULL);
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);

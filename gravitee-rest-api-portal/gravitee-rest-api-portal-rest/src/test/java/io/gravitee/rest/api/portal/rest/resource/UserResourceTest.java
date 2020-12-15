@@ -20,7 +20,8 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.parameters.ConsoleConfigEntity;
+import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
+import io.gravitee.rest.api.model.settings.Management;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserConfig;
 import io.gravitee.rest.api.portal.rest.model.UserInput;
@@ -91,7 +92,7 @@ public class UserResourceTest extends AbstractResourceTest {
     public void shouldGetCurrentUserWithEmptyManagementConfig() {
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
-        when(configService.getConsoleConfig()).thenReturn(new ConsoleConfigEntity());
+        when(configService.getConsoleSettings()).thenReturn(new ConsoleSettingsEntity());
         
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -111,8 +112,8 @@ public class UserResourceTest extends AbstractResourceTest {
     public void shouldGetCurrentUserWithManagementConfigWithoutUrl() {
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
-        ConsoleConfigEntity consoleConfigEntity = new ConsoleConfigEntity();
-        when(configService.getConsoleConfig()).thenReturn(consoleConfigEntity);
+        ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
+        when(configService.getConsoleSettings()).thenReturn(consoleConfigEntity);
         
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -132,11 +133,11 @@ public class UserResourceTest extends AbstractResourceTest {
     public void shouldGetCurrentUserWithManagementConfigWithUrl() {
         when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
-        ConsoleConfigEntity consoleConfigEntity = new ConsoleConfigEntity();
-        ConsoleConfigEntity.Management managementConfig = new ConsoleConfigEntity.Management();
+        ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
+        Management managementConfig = new Management();
         managementConfig.setUrl("URL");
         consoleConfigEntity.setManagement(managementConfig);
-        when(configService.getConsoleConfig()).thenReturn(consoleConfigEntity);
+        when(configService.getConsoleSettings()).thenReturn(consoleConfigEntity);
         
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

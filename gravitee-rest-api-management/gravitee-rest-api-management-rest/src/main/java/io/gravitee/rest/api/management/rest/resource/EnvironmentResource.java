@@ -296,4 +296,9 @@ public class EnvironmentResource extends AbstractResource {
     public NotifiersResource getNotifiersResource() {
         return resourceContext.getResource(NotifiersResource.class);
     }
+
+    @Path("settings")
+    public PortalSettingsResource getPortalSettingsResource() {
+        return resourceContext.getResource(PortalSettingsResource.class);
+    }
 }

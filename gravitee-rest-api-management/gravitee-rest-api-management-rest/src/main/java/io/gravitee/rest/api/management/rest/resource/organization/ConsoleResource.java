@@ -18,8 +18,9 @@ package io.gravitee.rest.api.management.rest.resource.organization;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.parameters.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
+import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.swagger.annotations.*;
 
@@ -52,27 +53,34 @@ public class ConsoleResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get the console configuration needed for runtime",
+            notes = "Every users can use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Console configuration", response = ConsoleConfigEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
     public ConsoleConfigEntity getConsoleConfig() {
         return configService.getConsoleConfig();
     }
 
+    @Deprecated
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Save the management configuration")
+    @ApiOperation(value = "Save the console configuration")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Console configuration", response = ConsoleConfigEntity.class),
+            @ApiResponse(code = 200, message = "Console configuration", response = ConsoleSettingsEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")
     })
     @Permissions({
             @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = {CREATE, UPDATE, DELETE})
     })
     public Response saveConsoleConfig(
-            @ApiParam(name = "config", required = true) @NotNull ConsoleConfigEntity consoleConfigEntity) {
-        configService.save(consoleConfigEntity);
+            @ApiParam(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
+        configService.save(consoleSettingsEntity);
         return Response
                 .ok()
-                .entity(consoleConfigEntity)
+                .entity(consoleSettingsEntity)
                 .build();
     }
 
