@@ -18,12 +18,21 @@ import { SafePipe } from '../../pipes/safe.pipe';
 import { GvMarkdownTocComponent } from '../gv-markdown-toc/gv-markdown-toc.component';
 import { GvPageMarkdownComponent } from './gv-page-markdown.component';
 import { RouterTestingModule } from '@angular/router/testing';
+import { mockProvider } from '@ngneat/spectator';
+import { ConfigurationService } from '../../services/configuration.service';
+
+const BASE_URL = 'my-base-url';
 
 describe('GvPageMarkdownComponent', () => {
   const createComponent = createComponentFactory({
     component: GvPageMarkdownComponent,
     declarations: [SafePipe, GvMarkdownTocComponent],
     imports: [RouterTestingModule],
+    providers: [
+      mockProvider(ConfigurationService, {
+        get: () => BASE_URL
+      })
+    ]
   });
 
   let spectator: Spectator<GvPageMarkdownComponent>;
@@ -41,17 +50,17 @@ describe('GvPageMarkdownComponent', () => {
   });
 
   it('should use correct portal media url', () => {
-    const renderer = component.renderer.image('/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789', 'title', 'text');
+    const renderer = component.renderer.image('https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789', 'title', 'text');
 
     expect(renderer).not.toBeNull();
-    expect(renderer).toEqual('<img alt="text" title="title" src="/portal/environments/DEFAULT/media/123456789" />');
+    expect(renderer).toEqual(`<img alt="text" title="title" src="${BASE_URL}/media/123456789" />`);
   });
 
   it('should use correct api media url', () => {
-    const renderer = component.renderer.image('/management/organizations/DEFAULT/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789', 'title', 'text');
+    const renderer = component.renderer.image('https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789', 'title', 'text');
 
     expect(renderer).not.toBeNull();
-    expect(renderer).toEqual('<img alt="text" title="title" src="/portal/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789" />');
+    expect(renderer).toEqual(`<img alt="text" title="title" src="${BASE_URL}/apis/1A2Z3E4R5T6Y/media/123456789" />`);
   });
 
   it('should use gv-button[data-page-id] for render an portal page link', () => {
