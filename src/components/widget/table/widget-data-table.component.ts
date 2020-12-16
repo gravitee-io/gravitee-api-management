@@ -52,7 +52,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
             key: key,
             value: value,
             percent: percent,
-            metadata: (data && data.metadata) ? data.metadata[key] : undefined
+            metadata: (data && data.metadata) ? {...data.metadata[key], order: +data.metadata[key].order} : undefined
           };
           let widget = this.widget || this.parent.widget;
           if (widget) {
