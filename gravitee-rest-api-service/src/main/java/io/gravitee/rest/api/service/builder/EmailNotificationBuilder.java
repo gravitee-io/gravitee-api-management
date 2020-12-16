@@ -266,17 +266,17 @@ public class EmailNotificationBuilder {
         TEMPLATES_FOR_ACTION_APPLICATION_MEMBER_SUBSCRIPTION(
                 ActionHook.APPLICATION_MEMBER_SUBSCRIPTION,
                 "applicationMember.html",
-                "Subscription to application ${application.name}"
+                "New member in application ${application.name}"
         ),
         TEMPLATES_FOR_ACTION_API_MEMBER_SUBSCRIPTION(
                 ActionHook.API_MEMBER_SUBSCRIPTION,
                 "apiMember.html",
-                "Subscription to API ${api.name}"
+                "New member in API ${api.name}"
         ),
         TEMPLATES_FOR_ACTION_GROUP_MEMBER_SUBSCRIPTION(
                 ActionHook.GROUP_MEMBER_SUBSCRIPTION,
                 "groupMember.html",
-                "Subscription to group ${group.name}"
+                "New member in group ${group.name}"
         ),
         TEMPLATES_FOR_ACTION_SUPPORT_TICKET(
                 ActionHook.SUPPORT_TICKET,
