@@ -29,13 +29,11 @@ export class LogsQuery {
 class AnalyticsService {
   private platformUrl: string;
   private analyticsURL: string;
-  private analyticsHttpTimeout: number;
 
-  constructor(private $http, Constants, public $stateParams) {
+  constructor(private $http, private Constants, public $stateParams) {
     'ngInject';
     this.platformUrl = `${Constants.env.baseURL}/platform`;
     this.analyticsURL = `${Constants.env.baseURL}/platform/analytics`;
-    this.analyticsHttpTimeout = Constants.org.settings.analytics.clientTimeout as number;
   }
 
   /*
@@ -52,7 +50,11 @@ class AnalyticsService {
     });
 
 
-    return this.$http.get(url, { timeout: this.analyticsHttpTimeout });
+    return this.$http.get(url, { timeout: this.getAnalyticsHttpTimeout() });
+  }
+
+  getAnalyticsHttpTimeout() {
+    return this.Constants.env.settings.analytics.clientTimeout as number;
   }
 
   findLogs(query: LogsQuery): ng.IPromise<any> {

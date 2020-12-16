@@ -41,13 +41,16 @@ interface IMembership {
 
 class ApplicationService {
   private applicationsURL: string;
-  private analyticsHttpTimeout: number;
 
-  constructor(private $http: ng.IHttpService, Constants) {
+  constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
     this.applicationsURL = `${Constants.env.baseURL}/applications/`;
-    this.analyticsHttpTimeout = Constants.org.settings.analytics.clientTimeout as number;
   }
+
+  getAnalyticsHttpTimeout() {
+    return this.Constants.env.settings.analytics.clientTimeout as number;
+  }
+
 
   get(applicationId: string): ng.IHttpPromise<any> {
     return this.$http.get(this.applicationsURL + applicationId);
@@ -169,7 +172,7 @@ class ApplicationService {
       }
     });
 
-    return this.$http.get(url, { timeout: this.analyticsHttpTimeout });
+    return this.$http.get(url, { timeout: this.getAnalyticsHttpTimeout() });
   }
 
   findLogs(application: string, query: LogsQuery): ng.IPromise<any> {
