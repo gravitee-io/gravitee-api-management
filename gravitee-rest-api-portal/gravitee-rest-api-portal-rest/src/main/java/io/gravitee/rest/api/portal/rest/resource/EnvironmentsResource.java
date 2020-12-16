@@ -59,6 +59,11 @@ public class EnvironmentsResource extends AbstractResource {
         return resourceContext.getResource(InfoResource.class);
     }
 
+    @Path("media")
+    public MediaResource getMediaResource() {
+        return resourceContext.getResource(MediaResource.class);
+    }
+
     @Path("pages")
     public PagesResource getPagesResource() {
         return resourceContext.getResource(PagesResource.class);
