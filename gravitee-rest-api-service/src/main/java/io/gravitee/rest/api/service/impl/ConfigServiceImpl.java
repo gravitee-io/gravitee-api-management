@@ -278,11 +278,11 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         return new Object[]{
                 portalConfigEntity,
                 // Common config
-                portalConfigEntity.getAnalytics(),
                 portalConfigEntity.getEmail(),
                 portalConfigEntity.getEmail().getProperties(),
 
                 // Portal Config
+                portalConfigEntity.getAnalytics(),
                 portalConfigEntity.getApi(),
                 portalConfigEntity.getApiQualityMetrics(),
                 portalConfigEntity.getApiReview(),
@@ -316,7 +316,6 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         return new Object[]{
                 consoleConfigEntity,
                 // Common config
-                consoleConfigEntity.getAnalytics(),
                 consoleConfigEntity.getEmail(),
                 consoleConfigEntity.getEmail().getProperties(),
 

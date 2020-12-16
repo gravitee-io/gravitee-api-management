@@ -17,13 +17,15 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.parameters.ConsoleConfigEntity;
-import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
+import io.gravitee.rest.api.model.PageConfigurationKeys;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationGrantTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
@@ -57,24 +59,14 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
     public void shouldGetConfiguration() {
         resetAllMocks();
 
-        String organizationId= "OrgId";
-
         PortalConfigEntity portalConfigEntity = new PortalConfigEntity();
         doReturn(portalConfigEntity).when(configService).getPortalConfig();
-
-        ConsoleConfigEntity consoleConfigEntity = new ConsoleConfigEntity();
-        doReturn(consoleConfigEntity).when(configService).getConsoleConfig(organizationId);
-
-        EnvironmentEntity env = new EnvironmentEntity();
-        env.setOrganizationId(organizationId);
-        doReturn(env).when(environmentService).findById("DEFAULT");
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(configMapper).convert(portalConfigEntity, consoleConfigEntity);
+        Mockito.verify(configMapper).convert(portalConfigEntity);
         Mockito.verify(configService).getPortalConfig();
-        Mockito.verify(configService).getConsoleConfig(organizationId);
     }
 
     @Test

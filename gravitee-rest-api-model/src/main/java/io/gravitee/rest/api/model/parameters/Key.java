@@ -32,7 +32,7 @@ public enum Key {
 
     PORTAL_TOP_APIS("portal.top-apis", List.class, false, new HashSet<>(Arrays.asList(ENVIRONMENT))),
     PORTAL_ENTRYPOINT("portal.entrypoint", "https://api.company.com", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    PORTAL_APIKEY_HEADER("portal.apikey.header", "X-Gravitee-Api-Key", new HashSet<>(Arrays.asList(SYSTEM))),
+    PORTAL_APIKEY_HEADER("portal.apikey.header", "X-Gravitee-Api-Key", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_SUPPORT_ENABLED("portal.support.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_RATING_ENABLED("portal.rating.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_RATING_COMMENT_MANDATORY("portal.rating.comment.mandatory", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
@@ -44,8 +44,8 @@ public enum Key {
     PORTAL_APIS_CATEGORY_ENABLED("portal.apis.categoryMode.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_APIS_SHOW_TAGS_IN_APIHEADER("portal.apis.apiheader.showtags.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_APIS_SHOW_CATEGORIES_IN_APIHEADER("portal.apis.apiheader.showcategories.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    PORTAL_UPLOAD_MEDIA_ENABLED("portal.uploadMedia.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    PORTAL_UPLOAD_MEDIA_MAXSIZE("portal.uploadMedia.maxSizeInOctet", "1000000", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    PORTAL_UPLOAD_MEDIA_ENABLED("portal.uploadMedia.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_UPLOAD_MEDIA_MAXSIZE("portal.uploadMedia.maxSizeInOctet", "1000000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_URL("portal.url", new HashSet<>(Arrays.asList(ENVIRONMENT, SYSTEM))),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
@@ -62,7 +62,7 @@ public enum Key {
     PORTAL_SCHEDULER_TASKS("portal.scheduler.tasks", "10", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_SCHEDULER_NOTIFICATIONS("portal.scheduler.notifications", "10", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    DOCUMENTATION_URL("documentation.url", "https://docs.gravitee.io", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    DOCUMENTATION_URL("documentation.url", "https://docs.gravitee.io", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
     PLAN_SECURITY_JWT_ENABLED("plan.security.jwt.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PLAN_SECURITY_OAUTH2_ENABLED("plan.security.oauth2.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
@@ -91,7 +91,7 @@ public enum Key {
     LOGGING_AUDIT_TRAIL_ENABLED("logging.audit.trail.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     LOGGING_USER_DISPLAYED("logging.user.displayed", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    ANALYTICS_CLIENT_TIMEOUT("analytics.client.timeout", "30000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
     APPLICATION_TYPE_SIMPLE_ENABLED("application.types.simple.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     APPLICATION_TYPE_BROWSER_ENABLED("application.types.browser.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
@@ -125,7 +125,7 @@ public enum Key {
     EMAIL_PROPERTIES_STARTTLS_ENABLE("email.properties.starttls.enable", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     EMAIL_PROPERTIES_SSL_TRUST("email.properties.ssl.trust", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    API_LABELS_DICTIONARY("api.labelsDictionary", List.class, new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    API_LABELS_DICTIONARY("api.labelsDictionary", List.class, new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
     CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED("console.authentication.localLogin.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     CONSOLE_SCHEDULER_TASKS("console.scheduler.tasks", "10", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

@@ -26,6 +26,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class PortalConfigEntity extends AbstractCommonConfigEntity{
+    private Analytics analytics;
     private Api api;
     private ApiQualityMetrics apiQualityMetrics;
     private ApiReview apiReview;
@@ -43,6 +44,7 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
 
     public PortalConfigEntity() {
         super();
+        analytics = new Analytics();
         api = new Api();
         apiQualityMetrics = new ApiQualityMetrics();
         apiReview = new ApiReview();
@@ -59,6 +61,14 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
     }
 
      // Getters & Setters
+     public Analytics getAnalytics() {
+         return analytics;
+     }
+
+    public void setAnalytics(Analytics analytics) {
+        this.analytics = analytics;
+    }
+
     public Api getApi() {
         return api;
     }
@@ -164,6 +174,19 @@ public class PortalConfigEntity extends AbstractCommonConfigEntity{
     }
 
     // Classes
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Analytics {
+        @ParameterKey(Key.ANALYTICS_CLIENT_TIMEOUT)
+        private Long clientTimeout;
+
+        public Long getClientTimeout() {
+            return clientTimeout;
+        }
+        public void setClientTimeout(Long clientTimeout) {
+            this.clientTimeout = clientTimeout;
+        }
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Api {
         @ParameterKey(Key.API_LABELS_DICTIONARY)

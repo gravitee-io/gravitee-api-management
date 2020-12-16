@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import io.gravitee.rest.api.model.parameters.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.parameters.PortalConfigEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.springframework.stereotype.Component;
@@ -27,9 +26,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigurationMapper {
 
-    public ConfigurationResponse convert(PortalConfigEntity portalConfigEntity, ConsoleConfigEntity consoleConfigEntity) {
+    public ConfigurationResponse convert(PortalConfigEntity portalConfigEntity) {
         ConfigurationResponse configuration = new ConfigurationResponse();
-        configuration.setAnalytics(convert(consoleConfigEntity.getAnalytics()));
+        configuration.setAnalytics(convert(portalConfigEntity.getAnalytics()));
         configuration.setApiReview(convert(portalConfigEntity.getApiReview().getEnabled()));
         configuration.setApplication(convert(portalConfigEntity.getApplication()));
         configuration.setAuthentication(convert(portalConfigEntity.getAuthentication()));
@@ -41,7 +40,7 @@ public class ConfigurationMapper {
         return configuration;
     }
 
-    private ConfigurationAnalytics convert(ConsoleConfigEntity.Analytics analytics) {
+    private ConfigurationAnalytics convert(PortalConfigEntity.Analytics analytics) {
         ConfigurationAnalytics configuration = new ConfigurationAnalytics();
         configuration.setClientTimeout(analytics.getClientTimeout());
         return configuration;

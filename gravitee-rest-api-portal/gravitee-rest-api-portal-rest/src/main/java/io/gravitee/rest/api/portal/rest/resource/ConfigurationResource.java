@@ -72,10 +72,7 @@ public class ConfigurationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalConfiguration() {
-        // Get the current organization from the environment since it is not in the path
-        String organizationId = this.environmentService.findById(GraviteeContext.getCurrentEnvironment()).getOrganizationId();
-
-        return Response.ok(configMapper.convert(configService.getPortalConfig(), configService.getConsoleConfig(organizationId))).build();
+        return Response.ok(configMapper.convert(configService.getPortalConfig())).build();
     }
 
     @GET

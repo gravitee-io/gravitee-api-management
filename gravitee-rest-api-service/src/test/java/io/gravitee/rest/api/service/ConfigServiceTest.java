@@ -143,7 +143,6 @@ public class ConfigServiceTest {
         params.put(COMPANY_NAME.key(), singletonList("ACME"));
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
-        params.put(Key.ANALYTICS_CLIENT_TIMEOUT.key(), singletonList("60000"));
 
         when(mockParameterService.findAll(any(List.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
@@ -153,7 +152,6 @@ public class ConfigServiceTest {
 
         assertNotNull(consoleConfig);
         assertEquals("scheduler notifications", Integer.valueOf(11), consoleConfig.getScheduler().getNotificationsInSeconds());
-        assertEquals("analytics", 60000, consoleConfig.getAnalytics().getClientTimeout().longValue());
         assertEquals("recaptcha siteKey", "my-site-key", consoleConfig.getReCaptcha().getSiteKey());
         assertEquals("alerting enabled", Boolean.TRUE, consoleConfig.getAlert().getEnabled());
         assertEquals("recaptcha enabled", Boolean.TRUE, consoleConfig.getReCaptcha().getEnabled());

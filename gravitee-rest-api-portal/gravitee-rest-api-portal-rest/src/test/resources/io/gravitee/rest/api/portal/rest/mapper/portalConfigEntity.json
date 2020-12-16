@@ -1,4 +1,7 @@
 {
+  "analytics" : {
+    "clientTimeout" : 30000
+  },
   "api": {
     "labelsDictionary": [
       "label1",

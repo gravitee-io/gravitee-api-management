@@ -29,26 +29,17 @@ import io.gravitee.rest.api.model.annotations.ParameterKey;
 public abstract class AbstractCommonConfigEntity {
 
     public static final String METADATA_READONLY = "readonly";
-    private Analytics analytics;
+
     private Email email;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private MultiValueMap<String, String> metadata;
 
     public AbstractCommonConfigEntity() {
-        analytics = new Analytics();
         email = new Email();
         metadata = new LinkedMultiValueMap<>();
     }
     // Getters & setters
-    public Analytics getAnalytics() {
-        return analytics;
-    }
-
-    public void setAnalytics(Analytics analytics) {
-        this.analytics = analytics;
-    }
-
     public Email getEmail() {
         return email;
     }
@@ -66,19 +57,6 @@ public abstract class AbstractCommonConfigEntity {
     }
 
     // Classes
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Analytics {
-        @ParameterKey(Key.ANALYTICS_CLIENT_TIMEOUT)
-        private Long clientTimeout;
-
-        public Long getClientTimeout() {
-            return clientTimeout;
-        }
-        public void setClientTimeout(Long clientTimeout) {
-            this.clientTimeout = clientTimeout;
-        }
-    }
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CommonAuthentication {
         private GoogleAuthentication google = new GoogleAuthentication();
