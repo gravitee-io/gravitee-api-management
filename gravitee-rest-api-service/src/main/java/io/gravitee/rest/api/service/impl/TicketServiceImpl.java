@@ -84,7 +84,10 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     private TicketRepository ticketRepository;
 
     private boolean isEnabled(String referenceId, ParameterReferenceType referenceType) {
-        return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, referenceId, referenceType);
+        if (referenceType == ParameterReferenceType.ENVIRONMENT) {
+            return parameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, referenceId, referenceType);
+        }
+        return parameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, referenceId, referenceType);
     }
 
     @Override

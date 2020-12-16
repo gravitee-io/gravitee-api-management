@@ -104,14 +104,21 @@ public class TicketServiceTest {
 
     @Test(expected = SupportUnavailableException.class)
     public void shouldNotCreateIfSupportDisabled() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.FALSE);
+        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.FALSE);
         ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
+        verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
+    }
+
+    @Test(expected = SupportUnavailableException.class)
+    public void shouldNotCreateIfSupportForPortalDisabled() {
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.FALSE);
+        ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, ParameterReferenceType.ENVIRONMENT);
         verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 
     @Test(expected = EmailRequiredException.class)
     public void shouldNotCreateIfUserEmailIsMissing() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(userService.findById(USERNAME)).thenReturn(user);
 
         ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
@@ -120,7 +127,7 @@ public class TicketServiceTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportIsMissing() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(userService.findById(USERNAME)).thenReturn(user);
         when(user.getEmail()).thenReturn(USER_EMAIL);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
@@ -132,7 +139,7 @@ public class TicketServiceTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateIfDefaultEmailSupportHasNotBeenChanged() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
 
         when(userService.findById(USERNAME)).thenReturn(user);
@@ -149,7 +156,7 @@ public class TicketServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateIfRepositoryThrowTechnicalException() throws TechnicalException {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.isCopyToSender()).thenReturn(EMAIL_COPY_TO_SENDER);
@@ -174,7 +181,7 @@ public class TicketServiceTest {
 
     @Test
     public void shouldCreateWithApi() throws TechnicalException {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
+        when(mockParameterService.findAsBoolean(Key.CONSOLE_SUPPORT_ENABLED, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Boolean.TRUE);
         when(newTicketEntity.getApi()).thenReturn(API_ID);
         when(newTicketEntity.getApplication()).thenReturn(APPLICATION_ID);
         when(newTicketEntity.getSubject()).thenReturn(EMAIL_SUBJECT);
