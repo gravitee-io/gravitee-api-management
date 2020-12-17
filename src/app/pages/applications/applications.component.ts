@@ -16,7 +16,7 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import {
   Application,
-  ApplicationService,
+  ApplicationService, PermissionsService,
   Subscription,
   SubscriptionService
 } from '../../../../projects/portal-webclient-sdk/src/lib';
@@ -39,6 +39,7 @@ export class ApplicationsComponent implements OnInit {
   constructor(
     private applicationService: ApplicationService,
     private subscriptionService: SubscriptionService,
+    private permissionsService: PermissionsService,
     private router: Router,
     private translateService: TranslateService,
   ) {
@@ -59,22 +60,27 @@ export class ApplicationsComponent implements OnInit {
   }
 
   private _getMetrics(application: Application) {
-    return this.subscriptionService
-      .getSubscriptions({ size: -1, applicationId: application.id, statuses: [StatusEnum.ACCEPTED] })
-      .toPromise()
-      .then(async (r) => {
-        const count = r.data.length;
-        const title = await this.translateService.get('applications.subscribers.title', {
-          count,
-          appName: application.name,
-        }).toPromise();
-        return {
-          subscribers: {
-            value: r.data.length,
-            clickable: true,
-            title
-          }
-        };
+    return this.permissionsService.getCurrentUserPermissions({ applicationId: application.id }).toPromise()
+      .then(permissions => {
+        if (permissions.SUBSCRIPTION && permissions.SUBSCRIPTION.includes('R')) {
+          return this.subscriptionService
+            .getSubscriptions({ size: -1, applicationId: application.id, statuses: [StatusEnum.ACCEPTED] })
+            .toPromise()
+            .then(async (r) => {
+              const count = r.data.length;
+              const title = await this.translateService.get('applications.subscribers.title', {
+                count,
+                appName: application.name,
+              }).toPromise();
+              return {
+                subscribers: {
+                  value: r.data.length,
+                  clickable: true,
+                  title
+                }
+              };
+            });
+        }
       });
   }
 
