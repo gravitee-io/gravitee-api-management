@@ -597,6 +597,7 @@
       "title": "Vaše aplikace"
     },
     "empty": "Zatím nemáte aplikaci",
+    "noApplicationPermission": "Na palubní desce není nic",
     "stats": {
       "avg": "průměrná doba odezvy",
       "max": "maximální doba odezvy",

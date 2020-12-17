@@ -597,6 +597,7 @@
       "title": "Vos applications"
     },
     "empty": "Vous n'avez pas encore d'application",
+    "noApplicationPermission": "Il n'y a rien dans votre tableau de bord",
     "stats": {
       "avg": "temps de réponse moyen",
       "max": "temps de réponse maximum",

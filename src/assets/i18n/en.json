@@ -597,6 +597,7 @@
       "title": "Your applications"
     },
     "empty": "You don't have an application yet",
+    "noApplicationPermission": "There is nothing in your dashboard",
     "stats": {
       "avg": "average response time",
       "max": "maximum response time",

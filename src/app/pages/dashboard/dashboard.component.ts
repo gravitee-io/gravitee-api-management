@@ -69,15 +69,17 @@ export class DashboardComponent implements OnInit {
     this.currentUserService.get().subscribe((user) => {
       this.currentUser = user;
     });
-    this.applicationService.getApplications({ size: 3, order: '-nbSubscriptions' }).toPromise().then(response => {
-      this.applications = response.data.map((application, index) => {
-        const metrics = this._getMetrics(application);
-        const item = metrics.then(() =>  application);
-        return { item, metrics };
+    if (this.hasApplicationPermission()) {
+      this.applicationService.getApplications({ size: 3, order: '-nbSubscriptions' }).toPromise().then(response => {
+        this.applications = response.data.map((application, index) => {
+          const metrics = this._getMetrics(application);
+          const item = metrics.then(() =>  application);
+          return { item, metrics };
+        });
+        this.empty = (this.applications.length === 0);
+        this.cardListGridTemplate = `grid-template-columns: repeat(${this.applications?this.applications.length:0}, 1fr)`;
       });
-      this.empty = (this.applications.length === 0);
-      this.cardListGridTemplate = `grid-template-columns: repeat(${this.applications?this.applications.length:0}, 1fr)`;
-    });
+    }
 
     this.format = (key) => this.translateService.get(key).toPromise();
     this.optionsSubscriptions = {
@@ -108,6 +110,10 @@ export class DashboardComponent implements OnInit {
     this.analyticsService.getDefaultStatsOptions().then((result) => {
       this.optionsStats = result;
     });
+  }
+
+  hasApplicationPermission() {
+    return this.currentUser && this.currentUser.permissions && this.currentUser.permissions.APPLICATION.find(permission => 'R' === permission);
   }
 
   private _getMetrics(application: Application) {

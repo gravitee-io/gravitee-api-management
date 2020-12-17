@@ -11,6 +11,7 @@
  */
 import { UserLinks } from './userLinks';
 import { UserConfig } from './userConfig';
+import { UserPermissions } from './userPermissions';
 
 
 export interface User { 
@@ -30,6 +31,7 @@ export interface User {
      * True if the user can edit the MyAccount information
      */
     editable_profile?: boolean;
+    permissions?: UserPermissions;
     config?: UserConfig;
     _links?: UserLinks;
 }
