@@ -67,7 +67,7 @@ public class UserResource extends AbstractResource {
     public Response getCurrentUser() {
         final String authenticatedUser = getAuthenticatedUser();
         try {
-            UserEntity userEntity = userService.findById(authenticatedUser);
+            UserEntity userEntity = userService.findByIdWithRoles(authenticatedUser);
             User currentUser = userMapper.convert(userEntity);
 
             boolean withManagement = (authenticatedUser != null && permissionService.hasManagementRights(authenticatedUser));

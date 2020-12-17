@@ -15,15 +15,23 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.ResetPasswordUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.UserRoleEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.*;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -35,6 +43,9 @@ public class UserMapper {
     public static final String IDP_SOURCE_GRAVITEE = "gravitee";
     public static final String IDP_SOURCE_MEMORY = "memory";
 
+    private ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+
     public User convert(UserEntity user) {
         final User userItem = new User();
         userItem.setEmail(user.getEmail());
@@ -43,6 +54,25 @@ public class UserMapper {
         userItem.setDisplayName(user.getDisplayName());    
         userItem.setId(user.getId());
         userItem.setEditableProfile(IDP_SOURCE_GRAVITEE.equals(user.getSource()) || IDP_SOURCE_MEMORY.equalsIgnoreCase(user.getSource()));
+        if (user.getRoles() != null) {
+            user.getRoles()
+                    .stream()
+                    .filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope()))
+                    .findFirst()
+                    .map(UserRoleEntity::getPermissions)
+                    .ifPresent(permissions -> {
+                        Map<String, List<String>> collect = permissions.entrySet()
+                                .stream()
+                                .collect(Collectors
+                                        .toMap(
+                                                Map.Entry::getKey,
+                                                entry -> new String(entry.getValue()).chars()
+                                                        .mapToObj(c -> (char) c)
+                                                        .map(String::valueOf)
+                                                        .collect(Collectors.toList())));
+                        userItem.setPermissions(objectMapper.convertValue(collect, UserPermissions.class));
+                    });
+        }
         return userItem;
     }
 

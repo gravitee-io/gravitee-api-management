@@ -3633,6 +3633,14 @@ components:
           description: True if the user can edit the MyAccount information
           type: boolean
           default: false
+        permissions:
+          description: Map of Permissions.
+          type: object
+          properties:
+            APPLICATION:
+              type: array
+              items:
+                type: string
         config:
           $ref: '#/components/schemas/UserConfig'
         _links:
