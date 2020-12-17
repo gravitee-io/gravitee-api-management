@@ -19,8 +19,6 @@ import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 import { StateProvider, UrlService } from '@uirouter/angularjs';
 import OrganizationService from './services/organization.service';
-import PortalConfigService from './services/portalConfig.service';
-import EnvironmentService from './services/environment.service';
 
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   'ngInject';
@@ -35,40 +33,6 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           '</div>',
         resolve: {
           graviteeUser: (UserService: UserService) => UserService.current()
-        },
-        onEnter: (PortalConfigService: PortalConfigService, EnvironmentService: EnvironmentService, Constants, $window) => {
-          if (!Constants.org.currentEnv) {
-            return EnvironmentService.list()
-              .then(response => {
-                Constants.org.environments = response.data;
-
-                const lastEnvironmentLoaded = 'gv-last-environment-loaded';
-                const lastEnv = $window.localStorage.getItem(lastEnvironmentLoaded);
-                if (lastEnv !== null) {
-                  const foundEnv = Constants.org.environments.find(env => env.id === lastEnv);
-                  if (foundEnv) {
-                    Constants.org.currentEnv = Constants.org.environments.find(env => env.id === lastEnv);
-                  } else {
-                    Constants.org.currentEnv = Constants.org.environments[0];
-                    $window.localStorage.removeItem(lastEnvironmentLoaded);
-                  }
-                } else {
-                  Constants.org.currentEnv = Constants.org.environments[0];
-                }
-
-                return response.data;
-              })
-              .then((environments) => {
-                if (environments && environments.length >= 1) {
-                  return PortalConfigService.get();
-                }
-              })
-              .then(response => {
-                if (response) {
-                  Constants.env.settings = response.data;
-                }
-              });
-          }
         }
       }
     )

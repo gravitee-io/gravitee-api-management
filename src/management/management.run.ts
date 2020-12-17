@@ -15,9 +15,11 @@
  */
 /* global setInterval:false, clearInterval:false, screen:false */
 import UserService from '../services/user.service';
+import EnvironmentService from '../services/environment.service';
+import PortalConfigService from '../services/portalConfig.service';
 
 function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
-                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService, ApiService) {
+                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService, ApiService, EnvironmentService: EnvironmentService, PortalConfigService: PortalConfigService) {
   'ngInject';
 
   $transitions.onStart({
@@ -33,6 +35,39 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   });
 
   $transitions.onBefore({}, trans => {
+    if (!Constants.org.currentEnv) {
+      return EnvironmentService.list()
+        .then(response => {
+          Constants.org.environments = response.data;
+
+          const lastEnvironmentLoaded = 'gv-last-environment-loaded';
+          const lastEnv = $window.localStorage.getItem(lastEnvironmentLoaded);
+          if (lastEnv !== null) {
+            const foundEnv = Constants.org.environments.find(env => env.id === lastEnv);
+            if (foundEnv) {
+              Constants.org.currentEnv = Constants.org.environments.find(env => env.id === lastEnv);
+            } else {
+              Constants.org.currentEnv = Constants.org.environments[0];
+              $window.localStorage.removeItem(lastEnvironmentLoaded);
+            }
+          } else {
+            Constants.org.currentEnv = Constants.org.environments[0];
+          }
+
+          return response.data;
+        })
+        .then((environments) => {
+          if (environments && environments.length >= 1) {
+            return PortalConfigService.get();
+          }
+        })
+        .then(response => {
+          if (response) {
+            Constants.env.settings = response.data;
+          }
+        });
+    }
+
     const params = Object.assign({}, trans.params());
     const stateService = trans.router.stateService;
     let toState = trans.to();
