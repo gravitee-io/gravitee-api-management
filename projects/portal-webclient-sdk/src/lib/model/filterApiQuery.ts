@@ -11,9 +11,10 @@
  */
 
 
-export type FilterApiQuery = 'FEATURED' | 'MINE' | 'STARRED' | 'TRENDINGS';
+export type FilterApiQuery = 'ALL' | 'FEATURED' | 'MINE' | 'STARRED' | 'TRENDINGS';
 
 export const FilterApiQuery = {
+    ALL: 'ALL' as FilterApiQuery,
     FEATURED: 'FEATURED' as FilterApiQuery,
     MINE: 'MINE' as FilterApiQuery,
     STARRED: 'STARRED' as FilterApiQuery,

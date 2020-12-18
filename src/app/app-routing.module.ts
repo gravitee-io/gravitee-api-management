@@ -155,7 +155,7 @@ export const routes: Routes = [
           title: i18n('route.catalogAll'),
           icon: 'code:git#2',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
-          filterApiQuery: null,
+          filterApiQuery: FilterApiQuery.ALL,
           animation: { type: 'slide', group: 'catalog', index: 2 }
         }
       },
