@@ -16,6 +16,7 @@
 import { StateService } from '@uirouter/core';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import hljs from 'highlight.js';
+import NotificationService from '../../../services/notification.service';
 
 class ComponentCtrl implements ng.IComponentController {
 
@@ -25,7 +26,7 @@ class ComponentCtrl implements ng.IComponentController {
   private maxSize: number;
   private tuiEditor: any;
 
-  constructor(private $http, private Constants, private $state: StateService) {
+  constructor(private $http, private Constants, private $state: StateService, private NotificationService: NotificationService) {
     'ngInject';
     var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
   }
@@ -75,6 +76,8 @@ class ComponentCtrl implements ng.IComponentController {
     if (this.tuiEditor) {
       this.tuiEditor.remove();
     }
+
+    let that = this;
     this.tuiEditor = new Editor(Object.assign({
       el: document.querySelector('#editSection'),
       initialEditType: 'markdown',
@@ -97,7 +100,7 @@ class ComponentCtrl implements ng.IComponentController {
           fd.append('file', blob);
 
           if (blob.size > Constants.portal.uploadMedia.maxSizeInOctet) {
-            callback('file uploaded to big, you\'re limited at ' + Constants.portal.uploadMedia.maxSizeInOctet, ' bytes');
+            that.NotificationService.showError(`File uploaded is too big, you're limited at ${Constants.portal.uploadMedia.maxSizeInOctet} bytes`);
             return false;
           }
 
