@@ -27,8 +27,7 @@ import java.util.Set;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
@@ -139,7 +138,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(applicationRepository.findByIds(asList("searched-app1", "searched-app2"))).thenReturn(newSet(searchedApp1, searchedApp2));
         when(applicationRepository.findByGroups(singletonList("application-group"))).thenReturn(newSet(groupedApplication1, groupedApplication2));
         when(applicationRepository.findByGroups(singletonList("application-group"), ApplicationStatus.ARCHIVED)).thenReturn(newSet(groupedApplication2));
-
+        when(applicationRepository.findByGroups(emptyList())).thenReturn(emptySet());
 
         when(applicationRepository.findByIds(asList("application-sample", "updated-app", "unknown"))).
                 thenReturn(new HashSet<>(asList(application, updatedApplication)));
