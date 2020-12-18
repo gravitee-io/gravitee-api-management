@@ -16,10 +16,10 @@
 /* global setInterval:false, clearInterval:false, screen:false */
 import UserService from '../services/user.service';
 import EnvironmentService from '../services/environment.service';
-import PortalSettingsService from '../services/portalSettings.service';
+import PortalConfigService from '../services/portalConfig.service';
 
 function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
-                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService, ApiService, EnvironmentService: EnvironmentService, PortalSettingsService: PortalSettingsService) {
+                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService, ApiService, EnvironmentService: EnvironmentService, PortalConfigService: PortalConfigService) {
   'ngInject';
 
   $transitions.onStart({
@@ -35,7 +35,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   });
 
   $transitions.onBefore({}, trans => {
-    if (!Constants.org.currentEnv) {
+    if (UserService.currentUser && UserService.currentUser.id && !Constants.org.currentEnv) {
       return EnvironmentService.list()
         .then(response => {
           Constants.org.environments = response.data;
@@ -58,7 +58,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
         })
         .then((environments) => {
           if (environments && environments.length >= 1) {
-            return PortalSettingsService.get();
+            return PortalConfigService.get();
           }
         })
         .then(response => {

@@ -321,6 +321,7 @@ import SettingsComponent from '../management/configuration/settings.component';
 import OrganizationSettingsComponent from '../organization/configuration/organization-settings.component';
 import ConsoleSettingsService from '../services/consoleSettings.service';
 import PortalSettingsService from '../services/portalSettings.service';
+import PortalConfigService from '../services/portalConfig.service';
 import ApiLoggingComponent from '../management/configuration/api_logging/api_logging.component';
 import ApiLoggingController from '../management/configuration/api_logging/api_logging.controller';
 // Users
@@ -989,6 +990,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.component('organizationSettings', OrganizationSettingsComponent);
   graviteeManagementModule.service('ConsoleSettingsService', ConsoleSettingsService);
   graviteeManagementModule.service('PortalSettingsService', PortalSettingsService);
+  graviteeManagementModule.service('PortalConfigService', PortalConfigService);
   graviteeManagementModule.component('apiLogging', ApiLoggingComponent);
   graviteeManagementModule.controller('ApiLoggingController', ApiLoggingController);
 
