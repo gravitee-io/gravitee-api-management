@@ -40,8 +40,7 @@ import java.util.*;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +67,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findByUser(any(), any(), eq(true));
 
         Api api = new Api();
         api.setId(API);
@@ -192,7 +192,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findByUser(any(), any(), eq(true));
 
         // test
         final Response response = target(API).path("picture").request().get();

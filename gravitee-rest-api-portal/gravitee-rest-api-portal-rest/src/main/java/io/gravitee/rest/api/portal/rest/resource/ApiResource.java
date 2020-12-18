@@ -118,11 +118,10 @@ public class ApiResource extends AbstractResource {
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
     @RequirePortalAuth
     public Response getPictureByApiId(@Context Request request, @PathParam("apiId") String apiId) {
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        // Do not filter on visibility to display the picture on subscription screen even if the API is no more published
+        Collection<ApiEntity> userApis = apiService.findByUser(getAuthenticatedUserOrNull(), null, true);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-
             InlinePictureEntity image = apiService.getPicture(apiId);
-
             return createPictureResponse(request, image);
         }
         throw new ApiNotFoundException(apiId);

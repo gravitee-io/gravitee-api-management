@@ -156,6 +156,7 @@ public class SubscriptionsResource extends AbstractResource {
                 m.put("name", api.getName());
                 m.put("pictureUrl", apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())).getPicture());
                 m.put("version", api.getVersion());
+                m.put("entrypoints", api.getEntrypoints());
                 metadata.put(api.getId(), m);
             }
             final PlanEntity plan = planService.findById(subscription.getPlan());
