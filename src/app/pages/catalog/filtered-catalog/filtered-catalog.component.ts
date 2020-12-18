@@ -182,7 +182,7 @@ export class FilteredCatalogComponent implements OnInit {
           this.promotedApiPath = `/catalog/api/${promoted.id}`;
         } else {
           const key = this.inCategory() ?
-            i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery || 'ALL'}.emptyMessage`;
+            i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery}.emptyMessage`;
           this.translateService.get(key).toPromise().then((translation) => {
             this.emptyMessage = translation;
             this.empty = true;
@@ -313,7 +313,7 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   inCategoryAll() {
-    return this.filterApiQuery === null;
+    return this.filterApiQuery === FilterApiQuery.ALL;
   }
 
   get canFilter() {

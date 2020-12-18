@@ -17,12 +17,10 @@ import { ConfigurationReCaptcha } from './configurationReCaptcha';
 import { ConfigurationApplication } from './configurationApplication';
 import { Enabled } from './enabled';
 import { ConfigurationScheduler } from './configurationScheduler';
-import { ConfigurationCompany } from './configurationCompany';
 import { ConfigurationDocumentation } from './configurationDocumentation';
 
 
 export interface ConfigurationResponse { 
-    company?: ConfigurationCompany;
     portal?: ConfigurationPortal;
     authentication?: ConfigurationAuthentication;
     scheduler?: ConfigurationScheduler;

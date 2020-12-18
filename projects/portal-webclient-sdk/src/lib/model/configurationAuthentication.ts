@@ -9,17 +9,11 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { ConfigurationOAuth2Authentication } from './configurationOAuth2Authentication';
 import { Enabled } from './enabled';
-import { ConfigurationGoogleAuthentication } from './configurationGoogleAuthentication';
-import { ConfigurationGithubAuthentication } from './configurationGithubAuthentication';
 
 
 export interface ConfigurationAuthentication { 
     forceLogin?: Enabled;
     localLogin?: Enabled;
-    google?: ConfigurationGoogleAuthentication;
-    github?: ConfigurationGithubAuthentication;
-    oauth2?: ConfigurationOAuth2Authentication;
 }
 
