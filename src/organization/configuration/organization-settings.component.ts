@@ -26,6 +26,7 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
     $state: StateService,
     UserService: UserService,
     Constants,
+    $transitions,
   ) {
     'ngInject';
     this.$state = $state;
@@ -63,17 +64,27 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
 
     };
 
-    this.$onInit = () => {
-      if ($state.current.name === 'organization.settings') {
-
-        for (let entry of _.keys(this.settingsMenu)) {
-          if (this.settingsMenu[entry].perm) {
-            $state.go(this.settingsMenu[entry].goTo);
-            break;
-          }
+    let that = this;
+    function getDefaultSettingsMenu(): string {
+      for (let entry of _.keys(that.settingsMenu)) {
+        if (that.settingsMenu[entry].perm) {
+          return that.settingsMenu[entry].goTo;
         }
       }
+    }
+
+    $transitions.onBefore({}, function(trans) {
+      if (trans.to().name === 'organization.settings') {
+        return trans.router.stateService.target(getDefaultSettingsMenu());
+      }
+    });
+
+    this.$onInit = () => {
+      if ($state.current.name === 'organization.settings') {
+        $state.go(getDefaultSettingsMenu());
+      }
     };
+
   }
 };
 

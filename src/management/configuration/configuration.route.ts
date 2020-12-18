@@ -734,9 +734,10 @@ function configurationRouterConfig($stateProvider) {
         targetId: (Constants) => Constants.org.currentEnv.id,
         identityProviders: (IdentityProviderService: IdentityProviderService) =>
           IdentityProviderService.list().then(response => response),
-
         identities: (EnvironmentService: EnvironmentService, Constants) =>
-          EnvironmentService.listEnvironmentIdentities(Constants.org.currentEnv.id).then(response => response.data)
+          EnvironmentService.listEnvironmentIdentities(Constants.org.currentEnv.id).then(response => response.data),
+        settings: (PortalSettingsService: PortalSettingsService) =>
+          PortalSettingsService.get().then(response => response.data)
       },
       data: {
         menu: null,

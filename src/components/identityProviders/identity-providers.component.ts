@@ -29,7 +29,8 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     identityProviders: '<',
     identities: '<',
     target: '<',
-    targetId: '<'
+    targetId: '<',
+    settings: '<',
   },
   template: require('./identity-providers.html'),
   controller: function (
@@ -51,14 +52,8 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.$onInit = () => {
-      if (this.target === 'ENVIRONMENT') {
-        this.settings = _.cloneDeep(Constants.env.settings);
-      } else {
-        this.settings = _.cloneDeep(Constants.org.settings);
-      }
-
       this.identities.forEach((ipa: IdentityProviderActivation) => this.activatedIdps[ipa.identityProvider] = true);
-
+      this.hasEnabledIdp = this.identityProviders.filter(idp => idp.enabled).length > 0;
     };
 
     this.availableProviders = [
@@ -118,7 +113,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
         }
       }).then(response => {
         NotificationService.show('Authentication is now ' + (this.settings.authentication.forceLogin.enabled ? 'mandatory' : 'optional'));
-        Constants.env.authentication.forceLogin = response.data.authentication.forceLogin;
+        $state.reload();
       });
     };
 
@@ -132,7 +127,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
           }
         }).then(response => {
           NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
-          Constants.env.authentication.localLogin = response.data.authentication.localLogin;
+          $state.reload();
         });
       } else {
         ConsoleSettingsService.save({
@@ -143,7 +138,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
           }
         }).then(response => {
           NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
-          Constants.org.authentication.localLogin = response.data.authentication.localLogin;
+          $state.reload();
         });
       }
     };

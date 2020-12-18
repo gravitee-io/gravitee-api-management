@@ -40,7 +40,7 @@
         </md-checkbox>
       </md-input-container>
 
-      <md-table-container ng-if="$ctrl.identityProviders.length > 0">
+      <md-table-container ng-if="$ctrl.hasEnabledIdp">
         <table class="gv-table-dense" md-table>
           <thead md-head>
           <tr md-row>
@@ -78,8 +78,8 @@
                             icon="perm_identity"
                             message="Identity providers will appear here"
                             model="Identity Provider"
-                            ng-if="$ctrl.identityProviders.length === 0"
-                            sub-message="Start creating an identity provider in the console settings"></gravitee-empty-state>
+                            ng-if="!$ctrl.hasEnabledIdp"
+                            sub-message="Create or enable identity providers in the organization settings"></gravitee-empty-state>
     </div>
 
     <div class="gv-form-content" layout="column" ng-if="$ctrl.target === 'ORGANIZATION'">

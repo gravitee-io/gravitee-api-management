@@ -231,9 +231,10 @@ function organizationRouterConfig($stateProvider) {
         targetId: () => 'DEFAULT',
         identityProviders: (IdentityProviderService: IdentityProviderService) =>
           IdentityProviderService.list().then(response => response),
-
         identities: (OrganizationService: OrganizationService) =>
-          OrganizationService.listOrganizationIdentities().then(response => response.data)
+          OrganizationService.listOrganizationIdentities().then(response => response.data),
+        settings: (ConsoleSettingsService: ConsoleSettingsService) =>
+          ConsoleSettingsService.get().then(response => response.data)
       },
       data: {
         menu: null,
