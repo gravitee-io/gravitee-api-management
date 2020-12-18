@@ -64,6 +64,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
      * @param excluded If set to true, only entities without subscriptions are returned. Else, only entities with subscriptions are returned.
      * @return a {@link FilteredEntities} object with the filtered and sorted list of items and a metadata map.
      */
+    @Override
     public <T extends FilterableItem> FilteredEntities<T> getEntitiesOrderByNumberOfSubscriptions(Collection<T> items, Boolean excluded, boolean isAsc) {
         if (items == null || items.isEmpty()) {
             return new FilteredEntities<>(Collections.emptyList(), new HashMap<>());
@@ -116,6 +117,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     }
 
+    @Override
     public FilteredEntities<ApiEntity> filterApis(final Collection<ApiEntity> apis, final FilterType filterType,
                                                   final FilterType excludedFilterType) {
         final FilterType filter = excludedFilterType == null ? filterType : excludedFilterType;
@@ -142,6 +144,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
                 case FEATURED:
                     return getTopApis(apis, excluded);
 
+                case ALL:
                 default:
                     break;
             }

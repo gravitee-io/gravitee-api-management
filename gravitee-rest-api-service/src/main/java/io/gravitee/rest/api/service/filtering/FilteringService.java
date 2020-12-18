@@ -27,6 +27,7 @@ public interface FilteringService {
     FilteredEntities<ApiEntity> filterApis(final Collection<ApiEntity> apis, final FilterType filterType, final FilterType excludedFilterType);
 
     enum FilterType {
+        ALL,
         FEATURED,
         MINE,
         STARRED,
