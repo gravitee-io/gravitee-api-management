@@ -4645,6 +4645,7 @@ components:
     FilterApiQuery:
       type: string
       enum:
+        - ALL
         - FEATURED
         - MINE
         - STARRED

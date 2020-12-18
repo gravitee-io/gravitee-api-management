@@ -62,6 +62,14 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
+
+        boolean isCategoryMode = (apisParam.getCategory() != null && apisParam.getFilter() == null);
+
+        String categoryFilter = apisParam.getCategory();
+        if(!isCategoryMode && categoryFilter != null) {
+            apisParam.setCategory(null);
+        }
+
         Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), createQueryFromParam(apisParam));
 
         FilteringService.FilterType filter = apisParam.getFilter() != null ? FilteringService.FilterType.valueOf(apisParam.getFilter().name()) : null;
@@ -76,10 +84,10 @@ public class ApisResource extends AbstractResource {
             //By default, the promoted API is the first of the list;
             String promotedApiId = filteredApisList.get(0).getId();
 
-            if (apisParam.getCategory() != null) {
+            if (isCategoryMode) {
                 // If apis are searched in a category, looks for the category highlighted API (HL API) and if this HL API is in the searchResult.
                 // If it is, then the HL API becomes the promoted API
-                String highlightedApiId = this.categoryService.findById(apisParam.getCategory()).getHighlightApi();
+                String highlightedApiId = this.categoryService.findById(categoryFilter).getHighlightApi();
                 if (highlightedApiId != null) {
                     Optional<ApiEntity> highlightedApiInResult = filteredApisList.stream().filter(api -> api.getId().equals(highlightedApiId)).findFirst();
                     if (highlightedApiInResult.isPresent()) {
@@ -93,6 +101,9 @@ public class ApisResource extends AbstractResource {
                 resultStream = resultStream.filter(api -> api.getId().equals(finalPromotedApiId));
             } else if (apisParam.getPromoted() == Boolean.FALSE) {
                 // All filtered API except the promoted API have to be returned
+                if (!isCategoryMode && categoryFilter != null) {
+                    resultStream = resultStream.filter(api -> api.getCategories() !=null && api.getCategories().contains(categoryFilter));
+                }
                 resultStream = resultStream.filter(api -> !api.getId().equals(finalPromotedApiId));
             }
         }
