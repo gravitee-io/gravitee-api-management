@@ -243,6 +243,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     @Override
     public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus... ass) throws TechnicalException {
         LOGGER.debug("JdbcApplicationRepository.findByGroups({}, {})", groupIds, ass);
+        if (isEmpty(groupIds)) {
+            return emptySet();
+        }
         try {
             final List<ApplicationStatus> statuses = Arrays.asList(ass);
             final StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id join application_groups ag on ag.application_id = a.id ");
