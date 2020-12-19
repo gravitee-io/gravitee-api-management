@@ -32,12 +32,14 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
+import io.gravitee.rest.api.service.configuration.spel.SpelService;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import net.minidev.json.JSONObject;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -68,6 +70,9 @@ public class EnvironmentConfigurationResource {
 
     @Inject
     private FlowService flowService;
+
+    @Inject
+    private SpelService spelService;
 
     @GET
     @Path("/hooks")
@@ -197,6 +202,13 @@ public class EnvironmentConfigurationResource {
         return Response
             .ok(schema)
             .build();
+    }
+
+    @GET
+    @Path("spel/grammar")
+    @Produces(MediaType.APPLICATION_JSON)
+    public JSONObject getGrammar() {
+        return spelService.getGrammar();
     }
 
 }

@@ -27,6 +27,7 @@ import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
+import io.gravitee.rest.api.service.configuration.spel.SpelService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,6 +185,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ClientRegistrationService clientRegistrationService;
+
+    @Autowired
+    protected SpelService spelService;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -402,6 +406,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public FlowService flowService() {
             return mock(FlowService.class);
+        }
+
+        @Bean
+        public SpelService spelService() {
+            return mock(SpelService.class);
         }
 
     }

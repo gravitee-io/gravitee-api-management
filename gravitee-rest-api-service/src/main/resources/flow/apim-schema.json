@@ -50,8 +50,11 @@
     },
     "condition": {
       "title": "Condition",
-      "description": "The condition of flow",
-      "type": "string"
+      "description": "The condition of the flow. Supports EL.",
+      "type": "string",
+      "x-schema-form": {
+        "expression-language": true
+      }
     }
   },
   "required": [],
