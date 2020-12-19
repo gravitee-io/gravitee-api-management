@@ -523,6 +523,7 @@ import organizationRouterConfig from '../organization/organization.route';
 import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
+import SpelService from '../services/spel.service';
 
 (<any>window).traverse = traverse;
 
@@ -808,6 +809,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.service('EnvironmentService', EnvironmentService);
   graviteeManagementModule.service('OrganizationService', OrganizationService);
   graviteeManagementModule.service('FlowService', FlowService);
+  graviteeManagementModule.service('SpelService', SpelService);
   graviteeManagementModule.controller('DialogGenerateTokenController', DialogGenerateTokenController);
 
   graviteeManagementModule.directive('filecontent', () => FileContentDirective);

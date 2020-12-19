@@ -32,6 +32,7 @@ class ApiPolicyStudioController {
     private ResourceService,
     private $scope,
     private ApiService,
+    private SpelService,
     private NotificationService,
     private $rootScope,
     private $stateParams,
@@ -128,6 +129,7 @@ class ApiPolicyStudioController {
     this.studio.addEventListener('gv-policy-studio:change-tab', this.onChangeTab.bind(this));
     this.studio.addEventListener('gv-policy-studio:fetch-documentation', this.fetchPolicyDocumentation.bind(this));
     this.studio.addEventListener('gv-resources:fetch-documentation', this.fetchResourceDocumentation.bind(this));
+    this.studio.addEventListener('gv-expression-language:ready', this.fetchSpelGrammar.bind(this));
   }
 
   setApi(api) {
@@ -173,6 +175,12 @@ class ApiPolicyStudioController {
         target.documentation = {content: response.data, image: resourceType.icon};
       })
       .catch(() => target.documentation = null);
+  }
+
+  fetchSpelGrammar({ detail }) {
+    this.SpelService.getGrammar().then((response) => {
+      detail.currentTarget.grammar = response.data;
+    });
   }
 
   onSave({detail: {definition, services}}) {
