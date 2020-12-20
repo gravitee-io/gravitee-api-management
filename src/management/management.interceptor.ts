@@ -164,6 +164,7 @@ function interceptorConfig(
     return {
       request: function (config) {
         if (config.url.startsWith(Constants.baseURL)) {
+          // tslint:disable:no-string-literal
           config['skipAuthorization'] = true;
         }
 
