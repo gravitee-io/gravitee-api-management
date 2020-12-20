@@ -95,6 +95,10 @@ public class DictionaryService extends AbstractService implements EventListener<
             case STOP:
                 stopDynamicDictionary(dictionary);
                 break;
+            case RESTART:
+                stopDynamicDictionary(dictionary);
+                startDynamicDictionary(dictionary);
+                break;
         }
     }
 
@@ -113,7 +117,7 @@ public class DictionaryService extends AbstractService implements EventListener<
 
                     refresher.setProvider(provider);
                     refresher.setDictionaryService(dictionaryService);
-                    logger.info("Add a scheduled task to poll dictionary provider each {} {} ", dictionary.getTrigger().getRate(),
+                    logger.info("Add a scheduled task to poll dictionary provider for dictionary [{}] each {} {} ",dictionary.getId(), dictionary.getTrigger().getRate(),
                             dictionary.getTrigger().getUnit());
 
                     // Force the first refresh, and then run it periodically
@@ -122,7 +126,7 @@ public class DictionaryService extends AbstractService implements EventListener<
                     long periodicTimer = vertx.setPeriodic(getDelayMillis(dictionary.getTrigger()), refresher);
                     timers.put(dictionary.getId(), periodicTimer);
                 } catch (JsonProcessingException jpe) {
-                    logger.error("Dictionary provider configuration invalid", jpe);
+                    logger.error("Dictionary provider configuration for dictionary [{}] is invalid", dictionary.getId(), jpe);
                 }
             }
         }
@@ -146,7 +150,7 @@ public class DictionaryService extends AbstractService implements EventListener<
     private void stopDynamicDictionary(DictionaryEntity dictionary) {
         Long timer = timers.remove(dictionary.getId());
         if (timer != null) {
-            logger.info("Stop dictionary refresher task for dictionary id[{}]", dictionary.getId());
+            logger.info("Stop dictionary refresher task for dictionary [{}]", dictionary.getId());
             vertx.cancelTimer(timer);
         }
     }

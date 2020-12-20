@@ -182,7 +182,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 final boolean userAuthorizedToAccessApiData = groupService.
                         isUserAuthorizedToAccessApiData(apiService.findById(planEntity.getApi()),
                                 planEntity.getExcludedGroups(), getAuthenticatedUsername());
-                if (!userAuthorizedToAccessApiData) {
+                if (!userAuthorizedToAccessApiData && !isAdmin()) {
                     throw new PlanRestrictedException(plan);
                 }
             }

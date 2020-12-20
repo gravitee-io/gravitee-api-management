@@ -27,7 +27,6 @@
         <version>3.0.14-SNAPSHOT</version>
     </parent>
 
-
     <artifactId>gravitee-rest-api-services-search-indexer</artifactId>
     <name>Gravitee.io Rest APIs - Services - Search Indexer</name>
 

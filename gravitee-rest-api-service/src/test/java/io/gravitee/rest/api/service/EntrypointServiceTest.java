@@ -20,12 +20,8 @@ import io.gravitee.repository.management.model.Entrypoint;
 import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.EntrypointService;
 import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
-import io.gravitee.rest.api.service.exceptions.EntrypointTagsAlreadyExistsException;
 import io.gravitee.rest.api.service.impl.EntrypointServiceImpl;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -116,9 +112,6 @@ public class EntrypointServiceTest {
 
     @Test
     public void shouldUpdateWithSameTags() throws Exception {
-        // use to check existing tags excluding current entry point
-        when(entrypointRepository.findAllByEnvironment(any())).thenReturn(newHashSet(singletonList(entrypointUpdated)));
-
         final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
         entrypoint.setId(ID);
         entrypoint.setValue(NEW_VALUE);
@@ -154,25 +147,5 @@ public class EntrypointServiceTest {
     @Test(expected = EntrypointNotFoundException.class)
     public void shouldNotDelete() {
         entrypointService.delete(UNKNOWN_ID);
-    }
-
-    @Test(expected = EntrypointTagsAlreadyExistsException.class)
-    public void shouldNotCreateWithSameTags() throws Exception {
-        when(entrypointRepository.findAllByEnvironment(any())).thenReturn(newHashSet(singletonList(entrypointCreated)));
-
-        final NewEntryPointEntity entrypoint = new NewEntryPointEntity();
-        entrypoint.setTags(new String[]{"product", "private"});
-        entrypointService.create(entrypoint);
-    }
-
-    @Test(expected = EntrypointTagsAlreadyExistsException.class)
-    public void shouldNotUpdateWithSameTags() throws Exception {
-        when(entrypointRepository.findAllByEnvironment(any())).thenReturn(newHashSet(singletonList(entrypointUpdated)));
-
-        final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
-        entrypoint.setId("new ID");
-        entrypoint.setValue(VALUE);
-        entrypoint.setTags(NEW_TAGS);
-        entrypointService.update(entrypoint);
     }
 }

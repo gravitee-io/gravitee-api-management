@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -147,7 +146,6 @@ public class PlanService_CloseTest {
         verify(subscriptionService, times(1)).close(SUBSCRIPTION_ID);
         verify(subscriptionService, never()).process(any(), any());
     }
-
 
     @Test
     public void shouldClosePlanButNotClosedSubscription() throws TechnicalException {
