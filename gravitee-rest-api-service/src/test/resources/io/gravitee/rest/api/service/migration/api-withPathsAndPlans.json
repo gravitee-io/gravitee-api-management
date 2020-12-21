@@ -9,7 +9,7 @@
   "flow_mode" : "default",
   "paths" : {
     "/thirdpath" : [ {
-      "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE" ],
+      "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE", "OTHER" ],
       "policy-assign-content" : {"scope":"REQUEST","body":"dzdz"},
       "description" : "Description of the Assign content Policy",
       "enabled" : true

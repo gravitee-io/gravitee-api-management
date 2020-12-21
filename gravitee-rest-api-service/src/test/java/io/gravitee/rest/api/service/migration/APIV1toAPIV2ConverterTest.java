@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.migration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.gravitee.definition.model.FlowMode;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -94,6 +95,7 @@ public class APIV1toAPIV2ConverterTest {
 
     private void assertEqualsApiEntity(ApiEntity expected, ApiEntity actual) {
         assertThat(actual).isEqualTo(expected);
+        assertThat(expected.getFlowMode()).isEqualTo(FlowMode.BEST_MATCH);
         assertThat(actual.getPaths()).isEmpty();
         assertThat(actual.getFlows()).hasSameSizeAs(expected.getFlows());
         for (int i = 0; i < actual.getFlows().size(); i++) {

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
@@ -35,8 +36,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -44,6 +47,15 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static io.gravitee.common.http.HttpMethod.CONNECT;
+import static io.gravitee.common.http.HttpMethod.DELETE;
+import static io.gravitee.common.http.HttpMethod.GET;
+import static io.gravitee.common.http.HttpMethod.HEAD;
+import static io.gravitee.common.http.HttpMethod.OPTIONS;
+import static io.gravitee.common.http.HttpMethod.PATCH;
+import static io.gravitee.common.http.HttpMethod.POST;
+import static io.gravitee.common.http.HttpMethod.PUT;
+import static io.gravitee.common.http.HttpMethod.TRACE;
 import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValues;
 import static java.util.Collections.reverseOrder;
 
@@ -54,9 +66,12 @@ import static java.util.Collections.reverseOrder;
 @Component
 public class APIV1toAPIV2Converter {
 
+    private static final Set<HttpMethod> HTTP_METHODS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE)));
+
     public ApiEntity migrateToV2(final ApiEntity apiEntity, final Set<PolicyEntity> policies, Set<PlanEntity> plans) {
 
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        apiEntity.setFlowMode(FlowMode.BEST_MATCH);
 
         apiEntity.setFlows(migratePathsToFlows(reversePathsOrder(apiEntity.getPaths()), policies));
         apiEntity.setPlans(migratePlans(plans, policies));
@@ -80,7 +95,16 @@ public class APIV1toAPIV2Converter {
 
                 // if all rules for a path have the same set of HttpMethods, then we have a unique flow for this path.
                 // else, we have a flow per rule in the path.
-                boolean oneFlowPerPathMode = pathValue.getRules().stream().map(Rule::getMethods).distinct().count() == 1;
+                boolean oneFlowPerPathMode =
+                        pathValue
+                        .getRules()
+                        .stream()
+                        .map(rule -> {
+                            Set<HttpMethod> methods = new HashSet<>(rule.getMethods());
+                            methods.retainAll(HTTP_METHODS);
+                            return methods;
+                        })
+                        .distinct().count() == 1;
 
                 if (oneFlowPerPathMode) {
                     // since, all HttpMethods are the same in this case, we can use `pathValue.getRules().get(0).getMethods()`
@@ -177,7 +201,7 @@ public class APIV1toAPIV2Converter {
         final Step step = new Step();
         step.setName(policy.getName());
         step.setEnabled(rule.isEnabled());
-        step.setDescription(rule.getDescription());
+        step.setDescription(rule.getDescription() != null ? rule.getDescription() : policy.getDescription());
         step.setPolicy(policy.getId());
         step.setConfiguration(safeRulePolicyConfiguration);
         return step;
@@ -185,7 +209,8 @@ public class APIV1toAPIV2Converter {
 
     @NotNull
     private Flow createFlow(String path, Set<HttpMethod> methods) {
-        Set<HttpMethod> flowMethods = methods.size() == HttpMethod.values().length - 1 ? Collections.emptySet() : methods;
+        // If contains all methods of HttpMethod enum or all methods without OTHER
+        Set<HttpMethod> flowMethods = methods.containsAll(HTTP_METHODS) ? Collections.emptySet() : methods;
 
         final Flow flow = new Flow();
         flow.setName("");

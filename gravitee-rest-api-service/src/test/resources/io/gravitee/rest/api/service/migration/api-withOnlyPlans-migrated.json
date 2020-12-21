@@ -6,7 +6,7 @@
   "visibility" : "private",
   "state" : "stopped",
   "context_path" : "/api1",
-  "flow_mode" : "default",
+  "flow_mode" : "best_match",
   "flows" : [ ],
   "plans" : [ {
     "id" : "plan-id",

@@ -15,9 +15,8 @@
   "published_at" : 1607436042289,
   "paths" : {
     "/" : [ {
-      "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE" ],
+      "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE", "OTHER" ],
       "policy-assign-attributes" : {"scope":"REQUEST","attributes":[{"name":"add","value":"yeah"}]},
-      "description" : "Description of the Assign attributes Policy",
       "enabled" : true
     }, {
       "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE" ],
