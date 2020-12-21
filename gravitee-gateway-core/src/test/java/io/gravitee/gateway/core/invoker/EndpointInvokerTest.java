@@ -117,12 +117,12 @@ public class EndpointInvokerTest {
         ExecutionContext context = mockContext(parameters);
         ReadStream<Buffer> stream = mockStream();
         Handler<ProxyConnection> connectionHandler = mock(Handler.class);
-        EndpointResolver.ResolvedEndpoint endpoint = mockResolvedEndpoint(endpointUri);
+        EndpointResolver.ConnectorEndpoint endpoint = mockResolvedEndpoint(endpointUri);
 
         invoker.invoke(context, stream, connectionHandler);
 
         verify(endpoint.getConnector(), times(1))
-                .request(argThat(proxyRequest -> expectedUri.equals(proxyRequest.uri().toString())));
+                .request(argThat(proxyRequest -> expectedUri.equals(proxyRequest.uri())));
     }
 
     private ExecutionContext mockContext(MultiValueMap multiValueMap) {
@@ -133,12 +133,12 @@ public class EndpointInvokerTest {
         return context;
     }
 
-    private EndpointResolver.ResolvedEndpoint mockResolvedEndpoint(String uri) {
-        EndpointResolver.ResolvedEndpoint endpoint = mock(EndpointResolver.ResolvedEndpoint.class);
+    private EndpointResolver.ConnectorEndpoint mockResolvedEndpoint(String uri) {
+        EndpointResolver.ConnectorEndpoint endpoint = mock(EndpointResolver.ConnectorEndpoint.class);
         when(endpoint.getUri()).thenReturn(uri);
         when(endpoint.getConnector()).thenReturn(mock(Connector.class));
         when(endpoint.getConnector().request(any())).thenReturn(mock(ProxyConnection.class));
-        when(endpointResolver.resolve(any(), any())).thenReturn(endpoint);
+        when(endpointResolver.resolve(any())).thenReturn(endpoint);
         return endpoint;
     }
 

@@ -24,8 +24,10 @@ import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
@@ -63,15 +65,19 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
         }
     }
 
-    public String exchangePort(URI uri, int port) {
+    public String exchangePort(URL url, int port) {
         try {
-            return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), port, uri.getPath(), uri.getQuery(), uri.getFragment()).toString();
+            return new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), port, url.getPath(), url.getQuery(), url.getRef()).toString();
         } catch (URISyntaxException e) {
             return null;
         }
     }
 
     public String exchangePort(String sUri, int port) {
-        return exchangePort(URI.create(sUri), port);
+        try {
+            return exchangePort(new URL(sUri), port);
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 }

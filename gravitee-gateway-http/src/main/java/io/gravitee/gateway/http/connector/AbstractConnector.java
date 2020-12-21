@@ -42,7 +42,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import java.net.URI;
+import java.io.IOException;
+import java.net.*;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,12 +59,8 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     private final Logger LOGGER = LoggerFactory.getLogger(AbstractConnector.class);
 
-    protected static final String HTTPS_SCHEME = "https";
-    protected static final String WSS_SCHEME = "wss";
-    protected static final String GRPCS_SCHEME = "grpcs";
-
-    protected static final int DEFAULT_HTTP_PORT = 80;
-    protected static final int DEFAULT_HTTPS_PORT = 443;
+    protected static final int UNSECURE_PORT = 80;
+    protected static final int SECURE_PORT = 443;
 
     @Autowired
     private Vertx vertx;
@@ -74,6 +71,17 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
     protected final T endpoint;
 
     private HttpClientOptions options;
+
+    /**
+     * Dummy {@link URLStreamHandler} implementation to avoid unknown protocol issue with default implementation
+     * (which knows how to handle only http and https protocol).
+     */
+    private final URLStreamHandler URL_HANDLER = new URLStreamHandler() {
+        @Override
+        protected URLConnection openConnection(URL u) throws IOException {
+            return null;
+        }
+    };
 
     @Autowired
     public AbstractConnector(T endpoint) {
@@ -86,35 +94,43 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     @Override
     public ProxyConnection request(ProxyRequest proxyRequest) {
-        final URI uri = proxyRequest.uri();
+        final String uri = proxyRequest.uri();
 
         // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
-        proxyRequest.metrics().setEndpoint(uri.toString());
+        proxyRequest.metrics().setEndpoint(uri);
 
-        final int port = uri.getPort() != -1 ? uri.getPort() :
-                (HTTPS_SCHEME.equals(uri.getScheme()) || WSS_SCHEME.equals(uri.getScheme()) ? 443 : 80);
+        try {
+            final URL url = new URL(null, uri, URL_HANDLER);
 
-        final String host = (port == DEFAULT_HTTP_PORT || port == DEFAULT_HTTPS_PORT) ?
-                uri.getHost() : uri.getHost() + ':' + port;
+            final String protocol = url.getProtocol();
 
-        proxyRequest.headers().set(HttpHeaders.HOST, host);
+            final int port = url.getPort() != -1 ? url.getPort() :
+                    protocol.charAt(protocol.length() - 1) == 's' ? SECURE_PORT : UNSECURE_PORT;
 
-        // Enhance proxy request with endpoint configuration
-        if (endpoint.getHeaders() != null && !endpoint.getHeaders().isEmpty()) {
-            endpoint.getHeaders().forEach(proxyRequest.headers()::set);
+            final String host = (port == UNSECURE_PORT || port == SECURE_PORT) ?
+                    url.getHost() : url.getHost() + ':' + port;
+
+            proxyRequest.headers().set(HttpHeaders.HOST, host);
+
+            // Enhance proxy request with endpoint configuration
+            if (endpoint.getHeaders() != null && !endpoint.getHeaders().isEmpty()) {
+                endpoint.getHeaders().forEach(proxyRequest.headers()::set);
+            }
+
+            // Create the connector to the upstream
+            final AbstractHttpProxyConnection connection = create(proxyRequest);
+
+            // Grab an instance of the HTTP client
+            final HttpClient client = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
+
+            requestTracker.incrementAndGet();
+
+            // Connect to the upstream
+            return connection.connect(client, port, url.getHost(),
+                    (url.getQuery() == null) ? url.getPath() : url.getPath() + '?' + url.getQuery(), result -> requestTracker.decrementAndGet());
+        } catch (MalformedURLException ex) {
+            throw new IllegalArgumentException();
         }
-
-        // Create the connector to the upstream
-        final AbstractHttpProxyConnection connection = create(proxyRequest);
-
-        // Grab an instance of the HTTP client
-        final HttpClient client = httpClients.computeIfAbsent(Vertx.currentContext(), createHttpClient());
-
-        requestTracker.incrementAndGet();
-
-        // Connect to the upstream
-        return connection.connect(client, port, uri.getHost(),
-                (uri.getRawQuery() == null) ? uri.getRawPath() : uri.getRawPath() + '?' + uri.getRawQuery(), result -> requestTracker.decrementAndGet());
     }
 
     protected abstract AbstractHttpProxyConnection create(ProxyRequest proxyRequest);
@@ -141,8 +157,13 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
             options.setHttp2ClearTextUpgrade(endpoint.getHttpClientOptions().isClearTextUpgrade());
             options.setHttp2MaxPoolSize(endpoint.getHttpClientOptions().getMaxConcurrentConnections());
         }
-        
-        URI target = URI.create(endpoint.getTarget());
+
+        URL target;
+        try {
+            target = new URL(null, endpoint.getTarget(), URL_HANDLER);
+        } catch (MalformedURLException e) {
+            throw new EndpointException("Endpoint target is not valid " + endpoint.getTarget());
+        }
 
         // Configure proxy
         HttpProxy proxy = endpoint.getHttpProxy();
@@ -165,9 +186,9 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
         HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
 
-        if (HTTPS_SCHEME.equalsIgnoreCase(target.getScheme())
-                || WSS_SCHEME.equalsIgnoreCase(target.getScheme())
-                || GRPCS_SCHEME.equalsIgnoreCase(target.getScheme())) {
+        final String protocol = target.getProtocol();
+
+        if (protocol.charAt(protocol.length() - 1) == 's') {
             // Configure SSL
             options.setSsl(true)
                     .setUseAlpn(true);

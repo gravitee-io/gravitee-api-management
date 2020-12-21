@@ -100,4 +100,31 @@ public class ManagedEndpointFactoryTest {
         Assert.assertNotNull(endpoint);
         Assert.assertEquals(properties.get("my_property") + "/", endpoint.target());
     }
+
+    @Test
+    public void shouldCreateEndpoint_grpcProtocol() {
+        HttpEndpoint endpointDef = new HttpEndpoint("default", "grpc://localhost:9876/service");
+
+        ManagedEndpoint endpoint = factory.create(endpointDef, null);
+        Assert.assertNotNull(endpoint);
+        Assert.assertEquals("grpc://localhost:9876/service", endpoint.target());
+    }
+
+    @Test
+    public void shouldCreateEndpoint_wsProtocol() {
+        HttpEndpoint endpointDef = new HttpEndpoint("default", "ws://localhost:9876/service");
+
+        ManagedEndpoint endpoint = factory.create(endpointDef, null);
+        Assert.assertNotNull(endpoint);
+        Assert.assertEquals("ws://localhost:9876/service", endpoint.target());
+    }
+
+    @Test
+    public void shouldCreateEndpoint_encodedEndpoint() {
+        HttpEndpoint endpointDef = new HttpEndpoint("default", "http://toto:4567/my_path?test%7Cpipe");
+
+        ManagedEndpoint endpoint = factory.create(endpointDef, null);
+        Assert.assertNotNull(endpoint);
+        Assert.assertEquals("http://toto:4567/my_path?test%7Cpipe", endpoint.target());
+    }
 }

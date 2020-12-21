@@ -72,6 +72,7 @@ public class TargetEndpointResolverTest {
         LoadBalancedEndpointGroup group = mock(LoadBalancedEndpointGroup.class);
         when(group.getName()).thenReturn("default-group");
         referenceRegister.add(new GroupReference(group));
+        when(executionContext.request()).thenReturn(serverRequest);
     }
 
     @Test
@@ -187,9 +188,9 @@ public class TargetEndpointResolverTest {
         when(endpoint.name()).thenReturn(endpointName);
         referenceRegister.add(new EndpointReference(endpoint));
 
-        EndpointResolver.ResolvedEndpoint resolvedEndpoint = resolver.resolve(serverRequest, executionContext);
+        EndpointResolver.ConnectorEndpoint connectorEndpoint = resolver.resolve(executionContext);
 
-        Assert.assertNull(resolvedEndpoint);
+        Assert.assertNull(connectorEndpoint);
         verify(endpoint, never()).target();
         verify(endpoint, never()).available();
 
@@ -361,7 +362,6 @@ public class TargetEndpointResolverTest {
         );
     }
 
-
     private void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
         resolveUserDefinedEndpoint(expectedURI, null, requestEndpoint, endpointName, endpointTarget);
     }
@@ -379,10 +379,10 @@ public class TargetEndpointResolverTest {
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         when(serverRequest.parameters()).thenReturn(parameters);
 
-        EndpointResolver.ResolvedEndpoint resolvedEndpoint = resolver.resolve(serverRequest, executionContext);
+        EndpointResolver.ConnectorEndpoint connectorEndpoint = resolver.resolve(executionContext);
 
-        Assert.assertNotNull(resolvedEndpoint);
-        Assert.assertEquals(expectedURI, resolvedEndpoint.getUri());
+        Assert.assertNotNull(connectorEndpoint);
+        Assert.assertEquals(expectedURI, connectorEndpoint.getUri());
         if (expectedParameters != null) {
             expectedParameters.forEach( (paramKey, paramValue) -> {
                 Assert.assertTrue(parameters.containsKey(paramKey));
