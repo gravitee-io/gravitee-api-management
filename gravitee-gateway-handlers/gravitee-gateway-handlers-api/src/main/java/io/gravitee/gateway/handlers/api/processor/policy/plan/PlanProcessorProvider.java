@@ -51,9 +51,9 @@ public abstract class PlanProcessorProvider extends AbstractPolicyChainProvider 
             context.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
             context.request().metrics().setPlan(PLAN_NAME_ANONYMOUS);
             context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
-        }
 
-        return new NoOpPolicyChain(context);
+            return new NoOpPolicyChain(context);
+        }
     }
 
     protected abstract StreamableProcessor<ExecutionContext, Buffer> provide0(ExecutionContext context);

@@ -15,54 +15,15 @@
  */
 package io.gravitee.gateway.handlers.api.flow;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.core.processor.EmptyStreamableProcessor;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
-import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
-import io.gravitee.gateway.handlers.api.policy.PolicyChainFactory;
-import io.gravitee.gateway.policy.StreamType;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface FlowProvider {
 
-public class FlowProvider {
-
-    private final StreamType streamType;
-
-    private final FlowResolver flowResolver;
-
-    private final PolicyChainFactory policyChainFactory;
-
-    public FlowProvider(
-            final StreamType streamType,
-            final FlowResolver flowResolver,
-            final PolicyChainFactory policyChainFactory) {
-        this.streamType = streamType;
-        this.flowResolver = flowResolver;
-        this.policyChainFactory = policyChainFactory;
-    }
-
-    public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
-        List<Flow> flows = flowResolver.resolve(context);
-
-        if (flows != null && !flows.isEmpty()) {
-            final List<StreamableProcessor<ExecutionContext, Buffer>> chain = new ArrayList<>(flows.size());
-
-            for (Flow flow : flows) {
-                chain.add(
-                        policyChainFactory.create(
-                                new FlowPolicyResolver(flow).resolve(streamType, context),
-                                streamType,
-                                context
-                        )
-                );
-            }
-
-            return new DefaultStreamableProcessorChain<>(chain);
-        }
-
-        return new EmptyStreamableProcessor<>();
-    }
+    StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context);
 }
