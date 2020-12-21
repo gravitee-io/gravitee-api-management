@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -155,6 +156,7 @@ public class SubscriptionsResource extends AbstractResource {
                 final Map<String, Object> m = new HashMap<>();
                 m.put("name", api.getName());
                 m.put("pictureUrl", apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())).getPicture());
+                m.put("state", api.getLifecycleState());
                 m.put("version", api.getVersion());
                 m.put("entrypoints", api.getEntrypoints());
                 metadata.put(api.getId(), m);
