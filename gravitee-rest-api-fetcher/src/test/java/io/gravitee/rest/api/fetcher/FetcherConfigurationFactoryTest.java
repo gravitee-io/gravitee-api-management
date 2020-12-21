@@ -72,7 +72,7 @@ public class FetcherConfigurationFactoryTest {
             String configuration = IOUtils.toString(is, "UTF-8");
             DummyFetcherConfiguration fetcherConfiguration = fetcherConfigurationFactory.create(DummyFetcherConfiguration.class, configuration);
 
-            Assert.assertNull(fetcherConfiguration);
+            Assert.assertNotNull(fetcherConfiguration);
         } catch (IOException e) {
             e.printStackTrace();
             Assert.fail(e.getMessage());
