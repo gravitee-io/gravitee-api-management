@@ -87,8 +87,11 @@ public class FlowServiceTest {
             "    },\n" +
             "    \"condition\": {\n" +
             "      \"title\": \"Condition\",\n" +
-            "      \"description\": \"The condition of flow\",\n" +
-            "      \"type\": \"string\"\n" +
+            "      \"description\": \"The condition of the flow. Supports EL.\",\n" +
+            "      \"type\": \"string\",\n" +
+            "      \"x-schema-form\": {\n" +
+            "        \"expression-language\": true\n" +
+            "      }\n" +
             "    }\n" +
             "  },\n" +
             "  \"required\": [],\n" +
