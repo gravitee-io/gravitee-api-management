@@ -57,13 +57,13 @@ public class TargetEndpointResolver implements EndpointResolver {
     @Autowired
     private GroupManager groupManager;
 
-    public ResolvedEndpoint resolve(Request serverRequest, ExecutionContext executionContext) {
+    public ConnectorEndpoint resolve(ExecutionContext context) {
         // Get target if overridden by a policy
-        String targetUri = (String) executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
+        String targetUri = (String) context.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT);
 
         return (targetUri != null)
-                ? selectUserDefinedEndpoint(serverRequest, targetUri, executionContext)
-                : selectLoadBalancedEndpoint(serverRequest);
+                ? selectUserDefinedEndpoint(context.request(), targetUri)
+                : selectLoadBalancedEndpoint(context.request());
     }
 
     /**
@@ -71,7 +71,7 @@ public class TargetEndpointResolver implements EndpointResolver {
      * The resolver must select the next endpoint from the default group (considering that the default group is the
      * first one).
      */
-    private ResolvedEndpoint selectLoadBalancedEndpoint(Request serverRequest) {
+    private ConnectorEndpoint selectLoadBalancedEndpoint(Request serverRequest) {
         // Get the first group
         LoadBalancedEndpointGroup group = groupManager.getDefault();
 
@@ -84,7 +84,7 @@ public class TargetEndpointResolver implements EndpointResolver {
     /**
      * Select an endpoint according to the URI passed in the execution request attribute.
      */
-    private ResolvedEndpoint selectUserDefinedEndpoint(Request serverRequest, String target, ExecutionContext executionContext) {
+    private ConnectorEndpoint selectUserDefinedEndpoint(Request serverRequest, String target) {
         // Do we have a relative or an absolute path ?
         if (URI_SCHEME_PATTERN.matcher(target).matches()) {
             // When the user selected endpoint which is not defined (according to the given target), the gateway
@@ -141,6 +141,15 @@ public class TargetEndpointResolver implements EndpointResolver {
         }
     }
 
+    private String getTargetWithoutQueryParams(String uri) {
+        int targetQueryIndex = uri.indexOf(QUERY_SEPARATOR);
+        if (targetQueryIndex > -1) {
+            return uri.substring(0, targetQueryIndex);
+        } else {
+            return uri;
+        }
+    }
+
     private String getMergedTarget(String endpointTarget, String userDefinedRawPathAndQuery) {
         int targetQueryIndex = endpointTarget.indexOf(QUERY_SEPARATOR);
 
@@ -163,16 +172,11 @@ public class TargetEndpointResolver implements EndpointResolver {
         }
     }
 
-    private String getTargetWithoutQueryParams(String uri) {
-        int targetQueryIndex = uri.indexOf(QUERY_SEPARATOR);
-        if (targetQueryIndex > -1) {
-            return uri.substring(0, targetQueryIndex);
-        } else {
-            return uri;
-        }
-
-    }
-
+    /**
+     * Extract query parameters from the uri parameter and copy to the parameters map
+     * @param uri
+     * @param parameters
+     */
     private void mergeQueryParameters(String uri, MultiValueMap<String, String> parameters) {
         MultiValueMap<String, String> queryParameters = URIUtils.parameters(uri);
 
@@ -184,7 +188,7 @@ public class TargetEndpointResolver implements EndpointResolver {
         }
     }
 
-    private ResolvedEndpoint createEndpoint(Endpoint endpoint, String uri) {
+    private ConnectorEndpoint createEndpoint(Endpoint endpoint, String uri) {
         // Is the endpoint reachable ?
         boolean reachable = uri != null && endpoint != null && endpoint.available();
 
@@ -192,7 +196,7 @@ public class TargetEndpointResolver implements EndpointResolver {
             // Remove duplicate slash
             final String target = DUPLICATE_SLASH_REMOVER.matcher(uri).replaceAll(URI_PATH_SEPARATOR);
 
-            return new ResolvedEndpoint() {
+            return new ConnectorEndpoint() {
                 @Override
                 public String getUri() {
                     return target;
@@ -201,11 +205,6 @@ public class TargetEndpointResolver implements EndpointResolver {
                 @Override
                 public Connector getConnector() {
                     return endpoint.connector();
-                }
-
-                @Override
-                public Endpoint getEndpoint() {
-                    return endpoint;
                 }
             };
         } else {

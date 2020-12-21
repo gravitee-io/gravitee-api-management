@@ -20,6 +20,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
+import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
@@ -35,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
 import java.util.StringJoiner;
 
 /**
@@ -56,7 +56,7 @@ public class EndpointInvoker implements Invoker {
 
     @Override
     public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
-        EndpointResolver.ResolvedEndpoint endpoint = endpointResolver.resolve(context.request(), context);
+        EndpointResolver.ConnectorEndpoint endpoint = endpointResolver.resolve(context);
 
         // Endpoint can be null if none endpoint can be selected or if the selected endpoint is unavailable
         if (endpoint == null) {
@@ -64,19 +64,9 @@ public class EndpointInvoker implements Invoker {
             connectionHandler.handle(statusOnlyConnection);
             statusOnlyConnection.sendResponse();
         } else {
-            URI uri = null;
             try {
-                uri = buildURI(endpoint.getUri(), context);
-            } catch (Exception ex) {
-                context.request().metrics().setMessage(getStackTraceAsString(ex));
-
-                // Request URI is not correct nor correctly encoded, returning a bad request
-                DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.BAD_REQUEST_400);
-                connectionHandler.handle(statusOnlyConnection);
-                statusOnlyConnection.sendResponse();
-            }
-
-            if (uri != null) {
+                // Build absolute URI, including query
+                String uri = buildURI(endpoint.getUri(), context.request());
 
                 ProxyRequest proxyRequest = ProxyRequestBuilder.from(context.request())
                         .uri(uri)
@@ -111,6 +101,13 @@ public class EndpointInvoker implements Invoker {
                             }
                         })
                         .endHandler(aVoid -> finalProxyConnection.end());
+            } catch (Exception ex) {
+                context.request().metrics().setMessage(getStackTraceAsString(ex));
+
+                // Request URI is not correct nor correctly encoded, returning a bad request
+                DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.BAD_REQUEST_400);
+                connectionHandler.handle(statusOnlyConnection);
+                statusOnlyConnection.sendResponse();
             }
         }
 
@@ -118,17 +115,17 @@ public class EndpointInvoker implements Invoker {
         context.request().resume();
     }
 
-    private URI buildURI(String uri, ExecutionContext executionContext) {
-        MultiValueMap<String, String> parameters = executionContext.request().parameters();
+    private String buildURI(String uri, Request request) {
+        MultiValueMap<String, String> parameters = request.parameters();
 
         if (parameters == null || parameters.isEmpty()) {
-            return URI.create(uri);
+            return uri;
         }
 
         return addQueryParameters(uri, parameters);
     }
 
-    private URI addQueryParameters(String uri, MultiValueMap<String, String> parameters) {
+    private String addQueryParameters(String uri, MultiValueMap<String, String> parameters) {
         StringJoiner parametersAsString = new StringJoiner(URI_PARAM_SEPARATOR);
         parameters.forEach( (paramName, paramValues) -> {
             if (paramValues != null) {
@@ -143,9 +140,9 @@ public class EndpointInvoker implements Invoker {
         });
 
         if (uri.contains(URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
-            return URI.create(uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString());
+            return uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString();
         } else {
-            return URI.create(uri + URI_QUERY_DELIMITER_CHAR + parametersAsString.toString());
+            return uri + URI_QUERY_DELIMITER_CHAR + parametersAsString.toString();
 
         }
     }

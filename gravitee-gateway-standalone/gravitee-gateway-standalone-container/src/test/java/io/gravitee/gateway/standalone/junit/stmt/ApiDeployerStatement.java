@@ -34,6 +34,7 @@ import org.springframework.core.ResolvableType;
 
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 /**
@@ -53,7 +54,7 @@ public class ApiDeployerStatement extends Statement {
     @Override
     public void evaluate() throws Throwable {
         URL home = ApiDeployerStatement.class.getResource("/gravitee-01/");
-        System.setProperty("gravitee.home", URLDecoder.decode(home.getPath(), "UTF-8"));
+        System.setProperty("gravitee.home", URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8.name()));
 
         GatewayContainer container = new GatewayContainer();
 

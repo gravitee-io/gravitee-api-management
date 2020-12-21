@@ -25,8 +25,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 import java.util.Objects;
 
 /**
@@ -72,7 +75,7 @@ public abstract class AbstractEndpointFactory extends TemplateAwareEndpointFacto
 
     @Override
     protected ManagedEndpoint create0(io.gravitee.definition.model.Endpoint endpoint) {
-        URI uri = getURI(endpoint.getTarget());
+        URL uri = getURL(endpoint.getTarget());
 
         if (uri.getPath().isEmpty()) {
             logger.debug("Endpoint target URL is malformed for endpoint [{} - {}]. Set default path to '/'",
@@ -89,14 +92,25 @@ public abstract class AbstractEndpointFactory extends TemplateAwareEndpointFacto
 
     protected abstract Connector create(io.gravitee.definition.model.Endpoint endpoint);
 
-    URI getURI(String target) {
+    /**
+     * Dummy {@link URLStreamHandler} implementation to avoid unknown protocol issue with default implementation
+     * (which knows how to handle only http and https protocol).
+     */
+    private final URLStreamHandler URL_HANDLER = new URLStreamHandler() {
+        @Override
+        protected URLConnection openConnection(URL u) throws IOException {
+            return null;
+        }
+    };
+
+    private URL getURL(String target) {
         if (target != null) {
             try {
-                URI uri = new URI(target);
-                Objects.requireNonNull(uri.getScheme(), "no null scheme accepted");
+                URL uri = new URL(null, target, URL_HANDLER);
+                Objects.requireNonNull(uri.getProtocol(), "no null scheme accepted");
                 Objects.requireNonNull(uri.getHost(), "no null host accepted");
                 return uri;
-            } catch (URISyntaxException e) {
+            } catch (MalformedURLException e) {
                 logger.error("HTTP endpoint target URL is malformed", e);
                 throw new IllegalStateException("HTTP endpoint target URI is malformed: " + target);
             }

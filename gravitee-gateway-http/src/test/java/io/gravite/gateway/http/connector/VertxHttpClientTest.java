@@ -36,7 +36,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -78,7 +77,7 @@ public class VertxHttpClientTest {
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test"))
+                .uri("http://gravitee.io/test")
                 .headers(new HttpHeaders())
                 .build();
 
@@ -93,7 +92,7 @@ public class VertxHttpClientTest {
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo=bar"))
+                .uri("http://gravitee.io/test?foo=bar")
                 .headers(new HttpHeaders())
                 .build();
 
@@ -108,7 +107,7 @@ public class VertxHttpClientTest {
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo==bar"))
+                .uri("http://gravitee.io/test?foo==bar")
                 .headers(new HttpHeaders())
                 .build();
 
@@ -123,7 +122,7 @@ public class VertxHttpClientTest {
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo=%3Dbar"))
+                .uri("http://gravitee.io/test?foo=%3Dbar")
                 .headers(new HttpHeaders())
                 .build();
 
@@ -138,7 +137,7 @@ public class VertxHttpClientTest {
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo=&bar="))
+                .uri("http://gravitee.io/test?foo=&bar=")
                 .headers(new HttpHeaders())
                 .build();
 
@@ -153,7 +152,7 @@ public class VertxHttpClientTest {
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
         ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
                 .method(HttpMethod.GET)
-                .uri(new URI("http://gravitee.io/test?foo&bar"))
+                .uri("http://gravitee.io/test?foo&bar")
                 .headers(new HttpHeaders())
                 .build();
 

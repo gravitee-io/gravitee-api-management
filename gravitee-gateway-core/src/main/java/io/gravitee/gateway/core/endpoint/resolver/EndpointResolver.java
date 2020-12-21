@@ -17,8 +17,6 @@ package io.gravitee.gateway.core.endpoint.resolver;
 
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.endpoint.Endpoint;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,18 +27,16 @@ public interface EndpointResolver {
     /**
      * Returns an endpoint according to the incoming HTTP request. If not endpoint corresponds to the request,
      * or if the selected endpoint is not available, the method returns <code>null</code>.
-     * @param request
-     * @param executionContext
+     *
+     * @param context
      * @return
      */
-    ResolvedEndpoint resolve(Request request, ExecutionContext executionContext);
+    ConnectorEndpoint resolve(ExecutionContext context);
 
-    interface ResolvedEndpoint {
+    interface ConnectorEndpoint {
 
         String getUri();
 
         Connector getConnector();
-
-        Endpoint getEndpoint();
     }
 }
