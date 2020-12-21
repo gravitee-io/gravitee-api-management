@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
-import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
+import io.gravitee.rest.api.model.settings.Application;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
@@ -89,8 +89,8 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
     }
 
     public JsonNode getApplicationTypesConfiguration() {
-        PortalSettingsEntity.Application applicationConfig = configService.getPortalSettings().getApplication();
-        PortalSettingsEntity.Application.ApplicationTypes types = applicationConfig.getTypes();
+        Application applicationConfig = configService.getPortalSettings().getApplication();
+        Application.ApplicationTypes types = applicationConfig.getTypes();
         if (!applicationConfig.getRegistration().getEnabled()) {
             types.getBrowserType().setEnabled(false);
             types.getBackendToBackendType().setEnabled(false);

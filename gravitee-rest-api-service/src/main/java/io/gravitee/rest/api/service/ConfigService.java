@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
+import io.gravitee.rest.api.model.settings.PortalConfigEntity;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 
 /**
@@ -40,4 +41,6 @@ public interface ConfigService {
     void save(ConsoleSettingsEntity consoleSettingsEntity);
 
     ConsoleConfigEntity getConsoleConfig();
+
+    PortalConfigEntity getPortalConfig();
 }

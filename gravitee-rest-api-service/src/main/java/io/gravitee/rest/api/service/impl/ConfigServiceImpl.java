@@ -74,6 +74,11 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     @Override
+    public PortalConfigEntity getPortalConfig() {
+        return MAPPER.convertValue(getPortalSettings(), PortalConfigEntity.class);
+    }
+
+    @Override
     public PortalSettingsEntity getPortalSettings() {
         return this.getPortalSettings(GraviteeContext.getCurrentEnvironment());
     }

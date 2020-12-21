@@ -21,6 +21,7 @@ import io.gravitee.rest.api.management.rest.resource.portal.SocialIdentityProvid
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.settings.PortalConfigEntity;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.swagger.annotations.*;
@@ -49,16 +50,15 @@ public class PortalResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Deprecated
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the portal configuration",
             notes = "Every users can use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Portal configuration", response = PortalSettingsEntity.class),
+            @ApiResponse(code = 200, message = "Portal configuration", response = PortalConfigEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public PortalSettingsEntity getPortalConfig() {
-        return configService.getPortalSettings();
+    public PortalConfigEntity getPortalConfig() {
+        return configService.getPortalConfig();
     }
 
     @Deprecated
