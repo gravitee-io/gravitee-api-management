@@ -107,15 +107,15 @@ export class UserAccountComponent implements OnInit, OnDestroy {
   }
 
   submit() {
-    let avatarValue = this.userForm.get('avatar').value;
-    // if avatar start with "http", the avatar doesn't changed, do not 
+    const avatarValue = this.userForm.get('avatar').value;
+    // if avatar start with "http", the avatar doesn't changed, do not
     // send it to the REST API to avoid reset user avatar
-    const UserInput = { 
-      id:  this.currentUser.id, 
-      avatar: avatarValue && avatarValue.startsWith("http") ? null : avatarValue, 
-      first_name: this.userForm.get('first_name').value, 
-      last_name: this.userForm.get('last_name').value, 
-      email: this.userForm.get('email').value 
+    const UserInput = {
+      id:  this.currentUser.id,
+      avatar: avatarValue && avatarValue.startsWith('http') ? null : avatarValue,
+      first_name: this.userForm.get('first_name').value,
+      last_name: this.userForm.get('last_name').value,
+      email: this.userForm.get('email').value
     };
     this.isSaving = true;
     this.userService.updateCurrentUser({ UserInput })
