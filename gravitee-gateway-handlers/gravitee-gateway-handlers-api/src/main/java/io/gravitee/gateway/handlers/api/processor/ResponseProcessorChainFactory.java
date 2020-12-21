@@ -16,8 +16,10 @@
 package io.gravitee.gateway.handlers.api.processor;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.gateway.handlers.api.flow.FlowProvider;
+import io.gravitee.definition.model.FlowMode;
+import io.gravitee.gateway.handlers.api.flow.BestMatchPolicyResolver;
 import io.gravitee.gateway.handlers.api.flow.SimpleFlowPolicyChainProvider;
+import io.gravitee.gateway.handlers.api.flow.SimpleFlowProvider;
 import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
 import io.gravitee.gateway.handlers.api.flow.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.handlers.api.flow.condition.ConditionEvaluator;
@@ -51,8 +53,15 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
                     new PathBasedConditionEvaluator(),
                     new ExpressionLanguageBasedConditionEvaluator());
 
-            add(new SimpleFlowPolicyChainProvider(new FlowProvider(StreamType.ON_RESPONSE, new ApiFlowResolver(api, evaluator), chainFactory)));
-            add(new PlanFlowPolicyChainProvider(new FlowProvider(StreamType.ON_RESPONSE, new PlanFlowResolver(api, evaluator), chainFactory)));
+            if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
+                add(new SimpleFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_RESPONSE, new ApiFlowResolver(api, evaluator), chainFactory)));
+                add(new PlanFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_RESPONSE, new PlanFlowResolver(api, evaluator), chainFactory)));
+            } else {
+                add(new SimpleFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_RESPONSE,
+                        new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)), chainFactory)));
+                add(new PlanFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_RESPONSE,
+                        new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)), chainFactory)));
+            }
         }
 
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {

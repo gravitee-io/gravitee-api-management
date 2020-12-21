@@ -58,6 +58,7 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         this.setPlans(definition.getPlans());
         this.setDefinitionVersion(definition.getDefinitionVersion());
         this.setFlows(definition.getFlows());
+        this.setFlowMode(definition.getFlowMode());
     }
 
     public Api(final Api definition) {
@@ -76,6 +77,7 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         this.setPlans(definition.getPlans());
         this.setDefinitionVersion(definition.getDefinitionVersion());
         this.setFlows(definition.getFlows());
+        this.setFlowMode(definition.getFlowMode());
     }
 
     public boolean isEnabled() {
