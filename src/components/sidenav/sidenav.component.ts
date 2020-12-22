@@ -15,7 +15,6 @@
  */
 import { IScope, IWindowService } from 'angular';
 import { StateService } from '@uirouter/core';
-import PortalSettingsService from '../../services/portalSettings.service';
 import PortalConfigService from '../../services/portalConfig.service';
 
 
@@ -39,7 +38,6 @@ export const SidenavComponent: ng.IComponentOptions = {
     this.$window = $window;
     this.reducedMode = false;
     this.Constants = Constants;
-    this.PortalSettingsService = PortalSettingsService;
     this.$state = $state;
 
     this.$onInit = () => {
