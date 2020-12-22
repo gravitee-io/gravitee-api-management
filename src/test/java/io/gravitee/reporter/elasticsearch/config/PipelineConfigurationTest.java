@@ -70,6 +70,19 @@ public class PipelineConfigurationTest {
     }
 
     @Test
+    public void should_valid_pipeline_with_ingest_geoip_if_es_version_superior_to_7() {
+        pipelineConfiguration.setIngestorPlugins(null);
+        when(freeMarkerComponent.generateFromTemplate(eq("pipeline.ftl"), anyMap()))
+                .thenReturn("{\"description\":\"Gravitee pipeline\",\"processors\":[{\"geoip\":{\"field\":\"remote-address\"}}, {\"user_agent\" : {\"field\" : \"user-agent\"}}]}");
+
+        String result = "{\"description\":\"Gravitee pipeline\",\"processors\":[{\"geoip\":{\"field\":\"remote-address\"}}, {\"user_agent\" : {\"field\" : \"user-agent\"}}]}";
+
+        String pipeline = pipelineConfiguration.createPipeline(true);
+
+        Assert.assertEquals(result, pipeline);
+    }
+
+    @Test
     public void should_return_pipeline_name() {
         //String result = "{\"description\":\"Gravitee pipeline\",\"processors\":[{\"geoip\":{\"field\":\"remote-address\"}}]}";
 
