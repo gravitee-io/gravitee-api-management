@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toSet;
 public class PipelineConfiguration {
 
     private static final List<String> INGEST_PLUGINS = Arrays.asList("geoip", "user_agent", "gravitee");
+    private static final String DEFAULT_INGEST_PLUGINS_AFTER_7_X = "geoip,user_agent,";
 
     @Value("${reporters.elasticsearch.pipeline.plugins.ingest:#{null}}")
     private String ingestorPlugins;
@@ -50,8 +51,15 @@ public class PipelineConfiguration {
     private boolean valid = false;
 
     public String createPipeline() {
-        if (ingestorPlugins != null && ! ingestorPlugins.isEmpty()) {
-            final Set<String> configuredPlugin = Stream.of(ingestorPlugins.split(",")).map(String::trim).collect(toSet());
+        return createPipeline(false);
+    }
+
+    public String createPipeline(boolean isVersionAfter7X) {
+        String plugins = isVersionAfter7X ?
+                DEFAULT_INGEST_PLUGINS_AFTER_7_X.concat(Objects.toString(ingestorPlugins, ""))
+                : ingestorPlugins;
+        if (plugins != null && ! plugins.isEmpty()) {
+            final Set<String> configuredPlugin = Stream.of(plugins.split(",")).map(String::trim).collect(toSet());
             configuredPlugin.retainAll(INGEST_PLUGINS);
 
             final Map<String, Object> data = new HashMap<>();
