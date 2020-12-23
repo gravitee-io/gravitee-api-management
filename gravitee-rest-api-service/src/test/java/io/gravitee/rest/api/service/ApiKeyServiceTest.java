@@ -20,10 +20,7 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyActivatedException;
-import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExpiredException;
-import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiKeyServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import org.junit.Test;
@@ -224,6 +221,7 @@ public class ApiKeyServiceTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setApi(api.getId());
+        subscription.setStatus(SubscriptionStatus.PAUSED);
 
         // Stub
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
@@ -256,6 +254,7 @@ public class ApiKeyServiceTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setApi(api.getId());
+        subscription.setStatus(SubscriptionStatus.ACCEPTED);
 
         // Stub
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
@@ -291,8 +290,27 @@ public class ApiKeyServiceTest {
     }
 
     @Test(expected = ApiKeyNotFoundException.class)
-    public void shouldNotReactivateBeacauseOfApiKeyNotFound() throws TechnicalException {
+    public void shouldNotReactivateBecauseOfApiKeyNotFound() throws TechnicalException {
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.empty());
+
+        apiKeyService.reactivate(API_KEY);
+    }
+
+    @Test(expected = SubscriptionNotActiveException.class)
+    public void shouldNotReactivateBecauseOfNotActiveSubscription() throws TechnicalException {
+        apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setPlan(PLAN_ID);
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setExpireAt(new Date(System.currentTimeMillis() - 10000));
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setStatus(SubscriptionStatus.CLOSED);
+        // Stub
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscriptionEntity);
 
         apiKeyService.reactivate(API_KEY);
     }

@@ -264,13 +264,16 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 throw new ApiKeyAlreadyActivatedException("The API key is already activated");
             }
 
+            // Get the subscription to get ending date and set key expiration date.
+            SubscriptionEntity subscription = subscriptionService.findById(key.getSubscription());
+            if (subscription.getStatus() != SubscriptionStatus.PAUSED && subscription.getStatus() != SubscriptionStatus.ACCEPTED) {
+                throw new SubscriptionNotActiveException(subscription);
+            }
+
             ApiKey previousApiKey = new ApiKey(key);
             key.setRevoked(false);
             key.setUpdatedAt(new Date());
             key.setRevokedAt(null);
-
-            // Get the subscription to get ending date and set key expiration date.
-            SubscriptionEntity subscription = subscriptionService.findById(key.getSubscription());
             key.setExpireAt(subscription.getEndingAt());
 
             ApiKey updated = apiKeyRepository.update(key);
