@@ -22,7 +22,7 @@
     <parent>
         <artifactId>gravitee-rest-api-services</artifactId>
         <groupId>io.gravitee.rest.api.services</groupId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>3.5.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
