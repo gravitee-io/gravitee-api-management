@@ -91,8 +91,8 @@
                 <td md-cell nowrap>
                   <span>
                   {{::api.owner.displayName}}
-                    <md-tooltip>
-                      <span ng-if="api.owner.email">{{::api.owner.email}}</span>
+                    <md-tooltip ng-if="api.owner.email">
+                      <span>{{::api.owner.email}}</span>
                     </md-tooltip>
                   </span>
                 </td>
