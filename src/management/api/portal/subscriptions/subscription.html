@@ -179,7 +179,7 @@
                   <ng-md-icon permission permission-only="'api-subscription-u'" style="top: 0;" icon="schedule"
                               ng-click="$ctrl.expireApiKey(key)"></ng-md-icon>
                 </span>
-                <span ng-if="!$ctrl.isValid(key) && $ctrl.subscription.status === 'accepted' && $ctrl.subscription.status === 'paused'">
+                <span ng-if="!$ctrl.isValid(key) && ($ctrl.subscription.status === 'accepted' || $ctrl.subscription.status === 'paused')">
                   <md-tooltip md-direction="left">Reactivate</md-tooltip>
                   <ng-md-icon permission permission-only="'api-subscription-u'" style="top: 0;" icon="restore"
                               ng-click="$ctrl.reactivateApiKey(key.key)"></ng-md-icon>
