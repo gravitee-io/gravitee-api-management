@@ -29,7 +29,7 @@
     <groupId>io.gravitee.rest.api</groupId>
     <artifactId>gravitee-rest-api</artifactId>
     <packaging>pom</packaging>
-    <version>3.0.14</version>
+    <version>3.0.15-SNAPSHOT</version>
     <name>Gravitee.io Rest APIs</name>
 
     <properties>

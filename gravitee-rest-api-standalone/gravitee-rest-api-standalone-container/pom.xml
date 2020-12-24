@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.rest.api.standalone</groupId>
         <artifactId>gravitee-rest-api-standalone</artifactId>
-        <version>3.0.14</version>
+        <version>3.0.15-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-rest-api-standalone-container</artifactId>

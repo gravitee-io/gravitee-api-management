@@ -22,7 +22,7 @@
   <parent>
     <groupId>io.gravitee.rest.api</groupId>
     <artifactId>gravitee-rest-api</artifactId>
-    <version>3.0.14</version>
+    <version>3.0.15-SNAPSHOT</version>
   </parent>
 
   <groupId>io.gravitee.rest.api.portal</groupId>    

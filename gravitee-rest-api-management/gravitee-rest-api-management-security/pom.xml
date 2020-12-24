@@ -23,7 +23,7 @@
 	<parent>
         <groupId>io.gravitee.rest.api.management</groupId>
         <artifactId>gravitee-rest-api-management</artifactId>
-        <version>3.0.14</version>
+        <version>3.0.15-SNAPSHOT</version>
     </parent>
 
 	<artifactId>gravitee-rest-api-management-security</artifactId>
