@@ -42,4 +42,15 @@ public interface NotifierService {
      io.gravitee.management.model.NotifierEntity findById(String notifier);
 
      String getSchema(String notifier);
+
+     /**
+      * Test if an email notification will be sent to the provided recipient
+      *
+      * @param hook the hook to test
+      * @param applicationId the notification related application identifier
+      * @param params the parameters used to customize template
+      * @param recipient the recipient to test
+      * @return if the recipient will received an email according to notification configuration, false otherwise
+      */
+     boolean hasEmailNotificationFor(final ApplicationHook hook, final String applicationId, Map<String, Object> params, final String recipient);
 }

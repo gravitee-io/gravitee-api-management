@@ -123,6 +123,22 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
     }
 
     @Override
+    public boolean hasEmailNotificationFor(final ApplicationHook hook, final String applicationId, Map<String, Object> params, final String recipient) {
+        boolean result = false;
+        try {
+            for (GenericNotificationConfig genericNotificationConfig : genericNotificationConfigRepository.findByReferenceAndHook(hook.name(), NotificationReferenceType.APPLICATION, applicationId)) {
+                if (genericNotificationConfig.getNotifier().equals(DEFAULT_EMAIL_NOTIFIER_ID)) {
+                        List<String> mails = emailNotifierService.getMails(genericNotificationConfig, params);
+                        result = mails != null && mails.contains(recipient);
+                }
+            }
+        } catch (TechnicalException e) {
+            LOGGER.error("Error looking for GenericNotificationConfig with {}/{}/{}", hook, NotificationReferenceType.APPLICATION, applicationId, e);
+        }
+        return result;
+    }
+
+    @Override
     @Async
     public void trigger(final PortalHook hook, Map<String, Object> params) {
         triggerPortalNotifications(hook, NotificationReferenceType.PORTAL, PortalNotificationDefaultReferenceId.DEFAULT.name(), params);

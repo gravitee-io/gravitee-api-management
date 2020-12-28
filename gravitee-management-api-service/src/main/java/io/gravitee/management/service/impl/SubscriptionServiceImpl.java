@@ -446,13 +446,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 notifierService.trigger(ApiHook.SUBSCRIPTION_ACCEPTED, apiId, params);
                 notifierService.trigger(ApplicationHook.SUBSCRIPTION_ACCEPTED, application.getId(), params);
                 searchSubscriberEmail(subscriptionEntity).ifPresent(subscriberEmail -> {
-                    notifierService.triggerEmail(ApplicationHook.SUBSCRIPTION_ACCEPTED, apiId, params, subscriberEmail);
+                    if (!notifierService.hasEmailNotificationFor(ApplicationHook.SUBSCRIPTION_ACCEPTED, application.getId(), params, subscriberEmail)) {
+                        notifierService.triggerEmail(ApplicationHook.SUBSCRIPTION_ACCEPTED, apiId, params, subscriberEmail);
+                    }
                 });
             } else {
                 notifierService.trigger(ApiHook.SUBSCRIPTION_REJECTED, apiId, params);
                 notifierService.trigger(ApplicationHook.SUBSCRIPTION_REJECTED, application.getId(), params);
                 searchSubscriberEmail(subscriptionEntity).ifPresent(subscriberEmail -> {
-                    notifierService.triggerEmail(ApplicationHook.SUBSCRIPTION_REJECTED, apiId, params, subscriberEmail);
+                    if (!notifierService.hasEmailNotificationFor(ApplicationHook.SUBSCRIPTION_REJECTED, application.getId(), params, subscriberEmail)) {
+                        notifierService.triggerEmail(ApplicationHook.SUBSCRIPTION_REJECTED, apiId, params, subscriberEmail);
+                    }
                 });
             }
 

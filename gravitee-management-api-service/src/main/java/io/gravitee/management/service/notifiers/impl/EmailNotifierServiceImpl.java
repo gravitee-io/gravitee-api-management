@@ -34,10 +34,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.gravitee.management.service.notification.ApiHook.*;
 
@@ -77,7 +74,12 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
                 .build());
     }
 
-    private List<String> getMails(final GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
+    public List<String> getMails(final GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
+        if (genericNotificationConfig == null || genericNotificationConfig.getConfig() == null || genericNotificationConfig.getConfig().isEmpty()) {
+            LOGGER.error("Email Notifier configuration is empty");
+            return Collections.emptyList();
+        }
+
         String[] mails = genericNotificationConfig.getConfig().split(",|;|\\s");
         List<String> result = new ArrayList<>();
         for (String mail : mails) {

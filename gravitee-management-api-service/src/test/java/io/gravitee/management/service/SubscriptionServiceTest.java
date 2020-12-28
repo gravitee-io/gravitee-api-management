@@ -825,6 +825,7 @@ public class SubscriptionServiceTest {
         when(plan.getApis()).thenReturn(singleton(API_ID));
 
         // Stub
+        when(notifierService.hasEmailNotificationFor(any(), any(), anyMap(), anyString())).thenReturn(false);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
@@ -837,6 +838,44 @@ public class SubscriptionServiceTest {
         verify(apiKeyService, never()).generate(any());
         verify(userService).findById(SUBSCRIBER_ID);
         verify(notifierService).triggerEmail(any(), anyString(), anyMap(), anyString());
+
+        assertEquals(SubscriptionStatus.REJECTED, subscriptionEntity.getStatus());
+        assertEquals(USER_ID, subscriptionEntity.getProcessedBy());
+        assertNotNull(subscriptionEntity.getProcessedAt());
+    }
+
+    @Test
+    public void shouldProcessButReject_EmailNotTriggered() throws Exception {
+        // Prepare data
+        ProcessSubscriptionEntity processSubscription = new ProcessSubscriptionEntity();
+        processSubscription.setId(SUBSCRIPTION_ID);
+        processSubscription.setAccepted(false);
+
+        Subscription subscription = new Subscription();
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setPlan(PLAN_ID);
+        subscription.setStatus(Subscription.Status.PENDING);
+        subscription.setSubscribedBy(SUBSCRIBER_ID);
+
+        final UserEntity subscriberUser = new UserEntity();
+        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
+        when(plan.getApis()).thenReturn(singleton(API_ID));
+
+        // Stub
+        when(notifierService.hasEmailNotificationFor(any(), any(), anyMap(), anyString())).thenReturn(true);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(planService.findById(PLAN_ID)).thenReturn(plan);
+        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        // Run
+        final SubscriptionEntity subscriptionEntity = subscriptionService.process(processSubscription, USER_ID);
+
+        // Verify
+        verify(apiKeyService, never()).generate(any());
+        verify(userService).findById(SUBSCRIBER_ID);
+        verify(notifierService, never()).triggerEmail(any(), anyString(), anyMap(), anyString());
 
         assertEquals(SubscriptionStatus.REJECTED, subscriptionEntity.getStatus());
         assertEquals(USER_ID, subscriptionEntity.getProcessedBy());
