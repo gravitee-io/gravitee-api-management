@@ -113,7 +113,9 @@ export class DashboardComponent implements OnInit {
   }
 
   hasApplicationPermission() {
-    return this.currentUser && this.currentUser.permissions && this.currentUser.permissions.APPLICATION.find(permission => 'R' === permission);
+    return this.currentUser
+      && this.currentUser.permissions
+      && this.currentUser.permissions.APPLICATION.find(permission => 'R' === permission);
   }
 
   private _getMetrics(application: Application) {
