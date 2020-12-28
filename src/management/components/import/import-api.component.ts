@@ -45,6 +45,7 @@ const ImportComponent: ng.IComponentOptions = {
       this.enableFileImport = false;
       this.importFileMode= true;
       this.importURLMode= false;
+      this.importTriggered= false;
       this.importURLTypes = [
         {id: "SWAGGER", name: "Swagger / OpenAPI"},
         {id: "GRAVITEE", name: "API Definition"}
@@ -125,7 +126,18 @@ const ImportComponent: ng.IComponentOptions = {
       }
     }
 
+    this.importTriggered = () => {
+      return this.importTriggered;
+    }
+    
     this.importAPI = () => {
+      if (this.importTriggered) {
+        // bypass if already triggered because 
+        // button maybe not disabled yet in the UI
+        return;
+      }
+      this.importTriggered = true;
+      
       if (this.importFileMode) {
         var extension = this.importAPIFile.name.split('.').pop();
         switch (extension) {
@@ -154,6 +166,7 @@ const ImportComponent: ng.IComponentOptions = {
       }
       if(this.isForUpdate()) {
         this.cancel();
+        this.importTriggered = false;
       }
     }
 
