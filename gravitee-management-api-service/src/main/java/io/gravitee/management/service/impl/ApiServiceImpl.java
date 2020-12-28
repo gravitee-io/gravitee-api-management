@@ -96,6 +96,7 @@ import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -1795,9 +1796,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity duplicate(final String apiId, final DuplicateApiEntity duplicateApiEntity) {
+    public ApiEntity duplicate(final ApiEntity apiEntity, final DuplicateApiEntity duplicateApiEntity) {
+        requireNonNull(apiEntity, "Missing ApiEntity");
+        final String apiId = apiEntity.getId();
         LOGGER.debug("Duplicate API {}", apiId);
-        final ApiEntity apiEntity = findById(apiId);
 
         final UpdateApiEntity newApiEntity = convert(apiEntity);
         final Proxy proxy = apiEntity.getProxy();

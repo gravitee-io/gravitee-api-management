@@ -605,8 +605,8 @@ public class ApiResource extends AbstractResource {
     })
     public Response duplicateAPI(@PathParam("api") String api, @ApiParam(name = "api", required = true)
             @Valid @NotNull final DuplicateApiEntity duplicateApiEntity) {
-        get(api);
-        return Response.ok(apiService.duplicate(api, duplicateApiEntity)).build();
+        final ApiEntity apiEntity = (ApiEntity) get(api).getEntity(); // call this method to check READ permission on source API.
+        return Response.ok(apiService.duplicate(apiEntity, duplicateApiEntity)).build();
     }
 
     @Path("keys")
