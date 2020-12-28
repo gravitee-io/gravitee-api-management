@@ -55,6 +55,7 @@ public class DashboardsResource extends AbstractResource  {
             @ApiResponse(code = 500, message = "Internal server error")})
     public List<DashboardEntity> getDashboards(final @QueryParam("reference_type") DashboardReferenceType referenceType)  {
         if (!hasPermission(RolePermission.ENVIRONMENT_DASHBOARD, RolePermissionAction.READ) &&
+                !hasPermission(RolePermission.ENVIRONMENT_API, RolePermissionAction.READ) &&
             !canReadAPIConfiguration()) {
             throw new ForbiddenAccessException();
         }
