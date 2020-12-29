@@ -35,7 +35,7 @@
   "apiGeneral": {
     "description": "Description",
     "giveRating": "Share your review",
-    "rate": "Note",
+    "rate": "Rate",
     "rateComment": "Explain to us why",
     "rateTitle": "Would you recommend this API ?",
     "rateTitlePlaceholder": "In a word",
