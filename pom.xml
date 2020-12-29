@@ -265,7 +265,7 @@
                 <executions>
                     <execution>
                         <id>default-test</id>
-                        <configuration>EurekaServiceDiscovery
+                        <configuration>
                             <skip>true</skip>
                         </configuration>
                     </execution>
