@@ -20,10 +20,8 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.IntStream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -84,6 +82,9 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
 
         // shouldFindApiPageByApiId
         when(pageRepository.search(argThat(o -> o == null || o.getReferenceId().equals("my-api")&& o.getReferenceType().equals("API")))).thenReturn(singletonList(findApiPage));
+        List<Page> elevenPages = new ArrayList<>();
+        IntStream.range(0, 11).forEach(__ -> elevenPages.add(findApiPage));
+        when(pageRepository.search(argThat(o -> o != null && o.getReferenceId() == null ))).thenReturn(elevenPages);
 
         // shouldFindApiPageById
         when(pageRepository.findById("FindApiPage")).thenReturn(of(findApiPage));
