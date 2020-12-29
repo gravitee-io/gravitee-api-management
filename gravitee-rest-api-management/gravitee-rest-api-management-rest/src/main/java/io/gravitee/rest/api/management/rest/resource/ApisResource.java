@@ -83,7 +83,7 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
             value = "List APIs",
-            notes = "List all the APIs accessible to the current user or only public APIs for non authenticated users.")
+            notes = "List all the APIs accessible to the current user.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
