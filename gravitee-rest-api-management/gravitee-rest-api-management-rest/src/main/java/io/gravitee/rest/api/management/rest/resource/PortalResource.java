@@ -55,7 +55,7 @@ public class PortalResource {
     @ApiOperation(value = "Get the portal configuration",
             notes = "Every users can use this service")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Portal configuration", response = ConsoleConfigEntity.class),
+            @ApiResponse(code = 200, message = "Portal configuration", response = PortalConfigEntity.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     public PortalConfigEntity getPortalConfig() {
         return configService.getPortalConfig();
