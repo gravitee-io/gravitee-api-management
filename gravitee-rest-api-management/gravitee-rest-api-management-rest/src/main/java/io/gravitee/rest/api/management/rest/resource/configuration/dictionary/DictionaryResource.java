@@ -153,6 +153,7 @@ public class DictionaryResource extends AbstractResource {
     }
 
     @POST
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
             value = "Manage the dictionary's lifecycle",
             notes = "User must have the DICTIONARY[LIFECYCLE] permission to use this service")
