@@ -20,6 +20,7 @@ import io.gravitee.definition.model.services.healthcheck.Step;
 import io.gravitee.definition.model.services.schedule.Trigger;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
+import io.vertx.core.net.ProxyOptions;
 
 import java.util.List;
 
@@ -36,6 +37,8 @@ public interface EndpointRule<T extends Endpoint> {
     Trigger trigger();
 
     List<Step> steps();
+
+    ProxyOptions getSystemProxyOptions();
 
     EndpointRuleHandler<T> createRunner(Vertx vertx, EndpointRule<T> rule);
 }
