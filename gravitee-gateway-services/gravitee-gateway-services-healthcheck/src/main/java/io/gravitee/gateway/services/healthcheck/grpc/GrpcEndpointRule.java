@@ -21,6 +21,7 @@ import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.AbstractEndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
+import io.vertx.core.net.ProxyOptions;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,8 +29,8 @@ import io.vertx.core.Vertx;
  */
 public class GrpcEndpointRule extends AbstractEndpointRule<GrpcEndpoint> {
 
-    public GrpcEndpointRule(String api, GrpcEndpoint endpoint, HealthCheckService service) {
-        super(api, endpoint, service);
+    public GrpcEndpointRule(String api, GrpcEndpoint endpoint, HealthCheckService service, ProxyOptions systemProxyOptions) {
+        super(api, endpoint, service, systemProxyOptions);
     }
 
     @Override

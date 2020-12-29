@@ -24,9 +24,16 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.services.healthcheck.grpc.GrpcEndpointRule;
 import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRule;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,10 +43,40 @@ import java.util.stream.Stream;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointHealthcheckResolver {
+public class EndpointHealthcheckResolver implements InitializingBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointHealthcheckResolver.class);
 
     @Autowired
     private GatewayConfiguration gatewayConfiguration;
+
+    @Autowired
+    private Environment environment;
+
+    private ProxyOptions systemProxyOptions;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        this.systemProxyOptions = null;
+
+        // System proxy must be well configured. Check that this is the case.
+        try {
+            if (environment.containsProperty("system.proxy.host")) {
+                ProxyOptions proxyOptions = new ProxyOptions();
+                proxyOptions.setHost(environment.getProperty("system.proxy.host"));
+
+                proxyOptions.setPort(Integer.parseInt(Objects.requireNonNull(environment.getProperty("system.proxy.port"))));
+                proxyOptions.setType(ProxyType.valueOf(environment.getProperty("system.proxy.type")));
+
+                proxyOptions.setUsername(environment.getProperty("system.proxy.username"));
+                proxyOptions.setPassword(environment.getProperty("system.proxy.password"));
+                this.systemProxyOptions = proxyOptions;
+            } else {
+                LOGGER.debug("System proxy not defined");
+            }
+        } catch (Exception e) {
+            LOGGER.warn("System proxy not properly initialized", e);
+        }
+    }
 
     /**
      * Returns a {@link Stream} of {@link Endpoint} which have to be health-checked.
@@ -102,9 +139,9 @@ public class EndpointHealthcheckResolver {
             HealthCheckService healthcheck = (endpoint.getHealthCheck() == null || endpoint.getHealthCheck().isInherit()) ?
                     rootHealthCheck : endpoint.getHealthCheck();
             if (endpoint.getType() == EndpointType.GRPC) {
-                return new GrpcEndpointRule(api.getId(), (GrpcEndpoint) endpoint, healthcheck);
+                return new GrpcEndpointRule(api.getId(), (GrpcEndpoint) endpoint, healthcheck, systemProxyOptions);
             } else {
-                return new HttpEndpointRule(api.getId(), endpoint, healthcheck);
+                return new HttpEndpointRule(api.getId(), endpoint, healthcheck, systemProxyOptions);
             }
         }).collect(Collectors.toList());
     }
@@ -119,9 +156,9 @@ public class EndpointHealthcheckResolver {
                 HealthCheckService healthcheck = (httpEndpoint.getHealthCheck() == null || httpEndpoint.getHealthCheck().isInherit()) ?
                         rootHealthCheck : httpEndpoint.getHealthCheck();
                 if (endpoint.getType() == EndpointType.HTTP) {
-                    return new HttpEndpointRule(api.getId(), httpEndpoint, healthcheck);
+                    return new HttpEndpointRule(api.getId(), httpEndpoint, healthcheck, systemProxyOptions);
                 } else if (endpoint.getType() == EndpointType.GRPC) {
-                    return new GrpcEndpointRule(api.getId(), (GrpcEndpoint) httpEndpoint, healthcheck);
+                    return new GrpcEndpointRule(api.getId(), (GrpcEndpoint) httpEndpoint, healthcheck, systemProxyOptions);
                 }
             }
         }
