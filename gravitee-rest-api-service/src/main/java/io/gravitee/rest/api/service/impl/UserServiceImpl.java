@@ -586,7 +586,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
         if (defaultRoleByScopes == null || defaultRoleByScopes.isEmpty()) {
             throw new DefaultRoleNotFoundException(scopes);
         }
-
         for (RoleEntity defaultRoleByScope : defaultRoleByScopes) {
             switch (defaultRoleByScope.getScope()) {
                 case ORGANIZATION:
@@ -596,10 +595,23 @@ public class UserServiceImpl extends AbstractService implements UserService {
                             new MembershipService.MembershipRole(RoleScope.ORGANIZATION, defaultRoleByScope.getName()));
                     break;
                 case ENVIRONMENT:
-                    membershipService.addRoleToMemberOnReference(
-                            new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment()),
-                            new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
-                            new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, defaultRoleByScope.getName()));
+                    String currentEnvironment = GraviteeContext.getCurrentEnvironment();
+                    if (currentEnvironment != null) {
+                        // user added on environment level, grant access only for this one
+                        membershipService.addRoleToMemberOnReference(
+                                new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment()),
+                                new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
+                                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, defaultRoleByScope.getName()));
+                    } else {
+                        // user added on organization level, grant access only on default env if exists
+                        Optional<EnvironmentEntity> defaultEnv = environmentService.findByOrganization(GraviteeContext.getCurrentOrganization()).stream().filter(env -> env.getId().equals(GraviteeContext.getDefaultEnvironment())).findFirst();
+                        defaultEnv.ifPresent(env ->
+                                membershipService.addRoleToMemberOnReference(
+                                new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, env.getId()),
+                                new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
+                                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, defaultRoleByScope.getName()))
+                        );
+                    }
                     break;
                 default:
                     break;
