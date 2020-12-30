@@ -32,7 +32,6 @@ import io.gravitee.rest.api.service.exceptions.InvitationEmailAlreadyExistsExcep
 import io.gravitee.rest.api.service.exceptions.InvitationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.MemberEmailAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,18 +80,16 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         }
         try {
             // First check if user exists
-            final Page<UserEntity> pageUser = userService.search(
-                    invitation.getEmail(),
-                    new PageableImpl(1, 2));
-            if (pageUser.getTotalElements() == 1) {
-                final UserEntity user = pageUser.getContent().get(0);
-                
+            final Optional<UserEntity> existingUser =  userService.findByEmail(invitation.getEmail());
+            if (existingUser.isPresent()) {
+                final UserEntity user = existingUser.get();
+
                 Set<String> groupUsers = membershipService.getMembershipsByReference(MembershipReferenceType.GROUP, invitation.getReferenceId()).stream().map(MembershipEntity::getMemberId).collect(Collectors.toSet());
                 final GroupEntity group = groupService.findById(invitation.getReferenceId());
                 if (groupUsers.contains(user.getId())) {
                     throw new MemberEmailAlreadyExistsException(invitation.getEmail());
                 }
-                
+
                 // override permission if not allowed
                 final boolean hasPermission = permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, GraviteeContext.getCurrentEnvironment(), CREATE, UPDATE, DELETE);
                 if (!hasPermission && group.isLockApiRole()) {

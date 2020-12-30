@@ -428,6 +428,7 @@ public class UserServiceTest {
     public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(passwordValidator.validate(anyString())).thenReturn(true);
 
         RegisterUserEntity userEntity = new RegisterUserEntity();
         userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));
@@ -504,13 +505,6 @@ public class UserServiceTest {
     public void createAlreadyPreRegisteredUser_invalidPassword() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED)).thenReturn(Boolean.TRUE);
-
-        User user = new User();
-        user.setId("CUSTOM_LONG_ID");
-        user.setEmail(EMAIL);
-        user.setFirstname(FIRST_NAME);
-        user.setLastname(LAST_NAME);
-        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
 
         RegisterUserEntity userEntity = new RegisterUserEntity();
         userEntity.setToken(createJWT(System.currentTimeMillis()/1000 + 100));

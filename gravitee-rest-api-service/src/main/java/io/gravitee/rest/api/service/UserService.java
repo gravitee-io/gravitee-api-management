@@ -24,6 +24,7 @@ import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -36,6 +37,7 @@ public interface UserService {
 
     UserEntity connect(String userId);
     UserEntity findById(String id);
+    Optional<UserEntity> findByEmail(String email);
     UserEntity findByIdWithRoles(String id);
     UserEntity findBySource(String source, String sourceId, boolean loadRoles);
     Set<UserEntity> findByIds(List<String> ids);
