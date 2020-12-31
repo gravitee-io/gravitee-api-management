@@ -291,7 +291,6 @@ function applicationsConfig($stateProvider) {
       url: '/analytics?from&to&q&dashboard',
       component: 'applicationAnalytics',
       resolve: {
-        dashboards: (DashboardService: DashboardService) => DashboardService.list('APPLICATION').then(response => response.data)
       },
       data: {
         menu: {
