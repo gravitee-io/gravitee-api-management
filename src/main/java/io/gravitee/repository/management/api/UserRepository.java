@@ -45,6 +45,17 @@ public interface UserRepository extends CrudRepository<User, String> {
 	Optional<User> findBySource(String source, String sourceId, String referenceId, UserReferenceType referenceType) throws TechnicalException;
 
 	/**
+	 * Find a {@link User} by its email.
+	 *
+	 * @param email The email to search
+	 * @param referenceId The reference id of the item the user belongs to
+	 * @param referenceType The reference type of the item the user belongs to (ENVIRONMENT, ORGANIZATION)
+	 * @return
+	 * @throws TechnicalException
+	 */
+	Optional<User> findByEmail(String email, String referenceId, UserReferenceType referenceType) throws TechnicalException;
+
+	/**
 	 * Find a list of {@link User} by IDs
 	 *
 	 * @param ids Identifier of the searched users
