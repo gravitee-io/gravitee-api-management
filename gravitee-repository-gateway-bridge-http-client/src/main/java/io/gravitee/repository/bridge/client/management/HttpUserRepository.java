@@ -69,4 +69,9 @@ public class HttpUserRepository extends AbstractRepository implements UserReposi
     public Optional<User> findBySource(String source, String sourceId, String referenceId, UserReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Optional<User> findByEmail(String email, String referenceId, UserReferenceType referenceType) throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }
