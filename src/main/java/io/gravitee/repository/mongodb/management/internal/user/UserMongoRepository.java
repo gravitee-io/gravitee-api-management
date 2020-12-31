@@ -36,6 +36,9 @@ public interface UserMongoRepository extends MongoRepository<UserMongo, String>,
 
 	@Query(value = "{ 'source': ?0, 'sourceId': {$regex: '^?1$', $options: 'i'}, 'referenceId': ?2, 'referenceType': ?3 }")
 	UserMongo findBySourceAndSourceId(String source, String sourceId, String referenceId, String referenceType);
+
+	@Query(value = "{ 'email': {$regex: '^?0$', $options: 'i'}, 'referenceId': ?1, 'referenceType': ?2 }")
+	UserMongo findByEmail(String email, String referenceId, String referenceType);
 }
 
 

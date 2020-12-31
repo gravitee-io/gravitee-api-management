@@ -64,6 +64,16 @@ public class MongoUserRepository implements UserRepository {
 	}
 
 	@Override
+	public Optional<User> findByEmail(String email, String referenceId, UserReferenceType referenceType) throws TechnicalException {
+		logger.debug("Find user by email [{}]", email);
+
+		UserMongo user = internalUserRepo.findByEmail(email, referenceId, referenceType.name());
+		User res = mapper.map(user, User.class);
+
+		return Optional.ofNullable(res);
+	}
+
+	@Override
 	public Set<User> findByIds(List<String> ids) throws TechnicalException {
 		logger.debug("Find user by identifiers user [{}]", ids);
 
