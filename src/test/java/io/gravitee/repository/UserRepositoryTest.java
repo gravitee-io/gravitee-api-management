@@ -182,6 +182,15 @@ public class UserRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void findUserByEmail() throws Exception {
+        Optional<User> user1 = userRepository.findByEmail("user0@gravitee.io", "DEFAULT", UserReferenceType.ENVIRONMENT);
+        Optional<User> user1Upper = userRepository.findByEmail("usER0@gravitee.io", "DEFAULT", UserReferenceType.ENVIRONMENT);
+        assertTrue(user1.isPresent());
+        assertTrue(user1Upper.isPresent());
+        assertEquals(user1.get().getId(), user1Upper.get().getId());
+    }
+
+    @Test
     public void findUserBySourceSpecialCharacters() throws Exception {
         Optional<User> user = userRepository.findBySource("sourceSpecialChar", "sourceIdSpecialChar+test@me", "DEV", UserReferenceType.ENVIRONMENT);
         assertTrue(user.isPresent());

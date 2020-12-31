@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.UserStatus;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -137,6 +138,9 @@ public class UserRepositoryMock extends AbstractRepositoryMock<UserRepository> {
 
         when(userRepository.update(argThat(o -> o != null && "id2update".equals(o.getId())))).thenReturn(userUpdated);
         when(userRepository.update(argThat(o -> o == null || "unknown".equals(o.getId())))).thenThrow(new IllegalStateException());
+
+        when( userRepository.findByEmail("user0@gravitee.io", "DEFAULT", UserReferenceType.ENVIRONMENT)).thenReturn(of(user0));
+        when( userRepository.findByEmail("usER0@gravitee.io", "DEFAULT", UserReferenceType.ENVIRONMENT)).thenReturn(of(user0));
 
         when(userRepository.findBySource("gravitee", "user1", "DEV", UserReferenceType.ENVIRONMENT)).thenReturn(of(user1));
         when(userRepository.findBySource("gravitee", "USER1", "DEV", UserReferenceType.ENVIRONMENT)).thenReturn(of(user1));
