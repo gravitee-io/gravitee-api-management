@@ -59,6 +59,15 @@
                 name="application.type"
                 ngDefaultControl>
               </gv-input>
+              <gv-input
+                [attr.readonly]="!canUpdate ? 'readonly' : null"
+                class="form__control"
+                label="{{ 'application.client_id.title' | translate }}"
+                placeholder="{{ 'application.client_id.label' | translate }}"
+                formControlName="client_id"
+                name="application.client_id"
+                ngDefaultControl>
+              </gv-input>
             </div>
           </div>
 
