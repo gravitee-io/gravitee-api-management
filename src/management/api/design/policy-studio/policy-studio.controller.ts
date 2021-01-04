@@ -113,6 +113,13 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('policies', JSON.stringify(this.resolvedPolicies.data));
     this.studio.setAttribute('flowSchema', JSON.stringify(this.resolvedFlowSchema.data));
     this.studio.setAttribute('property-providers', JSON.stringify(propertyProviders));
+    this.studio.setAttribute('flows-title', 'API Flows');
+    this.studio.setAttribute('has-properties', 'true');
+    this.studio.setAttribute('has-resources', 'true');
+    this.studio.setAttribute('has-policy-filter', 'true');
+    this.studio.setAttribute('sortable', 'true');
+    this.studio.setAttribute('can-add', 'true');
+    this.studio.setAttribute('has-plans', 'true');
     this.studio.addEventListener('gv-policy-studio:save', this.onSave.bind(this));
     this.studio.addEventListener('gv-policy-studio:select-flows', this.onSelectFlows.bind(this));
     this.studio.addEventListener('gv-policy-studio:change-tab', this.onChangeTab.bind(this));
