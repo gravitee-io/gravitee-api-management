@@ -638,13 +638,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Find API by ID: {}", apiId);
 
-            Optional<Api> api = apiRepository.findById(apiId);
+            Optional<Api> optApi = apiRepository.findById(apiId);
 
-            if (api.isPresent()) {
-                ApiEntity apiEntity = convert(api.get(), getPrimaryOwner(api.get()), null);
+            if (optApi.isPresent()) {
+                final Api api = optApi.get();
+                ApiEntity apiEntity = convert(api, getPrimaryOwner(api), null);
 
                 // Compute entrypoints
-                calculateEntrypoints(apiEntity);
+                calculateEntrypoints(apiEntity, api.getEnvironmentId());
 
                 return apiEntity;
             }
@@ -676,11 +677,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return userService.findById(primaryOwnerMemberEntity.getMemberId());
     }
 
-    private void calculateEntrypoints(ApiEntity api) {
+    private void calculateEntrypoints(ApiEntity api, String environmentId) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
         if (api.getProxy() != null) {
-            String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT, ParameterReferenceType.ENVIRONMENT);
+            String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT, environmentId, ParameterReferenceType.ENVIRONMENT);
             final String scheme = getScheme(defaultEntrypoint);
             if (api.getTags() != null && !api.getTags().isEmpty()) {
                 List<EntrypointEntity> entrypoints = entrypointService.findAll();
@@ -2578,7 +2579,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
         }
 
-        if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+        if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, api.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
             final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {
                 apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));
