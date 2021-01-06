@@ -48,6 +48,14 @@ public class GatewayConfiguration implements InitializingBean {
         this.initShardingTags();
         this.initZone();
         this.initTenant();
+        this.initVertxWebsocket();
+    }
+
+    private void initVertxWebsocket() {
+        // disable the websockets at vertx level here otherwise a static variable will be defined by the creation of HttpServer
+        // into the io.gravitee.node.management.http.vertx.spring.HttpServerSpringConfiguration object during the container bootstrap
+        Boolean websocketEnabled = environment.getProperty("http.websocket.enabled", Boolean.class, false);
+        System.setProperty("vertx.disableWebsockets", Boolean.toString(!websocketEnabled));
     }
 
     private void initShardingTags() {
