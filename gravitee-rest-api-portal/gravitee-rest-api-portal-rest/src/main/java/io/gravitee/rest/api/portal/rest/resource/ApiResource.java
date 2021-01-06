@@ -134,7 +134,6 @@ public class ApiResource extends AbstractResource {
     public Response getBAckgroundByApiId(@Context Request request, @PathParam("apiId") String apiId) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-
             InlinePictureEntity image = apiService.getBackground(apiId);
 
             return createPictureResponse(request, image);

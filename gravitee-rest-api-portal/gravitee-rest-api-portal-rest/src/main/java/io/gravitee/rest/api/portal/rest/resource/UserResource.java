@@ -67,7 +67,7 @@ public class UserResource extends AbstractResource {
     public Response getCurrentUser() {
         final String authenticatedUser = getAuthenticatedUser();
         try {
-            UserEntity userEntity = userService.findById(authenticatedUser);
+            UserEntity userEntity = userService.findByIdWithRoles(authenticatedUser);
             User currentUser = userMapper.convert(userEntity);
             boolean withManagement = (authenticatedUser != null && permissionService.hasManagementRights(authenticatedUser));
             if (withManagement) {
@@ -96,11 +96,25 @@ public class UserResource extends AbstractResource {
         if(!getAuthenticatedUser().equals(user.getId())) {
             throw new UnauthorizedAccessException();
         }
-        userService.findById(getAuthenticatedUser());
+        UserEntity existingUser = userService.findById(getAuthenticatedUser());
 
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
-        if (user.getAvatar() != null) {
+        // if avatar starts with "http" ignore it because it is not the right format
+        // this may occur when the portal send an update profile without changing
+        // the avatar picture
+        if (user.getAvatar() != null && !user.getAvatar().startsWith("http")) {
             updateUserEntity.setPicture(checkAndScaleImage(user.getAvatar()));
+        } else {
+            updateUserEntity.setPicture(existingUser.getPicture());
+        }
+        if (user.getEmail() != null) {
+            updateUserEntity.setEmail(user.getEmail());
+        }
+        if (user.getFirstName() != null) {
+            updateUserEntity.setFirstname(user.getFirstName());
+        }
+        if (user.getLastName() != null) {
+            updateUserEntity.setLastname(user.getLastName());
         }
         updateUserEntity.setCustomFields(user.getCustomFields());
 

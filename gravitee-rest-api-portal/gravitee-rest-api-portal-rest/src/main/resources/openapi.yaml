@@ -3830,6 +3830,18 @@ components:
           type: string
         email:
           type: string
+        editable_profile:
+          description: True if the user can edit the MyAccount information
+          type: boolean
+          default: false
+        permissions:
+          description: Map of Permissions.
+          type: object
+          properties:
+            APPLICATION:
+              type: array
+              items:
+                type: string
         customFields:
           type: object
           description: Values for CustomUserFields
@@ -4427,6 +4439,18 @@ components:
           description: Avatar of the user.
           type: string
           writeOnly: true
+        first_name:
+          description: Firstname of the user.
+          type: string
+          writeOnly: true
+        last_name:
+          description: Lastname of the user.
+          type: string
+          writeOnly: true
+        email:
+          description: Email of the user.
+          type: string
+          writeOnly: true
         customFields:
           type: object
           description: Values for CustomUserFields
@@ -4690,6 +4714,7 @@ components:
     FilterApiQuery:
       type: string
       enum:
+        - ALL
         - FEATURED
         - MINE
         - STARRED

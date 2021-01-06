@@ -16,21 +16,26 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlanWithPausedSubscriptionsException extends AbstractManagementException {
+public class SubscriptionNotActiveException extends AbstractManagementException {
 
-    public PlanWithPausedSubscriptionsException() {
+    private final SubscriptionEntity subscription;
+
+    public SubscriptionNotActiveException(SubscriptionEntity subscription) {
+        this.subscription = subscription;
     }
 
     @Override
     public String getMessage() {
-        return "You can't close a plan with paused subscriptions.";
+        return "Subscription [" + subscription.getId() + "] should be paused or accepted. Currently it is " + subscription.getStatus();
     }
 
     @Override
@@ -40,11 +45,16 @@ public class PlanWithPausedSubscriptionsException extends AbstractManagementExce
 
     @Override
     public String getTechnicalCode() {
-        return "plan.withPausedSubscriptions.notClosable";
+        return "subscription.closed";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return null;
+        return new HashMap<String, String>() {
+            {
+                put("subscription", subscription.getId());
+                put("status", subscription.getStatus().name());
+            }
+        };
     }
 }
