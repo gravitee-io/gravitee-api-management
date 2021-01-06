@@ -11,13 +11,10 @@
  */
 
 
-export type FilterApiQuery = 'ALL' | 'FEATURED' | 'MINE' | 'STARRED' | 'TRENDINGS';
-
-export const FilterApiQuery = {
-    ALL: 'ALL' as FilterApiQuery,
-    FEATURED: 'FEATURED' as FilterApiQuery,
-    MINE: 'MINE' as FilterApiQuery,
-    STARRED: 'STARRED' as FilterApiQuery,
-    TRENDINGS: 'TRENDINGS' as FilterApiQuery
-};
+/**
+ * Map of Permissions.
+ */
+export interface UserPermissions { 
+    APPLICATION?: Array<string>;
+}
 

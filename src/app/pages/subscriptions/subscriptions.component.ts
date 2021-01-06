@@ -109,12 +109,13 @@ export class SubscriptionsComponent implements OnInit {
         {
           field: (item) => this.subscriptionsMetadata[item.subscription.api].pictureUrl,
           type: 'image',
-          alt: (item) => getPictureDisplayName(item.api)
+          alt: (item) => this.subscriptionsMetadata[item.subscription.api]
+            && getPictureDisplayName(this.subscriptionsMetadata[item.subscription.api]),
         },
         {
           field: (item) => this.subscriptionsMetadata[item.subscription.api].name,
-          tag: 'api.version',
-          label: i18n('subscriptions.subscriptions.api'),
+          tag: (item) => this.subscriptionsMetadata[item.subscription.api] && this.subscriptionsMetadata[item.subscription.api].version,
+          label: i18n('subscriptions.subscriptions.api')
         },
         { field: 'plan.name', label: i18n('subscriptions.subscriptions.plan') },
         { field: 'subscription.start_at', type: 'date', label: i18n('subscriptions.subscriptions.start_date') },

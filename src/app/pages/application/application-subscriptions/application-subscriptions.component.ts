@@ -125,6 +125,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           {
             type: 'gv-button',
             width: '25px',
+            condition: (item) => this.metadata[item.api] &&  this.metadata[item.api].state === 'published',
             attributes: {
               link: true,
               href: (item) => `/catalog/api/${item.api}`,

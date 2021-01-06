@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Api, ApiMetrics, ApiService, Category, FilterApiQuery, Page, PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import {
+  Api,
+  ApiMetrics,
+  ApiService,
+  Category,
+  FilterApiQuery,
+  Page,
+  PortalService
+} from '../../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-promote';
 import '@gravitee/ui-components/wc/gv-card-list';
 import '@gravitee/ui-components/wc/gv-card-full';
@@ -174,7 +182,7 @@ export class FilteredCatalogComponent implements OnInit {
           this.promotedApiPath = `/catalog/api/${promoted.id}`;
         } else {
           const key = this.inCategory() ?
-            i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery || 'ALL'}.emptyMessage`;
+            i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery}.emptyMessage`;
           this.translateService.get(key).toPromise().then((translation) => {
             this.emptyMessage = translation;
             this.empty = true;
@@ -238,7 +246,7 @@ export class FilteredCatalogComponent implements OnInit {
   private _getCategories(allPage) {
     return [].concat(...new Set([].concat(...allPage.map((api) => {
       return api.categories;
-    }))).values());
+    }))).values()).sort((a: string, b:string) => a.localeCompare(b));
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
@@ -269,10 +277,23 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   onSelectCategory({ target }) {
-    const queryParams = { category: target.value };
-    queryParams[SearchQueryParam.PAGE] = 1;
-    this.router.navigate([],
-      { relativeTo: this.activatedRoute, queryParams, queryParamsHandling: 'merge', fragment: this.fragments.filter });
+    if (target.value !== '') {
+      const queryParams = { category: target.value };
+      queryParams[SearchQueryParam.PAGE] = 1;
+      this.router.navigate([],
+        {
+          relativeTo: this.activatedRoute,
+          queryParams,
+          queryParamsHandling: 'merge',
+          fragment: this.fragments.filter
+        });
+    } else {
+      this.router.navigate([],
+        {
+          relativeTo: this.activatedRoute,
+          fragment: this.fragments.filter
+        });
+    }
   }
 
   get showCards() {
@@ -292,7 +313,7 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   inCategoryAll() {
-    return this.filterApiQuery === null;
+    return this.filterApiQuery === FilterApiQuery.ALL;
   }
 
   get canFilter() {

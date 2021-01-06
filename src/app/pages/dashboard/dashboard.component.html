@@ -32,6 +32,13 @@
       </gv-message>
     </section>
 
+    <section *ngIf="!hasApplicationPermission()">
+      <gv-message class="message-empty">
+        <gv-icon shape="layout:layout-arrange"></gv-icon>
+        <div class="title" [innerHTML]="'dashboard.noApplicationPermission' | translate"></div>
+      </gv-message>
+    </section>
+
     <section *ngIf="applications && applications.length">
       <h3 class="title" translate="dashboard.applications.title"></h3>
       <div class="content" [ngClass]="{'one-card': applications.length === 1, 'two-cards': applications.length === 2}">

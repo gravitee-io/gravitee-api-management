@@ -610,6 +610,7 @@
       "title": "Vos applications"
     },
     "empty": "Vous n'avez pas encore d'application",
+    "noApplicationPermission": "Il n'y a rien dans votre tableau de bord",
     "stats": {
       "avg": "temps de réponse moyen",
       "max": "temps de réponse maximum",
@@ -1004,8 +1005,9 @@
       "title": "Informations personnelles"
     },
     "change_picture": "Changer la photo",
-    "display_name": "Nom :",
     "email": "Email :",
+    "first_name": "Prénom",
+    "last_name": "Nom",
     "notifications": {
       "empty": "Aucune notification reçue",
       "read": "Lu",

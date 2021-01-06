@@ -51,6 +51,7 @@ import { UserNotificationComponent } from './pages/user/user-notification/user-n
 import { CookiesComponent } from './pages/cookies/cookies.component';
 import { CategoryResolver } from './resolvers/category.resolver';
 import { PermissionsResolver } from './resolvers/permissions-resolver.service';
+import { PermissionGuardService } from './services/permission-guard.service';
 import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets-history.component';
 
 export const routes: Routes = [
@@ -167,7 +168,7 @@ export const routes: Routes = [
           title: i18n('route.catalogAll'),
           icon: 'code:git#2',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
-          filterApiQuery: null,
+          filterApiQuery: FilterApiQuery.ALL,
           animation: { type: 'slide', group: 'catalog', index: 2 }
         }
       },
@@ -316,12 +317,13 @@ export const routes: Routes = [
   {
     path: 'applications',
     loadChildren: () => import('./pages/applications/applications.module').then(m => m.ApplicationsModule),
-    canActivate: [AuthGuardService],
+    canActivate: [AuthGuardService, PermissionGuardService],
     data: {
       title: i18n('route.applications'),
       menu: { hiddenPaths: ['creation'] },
       expectedRole: Role.AUTH_USER,
-      animation: {}
+      animation: {},
+      expectedPermissions: ['APPLICATION-R']
     },
   },
   { path: 'cookies', component: CookiesComponent, data: { title: i18n('route.cookies') } },

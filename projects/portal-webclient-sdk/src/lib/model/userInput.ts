@@ -21,6 +21,18 @@ export interface UserInput {
      */
     avatar?: string;
     /**
+     * Firstname of the user.
+     */
+    first_name?: string;
+    /**
+     * Lastname of the user.
+     */
+    last_name?: string;
+    /**
+     * Email of the user.
+     */
+    email?: string;
+    /**
      * Values for CustomUserFields
      */
     customFields?: { [key: string]: object; };

@@ -111,4 +111,5 @@ export * from './user';
 export * from './userConfig';
 export * from './userInput';
 export * from './userLinks';
+export * from './userPermissions';
 export * from './usersResponse';

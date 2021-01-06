@@ -610,6 +610,7 @@
       "title": "Your applications"
     },
     "empty": "You don't have an application yet",
+    "noApplicationPermission": "There is nothing in your dashboard",
     "stats": {
       "avg": "average response time",
       "max": "maximum response time",
@@ -1004,8 +1005,9 @@
       "title": "Personal informations"
     },
     "change_picture": "Change photo",
-    "display_name": "Name:",
     "email": "Email:",
+    "first_name": "First name",
+    "last_name": "Last name",
     "notifications": {
       "empty": "No notification received",
       "read": "Read",
