@@ -20,7 +20,10 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class LocalizedDatePipe implements PipeTransform {
 
-  transform(value: any, format: string = 'shortDate'): any {
+  transform(value: any, format: string = 'shortDate', defaultValue: string = null): string {
+    if (value == null && defaultValue != null) {
+      return defaultValue;
+    }
     if (format === 'longDate') {
       return new Date(value).toLocaleString();
     } else if (format === 'time') {
@@ -30,3 +33,4 @@ export class LocalizedDatePipe implements PipeTransform {
   }
 
 }
+
