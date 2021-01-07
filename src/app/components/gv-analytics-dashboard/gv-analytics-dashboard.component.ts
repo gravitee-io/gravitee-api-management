@@ -200,7 +200,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  @HostListener(':gv-chart-line:select', ['$event.detail'])
+  @HostListener(':gv-chart-line:select', ['$event.detail.options'])
   onChartLineSelect(e) {
     const aggs = e.request.aggs;
     if (aggs && e.value) {
