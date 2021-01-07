@@ -56,7 +56,7 @@ import static io.gravitee.common.http.HttpMethod.PATCH;
 import static io.gravitee.common.http.HttpMethod.POST;
 import static io.gravitee.common.http.HttpMethod.PUT;
 import static io.gravitee.common.http.HttpMethod.TRACE;
-import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValues;
+import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
 import static java.util.Collections.reverseOrder;
 
 /**

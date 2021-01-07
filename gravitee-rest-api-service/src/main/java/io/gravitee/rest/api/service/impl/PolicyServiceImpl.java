@@ -48,7 +48,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValues;
+import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

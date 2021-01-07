@@ -21,10 +21,8 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.policy.api.swagger.Policy;
-import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -34,11 +32,10 @@ import io.swagger.v3.oas.models.PathItem;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValues;
-import static java.util.Collections.singleton;
+import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
+import static io.gravitee.rest.api.service.validator.PolicyHelper.getScope;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -82,8 +79,15 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
                                         operation.getSummary());
 
                                     step.setPolicy(policy.get().getName());
-                                    step.setConfiguration(clearNullValues(policy.get().getConfiguration()));
-                                    flow.getPre().add(step);
+                                    String configuration = clearNullValues(policy.get().getConfiguration());
+                                    step.setConfiguration(configuration);
+
+                                    String scope = getScope(configuration);
+                                    if (scope != null && scope.toLowerCase().equals("response")) {
+                                        flow.getPost().add(step);
+                                    } else {
+                                        flow.getPre().add(step);
+                                    }
                                 }
 
                             }
