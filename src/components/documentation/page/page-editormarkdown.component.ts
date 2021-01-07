@@ -16,6 +16,7 @@
 import { StateService } from '@uirouter/core';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import hljs from 'highlight.js';
+import NotificationService from '../../../services/notification.service';
 
 class ComponentCtrl implements ng.IComponentController {
 
@@ -31,6 +32,7 @@ class ComponentCtrl implements ng.IComponentController {
     private Constants,
     private $state: StateService,
     private $mdDialog: angular.material.IDialogService,
+    private NotificationService: NotificationService
   ) {
     'ngInject';
     var lastElement = Constants.portal.uploadMedia.maxSizeInOctet;
@@ -80,6 +82,8 @@ class ComponentCtrl implements ng.IComponentController {
     if (this.tuiEditor) {
       this.tuiEditor.remove();
     }
+
+    const that = this;
     this.tuiEditor = new Editor(Object.assign({
       el: document.querySelector('#editSection'),
       initialEditType: 'markdown',
@@ -102,7 +106,7 @@ class ComponentCtrl implements ng.IComponentController {
           fd.append('file', blob);
 
           if (blob.size > Constants.portal.uploadMedia.maxSizeInOctet) {
-            callback('file uploaded to big, you\'re limited at ' + Constants.portal.uploadMedia.maxSizeInOctet, ' bytes');
+            that.NotificationService.showError(`File uploaded is too big, you're limited at ${Constants.portal.uploadMedia.maxSizeInOctet} bytes`);
             return false;
           }
 
@@ -129,7 +133,7 @@ class ComponentCtrl implements ng.IComponentController {
         style: 'background-image: url(\'assets/logo_file.svg\');  background-size: 20px 20px;'
       }
     });
-    const that = this;
+
     this.tuiEditor.eventManager.listen('addLinkToPage', function () {
       that.$mdDialog.show({
         controller: 'SelectPageDialogController',

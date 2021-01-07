@@ -60,7 +60,10 @@ class AnalyticsService {
   }
 
   exportLogsAsCSV(query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.platformUrl + '/logs/export?'), { timeout: 30000 });
+    const logsQuery = this.cloneQuery(query);
+    logsQuery.page = 1;
+    logsQuery.size = 10000;
+    return this.$http.get(this.buildURLWithQuery(logsQuery, this.platformUrl + '/logs/export?'), { timeout: 30000 });
   }
 
   getLog(logId, timestamp) {
