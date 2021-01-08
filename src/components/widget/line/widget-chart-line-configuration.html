@@ -17,12 +17,23 @@
 -->
 <div layout="column">
 
-  <md-input-container>
-    <label>Field</label>
-    <md-select ng-model="$ctrl.data" ng-change="$ctrl.onDataChanged()" multiple="true">
-      <md-option ng-repeat="field in $ctrl.fields" ng-value="field.aggValue">{{field.aggLabel}}</md-option>
-    </md-select>
-  </md-input-container>
+  <md-switch ng-model="$ctrl.isCustomField" aria-label="Use custom field?">Use custom field?</md-switch>
+
+  <div layout="row">
+
+    <md-input-container ng-show="!$ctrl.isCustomField">
+      <label>Field</label>
+      <md-select ng-model="$ctrl.data" ng-change="$ctrl.onDataChanged()" multiple="true">
+        <md-option ng-repeat="field in $ctrl.fields" ng-value="field.aggValue">{{field.aggLabel}}</md-option>
+      </md-select>
+    </md-input-container>
+
+    <md-input-container ng-show="$ctrl.isCustomField">
+      <label>Field</label>
+      <input name="Field" ng-model="$ctrl.field" ng-change="$ctrl.onFieldChanged()" />
+    </md-input-container>
+
+  </div>
 
   <md-input-container>
     <md-checkbox ng-model="$ctrl.chart.stacked">

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 // tslint:disable-next-line:no-var-requires
+import { Object } from 'es6-shim';
+
 require('@gravitee/ui-components/wc/gv-chart-pie');
 const WidgetChartPieComponent: ng.IComponentOptions = {
   template: require('./widget-chart-pie.html'),
@@ -34,20 +36,18 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
       if (changes.data) {
 
         this.gvChartPie = $element.children()[0];
-
         this.options = {
           name: this.parent.widget.title,
-          data: this.parent.widget.chart.labels.map((label, idx) => {
+          data: Object.keys(changes.data.currentValue.values).map((label, idx) => {
             return {
-              name: label,
+              name: this.parent.widget.chart.label ? this.parent.widget.chart.label[idx] : label,
               color: this.parent.widget.chart.colors[idx]
             };
           })
         };
 
-
         let series = {
-          values: changes.data.currentValue ? changes.data.currentValue.values : []
+          values: changes.data.currentValue ? changes.data.currentValue.values : {}
         };
 
         // Send data to gv-chart-pie

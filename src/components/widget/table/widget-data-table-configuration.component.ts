@@ -38,7 +38,14 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
           paging: 5
         });
       }
-      this.field = this.chart.request.field;
+      if (this.chart.request.field.startsWith('custom')) {
+        this.field = this.chart.request.field.substr('custom.'.length);
+        this.isCustomField = true;
+      } else {
+        this.field = this.chart.request.field;
+        this.isCustomField = false;
+      }
+
       if (this.chart.request.order) {
         let splittedOrder = this.chart.request.order.split(':');
         let aggregate = splittedOrder[0];
@@ -61,8 +68,14 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
     };
 
     this.onFieldChanged = () => {
-      this.chart.request.field = this.field;
-      this.chart.columns[0] = _.find(this.fields, f => f.value === this.field).label;
+      if (this.isCustomField) {
+        this.chart.request.field = 'custom.' + this.field;
+      } else {
+        this.chart.request.field = this.field;
+      }
+
+      const existingField = _.find(this.fields, f => f.value === this.field);
+      this.chart.columns[0] = existingField ? existingField.label : this.field;
     };
 
     this.onProjectionChanged = () => {

@@ -28,7 +28,7 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
     this.$onInit = () => {
       this.data = [];
       if (this.chart.request) {
-        if (this.chart.request.aggs) {
+        if (this.chart.request.aggs && !this.chart.request.aggs.startsWith('field:custom')) {
           this.data = this.chart.request.aggs.split('%3B');
         }
       } else {
@@ -40,6 +40,19 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
           labels: []
         });
       }
+
+      if (this.chart.request.aggs.startsWith('field:custom')) {
+        this.field = this.chart.request.aggs.substr('field:custom.'.length);
+        this.isCustomField = true;
+      } else {
+        this.field = '';
+        this.isCustomField = false;
+      }
+    };
+
+    this.onFieldChanged = () => {
+      this.chart.request.aggs = 'field:custom.' + this.field;
+      this.chart.labels.push(this.field);
     };
 
     this.onDataChanged = () => {

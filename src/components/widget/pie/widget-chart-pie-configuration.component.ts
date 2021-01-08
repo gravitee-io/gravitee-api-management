@@ -15,6 +15,7 @@
  */
 import DashboardService from '../../../services/dashboard.service';
 import * as _ from 'lodash';
+
 const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-chart-pie-configuration.html'),
   bindings: {
@@ -52,6 +53,18 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
           colors: []
         });
       }
+
+      if (this.chart.request.field.startsWith('custom')) {
+        this.field = this.chart.request.field.substr('custom.'.length);
+        this.isCustomField = true;
+      } else {
+        this.field = this.chart.request.field;
+        this.isCustomField = false;
+      }
+    };
+
+    this.onFieldChanged = () => {
+      this.chart.request.field = 'custom.' + this.field;
     };
 
     this.onDataChanged = () => {
