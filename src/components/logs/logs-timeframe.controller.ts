@@ -32,6 +32,7 @@ class LogsTimeframeController {
   private pickerEndDate: Moment;
   private current: any;
   private onTimeframeChange: any;
+  private unRegisterTimeframeZoom: () => void;
 
   constructor(
     private $scope,
@@ -107,7 +108,7 @@ class LogsTimeframeController {
     ];
 
     // Event received when a zoom is done on a chart
-    this.$rootScope.$on('timeframeZoom', function (event, zoom) {
+    this.unRegisterTimeframeZoom = this.$rootScope.$on('timeframeZoom', function (event, zoom) {
       let diff = zoom.to - zoom.from;
 
       let timeframe = _.findLast(that.timeframes, function (timeframe: Timeframe) {
@@ -137,16 +138,22 @@ class LogsTimeframeController {
     }
   };
 
+  $onDestroy() {
+    this.unRegisterTimeframeZoom();
+  }
+
   updateTimeframe(timeframeId) {
     if (timeframeId) {
-      this.$state.transitionTo(
-        this.$state.current,
-        _.merge(this.$state.params, {
-          timestamp: '',
-          timeframe: timeframeId
-        }),
-        {notify: false});
-      this.setTimeframe(timeframeId, true);
+      this.$timeout(async () => {
+        await this.$state.transitionTo(
+          this.$state.current,
+          _.merge(this.$state.params, {
+            timestamp: '',
+            timeframe: timeframeId
+          }),
+          {notify: false});
+        this.setTimeframe(timeframeId, true);
+      });
     }
   }
 
@@ -215,10 +222,9 @@ class LogsTimeframeController {
       to: timeframe.to
     };
 
-    this.$state.transitionTo(
-      this.$state.current,
-      _.merge(this.$state.params, this.current),
-      {notify: false});
+    this.$timeout(async () => {
+      await this.$state.transitionTo(this.$state.current, _.merge(this.$state.params, this.current), {notify: false});
+    });
 
     this.pickerStartDate = moment(timeframe.from);
     this.pickerEndDate = moment(timeframe.to);
