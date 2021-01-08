@@ -145,7 +145,18 @@
                     "type": "keyword"
                 }
                 <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
-            }
+            },
+            "dynamic_templates": [
+                {
+                    "strings_as_keywords": {
+                        "path_match": "custom.*",
+                        "match_mapping_type": "string",
+                        "mapping": {
+                            "type": "keyword"
+                        }
+                    }
+                }
+            ]
         }
     }
 }
