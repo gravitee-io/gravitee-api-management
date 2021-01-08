@@ -71,4 +71,11 @@
   <#if metrics.getSubscription()??>
   ,"subscription":"${metrics.getSubscription()}"
   </#if>
+  <#if metrics.getCustomMetrics()??>
+    ,"custom": {
+    <#list metrics.getCustomMetrics() as propKey, propValue>
+      "${propKey}":"${propValue}"<#sep>,
+    </#list>
+    }
+  </#if>
 }</@compress>
