@@ -26,6 +26,10 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
+import io.vertx.core.net.PfxOptions;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -39,7 +43,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,7 +56,13 @@ public class WebClientFactory implements FactoryBean<WebClient> {
 
     private final Logger logger = LoggerFactory.getLogger(WebClientFactory.class);
 
+    private static final String KEYSTORE_FORMAT_JKS = "JKS";
+    private static final String KEYSTORE_FORMAT_PEM = "PEM";
+    private static final String KEYSTORE_FORMAT_PKCS12 = "PKCS12";
+
     private static final String HTTPS_SCHEME = "https";
+    private static final int DEFAULT_HTTP_PORT = 80;
+    private static final int DEFAULT_HTTPS_PORT = 443;
 
     @Autowired
     private Environment environment;
@@ -161,11 +173,71 @@ public class WebClientFactory implements FactoryBean<WebClient> {
                         (HTTPS_SCHEME.equals(uri.getScheme()) ? 443 : 80));
 
         if (HTTPS_SCHEME.equals(uri.getScheme())) {
-            options
-                    .setSsl(true)
-                    .setTrustAll(true);
+            options.setSsl(true);
+            options.setTrustAll(readPropertyValue(propertyPrefix + "ssl.trustall", Boolean.class, true));
+            options.setVerifyHost(readPropertyValue(propertyPrefix + "ssl.verifyHostname", Boolean.class, true));
+
+            String keyStoreType = readPropertyValue(propertyPrefix + "ssl.keystore.type");
+
+            if (keyStoreType != null) {
+                if (keyStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_JKS)) {
+                    options.setKeyStoreOptions(
+                            new JksOptions()
+                                    .setPath(readPropertyValue(propertyPrefix + "ssl.keystore.path"))
+                                    .setPassword(readPropertyValue(propertyPrefix + "ssl.keystore.password"))
+                    );
+                } else if (keyStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_PKCS12)) {
+                    options.setPfxKeyCertOptions(
+                            new PfxOptions()
+                                    .setPath(readPropertyValue(propertyPrefix + "ssl.keystore.path"))
+                                    .setPassword(readPropertyValue(propertyPrefix + "ssl.keystore.password"))
+                    );
+                } else if (keyStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_PEM)) {
+                    options.setPemKeyCertOptions(
+                            new PemKeyCertOptions()
+                                    .setCertPaths(getArrayValues(propertyPrefix + "ssl.keystore.certs"))
+                                    .setKeyPaths(getArrayValues(propertyPrefix + "ssl.keystore.keys"))
+                    );
+                }
+            }
+
+            String trustStoreType = readPropertyValue(propertyPrefix + "ssl.truststore.type");
+
+            if (trustStoreType != null) {
+                if (trustStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_JKS)) {
+                    options.setTrustStoreOptions(
+                            new JksOptions()
+                                    .setPath(readPropertyValue(propertyPrefix + "ssl.truststore.path"))
+                                    .setPassword(readPropertyValue(propertyPrefix + "ssl.truststore.password"))
+                    );
+                } else if (trustStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_PKCS12)) {
+                    options.setPfxTrustOptions(
+                            new PfxOptions()
+                                    .setPath(readPropertyValue(propertyPrefix + "ssl.truststore.path"))
+                                    .setPassword(readPropertyValue(propertyPrefix + "ssl.truststore.password"))
+                    );
+                } else if (trustStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_PEM)) {
+                    options.setPemTrustOptions(
+                            new PemTrustOptions()
+                                    .addCertPath(readPropertyValue(propertyPrefix + "ssl.truststore.path"))
+                    );
+                }
+            }
         }
+
         return options;
+    }
+
+    private List<String> getArrayValues(String property) {
+        String key = String.format(property, 0);
+        List<String> values = new ArrayList<>();
+
+        while (environment.containsProperty(key)) {
+            values.add(environment.getProperty(key));
+            key = String.format(property, values.size());
+        }
+
+        return values;
     }
 
     private String readPropertyValue(String propertyName) {
