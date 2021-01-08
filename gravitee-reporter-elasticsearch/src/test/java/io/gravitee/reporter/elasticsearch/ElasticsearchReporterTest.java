@@ -277,6 +277,8 @@ public class ElasticsearchReporterTest {
         requestMetrics.setStatus(HttpStatusCode.OK_200);
         requestMetrics.setTenant(null);
         requestMetrics.setTransactionId("ba571368-f5e6-48b7-9713-68f5e698b761");
+        requestMetrics.addCustomMetric("CustomMetricKey1", "CustomMetricValue1");
+        requestMetrics.addCustomMetric("CustomMetricKey2", "CustomMetricValue2");
 
         /*
         final HttpHeaders clientRequestHeaders= new HttpHeaders();

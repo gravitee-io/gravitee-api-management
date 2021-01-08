@@ -72,4 +72,11 @@
   <#if metrics.getZone()??>
   ,"zone":"${metrics.getZone()}"
   </#if>
+  <#if metrics.getCustomMetrics()??>
+    ,"custom": {
+    <#list metrics.getCustomMetrics() as propKey, propValue>
+      "${propKey}":"${propValue}"<#sep>,
+    </#list>
+    }
+  </#if>
 }</@compress>
