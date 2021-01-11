@@ -16,10 +16,7 @@
 package io.gravitee.management.service;
 
 import io.gravitee.management.model.*;
-import io.gravitee.management.service.exceptions.ApiKeyAlreadyActivatedException;
-import io.gravitee.management.service.exceptions.ApiKeyAlreadyExpiredException;
-import io.gravitee.management.service.exceptions.ApiKeyNotFoundException;
-import io.gravitee.management.service.exceptions.TechnicalManagementException;
+import io.gravitee.management.service.exceptions.*;
 import io.gravitee.management.service.impl.ApiKeyServiceImpl;
 import io.gravitee.management.service.notification.ApiHook;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -224,6 +221,7 @@ public class ApiKeyServiceTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setApi(api.getId());
+        subscription.setStatus(SubscriptionStatus.PAUSED);
 
         // Stub
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
@@ -256,6 +254,7 @@ public class ApiKeyServiceTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setApi(api.getId());
+        subscription.setStatus(SubscriptionStatus.PAUSED);
 
         // Stub
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
@@ -291,8 +290,27 @@ public class ApiKeyServiceTest {
     }
 
     @Test(expected = ApiKeyNotFoundException.class)
-    public void shouldNotReactivateBeacauseOfApiKeyNotFound() throws TechnicalException {
+    public void shouldNotReactivateBecauseOfApiKeyNotFound() throws TechnicalException {
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.empty());
+
+        apiKeyService.reactivate(API_KEY);
+    }
+
+    @Test(expected = SubscriptionNotActiveException.class)
+    public void shouldNotReactivateBecauseOfNotActiveSubscription() throws TechnicalException {
+        apiKey = new ApiKey();
+        apiKey.setKey("123-456-789");
+        apiKey.setSubscription(SUBSCRIPTION_ID);
+        apiKey.setCreatedAt(new Date());
+        apiKey.setPlan(PLAN_ID);
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setExpireAt(new Date(System.currentTimeMillis() - 10000));
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setStatus(SubscriptionStatus.CLOSED);
+        // Stub
+        when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscriptionEntity);
 
         apiKeyService.reactivate(API_KEY);
     }
