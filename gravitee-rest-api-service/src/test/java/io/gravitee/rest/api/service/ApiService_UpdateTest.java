@@ -278,7 +278,7 @@ public class ApiService_UpdateTest {
         endpointGroup.setEndpoints(singleton(endpoint));
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         Cors cors = mock(Cors.class);
-        when(cors.getAccessControlAllowOrigin()).thenReturn(Sets.newSet("http://example.com", "localhost", "https://10.140.238.25:8080", "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}"));
+        when(cors.getAccessControlAllowOrigin()).thenReturn(Sets.newSet("http://example.com", "ionic://localhost", "https://10.140.238.25:8080", "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}"));
         when(proxy.getCors()).thenReturn(cors);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
@@ -521,6 +521,22 @@ public class ApiService_UpdateTest {
     public void shouldHaveAllowOriginNotAllowed() throws TechnicalException {
         prepareUpdate();
         existingApi.getProxy().getCors().getAccessControlAllowOrigin().add("/test^");
+        apiService.update(API_ID, existingApi);
+    }
+
+    @Test
+    public void shouldHaveAllowOriginWildcardAllowed() throws TechnicalException {
+        prepareUpdate();
+        existingApi.getProxy().getCors().getAccessControlAllowOrigin().clear();
+        existingApi.getProxy().getCors().getAccessControlAllowOrigin().add("*");
+        apiService.update(API_ID, existingApi);
+    }
+
+    @Test
+    public void shouldHaveAllowOriginNullAllowed() throws TechnicalException {
+        prepareUpdate();
+        existingApi.getProxy().getCors().getAccessControlAllowOrigin().clear();
+        existingApi.getProxy().getCors().getAccessControlAllowOrigin().add("null");
         apiService.update(API_ID, existingApi);
     }
 

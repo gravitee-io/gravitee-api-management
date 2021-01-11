@@ -42,6 +42,7 @@ import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.*;
@@ -114,7 +115,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final static Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
-    private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$");
+    // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
+    private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
     private static final String URI_PATH_SEPARATOR = "/";
 
     @Autowired
