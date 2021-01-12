@@ -23,6 +23,7 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import io.gravitee.rest.api.service.spring.GraviteeJavaMailManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -61,7 +62,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     @Autowired
-    private JavaMailSender mailSender;
+    private GraviteeJavaMailManager mailManager;
     @Autowired
     private NotificationTemplateService notificationTemplateService;
     @Autowired
@@ -82,6 +83,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 && emailNotification.getTo() != null
                 && emailNotification.getTo().length > 0) {
             try {
+                JavaMailSender mailSender = mailManager.getOrCreateMailSender();
                 final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 
                 String emailSubject = notificationTemplateService.resolveTemplateWithParam(emailNotification.getTemplate() + ".EMAIL.TITLE", emailNotification.getParams());

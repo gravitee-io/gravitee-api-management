@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import java.util.List;
@@ -36,14 +37,14 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GraviteeJavaMailSenderImplTest {
+public class GraviteeJavaMailManagerTest {
 
     @Mock
     private ParameterService parameterService;
     @Mock
     private EventManager eventManager;
 
-    private GraviteeJavaMailSenderImpl graviteeJavaMailSender;
+    private GraviteeJavaMailManager graviteeJavaMailManager;
 
     @Before
     public void setUp() {
@@ -51,26 +52,26 @@ public class GraviteeJavaMailSenderImplTest {
         GraviteeContext.setCurrentOrganization("DEFAULT");
         GraviteeContext.setCurrentEnvironment("DEFAULT");
 
-        graviteeJavaMailSender = new GraviteeJavaMailSenderImpl(parameterService, eventManager);
+        graviteeJavaMailManager = new GraviteeJavaMailManager(parameterService, eventManager);
     }
 
     @Test
     public void shouldConstruct() {
-        verify(eventManager, times(1)).subscribeForEvents(graviteeJavaMailSender, Key.class);
+        verify(eventManager, times(1)).subscribeForEvents(graviteeJavaMailManager, Key.class);
     }
 
     @Test
-    public void shouldInializeOnlyOnceWhenGettingSession() {
-        JavaMailSenderImpl mailSender = graviteeJavaMailSender.getMailSenderByReference("DEFAULT", ParameterReferenceType.ENVIRONMENT);
-        assertNull(mailSender);
+    public void shouldInializeOnlyOnceWhenGettingMailManager() {
+        GraviteeContext.setCurrentEnvironment("DEFAULT");
+        assertNull(graviteeJavaMailManager.getMailSenderByReference(GraviteeContext.getCurrentContext()));
 
-        // initialize the field only when we get the session first time
-        graviteeJavaMailSender.getSession();
-        mailSender = graviteeJavaMailSender.getMailSenderByReference("DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        // Initialize the field only when we get the mail sender for the first time.
+        JavaMailSender mailSender = graviteeJavaMailManager.getOrCreateMailSender();
         assertNotNull(mailSender);
 
         // If we call this getter a second time, then we do not initialize anymore
-        graviteeJavaMailSender.getSession();
+        JavaMailSender mailSender2 = graviteeJavaMailManager.getOrCreateMailSender();
+        assertSame(mailSender, mailSender2);
 
         verify(parameterService, times(1)).find(Key.EMAIL_HOST, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1)).find(Key.EMAIL_PORT, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
@@ -79,27 +80,28 @@ public class GraviteeJavaMailSenderImplTest {
         verify(parameterService, times(1)).find(Key.EMAIL_PROTOCOL, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1))
                 .findAll(argThat((List<Key> o) ->
-                        o.contains(Key.EMAIL_PROPERTIES_AUTH_ENABLED)
-                        && o.contains(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE)
-                        && o.contains(Key.EMAIL_PROPERTIES_SSL_TRUST)),
+                                o.contains(Key.EMAIL_PROPERTIES_AUTH_ENABLED)
+                                        && o.contains(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE)
+                                        && o.contains(Key.EMAIL_PROPERTIES_SSL_TRUST)),
                         eq("DEFAULT"),
                         eq(ParameterReferenceType.ENVIRONMENT));
     }
 
     @Test
     public void shouldSetFieldsOnEvent() {
-        graviteeJavaMailSender.getSession();
+        GraviteeContext.setCurrentEnvironment("DEFAULT");
+        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender();
+        assertNotNull(mailSender);
 
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_HOST, buildParameter("host")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PORT, buildParameter("125")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_USERNAME, buildParameter("username")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PASSWORD, buildParameter("password")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PROTOCOL, buildParameter("protocol")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PROPERTIES_AUTH_ENABLED, buildParameter("true")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE, buildParameter("false")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PROPERTIES_SSL_TRUST, buildParameter("ssl_trust")));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_HOST, buildParameter("host")));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_PORT, buildParameter("125")));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_USERNAME, buildParameter("username")));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_PASSWORD, buildParameter("password")));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_PROTOCOL, buildParameter("protocol")));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_PROPERTIES_AUTH_ENABLED, buildParameter("true")));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE, buildParameter("false")));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_PROPERTIES_SSL_TRUST, buildParameter("ssl_trust")));
 
-        JavaMailSenderImpl mailSender = graviteeJavaMailSender.getMailSenderByReference("DEFAULT", ParameterReferenceType.ENVIRONMENT);
         assertEquals("host", mailSender.getHost());
         assertEquals(125, mailSender.getPort());
         assertEquals("username", mailSender.getUsername());
@@ -112,26 +114,25 @@ public class GraviteeJavaMailSenderImplTest {
 
     @Test
     public void shouldNotSetFieldsOnEventWithAnotherRef() {
-        graviteeJavaMailSender.getSession();
 
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_HOST, buildParameter("host", "ANOTHER_ENVIRONMENT", ParameterReferenceType.ENVIRONMENT)));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PORT, buildParameter("125", "DEFAULT", ParameterReferenceType.ORGANIZATION)));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_USERNAME, buildParameter("username")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PASSWORD, buildParameter("password")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PROTOCOL, buildParameter("protocol")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PROPERTIES_AUTH_ENABLED, buildParameter("true")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE, buildParameter("false")));
-        graviteeJavaMailSender.onEvent(new SimpleEvent<>(Key.EMAIL_PROPERTIES_SSL_TRUST, buildParameter("ssl_trust")));
+        GraviteeContext.setCurrentEnvironment("DEFAULT");
+        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender();
 
-        JavaMailSenderImpl mailSender = graviteeJavaMailSender.getMailSenderByReference("DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        GraviteeContext.setCurrentEnvironment("ANOTHER_ENVIRONMENT");
+        JavaMailSenderImpl otherMailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender();
+
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_HOST, buildParameter("host", "ANOTHER_ENVIRONMENT", ParameterReferenceType.ENVIRONMENT)));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_PORT, buildParameter("125", "ANOTHER_ENVIRONMENT", ParameterReferenceType.ENVIRONMENT)));
+        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_USERNAME, buildParameter("usernameDefault")));
+
         assertNull(mailSender.getHost());
+        assertNotNull(otherMailSender.getHost());
+
         assertEquals(-1, mailSender.getPort());
-        assertEquals("username", mailSender.getUsername());
-        assertEquals("password", mailSender.getPassword());
-        assertEquals("protocol", mailSender.getProtocol());
-        assertEquals("true", mailSender.getJavaMailProperties().get("mail.smtp.auth"));
-        assertEquals("false", mailSender.getJavaMailProperties().get("mail.smtp.starttls.enable"));
-        assertEquals("ssl_trust", mailSender.getJavaMailProperties().get("mail.smtp.ssl.trust"));
+        assertEquals(125, otherMailSender.getPort());
+
+        assertEquals("usernameDefault", mailSender.getUsername());
+        assertNull( otherMailSender.getUsername());
     }
 
     private Parameter buildParameter(String value, String referenceId, ParameterReferenceType referenceType) {

@@ -16,18 +16,10 @@
 package io.gravitee.rest.api.service.spring;
 
 import io.gravitee.common.event.EventManager;
-import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.rest.api.service.ParameterService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.ConfigurableEnvironment;
-
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -43,7 +35,7 @@ public class EmailConfiguration {
     private EventManager eventManager;
 
     @Bean
-    public GraviteeJavaMailSenderImpl mailSender() {
-        return new GraviteeJavaMailSenderImpl(parameterService, eventManager);
+    public GraviteeJavaMailManager mailSender() {
+        return new GraviteeJavaMailManager(parameterService, eventManager);
     }
 }

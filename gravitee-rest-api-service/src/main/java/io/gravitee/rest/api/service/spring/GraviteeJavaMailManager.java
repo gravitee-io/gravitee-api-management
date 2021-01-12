@@ -24,29 +24,31 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-import javax.mail.Session;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class GraviteeJavaMailSenderImpl extends JavaMailSenderImpl implements EventListener<Key, Parameter> {
+public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
 
     private final static String EMAIL_PROPERTIES_PREFIX = "email.properties";
     private final static String MAILAPI_PROPERTIES_PREFIX = "mail.smtp.";
 
     private final ParameterService parameterService;
-    private boolean initialized = false;
+    private final Map<GraviteeContext.ReferenceContext, JavaMailSenderImpl> mailSenderByReference;
 
-    private Map<GraviteeContext.ReferenceContext, JavaMailSenderImpl> mailSenderByReference = new HashMap<>();
-
-    public GraviteeJavaMailSenderImpl(ParameterService parameterService, EventManager eventManager) {
+    public GraviteeJavaMailManager(ParameterService parameterService, EventManager eventManager) {
         this.parameterService = parameterService;
+        this.mailSenderByReference = new ConcurrentHashMap<>();
 
         eventManager.subscribeForEvents(this, Key.class);
     }
 
-    @Override
-    public synchronized Session getSession() {
+    public JavaMailSender getOrCreateMailSender() {
         GraviteeContext.ReferenceContext ref = GraviteeContext.getCurrentContext();
         JavaMailSenderImpl mailSender = this.getMailSenderByReference(ref);
         if (mailSender == null) {
@@ -64,7 +66,7 @@ public class GraviteeJavaMailSenderImpl extends JavaMailSenderImpl implements Ev
             this.mailSenderByReference.put(ref, mailSender);
         }
 
-        return mailSender.getSession();
+        return mailSender;
     }
 
     @Override
@@ -99,11 +101,11 @@ public class GraviteeJavaMailSenderImpl extends JavaMailSenderImpl implements Ev
         }
     }
 
-    public JavaMailSenderImpl getMailSenderByReference(GraviteeContext.ReferenceContext ref) {
+    JavaMailSenderImpl getMailSenderByReference(GraviteeContext.ReferenceContext ref) {
         return this.mailSenderByReference.get(ref);
     }
 
-    public JavaMailSenderImpl getMailSenderByReference(String referenceId, ParameterReferenceType referenceType) {
+    JavaMailSenderImpl getMailSenderByReference(String referenceId, ParameterReferenceType referenceType) {
         return this.getMailSenderByReference(new GraviteeContext.ReferenceContext(referenceId, GraviteeContext.ReferenceContextType.valueOf(referenceType.name())));
     }
 
