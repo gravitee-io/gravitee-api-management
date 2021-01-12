@@ -36,7 +36,8 @@ class ApiProxyController {
   private headers: string[];
   private discovery: any;
   private virtualHostModeEnabled: boolean;
-  private allowOriginPattern = '^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$';
+  // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
+  private allowOriginPattern = '^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$';
 
   constructor(
     private ApiService: ApiService,
