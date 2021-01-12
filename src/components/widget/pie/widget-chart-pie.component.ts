@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-
+// tslint:disable-next-line:no-var-requires
+require('@gravitee/ui-components/wc/gv-chart-pie');
 const WidgetChartPieComponent: ng.IComponentOptions = {
   template: require('./widget-chart-pie.html'),
   bindings: {
@@ -23,80 +23,45 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function() {
+  controller: function($scope, $element) {
+
+    this.$onInit = () => {
+      $scope.$on('onWidgetResize', this.onResize.bind(this));
+    };
+
     this.$onChanges = function(changes) {
       if (changes.data) {
-        let data = changes.data.currentValue;
-        let values = [];
-        let extraTitle = '';
-        // hack to display errors -> https://github.com/gravitee-io/issues/issues/1070
-        if (data.values['400.0-499.0']) {
-          let color = this.parent.widget.chart.colors[3];
-          extraTitle += '<br><span style="color:' + color + '">4xx errors: ' + data.values['400.0-499.0'] + '</span>';
-        }
-        if (data.values['500.0-599.0']) {
-          let color = this.parent.widget.chart.colors[4];
-          extraTitle += '<br><span style="color:' + color + '">5xx errors: ' + data.values['500.0-599.0'] + '</span>';
-        }
-        // hack
 
-        let total = _.reduce(data.values, function(sum: number, val: number) {
-          return sum + val;
-        }, 0);
+        this.gvChartPie = $element.children()[0];
 
-        let idx = 0;
-        let that = this;
-        _.forEach(data.values, function(value: number) {
-          let percentage = _.round(value / total * 100, 2);
-          values.push({
-            name: that.parent.widget.chart.labels[idx],
-            y: percentage,
-            color: that.parent.widget.chart.colors[idx],
-            hits: value
-          });
-          idx++;
-        });
-
-        this.results = {
-          chart: {
-            plotBackgroundColor: null,
-            plotBorderWidth: 0,
-            plotShadow: false
-          },
-          plotOptions: {
-            pie: {
-              dataLabels: {
-                enabled: true,
-                distance: -50,
-                style: {
-                  fontWeight: 'bold',
-                  color: 'white'
-                }
-              },
-              startAngle: -90,
-              endAngle: 90,
-              center: ['50%', '75%']
-            }
-          },
-          tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.2f}%</b>'
-                       + '<br>'
-                       + 'Nb hits: <b>{point.hits}</b>'
-          },
-          title: {
-            text: 'Total: ' + total + extraTitle,
-            align: 'center',
-            useHTML: true,
-            verticalAlign: 'middle',
-            y: 60
-          },
-          series: [{
-            name: 'Percent hits',
-            innerSize: '50%',
-            data: values
-          }]
+        this.options = {
+          name: this.parent.widget.title,
+          data: this.parent.widget.chart.labels.map((label, idx) => {
+            return {
+              name: label,
+              color: this.parent.widget.chart.colors[idx]
+            };
+          })
         };
+
+
+        let series = {
+          values: changes.data.currentValue ? changes.data.currentValue.values : []
+        };
+
+        // Send data to gv-chart-pie
+        this.gvChartPie.setAttribute('series', JSON.stringify(series));
+        this.gvChartPie.setAttribute('options', JSON.stringify(this.options));
       }
+    };
+
+    this.onResize = () => {
+      this.options = {
+        ...this.options,
+        height: this.gvChartPie.offsetHeight,
+        width: this.gvChartPie.offsetWidth,
+      };
+      this.gvChartPie.setAttribute('options', JSON.stringify(this.options));
     };
   }
 };

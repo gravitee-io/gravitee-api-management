@@ -94,7 +94,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     if (notEligibleForUserCreation) {
       return trans.router.stateService.target('login');
     } else if (toState.data && toState.data.perms && toState.data.perms.only && !UserService.isUserHasPermissions(toState.data.perms.only)) {
-      return trans.router.stateService.target(UserService.isAuthenticated() ? 'management.apis.list' : 'login');
+      return trans.router.stateService.target(UserService.isAuthenticated() ? 'management.home' : 'login');
     }
   });
 

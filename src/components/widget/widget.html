@@ -71,6 +71,7 @@
       <gv-widget-chart-pie ng-switch-when="pie" data="$ctrl.results"></gv-widget-chart-pie>
       <gv-widget-chart-map ng-switch-when="map" data="$ctrl.results"></gv-widget-chart-map>
       <gv-widget-data-stats ng-switch-when="stats" data="$ctrl.results"></gv-widget-data-stats>
+      <gv-widget-chart-count ng-switch-when="count" data="$ctrl.results"></gv-widget-chart-count>
     </div>
 
     <div ng-if="!$ctrl.fetchData && !$ctrl.results" layout="column" layout-align="center center" flex>

@@ -92,13 +92,13 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
     };
 
     this.isClickable = function(result) {
-      return $state.current.name === 'management.platform' && !result.metadata.unknown
+      return ($state.current.name === 'management.platform' || $state.current.name === 'management.home') && !result.metadata.unknown
         && (this.widget.chart.request.field === 'api' || this.widget.chart.request.field === 'application');
     };
 
     this.goto = function(key) {
       // only on platform analytics
-      if ($state.current.name === 'management.platform') {
+      if ($state.current.name === 'management.platform' || $state.current.name === 'management.home') {
         if (this.widget.chart.request.field === 'api') {
           this.$state.go('management.apis.detail.analytics.overview', {
             apiId: key,

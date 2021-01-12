@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+// tslint:disable-next-line:no-var-requires
+require('@gravitee/ui-components/wc/gv-stats');
 const WidgetDataStatsComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats.html'),
   bindings: {
@@ -22,34 +24,36 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function($scope, $window, $filter) {
+  controller: function($scope, $element) {
     'ngInject';
     this.$onInit = () => {
       this.chartData = _.cloneDeep(this.parent.widget.chart.data);
       checkFallback();
-      checkResolution();
-      $scope.$on('onWidgetResize', () => {
-        checkResolution();
-      });
     };
     const checkFallback = () => {
-      _.forEach(this.chartData, (data) => {
-        let hasFallback = false;
-        let value = this.data[data.key];
-        if ($filter('number')(value, 0) === '0' && data.fallback && data.fallback.length) {
-          _.forEach(data.fallback, (fallback) => {
-            let fallbackValue = this.data[fallback.key];
-            if (!hasFallback && $filter('number')(fallbackValue, 0) !== '0') {
-              data.key = fallback.key;
-              data.label = fallback.label;
-              hasFallback = true;
-            }
-          });
-        }
+
+      let gvStats = $element.children()[0];
+
+      let stats = {};
+      if (Object.values(this.data).some(data => data !== 0)) {
+        this.chartData.forEach(data => {
+          stats[data.key] = this.data[data.key];
+        });
+      }
+
+      let options = this.chartData.map(data => {
+        return {
+          key: data.key,
+          unit: data.unit,
+          color: data.color,
+          label: data.label,
+          fallback: data.fallback && data.fallback.map(fallback => { return { key: fallback.key, label: fallback.label }; })
+        };
       });
-    };
-    const checkResolution = () => {
-      this.lowResolution = $window.innerWidth < 1400;
+
+      // Send data to gv-stats
+      gvStats.setAttribute('stats', JSON.stringify(stats));
+      gvStats.setAttribute('options', JSON.stringify(options));
     };
   }
 };

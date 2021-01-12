@@ -22,7 +22,8 @@ const DashboardComponent: ng.IComponentOptions = {
     onFilterChange: '&',
     onTimeframeChange: '&',
     onViewLogClick: '&',
-    updateMode: '<'
+    updateMode: '<',
+    customTimeframe: '<'
   },
   controller: function($scope) {
     'ngInject';

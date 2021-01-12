@@ -21,7 +21,8 @@ const WidgetComponent: ng.IComponentOptions = {
   bindings: {
     widget: '<',
     updateMode: '<',
-    globalQuery: '<'
+    globalQuery: '<',
+    customTimeframe: '<'
   },
   controller: function($scope, $state, AnalyticsService: AnalyticsService) {
     'ngInject';
@@ -32,7 +33,31 @@ const WidgetComponent: ng.IComponentOptions = {
       $scope.$broadcast('onWidgetResize');
     });
 
+    this.$onChanges = (changes) => {
+      if (changes.customTimeframe && changes.customTimeframe.currentValue) {
+        this.customTimeframe = changes.customTimeframe.currentValue;
+        this.changeTimeframe(this.customTimeframe);
+        // We need to send this event to compute the size of the widget when input data changes.
+        setTimeout(function () {
+          $scope.$broadcast('onWidgetResize');
+        }, 100);
+      }
+    };
+
     $scope.$on('onTimeframeChange', (event, timeframe) => {
+      this.changeTimeframe(timeframe);
+    });
+
+    let unregisterFn = $scope.$on('onQueryFilterChange', (event, query) => {
+      if (this.widget.chart && this.widget.chart.request) {
+        this.widget.chart.request.query = query.query;
+        this.reload();
+      }
+    });
+
+    $scope.$on('$destroy', unregisterFn);
+
+    this.changeTimeframe = (timeframe) => {
       if (this.widget.chart && this.widget.chart.request) {
         let query;
 
@@ -49,16 +74,7 @@ const WidgetComponent: ng.IComponentOptions = {
         });
         this.reload();
       }
-    });
-
-    let unregisterFn = $scope.$on('onQueryFilterChange', (event, query) => {
-      if (this.widget.chart && this.widget.chart.request) {
-        this.widget.chart.request.query = query.query;
-        this.reload();
-      }
-    });
-
-    $scope.$on('$destroy', unregisterFn);
+    };
 
     this.reload = () => {
       // Call the analytics service

@@ -29,10 +29,30 @@ function managementRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management', {
-      redirectTo: 'management.apis.list',
+      redirectTo: 'management.home',
       parent: 'withSidenav',
       controller: function ($rootScope, Constants) {
         $rootScope.consoleTitle = Constants.org.settings.management.title;
+      }
+    })
+    .state('management.home', {
+      url: '/home',
+      template: require('./platform/home/home.html'),
+      controller: 'HomeController',
+      controllerAs: 'homeCtrl',
+      resolve: {
+        dashboards: (DashboardService: DashboardService) => DashboardService.list('HOME').then(response => response.data)
+      },
+      data: {
+        menu: {
+          label: 'Home',
+          icon: 'home',
+          firstLevel: true,
+          order: 0
+        },
+        docs: {
+          page: 'management-home'
+        }
       }
     })
     .state('management.instances', {

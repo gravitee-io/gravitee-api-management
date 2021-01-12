@@ -524,6 +524,8 @@ import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
 import SpelService from '../services/spel.service';
+import HomeController from './platform/home/home.controller';
+import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
 
 (<any>window).traverse = traverse;
 
@@ -724,6 +726,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.controller('InstanceEnvironmentController', InstanceEnvironmentController);
   graviteeManagementModule.controller('InstanceMonitoringController', InstanceMonitoringController);
   graviteeManagementModule.controller('DashboardController', DashboardController);
+  graviteeManagementModule.controller('HomeController', HomeController);
   graviteeManagementModule.controller('CategoriesController', CategoriesController);
   graviteeManagementModule.controller('CategoryController', CategoryController);
   graviteeManagementModule.controller('TenantsController', TenantsController);
@@ -830,6 +833,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.component('gvWidgetChartPie', WidgetChartPieComponent);
   graviteeManagementModule.component('gvWidgetChartLine', WidgetChartLineComponent);
   graviteeManagementModule.component('gvWidgetChartMap', WidgetChartMapComponent);
+  graviteeManagementModule.component('gvWidgetChartCount', WidgetChartCountComponent);
   graviteeManagementModule.component('gvWidgetDataTableConfiguration', WidgetDataTableConfigurationComponent);
   graviteeManagementModule.component('gvWidgetDataLineConfiguration', WidgetChartLineConfigurationComponent);
   graviteeManagementModule.component('gvWidgetDataMapConfiguration', WidgetChartMapConfigurationComponent);

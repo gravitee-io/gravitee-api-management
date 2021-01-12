@@ -15,15 +15,37 @@
  */
 
 import { IdentityProviderActivation } from '../entities/identityProvider';
+import * as _ from 'lodash';
 
 class EnvironmentService {
   private environmentsURL: string;
   private environmentURL: string;
 
-  constructor(private $http, Constants, private $q) {
+  constructor(private $http, private Constants, private $q) {
     'ngInject';
     this.environmentsURL = `${Constants.org.baseURL}/environments`;
     this.environmentURL = Constants.env.baseURL;
+  }
+
+  /*
+   * Analytics
+   */
+  analytics(request) {
+    var url = this.environmentURL + '/analytics?';
+    var keys = Object.keys(request);
+    _.forEach(keys, function (key) {
+      var val = request[key];
+      if (val !== undefined) {
+        url += key + '=' + val + '&';
+      }
+    });
+
+
+    return this.$http.get(url, { timeout: this.getAnalyticsHttpTimeout() });
+  }
+
+  getAnalyticsHttpTimeout() {
+    return this.Constants.env.settings.analytics.clientTimeout as number;
   }
 
   list() {
