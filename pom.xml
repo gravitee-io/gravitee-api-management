@@ -28,7 +28,7 @@
 
 	<groupId>io.gravitee.repository</groupId>
 	<artifactId>gravitee-repository-redis</artifactId>
-	<version>3.2.0-SNAPSHOT</version>
+	<version>3.2.0</version>
 	<name>Gravitee.io APIM - Repository - Redis</name>
 
 	<properties>
