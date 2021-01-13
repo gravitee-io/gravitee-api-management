@@ -88,7 +88,9 @@ class ApiHistoryController {
         badgeIconClass: 'glyphicon-check',
         title: event.type,
         when: event.created_at,
-        user: event.user
+        user: event.user,
+        deploymentLabel: event.properties.deployment_label,
+        deploymentNumber: event.properties.deployment_number
       };
       self.eventsTimeline.push(eventTimeline);
     });

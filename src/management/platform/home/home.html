@@ -50,14 +50,20 @@
           <table md-table>
             <thead md-head>
             <tr md-row>
+              <th md-column></th>
               <th md-column>Date</th>
+              <th md-column>Label</th>
               <th md-column>Type</th>
               <th md-column>API</th>
             </tr>
             </thead>
             <tbody md-body>
             <tr md-row ng-repeat="event in homeCtrl.events.content" style="height: 25px;">
+              <td md-cell>
+                <span class="badge" ng-if="event.properties.deployment_number"># {{event.properties.deployment_number}}</span>
+              </td>
               <td md-cell>{{event.updated_at | humanDatetimeFilter }}</td>
+              <td md-cell>{{event.properties.deployment_label}}</td>
               <td md-cell>{{homeCtrl.getEventLabel(event.type)}}</td>
               <td md-cell>
                 <a ui-sref="management.apis.detail.analytics.overview({ apiId: event.properties.api_id, from: homeCtrl.$state.params.from, to: homeCtrl.$state.params.to} )">

@@ -119,17 +119,18 @@ class ApiAdminController {
 
   showDeployAPIConfirm(ev, api) {
     this.$mdDialog.show({
-      controller: 'DialogConfirmController',
+      controller: 'DialogConfirmDeploymentController',
       controllerAs: 'ctrl',
-      template: require('../../components/dialog/confirm.dialog.html'),
+      template: require('./deploy/confirmDeployment.dialog.html'),
       clickOutsideToClose: true,
       locals: {
         title: 'Would you like to deploy your API?',
+        msg: 'You can provide a label to identify your deployment',
         confirmButton: 'OK'
       }
     }).then((response) => {
-      if (response) {
-        this.deploy(api);
+      if (response || response === '') {
+        this.deploy(api, response);
       }
     });
   }
@@ -175,8 +176,8 @@ class ApiAdminController {
     });
   }
 
-  deploy(api) {
-    this.ApiService.deploy(api.id).then((deployedApi) => {
+  deploy(api, deploymentLabel) {
+    this.ApiService.deploy(api.id, { deploymentLabel }).then((deployedApi) => {
       this.NotificationService.show('API deployed');
       this.api = deployedApi.data;
       this.api.etag = deployedApi.headers('etag');

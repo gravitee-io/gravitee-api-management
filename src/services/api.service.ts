@@ -165,8 +165,8 @@ class ApiService {
     return this.$http.get(this.apisURL + apiId + '/state');
   }
 
-  deploy(apiId): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + apiId + '/deploy');
+  deploy(apiId, apiDeployment): ng.IPromise<any> {
+    return this.$http.post(this.apisURL + apiId + '/deploy', apiDeployment);
   }
 
   rollback(apiId, apiDescriptor): ng.IPromise<any> {

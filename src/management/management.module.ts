@@ -87,6 +87,7 @@ import ApiCreationStep4Component from '../management/api/creation/steps/api-crea
 import ApiCreationStep5Component from '../management/api/creation/steps/api-creation-step5.component';
 import ApiImportComponent from '../components/import/import-api.component';
 import NewApiController from '../management/api/creation/newApiPortal.controller';
+import DialogConfirmDeploymentController from '../management/api/deploy/confirmDeploymentDialog.controller';
 // API Plan
 import ApiPlanComponent from '../management/api/api-plan.component';
 import ApiEditPlanController from '../management/api/portal/plans/plan/edit-plan.controller';
@@ -758,6 +759,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.controller('UpdateFieldDialogController', UpdateFieldDialogController);
   graviteeManagementModule.controller('FileChooserDialogController', FileChooserDialogController);
   graviteeManagementModule.controller('DialogConfirmController', DialogConfirmController);
+  graviteeManagementModule.controller('DialogConfirmDeploymentController', DialogConfirmDeploymentController);
   graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);
   graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
   graviteeManagementModule.controller('DialogAddUserRoleController', DialogAddUserRoleController);
