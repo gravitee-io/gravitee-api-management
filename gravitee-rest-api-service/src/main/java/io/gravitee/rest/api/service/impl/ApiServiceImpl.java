@@ -1446,11 +1446,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity deploy(String apiId, String userId, EventType eventType) {
+    public ApiEntity deploy(String apiId, String userId, EventType eventType, ApiDeploymentEntity apiDeploymentEntity) {
         try {
             LOGGER.debug("Deploy API : {}", apiId);
 
-            return deployCurrentAPI(apiId, userId, eventType);
+            return deployCurrentAPI(apiId, userId, eventType, apiDeploymentEntity);
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to deploy API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
@@ -1477,7 +1477,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private ApiEntity deployCurrentAPI(String apiId, String userId, EventType eventType) throws Exception {
+    private ApiEntity deployCurrentAPI(String apiId, String userId, EventType eventType, ApiDeploymentEntity apiDeploymentEntity) throws Exception {
         Optional<Api> api = apiRepository.findById(apiId);
 
         if (api.isPresent()) {
@@ -1494,12 +1494,35 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Clear useless field for history
             apiValue.setPicture(null);
 
+            addDeploymentLabelToProperties(apiId, eventType, properties, apiDeploymentEntity);
+
             // And create event
             eventService.create(eventType, objectMapper.writeValueAsString(apiValue), properties);
 
             return convert(singletonList(apiValue)).iterator().next();
         } else {
             throw new ApiNotFoundException(apiId);
+        }
+    }
+
+    private void addDeploymentLabelToProperties(String apiId, EventType eventType, Map<String, String> properties, ApiDeploymentEntity apiDeploymentEntity) {
+        if (PUBLISH_API.equals(eventType)) {
+            final EventQuery query = new EventQuery();
+            query.setApi(apiId);
+            query.setTypes(singleton(PUBLISH_API));
+
+            final Optional<EventEntity> optEvent =
+                    eventService.search(query).stream().max(comparing(EventEntity::getCreatedAt));
+
+            String lastDeployNumber = optEvent.isPresent() ?
+                    optEvent.get().getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
+                    : "0";
+            String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
+            properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
+
+            if (apiDeploymentEntity != null &&  StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
+                properties.put(Event.EventProperties.DEPLOYMENT_LABEL.getValue(), apiDeploymentEntity.getDeploymentLabel());
+            }
         }
     }
 
@@ -1539,7 +1562,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             } else {
                 // this is the first time we start the api without previously deployed id.
                 // let's do it.
-                return this.deploy(apiId, userId, PUBLISH_API);
+                return this.deploy(apiId, userId, PUBLISH_API, new ApiDeploymentEntity());
             }
         } catch (Exception e) {
             LOGGER.error("An error occurs while trying to deploy last published API {}", apiId, e);

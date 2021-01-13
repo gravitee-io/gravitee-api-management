@@ -19,6 +19,7 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
@@ -169,7 +170,9 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             if (isSync) {
                 // Publish API only in case of changes
                 if (!updatedProperties.containsAll(properties) || !properties.containsAll(updatedProperties)) {
-                    apiService.deploy(latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API);
+                    ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
+                    deployEntity.setDeploymentLabel("Dynamic properties sync");
+                    apiService.deploy(latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API, deployEntity);
                 }
             }
         }

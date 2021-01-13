@@ -20,7 +20,9 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
 import io.gravitee.rest.api.model.ApiStateEntity;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
@@ -67,6 +69,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
+        reset(apiService);
         mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setName(API);
@@ -250,6 +253,40 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message, message.contains("Invalid image format"));
+    }
+
+    @Test
+    public void shouldDeployApi() {
+
+        ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
+        deployEntity.setDeploymentLabel("label");
+
+        mockApi.setState(Lifecycle.State.STARTED);
+        mockApi.setUpdatedAt(new Date());
+        doReturn(mockApi).when(apiService).deploy(any(), any(), eq(EventType.PUBLISH_API), any());
+
+        final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
+
+        assertEquals(OK_200, response.getStatus());
+
+        verify(apiService, times(1)).deploy(any(), any(), eq(EventType.PUBLISH_API), any());
+    }
+
+    @Test
+    public void shouldNotDeployApi() {
+
+        ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
+        deployEntity.setDeploymentLabel("label_too_long_because_more_than_32_chars");
+
+        mockApi.setState(Lifecycle.State.STARTED);
+        mockApi.setUpdatedAt(new Date());
+        doReturn(mockApi).when(apiService).deploy(any(), any(), eq(EventType.PUBLISH_API), any());
+
+        final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        verify(apiService, times(0)).deploy(any(), any(), eq(EventType.PUBLISH_API), any());
     }
 
     public void shouldUploadApiMedia() {

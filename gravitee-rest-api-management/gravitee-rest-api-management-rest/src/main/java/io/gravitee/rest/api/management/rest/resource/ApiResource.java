@@ -318,9 +318,11 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response deployApi() {
+    public Response deployApi(
+            @ApiParam(name = "apiDeployment")
+            @Valid final ApiDeploymentEntity apiDeploymentEntity) {
         try {
-            ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUser(), EventType.PUBLISH_API);
+            ApiEntity apiEntity = apiService.deploy(api, getAuthenticatedUser(), EventType.PUBLISH_API, apiDeploymentEntity);
             return Response
                     .ok(apiEntity)
                     .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
