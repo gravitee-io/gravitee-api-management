@@ -21,7 +21,7 @@ import java.io.File;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-abstract class AbstractSwaggerParser<T> implements SwaggerParser<T> {
+abstract class AbstractDescriptorParser<T> implements DescriptorParser<T> {
 
     static boolean isLocationUrl(String content) {
         content = content.toLowerCase().replaceAll("\\\\","/");

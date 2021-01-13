@@ -18,8 +18,6 @@ package io.gravitee.rest.api.service.impl.swagger.parser;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.parser.OpenAPIParser;
-import io.swagger.v3.core.util.Yaml;
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.slf4j.Logger;
@@ -36,7 +34,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OAIParser extends AbstractSwaggerParser<OAIDescriptor> {
+public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
 
     private final Logger logger = LoggerFactory.getLogger(OAIParser.class);
 
@@ -44,12 +42,7 @@ public class OAIParser extends AbstractSwaggerParser<OAIDescriptor> {
         System.setProperty(String.format("%s.trustAll", io.swagger.v3.parser.util.RemoteUrl.class.getName()), Boolean.TRUE.toString());
     }
 
-    @Override
-    public OAIDescriptor parse(String content) {
-        return this.parse(content, true, null);
-    }
-
-    private OAIDescriptor parse(String content, boolean reparse, ParseOptions options) {
+    public OAIDescriptor parse(String content, ParseOptions options) {
         OpenAPIParser parser = new OpenAPIParser();
         SwaggerParseResult parseResult;
         String path = content;
@@ -76,26 +69,18 @@ public class OAIParser extends AbstractSwaggerParser<OAIDescriptor> {
             parseResult.setMessages(filteredMessages);
         }
 
-        if (parseResult == null || parseResult.getOpenAPI() == null) {
+        if (parseResult.getOpenAPI() == null) {
             throw new SwaggerDescriptorException("Malformed descriptor");
         }
 
-
-        if (parseResult != null && parseResult.getOpenAPI() != null && parseResult.getOpenAPI().getInfo() != null) {
-            /* ugly hack for swagger v2 $ref resolving & avoid NPE in resolveFully
-             * See https://github.com/swagger-api/swagger-parser/issues/1455
-             */
-            if (reparse) {
-                ParseOptions reparseOptions = new ParseOptions();
-                reparseOptions.setResolveFully(true);
-
-                return this.parse(Yaml.pretty(parseResult.getOpenAPI()), false, reparseOptions);
-            }
-
-        }
         OAIDescriptor descriptor = new OAIDescriptor(parseResult.getOpenAPI());
         descriptor.setMessages(parseResult.getMessages());
         return descriptor;
+    }
+
+    @Override
+    public OAIDescriptor parse(String content) {
+        return parse(content, null);
     }
 
 

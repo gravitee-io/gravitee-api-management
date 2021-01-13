@@ -19,7 +19,7 @@ package io.gravitee.rest.api.service.impl.swagger.parser;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface SwaggerParser<T> {
+public interface DescriptorParser<T> {
 
     T parse(String content);
 }

@@ -45,7 +45,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.*;
 
