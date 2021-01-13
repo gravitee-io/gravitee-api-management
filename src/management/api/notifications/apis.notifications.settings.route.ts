@@ -85,7 +85,7 @@ function apisNotificationsRouterConfig($stateProvider) {
         menu: {
           label: 'Alerts',
           icon: 'alarm',
-          parameter: 'alert.enabled'
+          parameter: 'org.settings.alert.enabled'
         },
         perms: {
           only: ['api-alert-r']
