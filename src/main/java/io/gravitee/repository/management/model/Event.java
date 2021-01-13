@@ -134,7 +134,10 @@ public class Event implements Serializable {
         API_ID("api_id"),
         DICTIONARY_ID("dictionary_id"),
         ORIGIN("origin"),
-        USER("user");
+        USER("user"),
+        DEPLOYMENT_LABEL("deployment_label"),
+        DEPLOYMENT_NUMBER("deployment_number")
+        ;
 
         private String value;
 
