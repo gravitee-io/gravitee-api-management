@@ -311,6 +311,11 @@ email:
 #templates:
 #  path: ${gravitee.home}/templates
 
+# Console dashboards
+#console:
+#  dashboards:
+#    path: ${gravitee.home}/dashboards
+
 # Portal themes
 #portal:
 #  themes:

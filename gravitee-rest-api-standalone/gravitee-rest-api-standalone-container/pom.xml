@@ -239,6 +239,7 @@
                             <include>config/*</include>
                             <include>templates/*</include>
                             <include>themes/*</include>
+                            <include>dashboards/*</include>
                         </includes>
                         <targetPath>${workspace}</targetPath>
                         <filtering>true</filtering>

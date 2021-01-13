@@ -301,4 +301,9 @@ public class EnvironmentResource extends AbstractResource {
     public PortalSettingsResource getPortalSettingsResource() {
         return resourceContext.getResource(PortalSettingsResource.class);
     }
+
+    @Path("analytics")
+    public EnvironmentAnalyticsResource getEnvironmentAnalyticsResource() {
+        return resourceContext.getResource(EnvironmentAnalyticsResource.class);
+    }
 }

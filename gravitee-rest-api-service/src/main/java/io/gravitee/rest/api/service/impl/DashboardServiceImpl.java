@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.rest.api.model.DashboardEntity;
 import io.gravitee.rest.api.model.NewDashboardEntity;
@@ -31,12 +33,17 @@ import io.gravitee.repository.management.model.DashboardReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DASHBOARD;
 import static io.gravitee.repository.management.model.Dashboard.AuditEvent.*;
+import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
@@ -49,6 +56,10 @@ import static java.util.stream.Collectors.toList;
 public class DashboardServiceImpl extends AbstractService implements DashboardService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(DashboardServiceImpl.class);
+    private static final String DEFAULT_HOME_DASHBOARD_PATH = "/home.json";
+
+    @Value("${console.dashboards.path:${gravitee.home}/dashboards}")
+    private String dashboardsPath;
 
     @Autowired
     private DashboardRepository dashboardRepository;
@@ -75,9 +86,19 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     public List<DashboardEntity> findByReferenceType(final DashboardReferenceType referenceType) {
         try {
             LOGGER.debug("Find all dashboards by reference type");
-            return dashboardRepository.findByReferenceType(referenceType.name())
-                    .stream()
-                    .map(this::convert).collect(toList());
+            if (DashboardReferenceType.HOME.equals(referenceType)) {
+                DashboardEntity dashboard = new DashboardEntity();
+                dashboard.setDefinition(this.getHomeDashboardDefinition());
+                dashboard.setReferenceType(referenceType.name());
+                dashboard.setEnabled(true);
+                dashboard.setName("Home dashboard");
+                dashboard.setReferenceId("DEFAULT");
+                return Collections.singletonList(dashboard);
+            } else {
+                return dashboardRepository.findByReferenceType(referenceType.name())
+                        .stream()
+                        .map(this::convert).collect(toList());
+            }
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all dashboards by reference type";
             LOGGER.error(error, ex);
@@ -144,6 +165,24 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
             }
         } catch (TechnicalException ex) {
             final String error = "An error occurred while trying to update dashboard " + dashboardEntity;
+            LOGGER.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
+        }
+    }
+
+    private String getHomeDashboardDefinition() {
+        return this.getDefinition(dashboardsPath + DEFAULT_HOME_DASHBOARD_PATH);
+    }
+
+    private String getDefinition(String path) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = new String(Files.readAllBytes(new File(path).toPath()), defaultCharset());
+            // Important for remove formatting (space, line break...)
+            JsonNode jsonNode = objectMapper.readValue(json, JsonNode.class);
+            return jsonNode.toString();
+        } catch (IOException ex) {
+            final String error = "Error while trying to load a dashboard from the definition path: " + path;
             LOGGER.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }

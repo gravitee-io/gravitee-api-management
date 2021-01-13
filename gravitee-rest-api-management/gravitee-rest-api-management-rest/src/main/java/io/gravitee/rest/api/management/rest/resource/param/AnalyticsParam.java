@@ -62,7 +62,7 @@ public class AnalyticsParam {
     @ApiParam(
             value = "The type of data to retrieve",
             required = true,
-            allowableValues = "group_by,date_histo,count"
+            allowableValues = "group_by,date_histo,count,stats"
     )
     private AnalyticsTypeParam type;
 
