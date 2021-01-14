@@ -254,8 +254,9 @@ class ApiHistoryController {
   }
 
   reorganizeEvent(_event) {
-    var eventPayloadDefinition = JSON.parse(_event.definition);
-    var reorganizedEvent = {
+    const eventPayloadDefinition = JSON.parse(_event.definition);
+    const reorganizedEvent = {
+       ...eventPayloadDefinition,
       'id': eventPayloadDefinition.id,
       'name': eventPayloadDefinition.name,
       'version': eventPayloadDefinition.version,
