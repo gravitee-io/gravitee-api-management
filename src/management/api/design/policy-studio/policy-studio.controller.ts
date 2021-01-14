@@ -15,8 +15,43 @@ import { StateService } from '@uirouter/core';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// tslint:disable-next-line:no-var-requires
-require('@gravitee/ui-components/wc/gv-policy-studio');
+import '@gravitee/ui-components/wc/gv-policy-studio';
+
+export const propertyProviders = [
+  {
+    'id': 'HTTP',
+    'name': 'Custom (HTTP)',
+    'schema': {
+      'type': 'object',
+      'properties': {
+        'url': {
+          'title': 'Http service URL',
+          'description': 'http://localhost',
+          'type': 'string',
+          'pattern': '^(http://|https://)'
+        },
+        'specification': {
+          'title': 'Transformation (JOLT Specification)',
+          'type': 'string',
+          'x-schema-form': {
+            'type': 'codemirror',
+            'codemirrorOptions': {
+              'lineWrapping': true,
+              'lineNumbers': true,
+              'allowDropFileTypes': true,
+              'autoCloseTags': true,
+              'mode': 'javascript'
+            }
+          }
+        }
+      },
+      'required': ['url']
+    },
+    'documentation': '= Custom (HTTP)\n\n=== How to ?\n\n 1. Set `Polling frequency interval` and `Time unit`\n2. Set the `HTTP service URL`\n 3. If the HTTP service doesn\'t return the expected output, add a JOLT `transformation` \n\n[source, json]\n----\n[\n  {\n    "key": 1,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 2,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 3,\n    "value": "https://south-asia.company.com/"\n  }\n]\n----\n'
+  }
+];
+
+export const configurationInformation = 'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
 
 class ApiPolicyStudioController {
   private studio: any;
@@ -42,39 +77,6 @@ class ApiPolicyStudioController {
   }
 
   $onInit = () => {
-    const propertyProviders = [
-      {
-        'id': 'HTTP',
-        'name': 'Custom (HTTP)',
-        'schema': {
-          'type': 'object',
-          'properties': {
-            'url': {
-              'title': 'Http service URL',
-              'description': 'http://localhost',
-              'type': 'string',
-              'pattern': '^(http://|https://)'
-            },
-            'specification': {
-              'title': 'Transformation (JOLT Specification)',
-              'type': 'string',
-              'x-schema-form': {
-                'type': 'codemirror',
-                'codemirrorOptions': {
-                  'lineWrapping': true,
-                  'lineNumbers': true,
-                  'allowDropFileTypes': true,
-                  'autoCloseTags': true,
-                  'mode': 'javascript'
-                }
-              }
-            }
-          },
-          'required': ['url']
-        },
-        'documentation': '= Custom (HTTP)\n\n=== How to ?\n\n 1. Set `Polling frequency interval` and `Time unit`\n2. Set the `HTTP service URL`\n 3. If the HTTP service doesn\'t return the expected output, add a JOLT `transformation` \n\n[source, json]\n----\n[\n  {\n    "key": 1,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 2,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 3,\n    "value": "https://south-asia.company.com/"\n  }\n]\n----\n'
-      }
-    ];
 
     this.resolvedPolicies.data.sort((a, b) => {
       if (a.category == null) {
@@ -115,21 +117,8 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('policies', JSON.stringify(this.resolvedPolicies.data));
     this.studio.setAttribute('flowSchema', JSON.stringify(this.resolvedFlowSchema.data));
     this.studio.setAttribute('configurationSchema', JSON.stringify(this.resolvedConfigurationSchema.data));
-    this.studio.setAttribute('configurationInformation', 'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.');
+    this.studio.setAttribute('configurationInformation', configurationInformation);
     this.studio.setAttribute('property-providers', JSON.stringify(propertyProviders));
-    this.studio.setAttribute('flows-title', 'API Flows');
-    this.studio.setAttribute('has-properties', 'true');
-    this.studio.setAttribute('has-resources', 'true');
-    this.studio.setAttribute('has-policy-filter', 'true');
-    this.studio.setAttribute('sortable', 'true');
-    this.studio.setAttribute('can-add', 'true');
-    this.studio.setAttribute('has-plans', 'true');
-    this.studio.addEventListener('gv-policy-studio:save', this.onSave.bind(this));
-    this.studio.addEventListener('gv-policy-studio:select-flows', this.onSelectFlows.bind(this));
-    this.studio.addEventListener('gv-policy-studio:change-tab', this.onChangeTab.bind(this));
-    this.studio.addEventListener('gv-policy-studio:fetch-documentation', this.fetchPolicyDocumentation.bind(this));
-    this.studio.addEventListener('gv-resources:fetch-documentation', this.fetchResourceDocumentation.bind(this));
-    this.studio.addEventListener('gv-expression-language:ready', this.fetchSpelGrammar.bind(this));
   }
 
   setApi(api) {
@@ -151,12 +140,10 @@ class ApiPolicyStudioController {
 
   onChangeTab({detail}) {
     this.$location.hash(detail);
-    this.$rootScope.$digest();
   }
 
   onSelectFlows({detail: {flows}}) {
     this.$location.search('flows', flows);
-    this.$rootScope.$digest();
   }
 
   fetchPolicyDocumentation({detail}) {
@@ -177,7 +164,7 @@ class ApiPolicyStudioController {
       .catch(() => target.documentation = null);
   }
 
-  fetchSpelGrammar({ detail }) {
+  fetchSpelGrammar({detail}) {
     this.SpelService.getGrammar().then((response) => {
       detail.currentTarget.grammar = response.data;
     });

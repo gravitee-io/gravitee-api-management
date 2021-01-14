@@ -681,3 +681,30 @@ md-progress-circular {
 .gv-tooltip-5 {
   grid-template-columns: repeat(5, 1fr);
 }
+
+.gv-diff-added {
+  background-color: #e6ffed;
+}
+
+.gv-diff-added:before {
+  content: ' + ';
+  position: absolute;
+  left: -8px;
+  background-color: #e6ffed;
+}
+
+.gv-diff-removed {
+  background-color: #ffeef0;
+}
+
+.gv-diff-removed:before {
+  content: ' - ';
+  position: absolute;
+  left: -8px;
+  background-color: #ffeef0;
+}
+
+
+.gv-diff-no-changes {
+  color: grey;
+}

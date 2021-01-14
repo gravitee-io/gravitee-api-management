@@ -13,18 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// tslint:disable-next-line:no-var-requires
+const copy = require('clipboard-copy');
+// tslint:disable-next-line:no-var-requires
+const JsDiff = require('diff/dist/diff.min.js');
+import '@gravitee/ui-components/wc/gv-policy-studio';
+import '@gravitee/ui-components/wc/gv-switch';
+import '@gravitee/ui-components/wc/gv-popover';
 import * as _ from 'lodash';
 import * as angular from 'angular';
 import { StateService } from '@uirouter/core';
+import { propertyProviders, configurationInformation } from '../../design/policy-studio/policy-studio.controller';
+
+enum Modes {
+  Diff = 'Diff',
+  DiffWithMaster = 'DiffWithMaster',
+  Payload = 'Payload',
+  Design = 'Design',
+}
 
 class ApiHistoryController {
+  public modes = Modes;
+  public modeOptions: any;
+  private studio: any;
+  private mode: string;
   private api: any;
   private events: any;
   private eventsSelected: any;
   private eventsTimeline: any;
   private eventsToCompare: any;
   private eventSelected: any;
-  private diffMode: boolean;
   private eventToCompareRequired: boolean;
   private eventTypes: string;
   private apisSelected: any;
@@ -32,8 +50,10 @@ class ApiHistoryController {
   private eventSelectedPayload: any;
   private right: any;
   private left: any;
+  private added: number;
+  private removed: number;
 
-  constructor (
+  constructor(
     private $mdDialog: ng.material.IDialogService,
     private $scope: any,
     private $rootScope: ng.IRootScopeService,
@@ -41,7 +61,9 @@ class ApiHistoryController {
     private ApiService,
     private NotificationService,
     private resolvedEvents,
-    private $timeout
+    private PolicyService,
+    private ResourceService,
+    private FlowService,
   ) {
     'ngInject';
     this.api = JSON.parse(angular.toJson(_.cloneDeep(this.$scope.$parent.apiCtrl.api)));
@@ -50,50 +72,74 @@ class ApiHistoryController {
     this.eventsTimeline = [];
     this.eventsToCompare = [];
     this.eventSelected = {};
-    this.diffMode = false;
+    this.mode = this.hasDesign() ? Modes.Design : Modes.Payload;
     this.eventToCompareRequired = false;
     this.eventTypes = 'PUBLISH_API';
+    this.modeOptions = [{title: Modes.Design, id: Modes.Design}, {title: Modes.Payload, id: Modes.Payload}];
+  }
 
-    this.cleanAPI(this.api);
+  $onInit() {
+    this.studio = document.querySelector('gv-policy-studio');
+    if (this.hasDesign()) {
+      Promise.all([
+        this.PolicyService.list(true, true),
+        this.ResourceService.list(true, true),
+        this.FlowService.getSchema(),
+        this.ApiService.getConfigurationSchema(),
+      ]).then(([policies, resources, flowSchema, configurationSchema]) => {
+        this.studio.policies = policies.data;
+        this.studio.resourceTypes = resources.data;
+        this.studio.flowSchema = flowSchema.data;
+        this.studio.configurationSchema = configurationSchema.data;
+        this.studio.configurationInformation = configurationInformation;
+        this.studio.propertyProviders = propertyProviders;
+      });
+    }
     this.init();
     this.initTimeline(this.events);
   }
 
   init() {
-    var self = this;
-    this.$scope.$parent.apiCtrl.checkAPISynchronization(self.api);
-    this.$scope.$on('apiChangeSuccess', function(event, args) {
-      if (self.$state.current.name.endsWith('history')) {
+    this.$scope.$parent.apiCtrl.checkAPISynchronization(this.api);
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      if (this.$state.current.name.endsWith('history')) {
         // reload API
-        self.api = JSON.parse(angular.toJson(_.cloneDeep(_.cloneDeep(args.api))));
-        self.cleanAPI(self.api);
+        this.api = JSON.parse(angular.toJson(_.cloneDeep(args.api)));
         // reload API events
-        self.ApiService.getApiEvents(self.api.id, self.eventTypes).then(response => {
-          self.events = response.data;
-          self.reloadEventsTimeline(self.events);
+        this.ApiService.getApiEvents(this.api.id, this.eventTypes).then(response => {
+          this.events = response.data;
+          this.reloadEventsTimeline(this.events);
         });
       }
     });
-    this.$scope.$on('checkAPISynchronizationSucceed', function() {
-      self.reloadEventsTimeline(self.events);
+    this.$scope.$on('checkAPISynchronizationSucceed', () => {
+      this.reloadEventsTimeline(this.events);
     });
   }
 
+  setEventToStudio(eventTimeline, api) {
+    this.studio.definition = {
+      'version': api.version,
+      'flows': api.flows != null ? api.flows : [],
+      'resources': api.resources,
+      'plans': api.plans != null ? api.plans : [],
+      'properties': api.properties,
+      'flow-mode': api.flow_mode
+    };
+    this.studio.services = api.services;
+  }
+
   initTimeline(events) {
-    var self = this;
-    _.forEach(events, function(event) {
-      var eventTimeline = {
-        event: event,
-        badgeClass: 'info',
-        badgeIconClass: 'glyphicon-check',
-        title: event.type,
-        when: event.created_at,
-        user: event.user,
-        deploymentLabel: event.properties.deployment_label,
-        deploymentNumber: event.properties.deployment_number
-      };
-      self.eventsTimeline.push(eventTimeline);
-    });
+    this.eventsTimeline = events.map((event) => ({
+      event: event,
+      badgeClass: 'info',
+      badgeIconClass: 'glyphicon-check',
+      title: event.type,
+      when: event.created_at,
+      user: event.user,
+      deploymentLabel: event.properties.deployment_label,
+      deploymentNumber: event.properties.deployment_number
+    }));
   }
 
   selectEvent(_eventTimeline) {
@@ -101,28 +147,23 @@ class ApiHistoryController {
       this.diff(_eventTimeline);
       this.selectEventToCompare(_eventTimeline);
     } else {
-      this.diffMode = false;
+      this.mode = this.hasDesign() ? Modes.Design : Modes.Payload;
       this.apisSelected = [];
       this.eventsSelected = [];
       this.clearDataToCompare();
 
-      var idx = this.eventsSelected.indexOf(_eventTimeline);
+      const idx = this.eventsSelected.indexOf(_eventTimeline);
       if (idx > -1) {
         this.eventsSelected.splice(idx, 1);
       } else {
         this.eventsSelected.push(_eventTimeline);
       }
-
       if (this.eventsSelected.length > 0) {
-        var eventSelected = this.eventsSelected[0];
-        if (eventSelected.isCurrentAPI) {
-          this.eventSelectedPayloadDefinition = eventSelected.event;
-        } else {
-          this.eventSelectedPayload = JSON.parse(eventSelected.event.payload);
-          this.eventSelectedPayloadDefinition = this.reorganizeEvent(this.eventSelectedPayload);
-        }
+        const eventSelected = this.eventsSelected[0];
+        this.eventSelectedPayload = JSON.parse(eventSelected.event.payload);
+        this.eventSelectedPayloadDefinition = this.reorganizeEvent(this.eventSelectedPayload);
 
-        this.cleanAPI(this.eventSelectedPayloadDefinition);
+        this.setEventToStudio(_eventTimeline, this.eventSelectedPayloadDefinition);
       }
     }
   }
@@ -144,18 +185,51 @@ class ApiHistoryController {
   }
 
   diffWithMaster() {
-    this.clearDataToCompare();
-    this.diffMode = true;
-    var latestEvent = this.events[0];
-    if (this.eventsSelected.length > 0) {
-      if (this.eventsSelected[0].isCurrentAPI) {
-        this.right = this.eventsSelected[0].event;
-        this.left = this.reorganizeEvent(JSON.parse(latestEvent.payload));
-      } else {
-        this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
-        this.right = this.reorganizeEvent(JSON.parse(latestEvent.payload));
+    if (this.mode === Modes.DiffWithMaster) {
+      this.mode = null;
+      this.mode = Modes.Payload;
+      this.clearDataToCompare();
+    } else {
+      this.mode = null;
+      this.mode = Modes.DiffWithMaster;
+      this.eventToCompareRequired = false;
+      this.clearDataToCompare();
+      const latestEvent = this.events[0];
+      if (this.eventsSelected.length > 0) {
+        if (this.eventsSelected[0].isCurrentAPI) {
+          this.right = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
+          this.left = this.reorganizeEvent(JSON.parse(latestEvent.payload));
+        } else {
+          this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
+          this.right = this.reorganizeEvent(JSON.parse(latestEvent.payload));
+        }
+        this.updateDiffStats();
       }
     }
+  }
+
+  computeLines(part) {
+    if (part && part.value) {
+      return part.value.split('\n').length - 1;
+    }
+    return 0;
+  }
+
+  updateDiffStats() {
+    this.added = 0;
+    this.removed = 0;
+    const diff = JsDiff.diffJson(this.left, this.right);
+    diff.forEach((part) => {
+      if (part.added) {
+        this.added += this.computeLines(part);
+      } else if (part.removed) {
+        this.removed += this.computeLines(part);
+      }
+    });
+  }
+
+  hasDiff() {
+    return this.mode === this.modes.Diff || this.mode === this.modes.DiffWithMaster;
   }
 
   enableDiff() {
@@ -167,22 +241,39 @@ class ApiHistoryController {
     this.eventToCompareRequired = false;
   }
 
+  hasDesign() {
+    return this.api != null && this.api.gravitee != null && this.api.gravitee === '2.0.0';
+  }
+
+  copyToClipboard(event) {
+    copy(JSON.stringify(this.eventSelectedPayloadDefinition, null, 2));
+    const clipboardIcon = event.target.icon;
+    event.target.icon = 'communication:clipboard-check';
+    setTimeout(() => {
+      event.target.icon = clipboardIcon;
+    }, 1000);
+  }
+
+  toggleMode({detail}) {
+    if (detail === false) {
+      this.clearDataToCompare();
+      this.eventToCompareRequired = false;
+      this.mode = Modes.Design;
+    } else {
+      this.mode = Modes.Payload;
+    }
+  }
+
   diff(eventTimeline) {
-    this.diffMode = true;
+    this.mode = Modes.Diff;
     if (this.eventsSelected.length > 0) {
       if (eventTimeline.isCurrentAPI) {
         this.left = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
-        this.right = eventTimeline.event;
+        this.right = this.reorganizeEvent(JSON.parse(eventTimeline.event.payload));
       } else {
-        var eventSelected = {};
-        var event1UpdatedAt = eventTimeline.event.updated_at;
-        var event2UpdatedAt = this.eventsSelected[0].event.updated_at;
-
-        if (this.eventsSelected[0].isCurrentAPI) {
-          eventSelected = this.eventsSelected[0].event;
-        } else {
-          eventSelected = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
-        }
+        const event1UpdatedAt = eventTimeline.event.updated_at;
+        const event2UpdatedAt = this.eventsSelected[0].event.updated_at;
+        const eventSelected = this.reorganizeEvent(JSON.parse(this.eventsSelected[0].event.payload));
 
         if (event1UpdatedAt > event2UpdatedAt) {
           this.left = eventSelected;
@@ -192,6 +283,7 @@ class ApiHistoryController {
           this.right = eventSelected;
         }
       }
+      this.updateDiffStats();
     }
     this.disableDiff();
   }
@@ -209,10 +301,10 @@ class ApiHistoryController {
 
     const that = this;
 
-    that.ApiService.rollback(this.api.id, _apiDefinition).then( () => {
+    that.ApiService.rollback(this.api.id, _apiDefinition).then(() => {
       that.NotificationService.show('Api rollback !');
 
-      that.ApiService.get(that.api.id).then(function (response) {
+      that.ApiService.get(that.api.id).then(function(response) {
         that.$rootScope.$broadcast('apiChangeSuccess', {api: response.data});
       });
     });
@@ -230,37 +322,71 @@ class ApiHistoryController {
         title: 'Would you like to rollback your API?',
         confirmButton: 'Rollback'
       }
-    }).then(function (response) {
+    }).then(function(response) {
       if (response) {
         self.rollback(api);
       }
     });
   }
 
+  stringifyCurrentApi() {
+    const payload = _.cloneDeep(this.api);
+    // Because server add "/" to virtual_hosts at deploy
+    payload.proxy.virtual_hosts = payload.proxy.virtual_hosts.map((host) => {
+      if (!host.path.endsWith('/')) {
+        host.path = `${host.path}/`;
+      }
+      return host;
+    });
+
+    delete payload.deployed_at;
+    delete payload.created_at;
+    delete payload.updated_at;
+    delete payload.visibility;
+    delete payload.state;
+    delete payload.permission;
+    delete payload.owner;
+    delete payload.picture_url;
+    delete payload.categories;
+    delete payload.groups;
+    delete payload.etag;
+    delete payload.context_path;
+    delete payload.disable_membership_notifications;
+    delete payload.labels;
+    delete payload.entrypoints;
+    delete payload.lifecycle_state;
+    delete payload.path_mappings;
+    delete payload.tags;
+    delete payload.workflow_state;
+    delete payload.response_templates;
+
+    return JSON.stringify({definition: JSON.stringify(payload)});
+  }
+
   reloadEventsTimeline(events) {
     this.clearDataSelected();
-    this.eventsTimeline = [];
     this.initTimeline(events);
     if (!this.$scope.$parent.apiCtrl.apiIsSynchronized && !this.$scope.$parent.apiCtrl.apiJustDeployed) {
-      var eventTimeline = {
-          event: this.api,
-          badgeClass: 'warning',
-          badgeIconClass: 'glyphicon-refresh',
-          title: 'TO_DEPLOY',
-          isCurrentAPI: true
-        };
-      this.eventsTimeline.unshift(eventTimeline);
+      this.eventsTimeline.unshift({
+        event: {
+          payload: this.stringifyCurrentApi(),
+        },
+        badgeClass: 'warning',
+        badgeIconClass: 'glyphicon-refresh',
+        title: 'TO_DEPLOY',
+        isCurrentAPI: true
+      });
     }
+    this.selectEvent(this.eventsTimeline[0]);
   }
 
   reorganizeEvent(_event) {
     const eventPayloadDefinition = JSON.parse(_event.definition);
     const reorganizedEvent = {
-       ...eventPayloadDefinition,
-      'id': eventPayloadDefinition.id,
+      ...eventPayloadDefinition,
       'name': eventPayloadDefinition.name,
       'version': eventPayloadDefinition.version,
-      'description': _event.description,
+      'description': _event.description != null ? _event.description : eventPayloadDefinition.description,
       'tags': eventPayloadDefinition.tags,
       'proxy': eventPayloadDefinition.proxy,
       'paths': eventPayloadDefinition.paths,
@@ -271,22 +397,28 @@ class ApiHistoryController {
       'path_mappings': eventPayloadDefinition.path_mappings,
       'response_templates': eventPayloadDefinition.response_templates,
     };
+    if (reorganizedEvent.flow_mode != null) {
+      reorganizedEvent.flow_mode = reorganizedEvent.flow_mode.toLowerCase();
+    }
     return reorganizedEvent;
   }
 
-  cleanAPI(api) {
-    delete api.deployed_at;
-    delete api.created_at;
-    delete api.updated_at;
-    delete api.visibility;
-    delete api.state;
-    delete api.permission;
-    delete api.owner;
-    delete api.picture_url;
-    delete api.categories;
-    delete api.groups;
-    delete api.etag;
-    delete api.context_path;
+  fetchPolicyDocumentation({detail}) {
+    const policy = detail.policy;
+    this.PolicyService.getDocumentation(policy.id)
+      .then((response) => {
+        this.studio.documentation = {content: response.data, image: policy.icon, id: policy.id};
+      })
+      .catch(() => this.studio.documentation = null);
+  }
+
+  fetchResourceDocumentation(event) {
+    const {detail: {resourceType, target}} = event;
+    this.ResourceService.getDocumentation(resourceType.id)
+      .then((response) => {
+        target.documentation = {content: response.data, image: resourceType.icon};
+      })
+      .catch(() => target.documentation = null);
   }
 }
 

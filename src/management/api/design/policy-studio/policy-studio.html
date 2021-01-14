@@ -15,4 +15,17 @@
     limitations under the License.
 
 -->
-<gv-policy-studio></gv-policy-studio>
+<gv-policy-studio flows-title="API Flows"
+                  has-properties
+                  has-resources
+                  has-policy-filter
+                  sortable
+                  can-add
+                  has-plans
+                  ng-on-gv-policy-studio:save="apiPolicyStudioCtrl.onSave($event)"
+                  ng-on-gv-policy-studio:select-flows="apiPolicyStudioCtrl.onSelectFlows($event)"
+                  ng-on-gv-policy-studio:change-tab="apiPolicyStudioCtrl.onChangeTab($event)"
+                  ng-on-gv-expression-language:ready="apiPolicyStudioCtrl.fetchSpelGrammar($event)"
+                  ng-on-gv-policy-studio:fetch-documentation="apiPolicyStudioCtrl.fetchPolicyDocumentation($event)"
+                  ng-on-gv-resources:fetch-documentation="apiPolicyStudioCtrl.fetchResourceDocumentation($event)">
+</gv-policy-studio>

@@ -15,7 +15,7 @@
  */
 
 // tslint:disable-next-line:no-var-requires
-var JsDiff = require('diff/dist/diff.min.js');
+const JsDiff = require('diff/dist/diff.min.js');
 
 const DiffDirective: ng.IDirective = ({
   restrict: 'AE',
@@ -25,21 +25,37 @@ const DiffDirective: ng.IDirective = ({
   },
   link: (scope: any, elem) => {
     scope.$watch('oldValue', function() {
-      var oldValue = scope.oldValue;
-      var newValue = scope.newValue;
+      const oldValue = scope.oldValue;
+      const newValue = scope.newValue;
 
       if (oldValue && newValue) {
         elem.html('');
-        var diff = JsDiff.diffJson(oldValue, newValue);
+        const diff = JsDiff.diffJson(oldValue, newValue);
         diff.forEach(function(part) {
           // green for additions, red for deletions
           // grey for common parts
-          var color = part.added ? 'green' :
-            part.removed ? 'red' : 'grey';
-          var span = document.createElement('span');
-          span.style.color = color;
-          span.appendChild(document.createTextNode(part.value));
-          elem.append(span);
+
+          let classname = null;
+          if (part.added) {
+            classname = 'gv-diff-added';
+          } else if (part.removed) {
+            classname = 'gv-diff-removed';
+          } else {
+            classname = 'gv-diff-no-changes';
+          }
+          const group = document.createElement('div');
+          group.style.position = 'relative';
+          const lines = part.value.split('\n');
+          lines.pop();
+          lines.forEach((lineValue) => {
+            const line = document.createElement('div');
+            line.appendChild(document.createTextNode(lineValue));
+            line.classList.add(classname);
+            group.append(line);
+          });
+
+          elem.append(group);
+
         });
       }
     });

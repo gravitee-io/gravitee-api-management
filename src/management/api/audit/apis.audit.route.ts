@@ -63,7 +63,7 @@ function apisAuditRouterConfig($stateProvider) {
         docs: {
           page: 'management-api-history'
         }
-      }
+      },
     })
     .state('management.apis.detail.audit.events', {
       url: '/events',
