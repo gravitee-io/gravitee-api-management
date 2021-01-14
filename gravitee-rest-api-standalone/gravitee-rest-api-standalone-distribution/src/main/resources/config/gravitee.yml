@@ -300,8 +300,8 @@ email:
   subject: "[Gravitee.io] %s"
   port: 587
   from: noreply@my.domain
-  username: user@my.domain
-  password: password
+#  username: user@my.domain
+#  password: password
 #  properties:
 #    auth: true
 #    starttls.enable: true
@@ -416,8 +416,8 @@ notifiers:
     host: ${email.host}
     subject: ${email.subject}
     port: ${email.port}
-    username: ${email.username}
-    password: ${email.password}
+#    username: ${email.username}
+#    password: ${email.password}
 #    starttls.enabled: false
 #    ssl:
 #      trustAll: false

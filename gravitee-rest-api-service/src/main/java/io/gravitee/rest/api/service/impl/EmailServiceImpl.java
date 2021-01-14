@@ -83,7 +83,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 && emailNotification.getTo() != null
                 && emailNotification.getTo().length > 0) {
             try {
-                JavaMailSender mailSender = mailManager.getOrCreateMailSender();
+                JavaMailSender mailSender = mailManager.getOrCreateMailSender(referenceId, referenceType);
                 final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
 
                 String emailSubject = notificationTemplateService.resolveTemplateWithParam(emailNotification.getTemplate() + ".EMAIL.TITLE", emailNotification.getParams());

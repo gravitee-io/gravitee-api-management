@@ -66,11 +66,11 @@ public class GraviteeJavaMailManagerTest {
         assertNull(graviteeJavaMailManager.getMailSenderByReference(GraviteeContext.getCurrentContext()));
 
         // Initialize the field only when we get the mail sender for the first time.
-        JavaMailSender mailSender = graviteeJavaMailManager.getOrCreateMailSender();
+        JavaMailSender mailSender = graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
         assertNotNull(mailSender);
 
         // If we call this getter a second time, then we do not initialize anymore
-        JavaMailSender mailSender2 = graviteeJavaMailManager.getOrCreateMailSender();
+        JavaMailSender mailSender2 = graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
         assertSame(mailSender, mailSender2);
 
         verify(parameterService, times(1)).find(Key.EMAIL_HOST, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
@@ -90,7 +90,7 @@ public class GraviteeJavaMailManagerTest {
     @Test
     public void shouldSetFieldsOnEvent() {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
-        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender();
+        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
         assertNotNull(mailSender);
 
         graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_HOST, buildParameter("host")));
@@ -116,10 +116,10 @@ public class GraviteeJavaMailManagerTest {
     public void shouldNotSetFieldsOnEventWithAnotherRef() {
 
         GraviteeContext.setCurrentEnvironment("DEFAULT");
-        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender();
+        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
 
         GraviteeContext.setCurrentEnvironment("ANOTHER_ENVIRONMENT");
-        JavaMailSenderImpl otherMailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender();
+        JavaMailSenderImpl otherMailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
 
         graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_HOST, buildParameter("host", "ANOTHER_ENVIRONMENT", ParameterReferenceType.ENVIRONMENT)));
         graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_PORT, buildParameter("125", "ANOTHER_ENVIRONMENT", ParameterReferenceType.ENVIRONMENT)));
