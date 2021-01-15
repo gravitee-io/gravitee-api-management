@@ -226,7 +226,14 @@ public class HttpClient implements Client {
                 .get(URL_ROOT)
                 .rxSend()
                 .doOnError(throwable -> logger.error("Unable to get a connection to Elasticsearch: {}", throwable.getMessage()))
-                .map(response -> mapper.readValue(response.bodyAsString(), ElasticsearchInfo.class));
+                .map(response -> {
+                    if (response.statusCode() == HttpStatusCode.OK_200) {
+                        return mapper.readValue(response.bodyAsString(), ElasticsearchInfo.class);
+                    }
+
+                    throw new ElasticsearchException("Unable to retrieve Elasticsearch information: status[" +
+                            response.statusCode()+"] payload: [" + response.bodyAsString() + "]");
+                });
     }
 
     @Override
