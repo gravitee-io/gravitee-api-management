@@ -149,6 +149,8 @@ public abstract class AbstractRepositoryTest {
     protected NotificationTemplateRepository notificationTemplateRepository;
     @Inject
     protected TicketRepository ticketRepository;
+    @Inject
+    protected InstallationRepository installationRepository;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -309,6 +311,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if( object instanceof Ticket) {
             ticketRepository.create((Ticket) object);
+        }
+        else if( object instanceof Installation) {
+            installationRepository.create((Installation) object);
         }
     }
 

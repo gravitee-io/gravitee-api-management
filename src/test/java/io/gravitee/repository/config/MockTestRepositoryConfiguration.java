@@ -251,4 +251,9 @@ public class MockTestRepositoryConfiguration {
     public TicketRepositoryMock ticketRepositoryMock() {
         return new TicketRepositoryMock();
     }
+
+    @Bean
+    public InstallationRepositoryMock installationRepositoryMock() {
+        return new InstallationRepositoryMock();
+    }
 }
