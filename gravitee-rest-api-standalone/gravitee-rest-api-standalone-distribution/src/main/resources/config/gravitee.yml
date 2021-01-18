@@ -490,3 +490,8 @@ notifiers:
 # Default : 604800 seconds (7 days)
 #gateway:
 #  unknown-expire-after: 604800
+
+# Cockpit
+# Specify the URL to cockpit instance. Default is the Gravitee SAAS instance
+#cockpit:
+#  url: https://cockpit.gravitee.io

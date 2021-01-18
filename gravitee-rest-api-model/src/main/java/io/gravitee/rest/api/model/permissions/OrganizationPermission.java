@@ -28,6 +28,7 @@ public enum OrganizationPermission implements Permission {
     IDENTITY_PROVIDER_ACTIVATION    (   "IDENTITY_PROVIDER_ACTIVATION", 1500    ),
     NOTIFICATION_TEMPLATES          (   "NOTIFICATION_TEMPLATES",       1600    ),
     SETTINGS                        (   "SETTINGS",                     1700    ),
+    INSTALLATION                    (   "INSTALLATION",                 1800    ),
     ;
 
 

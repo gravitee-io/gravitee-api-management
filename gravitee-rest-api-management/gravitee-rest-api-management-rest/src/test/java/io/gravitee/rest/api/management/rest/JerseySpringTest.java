@@ -69,16 +69,21 @@ public abstract class JerseySpringTest {
     }
 
     public final WebTarget envTarget(final String path) {
-        return envTarget(path, envBaseURL);
+        return target(path, envBaseURL);
     }
 
     public final WebTarget orgTarget(final String path) {
-        return envTarget(path, orgBaseURL);
+        return target(path, orgBaseURL);
     }
 
-    private final WebTarget envTarget(final String path, final String baseURL) {
+    public final WebTarget rootTarget(final String path) {
+        return target(path, "");
+    }
+
+    private final WebTarget target(final String path, final String baseURL) {
         return _jerseyTest.target(baseURL + "/" + contextPath() + path);
     }
+
 
     @Before
     public void setup() throws Exception {
