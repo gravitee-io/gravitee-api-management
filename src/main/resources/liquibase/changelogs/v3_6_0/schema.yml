@@ -26,3 +26,17 @@ databaseChangeLog:
             constraintName: pk_environment_hrids
             columnNames: environment_id, hrid
             tableName: environment_hrids
+
+        - createTable:
+            tableName: installation
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+        - createTable:
+            tableName: installation_informations
+            columns:
+              - column: { name: installation_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: information_key, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: information_value, type: nvarchar(256), constraints: { nullable: true } }

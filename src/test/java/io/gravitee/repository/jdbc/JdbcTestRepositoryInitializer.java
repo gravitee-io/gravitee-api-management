@@ -77,6 +77,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "group_event_rules",
             "identity_providers",
             "identity_provider_activations",
+            "installation",
+            "installation_informations",
             "memberships",
             "metadata",
             "media",
