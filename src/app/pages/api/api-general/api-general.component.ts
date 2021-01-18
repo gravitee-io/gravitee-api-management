@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 import { Component, HostListener, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, PRIMARY_OUTLET, Router } from '@angular/router';
+import { ActivatedRoute, Params, PRIMARY_OUTLET, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import {
   Api,
   ApiInformation,
-  ApiService,
+  ApiService, ApplicationService, FilterApiQuery,
   GetApiRatingsByApiIdRequestParams,
   Link,
   Page,
   PermissionsResponse,
   PermissionsService,
+  PortalService,
   Rating,
   Subscription,
   User
@@ -43,6 +45,7 @@ import { ConfigurationService } from '../../../services/configuration.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ScrollService } from '../../../services/scroll.service';
+import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import StatusEnum = Subscription.StatusEnum;
 
 @Component({
@@ -74,6 +77,7 @@ export class ApiGeneralComponent implements OnInit {
   apiHomepageLoaded: boolean;
   hasRatingFeature: boolean;
   apiInformations: Array<ApiInformation>;
+  backButton: { url?: string, label?: string, queryParams?: Params };
 
   constructor(
     private apiService: ApiService,
@@ -86,10 +90,14 @@ export class ApiGeneralComponent implements OnInit {
     private configService: ConfigurationService,
     private formBuilder: FormBuilder,
     private scrollService: ScrollService,
+    private location: Location,
+    private portalService: PortalService,
+    private applicationService: ApplicationService,
   ) {
     this.ratingListPermissions = {
       update: [], delete: false, addAnswer: false, deleteAnswer: false
     };
+    this.backButton = {};
   }
 
   ngOnInit() {
@@ -153,7 +161,7 @@ export class ApiGeneralComponent implements OnInit {
         }
 
         this.description = this.currentApi.description;
-
+        this.computeBackButton();
         return this.currentApi;
       }
     });
@@ -385,8 +393,69 @@ export class ApiGeneralComponent implements OnInit {
     this._updateRatings();
   }
 
-  @HostListener(':gv-button:click', ['$event.srcElement.dataset.pageId'])
+  @HostListener(':app-gv-page-markdown:navigate', ['$event.detail.pageId'])
   onInternalLinkClick(pageId: string) {
     this.router.navigate(['/catalog/api/' + this.currentApi.id + '/doc'], { queryParams: { page: pageId } });
   }
+
+  goBack() {
+    this.router.navigate([this.backButton.url], { queryParams: this.backButton.queryParams });
+  }
+
+  private async computeBackButton() {
+    let label;
+    let url;
+    let queryParams;
+    const queryParamMap = this.route.snapshot.queryParamMap;
+    if (queryParamMap.has(SearchQueryParam.QUERY)) {
+      label = await this.translateService
+        .get(i18n('apiGeneral.backToSearch'))
+        .toPromise();
+      url = '/catalog/search';
+      queryParams = this.route.snapshot.queryParams;
+    } else if (queryParamMap.has(SearchQueryParam.CATEGORY)) {
+      const categoryId = queryParamMap.get(SearchQueryParam.CATEGORY);
+      try {
+        const category = await this.portalService.getCategoryByCategoryId({ categoryId }).toPromise();
+        label = await this.translateService
+          .get(i18n('apiGeneral.backToCategory'), { name: category.name })
+          .toPromise();
+        url = `/catalog/categories/${categoryId}`;
+      } catch (err) {
+        if (err && err.interceptorFuture) {
+          err.interceptorFuture.cancel();
+        }
+      }
+    } else if (queryParamMap.has(SearchQueryParam.APPLICATION)) {
+      const applicationId = queryParamMap.get(SearchQueryParam.APPLICATION);
+      try {
+        const application = await this.applicationService.getApplicationByApplicationId({ applicationId }).toPromise();
+        label = await this.translateService
+          .get(i18n('apiGeneral.backToApplication'), { name: application.name })
+          .toPromise();
+        url = `/applications/${applicationId}`;
+      } catch (err) {
+        if (err && err.interceptorFuture) {
+          err.interceptorFuture.cancel();
+        }
+      }
+    } else if (queryParamMap.has(SearchQueryParam.API_QUERY)) {
+      const apiQuery = queryParamMap.get(SearchQueryParam.API_QUERY) as FilterApiQuery;
+      if (Object.values(FilterApiQuery).includes(apiQuery)) {
+        label = await this.translateService
+          .get(i18n('apiGeneral.backToCatalog'))
+          .toPromise();
+        url = `/catalog/${apiQuery.toLowerCase()}`;
+      }
+    }
+
+    this.backButton = { label, url, queryParams };
+
+  }
+
+  @HostListener(':gv-list:click', ['$event.detail'])
+  onGvListClick(detail: any) {
+    this.router.navigate([`/applications/${detail.item.id}`]);
+  }
+
 }

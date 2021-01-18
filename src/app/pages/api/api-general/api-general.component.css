@@ -16,10 +16,6 @@
 
 @import '../../../../css/form.css';
 
-.page__box-homepage {
-  margin-bottom: 84px;
-}
-
 .rating-form {
   --gv-rating--s: 26px;
 }

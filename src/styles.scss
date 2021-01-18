@@ -87,6 +87,12 @@ $font-prefix: '~@ibm/plex';
   margin: 42px 0;
 }
 
+.page__content-back-button {
+  margin: 0.2rem 0;
+  position: absolute;
+  top: -30px;
+}
+
 .page__box {
   background-color: var(--gv-theme-neutral-color-lightest);
   border-radius: 4px;
@@ -97,6 +103,7 @@ $font-prefix: '~@ibm/plex';
 
 .main {
   flex: 1;
+  position: relative;
 }
 
 .main .page__box {

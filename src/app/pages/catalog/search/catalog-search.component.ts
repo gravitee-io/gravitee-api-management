@@ -120,7 +120,7 @@ export class CatalogSearchComponent implements OnInit {
 
   goToApi(api: Promise<Api>) {
     api.then((_api) => {
-      this.router.navigate(['/catalog/api/' + _api.id]);
+      this.router.navigate(['/catalog/api/' + _api.id], { queryParamsHandling: 'merge' });
     });
   }
 }

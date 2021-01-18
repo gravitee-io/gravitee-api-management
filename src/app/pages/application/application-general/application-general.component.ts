@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-relative-time';
 import '@gravitee/ui-components/wc/gv-rating-list';
@@ -32,8 +32,10 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { GvHeaderItemComponent } from '../../../components/gv-header-item/gv-header-item.component';
+import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
+import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import StatusEnum = Subscription.StatusEnum;
 
 @Component({
@@ -248,4 +250,12 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   toLocaleDateString(date: string) {
     return new Date(date).toLocaleDateString(this.translateService.currentLang);
   }
+
+  @HostListener(':gv-list:click', ['$event.detail'])
+  onGvListClick(detail: any) {
+    const queryParams = {};
+    queryParams[SearchQueryParam.APPLICATION] = this.application.id;
+    this.router.navigate([`/catalog/api/${detail.item.id}`], { queryParams });
+  }
+
 }

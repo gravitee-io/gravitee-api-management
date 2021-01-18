@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { Event } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({

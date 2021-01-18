@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse,
-  HttpResponse, HttpResponseBase } from '@angular/common/http';
+import {
+  HttpInterceptor,
+  HttpRequest,
+  HttpHandler,
+  HttpEvent,
+  HttpErrorResponse,
+  HttpResponse,
+  HttpResponseBase
+} from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -28,6 +35,27 @@ import { ReCaptchaService } from '../services/recaptcha.service';
 
 export const SILENT_CODES = ['errors.rating.disabled', 'errors.analytics.calculate', 'errors.identityProvider.notFound'];
 export const SILENT_URLS = ['/user/notifications'];
+
+export class Future {
+
+  private timeouts = [];
+  private delay: number;
+
+  constructor(delay = 0) {
+    this.delay = delay;
+  }
+
+  push(fn) {
+    this.timeouts.push(setTimeout(() => fn(), this.delay));
+  }
+
+  cancel() {
+    this.timeouts.forEach((timeout) => clearTimeout(timeout));
+    this.timeouts = [];
+  }
+
+}
+
 
 @Injectable()
 export class ApiRequestInterceptor implements HttpInterceptor {
@@ -48,8 +76,8 @@ export class ApiRequestInterceptor implements HttpInterceptor {
     request = request.clone({
       setHeaders: {
         'X-Requested-With': 'XMLHttpRequest',
-        'X-Xsrf-Token': [ this.xsrfToken ],
-        'X-Recaptcha-Token': [ this.reCaptchaService.getCurrentToken() ]
+        'X-Xsrf-Token': [this.xsrfToken],
+        'X-Recaptcha-Token': [this.reCaptchaService.getCurrentToken()]
       },
       withCredentials: true
     });
@@ -68,6 +96,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
         }
       },
       (err: any) => {
+        const interceptorFuture = new Future();
         const silentCall = SILENT_URLS.find(silentUrl => err.url.includes(silentUrl));
         if (err instanceof HttpErrorResponse) {
           this.saveXsrfToken(err);
@@ -81,14 +110,14 @@ export class ApiRequestInterceptor implements HttpInterceptor {
           } else if (err.status === 404) {
             const error = err.error.errors[0];
             if (!SILENT_CODES.includes(error.code) && !silentCall) {
-              this.router.navigate(['/404']);
+              interceptorFuture.push(() => this.router.navigate(['/404']));
             }
           }
 
           if (err.error && err.error.errors) {
             const error = err.error.errors[0];
             if (!SILENT_CODES.includes(error.code) && !silentCall) {
-              this.notificationService.error(error.code, error.parameters, error.message);
+              interceptorFuture.push(() => this.notificationService.error(error.code, error.parameters, error.message));
             }
 
             if (error.status === '503') {
@@ -97,6 +126,10 @@ export class ApiRequestInterceptor implements HttpInterceptor {
             }
           }
         }
+        if (interceptorFuture) {
+          err.interceptorFuture = interceptorFuture;
+        }
+
       }
     ));
   }
@@ -105,7 +138,7 @@ export class ApiRequestInterceptor implements HttpInterceptor {
 
     const xsrfTokenHeader = response.headers.get('X-Xsrf-Token');
 
-    if(xsrfTokenHeader !== null) {
+    if (xsrfTokenHeader !== null) {
       this.xsrfToken = xsrfTokenHeader;
     }
   }

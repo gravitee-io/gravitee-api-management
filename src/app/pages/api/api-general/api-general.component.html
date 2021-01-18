@@ -16,8 +16,15 @@
 
 -->
 <div *ngIf="currentApi" class="page__content page__content-with-aside">
+
   <div class="main">
 
+    <gv-button link icon="navigation:angle-left"
+               class="page__content-back-button"
+               *ngIf="this.backButton.label != null"
+               (:gv-button:click)="goBack()">
+      {{ backButton.label }}
+    </gv-button>
     <div *ngIf="description && !apiHomepage" class="page__box">
 
       <div class="page__box-title">
@@ -30,7 +37,7 @@
 
     </div>
 
-    <app-gv-page *ngIf="apiHomepage" [page]="apiHomepage" class="page__box page__box-homepage" (loaded)="apiHomepageLoaded = true"></app-gv-page>
+    <app-gv-page *ngIf="apiHomepage" [page]="apiHomepage" class="page__box" (loaded)="apiHomepageLoaded = true"></app-gv-page>
 
     <div *ngIf="canRate" class="page__box">
 

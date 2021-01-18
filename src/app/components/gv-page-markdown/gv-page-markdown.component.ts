@@ -21,6 +21,7 @@ import { PageService } from 'src/app/services/page.service';
 import { Router } from '@angular/router';
 import { ScrollService } from 'src/app/services/scroll.service';
 import '@gravitee/ui-components/wc/gv-button';
+import { dispatchCustomEvent } from '@gravitee/ui-components/src/lib/events';
 
 @Component({
   selector: 'app-gv-page-markdown',
@@ -42,6 +43,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     private pageService: PageService,
     private router: Router,
     private scrollService: ScrollService,
+    private elementRef: ElementRef,
   ) {
   }
 
@@ -67,13 +69,13 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     return {
       image(href, title, text) {
         // is it a portal media ?
-        let parsedURL = /.*\/environments\/([A-Za-z0-9-]*)\/portal\/media\/([A-Za-z0-9]*).*/g.exec(href)
+        let parsedURL = /.*\/environments\/([A-Za-z0-9-]*)\/portal\/media\/([A-Za-z0-9]*).*/g.exec(href);
         if (parsedURL) {
           const portalHref = `/portal/environments/${parsedURL[1]}/media/${parsedURL[2]}`;
           return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
         } else {
           // is it a API media ?
-          parsedURL = /\/management\/organizations\/[A-Za-z0-9-]*\/environments\/([A-Za-z0-9-]*)\/apis\/.*/g.exec(href)
+          parsedURL = /\/management\/organizations\/[A-Za-z0-9-]*\/environments\/([A-Za-z0-9-]*)\/apis\/.*/g.exec(href);
           if (parsedURL) {
             const portalHref = href.replace(/\/management\/organizations\/[A-Za-z0-9-]*/g, '/portal');
             return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
@@ -82,7 +84,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         return defaultRenderer.image(href, title, text);
       },
 
-      link( href, title, text ) {
+      link(href, title, text) {
         // is it a portal page URL ?
         let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
         if (!parsedURL) {
@@ -156,10 +158,14 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     window.open(link, '_blank');
   }
 
-  @HostListener(':gv-button:click', ['$event.srcElement.href'])
-  onAnchorClick(anchor: string) {
-    if (anchor) {
-      this.scrollService.scrollToAnchor(anchor);
+
+  @HostListener(':gv-button:click', ['$event.target'])
+  onButtonClick(btn) {
+    if (btn.href != null) {
+      this.scrollService.scrollToAnchor(btn.href);
+    } else if (btn.dataset != null && btn.dataset.pageId) {
+      dispatchCustomEvent(this.elementRef.nativeElement, 'navigate', { pageId: btn.dataset.pageId })
     }
   }
+
 }

@@ -529,4 +529,10 @@ export class ApiSubscribeComponent implements OnInit {
   goToExtern(url: string) {
     window.open(url, '_blank');
   }
+
+  @HostListener(':gv-list:click', ['$event.detail'])
+  onGvListClick(detail: any) {
+    this.router.navigate([`/applications/${detail.item.id}`]);
+  }
+
 }

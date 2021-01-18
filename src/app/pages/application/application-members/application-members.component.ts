@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import {
   Application,
   ApplicationService,
@@ -43,6 +43,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from 'src/app/services/current-user.service';
+import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import StatusEnum = Subscription.StatusEnum;
 
 @Component({
@@ -364,4 +365,12 @@ export class ApplicationMembersComponent implements OnInit {
   toLocaleDateString(date: string) {
     return new Date(date).toLocaleDateString(this.translateService.currentLang);
   }
+
+  @HostListener(':gv-list:click', ['$event.detail'])
+  onGvListClick(detail: any) {
+    const queryParams = {};
+    queryParams[SearchQueryParam.APPLICATION] = this.application.id;
+    this.router.navigate([`/catalog/api/${detail.item.id}`], { queryParams });
+  }
+
 }

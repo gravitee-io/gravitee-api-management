@@ -57,7 +57,6 @@ import { GvMenuRightSlotDirective } from './directives/gv-menu-right-slot.direct
 import { GvSlot } from './directives/gv-slot';
 import { GoogleAnalyticsService } from './services/google-analytics.service';
 import { EventService, GvEvent } from './services/event.service';
-import { ItemResourceTypeEnum } from './model/itemResourceType.enum';
 import { PreviewService } from './services/preview.service';
 
 @Component({
@@ -460,12 +459,4 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     return this.configurationService.hasFeature(FeatureEnum.forceLogin);
   }
 
-  @HostListener(':gv-list:click', ['$event.detail'])
-  onGvListClick(detail: any) {
-    if (detail.type === ItemResourceTypeEnum.API) {
-      this.goTo(`/catalog/api/${detail.item.id}`);
-    } else if (detail.type === ItemResourceTypeEnum.APPLICATION) {
-      this.goTo(`/applications/${detail.item.id}`);
-    }
-  }
 }

@@ -33,6 +33,10 @@
     "version": "Version"
   },
   "apiGeneral": {
+    "backToApplication": "Back to the application \"{name}\"",
+    "backToCatalog": "Back to catalog",
+    "backToCategory": "Back to category \"{name}\"",
+    "backToSearch": "Back to search results",
     "description": "Description",
     "giveRating": "Share your review",
     "rate": "Rate",

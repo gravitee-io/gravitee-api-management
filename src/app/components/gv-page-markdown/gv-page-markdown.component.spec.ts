@@ -77,17 +77,17 @@ describe('GvPageMarkdownComponent', () => {
     expect(renderer).toEqual('<gv-button link href=\"#anchor\"></gv-button>');
   });
 
-  it('should call onAnchorClick when click to gv-button[href]', () => {
+  it('should call onButtonClick when click to gv-button[href]', () => {
     const anchor = '#anchor';
-    component.onAnchorClick = jest.fn();
+    component.onButtonClick = jest.fn();
 
     const button = document.createElement('gv-button');
     button.setAttribute('href', anchor);
     spectator.element.appendChild(button);
     button.click();
 
-    expect(component.onAnchorClick).toBeCalledTimes(1);
-    expect(component.onAnchorClick).toBeCalledWith(anchor);
+    expect(component.onButtonClick).toBeCalledTimes(1);
+    expect(component.onButtonClick).toBeCalledWith(button);
   });
 
 });

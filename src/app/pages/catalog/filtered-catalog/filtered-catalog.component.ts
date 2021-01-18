@@ -246,7 +246,7 @@ export class FilteredCatalogComponent implements OnInit {
   private _getCategories(allPage) {
     return [].concat(...new Set([].concat(...allPage.map((api) => {
       return api.categories;
-    }))).values()).sort((a: string, b:string) => a.localeCompare(b));
+    }))).values()).sort((a: string, b: string) => a.localeCompare(b));
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
@@ -319,6 +319,7 @@ export class FilteredCatalogComponent implements OnInit {
   get canFilter() {
     return !this.inCategory() && this.hasCategoryMode() && this.categories && this.categories.length > 0;
   }
+
   toggleDocumentationPage($event: any) {
     $event.target.closest('.catalog__category__documentation').classList.toggle('hidden');
   }
@@ -326,7 +327,13 @@ export class FilteredCatalogComponent implements OnInit {
   @HostListener(':gv-card-full:click', ['$event.detail'])
   goToApi(api: Promise<Api>) {
     Promise.resolve(api).then((_api) => {
-      this.router.navigate(['/catalog/api/' + _api.id]);
+      const queryParams = {};
+      if (this.inCategory()) {
+        queryParams[SearchQueryParam.CATEGORY] = this.category.id;
+      } else {
+        queryParams[SearchQueryParam.API_QUERY] = this.filterApiQuery;
+      }
+      this.router.navigate(['/catalog/api/' + _api.id], { queryParams });
     });
   }
 

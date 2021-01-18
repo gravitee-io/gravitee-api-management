@@ -33,6 +33,10 @@
     "version": "Verze"
   },
   "apiGeneral": {
+    "backToApplication": "Zpět na aplikaci „{name}“",
+    "backToCatalog": "Zpět do katalogu",
+    "backToCategory": "Zpět na kategorii \"{name}“",
+    "backToSearch": "Zpět na výsledky hledání",
     "description": "Popis",
     "giveRating": "Vyjádřete svůj názor",
     "rate": "Poznámka",

@@ -21,6 +21,9 @@ export enum SearchQueryParam {
   QUERY = 'q',
   FIELD = 'field',
   ORDER = 'order',
+  CATEGORY = 'c',
+  APPLICATION = 'app',
+  API_QUERY = 'aq',
 }
 
 export class SearchRequestParams implements SearchApisRequestParams {
