@@ -653,6 +653,7 @@
       "general_conditions_accept": "Le plan {plan} requiert l'acceptation des conditions générales.",
       "general_conditions_status": "Le plan {plan} référence une page de conditions générales non publiée.",
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
+      "otherOAuth2OrJWTSubscribed": "Un autre plan OAuth2 ou JWT est déjà souscrit par la même application",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
     },
     "server": {

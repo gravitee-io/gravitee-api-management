@@ -653,6 +653,7 @@
       "general_conditions_accept": "Plán {plan} vyžadoval přijetí obecných podmínek.",
       "general_conditions_status": "Plan {plan} odkazuje na nezveřejněnou stránku jako obecné podmínky.",
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
+      "otherOAuth2OrJWTSubscribed": "Další plán OAuth2 nebo JWT je již předplacen stejnou aplikací",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
     },
     "server": {
