@@ -1,0 +1,1013 @@
+{
+  "analytics": {
+    "empty": "Geen resultaat om weer te geven",
+    "timeframes": {
+      "day": "Dag",
+      "days": "dagen",
+      "hour": "Uur",
+      "hours": "uren",
+      "minutes": "Minuten"
+    }
+  },
+  "api": {
+    "createdAt": "Aangemaakt op",
+    "deployedAt": "Gedeployd op",
+    "description": "Beschrijving",
+    "endpoint": "Endpoint",
+    "information": {
+      "about": "Info",
+      "beFirstToRate": "Wees de eerste met een beoordeling",
+      "categories": "Categorieën",
+      "entrypoints": "Access URL",
+      "labels": "Tags",
+      "metrics": "Statistieken",
+      "ratings": "Scores",
+      "resources": "Verbruik"
+    },
+    "list": {
+      "connectedApps": "Geconnecteerde applicaties"
+    },
+    "name": "Naam",
+    "owner": "Eigenaar",
+    "publishedAt": "Gepubliceerd op",
+    "version": "Versie"
+  },
+  "apiGeneral": {
+    "description": "Beschrijving",
+    "giveRating": "Deel je mening",
+    "rate": "Beoordeel",
+    "rateComment": "Leg ons uit waarom",
+    "rateTitle": "Zou je deze API aanbevelen?",
+    "rateTitlePlaceholder": "In één woord",
+    "ratingAnswerCreated": "Je antwoord is verstuurd",
+    "ratingAnswerDeleted": "Je antwoord is verwijderd",
+    "ratingCreated": "Je beoordeling is verstuurd",
+    "ratingDeleted": "Je beoordeling is verwijderd",
+    "ratingUpdated": "Bedankt voor je beoordeling",
+    "ratingsSortOptions": {
+      "answers": "Meest gereageerd",
+      "best": "Meeste sterren",
+      "newest": "Nieuwste",
+      "oldest": "Oudste",
+      "worst": "Minste sterren"
+    },
+    "showMore": "Toon meer",
+    "userRatings": "Beoordelingen"
+  },
+  "apiSubscribe": {
+    "apps": {
+      "chooseApp": "Kies een applicatie",
+      "comment": "Geef wat uitleg aan de API eigenaar",
+      "connectedApps": "Je hebt al <b>{count}</b> {count, plural, =0{} one{geconnecteerde applicatie} other{geconnecteerde applicaties}} with the API <b>{apiName}</b>.",
+      "createApp": "Ik wil een applicatie aanmaken",
+      "description": "De applicatie is de verbinding tussen jou, de gebruiker, en een API abonnement.",
+      "missingClientId": "Ontbrekend client_id",
+      "noAvailableApplications": "Er zijn geen applicaties beschikbaar."
+    },
+    "chooseApp": {
+      "title": "Kies een applicatie"
+    },
+    "choosePlan": {
+      "title": "Kies een plan"
+    },
+    "connectedApps": "{count, plural, =0{} one{Geconnecteerde applicatie} other{Geconnecteerde applicaties}} aan {planName}",
+    "errors": {
+      "information": "Er is een fout opgetreden tijdens het abonneren.",
+      "notConnected": "Log in of maak een account aan om je te abonneren op een API.",
+      "sorry": "Onze excuses"
+    },
+    "exit": "Annuleren",
+    "nextStep": "Volgende",
+    "plan": "Abonnement",
+    "plans": {
+      "description": "Een essentiële catalogus om mijn API's te organiseren",
+      "sample": "Start nu met het gebruiken van de API",
+      "title": "Abonnementen en Kenmerken"
+    },
+    "previousStep": "Vorige",
+    "success": {
+      "congratulations": "Proficiat!",
+      "discoverApi": "Ontdek de API nu",
+      "goToHome": "Terug naar hoofdpagina",
+      "oauth2": "Je hebt eerst een access_token van de authorization server nodig voordat je deze API kan gebruiken.",
+      "subscriptionAccepted": "Het abonnement van de applicatie <b>{appName}</b> tot het plan <b>{planName}</b> voor de API <b>{apiName}</b> is goedgekeurd!",
+      "subscriptionKey": "Dit is jouw persoonlijke toegangscode voor de API",
+      "subscriptionPending": "Het abonnement van de applicatie <b>{appName}</b> tot het plan <b>{planName}</b> voor de API <b>{apiName}</b> wordt gevalideerd.",
+      "subscriptionRejected": "Het abonnement van de applicatie <b>{appName}</b> tot het plan <b>{planName}</b> voor de API <b>{apiName}</b> is afgekeurd."
+    },
+    "validate": {
+      "askConfirmation": "Het abonnement van de applicatie <b>{appName}</b> tot het plan <b>{planName}</b> voor de API <b>{apiName}</b> staat op het punt te worden afgerond.",
+      "information": "{hasAutoValidation, select, true {Goedkeuring gebeurt automatisch, als het abonneren voltooid is, kan je meteen the API gebruiken.} other {De goedkeuring van het abonnement vereist de goedkeuring van de eigenaar. Je ontvangt een email van zodra je abonnement gevalideerd is. }}",
+      "notCompleted": "Het abonneren voor de API <b>{apiName}</b> kan niet voltooid worden. Ga terug naar de vorige stappen en vul de ontbrekende informatie in.",
+      "subscription": "Bevestig aanvraag",
+      "title": "Bevestigen"
+    }
+  },
+  "application": {
+    "analytics": {
+      "displayLogs": "Bekijk logs",
+      "exportCSV": "Exporteer als CSV",
+      "filters": {
+        "advanced": {
+          "hide": "Verberg geadvanceerde filters",
+          "show": "Toon geadvanceerde filters"
+        },
+        "api": {
+          "label": "API",
+          "title": "Selecteer een API"
+        },
+        "methods": {
+          "label": "HTTP methodes",
+          "title": "Selecteer een HTTP methode"
+        },
+        "path": {
+          "label": "Pad",
+          "title": "Selecteer een pad"
+        },
+        "payloads": {
+          "label": "Inhoud bericht",
+          "title": "Tekst om naar te zoeken in berichten"
+        },
+        "requestId": {
+          "label": "Aanvraag ID",
+          "title": "Vul een aanvraag ID in"
+        },
+        "responseTimes": {
+          "label": "Responstijd",
+          "title": "Selecteer een responstijd interval"
+        },
+        "status": {
+          "label": "HTTP status",
+          "title": "Selecteer een HTTP status"
+        },
+        "transactionId": {
+          "label": "Transactie ID",
+          "title": "Selecteer een transactie ID"
+        }
+      },
+      "search": "Zoek"
+    },
+    "change_background": "Wijzig achtergrond",
+    "change_picture": "Wijzig afbeelding",
+    "client_id": {
+      "label": "Client ID",
+      "title": "Client ID"
+    },
+    "client_secret": {
+      "label": "Client secret",
+      "title": "Client secret"
+    },
+    "delete": {
+      "cancel": "Annuleren",
+      "message": "Ben je zeker dat je deze applicatie wilt verwijderen?",
+      "ok": "OK"
+    },
+    "description": {
+      "label": "Beschrijf het doel van deze applicatie",
+      "title": "Beschrijving"
+    },
+    "general": "Algemeen",
+    "information": {
+      "createdDate": "Aangemaakt",
+      "lastUpdate": "Bijgewerkt",
+      "owner": "Eigenaar",
+      "title": "Informatie",
+      "type": "Soort"
+    },
+    "list": {
+      "connectedApis": "Geabboneerde API's"
+    },
+    "log": {
+      "request": "Request",
+      "requestBody": "Request body",
+      "requestContentLength": "Lengte van de verzonden inhoud",
+      "requestHeaders": "HTTP request headers",
+      "requestId": "Request ID",
+      "response": "Response",
+      "responseBody": "Response body",
+      "responseContentLength": "Lengte van de ontvangen inhoud",
+      "responseHeaders": "HTTP response headers",
+      "responseTime": "Response time",
+      "transactionId": "Transactie ID"
+    },
+    "logs": {
+      "api": "API",
+      "date": "Datum",
+      "displayAnalytics": "Toon Analyse",
+      "method": "Methode",
+      "path": "Pad",
+      "plan": "Plan",
+      "responseTime": "Responstijd",
+      "status": "Status",
+      "title": "Logs"
+    },
+    "members": {
+      "add": {
+        "add": "Toevoegen",
+        "reset": "Reset",
+        "role": {
+          "name": "Rol",
+          "placeholder": "Selecteer een rol"
+        },
+        "success": "Nieuw lid toegevoegd",
+        "title": "Voeg een nieuw lid toe",
+        "user": {
+          "name": "Gebruiker",
+          "placeholder": "Zoek een gebuiker..."
+        }
+      },
+      "inherited": {
+        "groupTitle": "{nbMembers} leden overgeërfd van \"{groupName}\" groep",
+        "hide": "Verberg",
+        "show": "Toon",
+        "title": "Overgeërfde leden"
+      },
+      "list": {
+        "member": "Lid",
+        "remove": {
+          "message": "Ben je zeker dat je dit lid wil verwijderen?",
+          "success": "Lid verwijdert",
+          "title": "Verwijder lid"
+        },
+        "role": "Rol",
+        "success": "Rol bijgewerkt",
+        "title": "Ledenlijst"
+      },
+      "transferOwnership": {
+        "confirm": {
+          "cancel": "Annuleren",
+          "message": "Deze actie kan niet teniet worden gedaan.<br/> The nieuwe eigenaar wordt <b>{name}</b>.<br/> Je zal doorverwezen worden naar je lijst van applicaties.",
+          "ok": "Ik begrijp het, draag deze applicatie over"
+        },
+        "currentPrimaryOwnerNewRole": {
+          "name": "Nieuwe rol",
+          "placeholder": "Selecteer een nieuwe rol voor the huidige hoofdeigenaar"
+        },
+        "information": "Geef volledige toegang tot deze applicatie aan een andere gebruiker.",
+        "newPrimaryOwner": {
+          "name": "Nieuwe hoofdeigenaar",
+          "placeholder": "Zoek een nieuwe hoofdeigenaar..."
+        },
+        "reset": "Reset",
+        "success": "Hoofdeigenaar bijgewerkt",
+        "title": "Bezit overdragen",
+        "transfer": "Overdragen"
+      }
+    },
+    "metadata": {
+      "format": "Formaat",
+      "key": "Key",
+      "list": {
+        "add": {
+          "title": "Toevoegen"
+        },
+        "remove": {
+          "title": "Verwijderen"
+        },
+        "title": "Metadata lijst"
+      },
+      "name": "Naam",
+      "reset": {
+        "title": "Reset"
+      },
+      "update": {
+        "success": "Update successvol afgerond",
+        "title": "Update"
+      },
+      "value": "Waarde"
+    },
+    "name": {
+      "label": "Naam van de app",
+      "title": "Naam van de applicatie"
+    },
+    "notifications": {
+      "NEW_SUPPORT_TICKET": {
+        "description": "Je zal een notificatie ontvangen wanneer een ticket, met betrekking tot je applicatie, wordt aangemaakt",
+        "label": "Nieuw Support Ticket"
+      },
+      "SUBSCRIPTION": {
+        "title": "Abonnement"
+      },
+      "SUBSCRIPTION_ACCEPTED": {
+        "description": "Je zal een notificatie ontvangen wanneer je abonnement geaccepteerd wordt",
+        "label": "Abonnement geaccepteerd"
+      },
+      "SUBSCRIPTION_CLOSED": {
+        "description": "Je zal een notificatie ontvangen wanneer je abonnement stopgezet wordt",
+        "label": "Abonnement stopgezet"
+      },
+      "SUBSCRIPTION_NEW": {
+        "description": "Je zal een notificatie ontvangen wanneer een nieuw abonnement aangevraagd wordt",
+        "label": "Nieuw abonnement"
+      },
+      "SUBSCRIPTION_PAUSED": {
+        "description": "Je zal een notificatie ontvangen wanneer een abonnement gepauzeerd wordt",
+        "label": "Abonnement gepauzeerd"
+      },
+      "SUBSCRIPTION_REJECTED": {
+        "description": "Je zal een notificatie ontvangen wanneer een abonnement afgewezen wordt",
+        "label": "Abonnement afgewezen"
+      },
+      "SUBSCRIPTION_RESUMED": {
+        "description": "Je zal een notificatie ontvangen wanneer een abonnement wederom actief wordt",
+        "label": "Abonnement gereactiveerd"
+      },
+      "SUBSCRIPTION_TRANSFERRED": {
+        "description": "Je zal een notificatie ontvangen wanneer een abonnement overgedragen wordt",
+        "label": "Abonnement overgedragen"
+      },
+      "SUPPORT": {
+        "title": "Ondersteuning"
+      },
+      "header": "Op welke gebeurtenissen wil je je abonneren?",
+      "saveSuccess": "Je notificatie abonnementen voor deze applicatie zijn opgeslagen",
+      "title": "Abonnementen"
+    },
+    "oauth2": "OAuth2 integratie",
+    "renewSecret": {
+      "label": "Vernieuw het secret",
+      "message": "Ben je zeker dat je het secret van je applicatie wilt vernieuwen?<br/> Door het vernieuwen van het secret, zal je geen nieuwe access tokens meer kunnen genereren of the API kunnen oproepen."
+    },
+    "subscriptions": {
+      "api": "API",
+      "apiKey": {
+        "created_at": "Aangemaakt op",
+        "end_at": "Eindigt op",
+        "ended_at": "Beëindigt op",
+        "expired": {
+          "hide": "Verberg verlopen toegangscodes",
+          "show": "Toon verlopen toegangscodes"
+        },
+        "revoke": {
+          "label": "Ongeldig maken",
+          "message": "Ben je zeker dat je deze API toegangscode ongeldig wilt maken?"
+        },
+        "success": {
+          "revoke": "Je toegangscode is succesvol ongeldig gemaakt"
+        },
+        "title": "API toegangscodes:"
+      },
+      "close": {
+        "message": "Ben je zeker dat je dit abonnement wilt afsluiten?",
+        "title": "Sluit af"
+      },
+      "created_at": "Abonnement datum",
+      "filters": {
+        "api": {
+          "label": "Selecteer een API",
+          "title": "API"
+        },
+        "status": {
+          "label": "Selecteer een status",
+          "title": "Status"
+        }
+      },
+      "navigateToApi": "Navigeer naar de API",
+      "plan": "Plan",
+      "processed_at": "Verwerkingsdatum",
+      "renew": {
+        "message": "Ben je zeker dat je dit abonnement wilt vernieuwen?",
+        "title": "Vernieuwen"
+      },
+      "selected": {
+        "title": "Abonnement informatie"
+      },
+      "start_at": "Startdatum",
+      "status": "Status",
+      "subscribed_by": "Abonnement voltooid door",
+      "success": {
+        "close": "Je abonnement is succesvol stopgezet",
+        "renew": "Je abonnement is succesvol vernieuwd"
+      },
+      "title": "Abonnementen"
+    },
+    "success": {
+      "delete": "Je applicatie is succesvol verwijderd",
+      "renewSecret": "Het secret van je applicatie is succesvol vernieuwd",
+      "save": "Je applicatie is succesvol bijgewerkt"
+    },
+    "type": {
+      "label": "Applicatie soort",
+      "title": "Applicatie soort"
+    },
+    "types": "{type, select, BACKEND_TO_BACKEND{Backend naar backend} NATIVE{Native} WEB{Web} BROWSER{Browser} SIMPLE{Simpel} other{Simpel}}"
+  },
+  "applicationCreation": {
+    "exit": "Stop",
+    "general": {
+      "description": {
+        "label": "Beschrijving",
+        "placeholder": "Beschrijf het doel"
+      },
+      "image": "Applicatie afbeelding",
+      "name": {
+        "label": "Applicatie naam",
+        "placeholder": "Geef je applicatie een naam"
+      }
+    },
+    "security": {
+      "description": "Omwille van veiligheidsredenen, definieer enkel de types die je nodig hebt.",
+      "label": "Soorten rechten voor de afnemer."
+    },
+    "step": {
+      "createApp": "Aanmaken van de applicatie",
+      "general": "Algemeen",
+      "next": "Volgende",
+      "previous": "Vorige",
+      "security": "Veiligheid",
+      "subscription": "Abonnement",
+      "validate": "Bevestiging"
+    },
+    "subscription": {
+      "api": {
+        "description": "Zoek een API voor je applicatie"
+      },
+      "comment": "Reageer",
+      "description": "{count, plural, =0{Geen abonnement} one{Slechts één abonnement} other{{count} abonnementen}}",
+      "disabledPlans": "Een clientID is vereist om te abonneren op {count, plural, =0{het uitgeschakeld plan} one{het uitgeschakeld plan} other{de uitgeschakelde plannen}}",
+      "noPlan": "Er is geen plan beschikbaar voor deze API",
+      "plan": {
+        "description": "Zoek naar API's voor jouw applicatie and voeg plannen toe om je op te abonneren"
+      },
+      "remove": "Verwijder",
+      "subscribe": "Abonneer",
+      "validation": {
+        "auto": "Automatisch",
+        "manual": "Manueel",
+        "type": "Bevestiging"
+      }
+    },
+    "validation": {
+      "confirm": "De applicatie \"{name}\" is gereed!",
+      "error": {
+        "description": "Er is een fout opgetreden tijdens het aanmaken van de applicatie.",
+        "title": "Onze excuses"
+      },
+      "pending": {
+        "description": "Er ontbreekt informatie om je applicatie succesvol te kunnen aanmaken.<br/> Controleer of alle stappen gevalideerd zijn.",
+        "title": "Je bent er bijna"
+      },
+      "subscriptionTitle": "Abonnementsaanvraag"
+    }
+  },
+  "applicationType": {
+    "backend_to_backend": {
+      "description": "Machine naar machine",
+      "title": "Backend naar backend"
+    },
+    "browser": {
+      "description": "Angular, React, ...",
+      "title": "SPA"
+    },
+    "native": {
+      "description": "iOS, Android, ...",
+      "title": "Native"
+    },
+    "security": {
+      "authorization_code": {
+        "description": " ",
+        "title": "Autorisatie code"
+      },
+      "clientId": {
+        "description": " De Client_id van de applicatie. Dit veld is vereist om je te abonneren to bepaalde soorten van API plan (OAuth2, JWT).",
+        "label": "Client ID"
+      },
+      "client_credentials": {
+        "description": " ",
+        "title": "Client gegevens"
+      },
+      "implicit": {
+        "description": " ",
+        "title": "Impliciet"
+      },
+      "implicit_hybrid": {
+        "description": " hybride",
+        "title": "Impliciet"
+      },
+      "password": {
+        "description": "Wordt geleverd door de eigenaar",
+        "title": "Paswoord"
+      },
+      "redirectUris": {
+        "description": "URI waar de autorisatie server OAuth antwoorden naartoe zal sturen",
+        "label": "Redirect URIs"
+      },
+      "refresh_token": {
+        "description": " ",
+        "title": "Refresh token"
+      },
+      "simple": {
+        "description": "Soort applicatie (mobiel, web, ...)",
+        "title": "Soort"
+      }
+    },
+    "simple": {
+      "description": "Een hands-free applicatie.<br/>Gebruikmakend van dit soort applicatie, zal je een eigen client_id kunnen definiëren.",
+      "title": "Simpel"
+    },
+    "web": {
+      "description": "Java, .Net, ...",
+      "title": "Web"
+    }
+  },
+  "applications": {
+    "subscribers": {
+      "title": "Toon {count, plural, one{abonnement} other{abonnementen}} van de applicatie {appName}"
+    },
+    "title": "Applicaties"
+  },
+  "catalog": {
+    "ALL": {
+      "emptyMessage": "Het portaal bevat momenteel geen enkele API"
+    },
+    "FEATURED": {
+      "emptyMessage": "Er zijn momenteel geen aanbevolen API's"
+    },
+    "STARRED": {
+      "emptyMessage": "Er zijn momenteel geen vastgezette API's"
+    },
+    "TRENDINGS": {
+      "emptyMessage": "Er zijn momenteel geen trending API's"
+    },
+    "categories": {
+      "emptyMessage": "De categorie bevat momenteel geen API's"
+    },
+    "category": {
+      "documentation": {
+        "hide": "Verberg documentatie",
+        "show": "Toon documentatie"
+      }
+    },
+    "defaultCategory": "Alle API's",
+    "display": {
+      "cards": "Rasterweergave",
+      "list": "Lijstweergave"
+    },
+    "filter": "Filter de resultaten",
+    "othersApi": {
+      "subTitle": "Ontdek de populairste API's van deze maand",
+      "title": "De andere API's"
+    },
+    "search": "Zoek een API"
+  },
+  "categories": {
+    "empty": "Er zijn geen categorieën",
+    "title": "Categorieën"
+  },
+  "common": {
+    "cancel": "Annuleren",
+    "date": {
+      "range": {
+        "title": "Selecteer een tijdsinterval"
+      }
+    },
+    "delete": "Verwijder",
+    "filters": {
+      "title": "Filters"
+    },
+    "general_conditions": {
+      "accept": "Ik accepteer de algemene voorwaarden",
+      "title": "Algemene voorwaarden"
+    },
+    "ok": "OK",
+    "options": "Opties",
+    "reset": "Reset",
+    "save": "Opslagen",
+    "search": "Zoek",
+    "status": {
+      "ACCEPTED": "Geaccepteerd",
+      "CLOSED": "Afgesloten",
+      "PAUSED": "Gepauzeerd",
+      "PENDING": "In afwachting",
+      "REJECTED": "Afgewezen"
+    },
+    "update": "Bijwerken"
+  },
+  "cookies": {
+    "actions": {
+      "decline": "Ik weiger",
+      "ok": "Ik begrijp het"
+    },
+    "confirmation": "Als je weigert, zal je browsing data niet verzamelt worden wanneer je deze website bezoekt. Bovenop de functionele cookies om deze website te kunnen gebruiken, wordt er dan één extra cookie bijgehouden om je voorkeur in op te slagen.",
+    "googleAnalyticsDescription": "Cookies toelaten voor Google analytics",
+    "information": {
+      "common": "Deze website slaagt lokaal cookies op. Deze cookies worden gebruikt om je voorkeuren en verbindingsinformatie op te slagen. Dit laat toe om je surf ervaring te verbeteren.",
+      "withAnalytics": "Analytics en statistieken over bezoekers kunnen ook verzamelt worden (gebruikmakende van <a href=\"https://policies.google.com/privacy\" target=\"_blank\">Google Analytics</a>)."
+    },
+    "manage": "Je kan je cookie voorkeuren hier beheren.",
+    "success": {
+      "disable": "Cookie {cookieName} uitgeschakeld",
+      "enable": "Cookie {cookieName} ingeschakeld"
+    },
+    "title": "Cookies instellingen"
+  },
+  "dashboard": {
+    "applications": {
+      "create": "Maak een applicatie aan",
+      "createFirst": "Maak jouw eerste applicatie aan",
+      "list": "Bekijk jouw applicaties",
+      "title": "Jouw applicaties"
+    },
+    "empty": "Je hebt momenteel nog geen applicatie",
+    "stats": {
+      "avg": "gemiddelde responstijd",
+      "max": "maximum responstijd",
+      "min": "minimum responstijd",
+      "ms": "ms",
+      "rph": "requests per uur",
+      "rpm": "requests per minuut",
+      "rps": "requests per seconde",
+      "total": "totaal"
+    },
+    "subscriptions": {
+      "api": "API",
+      "application": "Applicatie",
+      "list": {
+        "empty": "Geen abonnement"
+      },
+      "plan": "Plan",
+      "subtitle": "Selecteer een abonnement om de activiteit van vorige week te bekijken",
+      "title": "Jouw abonnementen"
+    },
+    "welcome": "Welkom {username},"
+  },
+  "errors": {
+    "clientRegistrationProvider": {
+      "exception": "Er is een fout opgetreden tijdens het verbindinden naar de access management service"
+    },
+    "email": {
+      "required": "Configureer een e-mail adres om het contact formulier te gebruiken"
+    },
+    "forbidden": "Je hebt niet genoeg rechten om dit object aan te spreken",
+    "metadata": {
+      "exists": "De metadata \"{metadata}\" bestaat al"
+    },
+    "passwordFormat": {
+      "invalid": "Het wachtwoord voldoet niet aan de richtlijnen"
+    },
+    "plan": {
+      "general_conditions_accept": "Plan {plan} vereist het accepteren van de algemene voorwaarden.",
+      "general_conditions_status": "Plan {plan} references a non published page as general conditions.",
+      "notSubscribable": "Een client_id is vereist om te abonneren op een OAuth2 of JWT plan.",
+      "subscribed": "Er staat momenteel al een abonnement IN AFWACHTING of GEACCEPTEERD voor dit plan."
+    },
+    "server": {
+      "unavailable": "Server onbeschikbaar of verbinding verbroken"
+    },
+    "support": {
+      "disabled": "Het contact formulier is momenteel niet beschikbaar"
+    },
+    "unexpected": "Er is een onverwachte fout opgetreden",
+    "user": {
+      "exists": "Een gebruiker met deze email bestaat al: {user}",
+      "finalized": "De account creatie is al afgerond",
+      "resetpassword": "Wachtwoord reset is al aangevraagd, controleer je emails en wacht enkele minuten voor dat je opnieuw probeert."
+    }
+  },
+  "footer": {
+    "rights": "© Alle rechten voorbehouden 2020"
+  },
+  "gv-card-full": {
+    "empty": "Geen API om weer te geven",
+    "error": "Er is een fout opgetreden tijdens het laden van de API"
+  },
+  "gv-card": {
+    "empty": "Geen API om weer te geven",
+    "error": "Er is een fout opgetreden tijdens het laden van de API"
+  },
+  "gv-category-list": {
+    "error": "Er is een fout opgetreden tijdens het laden van de lijst"
+  },
+  "gv-category": {
+    "empty": "Geen categorie om weer te geven",
+    "error": "Er is een fout opgetreden tijdens het laden van de categorie"
+  },
+  "gv-chart": {
+    "empty": "Geen resultaat om weer te geven",
+    "error": "Er is een fout opgetreden tijdens het laden van de data"
+  },
+  "gv-code": {
+    "copy": "Kopieer naar klembord"
+  },
+  "gv-confirm": {
+    "cancel": "Annuleren",
+    "ok": "Ok"
+  },
+  "gv-contact": {
+    "apis": {
+      "label": "Vind een API",
+      "title": "Associëer een API"
+    },
+    "applications": {
+      "label": "Vind een applicatie",
+      "title": "Associëer een applicatie"
+    },
+    "button": "Verstuur je verzoek",
+    "content": {
+      "label": "Geef wat uitleg...",
+      "title": "Jouw verzoek"
+    },
+    "receiveCopy": "Ontvang een kopie via e-mail",
+    "subject": {
+      "label": "Leg je onderwerp uit...",
+      "title": "Onderwerp"
+    },
+    "success": "Je verzoek is verstuurd naar de eigenaar",
+    "title": "Jouw verzoek"
+  },
+  "gv-create-application": {
+    "createApplication": "Creëer een app"
+  },
+  "gv-date-picker": {
+    "endDate": "Einddatum",
+    "format": "dd/MM/yyyy",
+    "now": "Nu",
+    "ok": "Ok",
+    "startDate": "Startdatum",
+    "today": "Vandaag"
+  },
+  "gv-documentation": {
+    "empty": "Er is momenteel geen documentatie"
+  },
+  "gv-file-upload": {
+    "chooseAnotherFile": "kies een ander bestand",
+    "chooseFile": "Kies een bestand",
+    "error": {
+      "maxSize": "Bestandsgrootte overschrijdt de toegelaten limiet",
+      "typeNotAllowed": "Dit bestandstype is niet toegelaten"
+    },
+    "orDragIt": "of sleep het hier.",
+    "removePicture": "Verwijder afbeelding"
+  },
+  "gv-header": {
+    "empty": "Geen API om weer te geven",
+    "error": "Er is een fout opgetreden tijdens het laden van de API",
+    "subscribe": "Abonneren"
+  },
+  "gv-input": {
+    "copy": "Kopieer naar klembord",
+    "search": "Zoeken"
+  },
+  "gv-list": {
+    "error": "Er is een fout opgetreden tijdens het laden van de lijst",
+    "paused": "Gepauzeerd",
+    "pending": "In afwachting"
+  },
+  "gv-markdown-toc": {
+    "title": "Inhoudstabel"
+  },
+  "gv-metrics": {
+    "health": "Health",
+    "hits": "{count, plural, =0{Hit} one{Hit} other{Hits}} (laatste 7 dagen)",
+    "subscribers": "{count, plural, =0{Abonnees} one{Abonnee} other{Abonnees}}"
+  },
+  "gv-page": {
+    "swagger": {
+      "badFormat": "De pagina die je probeert te bekijken voldoet niet aan het swagger / OpenAPI formaat"
+    }
+  },
+  "gv-pagination": {
+    "next": "Volgende",
+    "previous": "Vorige"
+  },
+  "gv-plans": {
+    "characteristics": {
+      "empty": "Geen informatie over dit plan"
+    },
+    "empty": {
+      "redirect": "Ik zou graag de eigenaar contacteren om meer te weten te komen",
+      "title": "De API heeft momenteel geen plan beschikbaar."
+    },
+    "error": "Er is een fout opgetreden tijdens het laden van de plannen.",
+    "security": {
+      "apiKey": "Persoonlijke Key",
+      "jwt": "Json Web Token",
+      "keyLess": "Key Less",
+      "oauth2": "Oauth 2"
+    },
+    "validation": {
+      "auto": "Automatische validatie",
+      "manual": "Manuele validatie"
+    }
+  },
+  "gv-promote": {
+    "empty": "Geen API om weer te geven",
+    "error": "Er is een fout opgetreden tijdens het laden van de API",
+    "view": "Toon API"
+  },
+  "gv-rating-list": {
+    "answerLabel": "Voeg een antwoord toe",
+    "cancel": "Annuleren",
+    "confirmAnswerDelete": "Weet je zeker dat je jouw antwoord wilt verwijderen ?",
+    "confirmRatingDelete": "Weet je zeker dat je jouw beoordeling wilt verwijderen ?",
+    "deleteAnswer": "Verwijder antwoord",
+    "deleteRating": "Verwijder beoordeling",
+    "reply": "Beantwoord",
+    "send": "Verzend"
+  },
+  "gv-rating": {
+    "description-1": "Verschrikkelijk",
+    "description-2": "Niet goed",
+    "description-3": "Goed",
+    "description-4": "Heel goed",
+    "description-5": "Perfect",
+    "note": "Opmerking",
+    "notes": "Beoordelingen"
+  },
+  "gv-row": {
+    "empty": "Geen resultaat om weer te geven",
+    "error": "Er is een fout opgetreden tijdens het laden van de API"
+  },
+  "gv-stats": {
+    "empty": "Geen resultaat om weer te geven",
+    "error": "Er is een fout opgetreden tijdens het laden van de data"
+  },
+  "gv-stepper": {
+    "error": "Er is een fout opgetreden tijdens het laden van de stappen"
+  },
+  "gv-table": {
+    "accepted": "Geaccepteerd",
+    "empty": "Geen resultaat om weer te geven",
+    "error": "Er is een fout opgetreden tijdens het laden van de data",
+    "paused": "Gepauzeerd",
+    "pending": "In afwachting",
+    "rejected": "Afgewezen"
+  },
+  "homepage": {
+    "apis": "Aanbevolen API's",
+    "explore": "Ontdek API's",
+    "signup": "Registreer",
+    "title": "Ontketen de kracht van je API's."
+  },
+  "login": {
+    "button": "Aanmelden",
+    "notification": {
+      "error": "Ongeldige gebruikersnaam of wachtwoord"
+    },
+    "password": "Wachtwoord",
+    "resetPassword": "Reset jouw wachtwoord",
+    "signup": {
+      "link": "Registreer !",
+      "text": "Heb je nog geen account ?"
+    },
+    "title": "Wie ben je ?",
+    "username": "Gebruikersnaam"
+  },
+  "notFound": {
+    "goHome": "Startpagina",
+    "message": "De pagina die je zoekt blijkt niet (langer) te bestaan. Geen zorgen, er is nog niets verloren!",
+    "title": "Pagina niet gevonden"
+  },
+  "register": {
+    "field": {
+      "address": "Adres",
+      "city": "Stad",
+      "country": "Land",
+      "job_position": "Beroep",
+      "organization": "Organisatie",
+      "telephone_number": "GSM Nummer",
+      "zip_code": "Postcode"
+    }
+  },
+  "registration": {
+    "backHome": "Terug naar het portaal",
+    "backLogin": "Terug naar login",
+    "button": "Registreer",
+    "email": "Email",
+    "firstname": "Voornaam",
+    "lastname": "Achternaam",
+    "success": {
+      "message": "Er is een email verzonden naar: {email}",
+      "title": "Registratie bevestigd!"
+    },
+    "title": "Maak een account aan"
+  },
+  "registrationConfirmation": {
+    "backHome": "Terug naar het portaal",
+    "backLogin": "Terug naar login",
+    "backRegistration": "Terug naar registratie",
+    "button": "Bevestig",
+    "confirmedPassword": "Bevestig je wachtwoord",
+    "email": "Email",
+    "firstname": "Voornaam",
+    "lastname": "Achternaam",
+    "password": "Kies een wachtwoord",
+    "success": {
+      "message": "Je account creatie is bevestigd",
+      "title": "Registratie successvol"
+    },
+    "title": "Bevestig je registratie",
+    "tokenExpired": "Je account creatie aanvraag is verlopen"
+  },
+  "resetPassword": {
+    "backHome": "Terug naar het portaal",
+    "backLogin": "Terug naar login",
+    "button": "Reset je wachtwoord",
+    "success": {
+      "message": "Indien de account bestaat, zal er een email verzonden worden.",
+      "title": "Wachtwoord reset bevestigd!"
+    },
+    "title": "Reset je wachtwoord",
+    "username": "Gebruikersnaam"
+  },
+  "resetPasswordConfirmation": {
+    "backHome": "Terug naar het portaal",
+    "backLogin": "Terug naar login",
+    "backResetPassword": "Terug naar wachtwoord reset",
+    "button": "Bevestig",
+    "confirmedPassword": "Bevestig je wachtwoord",
+    "email": "Email",
+    "firstname": "Voornaam",
+    "lastname": "Achternaam",
+    "password": "Kies een wachtwoord",
+    "success": {
+      "message": "Je wachtwoord werd aangepast",
+      "title": "Reset succesvol"
+    },
+    "title": "Kies een wachtwoord",
+    "tokenExpired": "Je wachtwoord reset aanvraag is verlopen"
+  },
+  "route": {
+    "analyticsApplication": "Analyse",
+    "applicationCreation": "Maak een applicatie aan",
+    "applications": "Applicaties",
+    "catalog": "Catalogus",
+    "catalogAll": "Alle API's",
+    "catalogApi": "Algemene informatie",
+    "catalogApiContact": "Contact",
+    "catalogApiDocumentation": "Documentatie",
+    "catalogApiSubscribe": "Abonnement",
+    "catalogCategories": "Categorieën",
+    "catalogCategory": "Categorie",
+    "catalogFeatured": "Aanbevolen",
+    "catalogStarred": "Vastgezet",
+    "catalogTrending": "Trending",
+    "contact": "Contact",
+    "cookies": "Cookie instellingen",
+    "dashboard": "Dashboard",
+    "homepage": "Startpagina",
+    "login": "Aanmelden",
+    "logout": "Afmelden",
+    "logsApplication": "Logs",
+    "management": "Administratie",
+    "members": "Leden",
+    "metadata": "Metadata",
+    "myApplications": "Mijn applicaties",
+    "mySubscriptions": "Mijn abonnementen",
+    "notFound": "Pagina niet gevonden",
+    "notifications": "Notificaties",
+    "subscriptions": "Abonnementen",
+    "tickets": "Tickets",
+    "user": "Mijn account"
+  },
+  "search": {
+    "results": {
+      "label": "{count, plural, =0{Geen resultaat} one{{count} resultaat} other{{count} resultaten}}"
+    }
+  },
+  "site": {
+    "title": "API portaal van Gravitee.io"
+  },
+  "subscriptions": {
+    "applications": {
+      "init": "Je hebt nog geen applicatie",
+      "name": "Naam",
+      "navigate": "Ga naar de applicatie",
+      "owner": "Eigenaar",
+      "title": "Applicaties"
+    },
+    "subscriptions": {
+      "api": "API",
+      "empty": "Geen abonnementen voor deze applicatie",
+      "end_date": "Einddatum",
+      "init": "Schakel over naar een applicatie om de abonnementen te bekijken",
+      "navigate": "Ga naar het abonnement",
+      "plan": "Plan",
+      "start_date": "Startdatum",
+      "title": "Abonnementen"
+    },
+    "title": "Mijn abonnementen"
+  },
+  "tickets": {
+    "api": "API",
+    "application": "Applicatie",
+    "content": "Inhoud",
+    "date": "Datum",
+    "subject": "Onderwerp",
+    "title": "Tickets"
+  },
+  "user": {
+    "account": {
+      "success": "Je account is succesvol bijgewerkt",
+      "title": "Persoonlijke informatie"
+    },
+    "change_picture": "Wijzig afbeelding",
+    "display_name": "Naam:",
+    "email": "Email:",
+    "notifications": {
+      "empty": "Geen notificaties ontvangen",
+      "read": "Bekijk",
+      "title": "Notificatie"
+    }
+  }
+}
