@@ -91,7 +91,7 @@ export class GvContactComponent implements OnInit {
 
   submit() {
     this.isSending = true;
-    this.portalService.createTicket({ TicketInput: this.contactForm.value }).toPromise().then(() => {
+    this.portalService.createTicket({ ticketInput: this.contactForm.value }).toPromise().then(() => {
       this.notificationService.success(i18n('gv-contact.success'));
       this.reset();
     }).finally(() => this.isSending = false);

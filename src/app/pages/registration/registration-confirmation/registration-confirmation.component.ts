@@ -64,14 +64,14 @@ export class RegistrationConfirmationComponent implements OnInit {
 
   onSubmitRegistrationConfirmationForm() {
     if (this.registrationConfirmationForm.valid && !this.isSubmitted) {
-      const input: FinalizeRegistrationInput = {
+      const finalizeRegistrationInput: FinalizeRegistrationInput = {
         token: this.token,
         password: this.registrationConfirmationForm.value.password,
         firstname:this.userFromToken.firstname,
         lastname: this.userFromToken.lastname
       };
       this.reCaptchaService.execute('registration_confirmation').then(() => {
-        this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
+        this.usersService.finalizeUserRegistration({ finalizeRegistrationInput })
           .toPromise()
           .then(() => this.isSubmitted = true)
           .catch(() => {

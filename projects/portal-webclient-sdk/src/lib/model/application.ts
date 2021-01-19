@@ -40,11 +40,11 @@ export interface Application {
     /**
      * Creation date and time of the application.
      */
-    created_at?: Date;
+    created_at?: string;
     /**
      * Last update date and time of the application.
      */
-    updated_at?: Date;
+    updated_at?: string;
     /**
      * Array of groups associated to the application.
      */

@@ -338,7 +338,7 @@ export class ApiSubscribeComponent implements OnInit {
       try {
         this.showValidateLoader = true;
         let subscription = await this.subscriptionService.createSubscription({
-          SubscriptionInput: this.subscribeForm.value
+          subscriptionInput: this.subscribeForm.value
         }).toPromise();
 
         if (this.hasAutoValidation()) {

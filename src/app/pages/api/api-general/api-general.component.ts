@@ -275,8 +275,8 @@ export class ApiGeneralComponent implements OnInit {
   @HostListener(':gv-rating-list:update', ['$event.detail'])
   onUpdate({ rating }) {
     const apiId = this.apiId;
-    const RatingInput = { title: rating.title, value: rating.value, comment: rating.comment };
-    this.apiService.updateApiRating({ apiId, ratingId: rating.id, RatingInput })
+    const ratingInput = { title: rating.title, value: rating.value, comment: rating.comment };
+    this.apiService.updateApiRating({ apiId, ratingId: rating.id, ratingInput })
       .toPromise()
       .then((res) => {
         this.ratingForm = null;
@@ -320,8 +320,8 @@ export class ApiGeneralComponent implements OnInit {
 
   @HostListener(':gv-rating-list:add-answer', ['$event.detail'])
   onAnswer({ rating, answer }) {
-    const RatingAnswerInput = { comment: answer };
-    this.apiService.createApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, RatingAnswerInput })
+    const ratingAnswerInput = { comment: answer };
+    this.apiService.createApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, ratingAnswerInput })
       .toPromise()
       .then(() => {
         this.notificationService.info(i18n('apiGeneral.ratingAnswerCreated'));
@@ -345,8 +345,8 @@ export class ApiGeneralComponent implements OnInit {
 
   rate() {
     const apiId = this.apiId;
-    const RatingInput = this.ratingForm.getRawValue();
-    this.apiService.createApiRating({ apiId, RatingInput }).toPromise().then((res) => {
+    const ratingInput = this.ratingForm.getRawValue();
+    this.apiService.createApiRating({ apiId, ratingInput }).toPromise().then((res) => {
       this.ratingForm = null;
       this.notificationService.info(i18n('apiGeneral.ratingCreated'));
       this._updateRatings();

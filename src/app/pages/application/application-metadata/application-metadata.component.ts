@@ -386,13 +386,13 @@ export class ApplicationMetadataComponent implements OnInit {
           form.removeControl('new');
           return this.applicationService.createApplicationMetadata({
             applicationId: this.application.id,
-            ReferenceMetadataInput: this.updateMetadataForms[metadataId].getRawValue()
+            referenceMetadataInput: this.updateMetadataForms[metadataId].getRawValue()
           }).toPromise();
         } else {
           return this.applicationService.updateApplicationMetadataByApplicationIdAndMetadataId({
             applicationId: this.application.id,
             metadataId,
-            ReferenceMetadataInput: this.updateMetadataForms[metadataId].getRawValue()
+            referenceMetadataInput: this.updateMetadataForms[metadataId].getRawValue()
           }).toPromise();
         }
       });

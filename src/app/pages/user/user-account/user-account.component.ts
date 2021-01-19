@@ -137,13 +137,13 @@ export class UserAccountComponent implements OnInit, OnDestroy {
   }
 
   submit() {
-    const UserInput: any = {
+    const userInput: any = {
       id:  this.currentUser.id
     };
 
     if (this.avatarHasChanged) {
       const avatarProp = 'avatar';
-      UserInput[avatarProp] = this.userForm.get(avatarProp).value;
+      userInput[avatarProp] = this.userForm.get(avatarProp).value;
     }
 
     if (this.customUserFields && this.customUserFields.length >0 ) {
@@ -152,11 +152,11 @@ export class UserAccountComponent implements OnInit, OnDestroy {
         customFields[field.key] = this.userForm.get(field.key).value;
       });
       const customFieldsProp = 'customFields';
-      UserInput[customFieldsProp] = customFields;
+      userInput[customFieldsProp] = customFields;
     }
 
     this.isSaving = true;
-    this.userService.updateCurrentUser({ UserInput })
+    this.userService.updateCurrentUser({ userInput })
       .toPromise()
       .then((user) => {
         this.currentUserService.set(user);

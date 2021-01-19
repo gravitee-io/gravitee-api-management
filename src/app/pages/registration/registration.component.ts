@@ -72,7 +72,7 @@ export class RegistrationComponent implements OnInit {
 
   onSubmitRegistration() {
     if (this.registrationForm.valid && !this.isSubmitted) {
-      const input: RegisterUserInput = {
+      const registerUserInput: RegisterUserInput = {
         email: this.registrationForm.value.email,
         firstname: this.registrationForm.value.firstname,
         lastname: this.registrationForm.value.lastname,
@@ -80,14 +80,14 @@ export class RegistrationComponent implements OnInit {
       };
 
       if (this.customUserFields) {
-        input.customFields = {};
+        registerUserInput.customFields = {};
         this.customUserFields.forEach((field) => {
-          input.customFields[field.key] = this.registrationForm.get(field.key).value;
+          registerUserInput.customFields[field.key] = this.registrationForm.get(field.key).value;
         });
       }
 
       this.reCaptchaService.execute('registration').then(() => {
-        this.usersService.registerNewUser({ RegisterUserInput: input })
+        this.usersService.registerNewUser({ registerUserInput })
           .toPromise()
           .then(() => this.isSubmitted = true)
           .catch(() => {});

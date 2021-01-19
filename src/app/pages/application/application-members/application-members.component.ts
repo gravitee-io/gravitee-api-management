@@ -308,7 +308,7 @@ export class ApplicationMembersComponent implements OnInit {
   addMember() {
     this.applicationService.createApplicationMember({
       applicationId: this.application.id,
-      MemberInput: {
+      memberInput: {
         user: this.selectedUserToAdd.id,
         reference: this.selectedUserToAdd.reference,
         role: this.addMemberForm.controls.newMemberRole.value
@@ -330,7 +330,7 @@ export class ApplicationMembersComponent implements OnInit {
     this.applicationService.transferMemberOwnership(
       {
         applicationId: this.application.id,
-        TransferOwnershipInput: {
+        transferOwnershipInput: {
           new_primary_owner_id: this.selectedUserForTransferOwnership.id,
           new_primary_owner_reference: this.selectedUserForTransferOwnership.reference,
           primary_owner_newrole: this.transferOwnershipForm.controls.primaryOwnerNewRole.value
@@ -345,7 +345,7 @@ export class ApplicationMembersComponent implements OnInit {
     this.applicationService.updateApplicationMemberByApplicationIdAndMemberId({
       applicationId: this.application.id,
       memberId: member.user.id,
-      MemberInput: {
+      memberInput: {
         user: member.user.id,
         role: detail,
       }

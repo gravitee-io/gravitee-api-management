@@ -44,12 +44,12 @@ export class ResetPasswordComponent implements OnInit {
 
   onSubmitResetPassword() {
     if (this.resetPasswordForm.valid && !this.isSubmitted) {
-      const input: ResetUserPasswordInput = {
+      const resetUserPasswordInput: ResetUserPasswordInput = {
         username: this.resetPasswordForm.value.username,
         reset_page_url: window.location.href + '/confirm'
       };
       this.reCaptchaService.execute('reset_password').then(() => {
-        this.usersService.resetUserPassword({ ResetUserPasswordInput: input })
+        this.usersService.resetUserPassword({ resetUserPasswordInput })
           .toPromise()
           .then(() => this.isSubmitted = true)
           .catch(() => {});

@@ -22,8 +22,8 @@ export interface Key {
     paused?: boolean;
     revoked?: boolean;
     expired?: boolean;
-    created_at?: Date;
-    revoked_at?: Date;
-    expire_at?: Date;
+    created_at?: string;
+    revoked_at?: string;
+    expire_at?: string;
 }
 

@@ -30,7 +30,7 @@ export interface Rating {
     /**
      * Date and time of the rating.
      */
-    date?: Date;
+    date?: string;
     /**
      * Comment left by the author to explain the rating.
      */

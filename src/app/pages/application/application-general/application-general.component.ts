@@ -217,7 +217,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   submit() {
     this.isSaving = true;
     this.applicationService.updateApplicationByApplicationId(
-      { applicationId: this.application.id, Application: this.applicationForm.getRawValue() }).toPromise().then((application) => {
+      { applicationId: this.application.id, application: this.applicationForm.getRawValue() }).toPromise().then((application) => {
       this.application = application;
       this.reset();
       this.notificationService.success(i18n('application.success.save'));

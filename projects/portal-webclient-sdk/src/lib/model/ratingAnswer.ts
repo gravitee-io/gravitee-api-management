@@ -15,7 +15,7 @@ import { User } from './user';
 export interface RatingAnswer { 
     id: string;
     author: User;
-    date: Date;
+    date: string;
     comment: string;
 }
 

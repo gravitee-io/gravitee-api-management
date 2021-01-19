@@ -286,7 +286,7 @@ export class ApplicationCreationComponent implements OnInit {
     this.creationInProgress = true;
     const applicationInput = this.applicationForm.getRawValue() as ApplicationInput;
 
-    this.applicationService.createApplication({ ApplicationInput: applicationInput })
+    this.applicationService.createApplication({ applicationInput })
       .toPromise()
       .then((application) => {
         this.createdApplication = application;
@@ -302,9 +302,7 @@ export class ApplicationCreationComponent implements OnInit {
             subscriptionInput.general_conditions_content_revision = s.general_conditions_content_revision;
           }
 
-          return this.subscriptionService.createSubscription({
-            SubscriptionInput: subscriptionInput
-          }).toPromise();
+          return this.subscriptionService.createSubscription({ subscriptionInput }).toPromise();
         });
 
         Promise.all(subscriptions)

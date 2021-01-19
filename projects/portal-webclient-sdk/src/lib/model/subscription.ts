@@ -40,27 +40,27 @@ export interface Subscription {
     /**
      * Creation date and time of the subscription.
      */
-    created_at?: Date;
+    created_at?: string;
     /**
      * Date and time when the subscription request was processed.
      */
-    processed_at?: Date;
+    processed_at?: string;
     /**
      * Start date and time of the subscription.
      */
-    start_at?: Date;
+    start_at?: string;
     /**
      * Expiration date and time of the subscription.
      */
-    end_at?: Date;
+    end_at?: string;
     /**
      * Paused date and time of the subscription.
      */
-    paused_at?: Date;
+    paused_at?: string;
     /**
      * Closed date and time of the subscription.
      */
-    closed_at?: Date;
+    closed_at?: string;
     /**
      * The user who subscribed.
      */

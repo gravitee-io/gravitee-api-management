@@ -21,11 +21,11 @@ export interface Member {
     /**
      * Creation date and time of the member.
      */
-    created_at?: Date;
+    created_at?: string;
     /**
      * Last update date and time of the member.
      */
-    updated_at?: Date;
+    updated_at?: string;
     /**
      * Role of the member. (OWNER, USER, ...).
      */
