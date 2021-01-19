@@ -48,6 +48,19 @@ function organizationRouterConfig($stateProvider) {
         }
       }
     })
+    .state('organization.settings.cockpit', {
+      url: '/cockpit',
+      component: 'cockpit',
+      data: {
+        menu: null,
+        docs: {
+          page: 'organization-configuration-cockpit'
+        },
+        perms: {
+          only: ['organization-installation-r']
+        }
+      }
+    })
     .state('organization.settings.console', {
       url: '/console',
       component: 'consoleSettings',

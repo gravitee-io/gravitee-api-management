@@ -180,6 +180,7 @@ import DialogConfigureLoggingEditorController
 import ThemeElementDirective from '../components/theme/theme-element.directive';
 import EnvironmentService from '../services/environment.service';
 import OrganizationService from '../services/organization.service';
+import InstallationService from '../services/installation.service';
 
 import ErrorComponent from '../components/error/error.component';
 import ErrorController from '../components/error/error.controller';
@@ -376,6 +377,7 @@ import TopApisComponent from '../management/configuration/top-apis/top-apis.comp
 import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
 import ApiProxyController from './api/proxy/apiProxy.controller';
+import CockpitComponent from '../organization/configuration/cockpit/cockpit.component';
 import ConsoleSettingsComponent from '../organization/configuration/console/console.component';
 import PortalSettingsComponent from './configuration/portal/portal.component';
 import DialogAddPathMappingController from './api/analytics/pathMappings/modal/add-pathMapping.dialog.controller';
@@ -518,15 +520,15 @@ import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyVa
 import TicketsListController from './support/tickets-list.controller';
 import TicketDetailComponent from './support/ticket-detail.component';
 import organizationRouterConfig from '../organization/organization.route';
+import SpelService from '../services/spel.service';
+import HomeController from './platform/home/home.controller';
+import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
 
 (<any>window).jQuery = jQuery;
 
 import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
-import SpelService from '../services/spel.service';
-import HomeController from './platform/home/home.controller';
-import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
 
 (<any>window).traverse = traverse;
 
@@ -813,6 +815,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.service('TokenService', TokenService);
   graviteeManagementModule.service('EnvironmentService', EnvironmentService);
   graviteeManagementModule.service('OrganizationService', OrganizationService);
+  graviteeManagementModule.service('InstallationService', InstallationService);
   graviteeManagementModule.service('FlowService', FlowService);
   graviteeManagementModule.service('SpelService', SpelService);
   graviteeManagementModule.controller('DialogGenerateTokenController', DialogGenerateTokenController);
@@ -854,6 +857,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.component('roleMembers', RoleMembersComponent);
   graviteeManagementModule.component('theme', ThemeComponent);
   graviteeManagementModule.component('topApis', TopApisComponent);
+  graviteeManagementModule.component('cockpit', CockpitComponent);
   graviteeManagementModule.component('consoleSettings', ConsoleSettingsComponent);
   graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
   graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsComponent);

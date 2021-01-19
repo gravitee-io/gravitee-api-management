@@ -18,6 +18,9 @@ import { StateService } from '@uirouter/core';
 import UserService from '../../services/user.service';
 import _ = require('lodash');
 
+// tslint:disable-next-line:no-var-requires
+require('@gravitee/ui-components/wc/gv-state');
+
 const OrganizationSettingsComponent: ng.IComponentOptions = {
 
   template: require('./organization-settings.html'),
@@ -62,6 +65,11 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
         goTo: 'organization.settings.notificationTemplates'
       },
 
+      // COCKPIT
+      cockpit: {
+        perm: UserService.isUserHasPermissions(['organization-installation-r']),
+        goTo: 'organization.settings.cockpit'
+      },
     };
 
     let that = this;

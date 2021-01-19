@@ -72,6 +72,18 @@
           <a class="execute" ui-sref="{{$ctrl.settingsMenu.notificationTemplates.goTo}}">Templates</a>
         </li>
       </ul>
+
+      <div class="aui-nav-heading" ng-if="$ctrl.settingsMenu.cockpit.perm">
+        <strong>Cockpit</strong> <gv-state>beta</gv-state>
+      </div>
+      <ul class="aui-nav">
+        <li class="iterable-item"
+            ng-class="{'aui-nav-selected': $ctrl.$state.includes('organization.settings.cockpit')}"
+            ng-if="$ctrl.settingsMenu.cockpit.perm">
+          <a class="execute" ui-sref="{{$ctrl.settingsMenu.cockpit.goTo}}">Discover cockpit</a>
+        </li>
+      </ul>
+
     </div>
     <div class="gv-sub-content" flex layout="column" ui-view></div>
   </div>
