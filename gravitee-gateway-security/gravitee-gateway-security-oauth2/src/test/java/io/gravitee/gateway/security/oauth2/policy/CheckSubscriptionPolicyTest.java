@@ -114,7 +114,6 @@ public class CheckSubscriptionPolicyTest {
 
         Subscription subscription = mock(Subscription.class);
         when(subscription.getClientId()).thenReturn("my-bad-client-id");
-        when(subscription.getPlan()).thenReturn("plan-id");
 
         when(subscriptionRepository.search(any(SubscriptionCriteria.class)))
                 .thenReturn(Collections.singletonList(subscription));
@@ -161,6 +160,7 @@ public class CheckSubscriptionPolicyTest {
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
+        when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
         when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
 
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
