@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
  */
 public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
 
+    private static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED = ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     protected final AuthenticationHandler handler;
     protected final Plan plan;
 
@@ -58,6 +59,7 @@ public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
         executionContext.setAttribute(ExecutionContext.ATTR_PLAN, plan.getId());
+        executionContext.setAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED, plan.getSelectionRule() != null && ! plan.getSelectionRule().isEmpty());
 
         return handler.handle(executionContext)
                 .stream()
