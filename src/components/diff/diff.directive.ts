@@ -51,7 +51,7 @@ const DiffDirective: ng.IDirective = ({
             const line = document.createElement('div');
             line.appendChild(document.createTextNode(lineValue));
             line.classList.add(classname);
-            group.append(line);
+            group.appendChild(line);
           });
 
           elem.append(group);
