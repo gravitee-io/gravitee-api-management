@@ -154,10 +154,10 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
         );
       }
     })
-    .state('confirmProfile', {
-      url: '/confirmProfile',
-      template: require('./user/confirmProfile/confirmProfile.html'),
-      controller: 'ConfirmProfileController',
+    .state('newsletter', {
+      url: '/newsletter',
+      template: require('./user/newsletter/newsletter-subscription.html'),
+      controller: 'NewsletterSubscriptionController',
       controllerAs: '$ctrl'
     });
 

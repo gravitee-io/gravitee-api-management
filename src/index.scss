@@ -30,7 +30,7 @@ $backgroundColor: #fdfdfd;
 @import 'components/error/error';
 @import 'components/import/import-api';
 @import 'components/navbar/navbar';
-@import 'components/newsletter-subcription/newsletter-subscription';
+@import 'components/newsletter-subcription/newsletter-reminder';
 @import 'components/notifications/notifications';
 @import 'components/sidenav/sidenav';
 @import 'components/user-autocomplete/user-autocomplete';
@@ -57,6 +57,7 @@ $backgroundColor: #fdfdfd;
 @import 'management/tasks/tasks';
 
 @import 'user/user';
+@import 'user/newsletter/newsletter-subscription';
 @import 'user/login/login';
 
 html {

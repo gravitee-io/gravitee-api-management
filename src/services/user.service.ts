@@ -234,7 +234,7 @@ class UserService {
     this.isLogout = true;
     this.$window.localStorage.removeItem('satellizer_token');
     this.$cookies.remove('Auth-Graviteeio-APIM');
-    this.$window.localStorage.removeItem('profileConfirmed');
+    this.$window.localStorage.removeItem('newsletterProposed');
   }
 
   currentUserPicture(): string {

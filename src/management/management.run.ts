@@ -24,13 +24,20 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
 
   $transitions.onStart({
     to: (state) => state.name !== 'login' && state.name !== 'registration'
-      && state.name !== 'confirm' && state.name !== 'confirmProfile' && state.name !== 'resetPassword'
+      && state.name !== 'confirm' && state.name !== 'newsletter' && state.name !== 'resetPassword'
   }, (trans) => {
     if (!UserService.isAuthenticated()) {
       return trans.router.stateService.target('login');
     }
-    if (UserService.isAuthenticated() && UserService.currentUser.firstLogin && !$window.localStorage.getItem('profileConfirmed')) {
-      return trans.router.stateService.target('confirmProfile');
+    if (UserService.isAuthenticated()
+      && UserService.currentUser.firstLogin
+      && Constants.org.settings.newsletter.enabled
+      && !$window.localStorage.getItem('newsletterProposed')) {
+      return trans.router.stateService.target('newsletter');
+    } else {
+      if (!Constants.org.settings.newsletter.enabled) {
+        $rootScope.$broadcast('graviteeUserRefresh', { user: UserService.currentUser, refresh: true });
+      }
     }
   });
 

@@ -43,7 +43,9 @@ export const NavbarComponent: ng.IComponentOptions = {
     const vm = this;
 
     vm.refreshUser = (user) => {
-      vm.profileConfirmed = (user && !user.firstLogin) || $window.localStorage.getItem('profileConfirmed');
+      vm.newsletterProposed = (user && !user.firstLogin)
+        || !!$window.localStorage.getItem('newsletterProposed')
+        || !Constants.org.settings.newsletter.enabled;
     };
 
     vm.$state = $state;
