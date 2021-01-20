@@ -23,6 +23,7 @@
 
 gv-confirm {
   --gv-confirm--maw: 500px;
+  align-self: center;
 }
 
 gv-identity-picture {
