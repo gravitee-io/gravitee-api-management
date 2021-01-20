@@ -27,7 +27,9 @@
 
         <md-input-container class="md-icon-float">
           <label>First name</label>
-          <input ng-if="registrationMode" ng-model="user.firstname" ng-disabled="registrationMode" type="text" required>
+          <!-- duplicate line with ng-if condition in order to enable focus according regitrationMode -->
+          <input ng-model="user.firstname" ng-disabled="registrationMode" type="text" required ng-if="registrationMode">
+          <input ng-model="user.firstname" ng-disabled="registrationMode" type="text" required autofocus ng-if="!registrationMode">
         </md-input-container>
 
         <md-input-container class="md-icon-float">
@@ -42,7 +44,9 @@
 
         <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">
           <label>Password</label>
+          <!-- duplicate line with ng-if condition in order to enable focus according regitrationMode -->
           <input ng-if="registrationMode" ng-model="user.password" type="password" required autofocus>
+          <input ng-if="!registrationMode" ng-model="user.password" type="password" required>
         </md-input-container>
 
         <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">

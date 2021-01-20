@@ -26,7 +26,7 @@
 
   <md-input-container permission permission-only="'api-definition-u'" class="flex">
     <label>Groups</label>
-    <md-select ng-model="portalCtrl.api.groups" multiple>
+    <md-select ng-model="portalCtrl.api.groups" multiple ng-disabled="!(portalCtrl.groups && portalCtrl.groups.length > 0)">
       <md-option ng-repeat="group in portalCtrl.groups" ng-value="group.id">
         {{group.name}}
       </md-option>

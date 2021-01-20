@@ -176,7 +176,8 @@
           <label>Groups</label>
           <md-select aria-label="group"
                      ng-model="$ctrl.application.groups"
-                     multiple>
+                     multiple
+                     ng-disabled="!($ctrl.groups && $ctrl.groups.length > 0)">
             <md-option ng-value="group.id" ng-repeat="group in $ctrl.groups">{{group.name}}</md-option>
           </md-select>
         </md-input-container>
