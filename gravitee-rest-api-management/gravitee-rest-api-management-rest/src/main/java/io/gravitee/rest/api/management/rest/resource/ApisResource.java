@@ -338,7 +338,7 @@ public class ApisResource extends AbstractResource {
             @ApiResponse(code = 200, message = "API definition"),
             @ApiResponse(code = 500, message = "Internal server error")})
     @Permissions({
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ),
     })
     public Response getApisConfigurationSchema() {
         return Response.ok(apiService.getConfigurationSchema()).build();
