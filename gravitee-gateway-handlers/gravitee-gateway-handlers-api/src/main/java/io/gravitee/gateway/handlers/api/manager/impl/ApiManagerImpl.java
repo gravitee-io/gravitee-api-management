@@ -143,9 +143,10 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
 
     private void deploy(Api api) {
         MDC.put("api", api.getId());
-        logger.info("Deployment of {}", api);
 
         if (api.isEnabled()) {
+            logger.info("Deployment of {}", api);
+
             // Deploy the API only if there is at least one plan
             if (!api.getPlans().isEmpty()) {
                 logger.info("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
