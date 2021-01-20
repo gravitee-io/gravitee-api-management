@@ -91,6 +91,22 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     }
 
     @Override
+    public Optional<User> findByEmail(String email, String organizationId) throws TechnicalException {
+        LOGGER.debug("JdbcUserRepository.findByEmail({})", email);
+        try {
+            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where UPPER(u.email) = UPPER(?) and organization_id = ?"
+                    , ORM.getRowMapper()
+                    , email
+                    , organizationId
+            );
+            return users.stream().findFirst();
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find user by email", ex);
+            throw new TechnicalException("Failed to find user by email", ex);
+        }
+    }
+
+    @Override
     public Set<User> findByIds(final List<String> ids) throws TechnicalException {
         final String[] lastId = new String[1];
         List<String> uniqueIds = ids.stream().filter(id -> {
