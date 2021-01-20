@@ -92,6 +92,9 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
 
         // shouldFindApiPageByApiId
         when(pageRepository.search(argThat(o -> o == null || o.getReferenceId().equals("my-api")&& o.getReferenceType().equals("API")))).thenReturn(singletonList(findApiPage));
+        List<Page> elevenPages = new ArrayList<>();
+        IntStream.range(0, 11).forEach(__ -> elevenPages.add(findApiPage));
+        when(pageRepository.search(argThat(o -> o != null && o.getReferenceId() == null ))).thenReturn(elevenPages);
 
         // shouldFindApiPageById
         when(pageRepository.findById("FindApiPage")).thenReturn(of(findApiPage));

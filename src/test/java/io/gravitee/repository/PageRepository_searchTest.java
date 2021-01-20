@@ -131,4 +131,11 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
         assertNotNull(pages);
         assertEquals(11, pages.size());
     }
+
+    @Test
+    public void shouldFindAllWhenCriteriaIsEmpty() throws Exception {
+        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().build());
+        assertNotNull(pages);
+        assertEquals(11, pages.size());
+    }
 }
