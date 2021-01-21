@@ -11,13 +11,3 @@
   display: flex;
   flex-direction: column;
 }
-
-.home-dashboard-select-timeframe {
-  md-select-menu {
-    max-height: 336px;
-
-    md-content {
-      max-height: 336px;
-    }
-  }
-}

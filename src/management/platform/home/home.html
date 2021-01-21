@@ -20,15 +20,7 @@
     <div layout="row">
       <h1 flex>Home board</h1>
       <md-input-container class="md-block">
-        <label>Quick time range</label>
-        <md-select style="width: 120px" data-md-container-class="home-dashboard-select-timeframe"
-                   ng-model="homeCtrl.timeframe"
-                   required
-                   ng-change="homeCtrl.refresh()">
-          <md-option ng-repeat="timeframe in homeCtrl.timeframes" ng-value="timeframe">
-            {{timeframe.title}}
-          </md-option>
-        </md-select>
+        <gv-quick-time-range on-timeframe-change="homeCtrl.refresh(timeframe)"></gv-quick-time-range>
       </md-input-container>
       <md-button class="md-primary" ng-click="homeCtrl.refresh()">
         <ng-md-icon icon="refresh" size="20"></ng-md-icon>

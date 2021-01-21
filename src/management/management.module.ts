@@ -33,6 +33,7 @@ import AutofocusDirective from '../components/autofocus/autofocus.directive';
 import ApiService from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisController from '../management/api/apis.controller';
+import ApisHealthcheckController from './api/healthcheck/apisHealthcheck.controller';
 import ApiPortalController from '../management/api/portal/general/apiPortal.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
 import ApiAnalyticsController from '../management/api/analytics/overview/analytics.controller';
@@ -475,7 +476,9 @@ import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/token/generateTokenDialog.controller';
 // Newsletter
 import NewsletterSubscriptionComponent from '../components/newsletter-subcription/newsletter-subscription.component';
-
+// Quick Time Range
+import QuickTimeRangeComponent from '../components/quick-time-range/quick-time-range.component';
+import QuickTimeRangeController from '../components/quick-time-range/quick-time-range.controller';
 
 // User-Autocomplete
 import UserAutocompleteComponent from '../components/user-autocomplete/user-autocomplete.component';
@@ -694,6 +697,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   });
   graviteeManagementModule.run(runBlock);
   graviteeManagementModule.controller('ApisController', ApisController);
+  graviteeManagementModule.controller('ApisHealthcheckController', ApisHealthcheckController);
   graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
   graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
   graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
@@ -1103,6 +1107,10 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   // User-Autocomplete
   graviteeManagementModule.component('gvUserAutocomplete', UserAutocompleteComponent);
   graviteeManagementModule.controller('UserAutocompleteController', UserAutocompleteController);
+
+  // Quick Time range
+  graviteeManagementModule.component('gvQuickTimeRange', QuickTimeRangeComponent);
+  graviteeManagementModule.controller('QuickTimeRangeController', QuickTimeRangeController);
 
   graviteeManagementModule.filter('humanDateFilter', function () {
     return function (input) {

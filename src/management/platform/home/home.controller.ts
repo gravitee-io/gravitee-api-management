@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-// tslint:disable-next-line:interface-name
-interface Timeframe {
-  id: string;
-  title: string;
-  range: number;
-  interval: number;
-}
+import { ITimeframe, TimeframeRanges } from '../../../components/quick-time-range/quick-time-range.component';
 
 class HomeController {
   private eventLabels: any;
@@ -33,8 +27,7 @@ class HomeController {
   private dashboard: any;
   private customTimeframe: any;
   private customTimeframeLastDay: any;
-  private timeframes: Timeframe[];
-  private timeframe: Timeframe;
+  private timeframe: ITimeframe;
 
   constructor(
     private EventsService,
@@ -51,51 +44,7 @@ class HomeController {
     this.selectedEventTypes = [];
     this.dashboards = this.dashboards.filter(dashboards => dashboards.enabled);
 
-    this.timeframes = [
-      {
-        id: '5m',
-        title: 'Last 5m',
-        range: 1000 * 60 * 5,
-        interval: 1000 * 10
-      },
-      {
-        id: '1h',
-        title: 'Last hour',
-        range: 1000 * 60 * 60,
-        interval: 1000 * 30
-      },
-      {
-        id: '12h',
-        title: 'Last 12h',
-        range: 1000 * 60 * 60 * 12,
-        interval: 1000 * 60 * 5
-      },
-      {
-        id: '1d',
-        title: 'Last 24h',
-        range: 1000 * 60 * 60 * 24,
-        interval: 1000 * 60 * 10
-      },
-      {
-        id: '7d',
-        title: 'Last 7d',
-        range: 1000 * 60 * 60 * 24 * 7,
-        interval: 1000 * 60 * 60
-      },
-      {
-        id: '30d',
-        title: 'Last 30d',
-        range: 1000 * 60 * 60 * 24 * 30,
-        interval: 1000 * 60 * 60 * 6
-      }, {
-        id: '90d',
-        title: 'Last 90d',
-        range: 1000 * 60 * 60 * 24 * 90,
-        interval: 1000 * 60 * 60 * 12
-      }
-    ];
-
-    this.timeframe = this.timeframes.find(timeframe => timeframe.id === '1d');
+    this.timeframe = TimeframeRanges.LAST_MINUTE;
 
     if (this.dashboards.length > 0) {
       this.dashboard = this.dashboards[0];
@@ -163,7 +112,10 @@ class HomeController {
     return this.eventLabels[label];
   }
 
-  refresh() {
+  refresh(timeframe?: ITimeframe) {
+    if (timeframe) {
+      this.timeframe = timeframe;
+    }
     const now = Date.now();
 
     this.customTimeframe = {

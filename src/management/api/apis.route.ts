@@ -33,6 +33,26 @@ function apisRouterConfig($stateProvider: StateProvider) {
       abstract: true,
       url: '/apis'
     })
+    .state('management.apishealth', {
+      url: '/apis/healthcheck',
+      template: require('./healthcheck/apisHealthcheck.html'),
+      controller: 'ApisHealthcheckController',
+      controllerAs: '$ctrl',
+      resolve: {
+        apis: (ApiService: ApiService) => ApiService.list().then(response => response.data),
+      },
+      data: {
+        menu: {
+          label: 'APIs Health',
+          icon: 'favorite',
+          firstLevel: true,
+          order: 11
+        },
+        docs: {
+          page: 'management-apis-health-check'
+        }
+      }
+    })
     .state('management.apis.detail', {
       abstract: true,
       url: '/:apiId',
