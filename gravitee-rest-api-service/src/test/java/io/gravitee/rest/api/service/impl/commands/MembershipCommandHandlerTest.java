@@ -107,6 +107,41 @@ public class MembershipCommandHandlerTest {
     }
 
     @Test
+    public void handleWithRole() {
+
+        MembershipPayload membershipPayload = new MembershipPayload();
+        membershipPayload.setUserId("user#1");
+        membershipPayload.setOrganizationId("orga#1");
+        membershipPayload.setReferenceType(MembershipReferenceType.ORGANIZATION.name());
+        membershipPayload.setReferenceId("orga#1");
+        membershipPayload.setRole("ORGANIZATION_OWNER");
+
+        MembershipCommand command = new MembershipCommand(membershipPayload);
+
+        UserEntity user = new UserEntity();
+        user.setId(UUID.random().toString());
+
+        RoleEntity role = new RoleEntity();
+        role.setId(UUID.random().toString());
+
+        when(userService.findBySource(COCKPIT_SOURCE, membershipPayload.getUserId(), false)).thenReturn(user);
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN")).thenReturn(Optional.of(role));
+
+        TestObserver<MembershipReply> obs = cut.handle(command).test();
+
+        obs.awaitTerminalEvent();
+        obs.assertNoErrors();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+
+        verify(membershipService).addRoleToMemberOnReference(MembershipReferenceType.ORGANIZATION,
+                membershipPayload.getReferenceId(),
+                MembershipMemberType.USER,
+                user.getId(),
+                role.getId(),
+                COCKPIT_SOURCE);
+    }
+
+    @Test
     public void handleWithUserRole() {
 
         MembershipPayload membershipPayload = new MembershipPayload();

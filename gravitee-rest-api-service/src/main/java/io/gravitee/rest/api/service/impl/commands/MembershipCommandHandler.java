@@ -22,7 +22,10 @@ import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.membership.MembershipCommand;
 import io.gravitee.cockpit.api.command.membership.MembershipPayload;
 import io.gravitee.cockpit.api.command.membership.MembershipReply;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
@@ -99,10 +102,11 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
 
     private RoleEntity findRole(RoleScope roleScope, String roleName) {
 
-        // Need to map cockpit role to apim role (ORGANIZATION_PRIMARY_OWNER -> ADMIN, ENVIRONMENT_PRIMARY_OWNER -> ADMIN).
+        // Need to map cockpit role to apim role (ORGANIZATION_PRIMARY_OWNER | ORGANIZATION_OWNER -> ADMIN, ENVIRONMENT_PRIMARY_OWNER | ENVIRONMENT_OWNER -> ADMIN).
         final String mappedRoleName = roleName
                 .replace(roleScope.name() + "_", "")
-                .replace("PRIMARY_OWNER", "ADMIN");
+                .replace("PRIMARY_OWNER", "ADMIN")
+                .replace("OWNER", "ADMIN");
 
         final Optional<RoleEntity> role = roleService.findByScopeAndName(roleScope, mappedRoleName);
 
