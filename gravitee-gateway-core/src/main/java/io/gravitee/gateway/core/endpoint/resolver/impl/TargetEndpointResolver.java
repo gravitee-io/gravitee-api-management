@@ -28,6 +28,7 @@ import io.gravitee.gateway.core.endpoint.ref.Reference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.endpoint.resolver.EndpointResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -102,7 +103,7 @@ public class TargetEndpointResolver implements EndpointResolver {
 
             mergeQueryParameters(target, serverRequest.parameters());
             return createEndpoint(reference.endpoint(), getTargetWithoutQueryParams(target));
-        } else if (target.startsWith(URI_PATH_SEPARATOR)) {
+        } else if (target.startsWith(URI_PATH_SEPARATOR) || StringUtils.isEmpty(target)) {
             // Get the first group
             LoadBalancedEndpointGroup group = groupManager.getDefault();
 
