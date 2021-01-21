@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.common;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -43,6 +45,11 @@ public class GraviteeContext {
 
     public static String getCurrentEnvironment() {
         return (String) contextThread.get().get(CURRENT_ENVIRONMENT_CONTEXT_KEY);
+    }
+
+    public static String getCurrentEnvironmentOrDefault() {
+        String currentEnvironment = getCurrentEnvironment();
+        return StringUtils.isEmpty(currentEnvironment) ? getDefaultEnvironment() : currentEnvironment;
     }
 
     public static void setCurrentEnvironment(String currentEnvironment) {

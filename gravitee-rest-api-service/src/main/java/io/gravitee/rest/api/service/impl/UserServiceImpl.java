@@ -609,7 +609,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     break;
                 case ENVIRONMENT:
                     membershipService.addRoleToMemberOnReference(
-                            new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment()),
+                            new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironmentOrDefault()),
                             new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                             new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, defaultRoleByScope.getName()));
                     break;
