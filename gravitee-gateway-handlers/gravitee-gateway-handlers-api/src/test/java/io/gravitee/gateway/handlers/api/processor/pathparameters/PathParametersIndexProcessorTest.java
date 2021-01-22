@@ -70,10 +70,33 @@ public class PathParametersIndexProcessorTest {
 
         verify(context, times(4)).request(); // one time in getResolvedPath()
         verify(request, times(1)).pathInfo();
-        
+
         assertEquals(2, pathParams.size());
         assertEquals("myStore", pathParams.getFirst("storeId"));
         assertEquals("190783", pathParams.getFirst("orderId"));
+    }
+
+    @Test
+    public void shouldAddPathParamInContext_noSubPath() {
+        // Init paths
+        PathResolver pathResolver = new PathResolver("/:storeId/orders");
+
+        // Init processor
+        Processor<ExecutionContext> processor = new PathParametersIndexProcessor(pathResolver);
+        processor.handler(next);
+
+        MultiValueMap<String, String> pathParams = new LinkedMultiValueMap<>();
+        when(request.pathInfo()).thenReturn("/12345/orders");
+        when(request.pathParameters()).thenReturn(pathParams);
+
+        // Run
+        processor.handle(context);
+
+        verify(context, times(4)).request(); // one time in getResolvedPath()
+        verify(request, times(1)).pathInfo();
+
+        assertEquals(1, pathParams.size());
+        assertEquals("12345", pathParams.getFirst("storeId"));
     }
 
     static class PathResolver extends AbstractPathResolver {
