@@ -1571,7 +1571,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final JsonNode pages = jsonNode.path("pages");
         if (pages != null && pages.isArray()) {
             for (JsonNode page : pages) {
-                pageService.createWithDefinition(createdApiEntity.getId(), page.toString());
+                PageEntity pageEntity = pageService.createWithDefinition(createdApiEntity.getId(), page.toString());
+                ((ObjectNode) page).put("id", pageEntity.getId());
             }
         }
 
@@ -1875,7 +1876,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
 
-            PageEntity createdOrUpdatedPage = pageEntityToImport.getId() != null ? pageService.findById(pageEntityToImport.getId()) : null;
+            PageEntity createdOrUpdatedPage = null;
+            if (pageEntityToImport.getId() != null) {
+                createdOrUpdatedPage = pageService.findById(pageEntityToImport.getId());
+            } else {
+                PageQuery query = new PageQuery.Builder()
+                        .api(apiId)
+                        .name(pageEntityToImport.getName())
+                        .type(PageType.valueOf(pageEntityToImport.getType()))
+                        .build();
+
+                List<PageEntity> pages = pageService.search(query);
+                if (pages.size() == 1) {
+                    createdOrUpdatedPage = pages.get(0);
+                } else if (pages.size() > 1) {
+                    LOGGER.error("Not able to identify the page to update: {}. Too much pages with the same name", pageEntityToImport.getName());
+                    throw new TechnicalManagementException("Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much pages with the same name");
+                }
+            }
 
             if (createdOrUpdatedPage == null) {
                 NewPageEntity newPage = new NewPageEntity();
@@ -1906,7 +1924,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updatePageEntity.setSource(pageEntityToImport.getSource());
                 updatePageEntity.setAttachedMedia(pageEntityToImport.getAttachedMedia());
 
-                createdOrUpdatedPage = pageService.update(pageEntityToImport.getId(), updatePageEntity);
+                createdOrUpdatedPage = pageService.update(createdOrUpdatedPage.getId(), updatePageEntity);
             }
 
             if (child.children != null && !child.children.isEmpty()) {
