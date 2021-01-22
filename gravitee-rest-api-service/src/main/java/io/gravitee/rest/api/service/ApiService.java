@@ -139,4 +139,6 @@ public interface ApiService {
 
     ApiEntity migrate(String api);
     String getConfigurationSchema();
+
+    boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
 }

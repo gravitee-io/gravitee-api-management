@@ -15,32 +15,24 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.definition.model.services.Services;
-import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
-import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
-import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricHealthcheck;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -49,119 +41,22 @@ public class ApiQualityMetricHealthcheckTest {
     @InjectMocks
     private ApiQualityMetricHealthcheck srv = new ApiQualityMetricHealthcheck();
 
-    @Test
-    public void shouldBeValidWithGlobalHC() {
-        ApiEntity api = mock(ApiEntity.class);
-        HealthCheckService hcSrv = mock(HealthCheckService.class);
-        when(hcSrv.isEnabled()).thenReturn(Boolean.TRUE);
-        Services services = new Services();
-        services.set(Collections.singletonList(hcSrv));
-        when(api.getServices()).thenReturn(services);
-        mockProxy(api, false);
+    @Mock
+    private ApiService apiService;
 
-        boolean valid = srv.isValid(api);
+    @Test
+    public void shouldBeValid() {
+        when(apiService.hasHealthCheckEnabled(any(), eq(true))).thenReturn(true);
+        boolean valid = srv.isValid(mock(ApiEntity.class));
 
         assertTrue(valid);
     }
 
     @Test
-    public void shouldBeValidWithEndpointsHC() {
-        ApiEntity api = mock(ApiEntity.class);
-        EndpointHealthCheckService hcSrv = mock(EndpointHealthCheckService.class);
-        when(hcSrv.isEnabled()).thenReturn(Boolean.FALSE);
-        Services services = new Services();
-        services.set(Collections.singletonList(hcSrv));
-        when(api.getServices()).thenReturn(services);
-        mockProxy(api, true);
-
-        boolean valid = srv.isValid(api);
-
-        assertTrue(valid);
-    }
-
-    @Test
-    public void shouldBeInvalidWithOnlyOneEndpointHC() {
-        ApiEntity api = mock(ApiEntity.class);
-        EndpointHealthCheckService hcSrv = mock(EndpointHealthCheckService.class);
-        when(hcSrv.isEnabled()).thenReturn(Boolean.FALSE);
-        Services services = new Services();
-        services.set(Collections.singletonList(hcSrv));
-        when(api.getServices()).thenReturn(services);
-        mockProxy(api, false);
-
-        boolean valid = srv.isValid(api);
+    public void shouldNotBeValid() {
+        when(apiService.hasHealthCheckEnabled(any(), eq(true))).thenReturn(false);
+        boolean valid = srv.isValid(mock(ApiEntity.class));
 
         assertFalse(valid);
-    }
-
-    @Test
-    public void shouldNotBeValidWithoutServices() {
-        ApiEntity api = mock(ApiEntity.class);
-        mockProxy(api, false);
-
-        boolean valid = srv.isValid(api);
-
-        assertFalse(valid);
-    }
-
-    @Test
-    public void shouldNotBeValidWithEmptyServices() {
-        ApiEntity api = mock(ApiEntity.class);
-        Services services = new Services();
-        services.set(Collections.emptyList());
-        mockProxy(api, false);
-
-        boolean valid = srv.isValid(api);
-
-        assertFalse(valid);
-    }
-
-
-    @Test
-    public void shouldNotBeValidWithDisabledGlobalHC() {
-        ApiEntity api = mock(ApiEntity.class);
-        HealthCheckService hcSrv = mock(HealthCheckService.class);
-        when(hcSrv.isEnabled()).thenReturn(Boolean.FALSE);
-        Services services = new Services();
-        services.set(Collections.singletonList(hcSrv));
-        when(api.getServices()).thenReturn(services);
-        mockProxy(api, false);
-
-        boolean valid = srv.isValid(api);
-
-        assertFalse(valid);
-    }
-
-    @Test
-    public void shouldNotBeValidWithAnotherService() {
-        ApiEntity api = mock(ApiEntity.class);
-        DynamicPropertyService dpSrv = mock(DynamicPropertyService.class);
-        when(dpSrv.isEnabled()).thenReturn(Boolean.TRUE);
-        Services services = new Services();
-        services.set(Collections.singletonList(dpSrv));
-        when(api.getServices()).thenReturn(services);
-        mockProxy(api, false);
-
-        boolean valid = srv.isValid(api);
-
-        assertFalse(valid);
-    }
-
-    private void mockProxy(final ApiEntity api, final boolean withHC) {
-        final Proxy proxy = mock(Proxy.class);
-        when(api.getProxy()).thenReturn(proxy);
-        final EndpointGroup endpointGroup = mock(EndpointGroup.class);
-        when(proxy.getGroups()).thenReturn(Collections.singleton(endpointGroup));
-        final HttpEndpoint endpoint1 = mock(HttpEndpoint.class);
-        final HttpEndpoint endpoint2 = mock(HttpEndpoint.class);
-        when(endpointGroup.getEndpoints()).thenReturn(new HashSet<>(Arrays.asList(endpoint1, endpoint2)));
-
-        final EndpointHealthCheckService endpointHealthCheckService1 = mock(EndpointHealthCheckService.class);
-        when(endpoint1.getHealthCheck()).thenReturn(endpointHealthCheckService1);
-        when(endpointHealthCheckService1.isEnabled()).thenReturn(true);
-
-        final EndpointHealthCheckService endpointHealthCheckService2 = mock(EndpointHealthCheckService.class);
-        when(endpoint2.getHealthCheck()).thenReturn(endpointHealthCheckService2);
-        when(endpointHealthCheckService2.isEnabled()).thenReturn(withHC);
     }
 }

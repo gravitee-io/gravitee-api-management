@@ -131,6 +131,10 @@ public class ApiListItem {
             example = "/my-awesome-api")
     private String contextPath;
 
+    @JsonProperty(value = "healthcheck_enabled")
+    @ApiModelProperty(value = "true if HealthCheck is enabled globally or on one endpoint")
+    private boolean hasHealthCheckEnabled;
+
     public String getId() {
         return id;
     }
@@ -291,6 +295,14 @@ public class ApiListItem {
         this.contextPath = contextPath;
     }
 
+    public boolean isHasHealthCheckEnabled() {
+        return hasHealthCheckEnabled;
+    }
+
+    public void setHasHealthCheckEnabled(boolean hasHealthCheckEnabled) {
+        this.hasHealthCheckEnabled = hasHealthCheckEnabled;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -328,6 +340,7 @@ public class ApiListItem {
                 ", lifecycleState=" + lifecycleState +
                 ", workflowState=" + workflowState +
                 ", contextPath='" + contextPath + '\'' +
+                ", hasHealthCheckEnabled='" + hasHealthCheckEnabled + '\'' +
                 '}';
     }
 }

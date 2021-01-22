@@ -45,7 +45,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.*;
 
@@ -293,6 +292,8 @@ public class ApisResource extends AbstractResource {
         apiItem.setUpdatedAt(api.getUpdatedAt());
         apiItem.setLabels(api.getLabels());
         apiItem.setPrimaryOwner(api.getPrimaryOwner());
+
+        apiItem.setHasHealthCheckEnabled(apiService.hasHealthCheckEnabled(api, false));
 
         if (api.getVisibility() != null) {
             apiItem.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));

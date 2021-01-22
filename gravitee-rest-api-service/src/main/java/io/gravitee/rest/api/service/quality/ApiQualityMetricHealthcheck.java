@@ -15,16 +15,19 @@
  */
 package io.gravitee.rest.api.service.quality;
 
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.ApiService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
  * @author GraviteeSource Team
  */
 public class ApiQualityMetricHealthcheck implements ApiQualityMetric {
+
+    @Autowired
+    private ApiService apiService;
 
     @Override
     public Key getWeightKey() {
@@ -33,22 +36,6 @@ public class ApiQualityMetricHealthcheck implements ApiQualityMetric {
 
     @Override
     public boolean isValid(ApiEntity api) {
-        boolean globalHC = api.getServices() != null &&
-                api.getServices().getAll() != null &&
-                api.getServices().getAll()
-                        .stream()
-                        .anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
-        if (globalHC) {
-            return true;
-        } else {
-            return api.getProxy().getGroups().stream().allMatch(group -> group.getEndpoints().stream().allMatch(endpoint -> {
-                if (endpoint instanceof HttpEndpoint) {
-                    return ((HttpEndpoint) endpoint).getHealthCheck() != null &&
-                            ((HttpEndpoint) endpoint).getHealthCheck().isEnabled();
-                } else {
-                    return false;
-                }
-            }));
-        }
+        return this.apiService.hasHealthCheckEnabled(api, true);
     }
 }

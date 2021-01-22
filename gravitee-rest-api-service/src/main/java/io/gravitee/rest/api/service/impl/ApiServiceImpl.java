@@ -92,6 +92,7 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -2238,6 +2239,32 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return duplicatedApi;
+    }
+
+    @Override
+    public boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints) {
+        boolean globalHC = api.getServices() != null &&
+                api.getServices().getAll() != null &&
+                api.getServices().getAll()
+                        .stream()
+                        .anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
+        if (globalHC) {
+            return true;
+        } else {
+            final Predicate<Endpoint> endpointHealthCheckEnabledPredicate = endpoint -> {
+                if (endpoint instanceof HttpEndpoint) {
+                    return ((HttpEndpoint) endpoint).getHealthCheck() != null &&
+                            ((HttpEndpoint) endpoint).getHealthCheck().isEnabled();
+                } else {
+                    return false;
+                }
+            };
+            if (mustBeEnabledOnAllEndpoints) {
+                return api.getProxy().getGroups().stream().allMatch(group -> group.getEndpoints().stream().allMatch(endpointHealthCheckEnabledPredicate));
+            } else {
+                return api.getProxy().getGroups().stream().anyMatch(group -> group.getEndpoints().stream().anyMatch(endpointHealthCheckEnabledPredicate));
+            }
+        }
     }
 
     private UpdateApiEntity convert(final ApiEntity apiEntity) {
