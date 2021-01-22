@@ -89,6 +89,12 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
             IdentityProvider createdIdentityProvider = identityProviderRepository.create(identityProvider);
 
+            identityProviderActivationService.activateIdpOnTargets(createdIdentityProvider.getId(),
+                    new IdentityProviderActivationService.ActivationTarget(
+                            GraviteeContext.getCurrentOrganization(),
+                            IdentityProviderActivationReferenceType.ORGANIZATION)
+            );
+
             auditService.createOrganizationAuditLog(
                     singletonMap(IDENTITY_PROVIDER, createdIdentityProvider.getId()),
                     IdentityProvider.AuditEvent.IDENTITY_PROVIDER_CREATED,
