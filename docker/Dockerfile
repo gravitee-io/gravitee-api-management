@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM adoptopenjdk/openjdk11:jre-11.0.9_11-alpine
+FROM adoptopenjdk/openjdk11:jre-11.0.10_9-alpine
 LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
