@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import AnalyticsService from '../../../services/analytics.service';
+import EventsService from '../../../services/events.service';
 // tslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-line');
 
@@ -25,10 +26,11 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function($scope, $element, $rootScope, ChartService, AnalyticsService: AnalyticsService) {
+  controller: function($scope, $element, $rootScope, $state, AnalyticsService: AnalyticsService, EventsService: EventsService) {
     'ngInject';
 
     this.AnalyticsService = AnalyticsService;
+    this.EventsService = EventsService;
     this.$scope = $scope;
 
     this.$onInit = () => {
@@ -41,7 +43,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
         this.series = {values: []};
         this.gvChartLine = $element.children()[0];
 
-        if (data.values && data.values.length > 0) {
+        if ((data.values && data.values.length > 0) || (data.events.content && data.events.content.length > 0)) {
           this.prepareData(data);
 
           // Send data to gv-chart-line
@@ -54,47 +56,83 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           $scope.$on('onWidgetResize', this.onResize.bind(this));
 
         } else {
-          this.gvChartLine.setAttribute('series', JSON.stringify([]));
+          this.gvChartLine.setAttribute('series', JSON.stringify([{}]));
         }
       }
     };
 
     this.prepareData = (data) => {
-      let i;
-      data.values.forEach( (value, idx) => {
-        value.buckets.forEach((bucket) => {
-          if (bucket) {
-            i++;
-            let lineColor = ChartService.colorByBucket[i % ChartService.colorByBucket.length];
-            let bgColor = ChartService.bgColorByBucket[i % ChartService.bgColorByBucket.length];
-            let isFieldRequest = this.parent.widget.chart.request.aggs.split('%3B')[idx].includes('field:');
-            let query = this.parent.widget.chart.request.query;
-            if (bucket.name === '1' || bucket.name.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')) {
-              isFieldRequest = false;
-            }
-            let label = this.parent.widget.chart.labels ? this.parent.widget.chart.labels[idx] : '';
-            if (!label || (value.metadata && value.metadata[bucket.name])) {
-              label = value.metadata[bucket.name].name;
-            }
-
-            this.series.values.push({
-              name: isFieldRequest ? bucket.name : label,
-              data: bucket.data, color: lineColor, fillColor: bgColor,
-              labelPrefix: isFieldRequest ? label : '',
-              id: bucket.name,
-              visible: this.parent.widget.chart.selectable && query ? query.includes(bucket.name) : true
-            });
-          }
-        });
-      });
-
       let timestamp = data.timestamp;
+      this.events = data.events && data.events.content;
+
+      data.values.forEach( (value, idx) => {
+        let label = this.parent.widget.chart.labels ? this.parent.widget.chart.labels[idx] : '';
+
+        if (value.buckets.length === 0) {
+          let bucketCount = (data.timestamp.to - data.timestamp.from) / data.timestamp.interval;
+
+          this.series.values.push({
+            name: label,
+            data: Array(bucketCount).fill(0),
+            labelPrefix: label,
+            id: label,
+            visible: true
+          });
+        } else {
+          value.buckets.forEach((bucket) => {
+            if (bucket) {
+              let isFieldRequest = this.parent.widget.chart.request.aggs.split('%3B')[idx].includes('field:');
+              let query = this.parent.widget.chart.request.query;
+              if (bucket.name === '1' || bucket.name.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')) {
+                isFieldRequest = false;
+              }
+              if (!label || (value.metadata && value.metadata[bucket.name])) {
+                label = value.metadata[bucket.name].name;
+              }
+
+              this.series.values.push({
+                name: isFieldRequest ? bucket.name : label,
+                data: bucket.data,
+                labelPrefix: isFieldRequest ? label : '',
+                id: bucket.name,
+                visible: this.parent.widget.chart.selectable && query ? query.includes(bucket.name) : true
+              });
+            }
+          });
+        }
+      });
 
       this.options = {
         labelPrefix: 'HTTP Status',
         pointStart: timestamp.from,
         pointInterval: timestamp.interval,
-        stacking: this.parent.widget.chart.stacked ? 'normal' : null
+        stacking: this.parent.widget.chart.stacked ? 'normal' : null,
+        plotLines: (this.events || []).map(event => {
+            return {
+              color: 'rgba(223, 169, 65, 0.4)',
+              width: 2,
+              value: event.created_at,
+              label: {
+                useHTML: true,
+                text: `
+                  <div style="
+                        background-color: var(--gv-theme-font-color-dark, #262626);
+                        color: white;
+                        padding: 5px;
+                        border-radius: 2px;
+                        z-index: 99;
+                        visibility: hidden;">
+                    <span>Deployment #${event.properties.deployment_number}</span>
+                    <br>
+                    <span>${event.properties.deployment_label || ''}</span>
+                  </div>`,
+                rotation: 0,
+                style: {
+                  visibility: 'hidden',
+                }
+              }
+            };
+          })
       };
     };
 

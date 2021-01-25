@@ -368,7 +368,6 @@ import runBlock from './management.run';
 import uiRouter from '@uirouter/angularjs';
 import { permission, uiPermission } from 'angular-permission';
 
-import ChartService from '../services/chart.service';
 import DialogAddNotificationSettingsController
   from '../components/notifications/notificationsettings/addnotificationsettings.dialog.controller';
 
@@ -810,7 +809,6 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.service('RoleService', RoleService);
   graviteeManagementModule.service('TicketService', TicketService);
   graviteeManagementModule.service('AuditService', AuditService);
-  graviteeManagementModule.service('ChartService', ChartService);
   graviteeManagementModule.service('TopApiService', TopApiService);
   graviteeManagementModule.service('MessageService', MessageService);
   graviteeManagementModule.service('PortalService', PortalService);
