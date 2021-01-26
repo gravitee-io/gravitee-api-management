@@ -59,22 +59,16 @@
 
           <div ng-show="!healthCheckCtrl.healthcheck.inherit && healthCheckCtrl.healthcheck.enabled === true">
             <md-subheader>Trigger</md-subheader>
-            <md-content>
-              <form name="formApiHealthCheckTrigger" novalidate layou="column">
-                <md-input-container flex class="md-block">
-                  <label>Interval</label>
-                  <input required ng-model="healthCheckCtrl.healthcheck.trigger.rate" autofocus type="number" min="1" required>
-                  <div class="hint">Interval between each health-check.</div>
-                </md-input-container>
-                <md-input-container flex class="md-block">
-                  <label>Time Unit</label>
-                  <md-select ng-model="healthCheckCtrl.healthcheck.trigger.unit" placeholder="Time unit" required>
-                    <md-option ng-value="timeUnit" ng-repeat="timeUnit in healthCheckCtrl.timeUnits">{{timeUnit}}</md-option>
-                  </md-select>
-                  <div class="hint">Time-unit for fixed rate trigger.</div>
-                </md-input-container>
-              </form>
-            </md-content>
+            <form name="formApiHealthCheckTrigger" novalidate layout="column">
+              <md-input-container flex class="md-block">
+                <gv-cron-editor required
+                                ng-value="healthCheckCtrl.healthcheck.schedule"
+                                ng-on-input="healthCheckCtrl.updateSchedule($event)"
+                                label="Schedule"></gv-cron-editor>
+
+                <div class="hint">A cron expression to schedule the health check</div>
+              </md-input-container>
+            </form>
 
             <md-subheader>Request</md-subheader>
             <md-content>
@@ -165,6 +159,7 @@
                 </div>
               </fieldset>
             </form>
+
           </div>
 
           <div layout="row">
@@ -181,16 +176,29 @@
             <md-divider></md-divider>
           </div>
           <div class="healthcheck-summary-timeline">
-            <timeline>
+            <timeline ng-if="!healthCheckCtrl.healthcheck.enabled">
+              <timeline-event side="right">
+                <timeline-badge class="disabled">
+                  <i class="glyphicon glyphicon-play-circle"></i>
+                </timeline-badge>
+                <timeline-panel class="disable">
+                  <timeline-heading>
+                    <div class="healthcheck-summary-timeline-title">Trigger</div>
+                  </timeline-heading>
+                  <p>Health-check is disabled</p>
+                </timeline-panel>
+              </timeline-event>
+            </timeline>
+            <timeline ng-if="healthCheckCtrl.healthcheck.enabled">
               <timeline-event side="right">
                 <timeline-badge ng-class="{'disable': formApiHealthCheckTrigger.$invalid, 'info': formApiHealthCheckTrigger.$valid}">
                   <i class="glyphicon glyphicon-play-circle"></i>
                 </timeline-badge>
                 <timeline-panel ng-class="{'disable': formApiHealthCheckTrigger.$invalid, 'info': formApiHealthCheckTrigger.$valid}">
                   <timeline-heading>
-                    <div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">Trigger</div>
+                    <div class="healthcheck-summary-timeline-title">Trigger</div>
                   </timeline-heading>
-                  <p>{{healthCheckCtrl.buildTrigger()}}</p>
+                  <p>Health-check is running with cron <br/><code>{{healthCheckCtrl.healthcheck.schedule}}</code></p>
                 </timeline-panel>
               </timeline-event>
               <timeline-event side="right">
@@ -199,7 +207,7 @@
                 </timeline-badge>
                 <timeline-panel ng-class="{'disable': formApiHealthCheckRequest.$invalid, 'info': formApiHealthCheckRequest.$valid}">
                   <timeline-heading>
-                    <div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">Request</div>
+                    <div class="healthcheck-summary-timeline-title">Request</div>
                   </timeline-heading>
                   <span style="font-weight: bold"><code>{{healthCheckCtrl.buildRequest()}}</code></span>
                   <p ng-repeat="header in healthCheckCtrl.healthcheck.steps[0].request.headers track by $index">
@@ -213,7 +221,7 @@
                 </timeline-badge>
                 <timeline-panel ng-class="{'disable': formApiHealthCheckResponse.$invalid, 'info': formApiHealthCheckResponse.$valid}">
                   <timeline-heading>
-                    <div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">Assertions</div>
+                    <div class="healthcheck-summary-timeline-title">Assertions</div>
                   </timeline-heading>
                   <p ng-repeat="assertion in healthCheckCtrl.healthcheck.steps[0].response.assertions track by $index">
                     &bigoplus; {{healthCheckCtrl.healthcheck.steps[0].response.assertions[$index]}}

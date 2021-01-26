@@ -11,18 +11,22 @@ md-sidenav.healthcheck {
   padding-top: 54px;
   @include min-max-width($healthcheckSidenavWidth);
   background-color: #fafafa;
+
   md-content {
     background-color: #fafafa;
   }
 }
 
 .configuration-card {
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),
-  0 1px 1px 0 rgba(0,0,0,.14),
-  0 2px 1px -1px rgba(0,0,0,.12);
-  background: #fff;
-  padding: 10px 10px 10px 10px;
-  margin: 20px 20px 20px 20px;
+
+  gv-cron-editor {
+    margin: 0;
+  }
+
+}
+
+.healthcheck-summary-timeline-wrapper {
+  padding: 10px 8px;
 }
 
 .configuration-card fieldset {
@@ -42,6 +46,7 @@ md-sidenav.healthcheck {
   .timeline:before {
     left: 10%;
   }
+
   timeline-badge {
     left: 10%;
     top: 10px;
@@ -53,9 +58,17 @@ md-sidenav.healthcheck {
   }
 
   timeline-panel:before {
-    top:20px
+    top: 20px
   }
+
   timeline-panel:after {
-    top:21px
+    top: 21px
+  }
+
+  .healthcheck-summary-timeline-title {
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 }

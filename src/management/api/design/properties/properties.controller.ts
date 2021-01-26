@@ -20,6 +20,7 @@ import NotificationService from '../../../../services/notification.service';
 import angular = require('angular');
 
 interface IApiPropertiesScope extends ng.IScope {
+  formDynamicProperties: any;
   dynamicPropertyEnabled: boolean;
   apiCtrl: any;
   $parent: any;
@@ -33,9 +34,9 @@ class ApiPropertiesController {
   private editor: any;
   private joltSpecificationOptions: any;
   private dynamicPropertyProviders: { id: string; name: string }[];
-  private timeUnits: string[];
   private selectedProperties: any = {};
   private selectAll: boolean;
+  private _initialDynamicPropertyService: any;
 
   constructor(
     private ApiService: ApiService,
@@ -54,7 +55,6 @@ class ApiPropertiesController {
         name: 'Custom (HTTP)'
       }
     ];
-    this.timeUnits = ['SECONDS', 'MINUTES', 'HOURS'];
     this.api = this.$scope.$parent.apiCtrl.api;
     this.$mdSidenav = $mdSidenav;
     this.$mdEditDialog = $mdEditDialog;
@@ -71,7 +71,8 @@ class ApiPropertiesController {
       controller: this
     };
 
-    this.dynamicPropertyService = this.api.services && this.api.services['dynamic-property'];
+    this._initialDynamicPropertyService = _.cloneDeep(this.api.services && this.api.services['dynamic-property']);
+    this.dynamicPropertyService = _.cloneDeep(this._initialDynamicPropertyService);
 
     if (this.dynamicPropertyService !== undefined) {
       this.$scope.dynamicPropertyEnabled = this.dynamicPropertyService.enabled;
@@ -89,7 +90,6 @@ class ApiPropertiesController {
   }
 
   deleteProperty(key) {
-    let that = this;
     this.$mdDialog.show({
       controller: 'DialogConfirmController',
       controllerAs: 'ctrl',
@@ -100,13 +100,13 @@ class ApiPropertiesController {
         msg: '',
         confirmButton: 'Remove'
       }
-    }).then(function (response) {
+    }).then((response) => {
       if (response) {
-        _.remove(that.api.properties, (property: any) => {
+        _.remove(this.api.properties, (property: any) => {
           return property.key === key;
         });
 
-        that.update();
+        this.update();
       }
     });
   }
@@ -118,7 +118,7 @@ class ApiPropertiesController {
       controllerAs: 'dialogAddPropertyCtrl',
       template: require('./add-property.dialog.html'),
       clickOutsideToClose: true
-    }).then(function (property) {
+    }).then(function(property) {
       if (that.api.properties === undefined) {
         that.api.properties = [];
       }
@@ -130,27 +130,35 @@ class ApiPropertiesController {
     });
   }
 
+  updateSchedule(event) {
+    if (event.target.valid) {
+      this.dynamicPropertyService.schedule = event.target.value;
+      this.$scope.formDynamicProperties.$invalid = false;
+    } else {
+      this.$scope.formDynamicProperties.$invalid = true;
+    }
+    this.$scope.formDynamicProperties.$pristine = false;
+  }
+
   update() {
-    var _that = this;
     this.api.services['dynamic-property'] = this.dynamicPropertyService;
     return this.ApiService.update(this.api).then((updatedApi) => {
-      _that.api = updatedApi.data;
-      _that.api.etag = updatedApi.headers('etag');
-      _that.$rootScope.$broadcast('apiChangeSuccess', {api: _that.api});
-      _that.NotificationService.show('API \'' + (_that.$scope as any).$parent.apiCtrl.api.name + '\' saved');
+      this.api = updatedApi.data;
+      this.api.etag = updatedApi.headers('etag');
+      this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
+      this.NotificationService.show('API \'' + (this.$scope as any).$parent.apiCtrl.api.name + '\' saved');
     });
   }
 
   editValue(event, property) {
     event.stopPropagation();
-    var _that = this;
     this.$mdEditDialog.small({
       modelValue: property.value,
       placeholder: 'Set property value',
-      save: function (input) {
+      save: (input) => {
         property.value = input.$modelValue;
         property.dynamic = false;
-        _that.update();
+        this.update();
       },
       targetEvent: event,
       validators: {
@@ -168,12 +176,11 @@ class ApiPropertiesController {
   }
 
   open() {
-    let that = this;
     this.$mdSidenav('dynamic-properties-config')
       .open()
-      .then(function () {
-        if (that.editor) {
-          that.editor.setSize('100%', '100%');
+      .then(() => {
+        if (this.editor) {
+          this.editor.setSize('100%', '100%');
         }
       });
   }
@@ -187,7 +194,7 @@ class ApiPropertiesController {
     this.controller.editor = _editor;
 
     // Editor part
-    var _doc = this.controller.editor.getDoc();
+    const _doc = this.controller.editor.getDoc();
 
     // Options
     _doc.markClean();
@@ -243,6 +250,12 @@ class ApiPropertiesController {
 
   hasSelectedProperties() {
     return _.filter(this.selectedProperties, (p) => p).length > 0;
+  }
+
+  reset() {
+    this.dynamicPropertyService = _.cloneDeep(this._initialDynamicPropertyService);
+    this.$scope.formDynamicProperties.$setPristine();
+    this.$scope.formDynamicProperties.$setUntouched();
   }
 }
 

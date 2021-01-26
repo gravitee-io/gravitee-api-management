@@ -1,16 +1,9 @@
-
-.properties .btn-group {
-  padding: 0px 16px 0px;
-}
-
-.CodeMirror {
-  border: 1px solid #eee;
-  height: auto;
-
-  .CodeMirror-gutter-wrapper {
-    left: -30px !important;
+.properties {
+  gv-cron-editor {
+    margin: 0;
   }
 }
+
 
 .no-top {
   top: 0px;

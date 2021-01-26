@@ -15,6 +15,7 @@
  */
 import _ = require('lodash');
 import angular = require('angular');
+import '@gravitee/ui-components/wc/gv-cron-editor';
 
 class ApiHealthCheckConfigureController {
   private api: any;
@@ -25,7 +26,7 @@ class ApiHealthCheckConfigureController {
   private endpointToDisplay: any;
   private rootHealthcheckEnabled: boolean;
 
-  constructor (
+  constructor(
     private ApiService,
     private NotificationService,
     private $mdDialog,
@@ -43,8 +44,8 @@ class ApiHealthCheckConfigureController {
 
     if (this.$stateParams.endpointName !== undefined) {
       // Health-check for specific endpoint
-      let group: any = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
-      this.endpoint = _.find(group.endpoints, { 'name': $stateParams.endpointName });
+      let group: any = _.find(this.api.proxy.groups, {'name': $stateParams.groupName});
+      this.endpoint = _.find(group.endpoints, {'name': $stateParams.endpointName});
       this.rootHealthcheckEnabled =
         this.api.services &&
         this.api.services['health-check'] &&
@@ -76,8 +77,8 @@ class ApiHealthCheckConfigureController {
     this.healthcheck.inherit = inherit;
     this.healthcheck.enabled = enabled;
 
-    this.timeUnits = [ 'SECONDS', 'MINUTES', 'HOURS', 'DAYS' ];
-    this.httpMethods = [ 'GET', 'POST', 'PUT' ];
+    this.timeUnits = ['SECONDS', 'MINUTES', 'HOURS', 'DAYS'];
+    this.httpMethods = ['GET', 'POST', 'PUT'];
 
     this.initState();
   }
@@ -133,22 +134,13 @@ class ApiHealthCheckConfigureController {
     }
   }
 
-  buildTrigger() {
-    let trigger = 'Health-check is running each ';
-
-    trigger += (this.healthcheck.trigger && this.healthcheck.trigger.rate) || '{rate}';
-    trigger += ' ' + ((this.healthcheck.trigger && this.healthcheck.trigger.unit) || '{unit}');
-
-    return trigger;
-  }
-
   buildRequest() {
     let request = '';
 
     request += (((this.healthcheck.steps && this.healthcheck.steps[0].request.method)) || '{method}') + ' ';
 
-    if ( this.healthcheck.steps && this.healthcheck.steps[0].request.fromRoot ) {
-      if ( this.endpointToDisplay ) {
+    if (this.healthcheck.steps && this.healthcheck.steps[0].request.fromRoot) {
+      if (this.endpointToDisplay) {
         try {
           request += new URL(this.endpointToDisplay.target).origin;
         } catch (e) {
@@ -168,12 +160,12 @@ class ApiHealthCheckConfigureController {
 
   showAssertionInformation() {
     this.$mdDialog.show({
-        controller: 'DialogAssertionInformationController',
-        controllerAs: 'ctrl',
-        template: require('./assertion.dialog.html'),
-        parent: angular.element(document.body),
-        clickOutsideToClose: true
-      });
+      controller: 'DialogAssertionInformationController',
+      controllerAs: 'ctrl',
+      template: require('./assertion.dialog.html'),
+      parent: angular.element(document.body),
+      clickOutsideToClose: true
+    });
   }
 
   backToEndpointConfiguration() {
@@ -185,6 +177,15 @@ class ApiHealthCheckConfigureController {
     this.$state.go('management.apis.detail.proxy.healthcheck.visualize');
   }
 
+  updateSchedule(event) {
+    if (event.target.valid) {
+      this.healthcheck.schedule = event.target.value;
+      this.$scope.formApiHealthCheckTrigger.$invalid = false;
+    } else {
+      this.$scope.formApiHealthCheckTrigger.$invalid = true;
+    }
+  }
+
   update() {
     if (this.endpoint !== undefined) {
       this.endpoint.healthcheck = this.healthcheck;
@@ -193,6 +194,7 @@ class ApiHealthCheckConfigureController {
       if (this.healthcheck.enabled === false) {
         delete this.healthcheck.trigger;
         delete this.healthcheck.steps;
+        this.healthcheck.schedule = '* * * * * *';
       }
       this.api.services['health-check'] = this.healthcheck;
     }
