@@ -3,11 +3,7 @@
   "name": "my-team-api",
 
   "proxy": {
-    "virtual_hosts": [
-      {
-        "path": "/team"
-      }
-    ],
+    "context_path": "/team",
     "groups": [
       {
         "name": "group-default",

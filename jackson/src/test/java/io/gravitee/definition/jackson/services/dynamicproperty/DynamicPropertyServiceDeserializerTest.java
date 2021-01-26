@@ -24,8 +24,6 @@ import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPro
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -43,8 +41,7 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
         Assert.assertTrue(dynamicPropertyService.isEnabled());
 
         // Check scheduling configuration
-        Assert.assertEquals(60, dynamicPropertyService.getTrigger().getRate());
-        Assert.assertEquals(TimeUnit.SECONDS, dynamicPropertyService.getTrigger().getUnit());
+        Assert.assertEquals("*/60 * * * * *", dynamicPropertyService.getSchedule());
 
         // Check provider
         Assert.assertNotNull(dynamicPropertyService.getProvider());
@@ -77,8 +74,7 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
         DynamicPropertyService dynamicPropertyService = api.getService(DynamicPropertyService.class);
         Assert.assertNotNull(dynamicPropertyService);
         Assert.assertTrue(dynamicPropertyService.isEnabled());
-        Assert.assertEquals(60, dynamicPropertyService.getTrigger().getRate());
-        Assert.assertEquals(TimeUnit.SECONDS, dynamicPropertyService.getTrigger().getUnit());
+        Assert.assertEquals("*/60 * * * * *", dynamicPropertyService.getSchedule());
     }
 
     @Test(expected = JsonMappingException.class)

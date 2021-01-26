@@ -18,7 +18,6 @@ package io.gravitee.definition.jackson.datatype.services.core.ser;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
-import io.gravitee.definition.model.services.schedule.Trigger;
 
 import java.io.IOException;
 
@@ -35,13 +34,6 @@ public abstract class ScheduledServiceSerializer<T extends ScheduledService> ext
     @Override
     protected void doSerialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
         super.doSerialize(service, jgen, serializerProvider);
-
-        Trigger trigger = service.getTrigger();
-        if (trigger != null) {
-            jgen.writeObjectFieldStart("trigger");
-            jgen.writeNumberField("rate", trigger.getRate());
-            jgen.writeStringField("unit", trigger.getUnit().toString());
-            jgen.writeEndObject();
-        }
+        jgen.writeObjectField("schedule", service.getSchedule());
     }
 }

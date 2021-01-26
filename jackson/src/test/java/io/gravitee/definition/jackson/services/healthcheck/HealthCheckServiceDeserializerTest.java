@@ -36,8 +36,7 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
         Assert.assertNotNull(healthCheckService);
         Assert.assertTrue(healthCheckService.isEnabled());
-        Assert.assertEquals(60, healthCheckService.getTrigger().getRate());
-        Assert.assertEquals(TimeUnit.SECONDS, healthCheckService.getTrigger().getUnit());
+        Assert.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
 
         // Check step
         Assert.assertFalse(healthCheckService.getSteps().isEmpty());
@@ -56,8 +55,27 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
         Assert.assertNotNull(healthCheckService);
         Assert.assertTrue(healthCheckService.isEnabled());
-        Assert.assertEquals(60, healthCheckService.getTrigger().getRate());
-        Assert.assertEquals(TimeUnit.SECONDS, healthCheckService.getTrigger().getUnit());
+        Assert.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
+
+        // Check step
+        Assert.assertFalse(healthCheckService.getSteps().isEmpty());
+
+        // Check request
+        Assert.assertNotNull(healthCheckService.getSteps().get(0).getRequest());
+        Assert.assertNotNull(healthCheckService.getSteps().get(0).getRequest().getPath());
+        Assert.assertFalse(healthCheckService.getSteps().get(0).getRequest().isFromRoot());
+
+        // Check expectations
+        Assert.assertNotNull(healthCheckService.getSteps().get(0).getResponse());
+    }
+
+    @Test
+    public void healthcheck_v3() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3.json", Api.class);
+        HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
+        Assert.assertNotNull(healthCheckService);
+        Assert.assertTrue(healthCheckService.isEnabled());
+        Assert.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
 
         // Check step
         Assert.assertFalse(healthCheckService.getSteps().isEmpty());
@@ -84,8 +102,7 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
         Assert.assertNotNull(healthCheckService);
         Assert.assertTrue(healthCheckService.isEnabled());
-        Assert.assertEquals(60, healthCheckService.getTrigger().getRate());
-        Assert.assertEquals(TimeUnit.SECONDS, healthCheckService.getTrigger().getUnit());
+        Assert.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
     }
 
     @Test

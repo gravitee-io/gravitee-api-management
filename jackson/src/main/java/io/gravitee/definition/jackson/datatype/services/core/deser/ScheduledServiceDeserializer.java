@@ -20,9 +20,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
-import io.gravitee.definition.model.services.schedule.Trigger;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,43 +40,60 @@ public abstract class ScheduledServiceDeserializer<T extends ScheduledService> e
     protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         super.deserialize(service, jsonParser, node, ctxt);
 
-        // New version of scheduler service
-        final JsonNode triggerNode = node.get("trigger");
-
-        if (triggerNode != null) {
-            Trigger trigger = new Trigger();
-            final JsonNode rateNode = triggerNode.get("rate");
-
-            if (rateNode != null) {
-                trigger.setRate(rateNode.asLong());
-            } else {
-                throw ctxt.mappingException("[scheduled-service] Rate is required");
-            }
-
-            final JsonNode unitNode = triggerNode.get("unit");
-            if (unitNode != null) {
-                trigger.setUnit(TimeUnit.valueOf(unitNode.asText().toUpperCase()));
-            } else {
-                throw ctxt.mappingException("[scheduled-service] Unit is required");
-            }
-            service.setTrigger(trigger);
+        final JsonNode scheduleNode = node.get("schedule");
+        String schedule;
+        if (scheduleNode != null) {
+            schedule = scheduleNode.asText();
         } else {
-            // Ensure backward compatibility
-            final JsonNode intervalNode = node.get("interval");
 
-            if (intervalNode != null) {
-                Trigger trigger = new Trigger();
-                trigger.setRate(intervalNode.asLong());
+            Long rate = null;
+            TimeUnit unit = null;
+            if (node.has("trigger")) {
+                final JsonNode triggerNode = node.get("trigger");
+                final JsonNode rateNode = triggerNode.get("rate");
 
-                final JsonNode unitNode = node.get("unit");
+                if (rateNode != null) {
+                    rate = rateNode.asLong();
+                } else {
+                    throw ctxt.mappingException("[scheduled-service] Rate is required");
+                }
+
+                final JsonNode unitNode = triggerNode.get("unit");
                 if (unitNode != null) {
-                    trigger.setUnit(TimeUnit.valueOf(unitNode.asText().toUpperCase()));
+                    unit = TimeUnit.valueOf(unitNode.asText().toUpperCase());
                 } else {
                     throw ctxt.mappingException("[scheduled-service] Unit is required");
                 }
-                service.setTrigger(trigger);
+            } else if (node.has("interval")) {
+                // Ensure backward compatibility
+                final JsonNode intervalNode = node.get("interval");
+
+                if (intervalNode != null) {
+                    rate = intervalNode.asLong();
+
+                    final JsonNode unitNode = node.get("unit");
+                    if (unitNode != null) {
+                        unit = TimeUnit.valueOf(unitNode.asText().toUpperCase());
+                    } else {
+                        throw ctxt.mappingException("[scheduled-service] Unit is required");
+                    }
+                }
             }
+
+            schedule = convertToCron(rate, unit);
         }
 
+        service.setSchedule(schedule);
+
+    }
+
+    public static String convertToCron(Long rate, TimeUnit unit) {
+        String schedule;
+        List<String> scheduleList = Arrays.asList("*", "*", "*", "*", "*", "*");
+        List<TimeUnit> timeUnits = Arrays.asList(TimeUnit.SECONDS, TimeUnit.MINUTES, TimeUnit.HOURS, TimeUnit.DAYS);
+        int index = timeUnits.indexOf(unit);
+        scheduleList.set(index, "*/" + rate);
+        schedule = String.join(" ", scheduleList);
+        return schedule;
     }
 }

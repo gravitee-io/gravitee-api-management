@@ -40,13 +40,11 @@
   "services": {
     "health-check": {
       "enabled": true,
-      "trigger": {
-        "rate": 60,
-        "unit": "SECONDS"
-      },
+      "schedule": "*/60 * * * * *",
       "steps": [
         {
           "request": {
+            "fromRoot": true,
             "path": "http://se56-2-qlf.mbstech.aec.corp/services/cxf/mobilite",
             "method": "GET",
             "headers": [

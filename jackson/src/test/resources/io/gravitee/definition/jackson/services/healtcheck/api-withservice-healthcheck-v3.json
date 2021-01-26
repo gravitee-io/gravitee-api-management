@@ -36,10 +36,7 @@
   "services": {
     "health-check": {
       "enabled": true,
-      "trigger": {
-        "rate": 60,
-        "unit": "SECONDS"
-      },
+      "schedule": "*/60 * * * * *",
       "steps": [
         {
           "request": {

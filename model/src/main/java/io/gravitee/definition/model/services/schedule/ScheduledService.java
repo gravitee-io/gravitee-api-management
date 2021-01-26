@@ -23,17 +23,17 @@ import io.gravitee.definition.model.Service;
  */
 public abstract class ScheduledService extends Service {
 
-    protected Trigger trigger;
+    private String schedule;
 
     public ScheduledService(String name) {
         super(name);
     }
 
-    public Trigger getTrigger() {
-        return trigger;
+    public String getSchedule() {
+        return schedule;
     }
 
-    public void setTrigger(Trigger trigger) {
-        this.trigger = trigger;
+    public void setSchedule(String schedule) {
+        this.schedule = schedule;
     }
 }

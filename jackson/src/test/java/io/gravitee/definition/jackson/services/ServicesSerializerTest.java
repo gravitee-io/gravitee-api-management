@@ -31,7 +31,7 @@ public class ServicesSerializerTest extends AbstractTest {
     @Test
     public void definition_withServices() throws Exception {
         String oldDefinition = "/io/gravitee/definition/jackson/services/api-withservices.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/api-withservices-v2-expected.json";
+        String expectedDefinition = "/io/gravitee/definition/jackson/services/api-withservices-v3-expected.json";
         Api api = load(oldDefinition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -44,7 +44,20 @@ public class ServicesSerializerTest extends AbstractTest {
     @Test
     public void definition_withServices_v2() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/api-withservices-v2.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/api-withservices-v2-expected.json";
+        String expectedDefinition = "/io/gravitee/definition/jackson/services/api-withservices-v3-expected.json";
+        Api api = load(definition, Api.class);
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        Assert.assertNotNull(generatedJsonDefinition);
+
+        String expected = IOUtils.toString(read(expectedDefinition));
+        JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
+    }
+
+    @Test
+    public void definition_withServices_v3() throws Exception {
+        String definition = "/io/gravitee/definition/jackson/services/api-withservices-v3.json";
+        String expectedDefinition = "/io/gravitee/definition/jackson/services/api-withservices-v3-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);

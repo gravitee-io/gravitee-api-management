@@ -3,7 +3,11 @@
   "name": "my-team-api",
 
   "proxy": {
-    "context_path": "/team",
+    "virtual_hosts": [
+      {
+        "path": "/team"
+      }
+    ],
     "groups": [
       {
         "name": "group-default",
@@ -31,15 +35,12 @@
   }, {
     "key" : "my_property3",
     "value" : "text"
-  }],
+  } ],
 
   "services": {
     "health-check": {
+      "schedule": "*/60 * * * * *",
       "enabled": true,
-      "trigger": {
-        "rate": 60,
-        "unit": "SECONDS"
-      },
       "steps": [
         {
           "request": {
@@ -49,8 +50,7 @@
               {
                 "name": "X-TOTO",
                 "value": "my_value"
-              },
-              {
+              }, {
                 "name": "Content-Type",
                 "value": "application/json"
               }
@@ -66,6 +66,15 @@
           }
         }
       ]
+    },
+    "dynamic-property": {
+      "schedule": "*/60 * * * * *",
+      "enabled": true,
+      "provider": "HTTP",
+      "configuration": {
+        "url": "http://my_configuration_url",
+        "specification": "{}"
+      }
     }
   }
 }
