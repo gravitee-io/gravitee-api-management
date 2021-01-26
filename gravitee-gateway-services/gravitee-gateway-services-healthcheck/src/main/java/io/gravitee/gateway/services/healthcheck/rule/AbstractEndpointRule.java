@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.healthcheck.rule;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.Step;
-import io.gravitee.definition.model.services.schedule.Trigger;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 
 import java.util.List;
@@ -50,8 +49,8 @@ public abstract class AbstractEndpointRule<T extends Endpoint> implements Endpoi
     }
 
     @Override
-    public Trigger trigger() {
-        return service.getTrigger();
+    public String schedule() {
+        return service.getSchedule();
     }
 
     @Override
