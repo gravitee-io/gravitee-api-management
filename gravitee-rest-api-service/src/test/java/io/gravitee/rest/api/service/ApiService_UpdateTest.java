@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -44,7 +46,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -77,60 +78,60 @@ public class ApiService_UpdateTest {
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
     public static final String API_DEFINITION = "{\n" +
-            "  \"description\" : \"Gravitee.io\",\n" +
-            "  \"paths\" : { },\n" +
-            "  \"path_mappings\":[],\n" +
-            "  \"proxy\": {\n" +
-            "    \"virtual_hosts\": [{\n" +
-            "      \"path\": \"/test\"\n" +
-            "    }],\n" +
-            "    \"strip_context_path\": false,\n" +
-            "    \"preserve_host\":false,\n" +
-            "    \"logging\": {\n" +
-            "      \"mode\":\"CLIENT_PROXY\",\n" +
-            "      \"condition\":\"condition\"\n" +
-            "    },\n" +
-            "    \"groups\": [\n" +
-            "      {\n" +
-            "        \"name\": \"default-group\",\n" +
-            "        \"endpoints\": [\n" +
-            "          {\n" +
-            "            \"name\": \"default\",\n" +
-            "            \"target\": \"http://test\",\n" +
-            "            \"weight\": 1,\n" +
-            "            \"backup\": false,\n" +
-            "            \"type\": \"HTTP\",\n" +
-            "            \"http\": {\n" +
-            "              \"connectTimeout\": 5000,\n" +
-            "              \"idleTimeout\": 60000,\n" +
-            "              \"keepAlive\": true,\n" +
-            "              \"readTimeout\": 10000,\n" +
-            "              \"pipelining\": false,\n" +
-            "              \"maxConcurrentConnections\": 100,\n" +
-            "              \"useCompression\": true,\n" +
-            "              \"followRedirects\": false,\n" +
-            "              \"encodeURI\":false\n" +
-            "            }\n" +
-            "          }\n" +
-            "        ],\n" +
-            "        \"load_balancing\": {\n" +
-            "          \"type\": \"ROUND_ROBIN\"\n" +
-            "        },\n" +
-            "        \"http\": {\n" +
-            "          \"connectTimeout\": 5000,\n" +
-            "          \"idleTimeout\": 60000,\n" +
-            "          \"keepAlive\": true,\n" +
-            "          \"readTimeout\": 10000,\n" +
-            "          \"pipelining\": false,\n" +
-            "          \"maxConcurrentConnections\": 100,\n" +
-            "          \"useCompression\": true,\n" +
-            "          \"followRedirects\": false,\n" +
-            "          \"encodeURI\":false\n" +
-            "        }\n" +
-            "      }\n" +
-            "    ]\n" +
-            "  }\n" +
-            "}\n";
+        "  \"description\" : \"Gravitee.io\",\n" +
+        "  \"paths\" : { },\n" +
+        "  \"path_mappings\":[],\n" +
+        "  \"proxy\": {\n" +
+        "    \"virtual_hosts\": [{\n" +
+        "      \"path\": \"/test\"\n" +
+        "    }],\n" +
+        "    \"strip_context_path\": false,\n" +
+        "    \"preserve_host\":false,\n" +
+        "    \"logging\": {\n" +
+        "      \"mode\":\"CLIENT_PROXY\",\n" +
+        "      \"condition\":\"condition\"\n" +
+        "    },\n" +
+        "    \"groups\": [\n" +
+        "      {\n" +
+        "        \"name\": \"default-group\",\n" +
+        "        \"endpoints\": [\n" +
+        "          {\n" +
+        "            \"name\": \"default\",\n" +
+        "            \"target\": \"http://test\",\n" +
+        "            \"weight\": 1,\n" +
+        "            \"backup\": false,\n" +
+        "            \"type\": \"HTTP\",\n" +
+        "            \"http\": {\n" +
+        "              \"connectTimeout\": 5000,\n" +
+        "              \"idleTimeout\": 60000,\n" +
+        "              \"keepAlive\": true,\n" +
+        "              \"readTimeout\": 10000,\n" +
+        "              \"pipelining\": false,\n" +
+        "              \"maxConcurrentConnections\": 100,\n" +
+        "              \"useCompression\": true,\n" +
+        "              \"followRedirects\": false,\n" +
+        "              \"encodeURI\":false\n" +
+        "            }\n" +
+        "          }\n" +
+        "        ],\n" +
+        "        \"load_balancing\": {\n" +
+        "          \"type\": \"ROUND_ROBIN\"\n" +
+        "        },\n" +
+        "        \"http\": {\n" +
+        "          \"connectTimeout\": 5000,\n" +
+        "          \"idleTimeout\": 60000,\n" +
+        "          \"keepAlive\": true,\n" +
+        "          \"readTimeout\": 10000,\n" +
+        "          \"pipelining\": false,\n" +
+        "          \"maxConcurrentConnections\": 100,\n" +
+        "          \"useCompression\": true,\n" +
+        "          \"followRedirects\": false,\n" +
+        "          \"encodeURI\":false\n" +
+        "        }\n" +
+        "      }\n" +
+        "    ]\n" +
+        "  }\n" +
+        "}\n";
 
     @InjectMocks
     private ApiServiceImpl apiService = new ApiServiceImpl();
@@ -195,6 +196,7 @@ public class ApiService_UpdateTest {
             public Authentication getAuthentication() {
                 return null;
             }
+
             @Override
             public void setAuthentication(Authentication authentication) {
             }
@@ -320,11 +322,11 @@ public class ApiService_UpdateTest {
         when(existingApi.getProxy()).thenReturn(proxy);
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
-        
+
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setName(SystemRole.PRIMARY_OWNER.name());
         poRoleEntity.setScope(RoleScope.API);
-        
+
         MemberEntity po = new MemberEntity();
         po.setId(USER_NAME);
         po.setReferenceId(API_ID);
@@ -446,6 +448,35 @@ public class ApiService_UpdateTest {
         apiService.update(API_ID, existingApi);
     }
 
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUpdateWithInvalidSchedule() throws TechnicalException {
+        prepareUpdate();
+        Services services = new Services();
+        HealthCheckService healthCheckService = mock(HealthCheckService.class);
+        when(healthCheckService.getSchedule()).thenReturn("**");
+        services.put(HealthCheckService.class, healthCheckService);
+        when(existingApi.getServices()).thenReturn(services);
+        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+    }
+
+    @Test
+    public void shouldUpdateWithValidSchedule() throws TechnicalException {
+        prepareUpdate();
+        Services services = new Services();
+        HealthCheckService healthCheckService = mock(HealthCheckService.class);
+        when(healthCheckService.getName()).thenReturn("health-check");
+        when(healthCheckService.getSchedule()).thenReturn("1,2 */100 5-8 * * *");
+        services.put(HealthCheckService.class, healthCheckService);
+        when(existingApi.getServices()).thenReturn(services);
+        final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
+
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+    }
+
     @Test
     public void shouldPublishApi() throws TechnicalException {
         prepareUpdate();
@@ -518,7 +549,7 @@ public class ApiService_UpdateTest {
         prepareReviewAuditTest();
 
         when(roleService.findByScope(RoleScope.API)).thenReturn(Collections.singletonList(mock(RoleEntity.class)));
-        final RolePermissionAction[] acls = { RolePermissionAction.UPDATE };
+        final RolePermissionAction[] acls = {RolePermissionAction.UPDATE};
         when(roleService.hasPermission(any(), eq(ApiPermission.REVIEWS), eq(acls))).thenReturn(true);
 
         MembershipEntity membershipEntity = mock(MembershipEntity.class);
@@ -535,8 +566,8 @@ public class ApiService_UpdateTest {
         apiService.askForReview(API_ID, USER_NAME, reviewEntity);
         verify(auditService).createApiAuditLog(argThat(apiId -> apiId.equals(API_ID)), anyMap(), argThat(evt -> Workflow.AuditEvent.API_REVIEW_ASKED.equals(evt)), any(), any(), any());
         verify(emailService).sendAsyncEmailNotification(argThat(emailNotification -> emailNotification.getTemplate().equals(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW.getLinkedHook().getTemplate())
-                    && emailNotification.getTo().length == 1
-                    && emailNotification.getTo()[0].equals("Reviewer@ema.il")
+            && emailNotification.getTo().length == 1
+            && emailNotification.getTo()[0].equals("Reviewer@ema.il")
         ), any());
         verify(roleService).findByScope(RoleScope.API);
     }
@@ -558,8 +589,8 @@ public class ApiService_UpdateTest {
         final MembershipEntity membership = new MembershipEntity();
         membership.setMemberId(USER_NAME);
         when(membershipService.getPrimaryOwner(
-                MembershipReferenceType.API,
-                API_ID)).thenReturn(membership);
+            MembershipReferenceType.API,
+            API_ID)).thenReturn(membership);
 
         when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
 

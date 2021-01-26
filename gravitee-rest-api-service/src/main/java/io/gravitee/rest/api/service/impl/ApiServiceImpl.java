@@ -83,6 +83,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.DatatypeConverter;
@@ -536,6 +537,23 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    private void validateHealtcheckSchedule(UpdateApiEntity api) {
+        if (api.getServices() != null) {
+            HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
+            if (healthCheckService != null) {
+                String schedule = healthCheckService.getSchedule();
+                if (schedule != null) {
+                    try {
+                        new CronTrigger(schedule);
+                    } catch (IllegalArgumentException e) {
+                        throw new InvalidDataException(e);
+                    }
+                }
+            }
+
+        }
+    }
+
     private void checkHealthcheckInheritance(UpdateApiEntity api) {
         boolean inherit = false;
 
@@ -559,12 +577,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             //if endpoints are set to inherit HC configuration, this configuration must exists.
             boolean hcServiceExists = false;
             if (api.getServices() != null) {
-                for (Service service : api.getServices().getAll()) {
-                    if (service instanceof HealthCheckService) {
-                        hcServiceExists = true;
-                        break;
-                    }
-                }
+                HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
+                hcServiceExists = healthCheckService != null;
             }
 
             if (!hcServiceExists) {
@@ -1002,6 +1016,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // check HC inheritance
             checkHealthcheckInheritance(updateApiEntity);
+
+            // validate HC cron schedule
+            validateHealtcheckSchedule(updateApiEntity);
 
             // check CORS Allow-origin format
             checkAllowOriginFormat(updateApiEntity);
@@ -1513,15 +1530,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             query.setTypes(singleton(PUBLISH_API));
 
             final Optional<EventEntity> optEvent =
-                    eventService.search(query).stream().max(comparing(EventEntity::getCreatedAt));
+                eventService.search(query).stream().max(comparing(EventEntity::getCreatedAt));
 
             String lastDeployNumber = optEvent.isPresent() ?
-                    optEvent.get().getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
-                    : "0";
+                optEvent.get().getProperties().getOrDefault(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "0")
+                : "0";
             String newDeployNumber = Long.toString(Long.parseLong(lastDeployNumber) + 1);
             properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), newDeployNumber);
 
-            if (apiDeploymentEntity != null &&  StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
+            if (apiDeploymentEntity != null && StringUtils.isNotEmpty(apiDeploymentEntity.getDeploymentLabel())) {
                 properties.put(Event.EventProperties.DEPLOYMENT_LABEL.getValue(), apiDeploymentEntity.getDeploymentLabel());
             }
         }
@@ -2310,11 +2327,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
             List<String> reviewersEmail = findAllReviewersEmail(apiId);
             this.emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                            .params(new NotificationParamsBuilder().api(apiEntity).user(user).build())
-                            .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
-                            .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
-                            .build(),
-                    GraviteeContext.getCurrentContext()
+                    .params(new NotificationParamsBuilder().api(apiEntity).user(user).build())
+                    .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
+                    .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
+                    .build(),
+                GraviteeContext.getCurrentContext()
             );
         }
 
