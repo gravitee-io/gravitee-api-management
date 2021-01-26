@@ -19,7 +19,6 @@ import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.core.util.Yaml;
-import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import org.slf4j.Logger;
@@ -71,7 +70,7 @@ public class OAIParser extends AbstractSwaggerParser<OAIDescriptor> {
          */
         if (parseResult.getMessages() != null) {
             final List<String> filteredMessages = parseResult.getMessages().stream()
-                    .filter(message -> !message.matches("^attribute info.contact.*"))
+                    .filter(message -> message != null && !message.matches("^attribute info.contact.*"))
                     .collect(Collectors.toList());
             parseResult.setMessages(filteredMessages);
         }
