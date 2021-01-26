@@ -51,7 +51,6 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
 
     public HttpEndpointRuleHandler(Vertx vertx, EndpointRule<T> rule) {
         super(vertx, rule);
-
         this.endpoint = rule.endpoint();
     }
 

@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.healthcheck;
 
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.services.healthcheck.Step;
-import io.gravitee.definition.model.services.schedule.Trigger;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
 
@@ -33,7 +32,7 @@ public interface EndpointRule<T extends Endpoint> {
 
     T endpoint();
 
-    Trigger trigger();
+    String schedule();
 
     List<Step> steps();
 
