@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -460,8 +461,9 @@ public class ApiResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE)
     })
-    public Response updateApiWithSwaggerPUT(@ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
-        SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor);
+    public Response updateApiWithSwaggerPUT(@ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor,
+                                            @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion) {
+        SwaggerApiEntity swaggerApiEntity = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.valueOfLabel(definitionVersion));
         final ApiEntity updatedApi = apiService.updateFromSwagger(api, swaggerApiEntity, swaggerDescriptor);
         return Response
                 .ok(updatedApi)

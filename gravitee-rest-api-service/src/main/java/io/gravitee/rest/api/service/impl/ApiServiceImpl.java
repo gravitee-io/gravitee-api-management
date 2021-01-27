@@ -948,6 +948,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (swaggerDescriptor.isWithPathMapping()) {
                 updateApiEntity.setPathMappings(swaggerApiEntity.getPathMappings());
+                updateApiEntity.setFlows(swaggerApiEntity.getFlows());
             }
         }
 
