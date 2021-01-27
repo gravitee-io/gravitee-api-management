@@ -496,7 +496,7 @@ const EditPageComponent: ng.IComponentOptions = {
         }
       }).then(function (response) {
         if (response) {
-          that.page.attached_media = that.page.attached_media.filter(media => !(media.mediaHash === resource.id && media.mediaName === resource.fileName && media.attachedAt === resource.createAt));
+          that.page.attached_media = that.page.attached_media.filter(media => !(media.mediaHash === resource.hash && media.mediaName === resource.fileName && media.attachedAt === resource.createAt));
           DocumentationService.update(that.page, that.apiId)
             .then(
               response => that.reset()
