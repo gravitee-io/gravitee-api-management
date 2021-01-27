@@ -319,7 +319,8 @@ class ApiPortalController {
         clickOutsideToClose: true,
         locals: {
           apiId: this.$scope.$parent.apiCtrl.api.id,
-          policies: policies.data
+          policies: policies.data,
+          definitionVersion: this.$scope.$parent.apiCtrl.api.gravitee,
         }
       }).then(function (response) {
         if (response) {
