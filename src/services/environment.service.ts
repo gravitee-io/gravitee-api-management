@@ -17,6 +17,7 @@
 import { IdentityProviderActivation } from '../entities/identityProvider';
 import * as _ from 'lodash';
 import { IHttpResponse } from 'angular';
+import { IEnvironmentPermissions } from '../entities/IEnvironmentPermissions';
 
 class EnvironmentService {
   private environmentsURL: string;
@@ -65,8 +66,20 @@ class EnvironmentService {
     return this.$http.put(`${this.environmentsURL}/${envId}/identities`, updatedIPA);
   }
 
-  getPermissions(envId: string): ng.IPromise<IHttpResponse<Record<string, string[]>>> {
-    return this.$http.get(`${this.environmentsURL}/${envId}/permissions`);
+  getPermissions(envId: string): ng.IPromise<IHttpResponse<IEnvironmentPermissions[]>> {
+    return this.$http.get(`${this.environmentsURL}/permissions?idOrHrid=${envId}`);
+  }
+
+  getFirstHridOrElseId(environment): string {
+    return environment.hrids && environment.hrids.length > 0 ? environment.hrids[0] : environment.id;
+  }
+
+  isSameEnvironment(environment, otherEnvId) {
+    return environment.id === otherEnvId || environment.hrids && environment.hrids.includes(otherEnvId);
+  }
+
+  getEnvironmentFromHridOrId(environments, id) {
+    return environments.find(environment => environment.id === id || environment.hrids && environment.hrids.includes(id));
   }
 }
 

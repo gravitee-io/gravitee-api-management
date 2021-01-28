@@ -41,18 +41,18 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
 
     if (toState.name.startsWith('management')) {
 
-      if (Constants.org.currentEnv.id !== params.environmentId) {
+      if (!EnvironmentService.isSameEnvironment(Constants.org.currentEnv, params.environmentId)) {
         if (!params.environmentId) {
-          params.environmentId = Constants.org.currentEnv.id;
+          params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
         }
-        let targetEnv = Constants.org.environments.find(env => env.id === params.environmentId);
+        let targetEnv = EnvironmentService.getEnvironmentFromHridOrId(Constants.org.environments, params.environmentId);
         if (targetEnv) {
           Constants.org.currentEnv = targetEnv;
           return UserService.refreshEnvironmentPermissions().then(() => {
             return stateService.target(toState, params, { reload: true });
           });
         } else {
-          params.environmentId = Constants.org.currentEnv.id;
+          params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
           return stateService.target(toState, params, { reload: true });
         }
       }

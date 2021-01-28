@@ -25,6 +25,7 @@ Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
 let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
 let $http: ng.IHttpService = initInjector.get('$http');
 let $q: ng.IQService = initInjector.get('$q');
+let $window: ng.IWindowService = initInjector.get('$window');
 let configNoCache = { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } };
 let ConstantsJSON: any;
 
@@ -80,12 +81,22 @@ function computeBaseURLs(constants: any): any {
   basePath = constants.baseURL;
 
   constants.org = {};
+  preselectEnvironment();
   constants.org.baseURL = `${basePath}/organizations/DEFAULT`;
   constants.env = {};
   // we use a placeholder here ({:envId}) that will be replaced in management.interceptor
   constants.env.baseURL = `${constants.org.baseURL}/environments/{:envId}`;
 
   return constants;
+}
+
+function preselectEnvironment() {
+
+  const environmentRegex = /environments\/([\w|\-]+)/;
+  const environment = environmentRegex.exec(document.location.toString());
+  if (environment && environment[1]) {
+    $window.localStorage.setItem('gv-last-environment-loaded', environment[1]);
+  }
 }
 
 function initLoader(constants: any) {

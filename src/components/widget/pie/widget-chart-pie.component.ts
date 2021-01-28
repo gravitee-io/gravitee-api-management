@@ -38,7 +38,7 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
         this.gvChartPie = $element.children()[0];
         this.options = {
           name: this.parent.widget.title,
-          data: Object.keys(changes.data.currentValue.values).map((label, idx) => {
+          data: Object.keys(changes.data.currentValue.values || {}).map((label, idx) => {
             return {
               name: this.parent.widget.chart.label ? this.parent.widget.chart.label[idx] : label,
               color: this.parent.widget.chart.colors[idx]

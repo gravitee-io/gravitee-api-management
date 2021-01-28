@@ -128,7 +128,7 @@ class UserService {
     let that = this;
 
     if (!this.currentUser || !this.currentUser.authenticated) {
-      const promises = [this.$http.get(this.userURL, {
+      const promises: ng.IPromise<IHttpResponse<any>>[] = [this.$http.get(this.userURL, {
         silentCall: true,
         forceSessionExpired: true
       } as ng.IRequestShortcutConfig)];
@@ -169,7 +169,7 @@ class UserService {
 
           const apiOrApplicationResponse = response[1];
           if (apiOrApplicationResponse) {
-            that.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(apiOrApplicationResponse as any);
+            this.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(apiOrApplicationResponse);
 
             if (_.includes(apiOrApplicationResponse.config.url, 'applications')) {
               this.currentUser.userApplicationPermissions = [];
@@ -226,6 +226,7 @@ class UserService {
 
       this.PermPermissionStore.defineManyPermissions(allPermissions, (permissionName) => {
         return _.includes(this.currentUser.userPermissions, permissionName) ||
+          _.includes(this.currentUser.userEnvironmentPermissions, permissionName) ||
           _.includes(this.currentUser.userApiPermissions, permissionName) ||
           _.includes(this.currentUser.userApplicationPermissions, permissionName);
       });
@@ -317,18 +318,21 @@ class UserService {
     return this.$http.post(`${this.usersURL}${id}/_process`, accepted);
   }
 
-  private getEnvironmentPermissions(response: IHttpResponse<Record<string, string[]>>): string[] {
+  private getEnvironmentPermissions(response: IHttpResponse<any>): string[] {
     if (!response.config.url.includes('environments')) {
       return [];
     }
 
     let permissions = [] as string[];
-    Object.keys(response.data).forEach(permission => {
-      response.data[permission].forEach(right => {
-        let permissionName = 'ENVIRONMENT-' + permission + '-' + right;
-        permissions.push(_.toLower(permissionName));
+
+    response.data.forEach(envWithPermissions => {
+      Object.keys(envWithPermissions.permissions).forEach(permission => {
+        envWithPermissions.permissions[permission].forEach(right => {
+            let permissionName = `ENVIRONMENT-${permission}-${right}`.toLowerCase();
+            permissions.push(permissionName);
+          });
+        });
       });
-    });
 
     return permissions;
   }

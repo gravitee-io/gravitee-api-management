@@ -16,6 +16,7 @@
 
 import * as _ from 'lodash';
 import { PagedResult } from '../entities/pagedResult';
+import { IHttpResponse } from 'angular';
 
 export class LogsQuery {
   from: number;
@@ -187,7 +188,7 @@ class ApplicationService {
     return this.$http.get(this.applicationsURL + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
   }
 
-  getPermissions(application) {
+  getPermissions(application): ng.IPromise<IHttpResponse<any>> {
     return this.$http.get(this.applicationsURL + application + '/members/permissions');
   }
 

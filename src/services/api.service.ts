@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import { PagedResult } from '../entities/pagedResult';
+import { IHttpResponse } from 'angular';
 
 export class LogsQuery {
   from: number;
@@ -471,7 +472,7 @@ class ApiService {
     return this.$http.delete(this.apisURL + apiId + '/metadata/' + metadataId);
   }
 
-  getPermissions(api): ng.IPromise<any> {
+  getPermissions(api): ng.IPromise<IHttpResponse<any>> {
     return this.$http.get(this.apisURL + api + '/members/permissions');
   }
 

@@ -43,7 +43,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
         this.series = {values: []};
         this.gvChartLine = $element.children()[0];
 
-        if ((data.values && data.values.length > 0) || (data.events.content && data.events.content.length > 0)) {
+        if ((data.values && data.values.length > 0) || (data.events && data.events.content && data.events.content.length > 0)) {
           this.prepareData(data);
 
           // Send data to gv-chart-line
@@ -56,6 +56,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           $scope.$on('onWidgetResize', this.onResize.bind(this));
 
         } else {
+          this.gvChartLine.setAttribute('options', JSON.stringify([{}]));
           this.gvChartLine.setAttribute('series', JSON.stringify([{}]));
         }
       }

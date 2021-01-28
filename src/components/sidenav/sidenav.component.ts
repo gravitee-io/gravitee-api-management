@@ -17,6 +17,7 @@ import { IScope, IWindowService } from 'angular';
 import { StateService } from '@uirouter/core';
 import PortalConfigService from '../../services/portalConfig.service';
 import UserService from '../../services/user.service';
+import EnvironmentService from '../../services/environment.service';
 
 
 export const SidenavComponent: ng.IComponentOptions = {
@@ -33,6 +34,7 @@ export const SidenavComponent: ng.IComponentOptions = {
     $state: StateService,
     $rootScope: IScope,
     PortalConfigService: PortalConfigService,
+    EnvironmentService: EnvironmentService,
     UserService: UserService) {
     'ngInject';
     const lastEnvironmentLoaded = 'gv-last-environment-loaded';
@@ -80,7 +82,7 @@ export const SidenavComponent: ng.IComponentOptions = {
       $window.localStorage.setItem(lastEnvironmentLoaded, Constants.org.currentEnv.id);
 
       UserService.refreshEnvironmentPermissions().then(() => {
-        $state.go('management', { environmentId: Constants.org.currentEnv.id }, { reload: true });
+        $state.go('management', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv) }, { reload: true });
       });
     };
   }
