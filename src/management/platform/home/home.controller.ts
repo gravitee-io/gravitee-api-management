@@ -81,7 +81,7 @@ class HomeController {
   searchEvents() {
     if (this.UserService.currentUser &&
       (this.UserService.currentUser.userPermissions.includes('api-event-r')
-        || this.UserService.currentUser.userPermissions.includes('environment-platform-r'))) {
+        || this.UserService.currentUser.userEnvironmentPermissions.includes('environment-platform-r'))) {
 
       // set apis
       let apis = this.selectedAPIs.map(api => api.id).join(',');

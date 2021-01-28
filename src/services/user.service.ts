@@ -22,6 +22,8 @@ import { UrlService } from '@uirouter/angularjs';
 import { PagedResult } from '../entities/pagedResult';
 import Base64Service from './base64.service';
 import _ = require('lodash');
+import EnvironmentService from './environment.service';
+import { IHttpResponse } from 'angular';
 
 class UserService {
 
@@ -45,6 +47,7 @@ class UserService {
               private $urlService: UrlService,
               private ApplicationService: ApplicationService,
               private ApiService: ApiService,
+              private EnvironmentService: EnvironmentService,
               private $location,
               private $cookies,
               private $window,
@@ -112,6 +115,15 @@ class UserService {
     return this.currentUser && this.currentUser.allowedToAnd(permissions);
   }
 
+  refreshEnvironmentPermissions(): ng.IPromise<User> {
+    let that = this;
+
+    return this.EnvironmentService.getPermissions(this.Constants.org.currentEnv.id).then(response => {
+      that.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(response);
+      return this.$q.resolve<User>(that.currentUser);
+    });
+  }
+
   current(): ng.IPromise<User> {
     let that = this;
 
@@ -133,6 +145,12 @@ class UserService {
         promises.push(this.ApiService.getPermissions(apiId[1]));
       }
 
+      const environmentRegex = /environments\/([\w|\-]+)/;
+      const environmentId = environmentRegex.exec(this.$location.$$path);
+      if (environmentId && environmentId[1]) {
+        promises.push(this.EnvironmentService.getPermissions(environmentId[1]));
+      }
+
       return this.$q.all(promises)
         .then(response => {
           that.currentUser = Object.assign(new User(), response[0].data);
@@ -141,14 +159,18 @@ class UserService {
           _.forEach(that.currentUser.roles, function (role) {
             _.forEach(_.keys(role.permissions), function (permission) {
               _.forEach(role.permissions[permission], function (right) {
-                let permissionName = role.scope + '-' + permission + '-' + right;
-                that.currentUser.userPermissions.push(_.toLower(permissionName));
+                if (role.scope === 'ORGANIZATION') {
+                  let permissionName = role.scope + '-' + permission + '-' + right;
+                  that.currentUser.userPermissions.push(_.toLower(permissionName));
+                }
               });
             });
           });
 
           const apiOrApplicationResponse = response[1];
           if (apiOrApplicationResponse) {
+            that.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(apiOrApplicationResponse as any);
+
             if (_.includes(apiOrApplicationResponse.config.url, 'applications')) {
               this.currentUser.userApplicationPermissions = [];
               _.forEach(_.keys(apiOrApplicationResponse.data), function (permission) {
@@ -293,6 +315,22 @@ class UserService {
 
   processRegistration(id: string, accepted: boolean): ng.IPromise<any> {
     return this.$http.post(`${this.usersURL}${id}/_process`, accepted);
+  }
+
+  private getEnvironmentPermissions(response: IHttpResponse<Record<string, string[]>>): string[] {
+    if (!response.config.url.includes('environments')) {
+      return [];
+    }
+
+    let permissions = [] as string[];
+    Object.keys(response.data).forEach(permission => {
+      response.data[permission].forEach(right => {
+        let permissionName = 'ENVIRONMENT-' + permission + '-' + right;
+        permissions.push(_.toLower(permissionName));
+      });
+    });
+
+    return permissions;
   }
 }
 

@@ -35,6 +35,36 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   });
 
   $transitions.onBefore({}, trans => {
+    const params = Object.assign({}, trans.params());
+    const stateService = trans.router.stateService;
+    let toState = trans.to();
+
+    if (toState.name.startsWith('management')) {
+
+      if (Constants.org.currentEnv.id !== params.environmentId) {
+        if (!params.environmentId) {
+          params.environmentId = Constants.org.currentEnv.id;
+        }
+        let targetEnv = Constants.org.environments.find(env => env.id === params.environmentId);
+        if (targetEnv) {
+          Constants.org.currentEnv = targetEnv;
+          return UserService.refreshEnvironmentPermissions().then(() => {
+            return stateService.target(toState, params, { reload: true });
+          });
+        } else {
+          params.environmentId = Constants.org.currentEnv.id;
+          return stateService.target(toState, params, { reload: true });
+        }
+      }
+    }
+  });
+
+  $transitions.onBefore({}, trans => {
+
+    const params = Object.assign({}, trans.params());
+    const stateService = trans.router.stateService;
+    let toState = trans.to();
+
     if (UserService.currentUser && UserService.currentUser.id && !Constants.org.currentEnv) {
       return EnvironmentService.list()
         .then(response => {
@@ -66,12 +96,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
             Constants.env.settings = response.data;
           }
         });
-    }
-
-    const params = Object.assign({}, trans.params());
-    const stateService = trans.router.stateService;
-    let toState = trans.to();
-    if (toState.apiDefinition) {
+    } else if (toState.apiDefinition) {
       return ApiService.get(params.apiId).then((response) => {
         if (response.data.gravitee != null && toState.apiDefinition.version !== response.data.gravitee) {
           return stateService.target(toState.apiDefinition.redirect, params);
@@ -79,7 +104,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
         return {};
       });
     }
-  });
+  }, { priority: 10 });
 
   $transitions.onFinish({}, function(trans) {
 

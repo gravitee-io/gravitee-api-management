@@ -56,6 +56,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       {
         parent: 'root',
         abstract: true,
+        url: '/environments/:environmentId',
         views: {
           'sidenav': {
             component: 'gvSidenav'

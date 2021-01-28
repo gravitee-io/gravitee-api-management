@@ -16,6 +16,7 @@
 import { IScope, IWindowService } from 'angular';
 import { StateService } from '@uirouter/core';
 import PortalConfigService from '../../services/portalConfig.service';
+import UserService from '../../services/user.service';
 
 
 export const SidenavComponent: ng.IComponentOptions = {
@@ -31,7 +32,8 @@ export const SidenavComponent: ng.IComponentOptions = {
     $scope: IScope,
     $state: StateService,
     $rootScope: IScope,
-    PortalConfigService: PortalConfigService) {
+    PortalConfigService: PortalConfigService,
+    UserService: UserService) {
     'ngInject';
     const lastEnvironmentLoaded = 'gv-last-environment-loaded';
     const reduceModeKey = 'gv-sidenav-reduce-mode';
@@ -77,7 +79,9 @@ export const SidenavComponent: ng.IComponentOptions = {
       this.updateCurrentEnvSettings();
       $window.localStorage.setItem(lastEnvironmentLoaded, Constants.org.currentEnv.id);
 
-      $state.go('management', {}, {reload: true});
+      UserService.refreshEnvironmentPermissions().then(() => {
+        $state.go('management', { environmentId: Constants.org.currentEnv.id }, { reload: true });
+      });
     };
   }
 };

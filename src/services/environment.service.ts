@@ -16,6 +16,7 @@
 
 import { IdentityProviderActivation } from '../entities/identityProvider';
 import * as _ from 'lodash';
+import { IHttpResponse } from 'angular';
 
 class EnvironmentService {
   private environmentsURL: string;
@@ -62,6 +63,10 @@ class EnvironmentService {
 
   updateEnvironmentIdentities(envId: string, updatedIPA: IdentityProviderActivation[]) {
     return this.$http.put(`${this.environmentsURL}/${envId}/identities`, updatedIPA);
+  }
+
+  getPermissions(envId: string): ng.IPromise<IHttpResponse<Record<string, string[]>>> {
+    return this.$http.get(`${this.environmentsURL}/${envId}/permissions`);
   }
 }
 
