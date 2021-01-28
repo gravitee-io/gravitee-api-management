@@ -167,6 +167,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             final Set<Application> applications = applicationRepository.findByIds(new ArrayList<>(appIds))
                 .stream()
                 .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
+                .filter(app -> app.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
                 .collect(Collectors.toSet());
 
             if (applications.isEmpty()) {

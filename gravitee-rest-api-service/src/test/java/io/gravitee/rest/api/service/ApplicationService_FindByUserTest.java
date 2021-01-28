@@ -23,8 +23,10 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -82,8 +84,14 @@ public class ApplicationService_FindByUserTest {
     @Mock
     private RoleService roleService;
 
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
+    }
+
     @Test
     public void shouldFindByUser() throws Exception {
+        GraviteeContext.setCurrentEnvironment("envId");
         when(appMembership.getReferenceId()).
                 thenReturn(APPLICATION_ID);
         when(application.getId()).
@@ -96,6 +104,7 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
                 thenReturn(Collections.singleton(application));
+        when(application.getEnvironmentId()).thenReturn("envId");
         when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(mock(RoleEntity.class)));
         
         MembershipEntity po = new MembershipEntity();
@@ -132,6 +141,7 @@ public class ApplicationService_FindByUserTest {
 
     @Test
     public void shouldFindByUserAndGroup() throws Exception {
+        GraviteeContext.setCurrentEnvironment("envId");
         when(appMembership.getReferenceId()).
                 thenReturn(APPLICATION_ID);
         when(groupAppMembership.getReferenceId()).
@@ -145,12 +155,16 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(ApplicationStatus.ACTIVE);
         when(application.getType()).
                 thenReturn(ApplicationType.SIMPLE);
+        when(application.getEnvironmentId()).
+                thenReturn("envId");
         when(groupApplication.getId()).
                 thenReturn(GROUP_APPLICATION_ID);
         when(groupApplication.getStatus()).
                 thenReturn(ApplicationStatus.ACTIVE);
         when(groupApplication.getType()).
                 thenReturn(ApplicationType.SIMPLE);
+        when(groupApplication.getEnvironmentId()).
+                thenReturn("envId");
         
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)).
                 thenReturn(Collections.singleton(appMembership));
