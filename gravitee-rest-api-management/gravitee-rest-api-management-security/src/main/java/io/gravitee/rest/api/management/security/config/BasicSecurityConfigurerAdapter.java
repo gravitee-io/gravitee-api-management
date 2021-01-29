@@ -224,9 +224,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
                 // Console resource
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/console/**").permitAll()
 
-                // Environments resource
-                .antMatchers(HttpMethod.GET, uriOrgPrefix + "/environments").permitAll()
-
                 // Auth resource
                 .antMatchers(HttpMethod.POST, uriOrgPrefix + "/auth/**").permitAll()
                 .antMatchers(HttpMethod.GET, uriOrgPrefix + "/social-identities").permitAll()

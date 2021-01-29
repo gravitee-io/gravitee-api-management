@@ -27,9 +27,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -76,10 +79,15 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     @Override
     public List<EnvironmentEntity> findByUser(String userId) {
+        return findByUserAndIdOrHrid(userId, null);
+    }
+
+    @Override
+    public List<EnvironmentEntity> findByUserAndIdOrHrid(String userId, String idOrHrid) {
         try {
             LOGGER.debug("Find all environments by user");
 
-            Stream<Environment> envStream = environmentRepository.findAll().stream();
+            Stream<Environment> envStream = environmentRepository.findByOrganization(GraviteeContext.getCurrentOrganization()).stream();
 
             if (userId != null) {
                 final List<String> stringStream = membershipService
@@ -89,6 +97,10 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                         .collect(Collectors.toList());
 
                 envStream = envStream.filter(env -> stringStream.contains(env.getId()));
+            }
+
+            if (!StringUtils.isEmpty(idOrHrid)) {
+                envStream = envStream.filter(env -> idOrHrid.equals(env.getId()) || !CollectionUtils.isEmpty(env.getHrids()) && env.getHrids().contains(idOrHrid));
             }
 
             return envStream

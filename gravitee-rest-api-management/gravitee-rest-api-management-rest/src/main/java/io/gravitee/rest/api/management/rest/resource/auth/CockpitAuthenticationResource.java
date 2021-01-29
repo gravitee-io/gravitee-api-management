@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth;
 
-import com.auth0.jwt.algorithms.Algorithm;
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -27,49 +25,29 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.jwt.proc.JWTProcessor;
-import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.JWTHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.web.filter.GenericFilterBean;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.interfaces.RSAPublicKey;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 
 @Singleton
 @Path("/auth/cockpit")
@@ -80,6 +58,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     protected static final String ORG_CLAIM = "org";
     protected static final String KID = "cockpit";
     protected static final String REDIRECT_URI_CLAIM = "redirect_uri";
+    protected static final String ENVIRONMENT_CLAIM = "env";
 
     private boolean enabled;
 
@@ -140,7 +119,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             super.connectUser(user, httpResponse);
 
             // Redirect the user.
-            return Response.temporaryRedirect(new URI(jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM))).build();
+            return Response.temporaryRedirect(new URI(jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM) + "/#!/environments/" + jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM))).build();
         } catch (Exception e) {
             LOGGER.error("Error occurred when trying to log user using cockpit.", e);
             return Response.serverError().build();

@@ -28,6 +28,8 @@ public interface EnvironmentService {
 
     List<EnvironmentEntity> findByUser(String userId);
 
+    List<EnvironmentEntity> findByUserAndIdOrHrid(String userId, String idOrHrid);
+
     List<EnvironmentEntity> findByOrganization(String organizationId);
 
     EnvironmentEntity findById(String environmentId);
