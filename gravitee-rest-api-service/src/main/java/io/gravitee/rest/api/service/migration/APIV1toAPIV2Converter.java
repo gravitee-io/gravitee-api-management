@@ -138,10 +138,15 @@ public class APIV1toAPIV2Converter {
                 .map(planEntity -> {
                     final Plan plan = new Plan();
                     plan.setId(planEntity.getId());
+                    plan.setApi(planEntity.getApi());
                     plan.setName(planEntity.getName());
                     plan.setSecurity(planEntity.getSecurity().name());
+                    plan.setSecurityDefinition(planEntity.getSecurityDefinition());
                     plan.setStatus(planEntity.getStatus().name());
                     plan.setFlows(migratePathsToFlows(planEntity.getPaths(), policies));
+                    if (planEntity.getTags() != null) {
+                        plan.setTags(new HashSet<>(planEntity.getTags()));
+                    }
                     return plan;
                 })
                 .collect(Collectors.toList());

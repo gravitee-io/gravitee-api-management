@@ -12,6 +12,7 @@
     "id" : "plan-id",
     "name" : "plan-name",
     "security" : "API_KEY",
+    "securityDefinition" : "{\"propagateApiKey\":false}",
     "paths" : {},
     "flows" : [ {
       "name" : "",
@@ -43,7 +44,9 @@
       } ],
       "enabled" : true
     } ],
-    "status" : "PUBLISHED"
+    "status" : "PUBLISHED",
+    "tags" : [ "first-tag", "second-tag" ],
+    "api" : "api-id"
   } ],
   "gravitee" : "2.0.0",
   "properties" : [ ],

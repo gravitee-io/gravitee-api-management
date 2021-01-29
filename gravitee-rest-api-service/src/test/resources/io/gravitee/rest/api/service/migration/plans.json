@@ -7,6 +7,7 @@
   "securityDefinition" : "{\"propagateApiKey\":false}",
   "type" : "api",
   "status" : "published",
+  "tags" : [ "first-tag", "second-tag" ],
   "api" : "api-id",
   "order" : 1,
   "characteristics" : [ ],
