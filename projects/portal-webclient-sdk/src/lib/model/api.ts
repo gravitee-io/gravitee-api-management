@@ -60,7 +60,7 @@ export interface Api {
     /**
      * Last update date and time.
      */
-    updated_at?: string;
+    updated_at?: Date;
     /**
      * List of categories this API belongs to.
      */

@@ -35,7 +35,7 @@ export interface Ticket {
     /**
      * Creation date and time of the ticket.
      */
-    created_at?: string;
+    created_at?: Date;
     /**
      * User identifier of the ticket creator.
      */

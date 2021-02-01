@@ -40,7 +40,7 @@ export interface Page {
     /**
      * Last update date and time.
      */
-    updated_at?: string;
+    updated_at?: Date;
     configuration?: PageConfiguration;
     /**
      * list of media hash, attached to this page

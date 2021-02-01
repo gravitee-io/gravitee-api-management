@@ -163,7 +163,7 @@ export class AnalyticsService {
 
     /**
      * Export application logs as CSV
-     * Export application logs as CSV.  User must have the APPLICATION_LOG[READ] permission.
+     * Export application logs as CSV.  User must have the APPLICATION_LOG[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -261,7 +261,7 @@ export class AnalyticsService {
 
     /**
      * Get Application analytics
-     * Get the application analytics.  User must have the APPLICATION_ANALYTICS[READ] permission.
+     * Get the application analytics.  User must have the APPLICATION_ANALYTICS[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -377,7 +377,7 @@ export class AnalyticsService {
 
     /**
      * Get a specific log of an application
-     * Get a specific log of an application.  User must have the APPLICATION_LOG[READ] permission.
+     * Get a specific log of an application.  User must have the APPLICATION_LOG[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -447,7 +447,7 @@ export class AnalyticsService {
 
     /**
      * Get Application logs
-     * Get the application logs.  User must have the APPLICATION_LOG[READ] permission.
+     * Get the application logs.  User must have the APPLICATION_LOG[READ] permission. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

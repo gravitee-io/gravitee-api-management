@@ -27,6 +27,6 @@ export interface PortalNotification {
     /**
      * Creation date and time of the notification.
      */
-    created_at?: string;
+    created_at?: Date;
 }
 
