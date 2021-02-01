@@ -25,7 +25,9 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function ($scope, $element) {
+  controller: function widgetChartMapController($scope, $element) {
+    'ngInject';
+
     this.options = {
       'name': 'Number of API requests',
       'excludedKeys': [

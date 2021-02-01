@@ -23,7 +23,8 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget'
   },
-  controller: function($scope, $element) {
+  controller: function widgetChartPieController($scope, $element) {
+    'ngInject';
 
     this.$onInit = () => {
       $scope.$on('onWidgetResize', this.onResize.bind(this));
