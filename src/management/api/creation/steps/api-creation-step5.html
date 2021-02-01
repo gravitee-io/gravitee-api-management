@@ -27,6 +27,9 @@
       <p>
         You are about to create the API <code>{{$ctrl.parent.api.name}}</code> in version <code>{{$ctrl.parent.api.version}}</code>.
         The API will be map to the following context path <code>{{$ctrl.parent.api.proxy.context_path}}</code>.
+        <span ng-if="$ctrl.parent.api.groups && $ctrl.parent.api.groups.length > 0">
+          The groups <code ng-repeat="group in $ctrl.parent.api.groups" style="margin: 0 0.2rem;">{{group.name}}</code> will be able to access the API.
+        </span>
       </p>
       <h5>Gateway
         <a ng-click="$ctrl.parent.selectStep(1)">

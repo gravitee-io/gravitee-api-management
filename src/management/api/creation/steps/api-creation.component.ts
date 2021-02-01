@@ -16,7 +16,8 @@
 const ApiCreationComponent: ng.IComponentOptions = {
   bindings: {
     tags: '<',
-    tenants: '<'
+    tenants: '<',
+    groups: '<'
   },
   template: require('./api-creation.html'),
   controller: 'ApiCreationController'

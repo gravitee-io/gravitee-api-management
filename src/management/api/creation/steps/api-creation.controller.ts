@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-import { StateService } from '@uirouter/core';
+import {StateService} from '@uirouter/core';
 import NewApiController, {
   getDefinitionVersionDescription,
   getDefinitionVersionTitle
@@ -57,8 +57,12 @@ class ApiCreationController {
   private endpoint: any;
   private rateLimit: any;
   private quota: any;
+
+  // Inject with component binding & route resolver
+  // Useful in template of steps
   private tags: any[];
   private tenants: any[];
+  private groups: any[];
 
   constructor(private $scope,
               private $timeout,
@@ -79,6 +83,7 @@ class ApiCreationController {
     this.api.pages = [];
     this.api.plans = [];
     this.api.tags = [];
+    this.api.groups = [];
 
     this.plan = {
       characteristics: []
@@ -161,9 +166,8 @@ class ApiCreationController {
       this.apiSteps.push(this.steps()[stepIndex + 1]);
     }
 
-    var that = this;
-    this.$timeout(function() {
-      that.vm.selectedStep = that.vm.selectedStep + 1;
+    this.$timeout(() => {
+      this.vm.selectedStep = this.vm.selectedStep + 1;
     });
   }
 
@@ -198,25 +202,23 @@ class ApiCreationController {
    API creation
    */
   createAPI(deployAndStart, readyForReview?: boolean) {
-    var alert = this.$mdDialog.confirm({
+    const alert = this.$mdDialog.confirm({
       title: 'Create API?',
       content: 'The API ' + this.api.name + ' in version ' + this.api.version + ' will be created' + ((deployAndStart) ? ' and deployed.' : '.'),
       ok: 'CREATE' + (readyForReview ? ' AND ASK FOR REVIEW' : ''),
       cancel: 'CANCEL'
     });
 
-    var that = this;
     this.$mdDialog
       .show(alert)
-      .then(function() {
-        that._createAPI(deployAndStart, readyForReview);
+      .then(() => {
+        this._createAPI(deployAndStart, readyForReview);
       });
   }
 
   _createAPI(deployAndStart, readyForReview?: boolean) {
-    var _this = this;
     // clear API pages json format
-    _.forEach(this.api.pages, function(page) {
+    _.forEach(this.api.pages, function (page) {
       if (!page.name) {
         page.name = page.fileName;
       }
@@ -226,9 +228,13 @@ class ApiCreationController {
     });
 
     // handle plan publish state
-    _.forEach(this.api.plans, function(plan) {
+    _.forEach(this.api.plans, function (plan) {
       plan.status = (deployAndStart) ? 'PUBLISHED' : 'STAGING';
     });
+
+    if (this.api.groups != null) {
+      this.api.groups = this.api.groups.map((group) => group.name);
+    }
 
     // create API
     if (deployAndStart) {
@@ -236,37 +242,37 @@ class ApiCreationController {
     }
     this.ApiService.import(null, this.api)
       .then(api => {
-          _this.vm.showBusyText = false;
+          this.vm.showBusyText = false;
           return api;
         }
       )
       .then(api => {
         if (readyForReview) {
-          _this.ApiService.askForReview(api.data).then((response) => {
+          this.ApiService.askForReview(api.data).then((response) => {
             api.data.workflow_state = 'in_review';
             api.data.etag = response.headers('etag');
-            _this.api = api.data;
-            _this.$rootScope.$broadcast('apiChangeSuccess', {api: api.data});
+            this.api = api.data;
+            this.$rootScope.$broadcast('apiChangeSuccess', {api: api.data});
           });
         }
         return api;
       })
-      .then( api => {
+      .then(api => {
         if (deployAndStart) {
-          _this.ApiService.deploy(api.data.id).then(function () {
-            _this.ApiService.start(api.data).then(function () {
-              _this.NotificationService.show('API created, deployed and started');
-              _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+          this.ApiService.deploy(api.data.id).then(() => {
+            this.ApiService.start(api.data).then(() => {
+              this.NotificationService.show('API created, deployed and started');
+              this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
             });
           });
         } else {
-          _this.NotificationService.show('API created');
-          _this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+          this.NotificationService.show('API created');
+          this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
         }
         return api;
       })
-      .catch(function () {
-        _this.vm.showBusyText = false;
+      .catch(() => {
+        this.vm.showBusyText = false;
       });
   }
 
@@ -274,16 +280,15 @@ class ApiCreationController {
    API context-path
    */
   validFirstStep(stepData) {
-    var stepMessage = this.api.name + ' (' + this.api.version + ') <code>' + this.api.proxy.context_path + '</code>';
+    const stepMessage = `${this.api.name} (${this.api.version}) <code>${this.api.proxy.context_path}</code>`;
     if (this.contextPathInvalid) {
-      var _this = this;
-      var criteria = {'context_path': this.api.proxy.context_path};
-      this.ApiService.verify(criteria).then(function() {
-        _this.contextPathInvalid = false;
-        _this.submitCurrentStep(stepData);
-        _this.apiSteps[_this.vm.selectedStep + 1].title = stepMessage;
-      }, function() {
-        _this.contextPathInvalid = true;
+      const criteria = {'context_path': this.api.proxy.context_path};
+      this.ApiService.verify(criteria).then(() => {
+        this.contextPathInvalid = false;
+        this.submitCurrentStep(stepData);
+        this.apiSteps[this.vm.selectedStep + 1].title = stepMessage;
+      }, () => {
+        this.contextPathInvalid = true;
       });
     } else {
       this.submitCurrentStep(stepData);
@@ -300,7 +305,7 @@ class ApiCreationController {
    */
   selectEndpoint() {
     this.api.proxy.endpoints = [];
-    var endpoint = {
+    const endpoint = {
       name: 'default',
       target: this.endpoint,
       tenants: this.selectedTenants,
@@ -309,9 +314,7 @@ class ApiCreationController {
 
     this.api.proxy.endpoints.push(endpoint);
 
-    // set api step message
-    var stepMessage = endpoint.target;
-    this.apiSteps[this.vm.selectedStep].title = stepMessage;
+    this.apiSteps[this.vm.selectedStep].title = endpoint.target;
   }
 
   /*
@@ -406,8 +409,7 @@ class ApiCreationController {
     }
     this.api.plans = [this.plan];
     // set api step message
-    var stepMessage = this.plan.name + ' <code>' + this.plan.security + '</code> <code>' + this.plan.validation + '</code>';
-    this.apiSteps[this.vm.selectedStep].title = stepMessage;
+    this.apiSteps[this.vm.selectedStep].title = `${this.plan.name} <code>${this.plan.security}</code><code>${this.plan.validation}</code>`;
   }
 
   skipAddPlan() {
@@ -428,16 +430,15 @@ class ApiCreationController {
    API documentation
    */
   initDocumentationSettings() {
-    var that = this;
-    this.$scope.$watch('newApiPageFile.content', function(data) {
+    this.$scope.$watch('newApiPageFile.content', (data) => {
       if (data) {
-        var file = {
-          name: that.$scope.newApiPageFile.name,
+        const file = {
+          name: this.$scope.newApiPageFile.name,
           content: data,
           type: ''
         };
 
-        var fileExtension = file.name.split('.').pop().toUpperCase();
+        const fileExtension = file.name.split('.').pop().toUpperCase();
         switch (fileExtension) {
           case 'MD' :
             file.type = 'MARKDOWN';
@@ -449,25 +450,21 @@ class ApiCreationController {
             break;
         }
         if (file.type) {
-          that.selectFile(file);
+          this.selectFile(file);
         } else {
-          that.NotificationService.showError('Only Markdown and OpenAPI file are supported');
+          this.NotificationService.showError('Only Markdown and OpenAPI file are supported');
         }
       }
     });
   }
 
   selectDocumentation() {
-    var stepMessage = '';
-    _.forEach(this.api.pages, function(page) {
-      stepMessage += page.name + ' ';
-    });
-    this.apiSteps[this.vm.selectedStep].title = stepMessage;
+    this.apiSteps[this.vm.selectedStep].title = this.api.pages.map((page) => page.name).join(' ');
   }
 
   selectFile(file) {
     if (file && !this.pageAlreadyExist(file.name)) {
-      var page = {
+      const page = {
         fileName: file.name,
         name: file.name,
         content: file.content,
@@ -490,17 +487,17 @@ class ApiCreationController {
   }
 
   removePage(page) {
-    var alert = this.$mdDialog.confirm({
+    const alert = this.$mdDialog.confirm({
       title: 'Warning',
       content: 'Are you sure you want to remove this page?',
       ok: 'OK',
       cancel: 'Cancel'
     });
 
-    var that = this;
+    const that = this;
     this.$mdDialog
       .show(alert)
-      .then(function() {
+      .then(function () {
         _.remove(that.api.pages, (_page: any) => {
           return _page.fileName === page.fileName;
         });

@@ -71,6 +71,18 @@
             </div>
           </md-input-container>
         </div>
+
+        <div layout-gt-sm="row" ng-if="$ctrl.parent.groups && $ctrl.parent.groups.length > 0">
+          <md-input-container class="flex">
+            <label>Groups</label>
+            <md-select ng-model="$ctrl.parent.api.groups" multiple>
+              <md-option ng-repeat="group in $ctrl.parent.groups" ng-value="group">{{group.name}}</md-option>
+            </md-select>
+            <div class="hint">Groups that will be able to access the API.</div>
+          </md-input-container>
+        </div>
+
+
         <md-step-actions layout="row">
           <div flex>
             <md-button ng-click="$ctrl.parent.moveToPreviousStep()">CANCEL</md-button>

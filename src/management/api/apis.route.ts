@@ -97,6 +97,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
       url: '/new/create/:definitionVersion',
       component: 'apiCreation',
       resolve: {
+        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
         tenants: (TenantService: TenantService) => TenantService.list().then(response => response.data),
         tags: (TagService: TagService) => TagService.list().then(response => response.data)
       },
