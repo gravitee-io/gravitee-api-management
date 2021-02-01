@@ -126,7 +126,7 @@ class ApiHistoryController {
       'properties': api.properties,
       'flow-mode': api.flow_mode
     };
-    this.studio.services = api.services;
+    this.studio.services = api.services || {};
   }
 
   initTimeline(events) {
