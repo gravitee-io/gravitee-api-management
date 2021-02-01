@@ -124,6 +124,9 @@ class HomeController {
 
     this.initPagination();
     this.refresh();
+
+    // Need to bind the function here to have the correct `this` when it is called by MdTable (see the html)
+    this.searchEvents = this.searchEvents.bind(this);
   }
 
   searchEvents() {
