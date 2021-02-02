@@ -35,7 +35,6 @@ gulp.task('serve:nightly', gulp.series('webpack:watch', 'watch', 'browsersync:ni
 gulp.task('serve:dist', gulp.series('default'));
 gulp.task('default', gulp.series('clean', 'build'));
 gulp.task('watch', watch);
-gulp.task('buildNoReg', gulp.series('serve:dist', 'webdriver-update'));
 gulp.task('lint', lint);
 gulp.task('lint:fix', lintFix);
 gulp.task('compile', compile);
