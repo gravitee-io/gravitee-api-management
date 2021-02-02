@@ -78,8 +78,7 @@ public class EndpointInvoker implements Invoker {
                 ProxyConnection proxyConnection = endpoint.getConnector().request(proxyRequest);
 
                 // Enable logging at proxy level
-                Object loggingAttr = context.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy");
-                if (loggingAttr != null && ((boolean) loggingAttr)) {
+                if (LoggingUtils.isProxyLoggable(context)) {
                     int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
                     proxyConnection = maxSizeLogMessage == -1 ?
                             new LoggableProxyConnection(proxyConnection, proxyRequest, context) :

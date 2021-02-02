@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
+import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.log.Log;
@@ -63,7 +64,9 @@ public class LoggableProxyConnection implements ProxyConnection {
         this.log.setProxyRequest(new Request());
         this.log.getProxyRequest().setUri(proxyRequest.metrics().getEndpoint());
         this.log.getProxyRequest().setMethod(proxyRequest.method());
-        this.log.getProxyRequest().setHeaders(proxyRequest.headers());
+        if (LoggingUtils.isProxyRequestHeadersLoggable(context)) {
+            this.log.getProxyRequest().setHeaders(proxyRequest.headers());
+        }
     }
 
     @Override
@@ -99,7 +102,7 @@ public class LoggableProxyConnection implements ProxyConnection {
 
         proxyConnection.write(chunk);
 
-        if (isContentTypeLoggable) {
+        if (isContentTypeLoggable && LoggingUtils.isProxyRequestPayloadsLoggable(context)) {
             appendLog(buffer, chunk);
         }
 
@@ -145,7 +148,10 @@ public class LoggableProxyConnection implements ProxyConnection {
             this.context = context;
 
             log.setProxyResponse(new Response(proxyResponse.status()));
-            log.getProxyResponse().setHeaders(proxyResponse.headers());
+            if (LoggingUtils.isProxyResponseHeadersLoggable(context)) {
+                log.getProxyResponse().setHeaders(proxyResponse.headers());
+            }
+
         }
 
         @Override
@@ -156,7 +162,7 @@ public class LoggableProxyConnection implements ProxyConnection {
                     isContentTypeLoggable = isContentTypeLoggable(proxyResponse.headers().contentType(), context);
                 }
 
-                if (isContentTypeLoggable) {
+                if (isContentTypeLoggable && LoggingUtils.isProxyResponsePayloadsLoggable(context)) {
                     appendLog(buffer, chunk);
                 }
 

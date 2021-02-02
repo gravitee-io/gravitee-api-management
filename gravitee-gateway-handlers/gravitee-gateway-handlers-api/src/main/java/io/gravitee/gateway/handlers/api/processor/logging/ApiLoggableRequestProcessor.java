@@ -16,7 +16,9 @@
 package io.gravitee.gateway.handlers.api.processor.logging;
 
 import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingContent;
 import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.LoggingScope;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.logging.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
@@ -29,12 +31,16 @@ import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
 public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
 
     private final LoggingMode mode;
+    private final LoggingContent content;
+    private final LoggingScope scope;
     private int maxSizeLogMessage;
     private String excludedResponseTypes;
 
     public ApiLoggableRequestProcessor(Logging logging) {
         super(new ExpressionLanguageBasedConditionEvaluator(logging.getCondition()));
         this.mode = logging.getMode();
+        this.content = logging.getContent();
+        this.scope = logging.getScope();
     }
 
     @Override
@@ -43,8 +49,21 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
         if (evaluate) {
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.client", mode.isClientMode());
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy", mode.isProxyMode());
+
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message", maxSizeLogMessage);
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types", excludedResponseTypes);
+
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.request.headers", scope.isRequest() && content.isHeaders());
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.request.payloads", scope.isRequest() && content.isPayloads());
+
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.headers", scope.isResponse() && content.isHeaders());
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.payloads", scope.isResponse() && content.isPayloads());
+
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy.request.headers", mode.isProxyMode() && scope.isRequest() && content.isHeaders());
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy.request.payloads", mode.isProxyMode() && scope.isRequest() && content.isPayloads());
+
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy.response.headers", mode.isProxyMode() && scope.isResponse() && content.isHeaders());
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy.response.payloads", mode.isProxyMode() && scope.isResponse() && content.isPayloads());
 
             return mode.isClientMode();
         }

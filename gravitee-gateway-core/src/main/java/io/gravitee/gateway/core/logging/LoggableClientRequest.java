@@ -22,6 +22,7 @@ import io.gravitee.gateway.api.RequestWrapper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
+import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.reporter.api.log.Log;
 
 import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
@@ -50,7 +51,11 @@ public class LoggableClientRequest extends RequestWrapper {
         log.setClientRequest(new io.gravitee.reporter.api.common.Request());
         log.getClientRequest().setMethod(this.method());
         log.getClientRequest().setUri(this.uri());
-        log.getClientRequest().setHeaders(new HttpHeaders(this.headers()));
+
+        if (LoggingUtils.isRequestHeadersLoggable(context)) {
+            log.getClientRequest().setHeaders(new HttpHeaders(this.headers()));
+        }
+
     }
 
     @Override
@@ -61,11 +66,10 @@ public class LoggableClientRequest extends RequestWrapper {
                 isContentTypeLoggable = isContentTypeLoggable(request.headers().contentType(), context);
             }
             bodyHandler.handle(chunk);
-            if (isContentTypeLoggable) {
+            if (isContentTypeLoggable && LoggingUtils.isRequestPayloadsLoggable(context)) {
                 appendLog(buffer, chunk);
             }
         });
-
         return this;
     }
 
