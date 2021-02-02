@@ -13,19 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
-
-describe('The main view', () => {
-  let page;
-
-  browser.addMockModule('httpBackendMockModule', require('../mocked-backend').httpBackendMock);
-
-  beforeEach(() => {
-    browser.get('#!/apis/');
-    page = require('./main.po');
-  });
-
-  it('should include home page title', () => {
-    expect(page.h3El.getText()).toContain('Gravitee.io Portal');
-  });
-});
+module.exports = {};

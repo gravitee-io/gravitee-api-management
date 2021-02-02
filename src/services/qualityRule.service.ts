@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { QualityRule } from '../entities/QualityRule';
+import { QualityRule } from '../entities/qualityRule';
 import { IHttpPromise } from 'angular';
 import { ApiQualityRule } from '../entities/apiQualityRule';
 

@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * This file uses the Page Object pattern to define the main page for tests
- * https://docs.google.com/presentation/d/1B6manhG0zEXkC-H-tPo2vwU06JhL8w9-XCF9oehXzAQ
- */
-
-'use strict';
-
-const MainPage = function () {
-  this.h3El = element(by.css('h3'));
+module.exports = {
+  process: (content) => {
+    const json = JSON.stringify(content)
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029');
+    return `module.exports = ${json};`
+  }
 };
-
-module.exports = new MainPage();

@@ -8,7 +8,6 @@
   "undef": true,
   "unused": true,
   "validthis": true,
-  "jasmine": true,
   "loopfunc": true,
   "globals": {
     "$": true,

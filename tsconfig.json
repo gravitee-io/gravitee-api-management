@@ -14,7 +14,8 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "types": [
-      "jasmine"
+      "jest",
+      "angular-mocks"
     ]
   },
   "include": [

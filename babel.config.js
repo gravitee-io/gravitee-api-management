@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
-
-const PolicyPage = function () {
-  this.rateLimitPolicy = element(by.css('.gravitee-policy-dropzone md-card'));
-  this.rateLimitPolicyAddButton = element(by.css('bootstrap-decorator:nth-child(2) div div button'));
-  this.rateLimitPolicyConfigurationBlocks = element.all(by.css('ol li'));
+module.exports = {
+  env: {
+    test: {
+      presets: [
+        [
+          '@babel/preset-env',
+          {
+            targets: {
+              node: 'current'
+            }
+          }
+        ]
+      ]
+    }
+  }
 };
-
-module.exports = new PolicyPage();
