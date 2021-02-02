@@ -176,6 +176,7 @@
   },
   "scripts": {
     "test": "jest",
+    "test:ci": "jest --runInBand --ci",
     "serve": "gulp serve",
     "serve:demo": "gulp serve:demo",
     "serve:nightly": "gulp serve:nightly",

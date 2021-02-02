@@ -129,9 +129,19 @@
             <goals>
               <goal>npm</goal>
             </goals>
-            <phase>generate-resources</phase>
+            <phase>test</phase>
             <configuration>
               <arguments>run lint</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm test:ci</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration>
+              <arguments>run test:ci</arguments>
             </configuration>
           </execution>
           <execution>
@@ -139,7 +149,7 @@
             <goals>
               <goal>npm</goal>
             </goals>
-            <phase>process-resources</phase>
+            <phase>prepare-package</phase>
             <configuration>
               <arguments>run build:prod</arguments>
             </configuration>
