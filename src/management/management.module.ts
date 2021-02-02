@@ -30,6 +30,7 @@ import * as moment from 'moment';
 import * as tinycolor from 'tinycolor2';
 import FormDirective from '../components/form/form.directive';
 import AutofocusDirective from '../components/autofocus/autofocus.directive';
+import GvModelDirective from '../libraries/gv-model.directive';
 import ApiService from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisController from '../management/api/apis.controller';
@@ -828,6 +829,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.directive('autofocus', () => new AutofocusDirective());
   graviteeManagementModule.directive('graviteeDiff', () => DiffDirective);
   graviteeManagementModule.directive('graviteeIdentityPicture', () => new IdentityPictureDirective());
+  graviteeManagementModule.directive('gvModel', () => new GvModelDirective());
   graviteeManagementModule.directive('graviteeImage', () => new ImageDirective());
   graviteeManagementModule.directive('graviteeEmptyState', () => new EmptyStateDirective());
   graviteeManagementModule.directive('graviteeChart', () => new ChartDirective());

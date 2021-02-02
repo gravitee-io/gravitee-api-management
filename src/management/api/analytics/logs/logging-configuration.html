@@ -15,70 +15,108 @@
     limitations under the License.
 
 -->
-<form name="formLogging" ng-submit="loggingCtrl.update(loggingCtrl.api)" novalidate>
+<form name="formLogging" ng-submit="loggingCtrl.update(loggingCtrl.api)" novalidate
+      class="api-analytics-logging-configuration"
+      ng-class="{'api-analytics-logging-configuration_enabled' : loggingCtrl.enabled}">
   <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
-      <h1>Logging</h1>
+      <h1>Logging configuration</h1>
       <a ui-sref="management.apis.detail.analytics.logs">Back to logs</a>
     </div>
 
     <div class="gv-form">
-      <h2>Configuration</h2>
       <div class="gv-form-content">
-        <p>
-          Use logging with caution and only for development purpose. It can have an impact on API performances and is requiring more spaces for analytics storage.
+
+        <div layout="row" flex-xs="50">
+          <md-input-container class="md-block" flex-gt-sm>
+
+            <gv-switch label="Enabled / Disabled"
+                       description="Use logging with caution and only for development purpose.<br/> It can have an impact on API performances and is requiring more spaces for analytics storage."
+                       gv-model
+                       ng-on-gv-switch:input="loggingCtrl.switchMode($event)"
+                       ng-model="loggingCtrl.enabled">
+            </gv-switch>
+
+          </md-input-container>
+        </div>
+
+        <div class="api-analytics-logging-configuration_form-details">
+
           <div class="gv-page-draft-banner" ng-if="loggingCtrl.maxDuration && loggingCtrl.maxDuration > 0">
             <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
             A maximum duration of <code>{{loggingCtrl.maxDuration}}</code>milliseconds will be applied to your condition.
           </div>
-        </p>
 
-        <div layout="column" layout-wrap layout-gt-sm="row">
-            <div flex-xs flex="50">
-              <div layout-xs="column" flex-xs="50">
-                <md-input-container class="md-block" flex-gt-sm>
-                  <label>Mode</label>
-                  <md-select ng-model="loggingCtrl.api.proxy.logging.mode">
-                    <md-option ng-repeat="loggingMode in loggingModes" value="{{loggingMode.value}}">
-                      {{loggingMode.name}}
-                    </md-option>
-                  </md-select>
-                </md-input-container>
+          <div layout="row" flex-xs="50">
+            <md-input-container class="md-block" flex-gt-sm>
+              <label class="md-no-float">Mode</label>
 
-                <md-input-container class="md-block" flex-gt-sm ng-if="loggingCtrl.api.proxy.logging.mode !== 'NONE'">
-                  <md-radio-group ng-model="loggingCtrl.loggingMode" layout="row"
-                                  ng-required="loggingCtrl.api.proxy.logging.mode !== 'NONE'">
-                    <md-radio-button value="ON">Logging enabled</md-radio-button>
-                    <md-radio-button value="CONDITION">Conditional logging</md-radio-button>
-                  </md-radio-group>
-                </md-input-container>
+              <gv-option ng-attr-options="{{loggingModes}}"
+                         ng-model="loggingCtrl.api.proxy.logging.mode"
+                         gv-model></gv-option>
 
-                <div layout="row" flex-xs="50" ng-if="loggingCtrl.api.proxy.logging.mode !== 'NONE' && loggingCtrl.loggingMode === 'CONDITION'">
-                  <md-input-container class="md-block" flex-gt-sm>
-                    <label>Condition</label>
-                    <input ng-model="loggingCtrl.api.proxy.logging.condition"
-                           type="text"
-                           ng-required="loggingCtrl.api.proxy.logging.mode !== 'NONE'"
-                           ng-disabled="loggingCtrl.api.proxy.logging.mode === 'NONE'">
-                  </md-input-container>
-                  <md-button md-no-ink class="md-primary"
-                             ng-click="loggingCtrl.showConditionEditor()"
-                             ng-disabled="loggingCtrl.api.proxy.logging.mode === 'NONE'">
-                    Show editor
-                  </md-button>
-                </div>
-              </div>
-            </div>
+            </md-input-container>
           </div>
 
+          <div layout="row" flex-xs="50">
+            <md-input-container class="md-block" flex-gt-sm>
+              <label class="md-no-float">Content</label>
+              <gv-option ng-attr-options="{{contentModes}}"
+                         ng-model="loggingCtrl.api.proxy.logging.content"
+                         gv-model></gv-option>
+            </md-input-container>
+          </div>
+
+          <div layout="row" flex-xs="50">
+            <md-input-container class="md-block" flex-gt-sm>
+              <label class="md-no-float">Scope</label>
+              <gv-option ng-attr-options="{{scopeModes}}"
+                         ng-model="loggingCtrl.api.proxy.logging.scope"
+                         gv-model></gv-option>
+            </md-input-container>
+          </div>
+
+          <div layout="row" flex-xs="50">
+            <md-input-container class="md-block" flex-gt-sm>
+              <label class="md-no-float">Condition</label>
+              <div layout="row" flex-xs="50">
+                <gv-expression-language
+                    rows="1"
+                    gv-model
+                    ng-attr-grammar="{{loggingCtrl.spelGrammar}}"
+                    ng-model="loggingCtrl.api.proxy.logging.condition"
+                    placeholder="{#request.headers['Content-Type'][0] === 'application/json'}"
+                ></gv-expression-language>
+                <gv-button ng-if="!loggingCtrl.hasCondition()"
+                           outlined link
+                           icon="design:edit"
+                           title="Show editor"
+                           ng-click="loggingCtrl.showConditionEditor()">
+                </gv-button>
+                <gv-button outlined link
+                           ng-if="loggingCtrl.hasCondition()"
+                           icon="home:trash"
+                           title="Clear condition"
+                           ng-click="loggingCtrl.clearCondition()">
+                </gv-button>
+              </div>
+
+            </md-input-container>
+          </div>
+
+        </div>
 
         <div class="md-actions gravitee-api-save-button" layout="row">
-          <md-button permission permission-only="'api-log-u'" class="md-raised md-primary" type="submit" ng-disabled="formLogging.$invalid || formLogging.$pristine">
+          <gv-button permission permission-only="'api-log-u'" type="submit"
+                     icon="general:save"
+                     ng-disabled="formLogging.$invalid || formLogging.$pristine">
             Save
-          </md-button>
-          <md-button permission permission-only="'api-log-u'" class="md-raised" type="button" ng-click="loggingCtrl.reset()" ng-disabled="formLogging.$pristine">
+          </gv-button>
+          <gv-button permission permission-only="'api-log-u'" outlined type="button"
+                     icon="general:update"
+                     ng-click="loggingCtrl.reset()" ng-disabled="formLogging.$pristine">
             Reset
-          </md-button>
+          </gv-button>
         </div>
       </div>
     </div>

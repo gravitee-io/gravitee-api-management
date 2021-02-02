@@ -15,6 +15,7 @@
  */
 import ApiService from '../../../services/api.service';
 import { StateParams } from '@uirouter/core';
+import SpelService from '../../../services/spel.service';
 import TenantService from '../../../services/tenant.service';
 import DashboardService from '../../../services/dashboard.service';
 
@@ -121,6 +122,9 @@ function apisAnalyticsRouterConfig($stateProvider) {
         docs: {
           page: 'management-api-logging-configuration'
         }
+      },
+      resolve: {
+        spelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
       }
     })
     .state('management.apis.detail.analytics.log', {

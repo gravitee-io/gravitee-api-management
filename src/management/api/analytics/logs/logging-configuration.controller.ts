@@ -17,6 +17,10 @@ import _ = require('lodash');
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import DialogConfigureLoggingEditorController from './configure-logging-editor.dialog.controller';
+import '@gravitee/ui-components/wc/gv-switch';
+import '@gravitee/ui-components/wc/gv-expression-language';
+import '@gravitee/ui-components/wc/gv-option';
+import '@gravitee/ui-components/wc/gv-button';
 
 class ApiLoggingConfigurationController {
 
@@ -24,7 +28,8 @@ class ApiLoggingConfigurationController {
   private api: any;
   private formLogging: any;
   private maxDuration: any;
-  private loggingMode: any;
+  private enabled: boolean;
+  private defaultLogging = {mode: 'CLIENT_PROXY', content: 'HEADERS_PAYLOADS', scope: 'REQUEST_RESPONSE'};
 
   constructor(
     private ApiService: ApiService,
@@ -33,43 +38,118 @@ class ApiLoggingConfigurationController {
     private $stateParams,
     private $rootScope,
     private $scope,
-    private Constants
+    private Constants,
+    private spelGrammar: any,
   ) {
-  'ngInject';
+    'ngInject';
 
     this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
-    this.initLoggingMode();
+    this.spelGrammar = spelGrammar.data;
+    this.enabled = this.api.proxy.logging && this.api.proxy.logging.mode !== 'NONE';
+    this.initLogging(this.enabled);
     this.maxDuration = Constants.org.settings.logging.maxDurationMillis;
 
     this.$scope.loggingModes = [
       {
-        name: 'None',
-        value: 'NONE'
+        title: 'Client & proxy',
+        id: 'CLIENT_PROXY',
+        icon: 'home:earth',
+        description: 'to log content for the client and the gateway'
+      },
+      {
+        title: 'Client only',
+        id: 'CLIENT',
+        icon: 'communication:shield-user',
+        description: 'to log content between the client and the gateway'
       }, {
-        name: 'Client only',
-        value: 'CLIENT'
-      }, {
-        name: 'Proxy only',
-        value: 'PROXY'
-      }, {
-        name: 'Client and proxy',
-        value: 'CLIENT_PROXY'
-      }];
+        title: 'Proxy only',
+        id: 'PROXY',
+        icon: 'communication:shield-thunder',
+        description: 'to log content between the gateway and the backend'
+      }
+    ];
+
+    this.$scope.contentModes = [
+      {
+        title: 'Headers & payloads',
+        id: 'HEADERS_PAYLOADS',
+        icon: 'finance:selected-file',
+        description: 'to log headers and payloads'
+      },
+      {
+        title: 'Headers only',
+        id: 'HEADERS',
+        icon: 'finance:file',
+        description: 'to log headers without payloads'
+      },
+      {
+        title: 'Payloads only',
+        id: 'PAYLOADS',
+        icon: 'communication:clipboard-list',
+        description: 'to log payloads without headers'
+      },
+    ];
+
+    this.$scope.scopeModes = [
+      {
+        title: 'Request & Response',
+        id: 'REQUEST_RESPONSE',
+        icon: 'navigation:exchange',
+        description: 'to log request and response'
+      },
+      {
+        title: 'Request only',
+        id: 'REQUEST',
+        icon: 'navigation:right-2',
+        description: 'to log request content only'
+      },
+      {
+        title: 'Response only',
+        id: 'RESPONSE',
+        icon: 'navigation:left-2',
+        description: 'to log response content only'
+      },
+    ];
 
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       this.api = args.api;
+      this.enabled = this.api.proxy.logging.mode !== 'NONE';
     });
   }
 
-  update() {
-    if (this.loggingMode === 'ON') {
-      this.api.proxy.logging.condition = 'true';
+  initLogging(enabled: boolean) {
+    if (this.api.proxy.logging == null) {
+      this.api.proxy.logging = {};
     }
+    if (enabled) {
+      const tmp = {...this.defaultLogging, ...this.initialApi.proxy.logging};
+      const {mode, scope, content} = tmp;
+      this.api.proxy.logging.mode = mode !== 'NONE' ? mode : this.defaultLogging.mode;
+      this.api.proxy.logging.scope = scope !== 'NONE' ? scope : this.defaultLogging.scope;
+      this.api.proxy.logging.content = content !== 'NONE' ? content : this.defaultLogging.content;
+    } else {
+      this.api.proxy.logging.mode = 'NONE';
+      this.api.proxy.logging.scope = 'NONE';
+      this.api.proxy.logging.content = 'NONE';
+    }
+  }
+
+  switchMode({detail}: {detail: boolean}) {
+    this.initLogging(detail);
+  }
+
+  update() {
+    if (!this.enabled) {
+      this.api.proxy.logging.mode = 'NONE';
+    }
+    if (this.api.proxy.logging.condition != null && this.api.proxy.logging.condition.trim() === '') {
+      delete this.api.proxy.logging.condition;
+    }
+
     this.ApiService.update(this.api).then((updatedApi) => {
       this.NotificationService.show('Logging configuration has been updated');
       this.api = updatedApi.data;
-      this.initLoggingMode();
       this.api.etag = updatedApi.headers('etag');
       this.initialApi = _.cloneDeep(updatedApi.data);
       this.$scope.formLogging.$setPristine();
@@ -79,26 +159,24 @@ class ApiLoggingConfigurationController {
 
   reset() {
     this.api = _.cloneDeep(this.initialApi);
-    this.initLoggingMode();
-
+    this.enabled = this.api.proxy.logging.mode !== 'NONE';
+    this.initLogging(this.enabled);
     if (this.$scope.formLogging) {
       this.$scope.formLogging.$setPristine();
       this.$scope.formLogging.$setUntouched();
     }
   }
 
-  initLoggingMode() {
-    if (_.isUndefined(this.api.proxy.logging) ||
-      _.isUndefined(this.api.proxy.logging.condition) ||
-      this.api.proxy.logging.condition === 'true') {
-
-      this.loggingMode = 'ON';
-    } else {
-      this.loggingMode = 'CONDITION';
-    }
+  clearCondition() {
+    this.api.proxy.logging.condition = '';
+    this.$scope.formLogging.$setDirty();
   }
 
-  showConditionEditor(index) {
+  hasCondition() {
+    return this.api.proxy.logging.condition != null && this.api.proxy.logging.condition !== '';
+  }
+
+  showConditionEditor() {
     this.$mdDialog.show({
       controller: DialogConfigureLoggingEditorController,
       controllerAs: '$ctrl',
@@ -116,10 +194,10 @@ class ApiLoggingConfigurationController {
       }
     }).then((condition) => {
       if (condition) {
-        this.api.proxy.logging.condition = condition;
+        this.api.proxy.logging.condition = `{${condition}}`;
         this.$scope.formLogging.$setDirty();
       }
-    }, function () {
+    }, function() {
       // Cancel of the dialog
     });
   }
