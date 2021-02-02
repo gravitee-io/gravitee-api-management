@@ -24,8 +24,14 @@ import java.io.Serializable;
 public class Logging implements Serializable {
 
     public final static LoggingMode DEFAULT_LOGGING_MODE = LoggingMode.NONE;
+    public final static LoggingScope DEFAULT_LOGGING_SCOPE = LoggingScope.NONE;
+    public final static LoggingContent DEFAULT_LOGGING_CONTENT = LoggingContent.NONE;
 
     private LoggingMode mode = DEFAULT_LOGGING_MODE;
+
+    private LoggingScope scope = DEFAULT_LOGGING_SCOPE;
+
+    private LoggingContent content = DEFAULT_LOGGING_CONTENT;
 
     private String condition;
 
@@ -43,5 +49,21 @@ public class Logging implements Serializable {
 
     public void setCondition(String condition) {
         this.condition = condition;
+    }
+
+    public LoggingContent getContent() {
+        return content;
+    }
+
+    public LoggingScope getScope() {
+        return scope;
+    }
+
+    public void setContent(LoggingContent content) {
+        this.content = content;
+    }
+
+    public void setScope(LoggingScope scope) {
+        this.scope = scope;
     }
 }

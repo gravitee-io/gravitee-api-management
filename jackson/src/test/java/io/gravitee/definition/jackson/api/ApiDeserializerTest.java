@@ -507,6 +507,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Logging logging = api.getProxy().getLogging();
         Assert.assertNotNull(logging);
         Assert.assertEquals(LoggingMode.NONE, logging.getMode());
+        Assert.assertEquals(LoggingScope.NONE, logging.getScope());
+        Assert.assertEquals(LoggingContent.NONE, logging.getContent());
         Assert.assertEquals("my condition", logging.getCondition());
     }
 
@@ -517,6 +519,8 @@ public class ApiDeserializerTest extends AbstractTest {
         Logging logging = api.getProxy().getLogging();
         Assert.assertNotNull(logging);
         Assert.assertEquals(LoggingMode.CLIENT_PROXY, logging.getMode());
+        Assert.assertEquals(LoggingScope.REQUEST, logging.getScope());
+        Assert.assertEquals(LoggingContent.HEADERS, logging.getContent());
         Assert.assertEquals("my condition", logging.getCondition());
     }
 

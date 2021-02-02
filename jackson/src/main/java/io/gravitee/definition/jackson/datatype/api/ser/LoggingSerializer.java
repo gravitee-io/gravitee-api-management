@@ -39,6 +39,8 @@ public class LoggingSerializer extends StdScalarSerializer<Logging> {
         jgen.writeStartObject();
 
         jgen.writeStringField("mode", logging.getMode().name());
+        jgen.writeStringField("content", logging.getContent().name());
+        jgen.writeStringField("scope", logging.getScope().name());
 
         // since 1.20
         // test "null" for legacy configuration

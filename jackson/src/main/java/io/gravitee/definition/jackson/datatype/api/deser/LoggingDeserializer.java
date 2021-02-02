@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.definition.model.Logging;
+import io.gravitee.definition.model.LoggingContent;
 import io.gravitee.definition.model.LoggingMode;
+import io.gravitee.definition.model.LoggingScope;
 
 import java.io.IOException;
 
@@ -44,6 +46,16 @@ public class LoggingDeserializer extends StdScalarDeserializer<Logging> {
         JsonNode mode = node.get("mode");
         if (mode != null) {
             logging.setMode(LoggingMode.valueOf(mode.asText().toUpperCase()));
+        }
+
+        JsonNode content = node.get("content");
+        if (content != null) {
+            logging.setContent(LoggingContent.valueOf(content.asText().toUpperCase()));
+        }
+
+        JsonNode scope = node.get("scope");
+        if (scope != null) {
+            logging.setScope(LoggingScope.valueOf(scope.asText().toUpperCase()));
         }
 
         JsonNode condition = node.get("condition");

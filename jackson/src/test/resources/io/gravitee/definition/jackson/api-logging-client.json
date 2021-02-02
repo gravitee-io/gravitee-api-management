@@ -14,7 +14,9 @@
     "strip_context_path": false,
     "logging": {
       "mode": "CLIENT_PROXY",
-      "condition": "my condition"
+      "condition": "my condition",
+      "scope": "REQUEST",
+      "content": "HEADERS"
     }
   },
 
