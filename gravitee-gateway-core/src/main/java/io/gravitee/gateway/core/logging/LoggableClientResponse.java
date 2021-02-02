@@ -23,6 +23,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.WriteStream;
+import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.reporter.api.log.Log;
 
 import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
@@ -54,7 +55,7 @@ public class LoggableClientResponse implements Response {
             isContentTypeLoggable = isContentTypeLoggable(response.headers().contentType(), context);
         }
 
-        if (isContentTypeLoggable) {
+        if (isContentTypeLoggable && LoggingUtils.isResponsePayloadsLoggable(context)) {
             appendLog(buffer, chunk);
         }
 
@@ -82,7 +83,9 @@ public class LoggableClientResponse implements Response {
 
     private void calculate(Buffer buffer) {
         // Here we are sure that headers has been full processed by policies
-        log.getClientResponse().setHeaders(headers());
+        if(LoggingUtils.isResponseHeadersLoggable(context)){
+            log.getClientResponse().setHeaders(headers());
+        }
 
         if (buffer != null) {
             log.getClientResponse().setBody(buffer.toString());

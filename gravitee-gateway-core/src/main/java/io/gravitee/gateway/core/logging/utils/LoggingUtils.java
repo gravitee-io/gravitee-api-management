@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 public final class LoggingUtils {
 
     private static final String DEFAULT_EXCLUDED_CONTENT_TYPES =
-            "video.*|audio.*|image.*|application\\/octet-stream|application\\/pdf|text\\/event-stream";
+        "video.*|audio.*|image.*|application\\/octet-stream|application\\/pdf|text\\/event-stream";
 
     private static Pattern EXCLUDED_CONTENT_TYPES_PATTERN;
 
@@ -46,7 +46,7 @@ public final class LoggingUtils {
         if (EXCLUDED_CONTENT_TYPES_PATTERN == null) {
             try {
                 final String responseTypes =
-                        (String) executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types");
+                    (String) executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types");
                 EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(responseTypes);
             } catch (Exception e) {
                 EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(DEFAULT_EXCLUDED_CONTENT_TYPES);
@@ -54,6 +54,43 @@ public final class LoggingUtils {
         }
 
         return contentType == null || !EXCLUDED_CONTENT_TYPES_PATTERN.matcher(contentType).find();
+    }
+
+    public static boolean isRequestHeadersLoggable(final ExecutionContext executionContext) {
+        return getAttribute(executionContext, "logging.request.headers");
+    }
+
+    public static boolean isRequestPayloadsLoggable(final ExecutionContext executionContext) {
+        return getAttribute(executionContext, "logging.request.payloads");
+    }
+
+    public static boolean isResponseHeadersLoggable(final ExecutionContext executionContext) {
+        return getAttribute(executionContext, "logging.response.headers");
+    }
+
+    public static boolean isResponsePayloadsLoggable(final ExecutionContext executionContext) {
+        return getAttribute(executionContext, "logging.response.payloads");
+    }
+
+    public static boolean isProxyRequestHeadersLoggable(final ExecutionContext executionContext) {
+        return getAttribute(executionContext, "logging.proxy.request.headers");
+    }
+
+    public static boolean isProxyRequestPayloadsLoggable(final ExecutionContext executionContext) {
+        return getAttribute(executionContext, "logging.proxy.request.payloads");
+    }
+
+    public static boolean isProxyResponseHeadersLoggable(final ExecutionContext executionContext) {
+        return getAttribute(executionContext, "logging.proxy.response.headers");
+    }
+
+    public static boolean isProxyResponsePayloadsLoggable(final ExecutionContext executionContext) {
+        return getAttribute(executionContext, "logging.proxy.response.payloads");
+    }
+
+    private static boolean getAttribute(final ExecutionContext executionContext, final String name) {
+        Object attr = executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + name);
+        return attr != null && ((boolean) attr);
     }
 
     public static void appendBuffer(Buffer buffer, Buffer chunk, int maxLength) {
@@ -65,5 +102,9 @@ public final class LoggingUtils {
         } else {
             buffer.appendBuffer(chunk);
         }
+    }
+
+    public static boolean isProxyLoggable(final ExecutionContext executionContext) {
+        return getAttribute(executionContext, "logging.proxy");
     }
 }
