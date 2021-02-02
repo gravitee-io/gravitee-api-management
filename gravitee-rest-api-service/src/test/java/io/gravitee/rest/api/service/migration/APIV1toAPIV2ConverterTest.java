@@ -75,6 +75,16 @@ public class APIV1toAPIV2ConverterTest {
     }
 
     @Test
+    public void apiWithMultiplePoliciesPerStep() throws Exception {
+        ApiEntity toMigrate = load("/io/gravitee/rest/api/service/migration/api-withMultiplePolicies.json", ApiEntity.class);
+        ApiEntity expected = load("/io/gravitee/rest/api/service/migration/api-withMultiplePolicies-migrated.json", ApiEntity.class);
+
+        ApiEntity actual = cut.migrateToV2(toMigrate, policies, Collections.emptySet());
+
+        assertEqualsApiEntity(expected, actual);
+    }
+
+    @Test
     public void apiWithOnlyPaths() throws Exception {
         ApiEntity toMigrate = load("/io/gravitee/rest/api/service/migration/api-withPathsAndPlans.json", ApiEntity.class);
         ApiEntity expected = load("/io/gravitee/rest/api/service/migration/api-withOnlyPaths-migrated.json", ApiEntity.class);

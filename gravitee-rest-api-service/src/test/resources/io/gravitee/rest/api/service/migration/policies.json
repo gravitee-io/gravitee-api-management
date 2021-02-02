@@ -45,6 +45,7 @@
     "version" : "1.3.0",
     "category" : "transformation",
     "dev": {
+      "on_request_method": "method",
       "on_response_method": "method"
     }
   }

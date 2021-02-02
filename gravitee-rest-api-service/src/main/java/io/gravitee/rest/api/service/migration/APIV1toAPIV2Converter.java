@@ -112,11 +112,17 @@ public class APIV1toAPIV2Converter {
                     pathValue.getRules().forEach(rule -> {
                         configurePolicies(policies, rule, flow);
                     });
+
+                    // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
+                    Collections.reverse(flow.getPost());
                     flows.add(flow);
                 } else {
                     pathValue.getRules().forEach(rule -> {
                         final Flow flow = createFlow(pathKey, rule.getMethods());
                         configurePolicies(policies, rule, flow);
+
+                        // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
+                        Collections.reverse(flow.getPost());
                         flows.add(flow);
                     });
                 }
