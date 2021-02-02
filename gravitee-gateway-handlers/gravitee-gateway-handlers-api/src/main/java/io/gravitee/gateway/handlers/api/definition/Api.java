@@ -165,6 +165,9 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
                 plan.getFlows().forEach(new Consumer<Flow>() {
                     @Override
                     public void accept(Flow flow) {
+                        // reverse policies of the Post steps to be executed in the order defined through UI.
+                        // for definition v1, RESPONSE policies are executed in a backward order, so we have to revert POST steps in v2
+                        Collections.reverse(flow.getPost());
                         policies.addAll(getPolicies(flow.getPre()));
                         policies.addAll(getPolicies(flow.getPost()));
                     }
@@ -177,6 +180,9 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
             getFlows().forEach(new Consumer<Flow>() {
                 @Override
                 public void accept(Flow flow) {
+                    // reverse policies of the Post steps to be executed in the order defined through UI.
+                    // for definition v1, RESPONSE policies are executed in a backward order, so we have to revert POST steps in v2
+                    Collections.reverse(flow.getPost());
                     policies.addAll(getPolicies(flow.getPre()));
                     policies.addAll(getPolicies(flow.getPost()));
                 }
