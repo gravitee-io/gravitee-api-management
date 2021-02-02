@@ -1,6 +1,6 @@
 import {StateService} from '@uirouter/core';
 import NotificationService from '../../../../services/notification.service';
-
+import { toPairs } from 'lodash';
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -16,60 +16,135 @@ import NotificationService from '../../../../services/notification.service';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const LogComponent: ng.IComponentOptions = {
-  bindings: {
-    log: '<'
-  },
-  controller: function($state: StateService, NotificationService: NotificationService, Constants: any) {
-    'ngInject';
-    this.Constants = Constants;
-    this.NotificationService = NotificationService;
 
+interface IQueryParam {
+  key: string;
+  value: string;
+}
+
+class LogComponentController {
+  public log: {
+    clientRequest: any
+    proxyRequest: any
+    clientResponse: any
+    proxyResponse: any
+  };
+  public backStateParams: {
+    q: any;
+    size: any;
+    from: any;
+    to: any;
+    page: any
+  };
+
+  private static headersAsList(obj) {
+    if (obj) {
+      obj.headersAsList = [];
+      for (const k in obj.headers) {
+        if (obj.headers.hasOwnProperty(k)) {
+          for (const v in obj.headers[k]) {
+            if (obj.headers[k].hasOwnProperty(v)) {
+              obj.headersAsList.push([k, obj.headers[k][v]]);
+            }
+          }
+        }
+      }
+
+      (obj.headersAsList as Array<[string, string]>).sort(([key1], [key2]) => key1.localeCompare(key2));
+    }
+  }
+
+  constructor(
+    public readonly Constants: any,
+    private readonly $state: StateService,
+    private readonly NotificationService: NotificationService,
+  ) {
+    'ngInject';
     this.backStateParams = {
       from: $state.params.from,
       to: $state.params.to,
       q: $state.params.q,
       page: $state.params.page,
-      size: $state.params.size
+      size: $state.params.size,
+    };
+  }
+
+
+  $onInit() {
+    LogComponentController.headersAsList(this.log.clientRequest);
+    this.log.clientRequest = {
+      ...this.log.clientRequest,
+      queryParams: this.extractQueryParams(this.log.clientRequest.uri),
     };
 
-    this.$onInit = () => {
-      this.headersAsList(this.log.clientRequest);
-      this.headersAsList(this.log.proxyRequest);
-      this.headersAsList(this.log.clientResponse);
-      this.headersAsList(this.log.proxyResponse);
+    LogComponentController.headersAsList(this.log.proxyRequest);
+    this.log.proxyRequest = {
+      ...this.log.proxyRequest,
+      queryParams: this.extractQueryParams(this.log.proxyRequest.uri),
     };
 
-    this.headersAsList = (obj) => {
-      if (obj) {
-        obj.headersAsList = [];
-        for (const k in obj.headers) {
-          if (obj.headers.hasOwnProperty(k)) {
-            for (const v in obj.headers[k]) {
-              if (obj.headers[k].hasOwnProperty(v)) {
-                obj.headersAsList.push([k, obj.headers[k][v]]);
-              }
-            }
-          }
-        }
-      }
-    };
+    LogComponentController.headersAsList(this.log.clientResponse);
+    LogComponentController.headersAsList(this.log.proxyResponse);
+  }
 
-    this.getMimeType = function(log) {
-      if (log.headers['Content-Type'] !== undefined) {
-        let contentType = log.headers['Content-Type'][0];
-        return contentType.split(';', 1)[0];
-      }
+  getMimeType(log): string | null {
+    let contentTypes: string[] | null | undefined = log.headers['Content-Type'];
+    if (Array.isArray(contentTypes)) {
+      return contentTypes[0].split(';', 1)[0];
+    }
 
-      return null;
-    };
+    return null;
+  }
 
-    this.onCopyBodySuccess = function(evt) {
-      this.NotificationService.show('Body has been copied to clipboard');
-      evt.clearSelection();
-    };
+  /**
+   * Convert an input uri (path + query params) to an array of IQueryParam
+   *
+   * Example:
+   * `/gme?type=monthly&bucket=status_repartition&bucket=status_repartition-2`
+   * -->
+   * [
+   *   { key: 'type', value: 'monthly'},
+   *   { key: 'bucket', value: '[ status_repartition, status_repartition-2]'},
+   * ]
+   *
+   * @param uri
+   */
+  extractQueryParams(uri: string): IQueryParam[] {
+    if (!uri.includes('?')) {
+      return [];
+    }
+
+    // Slice the interesting part of the uri and split to get all the query params
+    const queryParamsMap = uri.slice(uri.indexOf('?') + 1).split('&')
+      .map(queryParamsAsString => queryParamsAsString.split('='))
+      // Convert in a map to group query params with the same key (it can happens when sending an array), for the example:
+      // {
+      //   type: ['monthly'],
+      //   bucket: ['status_repartition', 'status_repartition-2'],
+      // }
+      .reduce((acc, [key, value]) => {
+        const currentValues = acc[key] || [];
+        acc[key] = [...currentValues, value];
+        return acc;
+      }, {} as { [key in string]: string[] });
+
+    // Convert the map to an array and join the header values if needed
+    return toPairs(queryParamsMap).map(([key, values]) => ({
+      key,
+      value: values.length === 1 ? values[0] : `[ ${values.join(', ')} ]`,
+    }));
+  }
+
+  onCopyBodySuccess(evt) {
+    this.NotificationService.show('Body has been copied to clipboard');
+    evt.clearSelection();
+  }
+}
+
+export const LogComponent: ng.IComponentOptions = {
+  controller: LogComponentController,
+  bindings: {
+    log: '<',
   },
-  template: require('./log.html')
+  template: require('./log.html'),
 };
-
-export default LogComponent;

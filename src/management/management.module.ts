@@ -173,7 +173,7 @@ import LogsTimeframeController from '../components/logs/logs-timeframe.controlle
 import LogsFiltersComponent from '../components/logs/logs-filters.component';
 import LogsFiltersController from '../components/logs/logs-filters.controller';
 
-import LogComponent from '../management/api/analytics/logs/log.component';
+import { LogComponent } from './api/analytics/logs/log.component';
 import ApiLoggingConfigurationController from '../management/api/analytics/logs/logging-configuration.controller';
 import DialogConfigureLoggingEditorController
   from '../management/api/analytics/logs/configure-logging-editor.dialog.controller';
