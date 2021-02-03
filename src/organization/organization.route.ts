@@ -290,7 +290,12 @@ function organizationRouterConfig($stateProvider) {
         organizationRoles: (RoleService: RoleService) =>
           RoleService.list('ORGANIZATION').then((roles) =>
             roles
-          )
+          ),
+
+        environments: (EnvironmentService: EnvironmentService) =>
+          EnvironmentService.list().then((response) =>
+            response.data
+          ),
       },
       data: {
         menu: null,

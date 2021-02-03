@@ -20,7 +20,7 @@ export class GroupMapping {
 
 export class RoleMapping {
   public condition: string;
-  public environments: string[];
+  public environments: Record<string, string[]>;
   public organizations: string[];
 }
 
