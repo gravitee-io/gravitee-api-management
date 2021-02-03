@@ -185,6 +185,36 @@ public class UserServiceTest {
     }
 
     @Test
+    public void shouldComputeRolesToAddToUserFromRoleMapping() throws TechnicalException, IOException {
+
+        List<RoleMappingEntity> roleMappingEntities = getRoleMappingEntities();
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+
+        RoleEntity orgAdminRole = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN")).thenReturn(Optional.of(orgAdminRole));
+
+        RoleEntity orgUserRole = mockRoleEntity(RoleScope.ORGANIZATION, "USER");
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER")).thenReturn(Optional.of(orgUserRole));
+
+        RoleEntity envUserRole = mockRoleEntity(RoleScope.ENVIRONMENT, "USER");
+        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER")).thenReturn(Optional.of(envUserRole));
+
+        Set<RoleEntity> roleEntitiesForOrganization = new HashSet<>();
+        Map<String, Set<RoleEntity>> roleEntitiesForEnvironments = new HashMap<>();
+
+        userService.computeRolesToAddUser(USER_NAME, roleMappingEntities, userInfo, roleEntitiesForOrganization, roleEntitiesForEnvironments );
+
+        assertEquals(2, roleEntitiesForOrganization.size());
+        assertTrue(roleEntitiesForOrganization.contains(orgAdminRole));
+        assertTrue(roleEntitiesForOrganization.contains(orgUserRole));
+
+        assertEquals(1, roleEntitiesForEnvironments.size());
+        assertEquals(1, roleEntitiesForEnvironments.get("DEFAULT").size());
+        assertTrue(roleEntitiesForEnvironments.get("DEFAULT").contains(envUserRole));
+    }
+
+
+    @Test
     public void shouldCreate() throws TechnicalException {
         innerShoudCreate(null);
     }
@@ -1212,6 +1242,12 @@ public class UserServiceTest {
     }
 
     private void mockRolesMapping() {
+        final List<RoleMappingEntity> roleMappingList = getRoleMappingEntities();
+        when(identityProvider.getRoleMappings()).thenReturn(roleMappingList);
+
+    }
+
+    private List<RoleMappingEntity> getRoleMappingEntities() {
         RoleMappingEntity role1 = new RoleMappingEntity();
         role1.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         role1.setOrganizations(Collections.singletonList("ADMIN"));
@@ -1223,8 +1259,9 @@ public class UserServiceTest {
         RoleMappingEntity role3 = new RoleMappingEntity();
         role3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         role3.setOrganizations(Collections.singletonList("USER"));
-        when(identityProvider.getRoleMappings()).thenReturn(Arrays.asList(role1, role2, role3));
-
+        role3.setEnvironments(Collections.singletonMap("DEFAULT", Collections.singletonList("USER")));
+        final List<RoleMappingEntity> roleMappingList = Arrays.asList(role1, role2, role3);
+        return roleMappingList;
     }
 
     private RoleEntity mockRoleEntity(RoleScope scope, String name) {

@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
 
@@ -84,4 +85,6 @@ public interface UserService {
     UserEntity createOrUpdateUserFromSocialIdentityProvider(SocialIdentityProviderEntity socialProvider, String userInfo);
 
     void updateUserRoles(String userId, MembershipReferenceType referenceType, String referenceId, List<String> roleIds);
+
+    void computeRolesToAddUser(String username, List<RoleMappingEntity> mappings, String userInfo, Set<RoleEntity> rolesToAddToOrganization, Map<String, Set<RoleEntity>> rolesToAddToEnvironments);
 }

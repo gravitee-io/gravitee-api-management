@@ -1380,9 +1380,16 @@ public class UserServiceImpl extends AbstractService implements UserService {
             userId = createdUser.getId();
         }
 
-        if (socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty()) {
-            Set<RoleEntity> rolesToAdd = getRolesToAddUser(userId, socialProvider.getRoleMappings(), userInfo);
-            addRolesToUser(userId, rolesToAdd, null, null);
+        final List<RoleMappingEntity> roleMappings = socialProvider.getRoleMappings();
+        if (roleMappings != null && !roleMappings.isEmpty()) {
+            Set<RoleEntity> rolesToAddToOrganization = new HashSet<>();
+            Map<String, Set<RoleEntity>> rolesToAddToEnvironments = new HashMap<>();
+            computeRolesToAddUser(userId, roleMappings, userInfo, rolesToAddToOrganization, rolesToAddToEnvironments);
+
+            addRolesToUser(userId, rolesToAddToOrganization, MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization());
+            for (Map.Entry<String, Set<RoleEntity>> entry: rolesToAddToEnvironments.entrySet()) {
+                addRolesToUser(userId, entry.getValue(), MembershipReferenceType.ENVIRONMENT, entry.getKey());
+            }
         }
         return createdUser;
     }
@@ -1434,28 +1441,35 @@ public class UserServiceImpl extends AbstractService implements UserService {
         return groupsToAdd;
     }
 
-    private Set<RoleEntity> getRolesToAddUser(String username, List<RoleMappingEntity> mappings, String userInfo) {
-        Set<RoleEntity> rolesToAdd = new HashSet<>();
+    @Override
+    public void computeRolesToAddUser(String username, List<RoleMappingEntity> mappings, String userInfo, Set<RoleEntity> rolesToAddToOrganization, Map<String, Set<RoleEntity>> rolesToAddToEnvironments) {
+        if (mappings != null) {
+            for (RoleMappingEntity mapping : mappings) {
+                TemplateEngine templateEngine = TemplateEngine.templateEngine();
+                templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
 
-        for (RoleMappingEntity mapping : mappings) {
-            TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+                boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
 
-            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
+                trace(username, match, mapping.getCondition());
 
-            trace(username, match, mapping.getCondition());
+                // Get roles
+                if (match) {
+                    if (mapping.getOrganizations() != null) {
+                        mapping.getOrganizations().forEach(organizationRoleName -> addRoleScope(rolesToAddToOrganization, organizationRoleName, RoleScope.ORGANIZATION));
+                    }
+                    if (mapping.getEnvironments() != null) {
+                        mapping.getEnvironments().forEach((environmentName, environmentRoles) -> {
 
-            // Get roles
-            if (match) {
-                if (mapping.getOrganizations() != null && !mapping.getOrganizations().isEmpty()) {
-                    mapping.getOrganizations().forEach(organizationRoleName -> addRoleScope(rolesToAdd, organizationRoleName, RoleScope.ORGANIZATION));
-                }
-                if (mapping.getEnvironments() != null && !mapping.getEnvironments().isEmpty()) {
-                    mapping.getEnvironments().forEach(environmentRoleName -> addRoleScope(rolesToAdd, environmentRoleName, RoleScope.ENVIRONMENT));
+                            Set<RoleEntity> envRoles = rolesToAddToEnvironments.computeIfAbsent(environmentName, k -> new HashSet<>());
+
+                            for (String environmentRoleName : environmentRoles) {
+                                addRoleScope(envRoles, environmentRoleName, RoleScope.ENVIRONMENT);
+                            }
+                        });
+                    }
                 }
             }
         }
-        return rolesToAdd;
     }
 
     private void addRoleScope(Set<RoleEntity> rolesToAdd, String mappingRole, RoleScope roleScope) {

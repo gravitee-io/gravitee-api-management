@@ -2299,7 +2299,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (mustBeEnabledOnAllEndpoints) {
                 return api.getProxy().getGroups().stream().allMatch(group -> group.getEndpoints().stream().allMatch(endpointHealthCheckEnabledPredicate));
             } else {
-                return api.getProxy().getGroups().stream().anyMatch(group -> group.getEndpoints().stream().anyMatch(endpointHealthCheckEnabledPredicate));
+                return (api.getProxy() != null &&
+                        api.getProxy().getGroups() != null &&
+                        api.getProxy().getGroups().stream().anyMatch(group -> group.getEndpoints() != null && group.getEndpoints().stream().anyMatch(endpointHealthCheckEnabledPredicate)));
             }
         }
     }

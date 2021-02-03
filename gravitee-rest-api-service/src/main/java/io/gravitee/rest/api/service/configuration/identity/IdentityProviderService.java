@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.service.configuration.identity;
 
-import java.util.Set;
-
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
+import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
+
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,4 +38,16 @@ public interface IdentityProviderService {
     void delete(String id);
 
     Set<IdentityProviderEntity> findAll();
+
+    /**
+     * Transform an inline roleMapping definition to a roleMappingEntity
+     *
+     * ORGANIZATION:ROLE_NAME
+     * ENVIRONMENT:ROLE_NAME (old mapping style) => converted to ENVIRONMENT:DEFAULT:ROLE_NAME
+     * ENVIRONMENT:ENVIRONMENT_ID:ROLE_NAME (new mapping style)
+     *
+     * @param inlineRoles
+     * @return
+     */
+    RoleMappingEntity getRoleMappings(String condition, Collection<String> inlineRoles);
 }

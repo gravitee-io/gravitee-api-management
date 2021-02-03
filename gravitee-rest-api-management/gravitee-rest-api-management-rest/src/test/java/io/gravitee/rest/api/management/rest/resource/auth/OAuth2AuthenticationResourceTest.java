@@ -214,7 +214,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
 
         Response response = orgTarget().request().post(json(payload));
 
@@ -300,7 +299,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
 
         Response response = orgTarget().request().post(json(payload));
 
@@ -391,7 +389,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
 
         Response response = orgTarget().request().post(json(payload));
 
@@ -496,7 +493,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockExchangeAuthorizationCodeForAccessToken();
 
         //mock oauth2 user info call
-        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        final String userInfoBody = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        mockUserInfo(okJson(userInfoBody));
 
         //mock DB find user by name
         when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
@@ -512,9 +510,11 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         when(groupService.findById("Others")).thenReturn(mockGroupEntity("group_id_3", "Others"));
         when(groupService.findById("Api consumer")).thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
-        // mock role search
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER")).thenReturn(Optional.of(mockRoleEntity(RoleScope.ORGANIZATION, "USER")));
-        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "ADMIN")).thenReturn(Optional.of(mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN")));
+        // mock role to add from roleMapping
+        doAnswer(invocation -> {
+            ((Set)invocation.getArguments()[3]).add(mockRoleEntity(RoleScope.ORGANIZATION, "USER"));
+            return null;
+        }).when(userService).computeRolesToAddUser(eq("janedoe@example.com"), eq(identityProvider.getRoleMappings()), eq(userInfoBody), any(Set.class), any(Map.class));
 
         RoleEntity roleApiUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "ADMIN");
@@ -551,6 +551,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))).thenReturn(mockMemberEntity());
 
+        when(membershipService.addRoleToMemberOnReference(
+                new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
+                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ADMIN"))).thenReturn(mockMemberEntity());
+
+
         //mock DB update user picture
         UpdateUserEntity updateUserEntity = mockUpdateUserPicture(createdUser);
 
@@ -570,6 +576,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
 //        verify(userService, times(1)).update(eq("janedoe@example.com"), refEq(updateUserEntity));
         verify(userService, times(1)).connect("janedoe@example.com");
+
+        verify(userService, times(1)).computeRolesToAddUser(eq("janedoe@example.com"), eq(identityProvider.getRoleMappings()), eq(userInfoBody), any(Set.class), any(Map.class));
 
         //verify group creations
         verify(membershipService, times(1)).updateRolesToMemberOnReference(
@@ -614,12 +622,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 Collections.singletonList(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER")),
                 USER_SOURCE_OAUTH2, false);
 
-        verify(membershipService, times(1)).updateRolesToMemberOnReference(
-                new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, "DEFAULT"),
-                new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                Collections.singletonList(new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, "ADMIN")),
-                USER_SOURCE_OAUTH2, false);
-
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // verify response body
@@ -662,7 +664,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
 
         Response response = orgTarget().request().post(json(payload));
 
@@ -721,7 +722,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
 
         Response response = orgTarget().request().post(json(payload));
 
@@ -768,7 +768,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
 
         Response response = orgTarget().request().post(json(payload));
 
@@ -843,7 +842,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         RoleMappingEntity role3 = new RoleMappingEntity();
         role3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         role3.setOrganizations(Collections.singletonList("USER"));
-        role3.setEnvironments(Collections.singletonList("ADMIN"));
+        role3.setEnvironments(Collections.singletonMap("DEFAULT", Collections.singletonList("ADMIN")));
         identityProvider.getRoleMappings().add(role3);
     }
 

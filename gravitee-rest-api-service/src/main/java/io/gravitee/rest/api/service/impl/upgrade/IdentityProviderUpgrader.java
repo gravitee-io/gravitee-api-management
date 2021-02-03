@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.configuration.identity.*;
@@ -279,28 +278,12 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
             String condition = environment.getProperty("security.providers[" + providerIndex + "].roleMapping[" + idx + "].condition");
             found = (condition != null);
             if (found) {
-                RoleMappingEntity roleMappingEntity = new RoleMappingEntity();
-                roleMappingEntity.setCondition(condition);
                 List<String> roles = getListOfString("security.providers[" + providerIndex + "].roleMapping[" + idx + "].roles");
-                if (!roles.isEmpty()) {
-                    List<String> organizationsRoles = new ArrayList<>();
-                    List<String> environmentsRoles = new ArrayList<>();
-                    roles.forEach(role -> {
-                        if (role.startsWith(RoleScope.ENVIRONMENT.name())) {
-                            environmentsRoles.add(role.replace(RoleScope.ENVIRONMENT.name() + ":", ""));
-                        }
-                        if (role.startsWith(RoleScope.ORGANIZATION.name())) {
-                            organizationsRoles.add(role.replace(RoleScope.ORGANIZATION.name() + ":", ""));
-                        }
-                    });
-                    roleMappingEntity.setOrganizations(organizationsRoles);
-                    roleMappingEntity.setEnvironments(environmentsRoles);
-                }
+                RoleMappingEntity roleMappingEntity = identityProviderService.getRoleMappings(condition, roles);
                 mapping.add(roleMappingEntity);
             }
             idx++;
         }
-
 
         return mapping;
     }

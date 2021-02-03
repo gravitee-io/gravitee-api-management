@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.configuration.identity;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -27,7 +28,7 @@ public class RoleMappingEntity {
 
     private List<String> organizations;
 
-    private List<String> environments;
+    private Map<String, List<String>> environments;
 
     public String getCondition() {
         return condition;
@@ -45,11 +46,11 @@ public class RoleMappingEntity {
         this.organizations = organizations;
     }
 
-    public List<String> getEnvironments() {
+    public Map<String, List<String>> getEnvironments() {
         return environments;
     }
 
-    public void setEnvironments(List<String> environments) {
+    public void setEnvironments(Map<String, List<String>> environments) {
         this.environments = environments;
     }
 }

@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.IDENTITY_PROVIDER;
@@ -223,6 +222,42 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         }
     }
 
+    @Override
+    public RoleMappingEntity getRoleMappings(String condition, Collection<String> inlineRoles) {
+        RoleMappingEntity roleMapping = new RoleMappingEntity();
+        roleMapping.setCondition(condition);
+        if (inlineRoles != null) {
+            List<String> organizationsRoles = new ArrayList<>();
+            Map<String, List<String>> environmentsRoles = new HashMap<>();
+
+            for (String role : inlineRoles) {
+                String[] splitRole = role.split(":");
+                if (splitRole[0].equals(io.gravitee.repository.management.model.RoleScope.ORGANIZATION.name())) {
+                    organizationsRoles.add(splitRole[1]);
+                } else if (splitRole[0].equals(io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name())) {
+                    String environmentId;
+                    String environmentRoleName;
+                    if (splitRole.length == 2) {
+                        // For compatibility. Old mapping style => ENVIRONMENT:ROLE_NAME
+                        environmentId = GraviteeContext.getDefaultEnvironment();
+                        environmentRoleName = splitRole[1];
+                    } else {
+                        // New mapping style => ENVIRONMENT:ENVIRONMENT_ID:ROLE_NAME
+                        environmentId = splitRole[1];
+                        environmentRoleName = splitRole[2];
+                    }
+
+                    List<String> environmentRoles = environmentsRoles.computeIfAbsent(environmentId, k -> new ArrayList<>());
+                    environmentRoles.add(environmentRoleName);
+                }
+            }
+            roleMapping.setOrganizations(organizationsRoles);
+            roleMapping.setEnvironments(environmentsRoles);
+        }
+
+        return roleMapping;
+    }
+
     private IdentityProvider convert(NewIdentityProviderEntity newIdentityProviderEntity) {
         IdentityProvider identityProvider = new IdentityProvider();
 
@@ -264,30 +299,9 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
 
         if (identityProvider.getRoleMappings() != null && !identityProvider.getRoleMappings().isEmpty()) {
             identityProviderEntity.setRoleMappings(
-                    identityProvider.getRoleMappings().entrySet().stream().map(new Function<Map.Entry<String, String[]>, RoleMappingEntity>() {
-                        @Override
-                        public RoleMappingEntity apply(Map.Entry<String, String[]> entry) {
-                            RoleMappingEntity roleMapping = new RoleMappingEntity();
-                            roleMapping.setCondition(entry.getKey());
-                            if (entry.getValue() != null) {
-                                List<String> organizationsRoles = new ArrayList<>();
-                                List<String> environmentsRoles = new ArrayList<>();
-
-                                for (String role : entry.getValue()) {
-                                    if (role.startsWith(io.gravitee.repository.management.model.RoleScope.ORGANIZATION.name() + ":")) {
-                                        organizationsRoles.add(role.split(":")[1]);
-                                    }
-                                    if (role.startsWith(io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() + ":")) {
-                                        environmentsRoles.add(role.split(":")[1]);
-                                    }
-                                }
-                                roleMapping.setOrganizations(organizationsRoles);
-                                roleMapping.setEnvironments(environmentsRoles);
-                            }
-
-                            return roleMapping;
-                        }
-                    }).collect(Collectors.toList()));
+                    identityProvider.getRoleMappings().entrySet().stream()
+                            .map(stringEntry -> this.getRoleMappings(stringEntry.getKey(), Arrays.asList(stringEntry.getValue())))
+                            .collect(Collectors.toList()));
         }
 
         identityProviderEntity.setConfiguration(identityProvider.getConfiguration());
@@ -300,8 +314,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             identityProviderEntity.setEmailRequired(identityProvider.getEmailRequired());
         }
 
-        identityProviderEntity.setSyncMappings(identityProvider.getSyncMappings() == null ?
-                false : identityProvider.getSyncMappings());
+        identityProviderEntity.setSyncMappings(identityProvider.getSyncMappings() != null && identityProvider.getSyncMappings());
 
         identityProviderEntity.setOrganization(identityProvider.getOrganizationId());
         return identityProviderEntity;
@@ -344,10 +357,12 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                                     });
                                 }
                                 if (roleMapping.getEnvironments() != null && !roleMapping.getEnvironments().isEmpty()) {
-                                    roleMapping.getEnvironments().forEach(environmentRoleName -> {
+                                    roleMapping.getEnvironments().forEach((environmentId, environmentRoles) -> {
                                         // Ensure that the role is existing
-                                        roleService.findByScopeAndName(RoleScope.ENVIRONMENT, environmentRoleName);
-                                        lstRoles.add(io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() + ":" + environmentRoleName);
+                                        environmentRoles.forEach(environmentRoleName -> {
+                                            roleService.findByScopeAndName(RoleScope.ENVIRONMENT, environmentRoleName);
+                                            lstRoles.add(io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() + ":" + environmentId + ":" + environmentRoleName);
+                                        });
                                     });
                                 }
 
