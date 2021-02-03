@@ -11,6 +11,13 @@
 # Please have a look to http://docs.gravitee.io/ for more options and fine-grained granularity
 ############################################################################################################
 
+# Specify the URL of the Management API and UI of this instance, mandatory if you want to connect it to Cockpit
+#console:
+#  ui:
+#    url: http://localhost:3000
+#  api:
+#    url: http://localhost:8083/management
+
 # HTTP Server
 #jetty:
 #  IP/hostname to bind to. Default is 0.0.0.0

@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 /**
@@ -80,6 +81,9 @@ public class HelloCommandProducerTest {
         obs.awaitTerminalEvent();
         obs.assertValue(helloCommand -> {
             assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
+            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("UI_URL"));
+            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("API_URL"));
+
             assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
             assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());
             assertEquals(GraviteeContext.getDefaultEnvironment(), helloCommand.getPayload().getDefaultEnvironmentId());
