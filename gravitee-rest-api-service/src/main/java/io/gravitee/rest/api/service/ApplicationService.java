@@ -43,7 +43,7 @@ public interface ApplicationService {
 
     ApplicationEntity create(NewApplicationEntity application, String username);
 
-    ApplicationEntity create(NewApplicationEntity application, String username, boolean isDefaultApplication);
+    ApplicationEntity create(NewApplicationEntity application, String username, String environmentId);
 
     ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
 

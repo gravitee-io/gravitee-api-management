@@ -15,9 +15,15 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.ApplicationType;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 
 import org.junit.Test;
@@ -26,16 +32,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -47,11 +57,43 @@ public class ApplicationService_FindAllTest {
     @Mock
     private ApplicationRepository applicationRepository;
 
+    @Mock
+    private RoleService roleService;
+
+    @Mock
+    private MembershipService membershipService;
+
+    @Mock
+    private UserService userService;
+
     @Test
     public void shouldTryFindAll() throws Exception {
+        Application application = new Application();
+        application.setId("appId");
+        application.setType(ApplicationType.SIMPLE);
+        application.setStatus(ApplicationStatus.ACTIVE);
+        when(applicationRepository.findAllByEnvironment(eq("DEFAULT"), eq(ApplicationStatus.ACTIVE)))
+                .thenReturn(new HashSet<>(Collections.singletonList(application)));
+        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(new RoleEntity()));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
+                .thenReturn(new HashSet<>(Collections.singletonList(new MembershipEntity())));
+        when(userService.findByIds(any())).thenReturn(Collections.emptySet());
+
         Set<ApplicationListItem> set = applicationService.findAll();
-        assertNotNull(set);
-        assertTrue("result is empty", set.isEmpty());
+        assertThat(set).hasSize(1);
         verify(applicationRepository, times(1)).findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE);
+    }
+
+    @Test
+    public void shouldTryFindAll_noResult() throws Exception {
+        Set<ApplicationListItem> set = applicationService.findAll();
+        assertThat(set).isEmpty();
+        verify(applicationRepository, times(1)).findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE);
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldTryFindAll_exception() throws Exception {
+        when(applicationRepository.findAllByEnvironment(eq("DEFAULT"), eq(ApplicationStatus.ACTIVE))).thenThrow(TechnicalException.class);
+        Set<ApplicationListItem> set = applicationService.findAll();
     }
 }

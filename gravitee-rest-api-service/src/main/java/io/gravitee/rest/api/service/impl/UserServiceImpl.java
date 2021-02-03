@@ -30,9 +30,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.audit.AuditEntity;
@@ -199,9 +201,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     defaultApp.setSettings(settings);
 
                     try {
-                        applicationService.create(defaultApp, userId, true);
+                        environmentService.findByUser(userId)
+                                .forEach(env -> applicationService.create(defaultApp, userId, env.getId()));
                     } catch (IllegalStateException ex) {
                         //do not fail to create a user even if we are not able to create its default app
+                        LOGGER.warn("Not able to create default app for user {}", userId);
                     }
                 }
             }

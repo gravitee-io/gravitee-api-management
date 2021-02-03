@@ -231,11 +231,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String userId) {
-        return this.create(newApplicationEntity, userId, false);
+        return this.create(newApplicationEntity, userId, GraviteeContext.getCurrentEnvironment());
     }
 
     @Override
-    public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String userId, boolean isDefaultApplication) {
+    public ApplicationEntity create(NewApplicationEntity newApplicationEntity, String userId, String environmentId) {
             LOGGER.debug("Create {} for user {}", newApplicationEntity, userId);
 
             // Check that only one settings is defined
@@ -254,7 +254,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Create a simple "internal" application
             if (newApplicationEntity.getSettings().getApp() != null) {
                 // If client registration is enabled, check that the simple type is allowed
-                if (!isDefaultApplication && isClientRegistrationEnabled() && !isApplicationTypeAllowed("simple")) {
+                if (isClientRegistrationEnabled() && !isApplicationTypeAllowed("simple")) {
                     throw new IllegalStateException("Application type 'simple' is not allowed");
                 }
 
@@ -325,12 +325,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setCreatedAt(new Date());
             application.setUpdatedAt(application.getCreatedAt());
 
-            if (isDefaultApplication) {
-                // TODO: this has to be modified for https://github.com/gravitee-io/issues/issues/4776
-                return createApplicationForEnvironment(userId, application, GraviteeContext.getDefaultEnvironment());
-            } else {
-                return createApplicationForEnvironment(userId, application, GraviteeContext.getCurrentEnvironment());
-            }
+            return createApplicationForEnvironment(userId, application, environmentId);
     }
 
     @NotNull

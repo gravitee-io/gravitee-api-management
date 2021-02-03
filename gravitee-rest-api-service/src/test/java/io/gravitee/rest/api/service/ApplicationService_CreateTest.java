@@ -210,7 +210,6 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
 
         when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenThrow(TechnicalException.class);
-//        when(newApplication.getClientId()).thenReturn(CLIENT_ID);
 
         applicationService.create(newApplication, USER_NAME);
     }

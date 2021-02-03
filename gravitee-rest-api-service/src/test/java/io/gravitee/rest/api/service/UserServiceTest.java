@@ -22,6 +22,7 @@ import io.gravitee.common.util.Maps;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.*;
@@ -316,14 +317,27 @@ public class UserServiceTest {
     }
 
     @Test
-    public void shouldCreateDefaultApplication() throws TechnicalException {
+    public void shouldCreateDefaultApplicationWhenNotExistingInEnvironment() throws TechnicalException {
         setField(userService, "defaultApplicationForFirstConnection", true);
         when(user.getLastConnectionAt()).thenReturn(null);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+        EnvironmentEntity environment1 = new EnvironmentEntity();
+        environment1.setId("envId1");
+        EnvironmentEntity environment2 = new EnvironmentEntity();
+        environment2.setId("envId2");
+        EnvironmentEntity environment3 = new EnvironmentEntity();
+        environment3.setId("envId3");
+        when(environmentService.findByUser(any())).thenReturn(Arrays.asList(environment1, environment2, environment3));
+
+        ApplicationListItem defaultApp = new ApplicationListItem();
+        defaultApp.setName("Default application");
+        defaultApp.setDescription("My default application");
+        defaultApp.setType(ApplicationType.SIMPLE.name());
 
         userService.connect(USER_NAME);
 
-        verify(applicationService, times(1)).create(any(), eq(USER_NAME), eq(true));
+        verify(applicationService, times(1)).create(any(), eq(USER_NAME), eq("envId2"));
+        verify(applicationService, times(1)).create(any(), eq(USER_NAME), eq("envId3"));
     }
 
     @Test
