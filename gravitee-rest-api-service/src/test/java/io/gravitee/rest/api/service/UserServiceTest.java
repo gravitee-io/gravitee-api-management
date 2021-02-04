@@ -854,10 +854,6 @@ public class UserServiceTest {
 
         when(identityProvider.getGroupMappings()).thenReturn(Arrays.asList(condition1, condition2, condition3));
 
-        when(identityProvider.getId()).thenReturn("oauth2");
-        when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.empty());
-
-        
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
         userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
     }
@@ -872,6 +868,7 @@ public class UserServiceTest {
 
         when(userRepository.findBySource(null,user.getSourceId(), ORGANIZATION, USER_REFERENCE_TYPE)).thenReturn(Optional.of(user));
         when(userRepository.findById(user.getSourceId())).thenReturn(Optional.of(user));
+        when(userRepository.update(user)).thenReturn(user);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
 
@@ -926,7 +923,7 @@ public class UserServiceTest {
         userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
 
         //verify group creations
-        verify(membershipService, times(2)).addRoleToMemberOnReference(
+        verify(membershipService, never()).addRoleToMemberOnReference(
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class));
@@ -962,94 +959,94 @@ public class UserServiceTest {
         when(roleService.findDefaultRoleByScopes(RoleScope.API,RoleScope.APPLICATION)).thenReturn(Arrays.asList(roleApiUser,roleApplicationAdmin));
         when(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin));
 
-        when(membershipService.addRoleToMemberOnReference(
+        when(membershipService.updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
+                new MembershipService.MembershipRole(RoleScope.API, "USER"), "oauth2")).thenReturn(mockMemberEntity());
 
-        when(membershipService.addRoleToMemberOnReference(
+        when(membershipService.updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
+                new MembershipService.MembershipRole(RoleScope.API, "USER"), "oauth2")).thenReturn(mockMemberEntity());
 
-        when(membershipService.addRoleToMemberOnReference(
+        when(membershipService.updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))).thenReturn(mockMemberEntity());
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"), "oauth2")).thenReturn(mockMemberEntity());
 
-        when(membershipService.addRoleToMemberOnReference(
+        when(membershipService.updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"))).thenReturn(mockMemberEntity());
+                new MembershipService.MembershipRole(RoleScope.API, "USER"), "oauth2")).thenReturn(mockMemberEntity());
 
-        when(membershipService.addRoleToMemberOnReference(
+        when(membershipService.updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))).thenReturn(mockMemberEntity());
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"), "oauth2")).thenReturn(mockMemberEntity());
 
-        when(membershipService.addRoleToMemberOnReference(
+        when(membershipService.updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN"))).thenReturn(mockMemberEntity());
+                new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN"), "oauth2")).thenReturn(mockMemberEntity());
         
-        when(membershipService.addRoleToMemberOnReference(
+        when(membershipService.updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))).thenReturn(mockMemberEntity());
+                new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"), "oauth2")).thenReturn(mockMemberEntity());
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
         userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
 
       //verify group creations
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+                new MembershipService.MembershipRole(RoleScope.API, "USER"), "oauth2");
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"), "oauth2");
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+                new MembershipService.MembershipRole(RoleScope.API, "USER"), "oauth2");
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"), "oauth2");
 
-        verify(membershipService, times(0)).addRoleToMemberOnReference(
+        verify(membershipService, times(0)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+                new MembershipService.MembershipRole(RoleScope.API, "USER"), "oauth2");
 
-        verify(membershipService, times(0)).addRoleToMemberOnReference(
+        verify(membershipService, times(0)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"), "oauth2");
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, "USER"));
+                new MembershipService.MembershipRole(RoleScope.API, "USER"), "oauth2");
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"));
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"), "oauth2");
 
-        verify(membershipService, times(2)).addRoleToMemberOnReference(
+       verify(membershipService, times(1)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN"));
+                new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN"), "oauth2");
 
-        verify(membershipService, times(1)).addRoleToMemberOnReference(
+        verify(membershipService, times(1)).updateRoleToMemberOnReferenceBySource(
                 new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT"),
                 new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"));
+                new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"), "oauth2");
     }
 
     @Test
@@ -1071,7 +1068,7 @@ public class UserServiceTest {
 
 
         //verify group creations
-        verify(membershipService, times(2)).addRoleToMemberOnReference(
+        verify(membershipService, never()).addRoleToMemberOnReference(
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class));

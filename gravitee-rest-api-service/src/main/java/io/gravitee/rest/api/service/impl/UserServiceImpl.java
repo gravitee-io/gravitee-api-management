@@ -86,6 +86,7 @@ import static io.gravitee.rest.api.service.notification.NotificationParamsBuilde
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -303,7 +304,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             Set<User> users = userRepository.findByIds(ids);
 
             if (!users.isEmpty()) {
-                return users.stream().map(u -> this.convert(u, false)).collect(Collectors.toSet());
+                return users.stream().map(u -> this.convert(u, false)).collect(toSet());
             }
 
             Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);
@@ -1143,11 +1144,34 @@ public class UserServiceImpl extends AbstractService implements UserService {
             throw new EmailRequiredException(attrs.get(SocialIdentityProviderEntity.UserProfile.ID));
         }
 
+        // Compute group and role mappings
+        // This is done BEFORE updating or creating the user account to ensure this one is properly created with correct
+        // information (ie. mappings)
+        Set<GroupEntity> userGroups = computeUserGroupsFromProfile(email, socialProvider.getGroupMappings(), userInfo);
+        Set<RoleEntity> userRoles = computeUserRolesFromProfile(email, socialProvider.getRoleMappings(), userInfo);
+
+        UserEntity user = null;
+        boolean created = false;
         try {
-            return refreshExistingUser(socialProvider, attrs, email);
+            user = refreshExistingUser(socialProvider, attrs, email);
         } catch (UserNotFoundException unfe) {
-            return createNewExternalUser(socialProvider, userInfo, attrs, email);
+            created = true;
+            user = createNewExternalUser(socialProvider, userInfo, attrs, email);
         }
+
+        // Memberships must be refresh only when it is a user creation context or mappings should be synced during
+        // later authentication
+        List<MembershipService.Membership> groupMemberships = refreshUserGroups(user.getId(), socialProvider.getId(), userGroups);
+        List<MembershipService.Membership> envRoleMemberships = refreshUserRoles(user.getId(), socialProvider.getId(), userRoles, RoleScope.ENVIRONMENT);
+        List<MembershipService.Membership> orgRoleMemberships = refreshUserRoles(user.getId(), socialProvider.getId(), userRoles, RoleScope.ORGANIZATION);
+
+        if (created || socialProvider.isSyncMappings()) {
+            refreshUserMemberships(user.getId(), socialProvider.getId(), groupMemberships, MembershipReferenceType.GROUP);
+            refreshUserMemberships(user.getId(), socialProvider.getId(), envRoleMemberships, MembershipReferenceType.ENVIRONMENT);
+            refreshUserMemberships(user.getId(), socialProvider.getId(), orgRoleMemberships, MembershipReferenceType.ORGANIZATION);
+        }
+
+        return user;
     }
 
     private HashMap<String, String> getUserProfileAttrs(Map<String, String> userProfileMapping, String userInfo) {
@@ -1195,24 +1219,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             newUser.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
         }
 
-        UserEntity createdUser = null;
-        String userId = null;
-        if (socialProvider.getGroupMappings() != null && !socialProvider.getGroupMappings().isEmpty()) {
-            // Can fail if a mappingCondition is not well-formed
-            Set<GroupEntity> groupsToAdd = getGroupsToAddUser(userId, socialProvider.getGroupMappings(), userInfo);
-            createdUser = this.create(newUser, true);
-            userId = createdUser.getId();
-            addUserToApiAndAppGroupsWithDefaultRole(userId, groupsToAdd);
-        } else {
-            createdUser = this.create(newUser, true);
-            userId = createdUser.getId();
-        }
-
-        if (socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty()) {
-            Set<RoleEntity> rolesToAdd = getRolesToAddUser(userId, socialProvider.getRoleMappings(), userInfo);
-            addRolesToUser(userId, rolesToAdd);
-        }
-        return createdUser;
+        return this.create(newUser, false);
     }
 
     private UserEntity refreshExistingUser(final SocialIdentityProviderEntity socialProvider, HashMap<String, String> attrs, String email) {
@@ -1237,91 +1244,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
         return this.update(userId, user);
     }
 
-    private Set<GroupEntity> getGroupsToAddUser(String userId, List<GroupMappingEntity> mappings, String userInfo) {
-        Set<GroupEntity> groupsToAdd = new HashSet<>();
-
-        for (GroupMappingEntity mapping : mappings) {
-            TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-
-            Boolean match = templateEngine.getValue(mapping.getCondition(), Boolean.class);
-
-            trace(userId, match, mapping.getCondition());
-
-            // Get groups
-            if (match.booleanValue()) {
-                for (String groupName : mapping.getGroups()) {
-                    try {
-                        groupsToAdd.add(groupService.findById(groupName));
-                    } catch (GroupNotFoundException gnfe) {
-                        LOGGER.error("Unable to create user, missing group in repository : {}", groupName);
-                    }
-                }
-            }
-        }
-        return groupsToAdd;
-    }
-
-    private Set<RoleEntity> getRolesToAddUser(String username, List<RoleMappingEntity> mappings, String userInfo) {
-        Set<RoleEntity> rolesToAdd = new HashSet<>();
-
-        for (RoleMappingEntity mapping : mappings) {
-            TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-
-            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
-
-            trace(username, match, mapping.getCondition());
-
-            // Get roles
-            if (match) {
-                if (mapping.getOrganizations() != null && !mapping.getOrganizations().isEmpty()) {
-                    mapping.getOrganizations().forEach(organizationRoleName -> addRoleScope(rolesToAdd, organizationRoleName, RoleScope.ORGANIZATION));
-                }
-                if (mapping.getEnvironments() != null && !mapping.getEnvironments().isEmpty()) {
-                    mapping.getEnvironments().forEach(environmentRoleName -> addRoleScope(rolesToAdd, environmentRoleName, RoleScope.ENVIRONMENT));
-                }
-            }
-        }
-        return rolesToAdd;
-    }
-
-    private void addRoleScope(Set<RoleEntity> rolesToAdd, String mappingRole, RoleScope roleScope) {
-        if (mappingRole != null) {
-            Optional<RoleEntity> optRoleEntity = roleService.findByScopeAndName(roleScope, mappingRole);
-            if (optRoleEntity.isPresent()) {
-                rolesToAdd.add(optRoleEntity.get());
-            } else {
-                LOGGER.error("Unable to create user, missing role in repository : {}", mappingRole);
-            }
-        }
-    }
-
-    private void addUserToApiAndAppGroupsWithDefaultRole(String userId, Collection<GroupEntity> groupsToAdd) {
-        // Get the default role from system
-        List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION);
-
-        // Add groups to user
-        for (GroupEntity groupEntity : groupsToAdd) {
-            for (RoleEntity roleEntity : roleEntities) {
-                String defaultRole = roleEntity.getName();
-
-                // If defined, get the override default role at the group level
-                if (groupEntity.getRoles() != null) {
-                    String groupDefaultRole = groupEntity.getRoles().get(io.gravitee.rest.api.model.permissions.RoleScope.valueOf(roleEntity.getScope().name()));
-                    if (groupDefaultRole != null) {
-                        defaultRole = groupDefaultRole;
-                    }
-                }
-
-                membershipService.addRoleToMemberOnReference(
-                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
-                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                        new MembershipService.MembershipRole(roleEntity.getScope(), defaultRole));
-            }
-        }
-
-    }
 
     private void addRolesToUser(String userId, Collection<RoleEntity> rolesToAdd) {
         // add roles to user
@@ -1355,6 +1277,217 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
     }
 
+    /**
+     * Calculate the list of groups to associate to a user according to its OIDC profile (ie. UserInfo)
+     *
+     * @param userId
+     * @param mappings
+     * @param userInfo
+     * @return
+     */
+    private Set<GroupEntity> computeUserGroupsFromProfile(String userId, List<GroupMappingEntity> mappings, String userInfo) {
+        if (mappings == null || mappings.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        Set<GroupEntity> groups = new HashSet<>();
+
+        for (GroupMappingEntity mapping : mappings) {
+            TemplateEngine templateEngine = TemplateEngine.templateEngine();
+            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+
+            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
+
+            trace(userId, match, mapping.getCondition());
+
+            // Get groups
+            if (match) {
+                for (String groupName : mapping.getGroups()) {
+                    try {
+                        groups.add(groupService.findById(groupName));
+                    } catch (GroupNotFoundException gnfe) {
+                        LOGGER.error("Unable to create user, missing group in repository : {}", groupName);
+                    }
+                }
+            }
+        }
+
+        return groups;
+    }
+
+    /**
+     * Calculate the list of roles to associate to a user according to its OIDC profile (ie. UserInfo)
+     *
+     * @param userId
+     * @param mappings
+     * @param userInfo
+     * @return
+     */
+    private Set<RoleEntity> computeUserRolesFromProfile(String userId, List<RoleMappingEntity> mappings, String userInfo) {
+        if (mappings == null || mappings.isEmpty()) {
+            // provide default roles in this case otherwise user will not have roles if the RoleMapping isn't provided and if the
+            // option to refresh user profile on each connection is enabled
+            return roleService.findDefaultRoleByScopes(RoleScope.ENVIRONMENT, RoleScope.ORGANIZATION).stream().collect(toSet());
+        }
+
+        Set<RoleEntity> roles = new HashSet<>();
+
+        for (RoleMappingEntity mapping : mappings) {
+            TemplateEngine templateEngine = TemplateEngine.templateEngine();
+            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+
+            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
+
+            trace(userId, match, mapping.getCondition());
+
+            // Get roles
+            if (match) {
+                if (mapping.getEnvironments() != null) {
+                    try {
+                        mapping.getEnvironments().forEach(env ->
+                                roleService
+                                        .findByScopeAndName(RoleScope.ENVIRONMENT, env)
+                                        .ifPresent(roles::add)
+                        );
+                    } catch (RoleNotFoundException rnfe) {
+                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getEnvironments());
+                    }
+                }
+
+                if (mapping.getOrganizations() != null) {
+                    try {
+                        mapping.getOrganizations().forEach(org ->
+                                roleService
+                                        .findByScopeAndName(RoleScope.ORGANIZATION, org)
+                                        .ifPresent(roles::add)
+                        );
+                    } catch (RoleNotFoundException rnfe) {
+                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getOrganizations());
+                    }
+                }
+            }
+        }
+
+        return roles;
+    }
+    private List<MembershipService.Membership> refreshUserGroups(String userId, String identityProviderId, Collection<GroupEntity> userGroups) {
+        List<MembershipService.Membership> memberships = new ArrayList<>();
+
+        // Get the default group roles from system
+        List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION);
+
+        // Add groups to user
+        for (GroupEntity groupEntity : userGroups) {
+            for (RoleEntity roleEntity : roleEntities) {
+                String defaultRole = roleEntity.getName();
+
+                // If defined, get the override default role at the group level
+                if (groupEntity.getRoles() != null) {
+                    String groupDefaultRole = groupEntity.getRoles().get(RoleScope.valueOf(roleEntity.getScope().name()));
+                    if (groupDefaultRole != null) {
+                        defaultRole = groupDefaultRole;
+                    }
+                }
+
+                MembershipService.Membership membership = new MembershipService.Membership(
+                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
+                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(roleEntity.getScope(), defaultRole));
+
+                membership.setSource(identityProviderId);
+
+                memberships.add(membership);
+            }
+        }
+
+        return memberships;
+    }
+
+    private List<MembershipService.Membership> refreshUserRoles(String userId, String identityProviderId, Collection<RoleEntity> userRoles, RoleScope scope) {
+        return userRoles.stream()
+                .filter(role -> role.getScope().equals(scope))
+                .map(roleEntity -> {
+                    MembershipService.Membership membership = new MembershipService.Membership(
+                            new MembershipService.MembershipReference(
+                                    RoleScope.ENVIRONMENT == roleEntity.getScope() ?
+                                            MembershipReferenceType.ENVIRONMENT
+                                            : MembershipReferenceType.ORGANIZATION,
+                                    RoleScope.ENVIRONMENT == roleEntity.getScope() ?
+                                            GraviteeContext.getCurrentEnvironment()
+                                            : GraviteeContext.getCurrentOrganization()),
+                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(
+                                    RoleScope.valueOf(roleEntity.getScope().name()),
+                                    roleEntity.getName()));
+
+                    membership.setSource(identityProviderId);
+
+                    return membership;
+                }).collect(Collectors.toList());
+    }
+
+    /**
+     * Refresh user memberships.
+     *
+     * @param userId User identifier.
+     * @param identityProviderId The identity provider used to authenticate the user.
+     * @param memberships List of memberships to associate to the user
+     * @param types The types of user memberships to manage
+     */
+    private void refreshUserMemberships(String userId, String identityProviderId, List<MembershipService.Membership> memberships,
+                                        MembershipReferenceType... types) {
+        // Get existing memberships for a given type
+        List<UserMembership> userMemberships = new ArrayList<>();
+
+        for (MembershipReferenceType type : types) {
+            userMemberships.addAll(membershipService.findUserMembershipBySource(type, userId, identityProviderId));
+        }
+
+        // Delete existing memberships
+        userMemberships.forEach(membership -> {
+            // Consider only membership "created by" the identity provider
+            if (identityProviderId.equals(membership.getSource())) {
+                membershipService.deleteReferenceMember(
+                        MembershipReferenceType.valueOf(membership.getType()),
+                        membership.getReference(),
+                        MembershipMemberType.USER,
+                        userId);
+            }
+        });
+
+        // Create updated memberships
+        memberships.forEach(membership -> membershipService.updateRoleToMemberOnReferenceBySource(
+                membership.getReference(),
+                membership.getMember(),
+                membership.getRole(),
+                membership.getSource()));
+
+    }
+    private void addUserToApiAndAppGroupsWithDefaultRole(String userId, Collection<GroupEntity> groupsToAdd) {
+        // Get the default role from system
+        List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION);
+
+        // Add groups to user
+        for (GroupEntity groupEntity : groupsToAdd) {
+            for (RoleEntity roleEntity : roleEntities) {
+                String defaultRole = roleEntity.getName();
+
+                // If defined, get the override default role at the group level
+                if (groupEntity.getRoles() != null) {
+                    String groupDefaultRole = groupEntity.getRoles().get(io.gravitee.rest.api.model.permissions.RoleScope.valueOf(roleEntity.getScope().name()));
+                    if (groupDefaultRole != null) {
+                        defaultRole = groupDefaultRole;
+                    }
+                }
+
+                membershipService.addRoleToMemberOnReference(
+                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
+                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                        new MembershipService.MembershipRole(roleEntity.getScope(), defaultRole));
+            }
+        }
+
+    }
     @Override
     public void updateUserRoles(String userId, List<String> roleIds) {
         // check if user exist
@@ -1362,7 +1495,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
         Set<MembershipEntity> userMemberships = membershipService.getMembershipsByMember(MembershipMemberType.USER, userId).stream()
                 .filter(membership -> membership.getReferenceType().equals(MembershipReferenceType.ENVIRONMENT) || membership.getReferenceType().equals(MembershipReferenceType.ORGANIZATION))
-                .collect(Collectors.toSet());
+                .collect(toSet());
         userMemberships.forEach(membership -> {
             if (!roleIds.contains(membership.getRoleId())) {
                 membershipService.deleteMembership(membership.getId());
@@ -1371,7 +1504,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             }
         });
         if (!roleIds.isEmpty()) {
-            this.addRolesToUser(userId, roleIds.stream().map(roleService::findById).collect(Collectors.toSet()));
+            this.addRolesToUser(userId, roleIds.stream().map(roleService::findById).collect(toSet()));
         }
 
     }
