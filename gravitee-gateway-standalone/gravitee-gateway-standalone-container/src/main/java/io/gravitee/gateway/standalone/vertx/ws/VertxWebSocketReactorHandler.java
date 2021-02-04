@@ -60,10 +60,16 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
     private boolean isWebSocket(HttpServerRequest httpServerRequest) {
         String connectionHeader = httpServerRequest.getHeader(HttpHeaders.CONNECTION);
         String upgradeHeader = httpServerRequest.getHeader(HttpHeaders.UPGRADE);
-
+        boolean isUpgrade = false;
+        if (connectionHeader != null) {
+            String[] connectionParts = connectionHeader.split(",");
+            for (int i = 0; i < connectionParts.length && !isUpgrade; ++i) {
+                isUpgrade = HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(connectionParts[i].trim());
+            }
+        }
         return (httpServerRequest.version() == HttpVersion.HTTP_1_0 || httpServerRequest.version() == HttpVersion.HTTP_1_1) &&
                 httpServerRequest.method() == HttpMethod.GET &&
-                HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(connectionHeader) &&
+                isUpgrade &&
                 HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
     }
 }

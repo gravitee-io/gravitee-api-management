@@ -27,6 +27,8 @@ import org.springframework.core.env.Environment;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Mockito.when;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -44,6 +46,23 @@ public class GatewayConfigurationTest {
         MockitoAnnotations.initMocks(this);
         System.clearProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY);
         System.clearProperty(GatewayConfiguration.MULTI_TENANT_SYSTEM_PROPERTY);
+        System.clearProperty("vertx.disableWebsockets");
+        when(environment.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(false);
+    }
+
+    @Test
+    public void shouldEnableWebSockets() {
+        gatewayConfiguration.afterPropertiesSet();
+
+        Assert.assertTrue(Boolean.parseBoolean(System.getProperty("vertx.disableWebsockets")));
+    }
+
+    @Test
+    public void shouldDisableWebSockets() {
+        when(environment.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(true);
+        gatewayConfiguration.afterPropertiesSet();
+
+        Assert.assertFalse(Boolean.parseBoolean(System.getProperty("vertx.disableWebsockets")));
     }
 
     @Test
@@ -108,7 +127,7 @@ public class GatewayConfigurationTest {
 
     @Test
     public void shouldReturnShardingTagsFromConfiguration() {
-        Mockito.when(environment.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("public,private");
+        when(environment.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("public,private");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTagsOpt = gatewayConfiguration.shardingTags();
@@ -122,7 +141,7 @@ public class GatewayConfigurationTest {
 
     @Test
     public void shouldReturnTenantFromConfiguration() {
-        Mockito.when(environment.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
+        when(environment.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenantOpt = gatewayConfiguration.tenant();
@@ -134,7 +153,7 @@ public class GatewayConfigurationTest {
     @Test
     public void shouldReturnShardingTagsWithPrecedence() {
         System.setProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY, "public,private");
-        Mockito.when(environment.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("intern,extern");
+        when(environment.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("intern,extern");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTagsOpt = gatewayConfiguration.shardingTags();
@@ -149,7 +168,7 @@ public class GatewayConfigurationTest {
     @Test
     public void shouldReturnTenantWithPrecedence() {
         System.setProperty(GatewayConfiguration.MULTI_TENANT_SYSTEM_PROPERTY, "asia");
-        Mockito.when(environment.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
+        when(environment.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenantOpt = gatewayConfiguration.tenant();

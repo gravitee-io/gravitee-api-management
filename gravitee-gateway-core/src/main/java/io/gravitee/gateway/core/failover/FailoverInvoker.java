@@ -29,8 +29,11 @@ import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,6 +42,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author GraviteeSource Team
  */
 public class FailoverInvoker extends EndpointInvoker implements InitializingBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FailoverInvoker.class);
+    private static final String errorMessageFormat = "[%s] %s";
 
     @Autowired
     private Vertx vertx;
@@ -55,13 +60,37 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
     public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
         ((MutableExecutionContext)context).request(new FailoverRequest(context.request()));
 
+        final String apiId = String.valueOf(context.getAttribute(ExecutionContext.ATTR_API));
         circuitBreaker.execute(new io.vertx.core.Handler<Promise<ProxyConnection>>() {
             @Override
             public void handle(Promise<ProxyConnection> event) {
                 FailoverInvoker.super.invoke(context, stream, proxyConnection -> {
-                    proxyConnection.exceptionHandler(event::fail);
-                    proxyConnection.responseHandler(response ->
-                            event.complete(new FailoverProxyConnection(proxyConnection, response)));
+                    proxyConnection.exceptionHandler(error -> {
+                        try {
+                            event.fail(error);
+                        } catch (IllegalStateException e) {
+                            final Future<ProxyConnection> future = event.future();
+                            if (future.failed()) {
+                                LOGGER.error(String.format(errorMessageFormat, apiId, future.cause() == null ? null : future.cause().getMessage()), future.cause());
+                            } else {
+                                LOGGER.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
+                            }
+                            throw e; // rethrow the exception to let vertx handle this case
+                        }
+                    });
+                    proxyConnection.responseHandler(response -> {
+                        try {
+                            event.complete(new FailoverProxyConnection(proxyConnection, response));
+                        } catch (IllegalStateException e) {
+                            final Future<ProxyConnection> future = event.future();
+                            if (future.failed()) {
+                                LOGGER.error(String.format(errorMessageFormat, apiId, future.cause() == null ? null : future.cause().getMessage()), future.cause());
+                            } else {
+                                LOGGER.error(String.format(errorMessageFormat, apiId, "Failover invocation has succeeded but result already completed"), e);
+                            }
+                            throw e; // rethrow the exception to let vertx handle this case
+                        }
+                    });
                 });
             }
         }).setHandler(new io.vertx.core.Handler<AsyncResult<ProxyConnection>>() {
