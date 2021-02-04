@@ -25,8 +25,10 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.jwt.proc.JWTProcessor;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -34,11 +36,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -48,6 +55,7 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Set;
 
 @Singleton
 @Path("/auth/cockpit")
@@ -75,6 +83,9 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
     @Autowired
     protected CookieGenerator cookieGenerator;
+
+    @Autowired
+    private AuthoritiesProvider authoritiesProvider;
 
     @PostConstruct
     public void afterPropertiesSet() {
@@ -110,10 +121,19 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             final JWTClaimsSet jwtClaimsSet = jwtProcessor.process(token, null);
 
             // Current organization must be set to those coming from cockpit token.
-            GraviteeContext.setCurrentOrganization(jwtClaimsSet.getStringClaim(ORG_CLAIM));
+            final String organizationId = jwtClaimsSet.getStringClaim(ORG_CLAIM);
+            GraviteeContext.setCurrentOrganization(organizationId);
 
             // Retrieve the user.
             final UserEntity user = userService.findBySource(COCKPIT_SOURCE, jwtClaimsSet.getSubject(), true);
+
+            //set user to Authentication Context
+            final String environmentId = jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM);
+            final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
+
+            UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
+            userDetails.setEmail(user.getEmail());
+            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
             // Cockpit user is authenticated, connect user (ie: generate cookie).
             super.connectUser(user, httpResponse);
