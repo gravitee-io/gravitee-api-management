@@ -53,7 +53,7 @@ public class ApplicationMapper {
 
     @Autowired
     private GroupService groupService;
-    
+
     public Application convert(ApplicationListItem applicationListItem, UriInfo uriInfo) {
         final Application application = new Application();
         application.setApplicationType(applicationListItem.getType());
@@ -69,16 +69,18 @@ public class ApplicationMapper {
         }
         application.setId(applicationListItem.getId());
         application.setName(applicationListItem.getName());
-        
+
         UserEntity primaryOwnerUserEntity = userService.findById(applicationListItem.getPrimaryOwner().getId());
         User owner = userMapper.convert(primaryOwnerUserEntity);
         owner.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()), primaryOwnerUserEntity.getUpdatedAt()));
         application.setOwner(owner);
-        
+
         application.setUpdatedAt(applicationListItem.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         ApplicationSettings settings = applicationListItem.getSettings();
-        application.setHasClientId(settings != null && settings.getoAuthClient() != null &&
-                settings.getoAuthClient().getClientId() != null && !settings.getoAuthClient().getClientId().isEmpty());
+        application.setHasClientId(settings != null && (
+                (settings.getoAuthClient() != null && settings.getoAuthClient().getClientId() != null && !settings.getoAuthClient().getClientId().isEmpty()) ||
+                        (settings.getApp() != null && settings.getApp().getClientId() != null && !settings.getApp().getClientId().isEmpty())
+        ));
         return application;
     }
 
@@ -110,12 +112,12 @@ public class ApplicationMapper {
 
         application.setId(applicationEntity.getId());
         application.setName(applicationEntity.getName());
-        
+
         UserEntity primaryOwnerUserEntity = userService.findById(applicationEntity.getPrimaryOwner().getId());
         User owner = userMapper.convert(primaryOwnerUserEntity);
         owner.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), primaryOwnerUserEntity.getId()), primaryOwnerUserEntity.getUpdatedAt()));
         application.setOwner(owner);
-        
+
         application.setUpdatedAt(applicationEntity.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setPicture(applicationEntity.getPicture());
         application.setBackground(applicationEntity.getBackground());
@@ -129,8 +131,8 @@ public class ApplicationMapper {
                 appSettings.app(new io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings()
                             .clientId(simpleAppEntitySettings.getClientId())
                             .type(simpleAppEntitySettings.getType())
-                            )
-                ;
+                            );
+                application.setHasClientId(simpleAppEntitySettings.getClientId() != null);
             } else {
                 final OAuthClientSettings oAuthClientEntitySettings = applicationEntitySettings.getoAuthClient();
 
@@ -145,8 +147,10 @@ public class ApplicationMapper {
                     .responseTypes(oAuthClientEntitySettings.getResponseTypes())
                     .renewClientSecretSupported(oAuthClientEntitySettings.isRenewClientSecretSupported())
                 );
+                application.setHasClientId(oAuthClientEntitySettings.getClientId() != null);
             }
             application.setSettings(appSettings);
+
         }
 
         return application;

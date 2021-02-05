@@ -191,7 +191,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 final boolean userAuthorizedToAccessApiData = groupService.
                         isUserAuthorizedToAccessApiData(apiService.findById(planEntity.getApi()),
                                 planEntity.getExcludedGroups(), getAuthenticatedUsername());
-                if (!userAuthorizedToAccessApiData) {
+                if (!userAuthorizedToAccessApiData && !isAdmin()) {
                     throw new PlanRestrictedException(plan);
                 }
             }
@@ -564,7 +564,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
                     for (ApiKeyEntity apiKey : apiKeys) {
                         Date expireAt = apiKey.getExpireAt();
-                        if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.before(now))) {
+                        if (!apiKey.isRevoked()) {
                             apiKey.setExpireAt(now);
                             apiKey.setRevokedAt(now);
                             apiKey.setRevoked(true);

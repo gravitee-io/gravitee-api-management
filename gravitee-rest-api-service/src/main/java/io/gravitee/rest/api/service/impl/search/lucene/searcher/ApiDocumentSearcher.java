@@ -92,7 +92,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 "name",
                 "name_lowercase",
                 "name_split",
-                "content",
+                "content"
         }, analyzer, PAGE_FIELD_BOOST);
         pageParser.setFuzzyMinSim(0.6f);
         pageParser.setAllowLeadingWildcard(true);

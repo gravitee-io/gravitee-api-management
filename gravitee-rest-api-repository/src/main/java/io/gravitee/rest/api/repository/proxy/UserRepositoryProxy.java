@@ -61,6 +61,11 @@ public class UserRepositoryProxy extends AbstractProxy<UserRepository> implement
     }
 
     @Override
+    public Optional<User> findByEmail(String email, String organizationId) throws TechnicalException {
+        return target.findByEmail(email, organizationId);
+    }
+
+    @Override
     public Set<User> findByIds(List<String> ids) throws TechnicalException {
         return target.findByIds(ids);
     }

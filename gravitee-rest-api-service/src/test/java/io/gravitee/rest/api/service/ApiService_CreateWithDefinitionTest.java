@@ -166,6 +166,7 @@ public class ApiService_CreateWithDefinitionTest {
         when(membershipService.addRoleToMemberOnReference(any(), any(), any())).thenReturn(memberEntity);
         when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
         when(userService.findById(memberEntity.getId())).thenReturn(admin);
+        when(pageService.createWithDefinition(any(), any())).thenReturn(new PageEntity());
 
         apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
@@ -260,6 +261,7 @@ public class ApiService_CreateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
         when(userService.findById(admin.getId())).thenReturn(admin);
+        when(pageService.createWithDefinition(any(), any())).thenReturn(new PageEntity());
 
         apiService.createWithImportedDefinition(null, toBeImport, "admin");
 

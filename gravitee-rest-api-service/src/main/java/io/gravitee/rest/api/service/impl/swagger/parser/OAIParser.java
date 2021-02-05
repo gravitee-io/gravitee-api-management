@@ -64,7 +64,7 @@ public class OAIParser extends AbstractDescriptorParser<OAIDescriptor> {
          */
         if (parseResult.getMessages() != null) {
             final List<String> filteredMessages = parseResult.getMessages().stream()
-                    .filter(message -> !message.matches("^attribute info.contact.*"))
+                    .filter(message -> message != null && !message.matches("^attribute info.contact.*"))
                     .collect(Collectors.toList());
             parseResult.setMessages(filteredMessages);
         }

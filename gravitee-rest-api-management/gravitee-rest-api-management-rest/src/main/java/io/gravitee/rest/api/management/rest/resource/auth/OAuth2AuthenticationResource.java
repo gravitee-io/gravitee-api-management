@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderE
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.builder.JerseyClientBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
@@ -107,7 +108,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @PostConstruct
     public void initClient() throws NoSuchAlgorithmException, KeyManagementException {
         final boolean trustAllEnabled = environment.getProperty("security.trustAll", Boolean.class, false);
-        final ClientBuilder builder = ClientBuilder.newBuilder();
+        final ClientBuilder builder =  JerseyClientBuilder.newBuilder(environment);
         if (trustAllEnabled) {
             SSLContext sc = SSLContext.getInstance("TLSv1.2");
             sc.init(null, new TrustManager[]{new BlindTrustManager()}, null);

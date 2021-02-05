@@ -250,6 +250,18 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     @Override
+    public Optional<UserEntity> findByEmail(String email) {
+        try {
+            LOGGER.debug("Find user by Email: {}", email);
+            Optional<User> optionalUser = userRepository.findByEmail(email, GraviteeContext.getCurrentOrganization());
+            return optionalUser.map(user -> convert(optionalUser.get(), false));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find user using its email", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find user using its email", ex);
+        }
+    }
+
+    @Override
     public UserEntity findByIdWithRoles(String id) {
         try {
             LOGGER.debug("Find user by ID: {}", id);
@@ -354,6 +366,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
                     throw new IllegalStateException("Invitation has been canceled");
                 }
             }
+
+            // check password here to avoid user creation if password is invalid
+            if (registerUserEntity.getPassword() != null) {
+                if (!passwordValidator.validate(registerUserEntity.getPassword())) {
+                    throw new PasswordFormatInvalidException();
+                }
+            }
+
             final Object subject = jwt.getSubject();
             User user;
             if (subject == null) {
@@ -365,6 +385,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 externalUser.setLastname(registerUserEntity.getLastname());
                 externalUser.setEmail(email);
                 user = convert(create(externalUser, true));
+                user.setOrganizationId(GraviteeContext.getCurrentOrganization());
             } else {
                 final String username = subject.toString();
                 LOGGER.debug("Create an internal user {}", username);
@@ -598,7 +619,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
         if (defaultRoleByScopes == null || defaultRoleByScopes.isEmpty()) {
             throw new DefaultRoleNotFoundException(scopes);
         }
-
         for (RoleEntity defaultRoleByScope : defaultRoleByScopes) {
             switch (defaultRoleByScope.getScope()) {
                 case ORGANIZATION:
@@ -849,7 +869,18 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (updateUserEntity.getLastname() != null) {
                 user.setLastname(updateUserEntity.getLastname());
             }
-            if (updateUserEntity.getEmail() != null) {
+            if (updateUserEntity.getEmail() != null && !updateUserEntity.getEmail().equals(user.getEmail())) {
+                if (isInternalUser(user)) {
+                    // sourceId can be updated only for user registered into the Gravitee Repository
+                    // in that case, check if the email is available before update sourceId
+                    final Optional<User> optionalUser = userRepository.findBySource(user.getSource(),
+                            updateUserEntity.getEmail(), user.getOrganizationId());
+                    if (optionalUser.isPresent()) {
+                        throw new UserAlreadyExistsException(user.getSource(), updateUserEntity.getEmail(),
+                                user.getOrganizationId());
+                    }
+                    user.setSourceId(updateUserEntity.getEmail());
+                }
                 user.setEmail(updateUserEntity.getEmail());
             }
             if (updateUserEntity.getStatus() != null) {
@@ -911,9 +942,11 @@ public class UserServiceImpl extends AbstractService implements UserService {
         if (query == null || query.isEmpty()) {
             return search(new UserCriteria.Builder().statuses(UserStatus.ACTIVE, UserStatus.PENDING, UserStatus.REJECTED).build(), pageable);
         }
-
+        // UserDocumentTransformation remove domain from email address for security reasons
+        // remove it during search phase to provide results
+        String sanitizedQuery = query.indexOf('@') > 0 ? query.substring(0, query.indexOf('@')) : query;
         Query<UserEntity> userQuery = QueryBuilder.create(UserEntity.class)
-                .setQuery(query)
+                .setQuery(sanitizedQuery)
                 .setPage(pageable)
                 .build();
 
@@ -1069,6 +1102,10 @@ public class UserServiceImpl extends AbstractService implements UserService {
         }
     }
 
+    private boolean isInternalUser(User user) {
+        return IDP_SOURCE_GRAVITEE.equals(user.getSource());
+    }
+
     private void resetPassword(final String id, final String resetPageUrl) {
         try {
             LOGGER.debug("Resetting password of user id {}", id);
@@ -1079,7 +1116,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                 throw new UserNotFoundException(id);
             }
             final User user = optionalUser.get();
-            if (!IDP_SOURCE_GRAVITEE.equals(user.getSource())) {
+            if (!isInternalUser(user)) {
                 throw new UserNotInternallyManagedException(id);
             }
 
