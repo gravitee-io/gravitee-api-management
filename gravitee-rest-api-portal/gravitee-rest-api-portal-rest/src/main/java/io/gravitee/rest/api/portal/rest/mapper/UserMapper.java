@@ -29,6 +29,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,23 +56,24 @@ public class UserMapper {
         userItem.setId(user.getId());
         userItem.setEditableProfile(IDP_SOURCE_GRAVITEE.equals(user.getSource()) || IDP_SOURCE_MEMORY.equalsIgnoreCase(user.getSource()));
         if (user.getRoles() != null) {
-            user.getRoles()
+            Map<String, List<String>> userPermissions = user.getRoles()
                     .stream()
-                    .filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope()))
-                    .findFirst()
+                    .filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope()) || RoleScope.ORGANIZATION.equals(role.getScope()))
                     .map(UserRoleEntity::getPermissions)
-                    .ifPresent(permissions -> {
-                        Map<String, List<String>> collect = permissions.entrySet()
-                                .stream()
-                                .collect(Collectors
-                                        .toMap(
-                                                Map.Entry::getKey,
-                                                entry -> new String(entry.getValue()).chars()
-                                                        .mapToObj(c -> (char) c)
-                                                        .map(String::valueOf)
-                                                        .collect(Collectors.toList())));
-                        userItem.setPermissions(objectMapper.convertValue(collect, UserPermissions.class));
+                    .map(rolePermissions -> rolePermissions.entrySet()
+                            .stream()
+                            .collect(Collectors
+                                    .toMap(
+                                            Map.Entry::getKey,
+                                            entry -> new String(entry.getValue()).chars()
+                                                    .mapToObj(c -> (char) c)
+                                                    .map(String::valueOf)
+                                                    .collect(Collectors.toList()))))
+                    .reduce(new HashMap<>(), (acc, rolePermissions) -> {
+                        acc.putAll(rolePermissions);
+                        return acc;
                     });
+            userItem.setPermissions(objectMapper.convertValue(userPermissions, UserPermissions.class));
         }
         return userItem;
     }

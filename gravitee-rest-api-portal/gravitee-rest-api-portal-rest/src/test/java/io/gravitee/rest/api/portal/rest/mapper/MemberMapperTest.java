@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.ws.rs.core.UriBuilder;
@@ -62,8 +63,8 @@ public class MemberMapperTest {
     @Mock
     private UserService userService;
     
-    @Mock
-    private UserMapper userMapper;
+    @Spy
+    private UserMapper userMapper = new UserMapper();
     
     @Test
     public void testConvert() {

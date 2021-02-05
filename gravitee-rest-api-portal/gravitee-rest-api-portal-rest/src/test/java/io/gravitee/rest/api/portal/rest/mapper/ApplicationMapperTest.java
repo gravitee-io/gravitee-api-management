@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -35,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.ws.rs.core.UriBuilder;
@@ -94,8 +96,8 @@ public class ApplicationMapperTest {
     @Mock
     private GroupService groupService;
     
-    @Mock
-    private UserMapper userMapper;
+    @Spy
+    private UserMapper userMapper = new UserMapper();
 
     ApplicationEntity applicationEntity;
     ApplicationListItem applicationListItem;

@@ -3641,6 +3641,10 @@ components:
               type: array
               items:
                 type: string
+            USER:
+              type: array
+              items:
+                type: string
         config:
           $ref: '#/components/schemas/UserConfig'
         _links:
