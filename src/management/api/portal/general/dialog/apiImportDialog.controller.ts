@@ -18,7 +18,7 @@ function DialogApiImportController($scope, $mdDialog, ApiService, apiId, policie
 
   $scope.apiId = apiId;
   $scope.policies = policies;
-  $scope.definitionVersion = definitionVersion
+  $scope.definitionVersion = definitionVersion;
 
   $scope.hide = function() {
     $mdDialog.hide();

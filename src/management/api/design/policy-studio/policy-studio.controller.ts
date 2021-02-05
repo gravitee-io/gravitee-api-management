@@ -37,6 +37,7 @@ class ApiPolicyStudioController {
     private $rootScope,
     private $stateParams,
     private $location,
+    private UserService,
   ) {
     'ngInject';
   }
@@ -123,6 +124,9 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('has-policy-filter', 'true');
     this.studio.setAttribute('sortable', 'true');
     this.studio.setAttribute('can-add', 'true');
+    if (!this.UserService.isUserHasPermissions(['api-plan-u'])) {
+      this.studio.setAttribute('readonly-plans', 'true');
+    }
     this.studio.setAttribute('has-plans', 'true');
     this.studio.addEventListener('gv-policy-studio:save', this.onSave.bind(this));
     this.studio.addEventListener('gv-policy-studio:select-flows', this.onSelectFlows.bind(this));
@@ -140,7 +144,7 @@ class ApiPolicyStudioController {
         'version': this.api.version,
         'flows': this.api.flows != null ? this.api.flows : [],
         'resources': this.api.resources,
-        'plans': this.api.plans != null ? this.api.plans : [],
+        'plans': this.UserService.isUserHasPermissions(['api-plan-r', 'api-plan-u']) && this.api.plans != null ? this.api.plans : [],
         'properties': this.api.properties,
         'flow-mode': this.api.flow_mode
       };

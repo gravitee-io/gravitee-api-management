@@ -104,6 +104,11 @@ class UserController {
     return this.UserService.currentUserPicture();
   }
 
+  isInternalUser(): boolean {
+    return this.user.source === 'gravitee' ||  this.user.source === 'memory';
+  }
+
+
   generateToken() {
     this.$mdDialog.show({
       controller: 'DialogGenerateTokenController',
