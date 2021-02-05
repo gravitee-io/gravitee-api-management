@@ -16,5 +16,6 @@
  */
 export interface UserPermissions { 
     APPLICATION?: Array<string>;
+    USER?: Array<string>;
 }
 
