@@ -37,7 +37,7 @@ public class Email {
     @ParameterKey(Key.EMAIL_USERNAME)
     private String username;
 
-    @ParameterKey(Key.EMAIL_PASSWORD)
+    @ParameterKey(value = Key.EMAIL_PASSWORD, sensitive = true)
     private String password;
 
     @ParameterKey(Key.EMAIL_PROTOCOL)

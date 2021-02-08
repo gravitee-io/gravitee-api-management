@@ -30,4 +30,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ParameterKey {
    Key value();
+
+   boolean sensitive() default false;
 }
