@@ -51,6 +51,7 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
       if (!EnvironmentService.isSameEnvironment(Constants.org.currentEnv, params.environmentId)) {
         if (!params.environmentId) {
           params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
+          return stateService.target(toState, params, { reload: false });
         }
         let targetEnv = EnvironmentService.getEnvironmentFromHridOrId(Constants.org.environments, params.environmentId);
         if (targetEnv) {
