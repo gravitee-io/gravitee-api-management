@@ -57,7 +57,9 @@ public class PathParametersIndexProcessor extends AbstractProcessor<ExecutionCon
             while ((next = pathInfo.indexOf(URL_PATH_SEPARATOR, off)) != -1) {
                 if (count == currentParameter.getPosition()) {
                     context.request().pathParameters().add(currentParameter.getName(), pathInfo.substring(off, next));
-                    currentParameter = iterator.next();
+                    if (iterator.hasNext()) {
+                        currentParameter = iterator.next();
+                    }
                 }
                 off = next + 1;
                 count++;

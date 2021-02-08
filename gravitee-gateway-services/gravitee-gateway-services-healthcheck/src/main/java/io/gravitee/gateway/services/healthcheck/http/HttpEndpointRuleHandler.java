@@ -48,10 +48,12 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     private static final String GRPCS_SCHEME = "grpcs";
 
     private final HttpEndpoint endpoint;
+    private final ProxyOptions systemProxyOptions;
 
     public HttpEndpointRuleHandler(Vertx vertx, EndpointRule<T> rule) {
         super(vertx, rule);
         this.endpoint = rule.endpoint();
+        this.systemProxyOptions = rule.getSystemProxyOptions();
     }
 
     @Override
@@ -90,13 +92,17 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
         // Configure HTTP proxy
         HttpProxy proxy = endpoint.getHttpProxy();
         if (proxy != null && proxy.isEnabled()) {
-            ProxyOptions proxyOptions = new ProxyOptions()
-                    .setHost(proxy.getHost())
-                    .setPort(proxy.getPort())
-                    .setUsername(proxy.getUsername())
-                    .setPassword(proxy.getPassword())
-                    .setType(ProxyType.valueOf(proxy.getType().name()));
-
+            ProxyOptions proxyOptions = null;
+            if (proxy.isUseSystemProxy() && this.systemProxyOptions != null) {
+                proxyOptions = this.systemProxyOptions;
+            } else {
+                proxyOptions = new ProxyOptions()
+                        .setHost(proxy.getHost())
+                        .setPort(proxy.getPort())
+                        .setUsername(proxy.getUsername())
+                        .setPassword(proxy.getPassword())
+                        .setType(ProxyType.valueOf(proxy.getType().name()));
+            }
             httpClientOptions.setProxyOptions(proxyOptions);
         }
 

@@ -39,7 +39,10 @@ public class SyncHandler implements Handler<RoutingContext> {
         HttpServerResponse response = ctx.response();
         JsonObject object = new JsonObject()
                 .put("counter", syncManager.getCounter())
-                .put("lastRefreshAt", syncManager.getLastRefreshAt());
+                .put("lastRefreshAt", syncManager.getLastRefreshAt())
+                .put("errors", syncManager.getErrors())
+                .put("totalErrors", syncManager.getTotalErrors())
+                .put("lastErrorMessage", syncManager.getLastErrorMessage());
 
         response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         response.setChunked(true);
