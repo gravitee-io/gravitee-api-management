@@ -32,6 +32,7 @@ class DictionaryController {
   private dictProperties : any;
 
   private joltSpecificationOptions: any;
+  private requestBodyOptions: any;
   private providers: { id: string; name: string }[];
   private types: { id: string; name: string }[];
   private timeUnits: { id: string; name: string }[];
@@ -94,6 +95,14 @@ class DictionaryController {
       allowDropFileTypes: true,
       autoCloseTags: true,
       mode: 'javascript',
+      controller: this
+    };
+
+    this.requestBodyOptions = {
+      lineWrapping: true,
+      lineNumbers: true,
+      allowDropFileTypes: true,
+      autoCloseTags: true,
       controller: this
     };
   }
@@ -286,13 +295,17 @@ class DictionaryController {
   }
 
   computeProperties = () => {
-    return Object.entries(this.dictionary.properties)
+    return Object.entries(this.dictionary && this.dictionary.properties || {})
     .map(entry => {
       let result : any = {};
       result.key = entry[0];
       result.value = entry[1];
       return result;
     });
+  }
+
+  getHttpMethods() {
+    return ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];
   }
 }
 

@@ -158,7 +158,51 @@
             </md-input-container>
 
             <md-input-container class="md-block" flex-gt-sm>
-              <label>
+              <label>HTTP Method</label>
+              <md-select ng-model="apiPropertiesCtrl.dynamicPropertyService.configuration.method" placeholder="HTTP Methods" required ng-required="true">
+                <md-option ng-value="method" ng-repeat="method in apiPropertiesCtrl.getHttpMethods()">{{method}}</md-option>
+              </md-select>
+            </md-input-container>
+
+            <div layout="column" layout-sm="column" style="margin-bottom: 15px;">
+              <h5 style="color: grey;">
+                <span>Headers</span>
+                <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5;" aria-label="Add HTTP header" ng-click="apiPropertiesCtrl.addHTTPHeader()">Add headers</ng-md-icon>
+              </h5>
+              <div layout="row" layout-sm="column" layout-align="center center" ng-repeat="header in apiPropertiesCtrl.dynamicPropertyService.configuration.headers">
+                <ng-md-icon icon="remove_circle_outline" style="fill: #b1bdc5;" aria-label="Delete header" ng-click="apiPropertiesCtrl.removeHTTPHeader($index)"></ng-md-icon>
+
+                <div flex="5" hide-xs hide-sm>
+                  <!-- Spacer //-->
+                </div>
+
+                <md-input-container flex-gt-sm>
+                  <input aria-label="Header name" ng-model="header.name" type="text" placeholder="Header name" ng-required="true">
+                </md-input-container>
+
+                <div flex="5" hide-xs hide-sm>
+                  <!-- Spacer //-->
+                </div>
+
+                <md-input-container flex-gt-sm>
+                  <input aria-label="Header value" ng-model="header.value" type="text" placeholder="Header value" ng-required="true">
+                </md-input-container>
+              </div>
+            </div>
+
+            <md-input-container class="md-block" flex-gt-sm>
+              <label style="transform: translate3d(0, 6px, 0) scale(0.75) !important;">
+                Request body
+              </label>
+
+              <textarea
+                ui-codemirror="{ onLoad : apiPropertiesCtrl.codemirrorLoaded }"
+                ui-codemirror-opts="apiPropertiesCtrl.requestBodyOptions"
+                ng-model="apiPropertiesCtrl.dynamicPropertyService.configuration.body" rows="5"></textarea>
+            </md-input-container>
+
+            <md-input-container class="md-block" flex-gt-sm>
+              <label style="transform: translate3d(0, 6px, 0) scale(0.75) !important;">
                 Transformation (JOLT Specification)
               </label>
 

@@ -33,6 +33,7 @@ class ApiPropertiesController {
   private controller: any;
   private editor: any;
   private joltSpecificationOptions: any;
+  private requestBodyOptions: any;
   private dynamicPropertyProviders: { id: string; name: string }[];
   private selectedProperties: any = {};
   private selectAll: boolean;
@@ -68,6 +69,14 @@ class ApiPropertiesController {
       allowDropFileTypes: true,
       autoCloseTags: true,
       mode: 'javascript',
+      controller: this
+    };
+
+    this.requestBodyOptions = {
+      lineWrapping: true,
+      lineNumbers: true,
+      allowDropFileTypes: true,
+      autoCloseTags: true,
       controller: this
     };
 
@@ -256,6 +265,24 @@ class ApiPropertiesController {
     this.dynamicPropertyService = _.cloneDeep(this._initialDynamicPropertyService);
     this.$scope.formDynamicProperties.$setPristine();
     this.$scope.formDynamicProperties.$setUntouched();
+  }
+
+  getHttpMethods() {
+    return ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];
+  }
+
+  addHTTPHeader() {
+    if (this.dynamicPropertyService.configuration.headers === undefined) {
+      this.dynamicPropertyService.configuration.headers = [];
+    }
+
+    this.dynamicPropertyService.configuration.headers.push({name: '', value: ''});
+  }
+
+  removeHTTPHeader(idx) {
+    if (this.dynamicPropertyService.configuration.headers !== undefined) {
+      this.dynamicPropertyService.configuration.headers.splice(idx, 1);
+    }
   }
 }
 

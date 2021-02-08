@@ -137,6 +137,24 @@
           <input ng-model="$ctrl.dictionary.provider.configuration.url" type="url" ng-required="true">
         </md-input-container>
 
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>HTTP Method</label>
+          <md-select ng-model="$ctrl.dictionary.provider.configuration.method" placeholder="HTTP Methods" required ng-required="true">
+            <md-option ng-value="method" ng-repeat="method in $ctrl.getHttpMethods()">{{method}}</md-option>
+          </md-select>
+        </md-input-container>
+
+        <md-input-container class="md-block" flex-gt-sm>
+          <label style="transform: translate3d(0, 6px, 0) scale(0.75) !important;">
+            Request body
+          </label>
+
+          <textarea
+            ui-codemirror="{ onLoad : $ctrl.codemirrorLoaded }"
+            ui-codemirror-opts="$ctrl.requestBodyOptions"
+            ng-model="$ctrl.dictionary.provider.configuration.body" rows="5"></textarea>
+        </md-input-container>
+
         <div layout="column" layout-sm="column" style="margin-bottom: 15px;">
             <h5 style="color: grey;">
               <span>Headers</span>
