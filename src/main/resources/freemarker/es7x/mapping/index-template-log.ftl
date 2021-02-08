@@ -21,7 +21,11 @@
                     "properties": {
                         "body":{
                             "type": "text"
-                        }
+                        },
+                        "headers":  {
+                           "enabled":  false,
+                           "type": "object"
+                       }
                     }
                 },
                 "client-response": {
@@ -29,7 +33,11 @@
                     "properties": {
                         "body":{
                             "type": "text"
-                        }
+                        },
+                        "headers":  {
+                           "enabled":  false,
+                           "type": "object"
+                       }
                     }
                 },
                 "proxy-request": {
@@ -37,7 +45,11 @@
                     "properties": {
                         "body":{
                             "type": "text"
-                        }
+                        },
+                        "headers":  {
+                           "enabled":  false,
+                           "type": "object"
+                       }
                     }
                 },
                 "proxy-response": {
@@ -45,6 +57,10 @@
                     "properties": {
                         "body":{
                             "type": "text"
+                        },
+                        "headers": {
+                            "enabled":  false,
+                            "type": "object"
                         }
                     }
                 }

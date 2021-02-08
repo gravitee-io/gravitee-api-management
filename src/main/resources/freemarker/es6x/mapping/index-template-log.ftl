@@ -21,6 +21,10 @@
                     "properties": {
                         "body":{
                             "type": "text"
+                        },
+                        "headers": {
+                            "enabled":  false,
+                            "type": "object"
                         }
                     }
                 },
@@ -29,6 +33,10 @@
                     "properties": {
                         "body":{
                             "type": "text"
+                        },
+                        "headers": {
+                            "enabled":  false,
+                            "type": "object"
                         }
                     }
                 },
@@ -37,6 +45,10 @@
                     "properties": {
                         "body":{
                             "type": "text"
+                        },
+                        "headers": {
+                            "enabled":  false,
+                            "type": "object"
                         }
                     }
                 },
@@ -45,6 +57,10 @@
                     "properties": {
                         "body":{
                             "type": "text"
+                        },
+                        "headers": {
+                            "enabled":  false,
+                            "type": "object"
                         }
                     }
                 }
