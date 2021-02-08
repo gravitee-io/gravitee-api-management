@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.core.models.ParseOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,8 +83,12 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Override
     public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor, DefinitionVersion definitionVersion) {
+        ParseOptions options = new ParseOptions();
+        // In the context of an import, we need to fully resolve $ref which are required for OAIDescriptorVisitors (ie. policies).
+        options.setResolveFully(true);
+
         boolean wsdlImport = Format.WSDL.equals(swaggerDescriptor.getFormat());
-        SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload(), wsdlImport);
+        SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload(), wsdlImport, options);
         if (wsdlImport) {
             overridePayload(swaggerDescriptor, descriptor);
             populateXmlToJsonPolicy(swaggerDescriptor);
@@ -147,10 +152,14 @@ public class SwaggerServiceImpl implements SwaggerService {
 
     @Override
     public SwaggerDescriptor parse(String content) {
-        return parse(content, false);
+        return parse(content, false, null);
     }
 
     public SwaggerDescriptor parse(String content, boolean wsdl) {
+        return parse(content, wsdl, null);
+    }
+
+    public SwaggerDescriptor parse(String content, boolean wsdl, ParseOptions options) {
         OpenAPI descriptor;
 
         if (isUrl(content)) {
@@ -167,7 +176,8 @@ public class SwaggerServiceImpl implements SwaggerService {
                 return new OAIDescriptor(descriptor);
             }
         } else {
-            OAIDescriptor oaiDescriptor = new OAIParser().parse(content);
+
+            OAIDescriptor oaiDescriptor = new OAIParser().parse(content, options);
             if (oaiDescriptor == null || oaiDescriptor.getSpecification() == null) {
                 throw new SwaggerDescriptorException();
             }

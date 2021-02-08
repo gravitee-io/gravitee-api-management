@@ -186,6 +186,7 @@ public class ApiService_UpdateTest {
 
         when(api.getId()).thenReturn(API_ID);
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
+        when(api.getEnvironmentId()).thenReturn("DEFAULT");
     }
 
     @AfterClass
@@ -602,7 +603,7 @@ public class ApiService_UpdateTest {
     @Test
     public void shouldNotChangeLifecycleStateFromCreatedInReview() throws TechnicalException {
         prepareUpdate();
-        when(parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
+        when(parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
         final Workflow workflow = new Workflow();
         workflow.setState("IN_REVIEW");
         when(workflowService.findByReferenceAndType(API, API_ID, REVIEW)).thenReturn(singletonList(workflow));

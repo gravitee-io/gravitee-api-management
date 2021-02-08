@@ -71,14 +71,14 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithoutConfig() {
-        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.FALSE);
         
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(userService).findById(userId.capture());
+        Mockito.verify(userService).findByIdWithRoles(userId.capture());
 
         assertEquals(USER_NAME, userId.getValue());
 
@@ -90,7 +90,7 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithEmptyManagementConfig() {
-        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
         when(configService.getConsoleSettings()).thenReturn(new ConsoleSettingsEntity());
         
@@ -98,7 +98,7 @@ public class UserResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(userService).findById(userId.capture());
+        Mockito.verify(userService).findByIdWithRoles(userId.capture());
 
         assertEquals(USER_NAME, userId.getValue());
 
@@ -110,7 +110,7 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithManagementConfigWithoutUrl() {
-        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
         when(configService.getConsoleSettings()).thenReturn(consoleConfigEntity);
@@ -119,7 +119,7 @@ public class UserResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(userService).findById(userId.capture());
+        Mockito.verify(userService).findByIdWithRoles(userId.capture());
 
         assertEquals(USER_NAME, userId.getValue());
 
@@ -131,7 +131,7 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithManagementConfigWithUrl() {
-        when(userService.findById(USER_NAME)).thenReturn(new UserEntity());
+        when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
         Management managementConfig = new Management();
@@ -143,7 +143,7 @@ public class UserResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(userService).findById(userId.capture());
+        Mockito.verify(userService).findByIdWithRoles(userId.capture());
 
         assertEquals(USER_NAME, userId.getValue());
 
@@ -205,6 +205,7 @@ public class UserResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetUserAvatarRedirectUrl() throws IOException {
         doReturn(new UserEntity()).when(userService).findById(any());
+        doReturn(new UserEntity()).when(userService).findByIdWithRoles(any());
         doReturn(new UrlPictureEntity(target().getUri().toURL().toString())).when(userService).getPicture(any());
         final Response response = target().path("avatar").request().get();
         assertEquals(OK_200, response.getStatus());

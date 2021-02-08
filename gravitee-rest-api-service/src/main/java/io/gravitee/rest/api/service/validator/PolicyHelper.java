@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.validator;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,8 @@ import java.io.IOException;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyCleaner {
-    private static Logger LOGGER = LoggerFactory.getLogger(PolicyCleaner.class);
+public class PolicyHelper {
+    private static Logger LOGGER = LoggerFactory.getLogger(PolicyHelper.class);
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
@@ -35,7 +36,7 @@ public class PolicyCleaner {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
-    public static String clearNullValues(String jsonPayload){
+    public static String clearNullValues(String jsonPayload) {
         if (jsonPayload == null) {
             return jsonPayload;
         }
@@ -50,4 +51,19 @@ public class PolicyCleaner {
             return jsonPayload;
         }
     }
+
+    public static String getScope(String jsonPayload) {
+        if (jsonPayload != null) {
+            try {
+                JsonNode jsonNode = objectMapper.readValue(jsonPayload, JsonNode.class);
+                if (jsonNode.has("scope")) {
+                    return jsonNode.get("scope").asText();
+                }
+            } catch (IOException e) {
+                LOGGER.debug("Unable to get SCOPE from policy configuration, return the null", e);
+            }
+        }
+        return null;
+    }
+
 }

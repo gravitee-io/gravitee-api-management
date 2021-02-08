@@ -653,13 +653,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Find API by ID: {}", apiId);
 
-            Optional<Api> api = apiRepository.findById(apiId);
+            Optional<Api> optApi = apiRepository.findById(apiId);
 
-            if (api.isPresent()) {
-                ApiEntity apiEntity = convert(api.get(), getPrimaryOwner(api.get()), null);
+            if (optApi.isPresent()) {
+                final Api api = optApi.get();
+                ApiEntity apiEntity = convert(api, getPrimaryOwner(api), null);
 
                 // Compute entrypoints
-                calculateEntrypoints(apiEntity);
+                calculateEntrypoints(apiEntity, api.getEnvironmentId());
 
                 return apiEntity;
             }
@@ -691,11 +692,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return userService.findById(primaryOwnerMemberEntity.getMemberId());
     }
 
-    private void calculateEntrypoints(ApiEntity api) {
+    private void calculateEntrypoints(ApiEntity api, String environmentId) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
 
         if (api.getProxy() != null) {
-            String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT, ParameterReferenceType.ENVIRONMENT);
+            String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT, environmentId, ParameterReferenceType.ENVIRONMENT);
             final String scheme = getScheme(defaultEntrypoint);
             if (api.getTags() != null && !api.getTags().isEmpty()) {
                 List<EntrypointEntity> entrypoints = entrypointService.findAll();
@@ -962,6 +963,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (swaggerDescriptor.isWithPathMapping()) {
                 updateApiEntity.setPathMappings(swaggerApiEntity.getPathMappings());
+                updateApiEntity.setFlows(swaggerApiEntity.getFlows());
             }
         }
 
@@ -1633,7 +1635,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final JsonNode pages = jsonNode.path("pages");
         if (pages != null && pages.isArray()) {
             for (JsonNode page : pages) {
-                pageService.createWithDefinition(createdApiEntity.getId(), page.toString());
+                PageEntity pageEntity = pageService.createWithDefinition(createdApiEntity.getId(), page.toString());
+                ((ObjectNode) page).put("id", pageEntity.getId());
             }
         }
 
@@ -1937,7 +1940,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
 
-            PageEntity createdOrUpdatedPage = pageEntityToImport.getId() != null ? pageService.findById(pageEntityToImport.getId()) : null;
+            PageEntity createdOrUpdatedPage = null;
+            if (pageEntityToImport.getId() != null) {
+                createdOrUpdatedPage = pageService.findById(pageEntityToImport.getId());
+            } else {
+                PageQuery query = new PageQuery.Builder()
+                        .api(apiId)
+                        .name(pageEntityToImport.getName())
+                        .type(PageType.valueOf(pageEntityToImport.getType()))
+                        .build();
+
+                List<PageEntity> pages = pageService.search(query);
+                if (pages.size() == 1) {
+                    createdOrUpdatedPage = pages.get(0);
+                } else if (pages.size() > 1) {
+                    LOGGER.error("Not able to identify the page to update: {}. Too much pages with the same name", pageEntityToImport.getName());
+                    throw new TechnicalManagementException("Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much pages with the same name");
+                }
+            }
 
             if (createdOrUpdatedPage == null) {
                 NewPageEntity newPage = new NewPageEntity();
@@ -1968,7 +1988,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updatePageEntity.setSource(pageEntityToImport.getSource());
                 updatePageEntity.setAttachedMedia(pageEntityToImport.getAttachedMedia());
 
-                createdOrUpdatedPage = pageService.update(pageEntityToImport.getId(), updatePageEntity);
+                createdOrUpdatedPage = pageService.update(createdOrUpdatedPage.getId(), updatePageEntity);
             }
 
             if (child.children != null && !child.children.isEmpty()) {
@@ -2645,7 +2665,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
         }
 
-        if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+        if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, api.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
             final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
             if (workflows != null && !workflows.isEmpty()) {
                 apiEntity.setWorkflowState(WorkflowState.valueOf(workflows.get(0).getState()));

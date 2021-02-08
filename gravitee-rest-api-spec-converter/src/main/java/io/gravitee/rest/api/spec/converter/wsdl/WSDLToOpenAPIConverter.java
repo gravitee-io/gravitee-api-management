@@ -34,6 +34,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 import javax.wsdl.*;
+import javax.wsdl.extensions.ElementExtensible;
 import javax.wsdl.extensions.schema.Schema;
 import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
@@ -74,7 +75,7 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
 
         this.openAPI = new OpenAPI();
         buildInfo();
-        createSchemaObjects();
+        createSchemaObjects(this.wsdlDefinition);
         processServices();
 
         return openAPI;
@@ -109,11 +110,19 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
         this.openAPI.setInfo(info);
     }
 
-    private void createSchemaObjects() {
+    private void createSchemaObjects(Definition definition) {
         // Types element contains a list of XmlSchema
-        Types types = wsdlDefinition.getTypes();
+        Types types = definition.getTypes();
         if (types != null) {
             types.getExtensibilityElements().forEach((o) -> soapBuilder.addSchema((Schema) o));
+        }
+
+        if (definition.getImports() != null && !definition.getImports().isEmpty()) {
+            ((Map<String, List<Import>>)definition.getImports()).values().stream()
+                    .flatMap(Collection::stream)
+                    .map(Import::getDefinition)
+                    .filter(Objects::nonNull)
+                    .forEach(this::createSchemaObjects);
         }
     }
 

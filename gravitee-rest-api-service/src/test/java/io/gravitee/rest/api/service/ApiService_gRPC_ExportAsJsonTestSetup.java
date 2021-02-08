@@ -98,7 +98,7 @@ public class ApiService_gRPC_ExportAsJsonTestSetup {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
 
-        when(parameterService.find(Key.PORTAL_ENTRYPOINT, ParameterReferenceType.ENVIRONMENT)).thenReturn(Key.PORTAL_ENTRYPOINT.defaultValue());
+        when(parameterService.find(Key.PORTAL_ENTRYPOINT, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Key.PORTAL_ENTRYPOINT.defaultValue());
         // register API Entity serializers
         when(applicationContext.getBean(MembershipService.class)).thenReturn(membershipService);
         when(applicationContext.getBean(PlanService.class)).thenReturn(planService);
@@ -137,6 +137,7 @@ public class ApiService_gRPC_ExportAsJsonTestSetup {
         } catch (JsonProcessingException e) {
         }
         api.setDefinition(definition);
+        api.setEnvironmentId("DEFAULT");
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         PageEntity page = new PageEntity();

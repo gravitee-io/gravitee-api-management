@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.fetcher.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import org.slf4j.Logger;
@@ -31,7 +32,8 @@ public class FetcherConfigurationFactoryImpl implements FetcherConfigurationFact
 
     private final Logger LOGGER = LoggerFactory.getLogger(FetcherConfigurationFactoryImpl.class);
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends FetcherConfiguration> T create(Class<T> fetcherConfigurationClass, String configuration) {

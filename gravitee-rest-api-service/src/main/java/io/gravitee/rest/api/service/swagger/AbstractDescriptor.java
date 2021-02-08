@@ -27,11 +27,11 @@ public abstract class AbstractDescriptor<T> implements SwaggerDescriptor<T> {
 
     @Override
     public String toYaml() throws JsonProcessingException {
-        return Yaml.pretty().writeValueAsString(getSpecification());
+        return Yaml.pretty(getSpecification());
     }
 
     @Override
     public String toJson() throws JsonProcessingException {
-        return Json.pretty().writeValueAsString(getSpecification());
+        return Json.pretty(getSpecification());
     }
 }

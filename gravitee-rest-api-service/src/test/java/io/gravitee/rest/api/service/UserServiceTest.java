@@ -45,7 +45,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.IOException;
@@ -110,6 +112,8 @@ public class UserServiceTest {
     private ConfigurableEnvironment environment;
     @Mock
     private NewExternalUserEntity newUser;
+    @Mock
+    private UpdateUserEntity updateUser;
     @Mock
     private User user;
     @Mock
@@ -280,6 +284,116 @@ public class UserServiceTest {
         return metadata;
     }
 
+    @Test
+    public void shouldUpdateUser() throws TechnicalException {
+        final String USER_ID = "myuserid";
+        final String USER_EMAIL = "my.user@acme.fr";
+        final String GIO_SOURCE = "gravitee";
+
+        User user = new User();
+        user.setId(USER_ID);
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        user.setSource(GIO_SOURCE);
+        user.setSourceId(USER_EMAIL);
+        user.setOrganizationId(ORGANIZATION);
+
+        when(userRepository.update(any(User.class))).thenAnswer(new Answer<User>() {
+            @Override
+            public User answer(InvocationOnMock invocation) throws Throwable {
+                Object[] args = invocation.getArguments();
+                return (User) args[0];
+            }
+        });
+
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findBySource(GIO_SOURCE, USER_EMAIL, ORGANIZATION)).thenReturn(Optional.empty());
+
+        when(updateUser.getEmail()).thenReturn(USER_EMAIL);
+        String UPDATED_LAST_NAME = LAST_NAME + "updated";
+        String UPDATED_FIRST_NAME = FIRST_NAME + "updated";
+        when(updateUser.getFirstname()).thenReturn(UPDATED_FIRST_NAME);
+        when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
+        userService.update(user.getId(), updateUser);
+
+        verify(userRepository).update(argThat(userToUpdate -> USER_ID.equals(userToUpdate.getId()) &&
+                GIO_SOURCE.equals(userToUpdate.getSource()) &&
+                USER_EMAIL.equals(userToUpdate.getEmail()) &&
+                USER_EMAIL.equals(userToUpdate.getSourceId()) && // update of sourceId authorized for gravitee source
+                UPDATED_FIRST_NAME.equals(userToUpdate.getFirstname()) &&
+                UPDATED_LAST_NAME.equals(userToUpdate.getLastname())));
+    }
+
+    @Test
+    public void shouldUpdateUser_butNotEmail() throws TechnicalException {
+        final String USER_ID = "myuserid";
+        final String USER_EMAIL = "my.user@acme.fr";
+        final String SOURCE = "gravitee-no-email-update";
+
+        User user = new User();
+        user.setId(USER_ID);
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        user.setSource(SOURCE);
+        user.setSourceId(USER_ID);
+        user.setOrganizationId(ORGANIZATION);
+
+        when(userRepository.update(any(User.class))).thenAnswer(new Answer<User>() {
+            @Override
+            public User answer(InvocationOnMock invocation) throws Throwable {
+                Object[] args = invocation.getArguments();
+                return (User) args[0];
+            }
+        });
+
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+
+        when(updateUser.getEmail()).thenReturn(USER_EMAIL);
+        String UPDATED_LAST_NAME = LAST_NAME + "updated";
+        String UPDATED_FIRST_NAME = FIRST_NAME + "updated";
+        when(updateUser.getFirstname()).thenReturn(UPDATED_FIRST_NAME);
+        when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
+        userService.update(user.getId(), updateUser);
+
+        verify(userRepository).update(argThat(userToUpdate -> USER_ID.equals(userToUpdate.getId()) &&
+                SOURCE.equals(userToUpdate.getSource()) &&
+                USER_EMAIL.equals(userToUpdate.getEmail()) &&
+                USER_ID.equals(userToUpdate.getSourceId()) && //sourceId shouldn't be updated in this case
+                UPDATED_FIRST_NAME.equals(userToUpdate.getFirstname()) &&
+                UPDATED_LAST_NAME.equals(userToUpdate.getLastname())));
+    }
+
+    @Test(expected = UserAlreadyExistsException.class)
+    public void shouldNotUpdateUser_EmailAlreadyInUse() throws TechnicalException {
+        final String USER_ID = "myuserid";
+        final String USER_EMAIL = "my.user@acme.fr";
+        final String GIO_SOURCE = "gravitee";
+
+        User user = new User();
+        user.setId(USER_ID);
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        user.setSource(GIO_SOURCE);
+        user.setSourceId(USER_EMAIL);
+        user.setOrganizationId(ORGANIZATION);
+
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(userRepository.findBySource(GIO_SOURCE, USER_EMAIL, ORGANIZATION)).thenReturn(Optional.of(new User()));
+
+        when(updateUser.getEmail()).thenReturn(USER_EMAIL);
+        String UPDATED_LAST_NAME = LAST_NAME + "updated";
+        String UPDATED_FIRST_NAME = FIRST_NAME + "updated";
+        when(updateUser.getFirstname()).thenReturn(UPDATED_FIRST_NAME);
+        when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
+        userService.update(user.getId(), updateUser);
+
+        verify(userRepository, never()).update(any());
+
+    }
+
     @Test(expected = OrganizationNotFoundException.class)
     public void shouldNotCreateBecauseOrganizationDoesNotExist() throws TechnicalException {
         when(organizationService.findById(ORGANIZATION)).thenThrow(OrganizationNotFoundException.class);
@@ -375,6 +489,7 @@ public class UserServiceTest {
     public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        when(passwordValidator.validate(anyString())).thenReturn(true);
 
         RegisterUserEntity userEntity = new RegisterUserEntity();
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
@@ -451,13 +566,6 @@ public class UserServiceTest {
     public void createAlreadyPreRegisteredUser_invalidPassword() throws TechnicalException {
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(mockParameterService.findAsBoolean(Key.PORTAL_USERCREATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
-
-        User user = new User();
-        user.setId("CUSTOM_LONG_ID");
-        user.setEmail(EMAIL);
-        user.setFirstname(FIRST_NAME);
-        user.setLastname(LAST_NAME);
-        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
 
         RegisterUserEntity userEntity = new RegisterUserEntity();
         userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));

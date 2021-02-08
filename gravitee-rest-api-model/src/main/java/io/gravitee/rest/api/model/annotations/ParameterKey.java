@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.model.annotations;
 
+import io.gravitee.rest.api.model.parameters.Key;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import io.gravitee.rest.api.model.parameters.Key;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

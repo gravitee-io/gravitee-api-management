@@ -47,7 +47,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static io.gravitee.rest.api.service.validator.PolicyCleaner.clearNullValues;
+import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toMap;

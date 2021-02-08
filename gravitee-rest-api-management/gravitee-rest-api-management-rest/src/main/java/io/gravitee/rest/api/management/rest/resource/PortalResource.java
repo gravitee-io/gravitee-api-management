@@ -61,7 +61,6 @@ public class PortalResource {
         return configService.getPortalConfig();
     }
 
-    @Deprecated
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -72,6 +71,7 @@ public class PortalResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = {CREATE, UPDATE, DELETE})
     })
+    @Deprecated
     public Response savePortalConfig(
             @ApiParam(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
         configService.save(portalSettingsEntity);

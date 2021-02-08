@@ -87,7 +87,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     @Override
     public EntrypointEntity create(final NewEntryPointEntity entrypointEntity) {
         try {
-            checkTagsOnExistingEntryPoints(entrypointEntity.getTags(), null);
             final Entrypoint entrypoint = convert(entrypointEntity);
             entrypoint.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
@@ -107,7 +106,6 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     @Override
     public EntrypointEntity update(final UpdateEntryPointEntity entrypointEntity) {
         try {
-            checkTagsOnExistingEntryPoints(entrypointEntity.getTags(), entrypointEntity.getId());
             final Optional<Entrypoint> entrypointOptional = entrypointRepository.findById(entrypointEntity.getId());
             if (entrypointOptional.isPresent()) {
                 final Entrypoint entrypoint = convert(entrypointEntity);
