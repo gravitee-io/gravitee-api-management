@@ -17,8 +17,8 @@ import { IScope } from 'angular';
 import UserService from '../../services/user.service';
 import NotificationService from '../../services/notification.service';
 
-const NewsletterSubscriptionComponent: ng.IComponentOptions = {
-  template: require('./newsletter-subscription.html'),
+const NewsletterReminderComponent: ng.IComponentOptions = {
+  template: require('./newsletter-reminder.html'),
   bindings: {},
   controller: function(
     $element,
@@ -94,4 +94,4 @@ const NewsletterSubscriptionComponent: ng.IComponentOptions = {
   }
 };
 
-export default NewsletterSubscriptionComponent;
+export default NewsletterReminderComponent;

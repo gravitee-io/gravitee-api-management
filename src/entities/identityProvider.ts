@@ -30,7 +30,7 @@ export class IdentityProvider {
   public description: string;
   public enabled: boolean;
   public type: string;
-  public configuration: Map<string, any>;
+  public configuration: any = { scopes: []};
   public groupMappings: GroupMapping[];
   public roleMappings: RoleMapping[];
   public userProfileMapping: { id: string, firstname: string, lastname: string, email: string, picture: string };

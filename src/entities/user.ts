@@ -21,6 +21,7 @@ export class User {
   public username: string;
   public displayName: string;
   public email: string;
+  public source: string;
   public roles: any[];
   public primaryOwner: boolean;
   public userPermissions: string[];
@@ -69,4 +70,5 @@ export class User {
         || userEnvironmentPermission.startsWith('environment-platform');
     });
   }
+
 }

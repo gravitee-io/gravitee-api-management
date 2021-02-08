@@ -27,9 +27,9 @@
              ng-if="$ctrl.displayContextualDocumentationButton">
     <ng-md-icon icon="live_help" gv-theme-element="portal.navbar.help"></ng-md-icon>
   </md-button>
-  <portal-notifications user="$ctrl.graviteeUser" ng-if="$ctrl.graviteeUser.id && $ctrl.profileConfirmed"></portal-notifications>
+  <portal-notifications user="$ctrl.graviteeUser" ng-if="$ctrl.graviteeUser.id && $ctrl.newsletterProposed"></portal-notifications>
 
-  <md-menu ng-if="$ctrl.graviteeUser.id && $ctrl.profileConfirmed" md-offset="0 54">
+  <md-menu ng-if="$ctrl.graviteeUser.id && $ctrl.newsletterProposed" md-offset="0 54">
     <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" aria-label="Open user menu">
       <gravitee-identity-picture ng-if="$ctrl.hasAlert()"
         image-id="'navbar'"

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function DialogApiImportController($scope, $mdDialog, ApiService, apiId, policies) {
+function DialogApiImportController($scope, $mdDialog, ApiService, apiId, policies, definitionVersion) {
   'ngInject';
 
   $scope.apiId = apiId;
   $scope.policies = policies;
+  $scope.definitionVersion = definitionVersion;
 
   $scope.hide = function() {
     $mdDialog.hide();

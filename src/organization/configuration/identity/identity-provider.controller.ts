@@ -52,8 +52,6 @@ class IdentityProviderController {
       this.identityProvider = new IdentityProvider();
       this.identityProvider.enabled = true;
       this.identityProvider.type = (this.$state.params.type as string);
-      this.identityProvider.configuration = new Map<string, any>();
-      this.identityProvider.configuration.set('scopes', []);
       this.identityProvider.emailRequired = true;
 
       // Default user mapping configuration for OIDC or Gravitee.io AM providers

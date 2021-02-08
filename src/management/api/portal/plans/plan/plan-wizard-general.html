@@ -137,7 +137,7 @@
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex="100">
               <label>Groups excluded</label>
-              <md-select ng-model="$ctrl.parent.plan.excluded_groups" multiple>
+              <md-select ng-model="$ctrl.parent.plan.excluded_groups" multiple ng-disabled="!($ctrl.parent.groups && $ctrl.parent.groups.length > 0)">
                 <md-option ng-repeat="group in $ctrl.parent.groups | orderBy:'name'" ng-value="group.id">
                   {{group.name}}
                 </md-option>

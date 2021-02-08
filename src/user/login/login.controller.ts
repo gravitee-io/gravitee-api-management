@@ -92,7 +92,7 @@ class LoginController {
   loginSuccess(user: User) {
     this.$rootScope.$broadcast('graviteeUserRefresh', { 'user': user });
     const redirectUri = this.getRedirectUri();
-    if (redirectUri) {
+    if (redirectUri && !redirectUri.includes('/newsletter')) {
       this.$window.location.href = redirectUri;
     } else {
       let route = this.RouterService.getLastRoute();

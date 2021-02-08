@@ -72,6 +72,7 @@ class ApiPolicyStudioController {
     private $rootScope,
     private $stateParams,
     private $location,
+    private UserService,
   ) {
     'ngInject';
   }
@@ -119,6 +120,9 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('configurationSchema', JSON.stringify(this.resolvedConfigurationSchema.data));
     this.studio.setAttribute('configurationInformation', configurationInformation);
     this.studio.setAttribute('property-providers', JSON.stringify(propertyProviders));
+    if (!this.UserService.isUserHasPermissions(['api-plan-u'])) {
+      this.studio.setAttribute('readonly-plans', 'true');
+    }
   }
 
   setApi(api) {
@@ -129,7 +133,7 @@ class ApiPolicyStudioController {
         'version': this.api.version,
         'flows': this.api.flows != null ? this.api.flows : [],
         'resources': this.api.resources,
-        'plans': this.api.plans != null ? this.api.plans : [],
+        'plans': this.UserService.isUserHasPermissions(['api-plan-r', 'api-plan-u']) && this.api.plans != null ? this.api.plans : [],
         'properties': this.api.properties,
         'flow-mode': this.api.flow_mode
       };

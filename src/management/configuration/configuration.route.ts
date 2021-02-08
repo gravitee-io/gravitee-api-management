@@ -36,6 +36,7 @@ import EnvironmentService from '../../services/environment.service';
 import PortalSettingsService from '../../services/portalSettings.service';
 import ConsoleSettingsService from '../../services/consoleSettings.service';
 import _ = require('lodash');
+import PortalConfigService from '../../services/portalConfig.service';
 
 export default configurationRouterConfig;
 

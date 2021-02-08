@@ -157,6 +157,21 @@ function interceptorConfig(
     };
   };
 
+  // This interceptor aims to resolve the problem with Satellizer which, after exchanging oauth provider's token with apim's one, adds the apim token on all requests (through Authorization bearer header).
+  // It caused logout problems between Portal and Management console because session Cookie is successfully removed but token is still sent by Satellizer using Authorization header.
+  // See https://github.com/sahat/satellizer#question-how-can-i-avoid-sending-authorization-header-on-all-http-requests
+  const noSatellizerAuthorizationInterceptor = function(): angular.IHttpInterceptor {
+    return {
+      request: function(config) {
+        if (config.url.startsWith(Constants.baseURL)) {
+          // tslint:disable:no-string-literal
+          config['skipAuthorization'] = true;
+        }
+        return config;
+      }
+    };
+  };
+
   const replaceEnvInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
       request: function (config) {
@@ -171,6 +186,8 @@ function interceptorConfig(
 
 
   if ($httpProvider.interceptors) {
+    // Add custom noSatellizerAuthorizationInterceptor at the beginning of the list to make sure they are activated before others interceptors such as Satellizer's interceptors.
+    $httpProvider.interceptors.unshift(noSatellizerAuthorizationInterceptor);
     $httpProvider.interceptors.push(csrfInterceptor);
     $httpProvider.interceptors.push(reCaptchaInterceptor);
     $httpProvider.interceptors.push(interceptorUnauthorized);

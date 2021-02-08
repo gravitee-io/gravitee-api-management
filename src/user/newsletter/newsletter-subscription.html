@@ -15,6 +15,9 @@
     limitations under the License.
 
 -->
-<md-dialog style="min-width: 30%">
-  <gv-api-import cancel-action="hide()" definition-version="definitionVersion" api-id="apiId" policies="policies"></gv-api-import>
-</md-dialog>
+<md-content class="gravitee-no-sidenav-container" flex>
+  <div class="newsletter-subscription-page">
+    <gv-newsletter-subscription ng-attr-email="{{user.email}}"></gv-newsletter-subscription>
+  </div>
+
+</md-content>

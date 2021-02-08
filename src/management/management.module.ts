@@ -474,7 +474,7 @@ import AnalyticsDashboardComponent from './configuration/analytics/dashboard/das
 import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/token/generateTokenDialog.controller';
 // Newsletter
-import NewsletterSubscriptionComponent from '../components/newsletter-subcription/newsletter-subscription.component';
+import NewsletterReminderComponent from '../components/newsletter-subcription/newsletter-reminder.component';
 // Quick Time Range
 import QuickTimeRangeComponent from '../components/quick-time-range/quick-time-range.component';
 import QuickTimeRangeController from '../components/quick-time-range/quick-time-range.controller';
@@ -506,7 +506,7 @@ import ThemeComponent from './configuration/theme/theme.component';
 import ThemeService from '../services/theme.service';
 
 import authenticationConfig from '../authentication/authentication.config';
-import ConfirmProfileController from '../user/confirmProfile/confirmProfile.controller';
+import NewsletterSubscriptionController from '../user/newsletter/newsletter-subscription.controller';
 import CustomUserFieldsComponent from './configuration/custom-user-fields/custom-user-fields.component';
 import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
 import CustomUserFieldsService from '../services/custom-user-fields.service';
@@ -745,7 +745,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.controller('RegistrationController', RegistrationController);
   graviteeManagementModule.controller('ConfirmController', ConfirmController);
   graviteeManagementModule.controller('ResetPasswordController', ResetPasswordController);
-  graviteeManagementModule.controller('ConfirmProfileController', ConfirmProfileController);
+  graviteeManagementModule.controller('NewsletterSubscriptionController', NewsletterSubscriptionController);
   graviteeManagementModule.controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController);
   graviteeManagementModule.controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController);
   graviteeManagementModule.controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController);
@@ -983,7 +983,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.controller('DialogConfigureLoggingEditorController', DialogConfigureLoggingEditorController);
 
   graviteeManagementModule.component('gvAudit', AuditComponent);
-  graviteeManagementModule.component('gvNewsletterSubscription', NewsletterSubscriptionComponent);
+  graviteeManagementModule.component('gvNewsletterReminder', NewsletterReminderComponent);
   graviteeManagementModule.component('gvContextualDoc', ContextualDocComponent);
   graviteeManagementModule.controller('ContextualDocController', ContextualDocController);
 
