@@ -34,6 +34,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.util.Collection;
@@ -86,14 +87,20 @@ public class HttpProvider implements Provider {
                 (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
         try {
+            String relativeUri = (requestUri.getRawQuery() == null) ? requestUri.getRawPath() : requestUri.getRawPath() + '?' + requestUri.getRawQuery();
             HttpClientRequest request = httpClient.request(
-                    HttpMethod.GET,
+                    HttpMethod.valueOf(dpConfiguration.getMethod().name()),
                     port,
                     requestUri.getHost(),
-                    requestUri.toString()
+                    relativeUri
             );
             request.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
             request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
+
+            if (dpConfiguration.getHeaders() != null) {
+                dpConfiguration.getHeaders().forEach(httpHeader ->
+                        request.putHeader(httpHeader.getName(), httpHeader.getValue()));
+            }
 
             request.handler(response -> {
                 if (response.statusCode() == HttpStatusCode.OK_200) {
@@ -122,7 +129,11 @@ public class HttpProvider implements Provider {
                 }
             });
 
-            request.end();
+            if (!StringUtils.isEmpty(dpConfiguration.getBody())) {
+                request.end(dpConfiguration.getBody());
+            } else {
+                request.end();
+            }
         } catch (Exception ex) {
             logger.error("Unable to look for dynamic properties", ex);
             future.completeExceptionally(ex);

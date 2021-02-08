@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.services.dynamicproperties.provider.http;
+package io.gravitee.rest.api.services.dictionary.provider.http;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
-import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.node.api.Node;
-import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
-import io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper.JoltMapper;
+import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
+import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
+import io.gravitee.rest.api.services.dictionary.provider.http.mapper.JoltMapper;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,11 +39,14 @@ import java.util.concurrent.CompletionException;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HttpProviderTest {
@@ -53,10 +55,7 @@ public class HttpProviderTest {
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
     @Mock
-    private DynamicPropertyService dynamicPropertyService;
-
-    @Mock
-    private HttpDynamicPropertyProviderConfiguration providerConfiguration;
+    private HttpProviderConfiguration configuration;
 
     @Mock
     private JoltMapper mapper;
@@ -71,12 +70,11 @@ public class HttpProviderTest {
 
     @Test
     public void shouldGetProperties() throws IOException {
-        when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
-        when(providerConfiguration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
+        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
+        when(configuration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+        when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
-        HttpProvider provider = new HttpProvider(dynamicPropertyService);
+        HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
         provider.setVertx(Vertx.vertx());
 
@@ -90,13 +88,12 @@ public class HttpProviderTest {
 
     @Test
     public void shouldGetPropertiesFromPOST() throws IOException {
-        when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
-        when(providerConfiguration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
-        when(providerConfiguration.getBody()).thenReturn("{}");
+        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
+        when(configuration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+        when(configuration.getMethod()).thenReturn(HttpMethod.GET);
+        when(configuration.getBody()).thenReturn("{}");
 
-        HttpProvider provider = new HttpProvider(dynamicPropertyService);
+        HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
         provider.setVertx(Vertx.vertx());
 
@@ -110,12 +107,11 @@ public class HttpProviderTest {
 
     @Test
     public void shouldGetNullPropertiesBecauseHttpError() throws IOException {
-        when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/error");
-        when(providerConfiguration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
+        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/error");
+        when(configuration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+        when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
-        HttpProvider provider = new HttpProvider(dynamicPropertyService);
+        HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
         provider.setVertx(Vertx.vertx());
 
@@ -129,12 +125,11 @@ public class HttpProviderTest {
 
     @Test(expected = CompletionException.class)
     public void shouldCallUnknownUri() throws IOException {
-        when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
-        when(providerConfiguration.getUrl()).thenReturn("http://unknown_host:" + wireMockRule.port());
-        when(providerConfiguration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
+        when(configuration.getUrl()).thenReturn("http://unknown_host:" + wireMockRule.port());
+        when(configuration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+        when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
-        HttpProvider provider = new HttpProvider(dynamicPropertyService);
+        HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
         provider.setVertx(Vertx.vertx());
 

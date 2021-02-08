@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/success_post",
+    "bodyPatterns": [
+      {
+        "equalToJson" : "{}"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "key": "value"
+    }
+  }
+}

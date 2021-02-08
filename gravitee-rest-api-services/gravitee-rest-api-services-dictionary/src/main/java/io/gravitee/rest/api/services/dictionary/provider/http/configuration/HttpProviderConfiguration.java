@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.services.dictionary.provider.http.configuration;
 
+import io.vertx.core.http.HttpMethod;
+
 import java.util.List;
 
 /**
@@ -26,6 +28,8 @@ public class HttpProviderConfiguration {
     private String url;
     private String specification;
     private List<HttpHeader> headers;
+    private HttpMethod method;
+    private String body;
 
     public String getUrl() {
         return url;
@@ -49,5 +53,21 @@ public class HttpProviderConfiguration {
 
     public void setHeaders(List<HttpHeader> headers) {
         this.headers = headers;
+    }
+
+    public HttpMethod getMethod() {
+        return method;
+    }
+
+    public void setMethod(HttpMethod method) {
+        this.method = method;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 }
