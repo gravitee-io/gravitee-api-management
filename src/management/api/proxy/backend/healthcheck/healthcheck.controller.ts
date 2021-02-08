@@ -18,29 +18,30 @@ import * as moment from 'moment';
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
 import UserService from '../../../../../services/user.service';
+import { IQService, IRootScopeService, IScope } from 'angular';
 
 class ApiHealthCheckController {
-  private api: any;
-  private gateway: any;
-  private endpoint: any;
-  private logs: {total: string; logs: any[], metadata: any};
-  private transitionLogs: {total: string; logs: any[], metadata: any};
-  private query: LogsQuery;
-  private chartData: any;
+  public chartData: any;
 
-  constructor (
+  private api: any;
+  private gateway: { availabilities: { data?: any }, responsetimes: any };
+  private endpoint: { availabilities: { data?: any }, responsetimes: any };
+  private logs: { total: string; logs: any[], metadata: any };
+  private transitionLogs: { total: string; logs: any[], metadata: any };
+  private query: LogsQuery;
+
+  constructor(
     private ApiService: ApiService,
-    private $scope,
-    private $rootScope,
+    private $scope: IScope,
+    private $rootScope: IRootScopeService,
     private $state: StateService,
-    private ChartService,
-    private $q,
-    private UserService: UserService
+    private $q: IQService,
+    private UserService: UserService,
   ) {
     'ngInject';
-    this.api = this.$scope.$parent.apiCtrl.api;
-    this.gateway = {availabilities: {}, responsetimes: {}};
-    this.endpoint = {availabilities: {}, responsetimes: {}};
+    this.api = (this.$scope.$parent as any).apiCtrl.api;
+    this.gateway = { availabilities: {}, responsetimes: {} };
+    this.endpoint = { availabilities: {}, responsetimes: {} };
 
     this.onPaginate = this.onPaginate.bind(this);
 
@@ -53,7 +54,10 @@ class ApiHealthCheckController {
     this.updateChart();
   }
 
-  timeframeChange(timeframe) {
+  timeframeChange(timeframe: {
+    from: number,
+    to: number
+  }) {
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
     this.updateChart();
@@ -61,7 +65,9 @@ class ApiHealthCheckController {
 
   updateChart() {
     this.ApiService.apiHealth(this.api.id, 'availability')
-      .then(response => {this.endpoint.availabilities.data = response.data; });
+      .then(response => {
+        this.endpoint.availabilities.data = response.data;
+      });
 
     this.ApiService.apiHealth(this.api.id, 'response_time')
       .then(response => {this.endpoint.responsetimes.data = response.data; });
@@ -77,7 +83,7 @@ class ApiHealthCheckController {
     this.refresh();
   }
 
-  onPaginate(page) {
+  onPaginate(page: number) {
     this.query.page = page;
     this.refresh();
   }
@@ -92,25 +98,32 @@ class ApiHealthCheckController {
         from: this.query.from,
         to: this.query.to
       },
-      {notify: false});
+      { notify: false });
 
     this.ApiService.apiHealthLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
     });
-    this.ApiService.apiHealthLogs(this.api.id, _.assign({transition: true}, this.query)).then((logs) => {
+    this.ApiService.apiHealthLogs(this.api.id, _.assign({ transition: true }, this.query)).then((logs) => {
       this.transitionLogs = logs.data;
     });
 
-    let from: any;
-    let to: any;
-    from = this.query.from || moment().subtract(1, 'days');
-    to = this.query.to || moment();
-    let interval = Math.floor((to - from) / 24);
-    let promises = [
-      this.ApiService.apiHealthAverage(this.api.id, {from: from, to: to,
-        interval: interval, type: 'RESPONSE_TIME'}),
-      this.ApiService.apiHealthAverage(this.api.id, {from: from, to: to,
-        interval: interval, type: 'AVAILABILITY'})
+    const from = this.query.from || moment().subtract(1, 'days').valueOf();
+    const to = this.query.to || moment().valueOf();
+    const interval = Math.floor((to - from) / 24);
+
+    const promises = [
+      this.ApiService.apiHealthAverage(this.api.id, {
+        from: from,
+        to: to,
+        interval: interval, type:
+          'RESPONSE_TIME',
+      }),
+      this.ApiService.apiHealthAverage(this.api.id, {
+        from: from,
+        to: to,
+        interval: interval,
+        type: 'AVAILABILITY',
+      }),
     ];
 
     this.$q.all(promises).then(responses => {
@@ -197,7 +210,7 @@ class ApiHealthCheckController {
     });
   }
 
-  getEndpointStatus(state) {
+  getEndpointStatus(state: number): string {
     switch (state) {
       case 3: return 'UP';
       case 2: return 'TRANSITIONALLY_UP';

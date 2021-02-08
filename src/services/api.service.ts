@@ -512,7 +512,7 @@ class ApiService {
     return this.$http.get(this.apisURL + api + '/health/logs/' + log);
   }
 
-  apiHealthAverage(api, request): ng.IPromise<any> {
+  apiHealthAverage(api, request): ng.IPromise<IHttpResponse<any>> {
     var url = this.apisURL + api + '/health/average?';
 
     var keys = Object.keys(request);
