@@ -15,7 +15,11 @@
  */
 package io.gravitee.definition.model.services.dynamicproperty.http;
 
+import io.gravitee.common.http.HttpHeader;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
+
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,6 +30,12 @@ public class HttpDynamicPropertyProviderConfiguration implements DynamicProperty
     private String url;
 
     private String specification;
+
+    private HttpMethod method;
+
+    private List<HttpHeader> headers;
+
+    private String body;
 
     public String getUrl() {
         return url;
@@ -41,5 +51,29 @@ public class HttpDynamicPropertyProviderConfiguration implements DynamicProperty
 
     public void setSpecification(String specification) {
         this.specification = specification;
+    }
+
+    public HttpMethod getMethod() {
+        return method;
+    }
+
+    public void setMethod(HttpMethod method) {
+        this.method = method;
+    }
+
+    public List<HttpHeader> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(List<HttpHeader> headers) {
+        this.headers = headers;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 }

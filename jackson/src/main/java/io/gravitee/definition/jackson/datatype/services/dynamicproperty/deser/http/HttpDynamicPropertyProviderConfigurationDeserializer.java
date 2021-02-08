@@ -19,9 +19,13 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
+import io.gravitee.common.http.HttpHeader;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,6 +57,30 @@ public class HttpDynamicPropertyProviderConfigurationDeserializer extends StdSca
         } else {
             throw ctxt.mappingException("[dynamic-property] [HTTP] Specification is required");
         }
+
+        final JsonNode methodNode = node.get("method");
+        if (methodNode != null) {
+            configuration.setMethod(HttpMethod.valueOf(methodNode.asText()));
+        } else {
+            configuration.setMethod(HttpMethod.GET);
+        }
+
+        final JsonNode headersNode = node.get("headers");
+        if (headersNode != null) {
+            final List<HttpHeader> headers = new ArrayList<>();
+            headersNode.elements().forEachRemaining(headerNode -> {
+                if (headerNode.findValue("name") != null & headerNode.findValue("value") != null) {
+                    HttpHeader header = new HttpHeader();
+                    header.setName(headerNode.findValue("name").asText());
+                    header.setValue(headerNode.findValue("value").asText());
+                    headers.add(header);
+                }
+            });
+            configuration.setHeaders(headers);
+        }
+
+        final JsonNode bodyNode = node.get("body");
+        configuration.setBody(bodyNode != null ? bodyNode.asText() : null);
 
         return configuration;
     }

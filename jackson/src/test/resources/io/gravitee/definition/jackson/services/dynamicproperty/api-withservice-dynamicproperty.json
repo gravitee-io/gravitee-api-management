@@ -41,7 +41,14 @@
       "provider": "HTTP",
       "configuration": {
         "url": "http://my_configuration_url",
-        "specification": "{}"
+        "specification": "{}",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "Content-type",
+            "value": "application/json"
+          }
+        ]
       }
     }
   }

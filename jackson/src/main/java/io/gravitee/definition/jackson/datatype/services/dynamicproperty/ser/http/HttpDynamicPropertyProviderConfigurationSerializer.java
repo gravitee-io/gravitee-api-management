@@ -18,6 +18,7 @@ package io.gravitee.definition.jackson.datatype.services.dynamicproperty.ser.htt
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 
 import java.io.IOException;
@@ -37,6 +38,22 @@ public class HttpDynamicPropertyProviderConfigurationSerializer extends StdScala
         jgen.writeStartObject();
         jgen.writeStringField("url", configuration.getUrl());
         jgen.writeStringField("specification", configuration.getSpecification());
+        jgen.writeStringField("method", configuration.getMethod().name());
+        if (configuration.getHeaders() != null) {
+            jgen.writeFieldName("headers");
+            jgen.writeStartArray();
+            for (HttpHeader header : configuration.getHeaders()) {
+                jgen.writeStartObject();
+                jgen.writeStringField("name", header.getName());
+                jgen.writeStringField("value", header.getValue());
+                jgen.writeEndObject();
+            }
+            jgen.writeEndArray();
+        }
+
+        if (configuration.getBody() != null) {
+            jgen.writeStringField("body", configuration.getBody());
+        }
         jgen.writeEndObject();
     }
 }

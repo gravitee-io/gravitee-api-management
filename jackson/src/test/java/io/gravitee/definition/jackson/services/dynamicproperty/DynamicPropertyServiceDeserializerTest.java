@@ -16,6 +16,7 @@
 package io.gravitee.definition.jackson.services.dynamicproperty;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
@@ -52,6 +53,9 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
 
         Assert.assertEquals("http://my_configuration_url", ((HttpDynamicPropertyProviderConfiguration) configuration).getUrl());
         Assert.assertEquals("{}", ((HttpDynamicPropertyProviderConfiguration) configuration).getSpecification());
+        Assert.assertEquals(HttpMethod.POST, ((HttpDynamicPropertyProviderConfiguration) configuration).getMethod());
+        Assert.assertEquals(1, ((HttpDynamicPropertyProviderConfiguration) configuration).getHeaders().size());
+        Assert.assertTrue(((HttpDynamicPropertyProviderConfiguration) configuration).getHeaders().stream().allMatch(header -> header.getName().equals("Content-type")));
     }
 
     @Test(expected = JsonMappingException.class)
