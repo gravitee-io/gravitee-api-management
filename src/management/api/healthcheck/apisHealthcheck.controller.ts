@@ -15,6 +15,7 @@
  */
 import ApiService from '../../../services/api.service';
 import { ITimeframe, TimeframeRanges } from '../../../components/quick-time-range/quick-time-range.component';
+import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 // tslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-gauge');
 // tslint:disable-next-line:no-var-requires
@@ -49,7 +50,6 @@ class ApiHealthCheckController {
     this.startedAPIsWithHC = this.apis.filter(api => this.hasHealthcheck(api) && api.state === 'started');
 
     this.viewAllApis = this.startedAPIsWithHC.length === this.apis.length;
-
 
     this.updateDisplayedApis();
     this.timeframeChange(TimeframeRanges.LAST_MINUTE);
@@ -145,6 +145,10 @@ class ApiHealthCheckController {
 
   isStopped(api) {
     return api.state === 'stopped';
+  }
+
+  getPictureDisplayName(api: {name: string, version: string}): string {
+    return getPictureDisplayName(api);
   }
 
   _getApiAvailabilityForGauge(availability) {

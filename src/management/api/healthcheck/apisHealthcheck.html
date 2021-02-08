@@ -18,7 +18,7 @@
 <div class="gv-sub-content">
   <div class="gv-forms gv-forms-fluid" layout="column">
     <div layout="row">
-      <h1 flex>APIs Health-check</h1>
+      <h1 flex>APIs Status</h1>
       <div class="gv-apis-healthcheck_control" ng-if="$ctrl.apis.length > 0">
         <md-input-container class="md-block">
           <md-switch class="" ng-model="$ctrl.viewAllApis" ng-change="$ctrl.updateDisplayedApis()">View all APIs</md-switch>
@@ -72,12 +72,12 @@
                 class="md-user-avatar"
                 image-id="'hc_' + api.id"
                 image-url=""
-                image-name="api.name + ' ' + api.version"
+                image-name="$ctrl.getPictureDisplayName(api)"
                 image-width="40"
               ></gravitee-identity-picture>
             </md-card-avatar>
             <md-card-header-text>
-              <span class="md-title" title="{{api.name}} {{api.version}}">{{api.name}} {{api.version}}</span>
+              <span class="md-title" title="{{api.name}} {{api.version}}">{{api.name}} <small>({{api.version}})</small></span>
               <a ui-sref="management.apis.detail.proxy.healthcheck.visualize({apiId: api.id})">View detail</a>
             </md-card-header-text>
             <md-card-avatar ng-if="$ctrl.isInError(api) || $ctrl.isInWarning(api)">
@@ -86,7 +86,6 @@
           </md-card-header>
 
           <md-card-content ng-if="$ctrl.hasHealthcheck(api) && !$ctrl.isStopped(api) && api.availability >= 0">
-            <span class="gauge-title">Availability on {{ $ctrl.currentTimeframe.title.toLocaleLowerCase() }}</span>
             <gv-chart-gauge ng-attr-series="{{api.uptimeSeries}}" max="100"></gv-chart-gauge>
             <div>
               <gravitee-chart options="api.chartData" type="areaspline" height="100"></gravitee-chart>
