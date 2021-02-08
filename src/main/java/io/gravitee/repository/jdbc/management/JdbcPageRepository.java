@@ -223,7 +223,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     private List<PageMedia> getAttachedMedia(String pageId) {
         return jdbcTemplate.query("select media_hash, media_name, attached_at from page_attached_media where page_id = ?"
-                , (ResultSet rs, int rowNum) -> new PageMedia(rs.getString(1), rs.getString(2), rs.getDate(3))
+                , (ResultSet rs, int rowNum) -> new PageMedia(rs.getString(1), rs.getString(2), rs.getTimestamp(3))
                 , pageId);
     }
 
@@ -240,7 +240,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                             ps.setString(1, page.getId());
                             ps.setString(2, attachedMedia.get(i).getMediaHash());
                             ps.setString(3, attachedMedia.get(i).getMediaName());
-                            ps.setDate(4, new java.sql.Date(attachedMedia.get(i).getAttachedAt().toInstant().toEpochMilli()));
+                            ps.setTimestamp(4, new java.sql.Timestamp(attachedMedia.get(i).getAttachedAt().getTime()));
                         }
 
                         @Override

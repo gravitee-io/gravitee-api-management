@@ -94,4 +94,6 @@ databaseChangeLog:
   - include:
       - file: liquibase/changelogs/v3_5_0/schema.yml
   - include:
+      - file: liquibase/changelogs/v3_5_1/schema.yml
+  - include:
       - file: liquibase/changelogs/v3_6_0/schema.yml
