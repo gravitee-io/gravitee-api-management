@@ -28,7 +28,6 @@ import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
@@ -40,8 +39,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Console"})
-@Path("/installation")
+@Api(tags = {"Console"}, hidden = true)
 public class InstallationResource {
 
     @Inject
