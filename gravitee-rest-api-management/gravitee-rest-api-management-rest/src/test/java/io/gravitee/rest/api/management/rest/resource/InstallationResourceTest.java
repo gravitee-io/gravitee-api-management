@@ -35,7 +35,7 @@ public class InstallationResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetInstallation() throws IOException {
-        final Response response = rootTarget("").request().get();
+        final Response response = orgTarget().request().get();
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
     }
