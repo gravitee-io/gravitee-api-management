@@ -41,30 +41,32 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
     }
   });
 
-  $transitions.onBefore({}, trans => {
+  $transitions.onBefore({
+    to: (state, transition) => {
+      return state.name.startsWith('management')
+        && !EnvironmentService.isSameEnvironment(Constants.org.currentEnv, transition.params().environmentId);
+    }
+  }, trans => {
+
     const params = Object.assign({}, trans.params());
     const stateService = trans.router.stateService;
     let toState = trans.to();
 
-    if (toState.name.startsWith('management')) {
-
-      if (!EnvironmentService.isSameEnvironment(Constants.org.currentEnv, params.environmentId)) {
-        if (!params.environmentId) {
-          params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
-          return stateService.target(toState, params, { reload: false });
-        }
-        let targetEnv = EnvironmentService.getEnvironmentFromHridOrId(Constants.org.environments, params.environmentId);
-        if (targetEnv) {
-          Constants.org.currentEnv = targetEnv;
-          return UserService.refreshEnvironmentPermissions().then(() => {
-            return stateService.target(toState, params, { reload: true });
-          });
-        } else {
-          params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
-          return stateService.target(toState, params, { reload: true });
-        }
+      let shouldReload = true;
+      if (!params.environmentId) {
+        shouldReload = false;
+        params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
       }
-    }
+      let targetEnv = EnvironmentService.getEnvironmentFromHridOrId(Constants.org.environments, params.environmentId);
+      if (targetEnv) {
+        Constants.org.currentEnv = targetEnv;
+        return UserService.refreshEnvironmentPermissions().then(() => {
+          return stateService.target(toState, params, { reload: shouldReload });
+        });
+      } else {
+        params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
+        return stateService.target(toState, params, { reload: shouldReload });
+      }
   });
 
   $transitions.onBefore({}, trans => {

@@ -75,7 +75,7 @@ class EnvironmentService {
   }
 
   isSameEnvironment(environment, otherEnvId) {
-    return environment.id === otherEnvId || environment.hrids && environment.hrids.includes(otherEnvId);
+    return environment && (environment.id === otherEnvId || environment.hrids && environment.hrids.includes(otherEnvId));
   }
 
   getEnvironmentFromHridOrId(environments, id) {
