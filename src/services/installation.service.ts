@@ -15,15 +15,15 @@
  */
 
 class InstallationService {
-  private baseURL: string;
+  private installationURL: string;
 
   constructor(private $http, Constants) {
     'ngInject';
-    this.baseURL = `${Constants.baseURL}`;
+    this.installationURL = `${Constants.org.baseURL}/installation/`;
   }
 
   getInstallationInformation() {
-    return this.$http.get(this.baseURL + '/installation');
+    return this.$http.get(this.installationURL);
   }
 
 }
