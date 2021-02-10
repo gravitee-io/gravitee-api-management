@@ -22,8 +22,6 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -127,5 +125,12 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
 
         // Check request
         Assert.assertTrue(healthCheckService.getSteps().get(0).getRequest().isFromRoot());
+    }
+
+    @Test
+    public void healthcheck_disabled() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-disabled.json", Api.class);
+        HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
+        Assert.assertNotNull(healthCheckService);
     }
 }
