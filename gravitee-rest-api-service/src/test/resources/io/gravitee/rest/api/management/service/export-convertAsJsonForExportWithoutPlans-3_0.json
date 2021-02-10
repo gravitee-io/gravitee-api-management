@@ -54,7 +54,9 @@
     "preserve_host": false,
     "logging": {
       "mode": "CLIENT_PROXY",
-      "condition": "condition"
+      "condition": "condition",
+      "content":"NONE",
+      "scope":"NONE"
     },
     "groups": [
       {
