@@ -86,7 +86,8 @@ public class LoggableProxyConnection implements ProxyConnection {
 
     @Override
     public void end() {
-        if (buffer != null) {
+        // Check if log is not already write by GDPR policy
+        if (buffer != null && this.log.getProxyRequest().getBody() == null) {
             this.log.getProxyRequest().setBody(buffer.toString());
         }
 

@@ -82,12 +82,14 @@ public class LoggableClientResponse implements Response {
     }
 
     private void calculate(Buffer buffer) {
-        // Here we are sure that headers has been full processed by policies
-        if(LoggingUtils.isResponseHeadersLoggable(context)){
+        // Check if log is not already write by GDPR policy
+        if(LoggingUtils.isResponseHeadersLoggable(context) && log.getClientResponse().getHeaders() == null){
+            // Here we are sure that headers has been full processed by policies
             log.getClientResponse().setHeaders(headers());
         }
 
-        if (buffer != null) {
+        // Check if log is not already write by GDPR policy
+        if (buffer != null && log.getClientResponse().getBody() == null) {
             log.getClientResponse().setBody(buffer.toString());
         }
     }
