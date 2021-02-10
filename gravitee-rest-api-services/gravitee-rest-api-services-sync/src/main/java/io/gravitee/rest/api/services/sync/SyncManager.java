@@ -25,13 +25,14 @@ import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.repository.management.model.EventType;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +79,8 @@ public class SyncManager {
     private MembershipService membershipService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private EnvironmentService environmentService;
 
     private final AtomicLong counter = new AtomicLong(0);
 
@@ -327,10 +330,15 @@ public class SyncManager {
             apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
         }
 
+        // FIXME: Find a way to avoid this context override needed because the same thread synchronize all the apis
+        //  (and they can be related to different organizations)
+        EnvironmentEntity environmentEntity = this.environmentService.findById(api.getEnvironmentId());
+        GraviteeContext.setCurrentOrganization(environmentEntity.getOrganizationId());
+
         MembershipEntity optPrimaryOwner = membershipService.getPrimaryOwner(MembershipReferenceType.API, api.getId());
         final UserEntity user = userService.findById(optPrimaryOwner.getMemberId());
         apiEntity.setPrimaryOwner(new PrimaryOwnerEntity(user));
-            
+
         return apiEntity;
     }
 }
