@@ -55,9 +55,9 @@ public class CronHandler implements Handler<Long>, Serializable {
     }
 
     @Override
-    public void handle(Long timerId) {
+    public void handle(final Long timerId) {
         final long delay = getDelay(expression);
-        timerId = vertx.setTimer(delay, this);
+        this.timerId = vertx.setTimer(delay, this);
         handler.handle(timerId);
     }
 
