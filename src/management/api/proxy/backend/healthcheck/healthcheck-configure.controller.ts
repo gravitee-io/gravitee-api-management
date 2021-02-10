@@ -19,7 +19,7 @@ import '@gravitee/ui-components/wc/gv-cron-editor';
 
 class ApiHealthCheckConfigureController {
   private api: any;
-  private healthcheck: any;
+  private healthcheck: { enabled: boolean, inherit: boolean, trigger?: any, schedule?: string, steps?: any[], response?: any };
   private timeUnits: string[];
   private httpMethods: string[];
   private endpoint: any;
@@ -66,7 +66,7 @@ class ApiHealthCheckConfigureController {
       this.healthcheck = this.api.services && this.api.services['health-check'];
     }
 
-    this.healthcheck = this.healthcheck || {enabled: false, inherit: false, trigger: {}};
+    this.healthcheck = this.healthcheck || { enabled: false, inherit: false, trigger: {}, schedule: '*/1 * * * * *' };
     let inherit = (this.endpoint !== undefined) && this.healthcheck.inherit;
     let enabled = this.healthcheck.enabled;
 
@@ -194,7 +194,7 @@ class ApiHealthCheckConfigureController {
       if (this.healthcheck.enabled === false) {
         delete this.healthcheck.trigger;
         delete this.healthcheck.steps;
-        this.healthcheck.schedule = '* * * * * *';
+        this.healthcheck.schedule = '*/1 * * * * *';
       }
       this.api.services['health-check'] = this.healthcheck;
     }
