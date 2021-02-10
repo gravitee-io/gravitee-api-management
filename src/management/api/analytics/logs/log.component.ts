@@ -1,6 +1,7 @@
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import NotificationService from '../../../../services/notification.service';
 import { toPairs } from 'lodash';
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -71,24 +72,35 @@ class LogComponentController {
 
 
   $onInit() {
-    LogComponentController.headersAsList(this.log.clientRequest);
-    this.log.clientRequest = {
-      ...this.log.clientRequest,
-      queryParams: this.extractQueryParams(this.log.clientRequest.uri),
-    };
+    if (this.log.clientRequest != null) {
+      LogComponentController.headersAsList(this.log.clientRequest);
+      this.log.clientRequest = {
+        ...this.log.clientRequest,
+        queryParams: this.extractQueryParams(this.log.clientRequest.uri),
+      };
+    }
 
-    LogComponentController.headersAsList(this.log.proxyRequest);
-    this.log.proxyRequest = {
-      ...this.log.proxyRequest,
-      queryParams: this.extractQueryParams(this.log.proxyRequest.uri),
-    };
 
-    LogComponentController.headersAsList(this.log.clientResponse);
-    LogComponentController.headersAsList(this.log.proxyResponse);
+    if (this.log.proxyRequest != null) {
+      LogComponentController.headersAsList(this.log.proxyRequest);
+      this.log.proxyRequest = {
+        ...this.log.proxyRequest,
+        queryParams: this.extractQueryParams(this.log.proxyRequest.uri),
+      };
+    }
+
+    if (this.log.clientResponse != null) {
+      LogComponentController.headersAsList(this.log.clientResponse);
+    }
+
+    if (this.log.proxyResponse != null) {
+      LogComponentController.headersAsList(this.log.proxyResponse);
+    }
+
   }
 
   getMimeType(log): string | null {
-    let contentTypes: string[] | null | undefined = log.headers['Content-Type'];
+    let contentTypes: string[] | null | undefined = log.headers != null ? log.headers['Content-Type'] : null;
     if (Array.isArray(contentTypes)) {
       return contentTypes[0].split(';', 1)[0];
     }
