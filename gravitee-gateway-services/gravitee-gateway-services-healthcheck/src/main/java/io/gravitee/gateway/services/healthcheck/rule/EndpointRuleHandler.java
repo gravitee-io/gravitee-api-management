@@ -243,9 +243,10 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
                     if (event instanceof ConnectTimeoutException) {
                         stepBuilder.fail(event.getMessage());
-                        healthResponse.setStatus(HttpStatusCode.REQUEST_TIMEOUT_408);
+                        healthResponse.setStatus(HttpStatusCode.GATEWAY_TIMEOUT_504);
                     } else {
-                        healthResponse.setStatus(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+                        stepBuilder.fail(event.getMessage());
+                        healthResponse.setStatus(HttpStatusCode.BAD_GATEWAY_502);
                     }
 
                     Step result = stepBuilder.build();
