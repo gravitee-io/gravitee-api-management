@@ -281,11 +281,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.2</version>
-                <configuration>
-                    <excludes>
-                        <exclude>io/gravitee/gateway/standalone/**/*.java</exclude>
-                    </excludes>
-                </configuration>
             </plugin>
         </plugins>
         <pluginManagement>

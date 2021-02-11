@@ -28,6 +28,7 @@ import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -44,17 +45,26 @@ public class PolicyChainFactory {
             StreamType streamType,
             ExecutionContext context) {
 
+        return create(resolvedPolicies, streamType, context, policies -> streamType == StreamType.ON_REQUEST ?
+                RequestPolicyChain.create(policies, context) :
+                ResponsePolicyChain.create(policies, context));
+    }
+
+    public StreamableProcessor<ExecutionContext, Buffer> create(
+            List<PolicyResolver.Policy> resolvedPolicies,
+            StreamType streamType,
+            ExecutionContext context, Function<List<Policy>, StreamableProcessor<ExecutionContext, Buffer>> mapper) {
+
         if (resolvedPolicies.isEmpty()) {
             return new NoOpPolicyChain(context);
         }
 
-        List<Policy> policies = resolvedPolicies.stream()
+        final List<Policy> policies = resolvedPolicies.stream()
                 .map(policy -> policyManager.create(streamType, policy.getName(), policy.getConfiguration()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        return streamType == StreamType.ON_REQUEST ?
-                RequestPolicyChain.create(policies, context) :
-                ResponsePolicyChain.create(policies, context);
+        return mapper.apply(policies);
+
     }
 }
