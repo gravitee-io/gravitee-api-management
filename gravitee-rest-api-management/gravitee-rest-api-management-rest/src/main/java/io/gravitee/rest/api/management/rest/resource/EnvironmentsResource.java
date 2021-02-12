@@ -88,14 +88,7 @@ public class EnvironmentsResource extends AbstractResource {
             Map<String, char[]> permissions = new HashMap<>();
             if (isAuthenticated()) {
                 final String username = getAuthenticatedUser();
-                if (isAdmin()) {
-                    final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
-                    for (EnvironmentPermission perm : EnvironmentPermission.values()) {
-                        permissions.put(perm.getName(), rights);
-                    }
-                } else {
-                    permissions = membershipService.getUserMemberPermissions(environment, username);
-                }
+                permissions = membershipService.getUserMemberPermissions(environment, username);
             }
 
             EnvironmentPermissionsEntity environmentPermissions = new EnvironmentPermissionsEntity();
