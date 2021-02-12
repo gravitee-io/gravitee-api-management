@@ -68,6 +68,7 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
             newUser.setFirstname(userPayload.getFirstName());
             newUser.setLastname(userPayload.getLastName());
             newUser.setEmail(userPayload.getEmail());
+            newUser.setPicture(userPayload.getPicture());
             newUser.setSource(COCKPIT_SOURCE);
             newUser.setCustomFields(new HashMap<>());
 

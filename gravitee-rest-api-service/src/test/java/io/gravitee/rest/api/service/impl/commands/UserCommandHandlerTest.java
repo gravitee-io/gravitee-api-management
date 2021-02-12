@@ -85,6 +85,7 @@ public class UserCommandHandlerTest {
                         && newUser.getFirstname().equals(userPayload.getFirstName())
                         && newUser.getLastname().equals(userPayload.getLastName())
                         && newUser.getEmail().equals(userPayload.getEmail())
+                        && newUser.getPicture().equals(userPayload.getPicture())
                         && newUser.getCustomFields().get("info1").equals(additionalInformation.get("info1"))
                         && newUser.getCustomFields().get("info2").equals(additionalInformation.get("info2"))
                         && newUser.getCustomFields().get(PICTURE).equals(userPayload.getPicture())
