@@ -52,7 +52,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Override
     public void deleteAllByApi(String apiId) {
-        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, true);
+        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, false);
         allMetadata.stream().forEach(referenceMetadataEntity -> delete(referenceMetadataEntity.getKey(), API, apiId));
     }
 

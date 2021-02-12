@@ -29,6 +29,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -40,10 +41,8 @@ import static io.gravitee.repository.management.model.MetadataReferenceType.DEFA
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -54,6 +53,7 @@ public class ApiMetadataServiceTest {
 
     private static final String API_ID = "API123";
     private static final String METADATA_KEY = "MET123";
+    private static final String DEFAULT_METADATA_KEY = "NOOVERRIDE";
     private static final String METADATA_NAME = "METNAME";
     private static final String METADATA_VALUE = "METVALUE";
     private static final Date METADATA_DATE = new Date();
@@ -84,6 +84,9 @@ public class ApiMetadataServiceTest {
     @Mock
     private MetadataEntity defaultMetadataEntity;
 
+    @Mock
+    private MetadataEntity defaultMetadataEntityWithoutOverride;
+
     @Before
     public void init() throws TechnicalException {
         mockMetadata(defaultMetadata, METADATA_KEY, DEFAULT, getDefaultReferenceId(), METADATA_VALUE);
@@ -99,7 +102,12 @@ public class ApiMetadataServiceTest {
         when(defaultMetadataEntity.getName()).thenReturn(METADATA_NAME);
         when(defaultMetadataEntity.getValue()).thenReturn(METADATA_VALUE);
 
-        when(metadataService.findAllDefault()).thenReturn(singletonList(defaultMetadataEntity));
+        when(defaultMetadataEntityWithoutOverride.getKey()).thenReturn(DEFAULT_METADATA_KEY);
+        when(defaultMetadataEntityWithoutOverride.getFormat()).thenReturn(MetadataFormat.STRING);
+        when(defaultMetadataEntityWithoutOverride.getName()).thenReturn(METADATA_NAME);
+        when(defaultMetadataEntityWithoutOverride.getValue()).thenReturn(METADATA_VALUE);
+
+        when(metadataService.findAllDefault()).thenReturn(Arrays.asList(defaultMetadataEntity, defaultMetadataEntityWithoutOverride));
     }
 
     private void mockMetadata(Metadata apiMetadata, String key, MetadataReferenceType api, String apiId, String apiMetadataValue) {
@@ -127,13 +135,13 @@ public class ApiMetadataServiceTest {
         final List<ApiMetadataEntity> apiMetadataEntities = apiMetadataService.findAllByApi(API_ID);
 
         assertNotNull(apiMetadataEntities);
-        assertEquals(1, apiMetadataEntities.size());
-        assertEquals(METADATA_KEY, apiMetadataEntities.get(0).getKey());
-        assertEquals(API_ID, apiMetadataEntities.get(0).getApiId());
-        assertEquals(METADATA_VALUE, apiMetadataEntities.get(0).getDefaultValue());
-        assertEquals(METADATA_NAME, apiMetadataEntities.get(0).getName());
-        assertEquals(API_METADATA_VALUE, apiMetadataEntities.get(0).getValue());
-        assertEquals(MetadataFormat.STRING, apiMetadataEntities.get(0).getFormat());
+        assertEquals(2, apiMetadataEntities.size());
+        assertEquals(METADATA_KEY, apiMetadataEntities.get(1).getKey());
+        assertEquals(API_ID, apiMetadataEntities.get(1).getApiId());
+        assertEquals(METADATA_VALUE, apiMetadataEntities.get(1).getDefaultValue());
+        assertEquals(METADATA_NAME, apiMetadataEntities.get(1).getName());
+        assertEquals(API_METADATA_VALUE, apiMetadataEntities.get(1).getValue());
+        assertEquals(MetadataFormat.STRING, apiMetadataEntities.get(1).getFormat());
     }
 
     @Test
@@ -153,13 +161,13 @@ public class ApiMetadataServiceTest {
         final List<ApiMetadataEntity> apiMetadataEntities = apiMetadataService.findAllByApi(API_ID_NO_VALUE);
 
         assertNotNull(apiMetadataEntities);
-        assertEquals(2, apiMetadataEntities.size());
-        assertEquals(METADATA_KEY_NO_VALUE, apiMetadataEntities.get(1).getKey());
-        assertEquals(API_ID_NO_VALUE, apiMetadataEntities.get(1).getApiId());
-        assertNull(apiMetadataEntities.get(1).getDefaultValue());
-        assertEquals(METADATA_NAME, apiMetadataEntities.get(1).getName());
-        assertEquals("", apiMetadataEntities.get(1).getValue());
-        assertEquals(MetadataFormat.STRING, apiMetadataEntities.get(1).getFormat());
+        assertEquals(3, apiMetadataEntities.size());
+        assertEquals(METADATA_KEY_NO_VALUE, apiMetadataEntities.get(2).getKey());
+        assertEquals(API_ID_NO_VALUE, apiMetadataEntities.get(2).getApiId());
+        assertNull(apiMetadataEntities.get(2).getDefaultValue());
+        assertEquals(METADATA_NAME, apiMetadataEntities.get(2).getName());
+        assertEquals("", apiMetadataEntities.get(2).getValue());
+        assertEquals(MetadataFormat.STRING, apiMetadataEntities.get(2).getFormat());
     }
 
     @Test(expected = DuplicateMetadataNameException.class)
@@ -240,4 +248,12 @@ public class ApiMetadataServiceTest {
         verify(metadataRepository).delete(METADATA_KEY, API_ID, API);
         verify(auditService).createApiAuditLog(eq(API_ID), any(), eq(METADATA_DELETED), any(), eq(apiMetadata), eq(null));
     }
+
+    @Test
+    public void shouldDeleteAllByApi() throws TechnicalException {
+        apiMetadataService.deleteAllByApi(API_ID);
+
+        verify(metadataRepository, times(1)).delete(any(), eq(API_ID), eq(MetadataReferenceType.API));
+    }
+
 }
