@@ -21,12 +21,13 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -36,7 +37,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -64,6 +64,17 @@ public class ApplicationService_FindByIdTest {
 
     @Mock
     private Application application;
+
+    @Before
+    public void setUp() {
+        GraviteeContext.setCurrentEnvironment("DEFAULT");
+        when(application.getEnvironmentId()).thenReturn("DEFAULT");
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void shouldFindById() throws TechnicalException {

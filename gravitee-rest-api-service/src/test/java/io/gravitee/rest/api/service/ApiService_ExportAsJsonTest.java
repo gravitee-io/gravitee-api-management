@@ -22,6 +22,9 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.jackson.ser.api.*;
+import org.junit.Before;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +47,6 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetup {
-
 
     @Test
     public void shouldConvertAsJsonForExport() throws TechnicalException, IOException {
@@ -153,6 +155,7 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
         api.setDescription("Gravitee.io");
         api.setEnvironmentId("DEFAULT");
         api.setGroups(Collections.singleton("my-group"));
+        api.setEnvironmentId("DEFAULT");
 
         // set proxy
         Proxy proxy = new Proxy();

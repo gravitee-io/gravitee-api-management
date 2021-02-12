@@ -119,7 +119,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         try {
             LOGGER.debug("Find application by ID: {}", applicationId);
 
-            Optional<Application> applicationOptional = applicationRepository.findById(applicationId);
+            Optional<Application> applicationOptional = applicationRepository.findById(applicationId)
+                    .filter(result -> result.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()));
 
             if (applicationOptional.isPresent()) {
                 Application application = applicationOptional.get();

@@ -35,9 +35,11 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
+import org.junit.After;
 import org.junit.Before;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -93,6 +95,7 @@ public class ApiService_ExportAsJsonTestSetup {
 
     @Before
     public void setUp() throws TechnicalException {
+        GraviteeContext.setCurrentEnvironment("DEFAULT");
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
 
@@ -129,6 +132,7 @@ public class ApiService_ExportAsJsonTestSetup {
 
         Api api = new Api();
         api.setId(API_ID);
+        api.setEnvironmentId("DEFAULT");
 
         String definition = null;
         try {
@@ -226,6 +230,11 @@ public class ApiService_ExportAsJsonTestSetup {
         apiMetadataEntity.setDefaultValue("metadata-default-value");
         apiMetadataEntity.setFormat(MetadataFormat.STRING);
         when(apiMetadataService.findAllByApi(API_ID)).thenReturn(Collections.singletonList(apiMetadataEntity));
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     protected io.gravitee.definition.model.Api buildApiDefinition(Api api) {
