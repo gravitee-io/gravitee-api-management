@@ -20,6 +20,8 @@ import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.DictionaryType;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static java.util.Optional.empty;
@@ -50,10 +52,16 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
 
         final Dictionary dic1 = new Dictionary();
         dic1.setId("dic-1");
+        dic1.setEnvironmentId("DEFAULT");
         dic1.setName("My dic 1");
         dic1.setDescription("Description for my dic 1");
         dic1.setCreatedAt(new Date(1000000000000L));
         dic1.setUpdatedAt(new Date(1439032010883L));
+        final Map<String, String> props = new HashMap<>();
+        props.put("localhost", "localhost");
+        props.put("localhost:8082", "localhost:8082");
+        props.put("127.0.0.1:8082", "127.0.0.1:8082");
+        dic1.setProperties(props);
 
         final Dictionary dictionaryUpdated = mock(Dictionary.class);
         when(dictionaryUpdated.getName()).thenReturn("My dic 1");
@@ -62,6 +70,11 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
         when(dictionaryUpdated.getCreatedAt()).thenReturn(new Date(1000000000000L));
         when(dictionaryUpdated.getUpdatedAt()).thenReturn(new Date(1486771200000L));
         when(dictionaryUpdated.getType()).thenReturn(DictionaryType.DYNAMIC);
+        final Map<String, String> properties = new HashMap<>();
+        properties.put("localhost", "localhost");
+        properties.put("localhost:8082", "localhost:8082");
+        properties.put("127.0.0.1:8082", "127.0.0.1:8082");
+        when(dictionaryUpdated.getProperties()).thenReturn(properties);
 
         final Set<Dictionary> dictionaries = newSet(newDictionary, dic1, mock(Dictionary.class));
         final Set<Dictionary> dictionariesAfterDelete = newSet(newDictionary, dic1);
@@ -74,7 +87,7 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
 
         when(dictionaryRepository.findById("new-dictionary")).thenReturn(of(newDictionary));
         when(dictionaryRepository.findById("unknown")).thenReturn(empty());
-        when(dictionaryRepository.findById("dic-1")).thenReturn(of(dic1), of(dictionaryUpdated));
+        when(dictionaryRepository.findById("dic-1")).thenReturn(of(dic1), of(dic1), of(dictionaryUpdated));
 
         when(dictionaryRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
