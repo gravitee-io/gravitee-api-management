@@ -17,6 +17,26 @@ import NotificationService from '../services/notification.service';
 import UserService from '../services/user.service';
 import ReCaptchaService from '../services/reCaptcha.service';
 
+export class Future {
+
+  private timeouts = [];
+  private delay: number;
+
+  constructor(delay = 0) {
+    this.delay = delay;
+  }
+
+  push(fn) {
+    this.timeouts.push(setTimeout(() => fn(), this.delay));
+  }
+
+  cancel() {
+    this.timeouts.forEach((timeout) => clearTimeout(timeout));
+    this.timeouts = [];
+  }
+
+}
+
 function interceptorConfig(
   $httpProvider: angular.IHttpProvider,
   Constants
@@ -34,6 +54,7 @@ function interceptorConfig(
 
   const interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService, $location, $state): angular.IHttpInterceptor => ({
     responseError: function (error) {
+      const interceptorFuture = new Future();
       if (error.config && !error.config.tryItMode) {
         const unauthorizedError = !error || error.status === 401;
         let errorMessage = '';
@@ -78,7 +99,7 @@ function interceptorConfig(
           }
         }
         if (!sessionExpired && error && error.status > 0 && !error.config.silentCall) {
-          notificationService.showError(error, errorMessage);
+          interceptorFuture.push(() => notificationService.showError(error, errorMessage));
           if (error.status === 403) {
             // if the user try to access a forbidden resource (after redirection for example), do not stay on login form
             $timeout(function () {
@@ -86,6 +107,10 @@ function interceptorConfig(
             });
           }
         }
+      }
+
+      if (interceptorFuture) {
+        error.interceptorFuture = interceptorFuture;
       }
 
       return $q.reject(error);

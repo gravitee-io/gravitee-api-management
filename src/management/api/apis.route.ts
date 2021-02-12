@@ -23,6 +23,8 @@ import { StateProvider } from '../../../node_modules/@uirouter/angularjs';
 import TenantService from '../../services/tenant.service';
 import UserService from '../../services/user.service';
 import PolicyService from '../../services/policy.service';
+import EnvironmentService from '../../services/environment.service';
+import { StateParams, StateService } from '@uirouter/core';
 
 export default apisRouterConfig;
 
@@ -63,8 +65,17 @@ function apisRouterConfig($stateProvider: StateProvider) {
         resolvedApiState: function ($stateParams, ApiService) {
           return ApiService.isAPISynchronized($stateParams.apiId);
         },
-        resolvedApi: function ($stateParams, ApiService) {
-          return ApiService.get($stateParams.apiId);
+        resolvedApi: function ($stateParams: StateParams,
+                               ApiService: ApiService,
+                               $state: StateService,
+                               Constants: any,
+                               EnvironmentService: EnvironmentService) {
+          return ApiService.get($stateParams.apiId)
+            .catch((err) => {
+              if (err && err.interceptorFuture) {
+                $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id)});
+              }
+            });
         },
         resolvedCategories: (CategoryService: CategoryService) => {
           return CategoryService.list().then(response => {
@@ -82,15 +93,23 @@ function apisRouterConfig($stateProvider: StateProvider) {
           });
         },
         resolvedTenants: () => [],
-        resolvedApiPermissions: (ApiService, $stateParams) => ApiService.getPermissions($stateParams.apiId),
+        resolvedApiPermissions: (ApiService: ApiService, $stateParams: StateParams) =>
+          ApiService.getPermissions($stateParams.apiId)
+          .catch(err => {
+            if (err && err.interceptorFuture) {
+              err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
+            }
+          }),
         onEnter: function (UserService, resolvedApiPermissions) {
           UserService.currentUser.userApiPermissions = [];
-          _.forEach(_.keys(resolvedApiPermissions.data), function (permission) {
-            _.forEach(resolvedApiPermissions.data[permission], function (right) {
-              let permissionName = 'API-' + permission + '-' + right;
-              UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
+          if (resolvedApiPermissions && resolvedApiPermissions.data) {
+            _.forEach(_.keys(resolvedApiPermissions.data), function (permission) {
+              _.forEach(resolvedApiPermissions.data[permission], function (right) {
+                let permissionName = 'API-' + permission + '-' + right;
+                UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
+              });
             });
-          });
+          }
           UserService.reloadPermissions();
         },
         userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data)

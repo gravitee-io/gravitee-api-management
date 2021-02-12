@@ -18,11 +18,12 @@ import ApplicationService from '../../services/application.service';
 import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
 import UserService from '../../services/user.service';
-import { StateParams } from '@uirouter/core';
+import { StateParams, StateService } from '@uirouter/core';
 import ApiService from '../../services/api.service';
 import DashboardService from '../../services/dashboard.service';
 import ApplicationTypesService from '../../services/applicationTypes.service';
 import MetadataService from '../../services/metadata.service';
+import EnvironmentService from '../../services/environment.service';
 
 export default applicationsConfig;
 
@@ -76,19 +77,44 @@ function applicationsConfig($stateProvider) {
       url: '/:applicationId',
       component: 'application',
       resolve: {
-        application: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.get($stateParams.applicationId).then(response => response.data),
-        applicationType: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getApplicationType($stateParams.applicationId).then(response => response.data),
-        resolvedApplicationPermissions: (ApplicationService, $stateParams) => ApplicationService.getPermissions($stateParams.applicationId),
+        application: ($stateParams: StateParams,
+                      ApplicationService: ApplicationService,
+                      $state: StateService,
+                      EnvironmentService: EnvironmentService,
+                      Constants: any
+        ) =>
+          ApplicationService.get($stateParams.applicationId)
+            .then(response => response.data)
+            .catch(err => {
+              if (err && err.interceptorFuture) {
+                $state.go('management.applications.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id)});
+              }
+            }),
+        applicationType: ($stateParams: StateParams, ApplicationService: ApplicationService) =>
+          ApplicationService.getApplicationType($stateParams.applicationId)
+            .then(response => response.data)
+            .catch(err => {
+              if (err && err.interceptorFuture) {
+                err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
+              }
+            }),
+        resolvedApplicationPermissions: ($stateParams: StateParams, ApplicationService: ApplicationService) =>
+          ApplicationService.getPermissions($stateParams.applicationId)
+            .catch(err => {
+              if (err && err.interceptorFuture) {
+                err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
+              }
+            }),
         onEnter: function(UserService, resolvedApplicationPermissions) {
           UserService.currentUser.userApplicationPermissions = [];
-          _.forEach(_.keys(resolvedApplicationPermissions.data), function(permission) {
-            _.forEach(resolvedApplicationPermissions.data[permission], function(right) {
-              let permissionName = 'APPLICATION-' + permission + '-' + right;
-              UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
+          if (resolvedApplicationPermissions && resolvedApplicationPermissions.data) {
+            _.forEach(_.keys(resolvedApplicationPermissions.data), function(permission) {
+              _.forEach(resolvedApplicationPermissions.data[permission], function(right) {
+                let permissionName = 'APPLICATION-' + permission + '-' + right;
+                UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
+              });
             });
-          });
+          }
           UserService.reloadPermissions();
         }
       }
