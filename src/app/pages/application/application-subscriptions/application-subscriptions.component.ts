@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
