@@ -236,10 +236,12 @@ public class ApisResource extends AbstractResource {
     public Response searchApis(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
             final ApiQuery apiQuery = new ApiQuery();
-            final Collection<ApiEntity> apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, false);
-
             Map<String, Object> filters = new HashMap<>();
-            filters.put("api", apis.stream().map(ApiEntity::getId).collect(toSet()));
+            
+            if (!isAdmin()) {
+                final Collection<ApiEntity> apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, false);
+                filters.put("api", apis.stream().map(ApiEntity::getId).collect(toSet()));
+            }
 
             return Response.ok().entity(apiService.search(query, filters)
                     .stream()
