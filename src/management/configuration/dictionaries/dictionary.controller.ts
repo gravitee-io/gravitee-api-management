@@ -286,13 +286,15 @@ class DictionaryController {
   }
 
   computeProperties = () => {
-    return Object.entries(this.dictionary.properties)
-    .map(entry => {
-      let result : any = {};
-      result.key = entry[0];
-      result.value = entry[1];
-      return result;
-    });
+    if (this.dictionary && this.dictionary.properties) {
+      return Object.entries(this.dictionary.properties)
+        .map(entry => {
+          let result: any = {};
+          result.key = entry[0];
+          result.value = entry[1];
+          return result;
+        });
+    }
   }
 }
 
