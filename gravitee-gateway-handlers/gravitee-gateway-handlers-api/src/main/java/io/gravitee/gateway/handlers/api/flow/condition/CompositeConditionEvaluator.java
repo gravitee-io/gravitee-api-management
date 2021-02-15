@@ -36,8 +36,7 @@ public class CompositeConditionEvaluator implements ConditionEvaluator {
     @Override
     public boolean evaluate(Flow flow, ExecutionContext context) {
         for (ConditionEvaluator evaluator : evaluators) {
-            boolean evaluation = evaluator.evaluate(flow, context);
-            if (! evaluation) {
+            if (! evaluator.evaluate(flow, context)) {
                 return false;
             }
         }
