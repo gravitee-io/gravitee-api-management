@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Properties;
@@ -48,6 +49,9 @@ import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -84,6 +88,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
@@ -638,19 +643,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Find API by ID: {}", apiId);
 
-            Optional<Api> optApi = apiRepository.findById(apiId);
+            final Api api = this.findApiById(apiId);
+            ApiEntity apiEntity = convert(api, getPrimaryOwner(api), null);
 
-            if (optApi.isPresent()) {
-                final Api api = optApi.get();
-                ApiEntity apiEntity = convert(api, getPrimaryOwner(api), null);
+            // Compute entrypoints
+            calculateEntrypoints(apiEntity, api.getEnvironmentId());
 
-                // Compute entrypoints
-                calculateEntrypoints(apiEntity, api.getEnvironmentId());
-
-                return apiEntity;
-            }
-
-            throw new ApiNotFoundException(apiId);
+            return apiEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
@@ -744,7 +743,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findByVisibility(io.gravitee.rest.api.model.Visibility visibility) {
         try {
             LOGGER.debug("Find APIs by visibility {}", visibility);
-            return convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).visibility(Visibility.valueOf(visibility.name())).build()));
+            return new HashSet<>(convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).visibility(Visibility.valueOf(visibility.name())).build())));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -755,7 +754,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findAll() {
         try {
             LOGGER.debug("Find all APIs");
-            return convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build()));
+            return new HashSet<>(convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build())));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -766,8 +765,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findAllLight() {
         try {
             LOGGER.debug("Find all APIs without some fields (definition, picture...)");
-            return convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()));
+            return new HashSet<>(convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                    new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs light", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs light", ex);
@@ -776,8 +775,58 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Set<ApiEntity> findByUser(String userId, ApiQuery apiQuery, boolean portal) {
+        return new HashSet<>(findByUser(userId, apiQuery, null, null, portal).getContent());
+    }
+
+    @Override
+    public Page<ApiEntity> findByUser(String userId, ApiQuery apiQuery, Sortable sortable, Pageable pageable, boolean portal) {
+
         try {
-            LOGGER.debug("Find APIs by user {}", userId);
+            LOGGER.debug("Find APIs page by user {}", userId);
+
+            List<Api> allApis = findApisByUser(userId, apiQuery, portal);
+
+            final Page<Api> apiPage = sortAndPaginate(allApis, sortable, pageable);
+
+            // merge all apis
+            final List<ApiEntity> apis = convert(apiPage.getContent());
+
+            return new Page<>(filterApiByQuery(apis.stream(), apiQuery).collect(toList()), apiPage.getPageNumber(), (int) apiPage.getPageElements(), apiPage.getTotalElements());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
+        }
+    }
+
+    @Override
+    public List<String> findIdsByUser(String userId, ApiQuery apiQuery, boolean portal) {
+        try {
+            LOGGER.debug("Search API ids by user {} and {}", userId, apiQuery);
+            return findApisByUser(userId, apiQuery, portal).stream().map(Api::getId).collect(toList());
+        } catch (Exception ex) {
+            final String errorMessage = "An error occurs while trying to search for API ids for user " + userId + ": " + apiQuery;
+            LOGGER.error(errorMessage, ex);
+            throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    private Api findApiById(String apiId) {
+
+        try {
+            Optional<Api> optApi = apiRepository.findById(apiId);
+
+            if (optApi.isPresent()) {
+                return optApi.get();
+            }
+
+            throw new ApiNotFoundException(apiId);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+        }
+    }
+
+    private List<Api> findApisByUser(String userId, ApiQuery apiQuery, boolean portal) {
 
             //get all public apis
             List<Api> publicApis;
@@ -795,9 +844,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (userId != null) {
                 // get user apis
                 final String[] userApiIds = membershipService
-                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API).stream()
-                    .map(MembershipEntity::getReferenceId)
-                    .toArray(String[]::new);
+                        .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API).stream()
+                        .map(MembershipEntity::getReferenceId)
+                        .filter(apiId -> {
+                            if (apiQuery != null && !CollectionUtils.isEmpty(apiQuery.getIds())) {
+                                // We already have api ids to focus on.
+                                return apiQuery.getIds().contains(apiId);
+                            }else {
+                                return true;
+                            }
+                        })
+                        .toArray(String[]::new);
+
                 if (userApiIds.length > 0) {
                     userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
                 }
@@ -818,7 +876,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
                 }
 
-                // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members
+                // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
                 if (portal) {
                     final Set<String> applications =
                         applicationService.findByUser(userId).stream().map(ApplicationListItem::getId).collect(toSet());
@@ -835,17 +893,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
             }
 
-            // merge all apis
-            final Set<ApiEntity> apis = new HashSet<>();
-            apis.addAll(convert(publicApis));
-            apis.addAll(convert(userApis));
-            apis.addAll(convert(groupApis));
-            apis.addAll(convert(subscribedApis));
-            return filterApiByQuery(apis.stream(), apiQuery).collect(toSet());
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
-        }
+        List<Api> allApis = new ArrayList<>();
+        allApis.addAll(publicApis);
+        allApis.addAll(userApis);
+        allApis.addAll(groupApis);
+        allApis.addAll(subscribedApis);
+
+        return allApis.stream().distinct().collect(toList());
+
     }
 
     private boolean canManageApi(Map<String,char[]> permissions) {
@@ -864,6 +919,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
         apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
         return findByUser(userId, apiQuery, true);
+    }
+
+    @Override
+    public Page<ApiEntity> findPublishedByUser(String userId, ApiQuery apiQuery, Sortable sortable, Pageable pageable) {
+        if (apiQuery == null) {
+            apiQuery = new ApiQuery();
+        }
+        apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+        return findByUser(userId, apiQuery, sortable, pageable, true);
     }
 
     @Override
@@ -1698,9 +1762,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     return new MemberToImport(userEntity.getSource(), userEntity.getSourceId(), member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()), null);
                 }).collect(toSet());
             // get the current PO
-            Optional<RoleEntity> optPoRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
-            if (optPoRole.isPresent()) {
-                String poRoleId = optPoRole.get().getId();
+            RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+            if (poRole != null) {
+                String poRoleId = poRole.getId();
                 MemberToImport currentPo = membersAlreadyPresent.stream()
                     .filter(memberToImport -> memberToImport.getRoles().contains(poRoleId))
                     .findFirst()
@@ -1973,12 +2037,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public InlinePictureEntity getPicture(String apiId) {
-        ApiEntity apiEntity = findById(apiId);
+        Api api = this.findApiById(apiId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
-        if (apiEntity.getPicture() != null) {
-            String[] parts = apiEntity.getPicture().split(";", 2);
+        if (api.getPicture() != null) {
+            String[] parts = api.getPicture().split(";", 2);
             imageEntity.setType(parts[0].split(":")[1]);
-            String base64Content = apiEntity.getPicture().split(",", 2)[1];
+            String base64Content = api.getPicture().split(",", 2)[1];
             imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
         }
 
@@ -1987,12 +2051,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public InlinePictureEntity getBackground(String apiId) {
-        ApiEntity apiEntity = findById(apiId);
+        Api api = this.findApiById(apiId);
         InlinePictureEntity imageEntity = new InlinePictureEntity();
-        if (apiEntity.getBackground() != null) {
-            String[] parts = apiEntity.getBackground().split(";", 2);
+        if (api.getBackground() != null) {
+            String[] parts = api.getBackground().split(";", 2);
             imageEntity.setType(parts[0].split(":")[1]);
-            String base64Content = apiEntity.getBackground().split(",", 2)[1];
+            String base64Content = api.getBackground().split(",", 2)[1];
             imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
         }
 
@@ -2133,6 +2197,24 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
+    public Page<ApiEntity> search(final ApiQuery query, Sortable sortable, Pageable pageable) {
+        try {
+            LOGGER.debug("Search paginated APIs by {}", query);
+
+            // We need to sort on fields which cannot be sort using db engine (ex: api's definition fields). Retrieve all the apis, then sort and paginate in memory.
+            Page<Api> apiPage = sortAndPaginate(apiRepository.search(queryToCriteria(query).build()), sortable, pageable);
+
+            // Unfortunately, for now, filterApiByQuery can't be invoked because it could break pagination and sort.
+            // Pagination MUST be applied before calls to convert as it involved a lot of data fetching and can be very slow.
+            return new Page<>(this.convert(apiPage.getContent()), apiPage.getPageNumber(), (int) apiPage.getPageElements(), apiPage.getTotalElements());
+        } catch (TechnicalException ex) {
+            final String errorMessage = "An error occurs while trying to search for paginated APIs: " + query;
+            LOGGER.error(errorMessage, ex);
+            throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    @Override
     public Collection<ApiEntity> search(final ApiQuery query) {
         try {
             LOGGER.debug("Search APIs by {}", query);
@@ -2154,6 +2236,36 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final String errorMessage = "An error occurs while trying to search for API ids: " + query;
             LOGGER.error(errorMessage, ex);
             throw new TechnicalManagementException(errorMessage, ex);
+        }
+    }
+
+    @Override
+    public Page<ApiEntity> search(String query, Map<String, Object> filters, Sortable sortable, Pageable pageable) {
+
+        try {
+            LOGGER.debug("Search paged APIs by {}", query);
+
+            Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class)
+                    .setQuery(query)
+                    .setFilters(filters)
+                    .build();
+
+            SearchResult matchApis = searchEngineService.search(apiQuery);
+
+            if(matchApis.getDocuments().isEmpty()) {
+                return new Page<>(emptyList(), 0, 0, 0);
+            }
+
+            final ApiCriteria apiCriteria = new ApiCriteria.Builder().ids(matchApis.getDocuments().toArray(new String[0])).build();
+            final Page<Api> apiPage = sortAndPaginate(apiRepository.search(apiCriteria), sortable, pageable);
+
+            // merge all apis
+            final List<ApiEntity> apis = convert(apiPage.getContent());
+
+            return new Page<>(apis, apiPage.getPageNumber(), (int) apiPage.getPageElements(), apiPage.getTotalElements());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to search paged apis", ex);
+            throw new TechnicalManagementException("An error occurs while trying to search paged apis", ex);
         }
     }
 
@@ -2227,9 +2339,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (!duplicateApiEntity.getFilteredFields().contains("members")) {
             final Set<MembershipEntity> membershipsToDuplicate =
                 membershipService.getMembershipsByReference(io.gravitee.rest.api.model.MembershipReferenceType.API, apiId);
-            Optional<RoleEntity> optPrimaryOwnerRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
-            if (optPrimaryOwnerRole.isPresent()) {
-                String primaryOwnerRoleId = optPrimaryOwnerRole.get().getId();
+            RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+            if (primaryOwnerRole != null) {
+                String primaryOwnerRoleId = primaryOwnerRole.getId();
                 membershipsToDuplicate.forEach(membership -> {
                     String roleId = membership.getRoleId();
                     if (!primaryOwnerRoleId.equals(roleId)) {
@@ -2389,6 +2501,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 .map(apiLifecycleState -> ApiLifecycleState.valueOf(apiLifecycleState.name()))
                 .collect(toList()));
         }
+        if (query.getIds() != null && !query.getIds().isEmpty()) {
+            builder.ids(query.getIds().toArray(new String[0]));
+        }
 
         return builder;
     }
@@ -2484,18 +2599,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private Set<ApiEntity> convert(final List<Api> apis) throws TechnicalException {
+    private List<ApiEntity> convert(final List<Api> apis) throws TechnicalException {
         if (apis == null || apis.isEmpty()) {
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
-        Optional<RoleEntity> optPrimaryOwnerRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
-        if (!optPrimaryOwnerRole.isPresent()) {
+        RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+        if (primaryOwnerRole == null) {
             throw new RoleNotFoundException("API_PRIMARY_OWNER");
         }
         //find primary owners usernames of each apis
         final List<String> apiIds = apis.stream().map(Api::getId).collect(toList());
 
-        Set<MemberEntity> memberships = membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, apiIds, optPrimaryOwnerRole.get().getId());
+        Set<MemberEntity> memberships = membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, apiIds, primaryOwnerRole.getId());
         int poMissing = apis.size() - memberships.size();
         Stream<Api> streamApis = apis.stream();
         if (poMissing > 0) {
@@ -2521,7 +2636,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final List<CategoryEntity> categories = categoryService.findAll();
         return streamApis
             .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), categories))
-            .collect(toSet());
+            .collect(toList());
     }
 
     private ApiEntity convert(Api api) {
@@ -2762,5 +2877,98 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return proxyModelEntity;
+    }
+
+
+    /*
+        Sort then paginate the provided list of apis.
+     */
+    private Page<Api> sortAndPaginate(List<Api> apis, Sortable sortable, Pageable pageable) {
+
+        Comparator<Api> comparator = buildApiComparator(sortable, pageable, apis);
+        pageable = buildPageable(pageable);
+
+        int totalCount = apis.size();
+        int startIndex = (pageable.getPageNumber() - 1) * pageable.getPageSize();
+
+        if (pageable.getPageNumber() < 1 || (totalCount > 0 && startIndex >= totalCount)) {
+            throw new PaginationInvalidException();
+        }
+
+        List<Api> subsetApis = apis.stream()
+                .sorted(comparator)
+                .skip(startIndex)
+                .limit(pageable.getPageSize())
+                .collect(toList());
+
+        return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apis.size());
+    }
+
+    /*
+        Handy method to initialize a default pageable if none is provided.
+     */
+    private Pageable buildPageable(Pageable pageable){
+
+        if(pageable == null) {
+            // No page specified, get all apis in one page.
+            return new PageableImpl(1, Integer.MAX_VALUE);
+        }
+
+        return pageable;
+    }
+
+    /*
+        Build and returns a comparator that can be used to sort the provided apis list.
+        Depending on the field to compare, it maintains a map of api definitions internally.
+        This increase the complexity but avoid unnecessary multiple json deserialization
+     */
+    private Comparator<Api> buildApiComparator(Sortable sortable, Pageable pageable, List<Api> apis) {
+
+        Comparator<Api> comparator = (api1, api2) -> 0;
+
+        if(pageable != null) {
+            // Pagination requires sorting apis to be able to navigate through pages.
+            comparator = comparing(api -> api.getName().toLowerCase());
+        }
+
+        if (sortable != null) {
+            // We only support sorting by name or virtual_hosts. Sort by name by default.
+            comparator = comparing(api -> api.getName().toLowerCase());
+
+            if (sortable.getField().equalsIgnoreCase("virtual_hosts")) {
+                Map<String, io.gravitee.definition.model.Api> apiDefinitions = new HashMap<>(apis.size());
+
+                apis.stream().filter(api -> api.getDefinition() != null).forEach(api -> {
+                    try {
+                        apiDefinitions.put(api.getId(), objectMapper.readValue(api.getDefinition(),
+                                io.gravitee.definition.model.Api.class));
+                    } catch (JsonProcessingException e) {
+                        // Ignore invalid api definition.
+                    }
+                });
+
+                comparator = (api1, api2) -> {
+                    io.gravitee.definition.model.Api apiDefinition1 = apiDefinitions.get(api1.getId());
+                    io.gravitee.definition.model.Api apiDefinition2 = apiDefinitions.get(api2.getId());
+
+                    if (apiDefinition1 != null && apiDefinition2 != null) {
+                        if (apiDefinition1.getProxy().getVirtualHosts() != null &&
+                                !apiDefinition1.getProxy().getVirtualHosts().isEmpty()
+                                && apiDefinition2.getProxy().getVirtualHosts() != null &&
+                                !apiDefinition2.getProxy().getVirtualHosts().isEmpty()) {
+                            return apiDefinition1.getProxy().getVirtualHosts().get(0).getPath().toLowerCase()
+                                    .compareTo(apiDefinition2.getProxy().getVirtualHosts().get(0).getPath().toLowerCase());
+                        }
+                    }
+                    return api1.getName().toLowerCase().compareTo(api2.getName().toLowerCase());
+                };
+            }
+
+            if(!sortable.isAscOrder()) {
+                comparator = comparator.reversed();
+            }
+        }
+
+        return comparator;
     }
 }

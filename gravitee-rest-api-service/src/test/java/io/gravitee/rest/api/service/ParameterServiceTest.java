@@ -22,7 +22,9 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ParameterServiceImpl;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -65,6 +67,11 @@ public class ParameterServiceTest {
     private EventManager eventManager;
     @Mock
     private EnvironmentService environmentService;
+
+    @Before
+    public void init(){
+        GraviteeContext.getCurrentParameters().clear();
+    }
 
     @Test
     public void shouldFindAll() throws TechnicalException {

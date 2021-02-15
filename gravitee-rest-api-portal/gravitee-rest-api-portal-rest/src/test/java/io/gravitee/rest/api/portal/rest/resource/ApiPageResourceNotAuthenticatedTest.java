@@ -32,10 +32,10 @@ import java.security.Principal;
 import java.util.*;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 
 /**
@@ -92,7 +92,7 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(isNull());
+        doReturn(mockApis).when(apiService).findPublishedByUser(isNull(), argThat(q -> singletonList(API).equals(q.getIds())));
         
         mockPage = new PageEntity();
         mockPage.setPublished(true);

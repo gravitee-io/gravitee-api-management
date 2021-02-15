@@ -653,15 +653,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (applications == null || applications.isEmpty()) {
             return Collections.emptySet();
         }
-        Optional<RoleEntity> optPrimaryOwnerRole = roleService.findByScopeAndName(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name());
-        if (!optPrimaryOwnerRole.isPresent()) {
+        RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.APPLICATION);
+        if (primaryOwnerRole == null) {
             throw new RoleNotFoundException("APPLICATION_PRIMARY_OWNER");
         }
 
         //find primary owners usernames of each applications
         final List<String> appIds = applications.stream().map(Application::getId).collect(Collectors.toList());
 
-        Set<MembershipEntity> memberships = membershipService.getMembershipsByReferencesAndRole(io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION, appIds, optPrimaryOwnerRole.get().getId());
+        Set<MembershipEntity> memberships = membershipService.getMembershipsByReferencesAndRole(io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION, appIds, primaryOwnerRole.getId());
         int poMissing = applications.size() - memberships.size();
         if (poMissing > 0) {
             Set<String> appMembershipsIds = memberships.stream().map(MembershipEntity::getReferenceId).collect(Collectors.toSet());

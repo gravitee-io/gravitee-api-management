@@ -16,11 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.management.rest.model.Pageable;
+import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.resource.param.ApisParam;
+import io.gravitee.rest.api.management.rest.resource.param.OrderParam;
 import io.gravitee.rest.api.management.rest.resource.param.VerifyApiParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -28,14 +31,18 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.*;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.swagger.annotations.*;
+import org.springframework.util.StringUtils;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -86,7 +93,20 @@ public class ApisResource extends AbstractResource {
     @ApiResponses({
             @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error")})
-    public List<ApiListItem> getApis(@BeanParam final ApisParam apisParam) {
+    public Collection<ApiListItem> getApis(@BeanParam final ApisParam apisParam) {
+        return getApis(apisParam, null).getData();
+    }
+
+    @GET
+    @Path("_paged")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+            value = "List APIs with pagination",
+            notes = "List all the APIs accessible to the current user with pagination.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Page of APIs for current user", response = PagedResult.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public PagedResult<ApiListItem> getApis(@BeanParam final ApisParam apisParam, @Valid @BeanParam Pageable pageable) {
 
         final ApiQuery apiQuery = new ApiQuery();
         if (apisParam.getGroup() != null) {
@@ -102,34 +122,46 @@ public class ApisResource extends AbstractResource {
             apiQuery.setCategory(categoryService.findById(apisParam.getCategory()).getId());
         }
 
-        final Collection<ApiEntity> apis;
+        Sortable sortable = null;
+        if (apisParam.getOrder() != null) {
+            sortable = new SortableImpl(apisParam.getOrder().getField(), apisParam.getOrder().isOrder());
+        }
+
+        io.gravitee.rest.api.model.common.Pageable commonPageable = null;
+
+        if(pageable != null) {
+            commonPageable = pageable.toPageable();
+        }
+
+        final Page<ApiEntity> apis;
         if (isAdmin()) {
-            apis = apiService.search(apiQuery);
+            apis = apiService.search(apiQuery, sortable, commonPageable);
         } else {
             if (apisParam.isPortal() || apisParam.isTop()) {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
             }
             if (isAuthenticated()) {
-                apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, false);
+                apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, sortable, commonPageable,false);
             } else {
                 apiQuery.setVisibility(PUBLIC);
-                apis = apiService.search(apiQuery);
+                apis = apiService.search(apiQuery, sortable, commonPageable);
             }
         }
 
+        final boolean isRatingServiceEnabled = ratingService.isEnabled();
+
         if (apisParam.isTop()) {
-            final List<String> visibleApis = apis.stream().map(ApiEntity::getId).collect(toList());
-            return topApiService.findAll().stream()
+            final List<String> visibleApis = apis.getContent().stream().map(ApiEntity::getId).collect(toList());
+            return new PagedResult<>(topApiService.findAll().stream()
                     .filter(topApi -> visibleApis.contains(topApi.getApi()))
                     .map(topApiEntity -> apiService.findById(topApiEntity.getApi()))
-                    .map(this::convert)
-                    .collect(toList());
+                    .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
+                    .collect(toList()), apis.getPageNumber(), (int) apis.getPageElements(), (int) apis.getTotalElements());
         }
 
-        return apis.stream()
-                .map(this::convert)
-                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-                .collect(toList());
+        return new PagedResult<>(apis.getContent().stream()
+                .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
+                .collect(toList()), apis.getPageNumber(), (int) apis.getPageElements(), (int) apis.getTotalElements());
     }
 
     /**
@@ -245,21 +277,47 @@ public class ApisResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     public Response searchApis(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
-            final ApiQuery apiQuery = new ApiQuery();
-            Map<String, Object> filters = new HashMap<>();
-            
-            if (!isAdmin()) {
-                final Collection<ApiEntity> apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, false);
-                filters.put("api", apis.stream().map(ApiEntity::getId).collect(toSet()));
-            }
-
-            return Response.ok().entity(apiService.search(query, filters)
-                    .stream()
-                    .map(this::convert)
-                    .collect(toList())).build();
-        } catch (TechnicalException te) {
+            return Response.ok().entity(this.searchApis(query, null, null).getData()).build();
+        } catch (TechnicalManagementException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
         }
+    }
+
+    @POST
+    @Path("_search/_paged")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Search for API using the search engine")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    public PagedResult<ApiListItem> searchApis(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query,
+                                               @ApiParam(name = "order") @QueryParam("order")  String order, @Valid @BeanParam Pageable pageable) {
+        final ApiQuery apiQuery = new ApiQuery();
+        Map<String, Object> filters = new HashMap<>();
+
+        Sortable sortable = null;
+        if (!StringUtils.isEmpty(order)) {
+            final OrderParam orderParam = new OrderParam(order);
+            sortable = new SortableImpl(orderParam.getValue().getField(), orderParam.getValue().isOrder());
+        }
+
+        io.gravitee.rest.api.model.common.Pageable commonPageable = null;
+
+        if (pageable != null) {
+            commonPageable = pageable.toPageable();
+        }
+
+        if (!isAdmin()) {
+            filters.put("api", apiService.findIdsByUser(getAuthenticatedUser(), apiQuery, false));
+        }
+
+        final boolean isRatingServiceEnabled = ratingService.isEnabled();
+
+        final Page<ApiEntity> apis = apiService.search(query, filters, sortable, commonPageable);
+
+        return new PagedResult<>(apis.getContent().stream()
+                .map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled))
+                .collect(toList()), apis.getPageNumber(), (int) apis.getPageElements(), (int) apis.getTotalElements());
     }
 
     @Path("{api}")
@@ -272,7 +330,7 @@ public class ApisResource extends AbstractResource {
         return resourceContext.getResource(ApiMediaResource.class);
     }
 
-    private ApiListItem convert(ApiEntity api) {
+    private ApiListItem convert(ApiEntity api, boolean isRatingServiceEnabled) {
         final ApiListItem apiItem = new ApiListItem();
 
         apiItem.setId(api.getId());
@@ -284,10 +342,10 @@ public class ApisResource extends AbstractResource {
         final UriBuilder uriBuilder = ub.path("organizations").path(GraviteeContext.getCurrentOrganization())
                 .path("environments").path(GraviteeContext.getCurrentEnvironment())
                 .path("apis").path(api.getId()).path("picture");
-        if (api.getPicture() != null) {
-            // force browser to get if updated
-            uriBuilder.queryParam("hash", api.getPicture().hashCode());
-        }
+
+        // force browser to get if updated
+        uriBuilder.queryParam("hash", api.getUpdatedAt().getTime());
+
         apiItem.setPictureUrl(uriBuilder.build().toString());
         apiItem.setCategories(api.getCategories());
         apiItem.setCreatedAt(api.getCreatedAt());
@@ -307,7 +365,7 @@ public class ApisResource extends AbstractResource {
             apiItem.setVirtualHosts(api.getProxy().getVirtualHosts());
         }
 
-        if (ratingService.isEnabled()) {
+        if (isRatingServiceEnabled) {
             final RatingSummaryEntity ratingSummary = ratingService.findSummaryByApi(api.getId());
             apiItem.setRate(ratingSummary.getAverageRate());
             apiItem.setNumberOfRatings(ratingSummary.getNumberOfRatings());

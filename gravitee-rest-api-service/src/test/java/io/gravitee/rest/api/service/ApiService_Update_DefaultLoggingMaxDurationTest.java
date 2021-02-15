@@ -156,7 +156,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setName(SystemRole.PRIMARY_OWNER.name());
         poRoleEntity.setScope(RoleScope.API);
-        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name())).thenReturn(Optional.of(poRoleEntity));
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(poRoleEntity);
         MemberEntity po = new MemberEntity();
         po.setId(USER_NAME);
         po.setReferenceId(API_ID);

@@ -15,11 +15,14 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,9 +42,16 @@ public interface ApiService {
 
     Set<ApiEntity> findAllLight();
 
+    Page<ApiEntity> findByUser(String userId, ApiQuery apiQuery, Sortable sortable, Pageable pageable, boolean portal);
+
     Set<ApiEntity> findByUser(String userId, ApiQuery apiQuery, boolean portal);
 
+    Page<ApiEntity> findPublishedByUser(String userId, ApiQuery apiQuery, Sortable sortable, Pageable pageable);
+
     Set<ApiEntity> findPublishedByUser(String userId);
+
+    List<String> findIdsByUser(String userId, ApiQuery apiQuery, boolean portal);
+
     Set<ApiEntity> findPublishedByUser(String userId, ApiQuery apiQuery);
 
     Set<ApiEntity> findByVisibility(Visibility visibility);
@@ -123,9 +133,13 @@ public interface ApiService {
         return updateApiEntity;
     }
 
+    Page<ApiEntity> search(ApiQuery query, Sortable sortable, Pageable pageable);
+
     Collection<ApiEntity> search(ApiQuery query);
 
     Collection<String> searchIds(ApiQuery query);
+
+    Page<ApiEntity> search(String query, Map<String, Object> filters, Sortable sortable, Pageable pageable);
 
     Collection<ApiEntity> search(String query, Map<String, Object> filters) throws TechnicalException;
 

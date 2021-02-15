@@ -108,20 +108,17 @@ public class ApiResource extends AbstractResource {
     }
 
     private void setPictures(final ApiEntity apiEntity) {
-        if (apiEntity.getPicture() != null) {
-            final UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder().path("picture");
-            // force browser to get if updated
-            uriBuilder.queryParam("hash", apiEntity.getPicture().hashCode());
-            apiEntity.setPictureUrl(uriBuilder.build().toString());
-            apiEntity.setPicture(null);
-        }
-        if (apiEntity.getBackground() != null) {
-            final UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder().path("background");
-            // force browser to get if updated
-            uriBuilder.queryParam("hash", apiEntity.getBackground().hashCode());
-            apiEntity.setBackgroundUrl(uriBuilder.build().toString());
-            apiEntity.setBackground(null);
-        }
+        UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder().path("picture");
+        // force browser to get if updated
+        uriBuilder.queryParam("hash", apiEntity.getUpdatedAt().getTime());
+        apiEntity.setPictureUrl(uriBuilder.build().toString());
+        apiEntity.setPicture(null);
+
+        uriBuilder = uriInfo.getAbsolutePathBuilder().path("background");
+        // force browser to get if updated
+        uriBuilder.queryParam("hash", apiEntity.getUpdatedAt().getTime());
+        apiEntity.setBackgroundUrl(uriBuilder.build().toString());
+        apiEntity.setBackground(null);
     }
 
     @GET
@@ -155,7 +152,9 @@ public class ApiResource extends AbstractResource {
         cc.setMaxAge(86400);
 
         if (image == null || image.getContent() == null) {
-            return Response.ok().build();
+            return Response.ok()
+                    .cacheControl(cc)
+                    .build();
         }
         EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
@@ -748,11 +747,7 @@ public class ApiResource extends AbstractResource {
     }
 
     private void setSynchronizationState(ApiStateEntity apiStateEntity) {
-        if (apiService.isSynchronized(apiStateEntity.getApiId())) {
-            apiStateEntity.setIsSynchronized(true);
-        } else {
-            apiStateEntity.setIsSynchronized(false);
-        }
+        apiStateEntity.setIsSynchronized(apiService.isSynchronized(apiStateEntity.getApiId()));
     }
 
     private void checkApiLifeCycle(ApiEntity api, LifecycleAction action) {

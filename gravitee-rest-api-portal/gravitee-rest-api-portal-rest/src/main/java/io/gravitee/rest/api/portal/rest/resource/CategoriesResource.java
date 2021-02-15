@@ -58,6 +58,7 @@ public class CategoriesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getCategories(@BeanParam PaginationParam paginationParam) {
+        // FIXME: retrieve all the apis of the user can be heavy because it involves a lot of data fetching. Find a way to just retrieve only necessary data.
         Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         
         List<Category> categoriesList = categoryService.findAll()

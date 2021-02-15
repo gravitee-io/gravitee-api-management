@@ -96,7 +96,7 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(Collections.singleton(appMembership));
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
                 thenReturn(Collections.singleton(application));
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(mock(RoleEntity.class)));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
         
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USERNAME);
@@ -160,7 +160,7 @@ public class ApplicationService_FindByUserTest {
         
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(RoleScope.APPLICATION);
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(role));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(role);
         when(roleService.findById(any())).thenReturn(role);
 
         when(applicationRepository.findByIds(any())).

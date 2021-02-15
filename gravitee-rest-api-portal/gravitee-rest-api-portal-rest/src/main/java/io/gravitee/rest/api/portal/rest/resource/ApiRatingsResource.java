@@ -28,6 +28,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -68,7 +69,9 @@ public class ApiRatingsResource extends AbstractResource {
                                          @BeanParam PaginationParam paginationParam,
                                          @QueryParam("mine") Boolean mine,
                                          @QueryParam("order") String order) {
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             List<Rating> ratings;
             if (mine != null && mine == true) {
@@ -103,7 +106,9 @@ public class ApiRatingsResource extends AbstractResource {
         if (ratingInput == null) {
             throw new BadRequestException("Input must not be null.");
         }
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             NewRatingEntity rating = new NewRatingEntity();
             rating.setApi(apiId);

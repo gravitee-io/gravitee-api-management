@@ -720,10 +720,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         } else {
             throw new RoleNotFoundException(referenceType.name() + "_PRIMARY_OWNER");
         }
-        Optional<RoleEntity> poRole = roleService.findByScopeAndName(poRoleScope, SystemRole.PRIMARY_OWNER.name());
-        if(poRole.isPresent()) {
+        RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), poRoleScope);
+        if(poRole != null) {
             try {
-                Optional<io.gravitee.repository.management.model.Membership> poMember = membershipRepository.findByReferenceAndRoleId(convert(referenceType), referenceId, poRole.get().getId())
+                Optional<io.gravitee.repository.management.model.Membership> poMember = membershipRepository.findByReferenceAndRoleId(convert(referenceType), referenceId, poRole.getId())
                     .stream()
                     .findFirst();
                 if(poMember.isPresent()) {
@@ -958,9 +958,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 new MembershipMember(member.getMemberId(), member.getReference(), member.getMemberType()),
                 new MembershipRole(roleScope, PRIMARY_OWNER.name()));
 
-        Optional<RoleEntity> optPoRoleEntity = roleService.findByScopeAndName(roleScope, PRIMARY_OWNER.name());
-        if(optPoRoleEntity.isPresent()) {
-            RoleEntity poRoleEntity = optPoRoleEntity.get();
+        RoleEntity poRoleEntity = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), roleScope);
+        if(poRoleEntity != null) {
             // remove previous role of the new primary owner
             this.getRoles(membershipReferenceType, itemId, member.getMemberType(), newPrimaryOwnerMember.getId()).forEach(role -> {
                 if (!role.getId().equals(poRoleEntity.getId())) {

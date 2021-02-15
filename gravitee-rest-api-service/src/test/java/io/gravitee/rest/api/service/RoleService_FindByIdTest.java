@@ -21,9 +21,11 @@ import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.RoleServiceImpl;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -50,6 +52,11 @@ public class RoleService_FindByIdTest {
 
     @Mock
     private RoleRepository mockRoleRepository;
+
+    @Before
+    public void init() {
+        GraviteeContext.getCurrentRoles().clear();
+    }
 
     @Test
     public void shouldFindById_C() throws TechnicalException {

@@ -82,6 +82,7 @@
         <module>gravitee-rest-api-portal</module>
         <module>gravitee-rest-api-standalone</module>
         <module>gravitee-rest-api-spec-converter</module>
+        <module>gravitee-rest-api-gatling</module>
     </modules>
 
     <dependencyManagement>

@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.NewRatingAnswerEntity;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
@@ -38,6 +39,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -65,7 +67,9 @@ public class ApiRatingAnswersResource extends AbstractResource {
             throw new BadRequestException("Input must not be null.");
         }
 
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             RatingEntity ratingEntity = ratingService.findById(ratingId);

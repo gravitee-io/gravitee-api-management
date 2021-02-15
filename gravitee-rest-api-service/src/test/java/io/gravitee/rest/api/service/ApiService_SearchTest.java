@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
@@ -39,7 +40,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
@@ -50,7 +54,7 @@ import static org.mockito.Mockito.*;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiService_FindByUserTest {
+public class ApiService_SearchTest {
 
     private static final String USER_NAME = "myUser";
 
@@ -91,39 +95,7 @@ public class ApiService_FindByUserTest {
     }
 
     @Test
-    public void shouldFindByUser() throws TechnicalException {
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build())).thenReturn(singletonList(api));
-
-        MembershipEntity membership = new MembershipEntity();
-        membership.setId("id");
-        membership.setMemberId(USER_NAME);
-        membership.setMemberType(MembershipMemberType.USER);
-        membership.setReferenceId(api.getId());
-        membership.setReferenceType(MembershipReferenceType.API);
-        membership.setRoleId("API_USER");
-
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)).thenReturn(Collections.singleton(membership));
-
-        RoleEntity poRole = new RoleEntity();
-        poRole.setId("API_PRIMARY_OWNER");
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
-
-        MemberEntity poMember = new MemberEntity();
-        poMember.setId("admin");
-        poMember.setRoles(Collections.singletonList(poRole));
-        when(membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, Collections.singletonList(api.getId()), "API_PRIMARY_OWNER")).thenReturn(new HashSet(Arrays.asList(poMember)));
-
-        final ApplicationListItem application = new ApplicationListItem();
-        application.setId("appId");
-
-        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null, false);
-
-        assertNotNull(apiEntities);
-        assertEquals(1, apiEntities.size());
-    }
-
-    @Test
-    public void shouldFindByUserPaginated() throws TechnicalException {
+    public void shouldSearchPaginated() {
         final Api api1 = new Api();
         api1.setId("api1");
         api1.setName("api1");
@@ -147,8 +119,7 @@ public class ApiService_FindByUserTest {
         membership2.setReferenceType(MembershipReferenceType.API);
         membership2.setRoleId("API_USER");
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)).thenReturn(new HashSet<>(Arrays.asList(membership1, membership2)));
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId(), api2.getId()).build()))
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build()))
                 .thenReturn(Arrays.asList(api1, api2));
 
         RoleEntity poRole = new RoleEntity();
@@ -160,7 +131,9 @@ public class ApiService_FindByUserTest {
         poMember.setRoles(Collections.singletonList(poRole));
         when(membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, Collections.singletonList(api1.getId()), "API_PRIMARY_OWNER")).thenReturn(new HashSet<>(singletonList(poMember)));
 
-        final Page<ApiEntity> apiPage = apiService.findByUser(USER_NAME, null, new SortableImpl("name", false), new PageableImpl(2, 1), false);
+
+        final ApiQuery apiQuery = new ApiQuery();
+        final Page<ApiEntity> apiPage = apiService.search(apiQuery, new SortableImpl("name", false), new PageableImpl(2, 1));
 
         assertNotNull(apiPage);
         assertEquals(1, apiPage.getContent().size());
@@ -168,29 +141,5 @@ public class ApiService_FindByUserTest {
         assertEquals(2, apiPage.getPageNumber());
         assertEquals(1, apiPage.getPageElements());
         assertEquals(2, apiPage.getTotalElements());
-    }
-
-    @Test
-    public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-                .thenReturn(Collections.emptySet());
-
-        final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null, false);
-
-        assertNotNull(apiEntities);
-        assertTrue(apiEntities.isEmpty());
-    }
-
-    @Test
-    public void shouldFindPublicApisOnlyWithAnonymousUser() throws TechnicalException {
-        final Set<ApiEntity> apiEntities = apiService.findByUser(null, null, false);
-
-        assertNotNull(apiEntities);
-        assertEquals(0, apiEntities.size());
-
-        verify(membershipService, times(0)).getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
-        verify(membershipService, times(0)).getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
-        verify(applicationService, times(0)).findByUser(null);
-
     }
 }

@@ -35,7 +35,7 @@ public abstract class AbstractCategoryResource extends AbstractResource {
             final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
             final UriBuilder uriBuilder = ub.path(fromRoot ? categoryEntity.getId() + "/picture" : "picture");
             // force browser to get if updated
-            uriBuilder.queryParam("hash", categoryEntity.getPicture().hashCode());
+            uriBuilder.queryParam("hash", categoryEntity.getUpdatedAt().getTime());
 
             categoryEntity.setPictureUrl(uriBuilder.build().toString());
             categoryEntity.setPicture(null);
@@ -44,7 +44,7 @@ public abstract class AbstractCategoryResource extends AbstractResource {
             final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
             final UriBuilder uriBuilder = ub.path(fromRoot ? categoryEntity.getId() + "/background" : "background");
             // force browser to get if updated
-            uriBuilder.queryParam("hash", categoryEntity.getBackground().hashCode());
+            uriBuilder.queryParam("hash", categoryEntity.getUpdatedAt().getTime());
 
             categoryEntity.setBackgroundUrl(uriBuilder.build().toString());
             categoryEntity.setBackground(null);

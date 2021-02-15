@@ -123,7 +123,7 @@ public class PortalApisResource extends AbstractResource {
         final UriBuilder uriBuilder = ub.path("apis").path(api.getId()).path("picture");
         if (api.getPicture() != null) {
             // force browser to get if updated
-            uriBuilder.queryParam("hash", api.getPicture().hashCode());
+            uriBuilder.queryParam("hash", api.getUpdatedAt().getTime());
         }
         apiItem.setPictureUrl(uriBuilder.build().toString());
         apiItem.setCategories(api.getCategories());

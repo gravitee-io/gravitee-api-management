@@ -331,7 +331,7 @@ public class ApiService_UpdateTest {
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Collections.singletonList(poRoleEntity));
         when(membershipService.getMembersByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRoleEntity));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRoleEntity);
     }
 
     @Test

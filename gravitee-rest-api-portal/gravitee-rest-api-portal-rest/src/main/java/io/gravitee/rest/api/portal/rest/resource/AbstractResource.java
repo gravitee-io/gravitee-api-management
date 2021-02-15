@@ -345,14 +345,15 @@ public abstract class AbstractResource {
     }
 
     protected Response createPictureResponse(Request request, InlinePictureEntity image) {
-        if (image == null || image.getContent() == null) {
-            return Response.ok().build();
-        }
         CacheControl cc = new CacheControl();
         cc.setNoTransform(true);
         cc.setMustRevalidate(false);
         cc.setNoCache(false);
         cc.setMaxAge(86400);
+
+        if (image == null || image.getContent() == null) {
+            return Response.ok().cacheControl(cc).build();
+        }
 
         EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
@@ -369,14 +370,15 @@ public abstract class AbstractResource {
     }
 
     protected Response createMediaResponse(Request request, String hashMedia, MediaEntity media) {
-        if (media == null || media.getData() == null) {
-            return Response.ok().build();
-        }
         CacheControl cc = new CacheControl();
         cc.setNoTransform(true);
         cc.setMustRevalidate(false);
         cc.setNoCache(false);
         cc.setMaxAge(86400);
+
+        if (media == null || media.getData() == null) {
+            return Response.ok().cacheControl(cc).build();
+        }
 
         EntityTag etag = new EntityTag(hashMedia);
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);

@@ -34,9 +34,12 @@ import java.util.Set;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +68,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         mockApi.setVisibility(Visibility.PUBLIC);
         doReturn(mockApi).when(apiService).findById(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         plan1 = new PlanEntity();
         plan1.setId("A");
@@ -95,8 +98,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         //test
         final Response response = target(API).path("plans").request().get();

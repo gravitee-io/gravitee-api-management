@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.Application;
@@ -40,9 +41,10 @@ import java.util.*;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 
 /**
@@ -68,7 +70,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(user);
         mockApi.setPrimaryOwner(primaryOwner);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
     }
 
     @Test
@@ -76,8 +78,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         // test
         final Response response = target(API).path("metrics").request().get();
@@ -200,7 +201,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity(user);
         mockApi.setPrimaryOwner(primaryOwner);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
         
         TopHitsAnalytics mockAnalytics = new TopHitsAnalytics();
         Map<String, Long> mockedValues = new HashMap<>();
