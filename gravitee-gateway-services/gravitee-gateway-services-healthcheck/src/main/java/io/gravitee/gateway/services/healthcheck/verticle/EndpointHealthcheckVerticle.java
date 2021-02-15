@@ -125,6 +125,8 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
                 return trigger.getRate() * 1000 * 60;
             case HOURS:
                 return trigger.getRate() * 1000 * 60 * 60;
+            case DAYS:
+                return trigger.getRate() * 1000 * 60 * 60 * 24;
         }
 
         return -1;
