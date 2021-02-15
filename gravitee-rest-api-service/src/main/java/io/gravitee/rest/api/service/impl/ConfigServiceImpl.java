@@ -63,6 +63,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     @Autowired
     private ReCaptchaService reCaptchaService;
 
+    private final static String SENSITIVE_VALUE = "********";
+
     @Override
     public boolean portalLoginForced() {
         boolean result = false;
@@ -179,7 +181,12 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                                 })));
                             }
                         } else {
-                            f.set(o, getFirstValueOrDefault(values, defaultValue));
+                            // If the parameter contains a sensitive info, we return dummy value
+                            if (! parameterKey.sensitive()) {
+                                f.set(o, getFirstValueOrDefault(values, defaultValue));
+                            } else {
+                                f.set(o, SENSITIVE_VALUE);
+                            }
                         }
                     } catch (IllegalAccessException e) {
                         LOGGER.error("Unable to set parameter {}. Use the default value", parameterKey.value().key(), e);
@@ -276,7 +283,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                             } else if (Map.class.isAssignableFrom(f.getType())) {
                                 parameterService.save(parameterKey.value(), (Map) f.get(o), referenceId, referenceType);
                             } else {
-                                parameterService.save(parameterKey.value(), (String) f.get(o), referenceId, referenceType);
+                                final String value = (String) f.get(o);
+                                if (! parameterKey.sensitive() || ! value.equals(SENSITIVE_VALUE)) {
+                                    parameterService.save(parameterKey.value(), (String) f.get(o), referenceId, referenceType);
+                                }
                             }
                         }
                     } catch (IllegalAccessException e) {
