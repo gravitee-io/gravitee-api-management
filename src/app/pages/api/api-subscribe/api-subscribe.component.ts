@@ -120,7 +120,7 @@ export class ApiSubscribeComponent implements OnInit {
 
     Promise.all([
       this.applicationService.getApplications({ size: -1, forSubscription: true }).toPromise(),
-      this.apiService.getApiPlansByApiId({ apiId: this.apiId }).toPromise(),
+      this.apiService.getApiPlansByApiId({ apiId: this.apiId, size: -1 }).toPromise(),
       this.getSubscriptions(),
     ]).then(([allAppsResponse, apiPlansResponse]) => {
       this.plans = apiPlansResponse.data;

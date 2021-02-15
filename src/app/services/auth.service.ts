@@ -118,7 +118,6 @@ export class AuthService {
       scope: provider.scopes.join(' '),
       responseType: 'code',
       redirectUri,
-      postLogoutRedirectUri: redirectUri,
     });
   }
 
