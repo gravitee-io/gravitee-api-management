@@ -21,9 +21,7 @@ import io.gravitee.repository.management.model.DictionaryType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
@@ -49,6 +47,21 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(dictionaries);
         assertEquals(3, dictionaries.size());
+    }
+
+    @Test
+    public void shouldFindById() throws Exception {
+        final Optional<Dictionary> optionalDictionary = dictionaryRepository.findById("dic-1");
+        assertNotNull(optionalDictionary);
+        assertTrue(optionalDictionary.isPresent());
+        final Dictionary dictionary = optionalDictionary.get();
+        Assert.assertEquals("Invalid saved environment id.",  "DEFAULT", dictionary.getEnvironmentId());
+        Assert.assertEquals("Invalid saved dictionary name.", "My dic 1", dictionary.getName());
+        Assert.assertEquals("Invalid dictionary description.", "Description for my dic 1", dictionary.getDescription());
+        Assert.assertTrue("Invalid dictionary createdAt.", compareDate(new Date(1000000000000L), dictionary.getCreatedAt()));
+        Assert.assertTrue("Invalid dictionary updatedAt.", compareDate(new Date(1439032010883L), dictionary.getUpdatedAt()));
+        Assert.assertEquals("Invalid dictionary properties.", 3, dictionary.getProperties().size());
+        Assert.assertEquals("Invalid dictionary property.", "127.0.0.1:8082", dictionary.getProperties().get("127.0.0.1:8082"));
     }
     
     @Test
@@ -93,6 +106,11 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         dictionary.setCreatedAt(new Date(1000000000000L));
         dictionary.setUpdatedAt(new Date(1486771200000L));
         dictionary.setType(DictionaryType.DYNAMIC);
+        final Map<String, String> properties = new HashMap<>();
+        properties.put("localhost", "localhost");
+        properties.put("localhost:8082", "localhost:8082");
+        properties.put("127.0.0.1:8082", "127.0.0.1:8082");
+        dictionary.setProperties(properties);
 
         int nbDictionariesBeforeUpdate = dictionaryRepository.findAll().size();
         dictionaryRepository.update(dictionary);
@@ -110,6 +128,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("Invalid dictionary createdAt.", compareDate(dictionary.getCreatedAt(), dictionaryUpdated.getCreatedAt()));
         Assert.assertTrue("Invalid dictionary updatedAt.", compareDate(dictionary.getUpdatedAt(), dictionaryUpdated.getUpdatedAt()));
         Assert.assertEquals("Invalid dictionary type.", dictionary.getType(), dictionaryUpdated.getType());
+        Assert.assertEquals("Invalid dictionary properties.", dictionary.getProperties(), dictionaryUpdated.getProperties());
     }
 
     @Test
