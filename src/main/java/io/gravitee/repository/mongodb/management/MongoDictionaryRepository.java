@@ -30,9 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,6 +40,8 @@ import java.util.Set;
 public class MongoDictionaryRepository implements DictionaryRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(MongoDictionaryRepository.class);
+
+    private final static String DOT_REPLACEMENT = "\\$#\\$";
 
     @Autowired
     private DictionaryMongoRepository internalDictionaryRepo;
@@ -56,6 +56,13 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         DictionaryMongo page = internalDictionaryRepo.findById(id).orElse(null);
         Dictionary res = mapper.map(page, Dictionary.class);
 
+        // Convert properties
+        if (res != null && res.getProperties() != null && ! res.getProperties().isEmpty()) {
+            final Map<String, String> properties = new HashMap<>(res.getProperties().size());
+            res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
+            res.setProperties(properties);
+        }
+
         LOGGER.debug("Find dictionary by ID [{}] - Done", id);
         return Optional.ofNullable(res);
     }
@@ -65,9 +72,24 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         LOGGER.debug("Create dictionary [{}]", dictionary.getName());
 
         DictionaryMongo dictionaryMongo = mapper.map(dictionary, DictionaryMongo.class);
+
+        // Convert properties to avoid dots in the key / value
+        if (dictionaryMongo.getProperties() != null && !dictionaryMongo.getProperties().isEmpty()) {
+            final Map<String, String> properties = new HashMap<>(dictionaryMongo.getProperties().size());
+            dictionaryMongo.getProperties().forEach((key, value) -> properties.put(key.replaceAll("\\.", DOT_REPLACEMENT), value));
+            dictionaryMongo.setProperties(properties);
+        }
+
         DictionaryMongo createdDictionaryMongo = internalDictionaryRepo.insert(dictionaryMongo);
 
         Dictionary res = mapper.map(createdDictionaryMongo, Dictionary.class);
+
+        // Convert properties
+        if (res != null && res.getProperties() != null && ! res.getProperties().isEmpty()) {
+            final Map<String, String> properties = new HashMap<>(res.getProperties().size());
+            res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
+            res.setProperties(properties);
+        }
 
         LOGGER.debug("Create dictionary [{}] - Done", dictionary.getName());
 
@@ -91,7 +113,13 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             dictionaryMongo.setDescription(dictionary.getDescription());
             dictionaryMongo.setUpdatedAt(dictionary.getUpdatedAt());
             dictionaryMongo.setDeployedAt(dictionary.getDeployedAt());
-            dictionaryMongo.setProperties(dictionary.getProperties());
+
+            // Convert properties to avoid dots in the key / value
+            if (dictionary.getProperties() != null && !dictionary.getProperties().isEmpty()) {
+                final Map<String, String> properties = new HashMap<>(dictionary.getProperties().size());
+                dictionary.getProperties().forEach((key, value) -> properties.put(key.replaceAll("\\.", DOT_REPLACEMENT), value));
+                dictionaryMongo.setProperties(properties);
+            }
 
             if (dictionary.getState() != null) {
                 dictionaryMongo.setState(dictionary.getState().name());
@@ -110,8 +138,17 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             }
 
             DictionaryMongo dictionaryMongoUpdated = internalDictionaryRepo.save(dictionaryMongo);
-            return mapper.map(dictionaryMongoUpdated, Dictionary.class);
 
+            final Dictionary res = mapper.map(dictionaryMongoUpdated, Dictionary.class);
+
+            // Convert properties
+            if (res != null && res.getProperties() != null && ! res.getProperties().isEmpty()) {
+                final Map<String, String> properties = new HashMap<>(res.getProperties().size());
+                res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
+                res.setProperties(properties);
+            }
+
+            return res;
         } catch (Exception e) {
             LOGGER.error("An error occured when updating dictionary", e);
             throw new TechnicalException("An error occured when updating dictionary");
