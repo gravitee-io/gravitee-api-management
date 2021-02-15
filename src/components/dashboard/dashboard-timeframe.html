@@ -66,7 +66,6 @@
         <md-input-container style="margin-bottom: 0;">
           <label>from</label>
           <input moment-picker="$ctrl.pickerStartDateFormated"
-                 locale="en-gb"
                  format="YYYY-MM-DD HH:mm"
                  max-date="$ctrl.pickerEndDate"
                  ng-model="$ctrl.pickerStartDate"
@@ -75,7 +74,6 @@
         <md-input-container style="margin-bottom: 0;">
           <label>to</label>
           <input moment-picker="$ctrl.pickerEndDateFormated"
-                 locale="en-gb"
                  format="YYYY-MM-DD HH:mm"
                  min-date="$ctrl.pickerStartDate"
                  ng-model="$ctrl.pickerEndDate"
