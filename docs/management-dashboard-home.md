@@ -1,4 +1,4 @@
-# Home board
+# Dashboard
 
 Here you can find global information and highlights of the platform.
 

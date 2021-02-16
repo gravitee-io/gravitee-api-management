@@ -19,11 +19,11 @@
   <div class="gv-forms gv-forms-fluid" layout="column">
     <div layout="row">
       <h1 flex>Platform Overview</h1>
-      <div layout="row" ng-if="dashboardCtrl.dashboards.length">
+      <div layout="row" ng-if="$ctrl.dashboards.length">
         <label style="padding: 27px">Select a dashboard</label>
         <md-input-container>
-          <md-select ng-model="dashboardCtrl.dashboard" ng-change="dashboardCtrl.onDashboardChanged(dashboardCtrl.dashboard.id)" aria-label="Dashboard selection">
-            <md-option ng-repeat="dashboard in dashboardCtrl.dashboards" ng-value="dashboard">
+          <md-select ng-model="$ctrl.dashboard" ng-change="$ctrl.onDashboardChanged($ctrl.dashboard.id)" aria-label="Dashboard selection">
+            <md-option ng-repeat="dashboard in $ctrl.dashboards" ng-value="dashboard">
               {{dashboard.name}}
             </md-option>
           </md-select>
@@ -32,17 +32,17 @@
     </div>
 
     <div class="gv-form">
-      <gv-dashboard model="dashboardCtrl.dashboard" on-timeframe-change="dashboardCtrl.onTimeframeChange(timeframe)"
-                    on-view-log-click="dashboardCtrl.viewLogs()" access-logs="true"></gv-dashboard>
+      <gv-dashboard model="$ctrl.dashboard" on-timeframe-change="$ctrl.onTimeframeChange(timeframe)"
+                    on-view-log-click="$ctrl.viewLogs()" access-logs="true"></gv-dashboard>
     </div>
 
-    <div class="gv-form" ng-if="dashboardCtrl.events.content.length > 0">
+    <div class="gv-form" ng-if="$ctrl.events.content.length > 0">
       <h2>API Events</h2>
       <div class="gv-form-content" layout="column">
       <md-list>
-        <md-list-item class="eventType" ng-class="{eventTypeSelected: selection}" ng-repeat="eventType in dashboardCtrl.eventTypes">
-          <a ng-click="selection= !selection; dashboardCtrl.selectEvent(eventType)">
-            <span><strong>{{dashboardCtrl.getEventLabel(eventType.toLowerCase())}}</strong></span>
+        <md-list-item class="eventType" ng-class="{eventTypeSelected: selection}" ng-repeat="eventType in $ctrl.eventTypes">
+          <a ng-click="selection= !selection; $ctrl.selectEvent(eventType)">
+            <span><strong>{{$ctrl.getEventLabel(eventType.toLowerCase())}}</strong></span>
           </a>
         </md-list-item>
       </md-list>
@@ -59,29 +59,29 @@
             </tr>
             </thead>
             <tbody md-body>
-            <tr md-row ng-repeat="event in dashboardCtrl.events.content" style="height: 25px;">
+            <tr md-row ng-repeat="event in $ctrl.events.content" style="height: 25px;">
               <td md-cell>
                 <span class="badge" ng-if="event.properties.deployment_number"># {{event.properties.deployment_number}}</span>
               </td>
               <td md-cell>{{event.updated_at | humanDatetimeFilter }}</td>
               <td md-cell>{{event.properties.deployment_label}}</td>
-              <td md-cell>{{dashboardCtrl.getEventLabel(event.type)}}</td>
+              <td md-cell>{{$ctrl.getEventLabel(event.type)}}</td>
               <td md-cell>
-                <a ui-sref="management.apis.detail.analytics.overview({ apiId: event.properties.api_id, from: dashboardCtrl.$state.params.from, to: dashboardCtrl.$state.params.to} )">
+                <a ui-sref="management.apis.detail.analytics.overview({ apiId: event.properties.api_id, from: $ctrl.$state.params.from, to: $ctrl.$state.params.to} )">
                   {{event.properties.api_name}} <small>({{event.properties.api_version}})</small>
                 </a>
               </td>
             </tr>
-            <tr ng-if="dashboardCtrl.events.content.length === 0">
+            <tr ng-if="$ctrl.events.content.length === 0">
               <td md-cell colspan="2">No event</td>
             </tr>
             </tbody>
           </table>
         </md-table-container>
-        <md-table-pagination md-limit="dashboardCtrl.query.limit" md-limit-options="[10, 25, 50, 75, 100]" md-page="dashboardCtrl.query.page" md-total="{{dashboardCtrl.events.totalElements}}" md-on-limit="dashboardCtrl.searchEvents" md-on-paginate="dashboardCtrl.searchEvents" md-page-select></md-table-pagination>
+        <md-table-pagination md-limit="$ctrl.query.limit" md-limit-options="[10, 25, 50, 75, 100]" md-page="$ctrl.query.page" md-total="{{$ctrl.events.totalElements}}" md-on-limit="$ctrl.searchEvents" md-on-paginate="$ctrl.searchEvents" md-page-select></md-table-pagination>
       </div>
       <div ng-if="eventsFetchData" layout="column" layout-align="center center" flex><md-progress-circular md-mode="indeterminate"></md-progress-circular></div>
-      <div ng-if="!eventsFetchData && dashboardCtrl.events.content.length == 0" layout="column" layout-align="center center" flex>
+      <div ng-if="!eventsFetchData && $ctrl.events.content.length == 0" layout="column" layout-align="center center" flex>
         <p><ng-md-icon icon="block" style="fill: grey"></ng-md-icon></p>
         <p>No data</p>
       </div>

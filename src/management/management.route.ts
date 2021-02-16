@@ -29,29 +29,84 @@ function managementRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management', {
-      redirectTo: 'management.home',
+      redirectTo: 'management.dashboard',
       parent: 'withSidenav',
       controller: function ($rootScope, Constants) {
         $rootScope.consoleTitle = Constants.org.settings.management.title;
       }
     })
-    .state('management.home', {
-      url: '/home',
-      template: require('./platform/home/home.html'),
-      controller: 'HomeController',
-      controllerAs: 'homeCtrl',
+    .state('management.dashboard', {
+      redirectTo: 'management.dashboard.home',
+      template: require('./dashboard/dashboard.html'),
+      controller: 'DashboardController',
+      controllerAs: '$ctrl',
+    })
+    .state('management.dashboard.home', {
+      url: '/',
+      template: require('./dashboard/home-dashboard/home-dashboard.html'),
+      controller: 'HomeDashboardController',
+      controllerAs: '$ctrl',
       resolve: {
         dashboards: (DashboardService: DashboardService) => DashboardService.list('HOME').then(response => response.data)
       },
       data: {
+        docs: {
+          page: 'management-dashboard-home'
+        },
         menu: {
-          label: 'Home',
+          label: 'Dashboard',
           icon: 'home',
           firstLevel: true,
           order: 0
+        }
+      }
+    })
+    .state('management.dashboard.apis-status', {
+      url: '/apis-status',
+      template: require('./dashboard/apis-status-dashboard/apis-status-dashboard.html'),
+      controller: 'ApisStatusDashboardController',
+      controllerAs: '$ctrl',
+      resolve: {
+        apis: (ApiService: ApiService) => ApiService.list().then(response => response.data),
+      },
+      data: {
+        docs: {
+          page: 'management-dashboard-apis-status'
+        }
+      }
+    })
+    .state('management.dashboard.analytics', {
+      url: '/platform?from&to&q&dashboard',
+      template: require('./dashboard/analytics-dashboard/analytics-dashboard.html'),
+      controller: 'AnalyticsDashboardController',
+      controllerAs: '$ctrl',
+      resolve: {
+        dashboards: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then(response => response.data)
+      },
+      data: {
+        perms: {
+          only: ['environment-platform-r']
         },
         docs: {
-          page: 'management-home'
+          page: 'management-dashboard-analytics'
+        }
+      },
+      params: {
+        from: {
+          type: 'int',
+          dynamic: true
+        },
+        to: {
+          type: 'int',
+          dynamic: true
+        },
+        q: {
+          type: 'string',
+          dynamic: true
+        },
+        dashboard: {
+          type: 'string',
+          dynamic: true
         }
       }
     })
@@ -118,47 +173,6 @@ function managementRouterConfig($stateProvider) {
       resolve: {
         monitoringData: ($stateParams, InstancesService: InstancesService, instance: any) =>
           InstancesService.getMonitoringData($stateParams.instanceId, instance.id).then(response => response.data)
-      }
-    })
-    .state('management.platform', {
-      url: '/platform?from&to&q&dashboard',
-      template: require('./platform/dashboard/dashboard.html'),
-      controller: 'DashboardController',
-      controllerAs: 'dashboardCtrl',
-      resolve: {
-        dashboards: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then(response => response.data)
-      },
-      data: {
-        menu: {
-          label: 'Dashboard',
-          icon: 'show_chart',
-          firstLevel: true,
-          order: 40
-        },
-        perms: {
-          only: ['environment-platform-r']
-        },
-        docs: {
-          page: 'management-dashboard'
-        }
-      },
-      params: {
-        from: {
-          type: 'int',
-          dynamic: true
-        },
-        to: {
-          type: 'int',
-          dynamic: true
-        },
-        q: {
-          type: 'string',
-          dynamic: true
-        },
-        dashboard: {
-          type: 'string',
-          dynamic: true
-        }
       }
     })
     .state('management.logs', {

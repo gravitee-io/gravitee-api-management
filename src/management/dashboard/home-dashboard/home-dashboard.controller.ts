@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 import { ITimeframe, TimeframeRanges } from '../../../components/quick-time-range/quick-time-range.component';
 
-class HomeController {
+class HomeDashboardController {
   private eventLabels: any;
   private eventTypes: any[];
   private selectedAPIs: any[];
@@ -128,4 +128,4 @@ class HomeController {
   }
 }
 
-export default HomeController;
+export default HomeDashboardController;

@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 
-class DashboardController {
+class AnalyticsDashboardController {
   private eventLabels: any;
   private eventTypes: any[];
   private selectedAPIs: any[];
@@ -148,4 +148,4 @@ class DashboardController {
   }
 }
 
-export default DashboardController;
+export default AnalyticsDashboardController;

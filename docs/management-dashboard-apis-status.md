@@ -1,4 +1,4 @@
-# API Health Check
+# APIs Status
 
 Health monitoring of your APIs by sending requests to an `health` endpoint on each API.
 

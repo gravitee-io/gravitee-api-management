@@ -21,7 +21,7 @@ require('@gravitee/ui-components/wc/gv-chart-gauge');
 // tslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-line');
 
-class ApiHealthCheckController {
+class ApisStatusDashboardController {
   private readonly RED_COLOR = '#D9534F';
   private readonly ORANGE_COLOR = '#F0AD4E';
   private readonly GREEN_COLOR = '#5CB85C';
@@ -236,4 +236,4 @@ class ApiHealthCheckController {
   }
 }
 
-export default ApiHealthCheckController;
+export default ApisStatusDashboardController;

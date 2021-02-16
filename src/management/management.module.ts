@@ -34,7 +34,7 @@ import GvModelDirective from '../libraries/gv-model.directive';
 import ApiService from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisController from '../management/api/apis.controller';
-import ApisHealthcheckController from './api/healthcheck/apisHealthcheck.controller';
+import ApisStatusDashboardController from '../management/dashboard/apis-status-dashboard/apis-status-dashboard.controller';
 import ApiPortalController from '../management/api/portal/general/apiPortal.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
 import ApiAnalyticsController from '../management/api/analytics/overview/analytics.controller';
@@ -190,7 +190,7 @@ import IdentityPictureDirective from '../components/identityPicture/identityPict
 import ImageDirective from '../components/image/image.directive';
 import EventsService from '../services/events.service';
 import AnalyticsService from '../services/analytics.service';
-import DashboardController from '../management/platform/dashboard/dashboard.controller';
+import AnalyticsDashboardController from '../management/dashboard/analytics-dashboard/analytics-dashboard.controller';
 import PlatformLogsController from '../management/platform/logs/platform-logs.controller';
 import PlatformLogsComponent from '../management/platform/logs/platform-logs.component';
 import PlatformLogComponent from '../management/platform/logs/platform-log.component';
@@ -524,7 +524,8 @@ import TicketsListController from './support/tickets-list.controller';
 import TicketDetailComponent from './support/ticket-detail.component';
 import organizationRouterConfig from '../organization/organization.route';
 import SpelService from '../services/spel.service';
-import HomeController from './platform/home/home.controller';
+import DashboardController from './dashboard/dashboard.controller';
+import HomeDashboardController from './dashboard/home-dashboard/home-dashboard.controller';
 import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
 
 (<any>window).jQuery = jQuery;
@@ -697,7 +698,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   });
   graviteeManagementModule.run(runBlock);
   graviteeManagementModule.controller('ApisController', ApisController);
-  graviteeManagementModule.controller('ApisHealthcheckController', ApisHealthcheckController);
+  graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
   graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
   graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
   graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
@@ -732,8 +733,9 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.controller('InstancesController', InstancesController);
   graviteeManagementModule.controller('InstanceEnvironmentController', InstanceEnvironmentController);
   graviteeManagementModule.controller('InstanceMonitoringController', InstanceMonitoringController);
+  graviteeManagementModule.controller('AnalyticsDashboardController', AnalyticsDashboardController);
   graviteeManagementModule.controller('DashboardController', DashboardController);
-  graviteeManagementModule.controller('HomeController', HomeController);
+  graviteeManagementModule.controller('HomeDashboardController', HomeDashboardController);
   graviteeManagementModule.controller('CategoriesController', CategoriesController);
   graviteeManagementModule.controller('CategoryController', CategoryController);
   graviteeManagementModule.controller('TenantsController', TenantsController);
