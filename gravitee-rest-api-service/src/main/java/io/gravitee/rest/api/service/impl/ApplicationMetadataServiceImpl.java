@@ -15,11 +15,16 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.repository.management.model.MetadataReferenceType;
+import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
+import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.ReferenceMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
+import io.gravitee.rest.api.service.ApplicationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -33,6 +38,9 @@ import static java.util.stream.Collectors.toList;
  */
 @Component
 public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataService implements ApplicationMetadataService {
+
+    @Autowired
+    private ApplicationService applicationService;
 
     @Override
     public List<ApplicationMetadataEntity> findAllByApplication(final String applicationId) {
@@ -60,6 +68,12 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
     @Override
     public ApplicationMetadataEntity update(final UpdateApplicationMetadataEntity metadataEntity) {
         return convert(update(metadataEntity, APPLICATION, metadataEntity.getApplicationId(), false), metadataEntity.getApplicationId());
+    }
+
+    @Override
+    protected void checkReferenceMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, String referenceId) {
+        final ApplicationEntity applicationEntity = applicationService.findById(referenceId);
+        metadataService.checkMetadataFormat(format, value, referenceType, applicationEntity);
     }
 
     private ApplicationMetadataEntity convert(ReferenceMetadataEntity m, String applicationId) {

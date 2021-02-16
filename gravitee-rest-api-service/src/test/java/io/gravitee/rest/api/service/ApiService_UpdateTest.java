@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -57,6 +58,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.io.Reader;
 import java.util.*;
 
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
@@ -177,6 +179,9 @@ public class ApiService_UpdateTest {
     @Mock
     private EmailService emailService;
 
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -190,6 +195,9 @@ public class ApiService_UpdateTest {
         when(api.getId()).thenReturn(API_ID);
         when(api.getDefinition()).thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
         when(api.getEnvironmentId()).thenReturn("DEFAULT");
+
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("toDecode=decoded-value");
+        reset(searchEngineService);
     }
 
     @After
@@ -220,6 +228,7 @@ public class ApiService_UpdateTest {
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test(expected = ApiNotFoundException.class)
@@ -353,6 +362,7 @@ public class ApiService_UpdateTest {
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -363,6 +373,7 @@ public class ApiService_UpdateTest {
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         verify(apiRepository).update(argThat(api -> api.getLabels().size() == 1));
         assertNotNull(apiEntity);
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -380,6 +391,7 @@ public class ApiService_UpdateTest {
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -397,6 +409,7 @@ public class ApiService_UpdateTest {
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -407,6 +420,7 @@ public class ApiService_UpdateTest {
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test(expected = TagNotAllowedException.class)
@@ -484,6 +498,7 @@ public class ApiService_UpdateTest {
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -511,6 +526,7 @@ public class ApiService_UpdateTest {
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(UNPUBLISHED, apiEntity.getLifecycleState());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test

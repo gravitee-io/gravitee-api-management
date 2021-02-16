@@ -27,9 +27,11 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -41,12 +43,12 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -103,6 +105,8 @@ public class ApiService_CreateWithDefinitionTest {
     private AlertService alertService;
     @Spy
     private PolicyService policyService;
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -116,6 +120,12 @@ public class ApiService_CreateWithDefinitionTest {
             public void setAuthentication(Authentication authentication) {
             }
         });
+    }
+
+    @Before
+    public void setUp() {
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("toDecode=decoded-value");
+        reset(searchEngineService);
     }
 
     @Test
@@ -179,6 +189,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -240,6 +251,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, times(1)).create(any());
         verify(membershipService, never()).transferApiOwnership(any(), any(), any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -269,6 +281,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -297,6 +310,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -325,6 +339,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -351,6 +366,7 @@ public class ApiService_CreateWithDefinitionTest {
                 new MembershipService.MembershipMember("admin", null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));        verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -379,6 +395,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -408,5 +425,6 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 }

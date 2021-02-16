@@ -21,9 +21,11 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.NewApiMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -31,7 +33,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 
 /**
@@ -44,6 +45,8 @@ public class ApiMetadataResource extends AbstractResource {
 
     @Inject
     private ApiMetadataService metadataService;
+    @Inject
+    private SearchEngineService searchEngineService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
@@ -96,6 +99,8 @@ public class ApiMetadataResource extends AbstractResource {
         metadata.setApiId(api);
 
         final ApiMetadataEntity apiMetadataEntity = metadataService.create(metadata);
+        ApiEntity apiEntity = apiService.fetchMetadataForApi(apiService.findById(api));
+        searchEngineService.index(apiEntity, false);
         return Response
                 .created(this.getLocationHeader(apiMetadataEntity.getKey()))
                 .entity(apiMetadataEntity)
@@ -134,6 +139,8 @@ public class ApiMetadataResource extends AbstractResource {
     })
     public Response deleteApiMetadata(@PathParam("metadata") String metadata) {
         metadataService.delete(metadata, api);
+        ApiEntity apiEntity = apiService.fetchMetadataForApi(apiService.findById(api));
+        searchEngineService.index(apiEntity, false);
         return Response.noContent().build();
     }
 }

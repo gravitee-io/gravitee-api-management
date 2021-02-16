@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
+import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -114,5 +115,10 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
             LOGGER.error("An error occurred while trying to all metadata with key {}", key, ex);
             throw new TechnicalManagementException("An error occurred while trying to all metadata with key " + key, ex);
         }
+    }
+
+    @Override
+    protected void checkReferenceMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, String referenceId) {
+        // do nothing for User, currently on String is used without templating
     }
 }

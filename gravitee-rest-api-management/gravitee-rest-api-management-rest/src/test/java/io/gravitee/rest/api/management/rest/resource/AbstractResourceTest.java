@@ -29,6 +29,7 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActiv
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.configuration.spel.SpelService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -194,6 +195,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected InstallationService installationService;
+
+    @Autowired
+    protected SearchEngineService searchEngineService;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -429,5 +433,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
             return mock(InstallationService.class);
         }
 
+        @Bean
+        public SearchEngineService searchEngineService() {
+            return mock(SearchEngineService.class);
+        }
     }
 }

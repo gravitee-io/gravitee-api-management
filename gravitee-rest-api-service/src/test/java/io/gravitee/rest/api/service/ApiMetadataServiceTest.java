@@ -16,12 +16,14 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
 import io.gravitee.rest.api.service.impl.ApiMetadataServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +44,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.*;
 
 /**
@@ -86,6 +89,9 @@ public class ApiMetadataServiceTest {
 
     @Mock
     private MetadataEntity defaultMetadataEntityWithoutOverride;
+
+    @Mock
+    private SearchEngineService searchEngineService;
 
     @Before
     public void init() throws TechnicalException {
@@ -221,6 +227,7 @@ public class ApiMetadataServiceTest {
 
         when(apiMetadata.getValue()).thenReturn(newValue);
         when(metadataRepository.update(any())).thenReturn(apiMetadata);
+        when(apiService.fetchMetadataForApi(any())).thenReturn(new ApiEntity());
 
         final ApiMetadataEntity updatedApiMetadata = apiMetadataService.update(updateApiMetadataEntity);
 
@@ -239,6 +246,7 @@ public class ApiMetadataServiceTest {
 
         verify(metadataRepository).update(newApiMetadata);
         verify(auditService).createApiAuditLog(eq(API_ID), any(), eq(METADATA_UPDATED), any(), eq(apiMetadata), eq(newApiMetadata));
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test

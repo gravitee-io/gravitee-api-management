@@ -484,8 +484,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                     //TODO add membership log
                     ApiEntity apiEntity = convert(createdApi, primaryOwner, null);
+                    ApiEntity apiWithMetadata = fetchMetadataForApi(apiEntity);
 
-                    searchEngineService.index(apiEntity, false);
+                    searchEngineService.index(apiWithMetadata, false);
                     return apiEntity;
                 } else {
                     LOGGER.error("Unable to create API {} because primary owner role has not been found.", api.getName());
@@ -985,17 +986,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     updateApiMetadataEntity.setKey(apiMetadataEntity.getKey());
                     updateApiMetadataEntity.setName(data.getName());
                     updateApiMetadataEntity.setValue(data.getValue());
-                    this.apiMetadataService.update(updateApiMetadataEntity);
+                    ApiMetadataEntity metadata = this.apiMetadataService.update(updateApiMetadataEntity);
+                    updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
                 } catch (ApiMetadataNotFoundException amnfe) {
                     NewApiMetadataEntity newMD = new NewApiMetadataEntity();
                     newMD.setApiId(apiId);
                     newMD.setFormat(data.getFormat());
                     newMD.setName(data.getName());
                     newMD.setValue(data.getValue());
-                    this.apiMetadataService.create(newMD);
+                    ApiMetadataEntity metadata = this.apiMetadataService.create(newMD);
+                    updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
                 }
             });
         }
+
+        searchEngineService.index(updatedApi, false);
 
         return updatedApi;
     }
@@ -1121,7 +1126,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 ApiEntity apiEntity = convert(singletonList(updatedApi)).iterator().next();
-                searchEngineService.index(apiEntity, false);
+                ApiEntity apiWithMetadata = fetchMetadataForApi(apiEntity);
+
+                searchEngineService.index(apiWithMetadata, false);
+
                 return apiEntity;
             } else {
                 LOGGER.error("Unable to update API {} because of previous error.", apiId);
@@ -2308,6 +2316,27 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         api.getProxy().getGroups().stream().anyMatch(group -> group.getEndpoints() != null && group.getEndpoints().stream().anyMatch(endpointHealthCheckEnabledPredicate)));
             }
         }
+    }
+
+    @Override
+    public ApiEntity fetchMetadataForApi(ApiEntity apiEntity) {
+        List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiEntity.getId());
+        final Map<String, Object> mapMetadata = new HashMap<>(metadataList.size());
+
+        metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(),
+                metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
+
+        String decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
+                apiEntity.getId(),
+                new StringReader(mapMetadata.toString()),
+                Collections.singletonMap("api", apiEntity));
+        Map<String, Object> metadataDecoded = Arrays
+                .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                .map(entry -> entry.split("="))
+                .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+        apiEntity.setMetadata(metadataDecoded);
+
+        return apiEntity;
     }
 
     private UpdateApiEntity convert(final ApiEntity apiEntity) {

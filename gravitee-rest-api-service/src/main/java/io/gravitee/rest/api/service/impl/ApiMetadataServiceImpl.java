@@ -15,12 +15,16 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.search.SearchEngineService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
 import static java.util.stream.Collectors.toList;
@@ -31,6 +35,11 @@ import static java.util.stream.Collectors.toList;
  */
 @Component
 public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService implements ApiMetadataService {
+
+    @Autowired
+    private ApiService apiService;
+    @Autowired
+    private SearchEngineService searchEngineService;
 
     @Override
     public List<ApiMetadataEntity> findAllByApi(final String apiId) {
@@ -63,7 +72,16 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Override
     public ApiMetadataEntity update(final UpdateApiMetadataEntity metadataEntity) {
-        return convert(update(metadataEntity, API, metadataEntity.getApiId(), true), metadataEntity.getApiId());
+        ApiMetadataEntity apiMetadataEntity = convert(update(metadataEntity, API, metadataEntity.getApiId(), true), metadataEntity.getApiId());
+        ApiEntity apiEntity = apiService.fetchMetadataForApi(apiService.findById(apiMetadataEntity.getApiId()));
+        searchEngineService.index(apiEntity, false);
+        return apiMetadataEntity;
+    }
+
+    @Override
+    protected void checkReferenceMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, String referenceId) {
+        final ApiEntity apiEntity = apiService.findById(referenceId);
+        metadataService.checkMetadataFormat(format, value, referenceType, apiEntity);
     }
 
     private ApiMetadataEntity convert(ReferenceMetadataEntity m, String apiId) {

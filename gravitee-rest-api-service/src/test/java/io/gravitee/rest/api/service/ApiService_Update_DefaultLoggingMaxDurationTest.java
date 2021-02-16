@@ -35,6 +35,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -51,6 +52,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
@@ -116,6 +118,9 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     @Mock
     private ApiMetadataService apiMetadataService;
 
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
+
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
@@ -137,6 +142,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(api);
+        when(api.getId()).thenReturn(API_ID);
         when(api.getName()).thenReturn(API_NAME);
         when(api.getApiLifecycleState()).thenReturn(ApiLifecycleState.CREATED);
 
@@ -171,6 +177,9 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         final SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
         SecurityContextHolder.setContext(securityContext);
+
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("toDecode=decoded-value");
+        reset(searchEngineService);
     }
 
     @Test

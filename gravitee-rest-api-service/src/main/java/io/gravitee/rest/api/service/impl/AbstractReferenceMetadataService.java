@@ -23,9 +23,6 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -53,13 +50,9 @@ public abstract class AbstractReferenceMetadataService {
     @Autowired
     protected MetadataRepository metadataRepository;
     @Autowired
-    private MetadataService metadataService;
+    protected MetadataService metadataService;
     @Autowired
     private AuditService auditService;
-    @Autowired
-    private ApiService apiService;
-    @Autowired
-    private ApplicationService applicationService;
 
     protected List<ReferenceMetadataEntity> findAllByReference(final MetadataReferenceType referenceType, final String referenceId,
                                                                final boolean withDefaults) {
@@ -180,21 +173,7 @@ public abstract class AbstractReferenceMetadataService {
         }
     }
 
-    private void checkReferenceMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, String referenceId) {
-        switch (referenceType) {
-            case API:
-                final ApiEntity apiEntity = apiService.findById(referenceId);
-                metadataService.checkMetadataFormat(format, value, referenceType, apiEntity);
-                break;
-            case APPLICATION:
-                final ApplicationEntity applicationEntity = applicationService.findById(referenceId);
-                metadataService.checkMetadataFormat(format, value, referenceType, applicationEntity);
-                break;
-            case USER:
-                // do nothing for User, currently on String is used without templating
-                break;
-        }
-    }
+    protected abstract void checkReferenceMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, String referenceId);
 
     private void createReferenceAuditLog(MetadataReferenceType referenceType, String referenceId,
                                          Metadata oldMetadata, Metadata metadata, Metadata.AuditEvent auditEvent) {

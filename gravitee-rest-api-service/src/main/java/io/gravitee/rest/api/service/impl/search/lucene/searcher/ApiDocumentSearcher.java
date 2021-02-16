@@ -52,6 +52,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             put("hosts", 10.0f);
             put("labels", 8.0f);
             put("description", 6.0f);
+            put("metadata", 4.0f);
         }
     };
 
@@ -84,6 +85,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 "paths_split",
                 "hosts",
                 "hosts_split",
+                "metadata",
+                "metadata_split",
         }, analyzer, API_FIELD_BOOST);
         apiParser.setFuzzyMinSim(0.6f);
         apiParser.setAllowLeadingWildcard(true);
@@ -116,6 +119,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             apiFieldsQuery.add(new WildcardQuery(new Term("labels", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("categories", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("tags", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(new WildcardQuery(new Term("metadata", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
 
             apiQuery.add(apiFieldsQuery.build(), BooleanClause.Occur.MUST);
             apiQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.MUST);

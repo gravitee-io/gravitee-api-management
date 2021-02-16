@@ -154,7 +154,8 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     private Indexable getSource(String clazz, String id) {
         try {
             if (ApiEntity.class.getName().equals(clazz)) {
-                return apiService.findById(id);
+                ApiEntity apiEntity = apiService.findById(id);
+                return apiService.fetchMetadataForApi(apiEntity);
             } else if (PageEntity.class.getName().equals(clazz) || ApiPageEntity.class.getName().equals(clazz)) {
                 return pageService.findById(id);
             } else if (UserEntity.class.getName().equals(clazz)) {

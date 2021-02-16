@@ -63,7 +63,8 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
         Set<ApiEntity> apis = apiService.findAll();
         apis.forEach(apiEntity -> {
             // API
-            searchEngineService.index(apiEntity, true);
+            ApiEntity toIndex = apiService.fetchMetadataForApi(apiEntity);
+            searchEngineService.index(toIndex, true);
 
             // Pages
             List<PageEntity> apiPages = pageService.search(new PageQuery.Builder().api(apiEntity.getId()).published(true).build(), true);

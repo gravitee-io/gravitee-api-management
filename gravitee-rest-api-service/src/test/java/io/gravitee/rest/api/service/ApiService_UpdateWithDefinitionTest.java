@@ -28,8 +28,10 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -41,6 +43,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
@@ -98,6 +101,8 @@ public class ApiService_UpdateWithDefinitionTest {
     private PolicyService policyService;
     @Mock
     private ApiMetadataService apiMetadataService;
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -111,6 +116,12 @@ public class ApiService_UpdateWithDefinitionTest {
             public void setAuthentication(Authentication authentication) {
             }
         });
+    }
+
+    @Before
+    public void setUp() {
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("toDecode=decoded-value");
+        reset(searchEngineService);
     }
 
     @Test
@@ -178,6 +189,7 @@ public class ApiService_UpdateWithDefinitionTest {
         verify(membershipService, times(1)).addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     private ApiEntity prepareUpdateImportApiWithMembers(UserEntity admin, UserEntity user) throws TechnicalException {
@@ -253,6 +265,7 @@ public class ApiService_UpdateWithDefinitionTest {
         verify(membershipService, times(1)).addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -286,6 +299,7 @@ public class ApiService_UpdateWithDefinitionTest {
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -318,6 +332,7 @@ public class ApiService_UpdateWithDefinitionTest {
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER"));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -355,6 +370,7 @@ public class ApiService_UpdateWithDefinitionTest {
         verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -389,6 +405,7 @@ public class ApiService_UpdateWithDefinitionTest {
         verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
@@ -407,5 +424,6 @@ public class ApiService_UpdateWithDefinitionTest {
         verify(planService, times(1)).update(any(UpdatePlanEntity.class));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 }

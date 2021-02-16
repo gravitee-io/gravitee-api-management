@@ -141,4 +141,6 @@ public interface ApiService {
     String getConfigurationSchema();
 
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
+
+    ApiEntity fetchMetadataForApi(ApiEntity apiEntity);
 }
