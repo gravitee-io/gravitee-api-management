@@ -1,12 +1,14 @@
-@media (min-width: 960px) {
-  .fixedRows {
-    height: 250px;
-    overflow: hidden;
-  }
+.gv-user-autocomplete-menu {
+  @media (min-width: 960px) {
+    .fixedRows {
+      height: 250px;
+      overflow: hidden;
+    }
 
-  md-list-item {
-    float: left;
-    width: 50%;
+    md-list-item {
+      float: left;
+      width: 50%;
+    }
   }
 }
 
