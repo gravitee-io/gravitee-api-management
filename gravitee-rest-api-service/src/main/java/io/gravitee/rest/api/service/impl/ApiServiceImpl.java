@@ -653,8 +653,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Find API by ID: {}", apiId);
 
-            Optional<Api> optApi = apiRepository.findById(apiId)
-                    .filter(result -> result.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()));
+            Optional<Api> optApi = apiRepository.findById(apiId);
+
+            if (GraviteeContext.getCurrentEnvironment() != null) {
+                optApi = optApi.filter(result -> result.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()));
+            }
 
             if (optApi.isPresent()) {
                 final Api api = optApi.get();
