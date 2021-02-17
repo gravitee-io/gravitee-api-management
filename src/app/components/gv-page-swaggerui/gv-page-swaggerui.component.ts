@@ -60,7 +60,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
     }
   }
 
-  DisableTryItOutPlugin() {
+  DisableTryItOutPlugin = function() {
     return {
       statePlugins: {
         spec: {
@@ -71,6 +71,14 @@ export class GvPageSwaggerUIComponent implements OnInit {
       }
     };
   }
+
+  DisableAuthorizePlugin = function() {
+    return {
+      wrapComponents: {
+        authorizeBtn: () => () => null
+      }
+    };
+  };
 
   refresh(page: Page) {
     if (page) {
@@ -88,6 +96,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
     const customPlugins = [];
     if (!this._tryItEnabled(page)) {
       customPlugins.push(this.DisableTryItOutPlugin);
+      customPlugins.push(this.DisableAuthorizePlugin);
     }
 
     let contentAsJson = {};
