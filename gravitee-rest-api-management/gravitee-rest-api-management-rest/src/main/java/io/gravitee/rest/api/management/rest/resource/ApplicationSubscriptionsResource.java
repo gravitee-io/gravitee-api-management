@@ -272,7 +272,7 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         subscription.setStatus(subscriptionEntity.getStatus());
         subscription.setSubscribedBy(
                 new Subscription.User(subscriptionEntity.getSubscribedBy(),
-                        userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()
+                        userService.findById(subscriptionEntity.getSubscribedBy(), true).getDisplayName()
                 ));
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());

@@ -232,7 +232,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     @Override
-    public UserEntity findById(String id) {
+    public UserEntity findById(String id, boolean defaultValue) {
         try {
             LOGGER.debug("Find user by ID: {}", id);
 
@@ -241,6 +241,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
             if (optionalUser.isPresent()) {
                 return convert(optionalUser.get(), false, userMetadataService.findAllByUserId(id));
             }
+
+            if (defaultValue) {
+                UserEntity unknownUser = new UserEntity();
+                unknownUser.setId(id);
+                unknownUser.setFirstname("Unknown user");
+                return unknownUser;
+            }
+
             //should never happen
             throw new UserNotFoundException(id);
         } catch (TechnicalException ex) {
