@@ -252,8 +252,6 @@ function configurationRouterConfig($stateProvider) {
       resolve: {
         group: (GroupService: GroupService, $stateParams) =>
           GroupService.get($stateParams.groupId).then(response => response.data),
-        members: (GroupService: GroupService, $stateParams) =>
-          GroupService.getMembers($stateParams.groupId).then(response => response.data),
         apiRoles: (RoleService: RoleService) =>
           RoleService.list('API').then((roles) =>
             [{ 'scope': 'API', 'name': '', 'system': false }].concat(roles)
