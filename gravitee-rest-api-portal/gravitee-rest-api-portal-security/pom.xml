@@ -23,7 +23,7 @@
 	<parent>
         <groupId>io.gravitee.rest.api.portal</groupId>
         <artifactId>gravitee-rest-api-portal</artifactId>
-		<version>3.6.0-SNAPSHOT</version>
+		<version>3.6.0</version>
     </parent>
 
 	<artifactId>gravitee-rest-api-portal-security</artifactId>
