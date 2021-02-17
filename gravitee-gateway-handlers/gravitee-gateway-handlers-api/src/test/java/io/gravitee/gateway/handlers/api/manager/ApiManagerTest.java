@@ -23,6 +23,7 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -286,6 +287,7 @@ public class ApiManagerTest {
     }
 
     @Test
+    @Ignore
     public void shouldUndeployApi_noMorePlan() throws Exception {
         final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
         final Plan mockedPlan = mock(Plan.class);
