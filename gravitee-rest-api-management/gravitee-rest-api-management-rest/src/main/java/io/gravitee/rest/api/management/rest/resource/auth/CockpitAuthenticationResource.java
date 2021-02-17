@@ -139,7 +139,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             super.connectUser(user, httpResponse);
 
             // Redirect the user.
-            return Response.temporaryRedirect(new URI(jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM) + "/#!/environments/" + jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM))).build();
+            return Response.temporaryRedirect(new URI(jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM) + "?organization=" + jwtClaimsSet.getStringClaim(ORG_CLAIM) + "/#!/environments/" + jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM))).build();
         } catch (Exception e) {
             LOGGER.error("Error occurred when trying to log user using cockpit.", e);
             return Response.serverError().build();
