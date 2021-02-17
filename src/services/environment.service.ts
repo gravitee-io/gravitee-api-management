@@ -20,20 +20,16 @@ import { IHttpResponse } from 'angular';
 import { IEnvironmentPermissions } from '../entities/IEnvironmentPermissions';
 
 class EnvironmentService {
-  private environmentsURL: string;
-  private environmentURL: string;
 
   constructor(private $http, private Constants, private $q) {
     'ngInject';
-    this.environmentsURL = `${Constants.org.baseURL}/environments`;
-    this.environmentURL = Constants.env.baseURL;
   }
 
   /*
    * Analytics
    */
   analytics(request) {
-    var url = this.environmentURL + '/analytics?';
+    let url = this.Constants.env.baseURL + '/analytics?';
     var keys = Object.keys(request);
     _.forEach(keys, function (key) {
       var val = request[key];
@@ -51,27 +47,27 @@ class EnvironmentService {
   }
 
   list() {
-    return this.$http.get(this.environmentsURL);
+    return this.$http.get(`${this.Constants.org.baseURL}/environments`);
   }
 
   getCurrent(): ng.IPromise<any> {
-    return this.$http.get(this.environmentURL);
+    return this.$http.get(this.Constants.env.baseURL);
   }
 
   listEnvironmentIdentities(envId: string) {
-    return this.$http.get(`${this.environmentsURL}/${envId}/identities`);
+    return this.$http.get(`${this.Constants.org.baseURL}/environments/${envId}/identities`);
   }
 
   updateEnvironmentIdentities(envId: string, updatedIPA: IdentityProviderActivation[]) {
-    return this.$http.put(`${this.environmentsURL}/${envId}/identities`, updatedIPA);
+    return this.$http.put(`${this.Constants.org.baseURL}/environments/${envId}/identities`, updatedIPA);
   }
 
   getPermissions(envId: string): ng.IPromise<IHttpResponse<IEnvironmentPermissions[]>> {
-    return this.$http.get(`${this.environmentsURL}/permissions?idOrHrid=${envId}`);
+    return this.$http.get(`${this.Constants.org.baseURL}/environments/permissions?idOrHrid=${envId}`);
   }
 
   getFirstHridOrElseId(environment): string {
-    return environment.hrids && environment.hrids.length > 0 ? environment.hrids[0] : environment.id;
+    return environment && environment.hrids && environment.hrids.length > 0 ? environment.hrids[0] : environment && environment.id;
   }
 
   isSameEnvironment(environment, otherEnvId) {

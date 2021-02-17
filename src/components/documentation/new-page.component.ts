@@ -15,7 +15,13 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import DocumentationService, { FolderSituation, SystemFolderName } from '../../services/documentation.service';
+import DocumentationService, {
+  DocumentationQuery,
+  FolderSituation,
+  Page,
+  PageType,
+  SystemFolderName
+} from '../../services/documentation.service';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import _ = require('lodash');
@@ -60,7 +66,6 @@ const NewPageComponent: ng.IComponentOptions = {
       mode: 'javascript'
     };
 
-
     this.$onInit = () => {
       this.foldersById = _.keyBy(this.folders, 'id');
       this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
@@ -71,6 +76,27 @@ const NewPageComponent: ng.IComponentOptions = {
       if (DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
         $state.go('management.settings.documentation', {parent: $state.params.parent});
       }
+
+      const q = new DocumentationQuery();
+      q.type = PageType.MARKDOWN_TEMPLATE;
+      q.published = true;
+      q.translated = true;
+      DocumentationService.search(q, null)
+        .then(response => {
+          this.templates = response.data;
+
+          if (this.templates.length > 0) {
+            const emptyPage: Page = {
+              name: 'Empty page',
+              content: '',
+              type: PageType.MARKDOWN_TEMPLATE,
+              parentId: ''
+            };
+            this.templates.unshift(emptyPage);
+            this.selectedTemplate = emptyPage;
+          }
+
+        });
 
       this.emptyFetcher = {
         'type': 'object',
@@ -88,6 +114,25 @@ const NewPageComponent: ng.IComponentOptions = {
       }
 
     };
+
+    this.getPageName = (): string => {
+      switch (this.page.type) {
+        case PageType.FOLDER:
+          return 'New Folder';
+        case PageType.LINK:
+          return 'New Link';
+        case PageType.MARKDOWN_TEMPLATE:
+          return 'New Markdown Template';
+        default:
+          return 'New Page';
+      }
+    };
+
+    this.isFolder = (): boolean => PageType.FOLDER === this.page.type;
+    this.isLink = (): boolean => PageType.LINK === this.page.type;
+    this.isSwagger = (): boolean => PageType.SWAGGER === this.page.type;
+    this.isMarkdown = (): boolean => PageType.MARKDOWN === this.page.type;
+    this.isMarkdownTemplate = (): boolean => PageType.MARKDOWN_TEMPLATE === this.page.type;
 
     this.buildPageList = (pagesToFilter: any[], withRootFolder?: boolean) => {
       let pageList = _
@@ -185,6 +230,10 @@ const NewPageComponent: ng.IComponentOptions = {
       if (this.page.configuration.resourceType !== 'external' && !this.page.configuration.inherit) {
         this.page.configuration.inherit = 'true';
       }
+    };
+
+    this.onChangeMarkdownTemplate = () => {
+      this.page = {...this.page, content: this.selectedTemplate.content};
     };
 
     this.save = () => {

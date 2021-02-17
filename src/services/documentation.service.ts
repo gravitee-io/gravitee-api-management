@@ -25,6 +25,7 @@ export class DocumentationQuery {
   published?: boolean;
   parent: string;
   root?: boolean;
+  translated?: boolean;
 }
 
 export class ImportPageEntity {
@@ -36,11 +37,27 @@ export class ImportPageEntity {
   excluded_groups: string[];
 }
 
+export class Page {
+  id?: string;
+  content: string;
+  name: string;
+  parentId: string;
+  type: PageType;
+}
+
 export enum SystemFolderName {
   HEADER = 'Header',
   TOPFOOTER = 'TopFooter',
   FOOTER = 'Footer',
   ASIDE = 'Aside'
+}
+
+export enum PageType {
+  FOLDER = 'FOLDER',
+  LINK = 'LINK',
+  SWAGGER = 'SWAGGER',
+  MARKDOWN = 'MARKDOWN',
+  MARKDOWN_TEMPLATE = 'MARKDOWN_TEMPLATE'
 }
 
 export enum FolderSituation {
@@ -71,15 +88,15 @@ class DocumentationService {
   supportedTypes = (folderSituation: FolderSituation): string[] => {
     switch (folderSituation) {
       case FolderSituation.ROOT:
-        return ['SWAGGER', 'MARKDOWN', 'FOLDER'];
+        return [PageType.SWAGGER, PageType.MARKDOWN, PageType.MARKDOWN_TEMPLATE, PageType.FOLDER];
       case FolderSituation.SYSTEM_FOLDER:
-        return ['LINK'];
+        return [PageType.LINK];
       case FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS:
-        return ['FOLDER', 'LINK'];
+        return [PageType.FOLDER, PageType.LINK];
       case FolderSituation.FOLDER_IN_FOLDER:
-        return ['SWAGGER', 'MARKDOWN', 'FOLDER'];
+        return [PageType.SWAGGER, PageType.MARKDOWN, PageType.MARKDOWN_TEMPLATE, PageType.FOLDER];
       case FolderSituation.FOLDER_IN_SYSTEM_FOLDER:
-        return ['LINK'];
+        return [PageType.LINK];
     }
   }
 
@@ -89,7 +106,7 @@ class DocumentationService {
     return this.$http.patch(this.url(apiId, pageId), prop);
   }
 
-  search = (q: DocumentationQuery, apiId?: string, translated?: boolean): IHttpPromise<any> => {
+  search = (q: DocumentationQuery, apiId?: string, translated?: boolean): IHttpPromise<Page[]> => {
     let url: string = this.url(apiId);
     if (q || translated) {
       // add query parameters

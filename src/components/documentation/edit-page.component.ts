@@ -15,7 +15,11 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import DocumentationService, { FolderSituation, SystemFolderName } from '../../services/documentation.service';
+import DocumentationService, {
+  FolderSituation,
+  PageType,
+  SystemFolderName
+} from '../../services/documentation.service';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import UserService from '../../services/user.service';
@@ -126,6 +130,13 @@ const EditPageComponent: ng.IComponentOptions = {
 
     };
 
+    this.isFolder = (): boolean => PageType.FOLDER === this.page.type;
+    this.isLink = (): boolean => PageType.LINK === this.page.type;
+    this.isSwagger = (): boolean => PageType.SWAGGER === this.page.type;
+    this.isMarkdown = (): boolean => PageType.MARKDOWN === this.page.type;
+    this.isMarkdownTemplate = (): boolean => PageType.MARKDOWN_TEMPLATE === this.page.type;
+
+
     this.usedAsGeneralConditions = () => {
       return this.page.generalConditions;
     };
@@ -143,7 +154,7 @@ const EditPageComponent: ng.IComponentOptions = {
         parentId: this.page.id,
         configuration: {}
       };
-      if (this.page.type === 'MARKDOWN' || this.page.type === 'SWAGGER') {
+      if (this.isMarkdown() || this.isSwagger() || this.isMarkdownTemplate()) {
         this.currentTranslation.configuration.inheritContent = 'true';
       }
     };

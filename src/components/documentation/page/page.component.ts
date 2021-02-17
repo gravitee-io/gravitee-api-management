@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { PageType } from '../../../services/documentation.service';
 const PageComponent: ng.IComponentOptions = {
 
   controller: class {
@@ -28,6 +29,10 @@ const PageComponent: ng.IComponentOptions = {
       } else {
         return this.page.type;
       }
+    }
+
+    isMarkdownTemplate(): boolean {
+      return this.type() === PageType.MARKDOWN_TEMPLATE;
     }
 
     logoAvailable(fetcherName: string): boolean {

@@ -15,7 +15,12 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import DocumentationService, {DocumentationQuery, FolderSituation, SystemFolderName} from '../../services/documentation.service';
+import DocumentationService, {
+  DocumentationQuery,
+  FolderSituation,
+  PageType,
+  SystemFolderName
+} from '../../services/documentation.service';
 import {StateService} from '@uirouter/core';
 import _ = require('lodash');
 import {IScope} from 'angular';
@@ -53,11 +58,19 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
 
       this.currentFolder = this.getFolder(this.rootDir);
-      this.supportedTypes = DocumentationService.supportedTypes(this.getFolderSituation(this.rootDir));
+      this.supportedTypes = DocumentationService
+                              .supportedTypes(this.getFolderSituation(this.rootDir))
+                              .filter(type => !this.apiId || type !== PageType.MARKDOWN_TEMPLATE);
       this.breadcrumb = this.generateBreadcrumb();
       $scope.renameFolder = false;
       $scope.translateFolder = false;
     };
+
+    this.isFolder = (type: string): boolean => PageType.FOLDER === type;
+    this.isLink = (type: string): boolean => PageType.LINK === type;
+    this.isSwagger = (type: string): boolean => PageType.SWAGGER === type;
+    this.isMarkdown = (type: string): boolean => PageType.MARKDOWN === type;
+    this.isMarkdownTemplate = (type: string): boolean => PageType.MARKDOWN_TEMPLATE === type;
 
     this.getFolderSituation = (folderId: string) => {
       if (!folderId) {
@@ -302,7 +315,10 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       } else {
         page.published = !page.published;
         DocumentationService.partialUpdate('published', page.published, page.id, this.apiId).then( () => {
-          NotificationService.show('Page ' + page.name + ' has been ' + (page.published ? '' : 'un') + 'published with success');
+          const message = this.isMarkdownTemplate(page.type) ?
+            'Template ' + page.name + ' has been made ' + (page.published ? '' : 'un') + 'available with success'
+            : 'Page ' + page.name + ' has been ' + (page.published ? '' : 'un') + 'published with success';
+          NotificationService.show(message);
         });
       }
     };

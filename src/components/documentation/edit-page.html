@@ -20,7 +20,7 @@
         <div>
             <md-icon md-svg-src="assets/logo_{{$ctrl.page.type | lowercase}}.svg" style="margin: 0 8px 12px 0;"></md-icon>
             <h1>{{$ctrl.page.name}}</h1>
-            <sup ng-if="('LINK' === $ctrl.page.type && $ctrl.page.configuration.inherit && $ctrl.page.configuration.inherit === 'true')">
+            <sup ng-if="($ctrl.isLink() && $ctrl.page.configuration.inherit && $ctrl.page.configuration.inherit === 'true')">
                 <ng-md-icon icon="lock" size="12" style="fill: black;">
                     <md-tooltip>Inherited</md-tooltip>
                 </ng-md-icon>
@@ -35,7 +35,7 @@
                        class="md-raised md-primary"
                        ng-click="$ctrl.toggleRename()"
                        aria-label="Rename"
-                       ng-if="'LINK' !== $ctrl.page.type || ('LINK' === $ctrl.page.type && (!$ctrl.page.configuration.inherit || $ctrl.page.configuration.inherit === 'false')) ">
+                       ng-if="!$ctrl.isLink() || ($ctrl.isLink() && (!$ctrl.page.configuration.inherit || $ctrl.page.configuration.inherit === 'false')) ">
                 Rename
             </md-button>
             <md-button ng-if="$ctrl.page.metadata.edit_url" type="button" style="padding: 0 6px;"
@@ -69,7 +69,7 @@
     </div>
 
     <!-- LINK-->
-    <div class="gv-form" ng-if="'LINK' === $ctrl.page.type">
+    <div class="gv-form" ng-if="$ctrl.isLink()">
         <h2></h2>
         <div class="gv-form-content" layout="column">
             <md-tabs md-dynamic-height md-selected="$ctrl.selectedTab">
@@ -250,7 +250,7 @@
     </div>
 
     <!-- SWAGGER or MARKDOWN-->
-    <div class="gv-form" ng-if="'FOLDER' !== $ctrl.page.type && 'LINK' !== $ctrl.page.type">
+    <div class="gv-form" ng-if="!$ctrl.isFolder() && !$ctrl.isLink()">
         <h2></h2>
         <div class="gv-form-content" layout="column">
 
@@ -266,7 +266,7 @@
                     <md-tab-body>
                         <div ng-if="$ctrl.currentTab === 'content'">
                             <!-- edit SWAGGER inline -->
-                            <div ng-if="'SWAGGER' === $ctrl.page.type" style="display: inline-block; width: 100%;">
+                            <div ng-if="$ctrl.isSwagger()" style="display: inline-block; width: 100%;">
                                 <div layout="row" style="max-height: 900px; overflow: auto;">
                                     <md-input-container class="md-block" flex="50" ng-if="$ctrl.canUpdate">
                                     <textarea
@@ -283,7 +283,7 @@
                             </div>
 
                             <!-- edit MARKDOWN inline -->
-                            <div ng-if="'MARKDOWN' === $ctrl.page.type" style="display: inline-block; width: 100%;">
+                            <div ng-if="$ctrl.isMarkdown() || $ctrl.isMarkdownTemplate()" style="display: inline-block; width: 100%;">
                                 <div class="md-block">
                                   <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.page" pages-to-link="$ctrl.pagesToLink"></gv-page-editor-markdown>
                                   <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.page"></gv-page-markdown>
@@ -373,7 +373,7 @@
 
                             <div ng-if="$ctrl.currentTranslation.configuration.inheritContent === 'false'">
                                 <!-- edit SWAGGER inline -->
-                                <div ng-if="'SWAGGER' === $ctrl.page.type" style="display: inline-block; width: 100%;">
+                                <div ng-if="$ctrl.isSwagger()" style="display: inline-block; width: 100%;">
                                     <div layout="row" style="max-height: 900px; overflow: auto;">
                                         <md-input-container class="md-block" flex="50" ng-if="$ctrl.canUpdate">
                                         <textarea
@@ -389,7 +389,7 @@
                                 </div>
 
                                 <!-- edit MARKDOWN inline -->
-                                <div ng-if="'MARKDOWN' === $ctrl.page.type" style="display: inline-block; width: 100%;">
+                                <div ng-if="$ctrl.isMarkdown() || $ctrl.isMarkdownTemplate()" style="display: inline-block; width: 100%;">
                                     <md-input-container class="md-block">
                                         <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.currentTranslation"></gv-page-editor-markdown>
                                         <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.currentTranslation"></gv-page-markdown>
@@ -406,7 +406,7 @@
                     <md-tab-label>Configuration</md-tab-label>
                     <md-tab-body>
                         <h3>General</h3>
-                        <md-input-container class="md-block">
+                        <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block">
                             <md-checkbox ng-model="$ctrl.page.homepage"
                                          aria-label="set as homepage"
                                          class="md-align-top-left"
@@ -416,15 +416,16 @@
                         </md-input-container>
                         <md-input-container class="md-block">
                             <md-checkbox ng-model="$ctrl.page.published"
-                                         aria-label="Published"
+                                         aria-label="{{!$ctrl.isMarkdownTemplate() ? 'Published' : 'Available'}}"
                                          class="md-align-top-left"
                                          flex
                                          ng-disabled="$ctrl.usedAsGeneralConditions()">
-                                {{($ctrl.usedAsGeneralConditions() ? 'Publish this page (Used as general conditions, publishing actions are disabled)' : 'Publish this page')}}
+                                {{($ctrl.usedAsGeneralConditions() ? 'Publish this page (Used as general conditions, publishing actions are disabled)'
+                                  : !$ctrl.isMarkdownTemplate() ? 'Publish this page' : 'Make template available')}}
                             </md-checkbox>
                         </md-input-container>
                         <!-- SWAGGER Configuration -->
-                        <div ng-if="$ctrl.page.type === 'SWAGGER'" layout="column">
+                        <div ng-if="$ctrl.isSwagger()" layout="column">
 
                             <div ng-if="$ctrl.shouldShowOpenApiDocFormat">
                                 <h3>OpenAPI documentation viewer: </h3>
@@ -525,7 +526,7 @@
                 </md-tab>
 
                 <!-- Attached resources -->
-                <md-tab md-on-select="$ctrl.selectTab(5)" ng-if="$ctrl.canUpdate && $ctrl.page.type === 'MARKDOWN'">
+                <md-tab md-on-select="$ctrl.selectTab(5)" ng-if="$ctrl.canUpdate && $ctrl.isMarkdown()">
                     <md-tab-label>Attached resources</md-tab-label>
                     <md-tab-body>
                         <md-table-container>

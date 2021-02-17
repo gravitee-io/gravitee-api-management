@@ -17,14 +17,12 @@
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
     <div>
-        <h1 ng-if="'FOLDER' !== $ctrl.page.type && 'LINK' !== $ctrl.page.type">New Page</h1>
-        <h1 ng-if="'FOLDER' === $ctrl.page.type">New Folder</h1>
-        <h1 ng-if="'LINK' === $ctrl.page.type">New Link</h1>
+        <h1>{{$ctrl.getPageName()}}</h1>
         <a ng-click="$ctrl.cancel()">Back to Documentation</a>
     </div>
 
     <!-- FOLDER -->
-    <div class="gv-form" ng-if="'FOLDER' === $ctrl.page.type">
+    <div class="gv-form" ng-if="$ctrl.isFolder()">
         <h2></h2>
         <div class="gv-form-content" layout="column">
             <form name="$ctrl.formNewFolder" ng-submit="$ctrl.save()" novalidate>
@@ -42,7 +40,7 @@
     </div>
 
     <!-- LINK -->
-    <div class="gv-form" ng-if="'LINK' === $ctrl.page.type">
+    <div class="gv-form" ng-if="$ctrl.isLink()">
         <h2></h2>
         <div class="gv-form-content" layout="column">
             <form name="$ctrl.formNewLink" ng-submit="$ctrl.save()" novalidate>
@@ -147,8 +145,8 @@
         </div>
     </div>
 
-    <!-- SWAGGER or MARKDOWN-->
-    <div class="gv-form" ng-if="'FOLDER' !== $ctrl.page.type && 'LINK' !== $ctrl.page.type">
+    <!-- SWAGGER, MARKDOWN or MARKDOWN_TEMPLATE-->
+    <div class="gv-form" ng-if="!$ctrl.isFolder() && !$ctrl.isLink()">
         <h2></h2>
         <div class="gv-form-content" layout="column">
             <div layout="row">
@@ -158,7 +156,7 @@
                     <input ng-model="$ctrl.page.name" required>
                 </md-input-container>
             </div>
-            <md-input-container class="md-block">
+            <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
                 <md-checkbox ng-model="$ctrl.page.homepage"
                              aria-label="set as homepage"
                              class="md-warn md-align-top-left"
@@ -166,12 +164,12 @@
                     Set as homepage
                 </md-checkbox>
             </md-input-container>
-            <md-input-container class="md-block">
+            <md-input-container class="md-block gv-input-container-dense">
                 <md-checkbox ng-model="$ctrl.page.published"
-                                aria-label="Published"
+                                aria-label="{{!$ctrl.isMarkdownTemplate() ? 'Published' : 'Available'}}"
                                 class="md-align-top-left"
                                 flex>
-                    Publish this page
+                    {{!$ctrl.isMarkdownTemplate() ? 'Publish this page' : 'Make template available'}}
                 </md-checkbox>
             </md-input-container>
             <h3>How to get the content ?</h3>
@@ -182,7 +180,7 @@
             </md-radio-group>
 
             <!-- edit SWAGGER inline -->
-            <div ng-if="'inline' === getContentMode && 'SWAGGER' === $ctrl.page.type" style="display: inline-block; width: 100%;">
+            <div ng-if="'inline' === getContentMode && $ctrl.isSwagger()" style="display: inline-block; width: 100%;">
                 <h3>Type your documentation here:</h3>
                 <md-input-container class="md-block">
                         <textarea
@@ -196,8 +194,29 @@
                 </md-input-container>
             </div>
 
+            <div layout-gt-sm="row">
+              <md-input-container ng-if="($ctrl.isMarkdown() || $ctrl.isMarkdownTemplate()) && $ctrl.templates.length > 0" flex-gt-xs>
+                <label>Template</label>
+                <md-select ng-model="$ctrl.selectedTemplate" ng-change="$ctrl.onChangeMarkdownTemplate()">
+                  <md-option  ng-repeat="template in $ctrl.templates"
+                              ng-value="template">
+                    <md-icon md-svg-src="assets/logo_{{template.type | lowercase}}.svg"></md-icon>
+                    <span style="font-style: italic; opacity: 0.5;">{{ template.parentPath }}</span>/{{ template.name }}
+                  </md-option>
+                </md-select>
+                <div class="hint">
+                  Choose a template
+                </div>
+              </md-input-container>
+            </div>
+
+            <div class="gv-page-info-banner" ng-hide="!$ctrl.page.content">
+              <ng-md-icon icon="info" class="gv-info"></ng-md-icon>
+              Selecting a template will override the current documentation.
+            </div>
+
             <!-- edit MARKDOWN inline -->
-            <div ng-if="'inline' === getContentMode && 'MARKDOWN' === $ctrl.page.type" style="display: inline-block; width: 100%;">
+            <div ng-if="'inline' === getContentMode && ($ctrl.isMarkdown() || $ctrl.isMarkdownTemplate())" style="display: inline-block; width: 100%;">
                 <h3>Type your documentation here:</h3>
                 <div class="md-block">
                     <gv-page-editor-markdown page="$ctrl.page" pages-to-link="$ctrl.pagesToLink"></gv-page-editor-markdown>
