@@ -805,7 +805,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // get user groups apis
                 final String[] groupIds = membershipService
                     .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP).stream()
-                    .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.API))
+                    .filter(m -> {
+                        final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
+                        if (!portal) {
+                            return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API) && canManageApi(roleInGroup.getPermissions());
+                        }
+                        return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
+                    })
                     .map(MembershipEntity::getReferenceId)
                     .toArray(String[]::new);
                 if (groupIds.length > 0 && groupIds[0] != null) {
@@ -840,6 +846,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find APIs for user " + userId, ex);
         }
+    }
+
+    private boolean canManageApi(Map<String,char[]> permissions) {
+        return permissions.entrySet().stream()
+                .filter(entry -> !entry.getKey().equals(ApiPermission.RATING.name()) && !entry.getKey().equals(ApiPermission.RATING_ANSWER.name()))
+                .anyMatch(entry -> {
+                    String stringPerm = new String(entry.getValue());
+                    return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
+                });
     }
 
     @Override
