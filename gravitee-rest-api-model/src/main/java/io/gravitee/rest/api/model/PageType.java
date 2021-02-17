@@ -31,6 +31,7 @@ import static java.util.Collections.unmodifiableList;
 public enum PageType {
 
 	MARKDOWN(unmodifiableList(asList("md", "markdown")), 200),
+	MARKDOWN_TEMPLATE(emptyList(), 200),
 	SWAGGER(unmodifiableList(asList("json", "yaml", "yml")), 200),
 	FOLDER(emptyList(), 300),
     LINK(emptyList(), 100),

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -65,7 +66,9 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
 
-        doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any(), isNull());
+        PageEntity markdownTemplate = new PageEntity();
+        markdownTemplate.setType(PageType.MARKDOWN_TEMPLATE.name());
+        doReturn(Arrays.asList(new PageEntity(), markdownTemplate)).when(pageService).search(any(), isNull());
         
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());

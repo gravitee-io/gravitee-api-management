@@ -127,6 +127,16 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotCreateMarkdownTemplate() {
+        NewPageEntity newPageEntity = new NewPageEntity();
+        newPageEntity.setType(PageType.MARKDOWN_TEMPLATE);
+        final Response response = envTarget().request().post(Entity.json(newPageEntity));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+    }
+
+    @Test
     public void shouldNotDeleteSystemFolder() {
         reset(apiService, pageService, membershipService);
 

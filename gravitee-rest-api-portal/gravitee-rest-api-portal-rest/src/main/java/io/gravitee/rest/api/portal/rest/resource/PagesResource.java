@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
@@ -69,7 +70,7 @@ public class PagesResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Stream<Page> pageStream = pageService.search(new PageQuery.Builder().homepage(homepage).published(true).build(), acceptedLocale)
                 .stream()
-                .filter(pageEntity -> isDisplayable(pageEntity))
+                .filter(this::isDisplayable)
                 .map(pageMapper::convert)
                 .map(this::addPageLink);
 
@@ -112,7 +113,8 @@ public class PagesResource extends AbstractResource {
 
     private boolean isDisplayable(PageEntity page) {
         return groupService.isUserAuthorizedToAccessPortalData(page.getExcludedGroups(), getAuthenticatedUserOrNull())
-                && !"SYSTEM_FOLDER".equals(page.getType());
+                && !PageType.SYSTEM_FOLDER.name().equals(page.getType())
+                && !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
     }
 
     private Page addPageLink(Page page) {

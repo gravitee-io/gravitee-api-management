@@ -111,6 +111,13 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         markdownFolderSysFolder.setName("MARKDOWN");
         markdownFolderSysFolder.setPublished(true);
 
+        PageEntity markdownTemplate = new PageEntity();
+        markdownTemplate.setId("MARKDOWN_TEMPLATE");
+        markdownTemplate.setParentId("SYS_FOLDER");
+        markdownTemplate.setType("MARKDOWN_TEMPLATE");
+        markdownTemplate.setName("MARKDOWN_TEMPLATE");
+        markdownTemplate.setPublished(true);
+
         when(pageService.search(any(PageQuery.class), isNull())).thenAnswer(new Answer<List<PageEntity>>() {
 
             @Override
@@ -119,7 +126,7 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
                 if(PageType.SYSTEM_FOLDER.equals(pq.getType())) {
                     return Arrays.asList(sysFolder);
                 } else if ("SYS_FOLDER".equals(pq.getParent())) {
-                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder);
+                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
                 } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent())) {
                     return Arrays.asList(markdownFolderSysFolder);
                 }

@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.PageMarkdownTemplateActionException;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.swagger.annotations.*;
 
@@ -126,7 +127,10 @@ public class ApiPagesResource extends AbstractResource {
             @ApiParam(name = "page", required = true) @Valid @NotNull NewPageEntity newPageEntity) {
         if(newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
             throw new PageSystemFolderActionException("Create");
+        } else if (newPageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE)) {
+            throw new PageMarkdownTemplateActionException("Create");
         }
+
         int order = pageService.findMaxApiPageOrderByApi(api) + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUser());

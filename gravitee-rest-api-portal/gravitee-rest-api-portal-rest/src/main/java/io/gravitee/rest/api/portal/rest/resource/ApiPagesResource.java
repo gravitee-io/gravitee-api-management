@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
@@ -122,7 +123,8 @@ public class ApiPagesResource extends AbstractResource {
 
     private boolean isDisplayable(ApiEntity api, PageEntity page) {
         return groupService.isUserAuthorizedToAccessApiData(api, page.getExcludedGroups(), getAuthenticatedUserOrNull())
-                && !"SYSTEM_FOLDER".equals(page.getType());
+                && !PageType.SYSTEM_FOLDER.name().equals(page.getType())
+                && !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
     }
     
     private Page addPageLink(String apiId, Page page) {

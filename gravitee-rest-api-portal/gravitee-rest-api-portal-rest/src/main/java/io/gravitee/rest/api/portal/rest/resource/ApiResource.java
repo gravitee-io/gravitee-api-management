@@ -192,7 +192,8 @@ public class ApiResource extends AbstractResource {
     private List<Link> getLinksFromFolder(PageEntity folder, String apiId, String acceptedLocale) {
         return pageService.search(new PageQuery.Builder().api(apiId).parent(folder.getId()).build(), acceptedLocale).stream()
                 .filter(PageEntity::isPublished)
-                .filter(p -> !p.getType().equals("FOLDER"))
+                .filter(p -> !PageType.FOLDER.name().equals(p.getType())
+                        && !PageType.MARKDOWN_TEMPLATE.name().equals(p.getType()))
                 .map(p -> {
                     if("LINK".equals(p.getType())) {
                         Link link = new Link()

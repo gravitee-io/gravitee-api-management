@@ -27,12 +27,10 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.PageMarkdownTemplateActionException;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
@@ -169,6 +167,8 @@ public class ApiPageResource extends AbstractResource {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
+        } else if (existingPage.getType().equals(PageType.MARKDOWN_TEMPLATE.name())) {
+            throw new PageMarkdownTemplateActionException("Update");
         }
 
         updatePageEntity.setLastContributor(getAuthenticatedUser());
@@ -209,6 +209,8 @@ public class ApiPageResource extends AbstractResource {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
+        } else if (existingPage.getType().equals(PageType.MARKDOWN_TEMPLATE.name())) {
+            throw new PageMarkdownTemplateActionException("Update");
         }
 
         updatePageEntity.setLastContributor(getAuthenticatedUser());
@@ -228,6 +230,8 @@ public class ApiPageResource extends AbstractResource {
         PageEntity existingPage = pageService.findById(page);
         if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Delete");
+        } else if (existingPage.getType().equals(PageType.MARKDOWN_TEMPLATE.name())) {
+            throw new PageMarkdownTemplateActionException("Delete");
         }
 
         pageService.delete(page);

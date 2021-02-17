@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.portal.rest.model.PagesResponse;
@@ -24,6 +25,7 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -57,7 +59,10 @@ public class PagesResourceTest extends AbstractResourceTest {
     public void shouldGetPagesIfAuthorizeAndPublishedPageAndNotSystemFolder() {
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
-        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
+        PageEntity markdownTemplatePage = new PageEntity();
+        markdownTemplatePage.setPublished(true);
+        markdownTemplatePage.setType(PageType.MARKDOWN_TEMPLATE.name());
+        doReturn(Arrays.asList(publishedPage, markdownTemplatePage)).when(pageService).search(any(), isNull());
 
         doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
 
