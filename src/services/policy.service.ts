@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 class PolicyService {
-  private policiesURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.policiesURL = `${Constants.env.baseURL}/policies/`;
   }
 
   list(expandSchema = false, expandIcon = false) {
@@ -29,7 +27,7 @@ class PolicyService {
     if (expandIcon) {
       expandParams.push('expand=icon');
     }
-    let url = this.policiesURL;
+    let url = `${this.Constants.env.baseURL}/policies/`;
     if (expandParams.length > 0) {
       url += `?${expandParams.join('&')}`;
     }
@@ -37,15 +35,15 @@ class PolicyService {
   }
 
   listSwaggerPolicies() {
-    return this.$http.get(this.policiesURL + 'swagger');
+    return this.$http.get(`${this.Constants.env.baseURL}/policies/` + 'swagger');
   }
 
   getSchema(policyId) {
-    return this.$http.get(this.policiesURL + policyId + '/schema');
+    return this.$http.get(`${this.Constants.env.baseURL}/policies/` + policyId + '/schema');
   }
 
   getDocumentation(policyId) {
-    return this.$http.get(this.policiesURL + policyId + '/documentation');
+    return this.$http.get(`${this.Constants.env.baseURL}/policies/` + policyId + '/documentation');
   }
 
 }

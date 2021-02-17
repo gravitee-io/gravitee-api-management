@@ -22,25 +22,23 @@ export class TicketsQuery {
 }
 
 class TicketService {
-  private ticketURL: string;
 
   constructor(private $http, private Constants) {
     'ngInject';
-    this.ticketURL = `${Constants.env.baseURL}/platform/tickets`;
   }
 
   create(ticket) {
     if (ticket) {
-      return this.$http.post(this.ticketURL, ticket);
+      return this.$http.post(`${this.Constants.env.baseURL}/platform/tickets`, ticket);
     }
   }
 
   search(query: TicketsQuery) {
-    return this.$http.get(this.buildURLWithQuery(query, this.ticketURL + '?'));
+    return this.$http.get(this.buildURLWithQuery(query, `${this.Constants.env.baseURL}/platform/tickets` + '?'));
   }
 
   getTicket(ticketId: string) {
-    return this.$http.get(`${this.ticketURL}/${ticketId}`);
+    return this.$http.get(`${this.Constants.env.baseURL}/platform/tickets/${ticketId}`);
   }
 
   private buildURLWithQuery(query: TicketsQuery, url) {

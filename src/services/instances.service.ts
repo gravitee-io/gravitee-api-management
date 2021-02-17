@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 class InstancesService {
-  private instancesURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.instancesURL = `${Constants.env.baseURL}/instances/`;
   }
 
   search(includeStopped?: boolean, from?: number, to?: number, page?: number, size?: number) {
@@ -42,15 +40,15 @@ class InstancesService {
       size = 100;
     }
 
-    return this.$http.get(`${this.instancesURL}?includeStopped=${includeStopped}&from=${from}&to=${to}&page=${page}&size=${size}`);
+    return this.$http.get(`${this.Constants.env.baseURL}/instances/?includeStopped=${includeStopped}&from=${from}&to=${to}&page=${page}&size=${size}`);
   }
 
   get(id) {
-    return this.$http.get(this.instancesURL + id);
+    return this.$http.get(`${this.Constants.env.baseURL}/instances/` + id);
   }
 
   getMonitoringData(id: string, gatewayId: string): any {
-    return this.$http.get(this.instancesURL + id + '/monitoring/' + gatewayId);
+    return this.$http.get(`${this.Constants.env.baseURL}/instances/` + id + '/monitoring/' + gatewayId);
   }
 }
 

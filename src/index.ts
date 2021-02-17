@@ -82,7 +82,8 @@ function computeBaseURLs(constants: any): any {
 
   constants.org = {};
   preselectEnvironment();
-  constants.org.baseURL = `${basePath}/organizations/DEFAULT`;
+  let organizationId = preselectOrganization();
+  constants.org.baseURL = `${basePath}/organizations/${organizationId}`;
   constants.env = {};
   // we use a placeholder here ({:envId}) that will be replaced in management.interceptor
   constants.env.baseURL = `${constants.org.baseURL}/environments/{:envId}`;
@@ -97,6 +98,25 @@ function preselectEnvironment() {
   if (environment && environment[1]) {
     $window.localStorage.setItem('gv-last-environment-loaded', environment[1]);
   }
+}
+
+function preselectOrganization() {
+  let organizationParam = new URL(document.location.toString()).searchParams.get('organization');
+  let orgId = 'DEFAULT';
+  let lastOrganization = $window.localStorage.getItem('gv-last-organization-loaded');
+  if (organizationParam) {
+    orgId = organizationParam.replace(/\/$/, '');
+    window.history.replaceState(
+      {},
+      '',
+      `${window.location.origin}/${window.location.hash}`,
+    );
+  } else if (lastOrganization) {
+    orgId = lastOrganization.replace(/\/$/, '');
+  }
+
+  $window.localStorage.setItem('gv-last-organization-loaded', orgId);
+  return orgId;
 }
 
 function initLoader(constants: any) {

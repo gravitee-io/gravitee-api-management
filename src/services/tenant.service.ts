@@ -15,32 +15,29 @@
  */
 class TenantService {
 
-  private tenantsURL: string;
-
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.tenantsURL = `${Constants.env.baseURL}/configuration/tenants/`;
   }
 
   list() {
-    return this.$http.get(this.tenantsURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/tenants/`);
   }
 
   create(tenants) {
     if (tenants && tenants.length) {
-      return this.$http.post(this.tenantsURL, tenants);
+      return this.$http.post(`${this.Constants.env.baseURL}/configuration/tenants/`, tenants);
     }
   }
 
   update(tenants) {
     if (tenants && tenants.length) {
-      return this.$http.put(this.tenantsURL, tenants);
+      return this.$http.put(`${this.Constants.env.baseURL}/configuration/tenants/`, tenants);
     }
   }
 
   delete(tenant) {
     if (tenant) {
-      return this.$http.delete(this.tenantsURL + tenant.id);
+      return this.$http.delete(`${this.Constants.env.baseURL}/configuration/tenants/` + tenant.id);
     }
   }
 }

@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 class EventsService {
-  private eventsURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.eventsURL = `${Constants.env.baseURL}/platform/events`;
   }
 
   search(type, apis, from, to, page, size) {
-    return this.$http.get(`${this.eventsURL}?type=${type}&api_ids=${apis}&from=${from}&to=${to}&page=${page}&size=${size}`);
+    return this.$http.get(`${this.Constants.env.baseURL}/platform/events?type=${type}&api_ids=${apis}&from=${from}&to=${to}&page=${page}&size=${size}`);
   }
 
 }

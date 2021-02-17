@@ -15,19 +15,17 @@
  */
 
 class PortalSettingsService {
-  private settingsURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.settingsURL = `${Constants.env.baseURL}/settings/`;
   }
 
   save(config) {
-    return this.$http.post(this.settingsURL, config);
+    return this.$http.post(`${this.Constants.env.baseURL}/settings/`, config);
   }
 
   get() {
-    return this.$http.get(this.settingsURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/settings/`);
   }
 
   isReadonly(settings: any, property: string): boolean {

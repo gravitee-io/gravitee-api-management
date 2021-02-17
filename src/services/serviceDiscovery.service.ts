@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 class ServiceDiscoveryService {
-  private serviceDiscoveriesURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.serviceDiscoveriesURL = `${Constants.env.baseURL}/services-discovery/`;
   }
 
   list() {
-    let url = this.serviceDiscoveriesURL;
+    let url = `${this.Constants.env.baseURL}/services-discovery/`;
     return this.$http.get(url);
   }
 
   getSchema(pluginId) {
-    return this.$http.get(`${this.serviceDiscoveriesURL + pluginId}/schema`);
+    return this.$http.get(`${this.Constants.env.baseURL}/services-discovery/${pluginId}/schema`);
   }
 }
 

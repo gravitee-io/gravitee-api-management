@@ -18,29 +18,27 @@ import * as _ from 'lodash';
 import { Dashboard } from '../entities/dashboard';
 
 class DashboardService {
-  private dashboardsURL: string;
   private AnalyticsService: AnalyticsService;
 
-  constructor(private $http, Constants, AnalyticsService: AnalyticsService) {
+  constructor(private $http, private Constants, AnalyticsService: AnalyticsService) {
     'ngInject';
-    this.dashboardsURL = `${Constants.env.baseURL}/configuration/dashboards/`;
     this.AnalyticsService = AnalyticsService;
   }
 
   get(dashboardId: string) {
-    return this.$http.get(this.dashboardsURL + dashboardId);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + dashboardId);
   }
 
   list(referenceType: string) {
-    return this.$http.get(this.dashboardsURL + '?reference_type=' + referenceType);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + '?reference_type=' + referenceType);
   }
 
   create(dashboard: Dashboard) {
-    return this.$http.post(this.dashboardsURL, dashboard);
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/dashboards/`, dashboard);
   }
 
   update(dashboard: Dashboard) {
-    return this.$http.put(this.dashboardsURL + dashboard.id, {
+    return this.$http.put(`${this.Constants.env.baseURL}/configuration/dashboards/` + dashboard.id, {
       id: dashboard.id,
       reference_type: dashboard.reference_type,
       reference_id: dashboard.reference_id,
@@ -53,7 +51,7 @@ class DashboardService {
   }
 
   delete(dashboard: Dashboard) {
-    return this.$http.delete(this.dashboardsURL + dashboard.id);
+    return this.$http.delete(`${this.Constants.env.baseURL}/configuration/dashboards/` + dashboard.id);
   }
 
   getChartService() {

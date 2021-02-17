@@ -17,29 +17,25 @@
 import { IHttpPromise } from 'angular';
 
 class NotificationTemplatesService {
-  private Constants: any;
-  private notificationTemplatesURL: string;
 
-  constructor(private $http: ng.IHttpService, Constants) {
+  constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
-    this.Constants = Constants;
-    this.notificationTemplatesURL = `${Constants.org.baseURL}/configuration/notification-templates/`;
   }
 
   getNotificationTemplates(hook?: string, scope?: string): IHttpPromise<any> {
-    return this.$http.get(this.notificationTemplatesURL, { params: { hook, scope } });
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/notification-templates/`, { params: { hook, scope } });
   }
 
   getNotificationTemplate(notificationTemplateId: string): IHttpPromise<any> {
-    return this.$http.get(this.notificationTemplatesURL + notificationTemplateId);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/notification-templates/` + notificationTemplateId);
   }
 
   create(notificationTemplate: any): IHttpPromise<any> {
-    return this.$http.post(this.notificationTemplatesURL, notificationTemplate);
+    return this.$http.post(`${this.Constants.org.baseURL}/configuration/notification-templates/`, notificationTemplate);
   }
 
   update(notificationTemplate: any): IHttpPromise<any> {
-    return this.$http.put(this.notificationTemplatesURL + notificationTemplate.id, notificationTemplate);
+    return this.$http.put(`${this.Constants.org.baseURL}/configuration/notification-templates/` + notificationTemplate.id, notificationTemplate);
   }
 }
 

@@ -15,29 +15,26 @@
  */
 class DictionaryService {
 
-  private dictionariesURL: string;
-
   constructor(
     private $http: ng.IHttpService,
-    Constants) {
+    private Constants) {
     'ngInject';
-    this.dictionariesURL = `${Constants.env.baseURL}/configuration/dictionaries`;
   }
 
   list(): ng.IPromise<any> {
-    return this.$http.get(this.dictionariesURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/dictionaries`);
   }
 
   get(id: string): ng.IPromise<any> {
-    return this.$http.get([this.dictionariesURL, id].join('/'));
+    return this.$http.get([`${this.Constants.env.baseURL}/configuration/dictionaries`, id].join('/'));
   }
 
   create(dictionary) {
-    return this.$http.post(this.dictionariesURL, dictionary);
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary);
   }
 
   update(dictionary) {
-    return this.$http.put([this.dictionariesURL, dictionary.id].join('/'), {
+    return this.$http.put([`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary.id].join('/'), {
       name: dictionary.name,
       description: dictionary.description,
       type: dictionary.type,
@@ -48,23 +45,23 @@ class DictionaryService {
   }
 
   delete(dictionary: any) {
-    return this.$http.delete([this.dictionariesURL, dictionary.id].join('/'));
+    return this.$http.delete([`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary.id].join('/'));
   }
 
   deploy(dictionary: any) {
-    return this.$http.post([this.dictionariesURL, dictionary.id, '_deploy'].join('/'), {});
+    return this.$http.post([`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary.id, '_deploy'].join('/'), {});
   }
 
   undeploy(dictionary: any) {
-    return this.$http.post([this.dictionariesURL, dictionary.id, '_undeploy'].join('/'), {});
+    return this.$http.post([`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary.id, '_undeploy'].join('/'), {});
   }
 
   start(dictionary: any) {
-    return this.$http.post([this.dictionariesURL, dictionary.id].join('/') + '?action=START', {});
+    return this.$http.post([`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary.id].join('/') + '?action=START', {});
   }
 
   stop(dictionary: any) {
-    return this.$http.post([this.dictionariesURL, dictionary.id].join('/') + '?action=STOP', {});
+    return this.$http.post([`${this.Constants.env.baseURL}/configuration/dictionaries`, dictionary.id].join('/') + '?action=STOP', {});
   }
 }
 

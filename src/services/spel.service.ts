@@ -15,15 +15,12 @@
  */
 class SpelService {
 
-  private spelURL: string;
-
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.spelURL = `${Constants.env.baseURL}/configuration/spel/`;
   }
 
   getGrammar() {
-    return this.$http.get(`${this.spelURL}grammar`);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/spel/grammar`);
   }
 
 }

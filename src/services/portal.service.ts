@@ -15,17 +15,13 @@
  */
 
 class PortalService {
-  private portalURL: string;
-  private Constants: any;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.portalURL = `${Constants.env.baseURL}/portal/`;
-    this.Constants = Constants;
   }
 
   searchApis(query?: string, opts?: any) {
-    let url = this.portalURL + 'apis/_search?q=' + query;
+    let url = `${this.Constants.env.baseURL}/portal/` + 'apis/_search?q=' + query;
     return this.$http.post(url, {}, opts);
   }
 }

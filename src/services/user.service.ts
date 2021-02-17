@@ -31,17 +31,12 @@ class UserService {
    * Current authenticated user or empty user if not authenticated.
    */
   public currentUser: User;
-  private usersURL: string;
-  private userURL: string;
-  private searchUsersURL: string;
-  private customUserFieldsURL: string;
   private routerInitialized: boolean = false;
   private isLogout: boolean = false;
-  private Constants: any;
 
   constructor(private $http: ng.IHttpService,
               private $q: ng.IQService,
-              Constants,
+              private Constants,
               private RoleService: RoleService,
               private PermPermissionStore,
               private $urlService: UrlService,
@@ -54,15 +49,10 @@ class UserService {
               private StringService: StringService,
               private Base64Service: Base64Service) {
     'ngInject';
-    this.searchUsersURL = `${Constants.org.baseURL}/search/users/`;
-    this.usersURL = `${Constants.org.baseURL}/users/`;
-    this.userURL = `${Constants.org.baseURL}/user/`;
-    this.customUserFieldsURL = `${Constants.org.baseURL}/configuration/custom-user-fields`;
-    this.Constants = Constants;
   }
 
   list(query?: string, page = 1, size = 10): ng.IPromise<any> {
-    let url = `${this.usersURL}?page=${page}&size=${size}`;
+    let url = `${this.Constants.org.baseURL}/users/?page=${page}&size=${size}`;
 
     if (query) {
       url += '&q=' + query;
@@ -72,39 +62,39 @@ class UserService {
   }
 
   get(code: string): ng.IPromise<User> {
-    return this.$http.get(this.usersURL + code).then(response => Object.assign(new User(), response.data));
+    return this.$http.get(`${this.Constants.org.baseURL}/users/` + code).then(response => Object.assign(new User(), response.data));
   }
 
   remove(userId: string): ng.IPromise<any> {
-    return this.$http.delete(this.usersURL + userId);
+    return this.$http.delete(`${this.Constants.org.baseURL}/users/` + userId);
   }
 
   removeCurrentUser(): ng.IPromise<any> {
-    return this.$http.delete(this.userURL);
+    return this.$http.delete(`${this.Constants.org.baseURL}/user/`);
   }
 
   create(user): ng.IPromise<any> {
-    return this.$http.post(this.usersURL, user);
+    return this.$http.post(`${this.Constants.org.baseURL}/users/`, user);
   }
 
   register(user): ng.IPromise<any> {
-    return this.$http.post(`${this.usersURL}registration`, user);
+    return this.$http.post(`${this.Constants.org.baseURL}/users/registration`, user);
   }
 
   customUserFieldsToRegister(): ng.IPromise<any> {
-    return this.$http.get(this.customUserFieldsURL);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/custom-user-fields`);
   }
 
   finalizeRegistration(user): ng.IPromise<any> {
-    return this.$http.post(`${this.usersURL}registration/finalize`, user);
+    return this.$http.post(`${this.Constants.org.baseURL}/users/registration/finalize`, user);
   }
 
   finalizeResetPassword(userId, user): ng.IPromise<any> {
-    return this.$http.post(`${this.usersURL}${userId}/changePassword`, user);
+    return this.$http.post(`${this.Constants.org.baseURL}/users/${userId}/changePassword`, user);
   }
 
   search(query): ng.IPromise<any> {
-    return this.$http.get(`${this.searchUsersURL}?q=${query}`);
+    return this.$http.get(`${this.Constants.org.baseURL}/search/users/?q=${query}`);
   }
 
   isUserHasPermissions(permissions) {
@@ -128,7 +118,7 @@ class UserService {
     let that = this;
 
     if (!this.currentUser || !this.currentUser.authenticated) {
-      const promises: ng.IPromise<IHttpResponse<any>>[] = [this.$http.get(this.userURL, {
+      const promises: ng.IPromise<IHttpResponse<any>>[] = [this.$http.get(`${this.Constants.org.baseURL}/user/`, {
         silentCall: true,
         forceSessionExpired: true
       } as ng.IRequestShortcutConfig)];
@@ -238,7 +228,7 @@ class UserService {
   }
 
   login(user): ng.IPromise<any> {
-    return this.$http.post(`${this.userURL}login`, {}, {
+    return this.$http.post(`${this.Constants.org.baseURL}/user/login`, {}, {
       headers: {
         Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`
       }
@@ -246,7 +236,7 @@ class UserService {
   }
 
   logout(): ng.IPromise<any> {
-    return this.$http.post(`${this.userURL}logout`, {}).then(() => {
+    return this.$http.post(`${this.Constants.org.baseURL}/user/logout`, {}).then(() => {
       this.removeCurrentUserData();
     });
   }
@@ -262,20 +252,20 @@ class UserService {
 
   currentUserPicture(): string {
     if (this.currentUser && this.currentUser.id) {
-      return `${this.userURL}avatar?${this.StringService.hashCode(this.currentUser.id)}`;
+      return `${this.Constants.org.baseURL}/user/avatar?${this.StringService.hashCode(this.currentUser.id)}`;
     }
   }
 
   getUserAvatar(id: string): string {
-    return `${this.usersURL}` + id + '/avatar';
+    return `${this.Constants.org.baseURL}/users/` + id + '/avatar';
   }
 
   getUserGroups(id: string): ng.IPromise<any> {
-    return this.$http.get(`${this.usersURL}` + id + '/groups');
+    return this.$http.get(`${this.Constants.org.baseURL}/users/` + id + '/groups');
   }
 
   save(user): ng.IPromise<any> {
-    return this.$http.put(`${this.userURL}`, {
+    return this.$http.put(`${this.Constants.org.baseURL}/user/`, {
       username: user.username,
       picture: user.picture,
       newsletter: user.newsletter,
@@ -287,15 +277,15 @@ class UserService {
   }
 
   subscribeNewsletter(email): ng.IPromise<any> {
-    return this.$http.post(`${this.userURL}/subscribeNewsletter`, email);
+    return this.$http.post(`${this.Constants.org.baseURL}/user/subscribeNewsletter`, email);
   }
 
   resetPassword(id: string): ng.IPromise<any> {
-    return this.$http.post(`${this.usersURL}${id}/resetPassword`, {});
+    return this.$http.post(`${this.Constants.org.baseURL}/users/${id}/resetPassword`, {});
   }
 
   getMemberships(id: string, type: string): ng.IPromise<any> {
-    return this.$http.get(`${this.usersURL}${id}/memberships?type=${type}`);
+    return this.$http.get(`${this.Constants.org.baseURL}/users/${id}/memberships?type=${type}`);
   }
 
   setTasks(tasks: PagedResult) {
@@ -304,11 +294,11 @@ class UserService {
   }
 
   getCurrentUserTags(): ng.IPromise<any> {
-    return this.$http.get(`${this.userURL}tags`);
+    return this.$http.get(`${this.Constants.org.baseURL}/user/tags`);
   }
 
   updateUserRoles(user: string, referenceType: string, referenceId: string, roles: string[]): ng.IPromise<any> {
-    return this.$http.put(`${this.usersURL}${user}/roles`, {
+    return this.$http.put(`${this.Constants.org.baseURL}/users/${user}/roles`, {
       user,
       referenceId,
       referenceType,
@@ -317,7 +307,7 @@ class UserService {
   }
 
   processRegistration(id: string, accepted: boolean): ng.IPromise<any> {
-    return this.$http.post(`${this.usersURL}${id}/_process`, accepted);
+    return this.$http.post(`${this.Constants.org.baseURL}/users/${id}/_process`, accepted);
   }
 
   private getEnvironmentPermissions(response: IHttpResponse<any>): string[] {

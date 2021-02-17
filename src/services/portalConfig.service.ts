@@ -15,17 +15,14 @@
  */
 
 class PortalConfigService {
-  private configURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.configURL = `${Constants.env.baseURL}/portal/`;
   }
 
   get() {
-    return this.$http.get(this.configURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/portal/`);
   }
-
 }
 
 export default PortalConfigService;

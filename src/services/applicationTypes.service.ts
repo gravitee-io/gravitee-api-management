@@ -17,15 +17,13 @@
 import { ApplicationType } from '../entities/application';
 
 class ApplicationTypesService {
-  private URL: string;
 
-  constructor(private $http: ng.IHttpService, Constants) {
+  constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
-    this.URL = `${Constants.env.baseURL}/configuration/applications/types`;
   }
 
   getEnabledApplicationTypes(): ng.IHttpPromise<Array<ApplicationType>> {
-    return this.$http.get(this.URL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/applications/types`);
   }
 
 }

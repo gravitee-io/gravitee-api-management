@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 class NotifierService {
-  private notifiersURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.notifiersURL = `${Constants.env.baseURL}/notifiers/`;
   }
 
   list() {
-    return this.$http.get(this.notifiersURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/notifiers/`);
   }
 
   getSchema(notifier: string) {
-    return this.$http.get(this.notifiersURL + notifier + '/schema');
+    return this.$http.get(`${this.Constants.env.baseURL}/notifiers/` + notifier + '/schema');
   }
 }
 

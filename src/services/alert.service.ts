@@ -18,21 +18,13 @@ import { IHttpPromise } from 'angular';
 import { Alert, Scope } from '../entities/alert';
 
 class AlertService {
-  private apisURL: string;
-  private applicationsURL: string;
-  private configurationURL: string;
-  private alertsURL: string;
 
-  constructor(private $http: ng.IHttpService, Constants) {
+  constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
-    this.apisURL = `${Constants.env.baseURL}/apis/`;
-    this.applicationsURL = `${Constants.env.baseURL}/applications/`;
-    this.configurationURL = `${Constants.env.baseURL}/platform/`;
-    this.alertsURL = `${Constants.env.baseURL}/alerts/`;
   }
 
   listMetrics(): IHttpPromise<any> {
-    return this.$http.get(this.alertsURL + 'metrics');
+    return this.$http.get(`${this.Constants.env.baseURL}/alerts/` + 'metrics');
   }
 
   getStatus(referenceId?: string, referenceType?: Scope): IHttpPromise<any> {
@@ -120,11 +112,11 @@ class AlertService {
   private getReferenceURL(referenceType: Scope, referenceId: string) {
     switch (referenceType) {
       case Scope.API:
-        return this.apisURL + referenceId + '/';
+        return `${this.Constants.env.baseURL}/apis/` + referenceId + '/';
       case Scope.APPLICATION:
-        return this.applicationsURL + referenceId + '/';
+        return `${this.Constants.env.baseURL}/applications/` + referenceId + '/';
       default:
-        return this.configurationURL;
+        return `${this.Constants.env.baseURL}/platform/`;
     }
   }
 }

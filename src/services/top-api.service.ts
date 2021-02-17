@@ -16,26 +16,24 @@
 import * as _ from 'lodash';
 
 class TopApiService {
-  private topApisURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.topApisURL = `${Constants.env.baseURL}/configuration/top-apis/`;
   }
 
   list() {
-    return this.$http.get(this.topApisURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/top-apis/`);
   }
 
   create(topApi) {
     if (topApi) {
-      return this.$http.post(this.topApisURL, { api: topApi.id });
+      return this.$http.post(`${this.Constants.env.baseURL}/configuration/top-apis/`, { api: topApi.id });
     }
   }
 
   update(topApis) {
     if (topApis && topApis.length) {
-      return this.$http.put(this.topApisURL, _.map(topApis, function (topApi: any) {
+      return this.$http.put(`${this.Constants.env.baseURL}/configuration/top-apis/`, _.map(topApis, function (topApi: any) {
         return { api: topApi.api };
       }));
     }
@@ -43,7 +41,7 @@ class TopApiService {
 
   delete(topApi) {
     if (topApi) {
-      return this.$http.delete(this.topApisURL + topApi.api);
+      return this.$http.delete(`${this.Constants.env.baseURL}/configuration/top-apis/` + topApi.api);
     }
   }
 }

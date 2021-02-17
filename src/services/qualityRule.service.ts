@@ -19,29 +19,25 @@ import { IHttpPromise } from 'angular';
 import { ApiQualityRule } from '../entities/apiQualityRule';
 
 class QualityRuleService {
-  private URL: string;
-  private URL_API: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.URL = `${Constants.env.baseURL}/configuration/quality-rules/`;
-    this.URL_API = `${Constants.env.baseURL}/apis/`;
   }
 
   list(): IHttpPromise<QualityRule[]> {
-    return this.$http.get(this.URL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/quality-rules/`);
   }
 
   get(id: string): IHttpPromise<QualityRule[]> {
-    return this.$http.get(this.URL + id);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/quality-rules/` + id);
   }
 
   create(qualityRule: QualityRule): IHttpPromise<QualityRule> {
-    return this.$http.post(this.URL, qualityRule);
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/quality-rules/`, qualityRule);
   }
 
   update(qualityRule: QualityRule): IHttpPromise<QualityRule> {
-    return this.$http.put(this.URL + qualityRule.id,
+    return this.$http.put(`${this.Constants.env.baseURL}/configuration/quality-rules/` + qualityRule.id,
       {
         name: qualityRule.name,
         description: qualityRule.description,
@@ -50,15 +46,15 @@ class QualityRuleService {
   }
 
   delete(qualityRule: QualityRule): IHttpPromise<any> {
-    return this.$http.delete(this.URL + qualityRule.id);
+    return this.$http.delete(`${this.Constants.env.baseURL}/configuration/quality-rules/` + qualityRule.id);
   }
 
   listByApi(api: string): IHttpPromise<ApiQualityRule[]> {
-    return this.$http.get(this.URL_API + api + '/quality-rules/');
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/quality-rules/');
   }
 
   createApiRule(api: string, qualityRule: string, checked: boolean) {
-    return this.$http.post(this.URL_API + api + '/quality-rules/', {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api + '/quality-rules/', {
       api: api,
       quality_rule: qualityRule,
       checked: checked
@@ -66,7 +62,7 @@ class QualityRuleService {
   }
 
   updateApiRule(api: string, qualityRule: string, checked: boolean) {
-    return this.$http.put(this.URL_API + api + '/quality-rules/' + qualityRule, {
+    return this.$http.put(`${this.Constants.env.baseURL}/apis/` + api + '/quality-rules/' + qualityRule, {
       checked: checked
     });
   }
