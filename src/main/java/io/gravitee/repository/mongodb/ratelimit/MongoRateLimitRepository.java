@@ -21,6 +21,7 @@ import io.reactivex.Single;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
@@ -48,6 +49,9 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
     @Qualifier("rateLimitMongoTemplate")
     private ReactiveMongoOperations mongoOperations;
 
+    @Value("${ratelimit.mongodb.prefix:}")
+    private String prefix;
+
     private final static String RATE_LIMIT_COLLECTION = "ratelimit";
 
     private final static String FIELD_KEY = "_id";
@@ -60,7 +64,7 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
 
     @PostConstruct
     public void ensureTTLIndex() {
-        mongoOperations.indexOps(RATE_LIMIT_COLLECTION).ensureIndex(
+        mongoOperations.indexOps(getRateLimitCollectionName()).ensureIndex(
                 new Index(FIELD_RESET_TIME, Sort.Direction.ASC).expire(0L))
                 .subscribe();
     }
@@ -86,7 +90,7 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
                                                                 .setOnInsert(FIELD_SUBSCRIPTION, rateLimit.getSubscription()),
                                                         INC_AND_GET_OPTIONS,
                                                         Document.class,
-                                                        RATE_LIMIT_COLLECTION);
+                                                        getRateLimitCollectionName());
                                     }
                                 }).flatMap(new Function<Document, Mono<Document>>() {
                                     @Override
@@ -102,12 +106,16 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
                                                                     .set(FIELD_SUBSCRIPTION, rateLimit.getSubscription()),
                                                             INC_AND_GET_OPTIONS,
                                                             Document.class,
-                                                            RATE_LIMIT_COLLECTION);
+                                                            getRateLimitCollectionName());
                                         } else {
                                             return Mono.just(document);
                                         }
                                     }
                                 }).map(this::convert));
+    }
+
+    private String getRateLimitCollectionName() {
+        return prefix + RATE_LIMIT_COLLECTION;
     }
 
     private RateLimit convert(Document document) {

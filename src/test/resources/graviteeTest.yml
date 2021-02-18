@@ -1,6 +1,7 @@
 management:
   type: mongodb
   mongodb:
+    prefix: test_
     servers:
       - host: ${ds.mongodb.host}
         port: 27017

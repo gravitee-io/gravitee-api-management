@@ -1,115 +1,117 @@
+const prefix = "";
+
 // "apis" collection
-db.apis.dropIndexes();
-db.apis.createIndex( { "visibility" : 1 } );
-db.apis.createIndex( { "group" : 1 } );
-db.apis.reIndex();
+db.getCollection(`${prefix}apis`).dropIndexes();
+db.getCollection(`${prefix}apis`).createIndex( { "visibility" : 1 } );
+db.getCollection(`${prefix}apis`).createIndex( { "group" : 1 } );
+db.getCollection(`${prefix}apis`).reIndex();
 
 // "applications" collection
-db.applications.dropIndexes();
-db.applications.createIndex( { "group" : 1 } );
-db.applications.createIndex( { "name" : 1 } );
-db.applications.createIndex( { "status" : 1 } );
-db.applications.reIndex();
+db.getCollection(`${prefix}applications`).dropIndexes();
+db.getCollection(`${prefix}applications`).createIndex( { "group" : 1 } );
+db.getCollection(`${prefix}applications`).createIndex( { "name" : 1 } );
+db.getCollection(`${prefix}applications`).createIndex( { "status" : 1 } );
+db.getCollection(`${prefix}applications`).reIndex();
 
 // "events" collection
-db.events.dropIndexes();
-db.events.createIndex( { "type" : 1 } );
-db.events.createIndex( { "updatedAt" : 1 } );
-db.events.createIndex( { "properties.api_id" : 1 } );
-db.events.createIndex( { "properties.api_id":1, "type":1} );
-db.events.reIndex();
+db.getCollection(`${prefix}events`).dropIndexes();
+db.getCollection(`${prefix}events`).createIndex( { "type" : 1 } );
+db.getCollection(`${prefix}events`).createIndex( { "updatedAt" : 1 } );
+db.getCollection(`${prefix}events`).createIndex( { "properties.api_id" : 1 } );
+db.getCollection(`${prefix}events`).createIndex( { "properties.api_id":1, "type":1} );
+db.getCollection(`${prefix}events`).reIndex();
 
 // "plans" collection
-db.plans.dropIndexes();
-db.plans.createIndex( { "api" : 1 } );
-db.plans.reIndex();
+db.getCollection(`${prefix}plans`).dropIndexes();
+db.getCollection(`${prefix}plans`).createIndex( { "api" : 1 } );
+db.getCollection(`${prefix}plans`).reIndex();
 
 // "subscriptions" collection
-db.subscriptions.dropIndexes();
-db.subscriptions.createIndex( { "plan" : 1 } );
-db.subscriptions.createIndex( { "application" : 1 } );
-db.subscriptions.reIndex();
+db.getCollection(`${prefix}subscriptions`).dropIndexes();
+db.getCollection(`${prefix}subscriptions`).createIndex( { "plan" : 1 } );
+db.getCollection(`${prefix}subscriptions`).createIndex( { "application" : 1 } );
+db.getCollection(`${prefix}subscriptions`).reIndex();
 
 // "keys" collection
-db.keys.dropIndexes();
-db.keys.createIndex( { "plan" : 1 } );
-db.keys.createIndex( { "application" : 1 } );
-db.keys.createIndex( { "updatedAt" : 1 } );
-db.keys.createIndex( { "revoked" : 1 } );
-db.keys.createIndex( { "plan" : 1 , "revoked" : 1, "updatedAt" : 1 } );
-db.keys.reIndex();
+db.getCollection(`${prefix}keys`).dropIndexes();
+db.getCollection(`${prefix}keys`).createIndex( { "plan" : 1 } );
+db.getCollection(`${prefix}keys`).createIndex( { "application" : 1 } );
+db.getCollection(`${prefix}keys`).createIndex( { "updatedAt" : 1 } );
+db.getCollection(`${prefix}keys`).createIndex( { "revoked" : 1 } );
+db.getCollection(`${prefix}keys`).createIndex( { "plan" : 1 , "revoked" : 1, "updatedAt" : 1 } );
+db.getCollection(`${prefix}keys`).reIndex();
 
 // "pages" collection
-db.pages.dropIndexes();
-db.pages.createIndex( { "api" : 1 } );
-db.pages.createIndex( { "useAutoFetch" : 1 } );
-db.pages.reIndex();
+db.getCollection(`${prefix}pages`).dropIndexes();
+db.getCollection(`${prefix}pages`).createIndex( { "api" : 1 } );
+db.getCollection(`${prefix}pages`).createIndex( { "useAutoFetch" : 1 } );
+db.getCollection(`${prefix}pages`).reIndex();
 
 // "memberships" collection
-db.memberships.dropIndexes();
-db.memberships.createIndex( { "memberId" : 1 } );
-db.memberships.createIndex( { "member" : 1 } );
-db.memberships.createIndex( { "referenceId" : 1 } );
-db.memberships.createIndex( { "referenceType" : 1 } );
-db.memberships.createIndex( { "referenceId":1, "referenceType":1 } );
-db.memberships.createIndex( { "referenceId":1, "referenceType":1, "roleId":1 } );
-db.memberships.createIndex( { "roleId" : 1 } );
-db.memberships.createIndex( { "memberId":1, "memberType":1, "referenceType":1 });
-db.memberships.createIndex( { "memberId":1, "memberType":1, "referenceType":1, "roleId":1 });
-db.memberships.createIndex( { "memberId":1, "memberType":1, "referenceType":1, "referenceId":1 });
-db.memberships.createIndex( { "memberId":1, "memberType":1, "referenceType":1, "referenceId":1, "roleId":1 });
-db.memberships.createIndex( { "memberId":1, "memberType":1 });
-db.memberships.reIndex();
+db.getCollection(`${prefix}memberships`).dropIndexes();
+db.getCollection(`${prefix}memberships`).createIndex( { "memberId" : 1 } );
+db.getCollection(`${prefix}memberships`).createIndex( { "member" : 1 } );
+db.getCollection(`${prefix}memberships`).createIndex( { "referenceId" : 1 } );
+db.getCollection(`${prefix}memberships`).createIndex( { "referenceType" : 1 } );
+db.getCollection(`${prefix}memberships`).createIndex( { "referenceId":1, "referenceType":1 } );
+db.getCollection(`${prefix}memberships`).createIndex( { "referenceId":1, "referenceType":1, "roleId":1 } );
+db.getCollection(`${prefix}memberships`).createIndex( { "roleId" : 1 } );
+db.getCollection(`${prefix}memberships`).createIndex( { "memberId":1, "memberType":1, "referenceType":1 });
+db.getCollection(`${prefix}memberships`).createIndex( { "memberId":1, "memberType":1, "referenceType":1, "roleId":1 });
+db.getCollection(`${prefix}memberships`).createIndex( { "memberId":1, "memberType":1, "referenceType":1, "referenceId":1 });
+db.getCollection(`${prefix}memberships`).createIndex( { "memberId":1, "memberType":1, "referenceType":1, "referenceId":1, "roleId":1 });
+db.getCollection(`${prefix}memberships`).createIndex( { "memberId":1, "memberType":1 });
+db.getCollection(`${prefix}memberships`).reIndex();
 
 // "roles" collection
-db.roles.dropIndexes();
-db.roles.createIndex( {"scope": 1 } );
-db.roles.reIndex();
+db.getCollection(`${prefix}roles`).dropIndexes();
+db.getCollection(`${prefix}roles`).createIndex( {"scope": 1 } );
+db.getCollection(`${prefix}roles`).reIndex();
 
 // "audits" collection
-db.audits.dropIndexes();
-db.audits.createIndex( { "referenceType": 1, "referenceId": 1 } );
-db.audits.createIndex( { "createdAt": 1 } );
-db.audits.reIndex();
+db.getCollection(`${prefix}audits`).dropIndexes();
+db.getCollection(`${prefix}audits`).createIndex( { "referenceType": 1, "referenceId": 1 } );
+db.getCollection(`${prefix}audits`).createIndex( { "createdAt": 1 } );
+db.getCollection(`${prefix}audits`).reIndex();
 
 // "rating" collection
-db.rating.dropIndexes();
-db.rating.createIndex( { "api" : 1 } );
-db.rating.reIndex();
+db.getCollection(`${prefix}rating`).dropIndexes();
+db.getCollection(`${prefix}rating`).createIndex( { "api" : 1 } );
+db.getCollection(`${prefix}rating`).reIndex();
 
 // "ratingAnswers" collection
-db.ratingAnswers.dropIndexes();
-db.ratingAnswers.createIndex( { "rating" : 1 } );
+db.getCollection(`${prefix}ratingAnswers`).dropIndexes();
+db.getCollection(`${prefix}ratingAnswers`).createIndex( { "rating" : 1 } );
 
 // "portalnotifications" collection
-db.portalnotifications.dropIndexes();
-db.portalnotifications.createIndex( { "user" : 1 } );
-db.portalnotifications.reIndex();
+db.getCollection(`${prefix}portalnotifications`).dropIndexes();
+db.getCollection(`${prefix}portalnotifications`).createIndex( { "user" : 1 } );
+db.getCollection(`${prefix}portalnotifications`).reIndex();
 
 // "portalnotificationconfigs" collection
-db.portalnotificationconfigs.dropIndexes();
-db.portalnotificationconfigs.createIndex( {"_id.user":1, "_id.referenceId":1, "_id.referenceType":1}, { unique: true } );
-db.portalnotificationconfigs.createIndex( {"_id.referenceId":1, "_id.referenceType":1, "hooks":1});
-db.portalnotificationconfigs.reIndex();
+db.getCollection(`${prefix}portalnotificationconfigs`).dropIndexes();
+db.getCollection(`${prefix}portalnotificationconfigs`).createIndex( {"_id.user":1, "_id.referenceId":1, "_id.referenceType":1}, { unique: true } );
+db.getCollection(`${prefix}portalnotificationconfigs`).createIndex( {"_id.referenceId":1, "_id.referenceType":1, "hooks":1});
+db.getCollection(`${prefix}portalnotificationconfigs`).reIndex();
 
 // "genericnotificationconfigs" collection
-db.genericnotificationconfigs.dropIndexes();
-db.genericnotificationconfigs.createIndex( {"referenceId":1, "referenceType":1, "hooks":1});
-db.genericnotificationconfigs.createIndex( {"referenceId":1, "referenceType":1});
-db.genericnotificationconfigs.reIndex();
+db.getCollection(`${prefix}genericnotificationconfigs`).dropIndexes();
+db.getCollection(`${prefix}genericnotificationconfigs`).createIndex( {"referenceId":1, "referenceType":1, "hooks":1});
+db.getCollection(`${prefix}genericnotificationconfigs`).createIndex( {"referenceId":1, "referenceType":1});
+db.getCollection(`${prefix}genericnotificationconfigs`).reIndex();
 
 // "alert triggers" collection
-db.alert_triggers.dropIndexes();
-db.alert_triggers.createIndex( { "referenceType": 1, "referenceId": 1 } );
-db.alert_triggers.reIndex();
+db.getCollection(`${prefix}alert_triggers`).dropIndexes();
+db.getCollection(`${prefix}alert_triggers`).createIndex( { "referenceType": 1, "referenceId": 1 } );
+db.getCollection(`${prefix}alert_triggers`).reIndex();
 
 // "alert events" collection
-db.alert_events.dropIndexes();
-db.alert_events.createIndex( { "alert": 1 } );
-db.alert_events.createIndex( { "createdAt": 1 } );
-db.alert_events.reIndex();
+db.getCollection(`${prefix}alert_events`).dropIndexes();
+db.getCollection(`${prefix}alert_events`).createIndex( { "alert": 1 } );
+db.getCollection(`${prefix}alert_events`).createIndex( { "createdAt": 1 } );
+db.getCollection(`${prefix}alert_events`).reIndex();
 
 // "customUserFields" collection
-db.custom_user_fields.dropIndexes();
-db.custom_user_fields.createIndex( {"_id.referenceId":1, "_id.referenceType":1}, { unique: false } );
-db.custom_user_fields.reIndex();
+db.getCollection(`${prefix}custom_user_fields`).dropIndexes();
+db.getCollection(`${prefix}custom_user_fields`).createIndex( {"_id.referenceId":1, "_id.referenceType":1}, { unique: false } );
+db.getCollection(`${prefix}custom_user_fields`).reIndex();
