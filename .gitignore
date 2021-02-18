@@ -26,3 +26,5 @@ admin/console/dist
 
 gravitee-gateway-standalone/gravitee-gateway-standalone-distribution/src/main/resources/plugins/
 gravitee-gateway-standalone/gravitee-gateway-standalone-distribution/src/main/resources/logs/
+# ingore the [settings.xml] which contains secrets (password to artifactory)
+settings.xml
