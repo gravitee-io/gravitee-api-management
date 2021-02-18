@@ -35,6 +35,11 @@
                 "output": "images/"
               },
               {
+                "glob": "**/*.css",
+                "input": "node_modules/@gravitee/ui-components/assets/css",
+                "output": "css/"
+              },
+              {
                 "glob": "oauth2-redirect.html",
                 "input": "node_modules/swagger-ui-dist",
                 "output": "/"
