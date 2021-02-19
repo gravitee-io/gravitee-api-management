@@ -20,6 +20,7 @@ import DocumentationService, { DocumentationQuery } from '../../../services/docu
 import { StateParams } from '@uirouter/core';
 import FetcherService from '../../../services/fetcher.service';
 import PolicyService from '../../../services/policy.service';
+import ResourceService from '../../../services/resource.service';
 import TagService from '../../../services/tag.service';
 import UserService from '../../../services/user.service';
 import QualityRuleService from '../../../services/qualityRule.service';
@@ -89,6 +90,7 @@ function apisPortalRouterConfig($stateProvider) {
       resolve: {
         groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
         policies: (PolicyService: PolicyService) => PolicyService.list().then(response => response.data),
+        resourceTypes: (ResourceService: ResourceService) => ResourceService.list(false, true).then(response => response.data),
         tags: (TagService: TagService) => TagService.list().then(response => response.data),
         userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data),
         pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
@@ -115,6 +117,7 @@ function apisPortalRouterConfig($stateProvider) {
           ApiService.getApiPlan($stateParams.apiId, $stateParams.planId).then(response => response.data),
         groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
         policies: (PolicyService: PolicyService) => PolicyService.list().then(response => response.data),
+        resourceTypes: (ResourceService: ResourceService) => ResourceService.list(false, true).then(response => response.data),
         tags: (TagService: TagService) => TagService.list().then(response => response.data),
         userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data),
         pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {

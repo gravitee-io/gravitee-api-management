@@ -27,6 +27,7 @@ class ApiEditPlanController {
   policies: any[];
   tags: any[];
   userTags: any[];
+  resourceTypes: any[];
 
   restrictionsPolicies: any[];
   planPolicies: any[];

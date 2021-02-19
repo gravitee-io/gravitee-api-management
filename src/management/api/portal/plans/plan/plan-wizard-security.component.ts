@@ -16,7 +16,10 @@
 
 import _ = require('lodash');
 import PolicyService from '../../../../../services/policy.service';
+import ResourceService from '../../../../../services/resource.service';
 import ApiEditPlanController from './edit-plan.controller';
+import '@gravitee/ui-components/wc/gv-schema-form';
+import '@gravitee/ui-components/wc/gv-row';
 
 const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
   require: {
@@ -29,7 +32,7 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
     private securitySchema: any;
     private parent: ApiEditPlanController;
 
-    constructor(private PolicyService: PolicyService, Constants: any) {
+    constructor(private PolicyService: PolicyService, Constants: any, private ResourceService: ResourceService) {
       'ngInject';
 
       this.securityTypes = _.filter([
@@ -59,16 +62,39 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
       }
     }
 
+    onSecurityDefinitionChange({ detail : { values }}) {
+      this.parent.plan.securityDefinition = values;
+    }
+
+    onFetchResources(event) {
+      if (this.parent.resourceTypes != null && this.parent.api.resources != null) {
+        const {currentTarget, regexTypes} = event.detail;
+        const options = this.parent.api.resources
+          .filter((resource) => regexTypes == null || new RegExp(regexTypes).test(resource.type))
+          .map((resource, index) => {
+            const resourceType = this.parent.resourceTypes.find((type) => type.id === resource.type);
+            const row = document.createElement('gv-row');
+            const picture = resourceType.icon ? resourceType.icon : null;
+            // @ts-ignore
+            row.item = {picture, name: resource.name};
+            return {
+              element: row,
+              value: resource.name,
+              id: resource.type,
+            };
+          });
+
+        currentTarget.options = options;
+      }
+    }
+
     onSecurityTypeChange() {
       let securityType: any = _.find(this.securityTypes, {'id': this.parent.plan.security});
       if (securityType && securityType.policy) {
         this.PolicyService.getSchema(securityType.policy).then(schema => {
           this.securitySchema = schema.data;
-
           if (this.parent.plan.securityDefinition) {
             try {
-              this.parent.plan.securityDefinition = JSON.parse(this.parent.plan.securityDefinition);
-
               // Try a double parsing (it appears that sometimes the json of security definition is double-encoded
               this.parent.plan.securityDefinition = JSON.parse(this.parent.plan.securityDefinition);
             } catch (e) {

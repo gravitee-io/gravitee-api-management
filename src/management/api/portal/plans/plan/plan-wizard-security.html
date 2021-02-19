@@ -38,10 +38,13 @@
 
       <section ng-if="$ctrl.securitySchema">
         <md-subheader>Configuration</md-subheader>
-        <form name="$ctrl.securityConfigurationForm" sf-schema="$ctrl.securitySchema" sf-form="['*']"
-              sf-model="$ctrl.parent.plan.securityDefinition"
-              sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }">
-        </form>
+        <gv-schema-form ng-attr-schema="{{ $ctrl.securitySchema }}"
+                        validate-on-render
+                        ng-attr-values="{{ $ctrl.parent.plan.securityDefinition }}"
+                        ng-on-gv-schema-form:change="$ctrl.onSecurityDefinitionChange($event)"
+                        ng-on-gv-schema-form:fetch-resources="$ctrl.onFetchResources($event)"
+        >
+        </gv-schema-form>
       </section>
 
       <br />
