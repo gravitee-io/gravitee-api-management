@@ -118,6 +118,7 @@ public interface ApiService {
         updateApiEntity.setFlows(apiEntity.getFlows());
         updateApiEntity.setGraviteeDefinitionVersion(apiEntity.getGraviteeDefinitionVersion());
         updateApiEntity.setFlowMode(apiEntity.getFlowMode());
+        updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
 
         return updateApiEntity;
     }
