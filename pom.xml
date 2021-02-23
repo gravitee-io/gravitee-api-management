@@ -24,8 +24,8 @@
     <frontend-maven-plugin.version>1.8.0</frontend-maven-plugin.version>
     <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
     <skiptTests>false</skiptTests>
-    <node.version>v12.18.4</node.version>
-    <npm.version>6.14.6</npm.version>
+    <node.version>v14.15.5</node.version>
+    <npm.version>7.5.6</npm.version>
   </properties>
 
   <parent>

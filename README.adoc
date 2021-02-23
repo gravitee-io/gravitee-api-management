@@ -4,11 +4,12 @@ This project was generated with https://github.com/angular/angular-cli[Angular C
 
 == Install
 
-- Install http://nodejs.org[nodejs] LTS (v12.18.4), it comes with http://npmjs.org[npm]
+- Install https://github.com/nvm-sh/nvm[nvm]
 - Install the Angular CLI
 ```
 npm install -g @angular/cli
 ```
+- Use with `nvm use` or install with `nvm install` the node version declared in `.nvmrc`
 - Then install node modules with:
 ```
 npm install
