@@ -60,7 +60,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
     }
   }
 
-  DisableTryItOutPlugin = function() {
+  DisableTryItOutPlugin() {
     return {
       statePlugins: {
         spec: {
@@ -72,7 +72,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
     };
   }
 
-  DisableAuthorizePlugin = function() {
+  DisableAuthorizePlugin() {
     return {
       wrapComponents: {
         authorizeBtn: () => () => null
