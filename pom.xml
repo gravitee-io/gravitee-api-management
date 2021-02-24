@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>19</version>
+        <version>20-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.gateway</groupId>
@@ -243,7 +243,7 @@
     </dependencies>
 
     <properties>
-        <gravitee-node.version>1.10.0</gravitee-node.version>
+        <gravitee-node.version>1.11.0-SNAPSHOT</gravitee-node.version>
         <gravitee-definition.version>1.26.0</gravitee-definition.version>
         <gravitee-common.version>1.19.1</gravitee-common.version>
         <gravitee-expression-language.version>1.4.2</gravitee-expression-language.version>
@@ -271,7 +271,6 @@
         <nimbus-jwt.version>8.19</nimbus-jwt.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <protobuf-java.version>3.12.2</protobuf-java.version>
-        <hazelcast.version>3.12.9</hazelcast.version>
         <jmh.version>1.26</jmh.version>
     </properties>
 

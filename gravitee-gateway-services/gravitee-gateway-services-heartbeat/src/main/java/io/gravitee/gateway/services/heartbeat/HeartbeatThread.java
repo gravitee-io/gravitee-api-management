@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.heartbeat;
 
-import com.hazelcast.core.IQueue;
+import com.hazelcast.collection.IQueue;
 import io.gravitee.repository.management.model.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
