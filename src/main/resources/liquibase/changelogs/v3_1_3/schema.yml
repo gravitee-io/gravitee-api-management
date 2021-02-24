@@ -6,9 +6,9 @@ databaseChangeLog:
         - dropNotNullConstraint:
             columnDataType: nvarchar(64)
             columnName: reference_id
-            tableName: memberships
+            tableName: ${gravitee_prefix}memberships
 
         - dropNotNullConstraint:
             columnDataType: nvarchar(64)
             columnName: reference_id
-            tableName: audits
+            tableName: ${gravitee_prefix}audits

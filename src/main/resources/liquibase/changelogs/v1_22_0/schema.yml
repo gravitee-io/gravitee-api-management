@@ -5,27 +5,27 @@ databaseChangeLog:
         changes:
 
         - addColumn:
-            tableName: keys
+            tableName: ${gravitee_prefix}keys
             columns:
                 - column:
                     name: paused
                     type: boolean
 
         - addColumn:
-            tableName: subscriptions
+            tableName: ${gravitee_prefix}subscriptions
             columns:
                 - column:
                     name: paused_at
                     type: timestamp(6)
 
         - createTable:
-            tableName: entrypoints
+            tableName: ${gravitee_prefix}entrypoints
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: value, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: tags, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_entrypoints
+            constraintName: pk_${gravitee_prefix}entrypoints
             columnNames: id
-            tableName: entrypoints
+            tableName: ${gravitee_prefix}entrypoints

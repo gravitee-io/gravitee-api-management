@@ -4,7 +4,7 @@ databaseChangeLog:
       author: GraviteeSource Team
       changes:
         - addColumn:
-            tableName: apis
+            tableName: ${gravitee_prefix}apis
             columns:
               - column:
                   name: background
@@ -12,7 +12,7 @@ databaseChangeLog:
                   constraints:
                     nullable: true
         - addColumn:
-            tableName: applications
+            tableName: ${gravitee_prefix}applications
             columns:
               - column:
                   name: background
@@ -20,7 +20,7 @@ databaseChangeLog:
                   constraints:
                     nullable: true
         - addColumn:
-            tableName: categories
+            tableName: ${gravitee_prefix}categories
             columns:
               - column:
                   name: background

@@ -18,17 +18,15 @@ package io.gravitee.repository.jdbc.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ThemeRepository;
-import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.RowMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
 import java.util.*;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -40,23 +38,25 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcThemeRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Theme.class, "themes", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("enabled", Types.BIT, boolean.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("logo", Types.NVARCHAR, String.class)
-            .addColumn("optional_logo", Types.NVARCHAR, String.class)
-            .addColumn("background_image", Types.NVARCHAR, String.class)
-            .build();
+    JdbcThemeRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "themes");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Theme> buildOrm() {
+        return JdbcObjectMapper.builder(Theme.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("enabled", Types.BIT, boolean.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("logo", Types.NVARCHAR, String.class)
+                .addColumn("optional_logo", Types.NVARCHAR, String.class)
+                .addColumn("background_image", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -73,8 +73,8 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
     public Set<Theme> findByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException {
         LOGGER.debug("JdbcThemeRepository.findByReference({})", referenceType);
         try {
-            return new HashSet(jdbcTemplate.query("select * from themes where reference_id = ? and reference_type = ?"
-                    , ORM.getRowMapper()
+            return new HashSet(jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?"
+                    , getOrm().getRowMapper()
                     , referenceId
                     , referenceType
             ));

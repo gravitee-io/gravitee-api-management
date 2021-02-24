@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -36,20 +37,22 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcInvitationRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Invitation.class, "invitations", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("email", Types.NVARCHAR, String.class)
-            .addColumn("api_role", Types.NVARCHAR, String.class)
-            .addColumn("application_role", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    JdbcInvitationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "invitations");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Invitation> buildOrm() {
+        return JdbcObjectMapper.builder(Invitation.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("email", Types.NVARCHAR, String.class)
+                .addColumn("api_role", Types.NVARCHAR, String.class)
+                .addColumn("application_role", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -61,8 +64,8 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     public List<Invitation> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcInvitationRepository.findByReference({}, {})", referenceType, referenceId);
         try {
-            return jdbcTemplate.query("select * from invitations where reference_type = ? and reference_id = ?"
-                    , ORM.getRowMapper(), referenceType, referenceId);
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?"
+                    , getOrm().getRowMapper(), referenceType, referenceId);
         } catch (final Exception ex) {
             final String message = "Failed to find invitations by reference";
             LOGGER.error(message, ex);

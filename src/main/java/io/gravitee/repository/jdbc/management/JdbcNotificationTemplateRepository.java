@@ -23,8 +23,7 @@ import io.gravitee.repository.management.model.NotificationTemplateReferenceType
 import io.gravitee.repository.management.model.NotificationTemplateType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -40,30 +39,29 @@ import java.util.Set;
 @Repository
 public class JdbcNotificationTemplateRepository extends JdbcAbstractCrudRepository<NotificationTemplate, String> implements NotificationTemplateRepository {
 
-    @Autowired
-    protected JdbcTemplate jdbcTemplate;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcNotificationTemplateRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(NotificationTemplate.class, "notification_templates", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("hook", Types.NVARCHAR, String.class)
-            .addColumn("scope", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, NotificationTemplateReferenceType.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("title", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, NotificationTemplateType.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("enabled", Types.BOOLEAN, boolean.class)
-            .build();
+    JdbcNotificationTemplateRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "notification_templates");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<NotificationTemplate> buildOrm() {
+        return JdbcObjectMapper.builder(NotificationTemplate.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("hook", Types.NVARCHAR, String.class)
+                .addColumn("scope", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, NotificationTemplateReferenceType.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("title", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, NotificationTemplateType.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("enabled", Types.BOOLEAN, boolean.class)
+                .build();
     }
 
     @Override
@@ -76,8 +74,8 @@ public class JdbcNotificationTemplateRepository extends JdbcAbstractCrudReposito
         LOGGER.debug("JdbcNotificationTemplateRepository.findAllByType({}, {}, {})", type, referenceId, referenceType);
         try {
             List<NotificationTemplate> notificationTemplates = jdbcTemplate.query(
-                    "select * from notification_templates where type = ? and reference_id = ? and reference_type = ?",
-                    ORM.getRowMapper(),
+                    getOrm().getSelectAllSql() + " where type = ? and reference_id = ? and reference_type = ?",
+                    getOrm().getRowMapper(),
                     type.name(),
                     referenceId,
                     referenceType.name()
@@ -94,8 +92,8 @@ public class JdbcNotificationTemplateRepository extends JdbcAbstractCrudReposito
         LOGGER.debug("JdbcNotificationTemplateRepository.findAllByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
             List<NotificationTemplate> notificationTemplates = jdbcTemplate.query(
-                    "select * from notification_templates where reference_id = ? and reference_type = ?",
-                    ORM.getRowMapper(),
+                    getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?",
+                    getOrm().getRowMapper(),
                     referenceId,
                     referenceType.name()
             );
@@ -111,8 +109,8 @@ public class JdbcNotificationTemplateRepository extends JdbcAbstractCrudReposito
         LOGGER.debug("JdbcNotificationTemplateRepository.findByHookReferenceIdAndReferenceType({}, {}, {})", hook, referenceId, referenceType);
         try {
             List<NotificationTemplate> notificationTemplates = jdbcTemplate.query(
-                    "select * from notification_templates where hook = ? and scope = ? and reference_id = ? and reference_type = ?",
-                    ORM.getRowMapper(),
+                    getOrm().getSelectAllSql() + " where hook = ? and scope = ? and reference_id = ? and reference_type = ?",
+                    getOrm().getRowMapper(),
                     hook,
                     scope,
                     referenceId,

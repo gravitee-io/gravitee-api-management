@@ -140,12 +140,12 @@ public class JdbcObjectMapper<T> {
             this.idColumn = idColumn;
         }
 
-        public Builder updateSql(String updateSql) {
+        public Builder<T> updateSql(String updateSql) {
             this.updateSql = updateSql;
             return this;
         }
 
-        public Builder addColumn(String name, int jdbcType, Class fieldType) {
+        public Builder<T> addColumn(String name, int jdbcType, Class fieldType) {
             this.columns.add(new JdbcColumn(name, jdbcType, clazz, fieldType));
             return this;
         }
@@ -155,11 +155,11 @@ public class JdbcObjectMapper<T> {
         }
     }
 
-    public static <T> JdbcObjectMapper.Builder builder(final Class<T> clazz, final String tableName) {
+    public static <T> JdbcObjectMapper.Builder<T> builder(final Class<T> clazz, final String tableName) {
         return builder(clazz, tableName, null);
     }
 
-    public static <T> JdbcObjectMapper.Builder builder(final Class<T> clazz, final String tableName, final String idColumn) {
+    public static <T> JdbcObjectMapper.Builder<T> builder(final Class<T> clazz, final String tableName, final String idColumn) {
         return new JdbcObjectMapper.Builder<>(clazz, tableName, idColumn);
     }
 
@@ -217,7 +217,7 @@ public class JdbcObjectMapper<T> {
         return new Psc(updateSql, item, ids);
     }
 
-    public boolean buildInCondition(boolean first, StringBuilder query, String column, Collection<String> args) {
+    public boolean buildInCondition(boolean first, StringBuilder query, String column, Collection args) {
         if ((args != null) && !args.isEmpty()) {
             query.append(first ? " where " : " and ");
             first = false;

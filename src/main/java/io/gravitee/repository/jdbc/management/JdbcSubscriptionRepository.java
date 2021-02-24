@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -46,31 +47,33 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSubscriptionRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Subscription.class, "subscriptions", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("plan", Types.NVARCHAR, String.class)
-            .addColumn("application", Types.NVARCHAR, String.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("starting_at", Types.TIMESTAMP, Date.class)
-            .addColumn("ending_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("processed_at", Types.TIMESTAMP, Date.class)
-            .addColumn("processed_by", Types.NVARCHAR, String.class)
-            .addColumn("subscribed_by", Types.NVARCHAR, String.class)
-            .addColumn("client_id", Types.NVARCHAR, String.class)
-            .addColumn("request", Types.NVARCHAR, String.class)
-            .addColumn("reason", Types.NVARCHAR, String.class)
-            .addColumn("status", Types.NVARCHAR, Subscription.Status.class)
-            .addColumn("paused_at", Types.TIMESTAMP, Date.class)
-            .addColumn("general_conditions_content_page_id", Types.NVARCHAR, String.class)
-            .addColumn("general_conditions_content_revision", Types.INTEGER, Integer.class)
-            .addColumn("general_conditions_accepted", Types.BOOLEAN, Boolean.class)
-            .build();
+    JdbcSubscriptionRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "subscriptions");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Subscription> buildOrm() {
+        return JdbcObjectMapper.builder(Subscription.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("plan", Types.NVARCHAR, String.class)
+                .addColumn("application", Types.NVARCHAR, String.class)
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("starting_at", Types.TIMESTAMP, Date.class)
+                .addColumn("ending_at", Types.TIMESTAMP, Date.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("processed_at", Types.TIMESTAMP, Date.class)
+                .addColumn("processed_by", Types.NVARCHAR, String.class)
+                .addColumn("subscribed_by", Types.NVARCHAR, String.class)
+                .addColumn("client_id", Types.NVARCHAR, String.class)
+                .addColumn("request", Types.NVARCHAR, String.class)
+                .addColumn("reason", Types.NVARCHAR, String.class)
+                .addColumn("status", Types.NVARCHAR, Subscription.Status.class)
+                .addColumn("paused_at", Types.TIMESTAMP, Date.class)
+                .addColumn("general_conditions_content_page_id", Types.NVARCHAR, String.class)
+                .addColumn("general_conditions_content_revision", Types.INTEGER, Integer.class)
+                .addColumn("general_conditions_accepted", Types.BOOLEAN, Boolean.class)
+                .build();
     }
 
     @Override
@@ -90,7 +93,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     private Page<Subscription> searchPage(final SubscriptionCriteria criteria, final Pageable pageable) {
         final List<Object> argsList = new ArrayList<>();
-        final StringBuilder builder = new StringBuilder("select * from subscriptions ");
+        final StringBuilder builder = new StringBuilder(getOrm().getSelectAllSql() + " ");
         boolean started = false;
         if (criteria.getFrom() > 0) {
             builder.append(WHERE_CLAUSE);
@@ -123,7 +126,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
         List<Subscription> subscriptions;
         try {
-            subscriptions = jdbcTemplate.query(builder.toString(), ORM.getRowMapper(), argsList.toArray());
+            subscriptions = jdbcTemplate.query(builder.toString(), getOrm().getRowMapper(), argsList.toArray());
         } catch (final Exception ex) {
             LOGGER.error("Failed to find subscription records:", ex);
             throw new IllegalStateException("Failed to find subscription records", ex);

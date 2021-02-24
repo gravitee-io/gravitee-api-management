@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -29,15 +30,17 @@ import java.sql.Types;
 @Repository
 public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, String> implements TenantRepository {
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Tenant.class, "tenants", "id")
+    JdbcTenantRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "tenants");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Tenant> buildOrm() {
+        return JdbcObjectMapper.builder(Tenant.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .build();
-
-    @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
     }
 
     @Override

@@ -4,12 +4,12 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - addColumn:
-            tableName: users
+            tableName: ${gravitee_prefix}users
             columns:
                 - column:
                     name: status
                     type: nvarchar(64)
         - addDefaultValue:
-            tableName: users
+            tableName: ${gravitee_prefix}users
             columnName: status
             defaultValue: ACTIVE

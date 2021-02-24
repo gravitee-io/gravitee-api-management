@@ -25,6 +25,7 @@ import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 
@@ -45,19 +46,28 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRoleRepository.class);
 
     private static final String SCOPE_FIELD = "scope";
+    private final String ROLE_PERMISSIONS;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Role.class, "roles", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, RoleReferenceType.class)
-            .addColumn(SCOPE_FIELD, Types.NVARCHAR, RoleScope.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("default_role", Types.BIT, boolean.class)
-            .addColumn("system", Types.BIT, boolean.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    JdbcRoleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "roles");
+        ROLE_PERMISSIONS = getTableNameFor("role_permissions");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Role> buildOrm() {
+        return JdbcObjectMapper.builder(Role.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, RoleReferenceType.class)
+                .addColumn(SCOPE_FIELD, Types.NVARCHAR, RoleScope.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("default_role", Types.BIT, boolean.class)
+                .addColumn("system", Types.BIT, boolean.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
+    }
 
     private static final JdbcHelper.ChildAdder<Role> CHILD_ADDER = (Role parent, ResultSet rs) -> {
         int permission = rs.getInt("permission");
@@ -74,11 +84,6 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     };
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
-    }
-
-    @Override
     protected String getId(Role item) {
         return item.getId();
     }
@@ -87,7 +92,7 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     public Role create(Role item) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.create({})", item);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storePermissions(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
@@ -103,7 +108,7 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(role, role.getId()));
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(role, role.getId()));
             storePermissions(role, true);
             return findById(role.getId()).orElseThrow(() -> new IllegalStateException(format("No role found with id [%s]", role.getId())));
         } catch (final IllegalStateException ex) {
@@ -119,8 +124,8 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     public void delete(String roleId) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.delete({})", roleId);
         try {
-            jdbcTemplate.update("delete from role_permissions where role_id = ?", roleId);
-            jdbcTemplate.update(ORM.getDeleteSql(), roleId);
+            jdbcTemplate.update("delete from " + ROLE_PERMISSIONS + " where role_id = ?", roleId);
+            jdbcTemplate.update(getOrm().getDeleteSql(), roleId);
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete role:", ex);
             throw new TechnicalException("Failed to delete role", ex);
@@ -150,11 +155,11 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
         LOGGER.debug("JdbcRoleRepository.storePermissions({}, {})", role, deleteFirst);
         try {
             if (deleteFirst) {
-                jdbcTemplate.update("delete from role_permissions where role_id = ?", role.getId());
+                jdbcTemplate.update("delete from " + ROLE_PERMISSIONS + " where role_id = ?", role.getId());
             }
             int[] permissions = dedupePermissions(role.getPermissions());
             if ((permissions != null) && permissions.length > 0) {
-                jdbcTemplate.batchUpdate("insert into role_permissions ( role_id, permission ) values ( ?, ? )"
+                jdbcTemplate.batchUpdate("insert into " + ROLE_PERMISSIONS + " ( role_id, permission ) values ( ?, ? )"
                         , new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -178,9 +183,9 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     public Optional<Role> findById(String roleId) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findById({})", roleId);
         try {
-            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from roles r"
-                    + " left join role_permissions rp on rp.role_id = r.id"
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(getOrm().getSelectAllSql() + " r"
+                    + " left join " + ROLE_PERMISSIONS + " rp on rp.role_id = r.id"
                     + " where r.id = ?"
                     + " order by r.reference_type, r.reference_id, r.scope,r.name"
                     , rowMapper
@@ -199,9 +204,9 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findByScopeAndName({}, {}, {}, {})", scope, name, referenceId, referenceType);
         try {
-            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_id = r.id"
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(getOrm().getSelectAllSql() + " r "
+                    + " left join " + ROLE_PERMISSIONS + " rp on rp.role_id = r.id"
                     + " where r.scope = ? and r.name = ? and r.reference_id = ? and r.reference_type = ?"
                     + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
@@ -228,9 +233,9 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
     public Set<Role> findAll() throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findAll()");
         try {
-            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_id = r.id"
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(getOrm().getSelectAllSql() + " r "
+                    + " left join " + ROLE_PERMISSIONS + " rp on rp.role_id = r.id"
                     + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
             );
@@ -247,9 +252,9 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
             throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findAllByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
-            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_id = r.id"
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(getOrm().getSelectAllSql() + " r "
+                    + " left join " + ROLE_PERMISSIONS + " rp on rp.role_id = r.id"
                     + " where r.reference_id = ? and r.reference_type = ?"
                     + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper
@@ -269,9 +274,9 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
             RoleReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcRoleRepository.findByScopeAndReferenceIdAndReferenceType({}, {}, {})", scope, referenceId, referenceType);
         try {
-            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from roles r "
-                    + " left join role_permissions rp on rp.role_id = r.id"
+            JdbcHelper.CollatingRowMapper<Role> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(getOrm().getSelectAllSql() + " r "
+                    + " left join " + ROLE_PERMISSIONS + " rp on rp.role_id = r.id"
                     + " where r.scope = ? and r.reference_id = ? and r.reference_type = ?"
                     + " order by r.reference_type, r.reference_id, r.scope, r.name"
                     , rowMapper

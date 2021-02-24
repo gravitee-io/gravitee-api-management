@@ -4,7 +4,7 @@ databaseChangeLog:
       author: GraviteeSource Team
       changes:
         - addColumn:
-            tableName: users
+            tableName: ${gravitee_prefix}users
             columns:
               - column:
                   name: first_connection_at

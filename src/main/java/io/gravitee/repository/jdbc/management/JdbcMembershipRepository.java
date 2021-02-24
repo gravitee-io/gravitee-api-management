@@ -23,13 +23,13 @@ import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.*;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 import static java.util.Collections.emptySet;
@@ -44,23 +44,25 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMembershipRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Membership.class, "memberships", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("member_id", Types.NVARCHAR, String.class)
-            .addColumn("member_type", Types.NVARCHAR, MembershipMemberType.class)
-            .addColumn("reference_type", Types.NVARCHAR, MembershipReferenceType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("role_id", Types.NVARCHAR, String.class)
-            .addColumn("source", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
-    
-    @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    JdbcMembershipRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "memberships");
     }
 
+    @Override
+    protected JdbcObjectMapper<Membership> buildOrm() {
+        return JdbcObjectMapper.builder(Membership.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("member_id", Types.NVARCHAR, String.class)
+                .addColumn("member_type", Types.NVARCHAR, MembershipMemberType.class)
+                .addColumn("reference_type", Types.NVARCHAR, MembershipReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("role_id", Types.NVARCHAR, String.class)
+                .addColumn("source", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
+    }
+    
     @Override
     protected String getId(Membership item) {
         return item.getId();
@@ -71,7 +73,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         LOGGER.debug("JdbcMembershipRepository.deleteMembers({}, {})", referenceType, referenceId);
         try {
             jdbcTemplate.update(
-                    "delete from memberships" +
+                    "delete from " + this.tableName +
                             " where reference_type = ?" +
                             " and reference_id = ?"
                     , referenceType.name()
@@ -91,10 +93,10 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             if (isEmpty(membershipIds)) {
                 return emptySet();
             }
-            List<Membership> memberships = jdbcTemplate.query("select * from memberships m where m.id in ( "
-                    + ORM.buildInClause(membershipIds) + " )"
-                    , (PreparedStatement ps) -> ORM.setArguments(ps, membershipIds, 1)
-                    ,ORM.getRowMapper()
+            List<Membership> memberships = jdbcTemplate.query(getOrm().getSelectAllSql() + " m where m.id in ( "
+                    + getOrm().buildInClause(membershipIds) + " )"
+                    , (PreparedStatement ps) -> getOrm().setArguments(ps, membershipIds, 1)
+                    , getOrm().getRowMapper()
             );
             return new HashSet<>(memberships);
         } catch (final Exception ex) {
@@ -107,7 +109,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     @Override
     public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByReferenceAndRoleId({}, {}, {}})", referenceType, referenceId, roleId);
-        final StringBuilder query = new StringBuilder("select m.* from memberships m");
+        final StringBuilder query = new StringBuilder("select m.* from " + this.tableName + " m");
         initializeWhereClause(referenceId, referenceType, roleId, query);
         return query(null, null, referenceId, referenceType, roleId, query.toString());
     }
@@ -115,7 +117,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     @Override
     public Set<Membership> findByRoleId(String roleId) throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByRoleId({})", roleId);
-        final StringBuilder query = new StringBuilder("select m.* from memberships m");
+        final StringBuilder query = new StringBuilder("select m.* from " + this.tableName + " m");
         initializeWhereClause(null, null, roleId, query);
         return query(null, null, null, null, roleId, query.toString());
     }
@@ -143,14 +145,14 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId) throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByReferencesAndRoleId({}, {}, {})", referenceType, referenceIds, roleId);
         try {
-            StringBuilder query = new StringBuilder("select m.* from memberships m ");
+            StringBuilder query = new StringBuilder("select m.* from " + this.tableName + " m ");
             boolean first = true;
             if (referenceType != null) {
                 query.append(WHERE_CLAUSE);
                 first = false;
                 query.append(" m.reference_type = ? ");
             }
-            ORM.buildInCondition(first, query, "m.reference_id", referenceIds);
+            getOrm().buildInCondition(first, query, "m.reference_id", referenceIds);
             if (roleId != null) {
                 query.append(first ? WHERE_CLAUSE : AND_CLAUSE);
                 query.append(" role_id = ? ");
@@ -161,11 +163,11 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                         if (referenceType != null) {
                             ps.setString(idx++, referenceType.name());
                         }
-                        idx = ORM.setArguments(ps, referenceIds, idx);
+                        idx = getOrm().setArguments(ps, referenceIds, idx);
                         if (roleId != null) {
                             ps.setString(idx++, roleId);
                         }
-                    }, ORM.getRowMapper()
+                    }, getOrm().getRowMapper()
             );
             return new HashSet<>(items);
         } catch (final Exception ex) {
@@ -178,7 +180,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(String memberId, final MembershipMemberType memberType, MembershipReferenceType referenceType, String roleId) throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId({}, {}, {}, {})", memberId, memberType, referenceType, roleId);
         try {
-            final StringBuilder query = new StringBuilder("select m.* from memberships m");
+            final StringBuilder query = new StringBuilder("select m.* from " + this.tableName + " m");
             boolean first = true;
             if (memberId != null) {
                 query.append(WHERE_CLAUSE);
@@ -226,7 +228,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                     if (roleId != null) {
                         ps.setString(idx++, roleId);
                     }
-                }, ORM.getRowMapper()
+                }, getOrm().getRowMapper()
         );
         return new HashSet<>(memberships);
     }
@@ -235,7 +237,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(final String memberId, final MembershipMemberType memberType, final MembershipReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceType({}, {}, {}, {})", memberId, memberType, referenceType);
         try {
-            final String query = "select * from memberships where member_id = ? and member_type = ? and reference_type = ? ";
+            final String query = getOrm().getSelectAllSql() + " where member_id = ? and member_type = ? and reference_type = ? ";
             return query(memberId, memberType, null, referenceType, null, query);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find membership by user and membership type", ex);
@@ -247,7 +249,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     public Set<Membership> findByMemberIdAndMemberType(String memberId, final MembershipMemberType memberType) throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByMemberIdAndMemberType({}, {})", memberId, memberType);
         try {
-            final String query = "select * from memberships where member_id = ? and member_type = ? ";
+            final String query = getOrm().getSelectAllSql() + " where member_id = ? and member_type = ? ";
             return query(memberId, memberType, null, null, null, query);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find membership by user ", ex);
@@ -260,9 +262,9 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId({}, {}, {}, {}, {})", memberId, memberType, referenceType, referenceId, roleId);
         try {
-            final String query = "select * from memberships where member_id = ? and member_type = ? and reference_type = ? and reference_id = ? and role_id = ? ";
+            final String query = getOrm().getSelectAllSql() + " where member_id = ? and member_type = ? and reference_type = ? and reference_id = ? and role_id = ? ";
             final List<Membership> memberships = jdbcTemplate.query(query
-                    , ORM.getRowMapper()
+                    , getOrm().getRowMapper()
                     , memberId
                     , memberType.name()
                     , referenceType.name()
@@ -281,14 +283,14 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByMemberIdsAndMemberTypeAndReferenceType({}, {}, {})", memberIds, memberType, referenceType);
         try {
-            StringBuilder query = new StringBuilder("select m.* from memberships m ");
+            StringBuilder query = new StringBuilder("select m.* from " + this.tableName + " m ");
             boolean first = true;
             if (referenceType != null) {
                 query.append(WHERE_CLAUSE);
                 first = false;
                 query.append(" m.reference_type= ? ");
             }
-            first = ORM.buildInCondition(first, query, "m.member_id", memberIds);
+            first = getOrm().buildInCondition(first, query, "m.member_id", memberIds);
             if (memberType != null) {
                 query.append(first ? WHERE_CLAUSE : AND_CLAUSE);
                 query.append(" m.member_type = ? ");
@@ -299,11 +301,11 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
                         if (referenceType != null) {
                             ps.setString(idx++, referenceType.name());
                         }
-                        idx = ORM.setArguments(ps, memberIds, idx);
+                        idx = getOrm().setArguments(ps, memberIds, idx);
                         if (memberType != null) {
                             ps.setString(idx++, memberType.name());
                         }
-                    }, ORM.getRowMapper()
+                    }, getOrm().getRowMapper()
             );
             return new HashSet<>(items);
         } catch (final Exception ex) {
@@ -318,13 +320,13 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
             throws TechnicalException {
         LOGGER.debug("JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId({}, {}, {}, {})", memberId, memberType, referenceType, referenceId);
         try {
-            final String query = "select * from memberships where member_id = ? and member_type = ? and reference_type = ?";
+            final String query = getOrm().getSelectAllSql() + " where member_id = ? and member_type = ? and reference_type = ?";
 
             final List<Membership> memberships;
 
             if (referenceId != null) {
                 memberships = jdbcTemplate.query(query + " and reference_id = ?"
-                        , ORM.getRowMapper()
+                        , getOrm().getRowMapper()
                         , memberId
                         , memberType.name()
                         , referenceType.name()
@@ -333,7 +335,7 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
 
             } else {
                 memberships = jdbcTemplate.query(query
-                        , ORM.getRowMapper()
+                        , getOrm().getRowMapper()
                         , memberId
                         , memberType.name()
                         , referenceType.name()

@@ -4,4 +4,4 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
           - sql:
-                sql: delete from memberships where reference_type = 'APPLICATION' and reference_id in (select id from applications where status = 'ARCHIVED')
+                sql: delete from ${gravitee_prefix}memberships where reference_type = 'APPLICATION' and reference_id in (select id from ${gravitee_prefix}applications where status = 'ARCHIVED')

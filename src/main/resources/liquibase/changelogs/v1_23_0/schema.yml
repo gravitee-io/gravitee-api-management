@@ -4,26 +4,26 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - createTable:
-              tableName: page_metadata
+              tableName: ${gravitee_prefix}page_metadata
               columns:
                   - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
                   - column: {name: k, type: nvarchar(64), constraints: { nullable: false } }
                   - column: {name: v, type: nvarchar(200), constraints: { nullable: false } }
 
         - addPrimaryKey:
-              constraintName: pk_page_metadata
+              constraintName: pk_${gravitee_prefix}page_metadata
               columnNames: page_id, k, v
-              tableName: page_metadata
+              tableName: ${gravitee_prefix}page_metadata
 
         - addColumn:
-              tableName: views
+              tableName: ${gravitee_prefix}views
               columns:
                   - column:
                       name: picture
                       type: nclob
 
         - addColumn:
-            tableName: groups
+            tableName: ${gravitee_prefix}groups
             columns:
               - column:
                   name: max_invitation
@@ -42,7 +42,7 @@ databaseChangeLog:
                   type: boolean
 
         - createTable:
-            tableName: invitations
+            tableName: ${gravitee_prefix}invitations
             columns:
               - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
@@ -54,16 +54,16 @@ databaseChangeLog:
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_invitations
+            constraintName: pk_${gravitee_prefix}invitations
             columnNames: id
-            tableName: invitations
+            tableName: ${gravitee_prefix}invitations
 
         - dropNotNullConstraint:
             columnDataType: nvarchar(64)
             columnName: name
-            tableName: pages
+            tableName: ${gravitee_prefix}pages
 
         - modifyDataType:
-            tableName: pages
+            tableName: ${gravitee_prefix}pages
             columnName: source_configuration
             newDataType: nvarchar(512)

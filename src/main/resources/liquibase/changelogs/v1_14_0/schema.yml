@@ -4,7 +4,7 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - createTable:
-            tableName: users
+            tableName: ${gravitee_prefix}users
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: username, type: nvarchar(64), constraints: { nullable: false } }
@@ -20,23 +20,23 @@ databaseChangeLog:
                 - column: {name: picture, type: nclob, constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_users
+            constraintName: pk_${gravitee_prefix}users
             columnNames: id
-            tableName: users
+            tableName: ${gravitee_prefix}users
 
         - createTable:
-            tableName: user_roles
+            tableName: ${gravitee_prefix}user_roles
             columns:
                 - column: {name: username, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: role, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_user_roles
+            constraintName: pk_${gravitee_prefix}user_roles
             columnNames: username, role
-            tableName: user_roles
+            tableName: ${gravitee_prefix}user_roles
 
         - createTable:
-            tableName: apis
+            tableName: ${gravitee_prefix}apis
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
@@ -51,42 +51,42 @@ databaseChangeLog:
                 - column: {name: picture, type: nclob, constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_apis
+            constraintName: pk_${gravitee_prefix}apis
             columnNames: id
-            tableName: apis
+            tableName: ${gravitee_prefix}apis
 
         - createIndex:
-            indexName: idx_apis_visibility
+            indexName: idx_${gravitee_prefix}apis_visibility
             columns:
             - column:
                 name: visibility
                 type: nvarchar(64)
-            tableName: apis
+            tableName: ${gravitee_prefix}apis
 
         - createTable:
-            tableName: api_views
+            tableName: ${gravitee_prefix}api_views
             columns:
                 - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: view, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_api_views
+            constraintName: pk_${gravitee_prefix}api_views
             columnNames: api_id, view
-            tableName: api_views
+            tableName: ${gravitee_prefix}api_views
 
         - createTable:
-            tableName: api_tags
+            tableName: ${gravitee_prefix}api_tags
             columns:
                 - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: tag, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_api_tags
+            constraintName: pk_${gravitee_prefix}api_tags
             columnNames: api_id, tag
-            tableName: api_tags
+            tableName: ${gravitee_prefix}api_tags
 
         - createTable:
-            tableName: keys
+            tableName: ${gravitee_prefix}keys
             columns:
                 - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: subscription, type: nvarchar(64), constraints: { nullable: true } }
@@ -99,44 +99,44 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_keys
+            constraintName: pk_${gravitee_prefix}keys
             columnNames: key
-            tableName: keys
+            tableName: ${gravitee_prefix}keys
 
         - createIndex:
-            indexName: idx_keys_plan
+            indexName: idx_${gravitee_prefix}keys_plan
             columns:
             - column:
                 name: plan
                 type: nvarchar(64)
-            tableName: keys
+            tableName: ${gravitee_prefix}keys
 
         - createIndex:
-            indexName: idx_keys_application
+            indexName: idx_${gravitee_prefix}keys_application
             columns:
             - column:
                 name: application
                 type: nvarchar(64)
-            tableName: keys
+            tableName: ${gravitee_prefix}keys
 
         - createIndex:
-            indexName: idx_keys_updatedat
+            indexName: idx_${gravitee_prefix}keys_updatedat
             columns:
             - column:
                 name: updated_at
                 type: timestamp(6)
-            tableName: keys
+            tableName: ${gravitee_prefix}keys
 
         - createIndex:
-            indexName: idx_keys_revoked
+            indexName: idx_${gravitee_prefix}keys_revoked
             columns:
             - column:
                 name: revoked
                 type: boolean
-            tableName: keys
+            tableName: ${gravitee_prefix}keys
 
         - createIndex:
-            indexName: idx_keys_plan_revoked_updatedat
+            indexName: idx_${gravitee_prefix}keys_plan_revoked_updatedat
             columns:
             - column:
                 name: plan
@@ -147,10 +147,10 @@ databaseChangeLog:
             - column:
                 name: updated_at
                 type: timestamp(6)
-            tableName: keys
+            tableName: ${gravitee_prefix}keys
 
         - createTable:
-            tableName: events
+            tableName: ${gravitee_prefix}events
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
@@ -160,48 +160,48 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_events
+            constraintName: pk_${gravitee_prefix}events
             columnNames: id
-            tableName: events
+            tableName: ${gravitee_prefix}events
 
         - createIndex:
-            indexName: idx_events_type
+            indexName: idx_${gravitee_prefix}events_type
             columns:
             - column:
                 name: type
                 type: nvarchar(64)
-            tableName: events
+            tableName: ${gravitee_prefix}events
 
         - createIndex:
-            indexName: idx_events_updatedat
+            indexName: idx_${gravitee_prefix}events_updatedat
             columns:
             - column:
                 name: updated_at
                 type: timestamp(6)
-            tableName: events
+            tableName: ${gravitee_prefix}events
 
         - createTable:
-            tableName: event_properties
+            tableName: ${gravitee_prefix}event_properties
             columns:
                 - column: {name: event_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: property_key, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: property_value, type: nvarchar(256), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_event_properties
+            constraintName: pk_${gravitee_prefix}event_properties
             columnNames: event_id, property_key
-            tableName: event_properties
+            tableName: ${gravitee_prefix}event_properties
 
         - createIndex:
-            indexName: idx_eventproperties_propertykey
+            indexName: idx_${gravitee_prefix}eventproperties_propertykey
             columns:
             - column:
                 name: property_key
                 type: nvarchar(64)
-            tableName: event_properties
+            tableName: ${gravitee_prefix}event_properties
 
         - createTable:
-            tableName: views
+            tableName: ${gravitee_prefix}views
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
@@ -213,36 +213,36 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_views
+            constraintName: pk_${gravitee_prefix}views
             columnNames: id
-            tableName: views
+            tableName: ${gravitee_prefix}views
 
         - createTable:
-            tableName: tags
+            tableName: ${gravitee_prefix}tags
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_tags
+            constraintName: pk_${gravitee_prefix}tags
             columnNames: id
-            tableName: tags
+            tableName: ${gravitee_prefix}tags
 
         - createTable:
-            tableName: tenants
+            tableName: ${gravitee_prefix}tenants
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_tenants
+            constraintName: pk_${gravitee_prefix}tenants
             columnNames: id
-            tableName: tenants
+            tableName: ${gravitee_prefix}tenants
 
         - createTable:
-            tableName: applications
+            tableName: ${gravitee_prefix}applications
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
@@ -254,28 +254,28 @@ databaseChangeLog:
                 - column: {name: client_id, type: nvarchar(64), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_applications
+            constraintName: pk_${gravitee_prefix}applications
             columnNames: id
-            tableName: applications
+            tableName: ${gravitee_prefix}applications
 
         - createIndex:
-            indexName: idx_applications_name
+            indexName: idx_${gravitee_prefix}applications_name
             columns:
             - column:
                 name: name
                 type: nvarchar(64)
-            tableName: applications
+            tableName: ${gravitee_prefix}applications
 
         - createIndex:
-            indexName: idx_applications_status
+            indexName: idx_${gravitee_prefix}applications_status
             columns:
             - column:
                 name: status
                 type: nvarchar(64)
-            tableName: applications
+            tableName: ${gravitee_prefix}applications
 
         - createTable:
-            tableName: groups
+            tableName: ${gravitee_prefix}groups
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
@@ -283,23 +283,23 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_groups
+            constraintName: pk_${gravitee_prefix}groups
             columnNames: id
-            tableName: groups
+            tableName: ${gravitee_prefix}groups
 
         - createTable:
-            tableName: group_administrators
+            tableName: ${gravitee_prefix}group_administrators
             columns:
                 - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: administrator, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_group_administrators
+            constraintName: pk_${gravitee_prefix}group_administrators
             columnNames: group_id, administrator
-            tableName: group_administrators
+            tableName: ${gravitee_prefix}group_administrators
 
         - createTable:
-            tableName: memberships
+            tableName: ${gravitee_prefix}memberships
             columns:
                 - column: {name: user_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -308,12 +308,12 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_memberships
+            constraintName: pk_${gravitee_prefix}memberships
             columnNames: user_id, reference_type, reference_id
-            tableName: memberships
+            tableName: ${gravitee_prefix}memberships
 
         - createIndex:
-            indexName: idx_memberships_referenceid_referencetype
+            indexName: idx_${gravitee_prefix}memberships_referenceid_referencetype
             columns:
             - column:
                 name: reference_id
@@ -321,10 +321,10 @@ databaseChangeLog:
             - column:
                 name: reference_type
                 type: nvarchar(64)
-            tableName: memberships
+            tableName: ${gravitee_prefix}memberships
 
         - createIndex:
-            indexName: idx_memberships_userid_referencetype
+            indexName: idx_${gravitee_prefix}memberships_userid_referencetype
             columns:
             - column:
                 name: user_id
@@ -332,10 +332,10 @@ databaseChangeLog:
             - column:
                 name: reference_type
                 type: nvarchar(64)
-            tableName: memberships
+            tableName: ${gravitee_prefix}memberships
 
         - createTable:
-            tableName: pages
+            tableName: ${gravitee_prefix}pages
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
@@ -354,20 +354,20 @@ databaseChangeLog:
                 - column: {name: homepage, type: boolean, constraints: { nullable: false, default: false } }
 
         - addPrimaryKey:
-            constraintName: pk_pages
+            constraintName: pk_${gravitee_prefix}pages
             columnNames: id
-            tableName: pages
+            tableName: ${gravitee_prefix}pages
 
         - createIndex:
-            indexName: idx_pages_api
+            indexName: idx_${gravitee_prefix}pages_api
             columns:
             - column:
                 name: api
                 type: nvarchar(64)
-            tableName: pages
+            tableName: ${gravitee_prefix}pages
 
         - createTable:
-            tableName: plans
+            tableName: ${gravitee_prefix}plans
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: type, type: nvarchar(64), constraints: { nullable: true } }
@@ -384,42 +384,42 @@ databaseChangeLog:
                 - column: {name: closed_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_plans
+            constraintName: pk_${gravitee_prefix}plans
             columnNames: id
-            tableName: plans
+            tableName: ${gravitee_prefix}plans
 
         - createTable:
-            tableName: plan_apis
+            tableName: ${gravitee_prefix}plan_apis
             columns:
                 - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: api, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_plan_apis
+            constraintName: pk_${gravitee_prefix}plan_apis
             columnNames: plan_id, api
-            tableName: plan_apis
+            tableName: ${gravitee_prefix}plan_apis
 
         - createIndex:
-            indexName: idx_planapis_api
+            indexName: idx_${gravitee_prefix}planapis_api
             columns:
             - column:
                 name: api
                 type: nvarchar(64)
-            tableName: plan_apis
+            tableName: ${gravitee_prefix}plan_apis
 
         - createTable:
-            tableName: plan_characteristics
+            tableName: ${gravitee_prefix}plan_characteristics
             columns:
                 - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: characteristic, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_plan_characteristics
+            constraintName: pk_${gravitee_prefix}plan_characteristics
             columnNames: plan_id, characteristic
-            tableName: plan_characteristics
+            tableName: ${gravitee_prefix}plan_characteristics
 
         - createTable:
-            tableName: subscriptions
+            tableName: ${gravitee_prefix}subscriptions
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: plan, type: nvarchar(64), constraints: { nullable: false } }
@@ -437,28 +437,28 @@ databaseChangeLog:
                 - column: {name: client_id, type: nvarchar(64), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_subscriptions
+            constraintName: pk_${gravitee_prefix}subscriptions
             columnNames: id
-            tableName: subscriptions
+            tableName: ${gravitee_prefix}subscriptions
 
         - createIndex:
-            indexName: idx_subscriptions_plan
+            indexName: idx_${gravitee_prefix}subscriptions_plan
             columns:
             - column:
                 name: plan
                 type: nvarchar(64)
-            tableName: subscriptions
+            tableName: ${gravitee_prefix}subscriptions
 
         - createIndex:
-            indexName: idx_subscriptions_application
+            indexName: idx_${gravitee_prefix}subscriptions_application
             columns:
             - column:
                 name: application
                 type: nvarchar(64)
-            tableName: subscriptions
+            tableName: ${gravitee_prefix}subscriptions
 
         - createTable:
-            tableName: ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
             columns:
                 - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: counter, type: bigint, constraints: { nullable: false } }
@@ -469,12 +469,12 @@ databaseChangeLog:
                 - column: {name: async, type: boolean, constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_ratelimit
+            constraintName: pk_${gravitee_rate_limit_prefix}ratelimit
             columnNames: key
-            tableName: ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
 
         - createTable:
-            tableName: metadata
+            tableName: ${gravitee_prefix}metadata
             columns:
                 - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
@@ -487,23 +487,23 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_metadata
+            constraintName: pk_${gravitee_prefix}metadata
             columnNames: key, reference_type, reference_id
-            tableName: metadata
+            tableName: ${gravitee_prefix}metadata
 
         - createTable:
-            tableName: api_labels
+            tableName: ${gravitee_prefix}api_labels
             columns:
                 - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: label, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_api_labels
+            constraintName: pk_${gravitee_prefix}api_labels
             columnNames: api_id, label
-            tableName: api_labels
+            tableName: ${gravitee_prefix}api_labels
 
         - createTable:
-            tableName: roles
+            tableName: ${gravitee_prefix}roles
             columns:
                 - column: {name: scope, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(128), constraints: { nullable: false } }
@@ -514,42 +514,42 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_roles
+            constraintName: pk_${gravitee_prefix}roles
             columnNames: scope, name
-            tableName: roles
+            tableName: ${gravitee_prefix}roles
 
         - createTable:
-            tableName: role_permissions
+            tableName: ${gravitee_prefix}role_permissions
             columns:
                 - column: {name: role_scope, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: role_name, type: nvarchar(128), constraints: { nullable: false } }
                 - column: {name: permission, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_role_permissions
+            constraintName: pk_${gravitee_prefix}role_permissions
             columnNames: role_scope, role_name, permission
-            tableName: role_permissions
+            tableName: ${gravitee_prefix}role_permissions
 
         - createTable:
-            tableName: group_event_rules
+            tableName: ${gravitee_prefix}group_event_rules
             columns:
                 - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: group_event, type: nvarchar(64), constraints: { nullable: false } }
 
         - createTable:
-            tableName: api_groups
+            tableName: ${gravitee_prefix}api_groups
             columns:
                 - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
 
         - createTable:
-            tableName: application_groups
+            tableName: ${gravitee_prefix}application_groups
             columns:
                 - column: {name: application_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
 
         - createTable:
-            tableName: membership_roles
+            tableName: ${gravitee_prefix}membership_roles
             columns:
                 - column: {name: user_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -558,12 +558,12 @@ databaseChangeLog:
                 - column: {name: role_name, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_membership_roles
+            constraintName: pk_${gravitee_prefix}membership_roles
             columnNames: user_id, reference_type, reference_id, role_scope
-            tableName: membership_roles
+            tableName: ${gravitee_prefix}membership_roles
 
         - createTable:
-            tableName: audits
+            tableName: ${gravitee_prefix}audits
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -574,12 +574,12 @@ databaseChangeLog:
                 - column: {name: patch, type: nclob, constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_audits
+            constraintName: pk_${gravitee_prefix}audits
             columnNames: id
-            tableName: audits
+            tableName: ${gravitee_prefix}audits
 
         - createIndex:
-            indexName: idx_audits_referencetype_referenceid
+            indexName: idx_${gravitee_prefix}audits_referencetype_referenceid
             columns:
             - column:
                 name: reference_type
@@ -587,30 +587,30 @@ databaseChangeLog:
             - column:
                 name: reference_id
                 type: nvarchar(64)
-            tableName: audits
+            tableName: ${gravitee_prefix}audits
 
         - createIndex:
-            indexName: idx_audits_createdat
+            indexName: idx_${gravitee_prefix}audits_createdat
             columns:
             - column:
                 name: created_at
                 type: timestamp(6)
-            tableName: audits
+            tableName: ${gravitee_prefix}audits
 
         - createTable:
-            tableName: audit_properties
+            tableName: ${gravitee_prefix}audit_properties
             columns:
                 - column: {name: audit_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: value, type: nvarchar(200), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_audit_properties
+            constraintName: pk_${gravitee_prefix}audit_properties
             columnNames: audit_id, key, value
-            tableName: audit_properties
+            tableName: ${gravitee_prefix}audit_properties
 
         - createTable:
-            tableName: ratings
+            tableName: ${gravitee_prefix}ratings
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: api, type: nvarchar(64), constraints: { nullable: false } }
@@ -622,20 +622,20 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_ratings
+            constraintName: pk_${gravitee_prefix}ratings
             columnNames: id
-            tableName: ratings
+            tableName: ${gravitee_prefix}ratings
 
         - createIndex:
-            indexName: idx_ratings_api
+            indexName: idx_${gravitee_prefix}ratings_api
             columns:
             - column:
                 name: api
                 type: nvarchar(64)
-            tableName: ratings
+            tableName: ${gravitee_prefix}ratings
 
         - createTable:
-            tableName: rating_answers
+            tableName: ${gravitee_prefix}rating_answers
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: rating, type: nvarchar(64), constraints: { nullable: false } }
@@ -645,53 +645,53 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_rating_answers
+            constraintName: pk_${gravitee_prefix}rating_answers
             columnNames: id
-            tableName: rating_answers
+            tableName: ${gravitee_prefix}rating_answers
 
         - createIndex:
-            indexName: idx_ratinganswers_rating
+            indexName: idx_${gravitee_prefix}ratinganswers_rating
             columns:
             - column:
                 name: rating
                 type: nvarchar(64)
-            tableName: rating_answers
+            tableName: ${gravitee_prefix}rating_answers
 
         - createTable:
-            tableName: page_excluded_groups
+            tableName: ${gravitee_prefix}page_excluded_groups
             columns:
                 - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: excluded_group, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_page_excluded_groups
+            constraintName: pk_${gravitee_prefix}page_excluded_groups
             columnNames: page_id, excluded_group
-            tableName: page_excluded_groups
+            tableName: ${gravitee_prefix}page_excluded_groups
 
         - createTable:
-            tableName: plan_excluded_groups
+            tableName: ${gravitee_prefix}plan_excluded_groups
             columns:
                 - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: excluded_group, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_plan_excluded_groups
+            constraintName: pk_${gravitee_prefix}plan_excluded_groups
             columnNames: plan_id, excluded_group
-            tableName: plan_excluded_groups
+            tableName: ${gravitee_prefix}plan_excluded_groups
 
         - createTable:
-            tableName: parameters
+            tableName: ${gravitee_prefix}parameters
             columns:
                 - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: value, type: nvarchar(4000), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_parameters
+            constraintName: pk_${gravitee_prefix}parameters
             columnNames: key
-            tableName: parameters
+            tableName: ${gravitee_prefix}parameters
 
         - createTable:
-            tableName: portal_notifications
+            tableName: ${gravitee_prefix}portal_notifications
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: title, type: nvarchar(64), constraints: { nullable: false } }
@@ -700,12 +700,12 @@ databaseChangeLog:
                 - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_portal_notifications
+            constraintName: pk_${gravitee_prefix}portal_notifications
             columnNames: id
-            tableName: portal_notifications
+            tableName: ${gravitee_prefix}portal_notifications
 
         - createTable:
-            tableName: portal_notification_configs
+            tableName: ${gravitee_prefix}portal_notification_configs
             columns:
                 - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -714,12 +714,12 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_portal_notification_configs
+            constraintName: pk_${gravitee_prefix}portal_notification_configs
             columnNames: user, reference_type, reference_id
-            tableName: portal_notification_configs
+            tableName: ${gravitee_prefix}portal_notification_configs
 
         - createTable:
-            tableName: portal_notification_config_hooks
+            tableName: ${gravitee_prefix}portal_notification_config_hooks
             columns:
                 - column: {name: user, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -727,12 +727,12 @@ databaseChangeLog:
                 - column: {name: hook, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_portal_notification_config_hooks
+            constraintName: pk_${gravitee_prefix}portal_notification_config_hooks
             columnNames: user, reference_type, reference_id, hook
-            tableName: portal_notification_config_hooks
+            tableName: ${gravitee_prefix}portal_notification_config_hooks
 
         - createTable:
-            tableName: generic_notification_configs
+            tableName: ${gravitee_prefix}generic_notification_configs
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false  } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
@@ -744,17 +744,17 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_generic_notification_configs
+            constraintName: pk_${gravitee_prefix}generic_notification_configs
             columnNames: id
-            tableName: generic_notification_configs
+            tableName: ${gravitee_prefix}generic_notification_configs
 
         - createTable:
-            tableName: generic_notification_config_hooks
+            tableName: ${gravitee_prefix}generic_notification_config_hooks
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: hook, type: nvarchar(64), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_generic_notification_config_hooks
+            constraintName: pk_${gravitee_prefix}generic_notification_config_hooks
             columnNames: id, hook
-            tableName: generic_notification_config_hooks
+            tableName: ${gravitee_prefix}generic_notification_config_hooks

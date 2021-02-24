@@ -22,8 +22,7 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.stereotype.Repository;
 
@@ -45,34 +44,44 @@ import static org.springframework.util.StringUtils.isEmpty;
  *
  */
 @Repository
-public class JdbcParameterRepository implements ParameterRepository {
+public class JdbcParameterRepository extends JdbcAbstractRepository<Parameter> implements ParameterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcParameterRepository.class);
-    private static final JdbcObjectMapper ORM =
-            JdbcObjectMapper.builder(Parameter.class, "parameters")
-                    .updateSql("update parameters set "
-                            + escapeReservedWord("key") + " = ?"
-                            + " , reference_type = ?"
-                            + " , reference_id = ?"
-                            + " , value = ?"
-                            + " where "
-                            + escapeReservedWord("key") + " = ? "
-                            + "and reference_type = ? "
-                            + "and reference_id = ? "
-                    )
-                    .addColumn("key", Types.NVARCHAR, String.class)
-                    .addColumn("reference_type", Types.NVARCHAR, ParameterReferenceType.class)
-                    .addColumn("reference_id", Types.NVARCHAR, String.class)
-                    .addColumn("value", Types.NVARCHAR, String.class)
-                    .build();
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+
+    JdbcParameterRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "parameters");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Parameter> buildOrm() {
+        return JdbcObjectMapper.builder(Parameter.class, this.tableName)
+                .updateSql("update " + this.tableName + " set "
+                        + escapeReservedWord("key") + " = ?"
+                        + " , reference_type = ?"
+                        + " , reference_id = ?"
+                        + " , value = ?"
+                        + " where "
+                        + escapeReservedWord("key") + " = ? "
+                        + "and reference_type = ? "
+                        + "and reference_id = ? "
+                )
+                .addColumn("key", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, ParameterReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("value", Types.NVARCHAR, String.class)
+                .build();
+    }
+
+//    @Override
+//    protected String defineTableName() {
+//        return "parameters";
+//    }
 
     @Override
     public Parameter create(Parameter parameter) throws TechnicalException {
         LOGGER.debug("JdbcParameterRepository.create({})", parameter);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(parameter));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(parameter));
             return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create parameter", ex);
@@ -87,7 +96,7 @@ public class JdbcParameterRepository implements ParameterRepository {
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            final PreparedStatementCreator psc = ORM.buildUpdatePreparedStatementCreator(parameter
+            final PreparedStatementCreator psc = getOrm().buildUpdatePreparedStatementCreator(parameter
                     , parameter.getKey()
                     , parameter.getReferenceType().name()
                     , parameter.getReferenceId()
@@ -108,7 +117,7 @@ public class JdbcParameterRepository implements ParameterRepository {
     public void delete(String key, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcParameterRepository.delete({}, {}, {})", key, referenceId, referenceType);
         try {
-            jdbcTemplate.update("delete from parameters where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ? "
+            jdbcTemplate.update("delete from " + this.tableName + " where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ? "
                     , key
                     , referenceType.name()
                     , referenceId
@@ -123,8 +132,8 @@ public class JdbcParameterRepository implements ParameterRepository {
     public Optional<Parameter> findById(String key, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcParameterRepository.findById({}, {}, {})", key, referenceId, referenceType);
         try {
-            final List<Parameter> items = jdbcTemplate.query("select * from parameters where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ?"
-                    , ORM.getRowMapper()
+            final List<Parameter> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ?"
+                    , getOrm().getRowMapper()
                     , key
                     , referenceType.name()
                     , referenceId
@@ -144,14 +153,14 @@ public class JdbcParameterRepository implements ParameterRepository {
             if (isEmpty(keys)) {
                 return Collections.emptyList();
             }
-            List<Parameter> parameters = jdbcTemplate.query("select * from parameters where reference_id = ? and reference_type = ? and " + escapeReservedWord("key") + " in ( "
-                            + ORM.buildInClause(keys) + " )"
+            List<Parameter> parameters = jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ? and " + escapeReservedWord("key") + " in ( "
+                            + getOrm().buildInClause(keys) + " )"
                     , (PreparedStatement ps) -> {
                         ps.setString(1, referenceId);
                         ps.setString(2, referenceType.name());
-                        ORM.setArguments(ps, keys, 3);
+                        getOrm().setArguments(ps, keys, 3);
                     }
-                    , ORM.getRowMapper()
+                    , getOrm().getRowMapper()
             );
             return new ArrayList<>(parameters);
         } catch (final Exception ex) {
@@ -164,8 +173,8 @@ public class JdbcParameterRepository implements ParameterRepository {
     public List<Parameter> findAll(String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcParameterRepository.findAll({}, {})", referenceId, referenceType);
         try {
-            List<Parameter> parameters = jdbcTemplate.query("select * from parameters where reference_id = ? and reference_type = ?"
-                    , ORM.getRowMapper()
+            List<Parameter> parameters = jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_id = ? and reference_type = ?"
+                    , getOrm().getRowMapper()
                     , referenceId
                     , referenceType.name()
             );

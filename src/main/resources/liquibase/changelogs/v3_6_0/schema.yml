@@ -4,38 +4,38 @@ databaseChangeLog:
       author: GraviteeSource Team
       changes:
         - createTable:
-            tableName: organization_hrids
+            tableName: ${gravitee_prefix}organization_hrids
             columns:
               - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: hrid, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: pos, type: integer, constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_organization_hrids
+            constraintName: pk_${gravitee_prefix}organization_hrids
             columnNames: organization_id, hrid
-            tableName: organization_hrids
+            tableName: ${gravitee_prefix}organization_hrids
 
         - createTable:
-            tableName: environment_hrids
+            tableName: ${gravitee_prefix}environment_hrids
             columns:
               - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: hrid, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: pos, type: integer, constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_environment_hrids
+            constraintName: pk_${gravitee_prefix}environment_hrids
             columnNames: environment_id, hrid
-            tableName: environment_hrids
+            tableName: ${gravitee_prefix}environment_hrids
 
         - createTable:
-            tableName: installation
+            tableName: ${gravitee_prefix}installation
             columns:
               - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: created_at, type: timestamp(6), constraints: { nullable: true } }
               - column: { name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - createTable:
-            tableName: installation_informations
+            tableName: ${gravitee_prefix}installation_informations
             columns:
               - column: { name: installation_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: information_key, type: nvarchar(64), constraints: { nullable: false } }

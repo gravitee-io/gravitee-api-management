@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.model.Ticket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -34,8 +35,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-
 /**
  */
 @Repository
@@ -43,19 +42,21 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcTicketRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Ticket.class, "tickets", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("from_user", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("application", Types.NVARCHAR, String.class)
-            .addColumn("subject", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.CLOB, String.class)
-            .build();
+    JdbcTicketRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "tickets");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Ticket> buildOrm() {
+        return JdbcObjectMapper.builder(Ticket.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("from_user", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("application", Types.NVARCHAR, String.class)
+                .addColumn("subject", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.CLOB, String.class)
+                .build();
     }
 
     @Override
@@ -69,7 +70,7 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
 
         try {
             List result;
-            final StringBuilder query = new StringBuilder("select * from tickets");
+            final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
 
             if (criteria == null) {
                 applySortable(sortable, query);
@@ -92,14 +93,14 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
                         (PreparedStatement ps) -> {
                             int idx = 1;
                             if (criteria.getFromUser() != null && criteria.getFromUser().length() > 0) {
-                                idx = ORM.setArguments(ps, Arrays.asList(criteria.getFromUser()), idx);
+                                idx = getOrm().setArguments(ps, Arrays.asList(criteria.getFromUser()), idx);
                             }
 
                             if (criteria.getApi() != null && criteria.getApi().length() > 0) {
-                                idx = ORM.setArguments(ps, Arrays.asList(criteria.getApi()), idx);
+                                idx = getOrm().setArguments(ps, Arrays.asList(criteria.getApi()), idx);
                             }
                         }
-                        , ORM.getRowMapper()
+                        , getOrm().getRowMapper()
                 );
             }
             return getResultAsPage(

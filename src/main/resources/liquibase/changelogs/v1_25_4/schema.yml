@@ -4,10 +4,10 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - modifyDataType:
-            tableName: apis
+            tableName: ${gravitee_prefix}apis
             columnName: name
             newDataType: nvarchar(512)
         - modifyDataType:
-            tableName: applications
+            tableName: ${gravitee_prefix}applications
             columnName: name
             newDataType: nvarchar(512)

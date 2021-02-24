@@ -4,7 +4,7 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - createTable:
-            tableName: api_headers
+            tableName: ${gravitee_prefix}api_headers
             columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
@@ -14,6 +14,6 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_api_headers
+            constraintName: pk_${gravitee_prefix}api_headers
             columnNames: id
-            tableName: api_headers
+            tableName: ${gravitee_prefix}api_headers

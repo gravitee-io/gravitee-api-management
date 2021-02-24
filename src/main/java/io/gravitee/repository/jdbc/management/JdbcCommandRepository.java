@@ -22,8 +22,7 @@ import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -43,20 +42,29 @@ import static java.lang.String.format;
 public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, String> implements CommandRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCommandRepository.class);
+    
+    private final String COMMAND_ACKNOWLEDGMENTS;
+    private final String COMMAND_TAGS;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    JdbcCommandRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "commands");
+        COMMAND_ACKNOWLEDGMENTS = getTableNameFor("command_acknowledgments");
+        COMMAND_TAGS = getTableNameFor("command_tags");
+    }
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Command.class, "commands", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("from", Types.NVARCHAR, String.class)
-            .addColumn("to", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.NVARCHAR, String.class)
-            .addColumn("expired_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    @Override
+    protected JdbcObjectMapper<Command> buildOrm() {
+        return JdbcObjectMapper.builder(Command.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("from", Types.NVARCHAR, String.class)
+                .addColumn("to", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.NVARCHAR, String.class)
+                .addColumn("expired_at", Types.TIMESTAMP, Date.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
+    }
 
     private static final JdbcHelper.ChildAdder<Command> CHILD_ADDER = (Command parent, ResultSet rs) -> {
         List<String> acknowledgments = parent.getAcknowledgments();
@@ -81,11 +89,6 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     };
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
-    }
-
-    @Override
     protected String getId(Command item) {
         return item.getId();
     }
@@ -94,10 +97,10 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     public Optional<Command> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcCommandRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from " + escapeReservedWord("commands") + " c " +
-                            "left join command_acknowledgments ca on c.id = ca.command_id " +
-                            "left join command_tags ct on c.id = ct.command_id " +
+            JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(getOrm().getSelectAllSql() + " c " +
+                            "left join " + COMMAND_ACKNOWLEDGMENTS + " ca on c.id = ca.command_id " +
+                            "left join " + COMMAND_TAGS + " ct on c.id = ct.command_id " +
                             "where c.id = ?"
                     , rowMapper
                     , id
@@ -113,7 +116,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     public Command create(Command item) throws TechnicalException {
         LOGGER.debug("JdbcCommandRepository.create({})", item);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeAcknowledgments(item, false);
             storeTags(item, false);
             return findById(item.getId()).orElse(null);
@@ -127,9 +130,9 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     public void delete(String id) throws TechnicalException {
         LOGGER.debug("JdbcCommandRepository.delete({})", id);
         try {
-            jdbcTemplate.update("delete from command_acknowledgments where command_id = ?", id);
-            jdbcTemplate.update("delete from command_tags where command_id = ?", id);
-            jdbcTemplate.update(ORM.getDeleteSql(), id);
+            jdbcTemplate.update("delete from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?", id);
+            jdbcTemplate.update("delete from " + COMMAND_TAGS + " where command_id = ?", id);
+            jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete command:", ex);
             throw new TechnicalException("Failed to delete command", ex);
@@ -143,7 +146,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             throw new IllegalStateException();
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(item, item.getId()));
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(item, item.getId()));
             storeAcknowledgments(item, true);
             storeTags(item, true);
             return findById(item.getId()).orElseThrow(() ->
@@ -159,16 +162,16 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     @Override
     public List<Command> search(CommandCriteria criteria) {
         LOGGER.debug("JdbcCommandRepository.search({})", criteria);
-        JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
+        JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
         final StringBuilder query = new StringBuilder(
-                "select * from " + escapeReservedWord("commands") + " c " +
-                "left join command_acknowledgments ca on c.id = ca.command_id " +
-                "left join command_tags ct on c.id = ct.command_id " +
+                getOrm().getSelectAllSql() + " c " +
+                "left join " + COMMAND_ACKNOWLEDGMENTS + " ca on c.id = ca.command_id " +
+                "left join " + COMMAND_TAGS + " ct on c.id = ct.command_id " +
                 "where 1=1 ");
 
         if (criteria.getNotAckBy() != null) {
             query.append(" and not exists (")
-                    .append("select 1 from command_acknowledgments cak ")
+                    .append("select 1 from " + COMMAND_ACKNOWLEDGMENTS + " cak ")
                     .append("where cak.command_id = c.id ")
                     .append("and cak.acknowledgment = ? ")
                     .append(")");
@@ -226,25 +229,25 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     private void storeAcknowledgments(Command command, boolean deleteFirst) {
         LOGGER.debug("JdbcCommandRepository.storeAcknowledgments({}, {})", command, deleteFirst);
         if (deleteFirst) {
-            jdbcTemplate.update("delete from command_acknowledgments where command_id = ?", command.getId());
+            jdbcTemplate.update("delete from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?", command.getId());
         }
-        List<String> acknowledgments = ORM.filterStrings(command.getAcknowledgments());
+        List<String> acknowledgments = getOrm().filterStrings(command.getAcknowledgments());
         if (!acknowledgments.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into command_acknowledgments ( command_id, acknowledgment ) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(command.getId(), acknowledgments));
+            jdbcTemplate.batchUpdate("insert into " + COMMAND_ACKNOWLEDGMENTS + " ( command_id, acknowledgment ) values ( ?, ? )"
+                    , getOrm().getBatchStringSetter(command.getId(), acknowledgments));
         }
     }
 
     private void storeTags(Command command, boolean deleteFirst) {
         LOGGER.debug("JdbcCommandRepository.storeTags({}, {})", command, deleteFirst);
         if (deleteFirst) {
-            jdbcTemplate.update("delete from command_tags where command_id = ?", command.getId());
+            jdbcTemplate.update("delete from " + COMMAND_TAGS + " where command_id = ?", command.getId());
         }
 
-        List<String> tags = ORM.filterStrings(command.getTags());
+        List<String> tags = getOrm().filterStrings(command.getTags());
         if (!tags.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into command_tags ( command_id, tag ) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(command.getId(), tags));
+            jdbcTemplate.batchUpdate("insert into " + COMMAND_TAGS + " ( command_id, tag ) values ( ?, ? )"
+                    , getOrm().getBatchStringSetter(command.getId(), tags));
         }
     }
 }

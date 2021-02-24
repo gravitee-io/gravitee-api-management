@@ -5,4 +5,4 @@ databaseChangeLog:
         changes:
         - dropTable:
             cascadeConstraints: true
-            tableName: group_administrators
+            tableName: ${gravitee_prefix}group_administrators

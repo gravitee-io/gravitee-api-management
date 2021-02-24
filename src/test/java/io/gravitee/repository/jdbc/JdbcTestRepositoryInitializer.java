@@ -31,6 +31,7 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
@@ -44,6 +45,9 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcTestRepositoryInitializer.class);
 
     private final DataSource dataSource;
+
+    private final String prefix;
+    private final String rateLimitPrefix;
 
     private static final List<String> tablesToTruncate = Arrays.asList(
             "apis",
@@ -98,7 +102,6 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "portal_notifications",
             "portal_notification_configs",
             "portal_notification_config_hooks",
-            "ratelimit",
             "ratings",
             "rating_answers",
             "roles",
@@ -128,7 +131,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             , Arrays.asList(
                     "databasechangelog",
                     "databasechangeloglock"
-            ));
+            )
+    );
 
     private static <T> List<T> concatenate(List<T> first, List<T> second) {
         final List result = new ArrayList<>(first.size() + second.size());
@@ -138,20 +142,29 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
     }
 
     @Autowired
-    public JdbcTestRepositoryInitializer(DataSource dataSource) {
+    public JdbcTestRepositoryInitializer(DataSource dataSource, Properties graviteeProperties) {
         LOGGER.debug("Constructed");
         this.dataSource = dataSource;
+        this.prefix = graviteeProperties.getProperty("management.jdbc.prefix", "");
+        this.rateLimitPrefix = graviteeProperties.getProperty("ratelimit.jdbc.prefix", "");
         final JdbcTemplate jt = new JdbcTemplate(dataSource);
         for (String table : tablesToDrop) {
             LOGGER.debug("Dropping {}", table);
-            jt.execute("drop table if exists " + escapeReservedWord(table));
+            jt.execute("drop table if exists " + escapeReservedWord(prefix + table));
         }
+        jt.execute("drop table if exists " + escapeReservedWord(rateLimitPrefix + "ratelimit"));
     }
 
     @Override
     public void setUp() {
         LOGGER.debug("setUp");
         LOGGER.debug("Running Liquibase on {}", dataSource);
+
+        System.setProperty("liquibase.databaseChangeLogTableName", prefix + "databasechangelog");
+        System.setProperty("liquibase.databaseChangeLogLockTableName", prefix + "databasechangeloglock");
+        System.setProperty("gravitee_prefix", prefix);
+        System.setProperty("gravitee_rate_limit_prefix", rateLimitPrefix);
+
         try (final Connection conn = dataSource.getConnection()) {
             final Liquibase liquibase = new Liquibase("liquibase/master.yml",
                     new ClassLoaderResourceAccessor(this.getClass().getClassLoader()), new JdbcConnection(conn));
@@ -166,10 +179,14 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
     public void tearDown() {
         LOGGER.debug("tearDown");
         final JdbcTemplate jt = new JdbcTemplate(dataSource);
+        System.clearProperty("liquibase.databaseChangeLogTableName");
+        System.clearProperty("liquibase.databaseChangeLogLockTableName");
+        System.clearProperty("gravitee_prefix");
         jt.execute((Connection con) -> {
             for (final String table : tablesToTruncate) {
-                jt.execute("truncate table " + escapeReservedWord(table));
+                jt.execute("truncate table " + escapeReservedWord(prefix + table));
             }
+            jt.execute("truncate table " + escapeReservedWord(rateLimitPrefix + "ratelimit"));
             return null;
         });
     }

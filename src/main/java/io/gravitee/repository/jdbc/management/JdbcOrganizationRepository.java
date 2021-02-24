@@ -19,12 +19,10 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -38,16 +36,22 @@ import io.gravitee.repository.management.model.Organization;
 public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organization, String> implements OrganizationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcOrganizationRepository.class);
+    private final String ORGANIZATION_DOMAIN_RESTRICTIONS;
+    private final String ORGANIZATION_HRIDS;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Organization.class, "organizations", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .build();
+    JdbcOrganizationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "organizations");
+        ORGANIZATION_DOMAIN_RESTRICTIONS = getTableNameFor("organization_domain_restrictions");
+        ORGANIZATION_HRIDS = getTableNameFor("organization_hrids");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Organization> buildOrm() {
+        return JdbcObjectMapper.builder(Organization.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -84,15 +88,15 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
     @Override
     public void delete(String id) throws TechnicalException {
-        jdbcTemplate.update("delete from organization_domain_restrictions where organization_id = ?", id);
-        jdbcTemplate.update("delete from organization_hrids where organization_id = ?", id);
+        jdbcTemplate.update("delete from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?", id);
+        jdbcTemplate.update("delete from " + ORGANIZATION_HRIDS + " where organization_id = ?", id);
         super.delete(id);
     }
 
     @Override
     public Long count() throws TechnicalException {
         try {
-            return jdbcTemplate.queryForObject("select count(*) from organizations o", Long.class);
+            return jdbcTemplate.queryForObject("select count(*) from " + this.tableName + " o", Long.class);
         } catch (Exception e) {
             LOGGER.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");
@@ -100,31 +104,31 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
     }
 
     private void addDomainRestrictions(Organization parent) {
-        List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from organization_domain_restrictions where organization_id = ?", String.class, parent.getId());
+        List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?", String.class, parent.getId());
         parent.setDomainRestrictions(domainRestrictions);
     }
 
     private void addHrids(Organization parent) {
-        List<String> hrids = jdbcTemplate.queryForList("select hrid from organization_hrids where organization_id = ? order by pos", String.class, parent.getId());
+        List<String> hrids = jdbcTemplate.queryForList("select hrid from " + ORGANIZATION_HRIDS + " where organization_id = ? order by pos", String.class, parent.getId());
         parent.setHrids(hrids);
     }
 
     private void storeDomainRestrictions(Organization organization, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from organization_domain_restrictions where organization_id = ?", organization.getId());
+            jdbcTemplate.update("delete from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?", organization.getId());
         }
-        List<String> filteredDomainRestrictions = ORM.filterStrings(organization.getDomainRestrictions());
+        List<String> filteredDomainRestrictions = getOrm().filterStrings(organization.getDomainRestrictions());
         if (!filteredDomainRestrictions.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into organization_domain_restrictions (organization_id, domain_restriction) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(organization.getId(), filteredDomainRestrictions));
+            jdbcTemplate.batchUpdate("insert into " + ORGANIZATION_DOMAIN_RESTRICTIONS + " (organization_id, domain_restriction) values ( ?, ? )"
+                    , getOrm().getBatchStringSetter(organization.getId(), filteredDomainRestrictions));
         }
     }
 
     private void storeHrids(Organization organization, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from organization_hrids where organization_id = ?", organization.getId());
+            jdbcTemplate.update("delete from " + ORGANIZATION_HRIDS + " where organization_id = ?", organization.getId());
         }
-        List<String> hrids = ORM.filterStrings(organization.getHrids());
+        List<String> hrids = getOrm().filterStrings(organization.getHrids());
         if (!hrids.isEmpty()) {
             final List<Object[]> params = new ArrayList<>(hrids.size());
 
@@ -132,7 +136,7 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
                 params.add(new Object[]{organization.getId(), hrids.get(i), i});
             }
 
-            jdbcTemplate.batchUpdate("insert into organization_hrids (organization_id, hrid, pos) values ( ?, ?, ? )", params);
+            jdbcTemplate.batchUpdate("insert into " + ORGANIZATION_HRIDS + " (organization_id, hrid, pos) values ( ?, ?, ? )", params);
         }
     }
 }

@@ -24,9 +24,8 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Audit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -48,19 +47,25 @@ import static java.lang.String.format;
 public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> implements AuditRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAuditRepository.class);
+    private final String AUDIT_PROPERTIES;
+    
+    JdbcAuditRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "audits");
+        AUDIT_PROPERTIES = getTableNameFor("audit_properties");
+    }
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Audit.class, "audits", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, Audit.AuditReferenceType.class)
-            .addColumn("user", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("event", Types.NVARCHAR, String.class)
-            .addColumn("patch", Types.NVARCHAR, String.class)
-            .build(); 
+    @Override
+    protected JdbcObjectMapper<Audit> buildOrm() {
+        return JdbcObjectMapper.builder(Audit.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, Audit.AuditReferenceType.class)
+                .addColumn("user", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("event", Types.NVARCHAR, String.class)
+                .addColumn("patch", Types.NVARCHAR, String.class)
+                .build();
+    }
     
     private static final JdbcHelper.ChildAdder<Audit> CHILD_ADDER = (Audit parent, ResultSet rs) -> {
         Map<String, String> properties = parent.getProperties();
@@ -77,8 +82,8 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
     public Optional<Audit> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcAuditRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from audits a left join audit_properties ap on a.id = ap.audit_id where a.id = ?"
+            JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(getOrm().getSelectAllSql() + " a left join " + AUDIT_PROPERTIES + " ap on a.id = ap.audit_id where a.id = ?"
                     , rowMapper
                     , id
             );
@@ -96,7 +101,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
     public Audit create(Audit item) throws TechnicalException {
         LOGGER.debug("JdbcAuditRepository.create({})", item);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeProperties(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
@@ -112,7 +117,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(audit, audit.getId()));
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(audit, audit.getId()));
             storeProperties(audit, true);
             return findById(audit.getId()).orElseThrow(() -> new IllegalStateException(format("No audit found with id [%s]", audit.getId())));
         } catch (final IllegalStateException ex) {
@@ -125,17 +130,17 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     @Override
     public void delete(String id) throws TechnicalException {
-        jdbcTemplate.update("delete from audit_properties where audit_id = ?", id);
-        jdbcTemplate.update(ORM.getDeleteSql(), id);
+        jdbcTemplate.update("delete from " + AUDIT_PROPERTIES + " where audit_id = ?", id);
+        jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
     
     private void storeProperties(Audit audit, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from audit_properties where audit_id = ?", audit.getId());
+            jdbcTemplate.update("delete from " + AUDIT_PROPERTIES + " where audit_id = ?", audit.getId());
         }
         if (audit.getProperties() != null && !audit.getProperties().isEmpty()) {
             List<Map.Entry<String, String>> entries = new ArrayList<>(audit.getProperties().entrySet());
-            jdbcTemplate.batchUpdate("insert into audit_properties ( audit_id, " + escapeReservedWord("key") + ", value ) values ( ?, ?, ? )"
+            jdbcTemplate.batchUpdate("insert into " + AUDIT_PROPERTIES + " ( audit_id, " + escapeReservedWord("key") + ", value ) values ( ?, ?, ? )"
                     , new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -167,7 +172,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
             LOGGER.debug("JdbcEventRepository.search({}, {})", criteriaToString(filter), page);
         }
         final List<Object> argsList = new ArrayList<>();
-        final StringBuilder builder = new StringBuilder("select * from audits a left join audit_properties ap on a.id = ap.audit_id ");
+        final StringBuilder builder = new StringBuilder(getOrm().getSelectAllSql() + " a left join " + AUDIT_PROPERTIES + " ap on a.id = ap.audit_id ");
         boolean started = false;
         if (filter.getFrom() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
@@ -199,7 +204,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         
         List<Audit> audits;
         try {
-            JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
+            JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(sql
                     , rowMapper
                     , args
@@ -246,7 +251,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     private boolean addPropertiesWhereClause(AuditCriteria filter, List<Object> argsList, StringBuilder builder, boolean started) {
         if ((filter.getProperties() != null) && !filter.getProperties().isEmpty()) {
-            builder.append(" left join audit_properties prop on prop.audit_id = a.id ");
+            builder.append(" left join " + AUDIT_PROPERTIES + " prop on prop.audit_id = a.id ");
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("(");
             boolean first = true;

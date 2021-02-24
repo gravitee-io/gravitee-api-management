@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -38,16 +39,18 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcEntryPointRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Entrypoint.class, "entrypoints", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("value", Types.NVARCHAR, String.class)
-            .addColumn("tags", Types.NVARCHAR, String.class)
-            .build();
+    JdbcEntryPointRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "entrypoints");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Entrypoint> buildOrm() {
+        return JdbcObjectMapper.builder(Entrypoint.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("value", Types.NVARCHAR, String.class)
+                .addColumn("tags", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -59,8 +62,8 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
     public Set<Entrypoint> findAllByEnvironment(String environment_id) throws TechnicalException {
         LOGGER.debug("JdbcEntryPointRepository.findAllByEnvironment({})", environment_id);
         try {
-            List<Entrypoint> entrypoints = jdbcTemplate.query("select * from entrypoints where environment_id = ?"
-                    , ORM.getRowMapper()
+            List<Entrypoint> entrypoints = jdbcTemplate.query(getOrm().getSelectAllSql() + " where environment_id = ?"
+                    , getOrm().getRowMapper()
                     , environment_id
             );
             return new HashSet<>(entrypoints);

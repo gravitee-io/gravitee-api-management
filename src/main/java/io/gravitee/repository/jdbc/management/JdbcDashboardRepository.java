@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.model.Dashboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -38,22 +39,24 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcDashboardRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Dashboard.class, "dashboards", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("query_filter", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("enabled", Types.BOOLEAN, boolean.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    JdbcDashboardRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "dashboards");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Dashboard> buildOrm() {
+        return JdbcObjectMapper.builder(Dashboard.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("query_filter", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("enabled", Types.BOOLEAN, boolean.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -65,8 +68,8 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
     public List<Dashboard> findByReferenceType(String referenceType) throws TechnicalException {
         LOGGER.debug("JdbcDashboardRepository.findByReferenceType({})", referenceType);
         try {
-            return jdbcTemplate.query("select * from dashboards where reference_type = ? order by " + escapeReservedWord("order")
-                    , ORM.getRowMapper()
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ? order by " + escapeReservedWord("order")
+                    , getOrm().getRowMapper()
                     , referenceType
             );
         } catch (final Exception ex) {

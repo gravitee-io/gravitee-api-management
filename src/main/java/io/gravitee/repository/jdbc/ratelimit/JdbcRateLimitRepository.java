@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
@@ -45,14 +46,15 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRateLimitRepository.class);
+    private final String TABLE_NAME;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     private final TransactionTemplate transactionTemplate;
 
-    private static String buildInsertStatement() {
-        return "insert into ratelimit (" +
+    private String buildInsertStatement() {
+        return "insert into " + TABLE_NAME + " (" +
                 escapeReservedWord("key") +
                 " , counter " +
                 " , " + escapeReservedWord("limit") + " " +
@@ -61,32 +63,37 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
                 " ) values (?,  ? ,  ?,  ?,  ?)";
     }
 
-    private static String buildUpdateStatement() {
-        return "update ratelimit set " +
+    private String buildUpdateStatement() {
+        return "update " + TABLE_NAME + " set " +
                 " counter = ? " +
                 " , " + escapeReservedWord("limit") + " = ? " +
                 " , reset_time = ? " +
                 " where " + escapeReservedWord("key") + " = ?";
     }
 
-    private static String buildSelectStatement() {
+    private String buildSelectStatement() {
         return "select " +
                 escapeReservedWord("key") +
                 ", counter, " + escapeReservedWord("limit") + ", subscription, reset_time"
-                + " from ratelimit"
+                + " from " + TABLE_NAME
                 + " where " + escapeReservedWord("key") + " = ?";
     }
 
-    private static final String INSERT_SQL = buildInsertStatement();
-    private static final String UPDATE_SQL = buildUpdateStatement();
-    private static final String SELECT_SQL = buildSelectStatement();
+    private final String INSERT_SQL;
+    private final String UPDATE_SQL;
+    private final String SELECT_SQL;
 
     public JdbcRateLimitRepository(
-            @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager) {
+            @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager,
+            @Value("${ratelimit.jdbc.prefix:}") String tablePrefix) {
         this.transactionTemplate = new TransactionTemplate(transactionManager);
 
         this.transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
         this.transactionTemplate.setTimeout(5); // 5 seconds
+        this.TABLE_NAME = tablePrefix + "ratelimit";
+        INSERT_SQL = buildInsertStatement();
+        UPDATE_SQL = buildUpdateStatement();
+        SELECT_SQL = buildSelectStatement();
     }
 
     @Override

@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -53,23 +54,38 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPageRepository.class);
 
     private static final String ESCAPED_ORDER_COLUMN_NAME = escapeReservedWord("order");
+    private final String PAGE_ATTACHED_MEDIA;
+    private final String PAGE_EXCLUDED_GROUP;
+    private final String PAGE_CONFIGURATION;
+    private final String PAGE_METADATA;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Page.class, "pages", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, PageReferenceType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.NVARCHAR, String.class)
-            .addColumn("last_contributor", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("published", Types.BOOLEAN, boolean.class)
-            .addColumn("homepage", Types.BOOLEAN, boolean.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("parent_id", Types.NVARCHAR, String.class)
-            .addColumn("use_auto_fetch", Types.BOOLEAN, Boolean.class)
-            .build();
+    JdbcPageRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "pages");
+        PAGE_ATTACHED_MEDIA = getTableNameFor("page_attached_media");
+        PAGE_EXCLUDED_GROUP = getTableNameFor("page_excluded_groups");
+        PAGE_CONFIGURATION = getTableNameFor("page_configuration");
+        PAGE_METADATA = getTableNameFor("page_metadata");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Page> buildOrm() {
+        return JdbcObjectMapper.builder(Page.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, PageReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("content", Types.NVARCHAR, String.class)
+                .addColumn("last_contributor", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("published", Types.BOOLEAN, boolean.class)
+                .addColumn("homepage", Types.BOOLEAN, boolean.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("parent_id", Types.NVARCHAR, String.class)
+                .addColumn("use_auto_fetch", Types.BOOLEAN, Boolean.class)
+                .build();
+    }
 
     private static final JdbcHelper.ChildAdder<Page> CHILD_ADDER = (Page parent, ResultSet rs) -> {
         Map<String, String> configuration = parent.getConfiguration();
@@ -96,7 +112,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         @Override
         public Page mapRow(ResultSet rs, int i) throws SQLException {
             Page page = new Page();
-            ORM.setFromResultSet(page, rs);
+            getOrm().setFromResultSet(page, rs);
             String sourceType = rs.getString("source_type");
             String sourceConfiguration = rs.getString("source_configuration");
             if ((sourceType != null) || (sourceConfiguration != null)) {
@@ -117,11 +133,13 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
         private final String sql;
         private final Page page;
+        private JdbcObjectMapper<Page> orm;
         private final Object[] ids;
 
-        public Psc(String sql, Page page, Object... ids) {
+        public Psc(String sql, Page page, JdbcObjectMapper<Page> orm, Object... ids) {
             this.sql = sql;
             this.page = page;
+            this.orm = orm;
             this.ids = ids;
         }
 
@@ -130,7 +148,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             LOGGER.debug("SQL: {}", sql);
             LOGGER.debug("page: {}", page);
             PreparedStatement stmt = cnctn.prepareStatement(sql);
-            int idx = ORM.setStatementValues(stmt, page, 1);
+            int idx = orm.setStatementValues(stmt, page, 1);
             stmt.setString(idx++, page.getSource() == null ? null : page.getSource().getType());
             stmt.setString(idx++, page.getSource() == null ? null : page.getSource().getConfiguration());
 
@@ -141,10 +159,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         }
     }
 
-    private static String buildInsertStatement() {
-        final StringBuilder builder = new StringBuilder("insert into pages (");
+    private String buildInsertStatement() {
+        final StringBuilder builder = new StringBuilder("insert into " + this.tableName + " (");
         boolean first = true;
-        for (JdbcColumn column : (List<JdbcColumn>) ORM.getColumns()) {
+        for (JdbcColumn column : getOrm().getColumns()) {
             if (!first) {
                 builder.append(", ");
             }
@@ -155,7 +173,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         builder.append(", source_configuration");
         builder.append(" ) values ( ");
         first = true;
-        for (int i = 0; i < ORM.getColumns().size(); i++) {
+        for (int i = 0; i < getOrm().getColumns().size(); i++) {
             if (!first) {
                 builder.append(", ");
             }
@@ -168,13 +186,13 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         return builder.toString();
     }
 
-    private static final String INSERT_SQL = buildInsertStatement();
+    private final String INSERT_SQL = buildInsertStatement();
 
-    private static String buildUpdateStatement() {
+    private String buildUpdateStatement() {
         StringBuilder builder = new StringBuilder();
-        builder.append("update pages set ");
+        builder.append("update " + this.tableName + " set ");
         boolean first = true;
-        for (JdbcColumn column : (List<JdbcColumn>) ORM.getColumns()) {
+        for (JdbcColumn column : getOrm().getColumns()) {
             if (!first) {
                 builder.append(", ");
             }
@@ -189,12 +207,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         return builder.toString();
     }
 
-    private static final String UPDATE_SQL = buildUpdateStatement();
-
-    @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
-    }
+    private final String UPDATE_SQL = buildUpdateStatement();
 
     @Override
     protected String getId(Page item) {
@@ -208,12 +221,12 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     @Override
     protected PreparedStatementCreator buildUpdatePreparedStatementCreator(Page page) {
-        return new Psc(UPDATE_SQL, page, page.getId());
+        return new Psc(UPDATE_SQL, page, getOrm(), page.getId());
     }
 
     @Override
     protected PreparedStatementCreator buildInsertPreparedStatementCreator(Page page) {
-        return new Psc(INSERT_SQL, page);
+        return new Psc(INSERT_SQL, page, getOrm());
     }
 
     private void addAttachedMedia(Page page) {
@@ -222,18 +235,18 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     private List<PageMedia> getAttachedMedia(String pageId) {
-        return jdbcTemplate.query("select media_hash, media_name, attached_at from page_attached_media where page_id = ?"
+        return jdbcTemplate.query("select media_hash, media_name, attached_at from " + PAGE_ATTACHED_MEDIA + " where page_id = ?"
                 , (ResultSet rs, int rowNum) -> new PageMedia(rs.getString(1), rs.getString(2), rs.getTimestamp(3))
                 , pageId);
     }
 
     private void storeAttachedMedia(Page page, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from page_attached_media where page_id = ?", page.getId());
+            jdbcTemplate.update("delete from " + PAGE_ATTACHED_MEDIA + " where page_id = ?", page.getId());
         }
         final List<PageMedia> attachedMedia = page.getAttachedMedia();
         if (attachedMedia != null && !attachedMedia.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into page_attached_media ( page_id, media_hash, media_name, attached_at ) values ( ?, ?, ?, ? )"
+            jdbcTemplate.batchUpdate("insert into " + PAGE_ATTACHED_MEDIA + " ( page_id, media_hash, media_name, attached_at ) values ( ?, ?, ?, ? )"
                     , new BatchPreparedStatementSetter() {
                         @Override
                         public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -257,18 +270,18 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     }
 
     private List<String> getExcludedGroups(String pageId) {
-        return jdbcTemplate.query("select excluded_group from page_excluded_groups where page_id = ?"
+        return jdbcTemplate.query("select excluded_group from " + PAGE_EXCLUDED_GROUP + " where page_id = ?"
                 , (ResultSet rs, int rowNum) -> rs.getString(1)
                 , pageId);
     }
 
     private void storeExcludedGroups(Page page, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from page_excluded_groups where page_id = ?", page.getId());
+            jdbcTemplate.update("delete from " + PAGE_EXCLUDED_GROUP + " where page_id = ?", page.getId());
         }
         final List<String> excludedGroups = page.getExcludedGroups();
         if (excludedGroups != null && !excludedGroups.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into page_excluded_groups ( page_id, excluded_group ) values ( ?, ? )"
+            jdbcTemplate.batchUpdate("insert into " + PAGE_EXCLUDED_GROUP + " ( page_id, excluded_group ) values ( ?, ? )"
                     , new BatchPreparedStatementSetter() {
                         @Override
                         public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -286,11 +299,11 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     private void storeConfiguration(Page page, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from page_configuration where page_id = ?", page.getId());
+            jdbcTemplate.update("delete from " + PAGE_CONFIGURATION + " where page_id = ?", page.getId());
         }
         if (page.getConfiguration() != null && !page.getConfiguration().isEmpty()) {
             List<Map.Entry<String, String>> entries = new ArrayList<>(page.getConfiguration().entrySet());
-            jdbcTemplate.batchUpdate("insert into page_configuration ( page_id, k, v ) values ( ?, ?, ? )"
+            jdbcTemplate.batchUpdate("insert into " + PAGE_CONFIGURATION + " ( page_id, k, v ) values ( ?, ?, ? )"
                     , new BatchPreparedStatementSetter() {
                         @Override
                         public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -309,11 +322,11 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     private void storeMetadata(Page page, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from page_metadata where page_id = ?", page.getId());
+            jdbcTemplate.update("delete from " + PAGE_METADATA + " where page_id = ?", page.getId());
         }
         if (page.getMetadata() != null && !page.getMetadata().isEmpty()) {
             List<Map.Entry<String, String>> entries = new ArrayList<>(page.getMetadata().entrySet());
-            jdbcTemplate.batchUpdate("insert into page_metadata ( page_id, k, v ) values ( ?, ?, ? )"
+            jdbcTemplate.batchUpdate("insert into " + PAGE_METADATA + " ( page_id, k, v ) values ( ?, ?, ? )"
                     , new BatchPreparedStatementSetter() {
                         @Override
                         public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -338,9 +351,9 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             jdbcTemplate.query("select p.*, " +
                             "pm.k as pm_k, pm.v as pm_v, " +
                             "pc.k as pc_k, pc.v as pc_v " +
-                            "from pages p " +
-                            "left join page_configuration pc on p.id = pc.page_id " +
-                            "left join page_metadata pm on p.id = pm.page_id " +
+                            "from " + this.tableName + " p " +
+                            "left join " + PAGE_CONFIGURATION + " pc on p.id = pc.page_id " +
+                            "left join " + PAGE_METADATA + " pm on p.id = pm.page_id " +
                             "where p.id = ?"
                     , rowMapper
                     , id
@@ -363,13 +376,13 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
         LOGGER.debug("JdbcPageRepository.findAll()", pageable);
         try {
             JdbcHelper.CollatingRowMapper<Page> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            Integer totalPages = jdbcTemplate.queryForObject("select count(*) from pages p", Integer.class);
+            Integer totalPages = jdbcTemplate.queryForObject("select count(*) from " + this.tableName + " p", Integer.class);
             jdbcTemplate.query("select p.*, " +
                             "pm.k as pm_k, pm.v as pm_v, " +
                             "pc.k as pc_k, pc.v as pc_v " +
-                            "from ( select * from pages ORDER BY id "+createPagingClause(pageable.pageSize(), pageable.from()) + ") as p " +
-                            "left join page_configuration pc on p.id = pc.page_id " +
-                            "left join page_metadata pm on p.id = pm.page_id"
+                            "from ( " + getOrm().getSelectAllSql() + " ORDER BY id "+createPagingClause(pageable.pageSize(), pageable.from()) + ") as p " +
+                            "left join " + PAGE_CONFIGURATION + " pc on p.id = pc.page_id " +
+                            "left join " + PAGE_METADATA + " pm on p.id = pm.page_id"
                     , rowMapper
             );
             List<Page> result = rowMapper.getRows().stream().limit(pageable.pageSize()).map(p -> {addExcludedGroups(p); addAttachedMedia(p); return p;}).collect(Collectors.toList());
@@ -383,10 +396,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
 
     @Override
     public void delete(String id) throws TechnicalException {
-        jdbcTemplate.update("delete from page_excluded_groups where page_id = ?", id);
-        jdbcTemplate.update("delete from page_configuration where page_id = ?", id);
-        jdbcTemplate.update("delete from page_metadata where page_id = ?", id);
-        jdbcTemplate.update(ORM.getDeleteSql(), id);
+        jdbcTemplate.update("delete from " + PAGE_EXCLUDED_GROUP + " where page_id = ?", id);
+        jdbcTemplate.update("delete from " + PAGE_CONFIGURATION + " where page_id = ?", id);
+        jdbcTemplate.update("delete from " + PAGE_METADATA + " where page_id = ?", id);
+        jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
 
     @Override
@@ -431,7 +444,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
     public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.findMaxPageReferenceIdAndReferenceTypeOrder({}, {})", referenceId, referenceType);
         try {
-            Integer result = jdbcTemplate.queryForObject("select max(" + ESCAPED_ORDER_COLUMN_NAME + ") from pages where reference_type = ? and reference_id = ? "
+            Integer result = jdbcTemplate.queryForObject("select max(" + ESCAPED_ORDER_COLUMN_NAME + ") from " + this.tableName + " where reference_type = ? and reference_id = ? "
                     , Integer.class
                     , referenceType.name()
                     , referenceId
@@ -452,9 +465,9 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             String select = "select distinct p.*, " +
                     "pm.k as pm_k, pm.v as pm_v, " +
                     "pc.k as pc_k, pc.v as pc_v " +
-                    "from pages p " +
-                    "left join page_configuration pc on p.id = pc.page_id " +
-                    "left join page_metadata pm on p.id = pm.page_id ";
+                    "from " + this.tableName + " p " +
+                    "left join " + PAGE_CONFIGURATION + " pc on p.id = pc.page_id " +
+                    "left join " + PAGE_METADATA + " pm on p.id = pm.page_id ";
             StringJoiner where = new StringJoiner(" and ", " ", " ");
             List<Object> params = new ArrayList<>();
 

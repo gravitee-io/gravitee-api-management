@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -34,17 +35,23 @@ import java.util.*;
 public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Environment, String> implements EnvironmentRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcEnvironmentRepository.class);
+    private final String ENVIRONMENT_DOMAIN_RESTRICTIONS;
+    private final String ENVIRONMENT_HRIDS;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Environment.class, "environments", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .build();
+    JdbcEnvironmentRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "environments");
+        ENVIRONMENT_DOMAIN_RESTRICTIONS = getTableNameFor("environment_domain_restrictions");
+        ENVIRONMENT_HRIDS = getTableNameFor("environment_hrids");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Environment> buildOrm() {
+        return JdbcObjectMapper.builder(Environment.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -91,37 +98,37 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
     @Override
     public void delete(String id) throws TechnicalException {
-        jdbcTemplate.update("delete from environment_domain_restrictions where environment_id = ?", id);
-        jdbcTemplate.update("delete from environment_hrids where environment_id = ?", id);
+        jdbcTemplate.update("delete from " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " where environment_id = ?", id);
+        jdbcTemplate.update("delete from " + ENVIRONMENT_HRIDS + " where environment_id = ?", id);
         super.delete(id);
     }
 
     private void addDomainRestrictions(Environment parent) {
-        List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from environment_domain_restrictions where environment_id = ?", String.class, parent.getId());
+        List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " where environment_id = ?", String.class, parent.getId());
         parent.setDomainRestrictions(domainRestrictions);
     }
 
     private void addHrids(Environment environment) {
-        List<String> hrids = jdbcTemplate.queryForList("select hrid from environment_hrids where environment_id = ? order by pos", String.class, environment.getId());
+        List<String> hrids = jdbcTemplate.queryForList("select hrid from " + ENVIRONMENT_HRIDS + " where environment_id = ? order by pos", String.class, environment.getId());
         environment.setHrids(hrids);
     }
 
     private void storeDomainRestrictions(Environment environment, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from environment_domain_restrictions where environment_id = ?", environment.getId());
+            jdbcTemplate.update("delete from " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " where environment_id = ?", environment.getId());
         }
-        List<String> filteredDomainRestrictions = ORM.filterStrings(environment.getDomainRestrictions());
+        List<String> filteredDomainRestrictions = getOrm().filterStrings(environment.getDomainRestrictions());
         if (!filteredDomainRestrictions.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into environment_domain_restrictions (environment_id, domain_restriction) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(environment.getId(), filteredDomainRestrictions));
+            jdbcTemplate.batchUpdate("insert into " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " (environment_id, domain_restriction) values ( ?, ? )"
+                    , getOrm().getBatchStringSetter(environment.getId(), filteredDomainRestrictions));
         }
     }
 
     private void storeHrids(Environment environment, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from environment_hrids where environment_id = ?", environment.getId());
+            jdbcTemplate.update("delete from " + ENVIRONMENT_HRIDS + " where environment_id = ?", environment.getId());
         }
-        List<String> hrids = ORM.filterStrings(environment.getHrids());
+        List<String> hrids = getOrm().filterStrings(environment.getHrids());
         if (!hrids.isEmpty()) {
             final List<Object[]> params = new ArrayList<>(hrids.size());
 
@@ -129,7 +136,7 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
                 params.add(new Object[]{environment.getId(), hrids.get(i), i});
             }
 
-            jdbcTemplate.batchUpdate("insert into environment_hrids (environment_id, hrid, pos) values ( ?, ?, ? )", params);
+            jdbcTemplate.batchUpdate("insert into " + ENVIRONMENT_HRIDS + " (environment_id, hrid, pos) values ( ?, ?, ? )", params);
         }
     }
 
@@ -137,8 +144,8 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
         LOGGER.debug("JdbcEnvironmentRepository.findByOrganization({})", organizationId);
         try {
-            List<Environment> environments = jdbcTemplate.query("select * from environments where organization_id = ?"
-                    , ORM.getRowMapper()
+            List<Environment> environments = jdbcTemplate.query(getOrm().getSelectAllSql() + " where organization_id = ?"
+                    , getOrm().getRowMapper()
                     , organizationId
             );
             for(Environment env: environments) {

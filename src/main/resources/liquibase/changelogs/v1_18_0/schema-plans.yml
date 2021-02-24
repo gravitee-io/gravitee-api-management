@@ -4,7 +4,7 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - addColumn:
-            tableName: plans
+            tableName: ${gravitee_prefix}plans
             columns:
                 - column:
                     name: definition

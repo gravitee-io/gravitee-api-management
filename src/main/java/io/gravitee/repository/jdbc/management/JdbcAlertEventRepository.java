@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AlertEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -45,17 +46,19 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcAlertEventRepository.class);
 
-    private static final JdbcObjectMapper<AlertEvent> ORM = JdbcObjectMapper.builder(AlertEvent.class, "alert_events", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("alert", Types.NVARCHAR, String.class)
-            .addColumn("message", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    JdbcAlertEventRepository(@Value("${management.jdbc.prefix:}") String prefix) {
+        super(prefix, "alert_events");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<AlertEvent> buildOrm() {
+        return JdbcObjectMapper.builder(AlertEvent.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("alert", Types.NVARCHAR, String.class)
+                .addColumn("message", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -70,7 +73,7 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
         }
 
         final List<Object> args = new ArrayList<>();
-        final StringBuilder builder = new StringBuilder("select ev.* from alert_events ev ");
+        final StringBuilder builder = new StringBuilder("select ev.* from " + this.tableName + " ev ");
 
         boolean started = false;
         if (criteria.getFrom() > 0) {
@@ -109,7 +112,7 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
                 }
             }
             return stmt;
-        }, ORM.getRowMapper());
+        }, getOrm().getRowMapper());
 
         LOGGER.debug("Alert events found: {}", events);
 
@@ -118,7 +121,7 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
 
     @Override
     public void deleteAll(String alertId) {
-        jdbcTemplate.update("delete from alert_events where alert = ?", alertId);
+        jdbcTemplate.update("delete from " + this.tableName + " where alert = ?", alertId);
     }
 
     private String criteriaToString(AlertEventCriteria criteria) {

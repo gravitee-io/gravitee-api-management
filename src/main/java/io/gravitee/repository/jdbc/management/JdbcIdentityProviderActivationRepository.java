@@ -22,8 +22,7 @@ import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.repository.management.model.IdentityProviderActivationReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -34,19 +33,23 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcIdentityProviderActivationRepository implements IdentityProviderActivationRepository {
+public class JdbcIdentityProviderActivationRepository extends JdbcAbstractRepository<IdentityProviderActivation> implements IdentityProviderActivationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIdentityProviderActivationRepository.class);
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    JdbcIdentityProviderActivationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "identity_provider_activations");
+    }
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(IdentityProviderActivation.class, "identity_provider_activations")
-            .addColumn("identity_provider_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, IdentityProviderActivationReferenceType.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .build();
+    @Override
+    protected JdbcObjectMapper<IdentityProviderActivation> buildOrm() {
+        return JdbcObjectMapper.builder(IdentityProviderActivation.class, this.tableName)
+                .addColumn("identity_provider_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, IdentityProviderActivationReferenceType.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .build();
+    }
 
 
     @Override
@@ -55,8 +58,8 @@ public class JdbcIdentityProviderActivationRepository implements IdentityProvide
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query("select"
                             + " identity_provider_id, reference_id, reference_type, created_at "
-                            + " from identity_provider_activations where identity_provider_id = ? and reference_id = ? and reference_type= ?"
-                    , ORM.getRowMapper()
+                            + " from " + this.tableName + " where identity_provider_id = ? and reference_id = ? and reference_type= ?"
+                    , getOrm().getRowMapper()
                     , identityProviderId
                     , referenceId
                     , referenceType.name()
@@ -75,8 +78,8 @@ public class JdbcIdentityProviderActivationRepository implements IdentityProvide
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query("select"
                             + " identity_provider_id, reference_id, reference_type, created_at "
-                            + " from identity_provider_activations"
-                    , ORM.getRowMapper()
+                            + " from " + this.tableName
+                    , getOrm().getRowMapper()
             );
             return new HashSet<>(identityProviderActivations);
         } catch (final Exception ex) {
@@ -92,8 +95,8 @@ public class JdbcIdentityProviderActivationRepository implements IdentityProvide
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query("select"
                             + " identity_provider_id, reference_id, reference_type, created_at "
-                            + " from identity_provider_activations where identity_provider_id = ?"
-                    , ORM.getRowMapper()
+                            + " from " + this.tableName + " where identity_provider_id = ?"
+                    , getOrm().getRowMapper()
                     , identityProviderId
             );
             return new HashSet<>(identityProviderActivations);
@@ -110,8 +113,8 @@ public class JdbcIdentityProviderActivationRepository implements IdentityProvide
         try {
             final List<IdentityProviderActivation> identityProviderActivations = jdbcTemplate.query("select"
                             + " identity_provider_id, reference_id, reference_type, created_at "
-                            + " from identity_provider_activations where reference_id = ? and reference_type= ?"
-                    , ORM.getRowMapper()
+                            + " from " + this.tableName + " where reference_id = ? and reference_type= ?"
+                    , getOrm().getRowMapper()
                     , referenceId
                     , referenceType.name()
             );
@@ -127,7 +130,7 @@ public class JdbcIdentityProviderActivationRepository implements IdentityProvide
     public IdentityProviderActivation create(IdentityProviderActivation identityProviderActivation) throws TechnicalException {
         LOGGER.debug("JdbcIdentityProviderActivationRepository.create({})", identityProviderActivation);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(identityProviderActivation));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(identityProviderActivation));
             return findById(identityProviderActivation.getIdentityProviderId(), identityProviderActivation.getReferenceId(), identityProviderActivation.getReferenceType()).orElse(null);
         } catch (final Exception ex) {
             final String error = "Failed to create identityProviderActivation";
@@ -140,7 +143,7 @@ public class JdbcIdentityProviderActivationRepository implements IdentityProvide
     public void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcIdentityProviderActivationRepository.delete({}, {}, {})", identityProviderId, referenceId, referenceType);
         try {
-            jdbcTemplate.update("delete from identity_provider_activations where identity_provider_id = ? and reference_id = ? and reference_type = ? "
+            jdbcTemplate.update("delete from " + this.tableName + " where identity_provider_id = ? and reference_id = ? and reference_type = ? "
                     , identityProviderId
                     , referenceId
                     , referenceType.name()
@@ -156,7 +159,7 @@ public class JdbcIdentityProviderActivationRepository implements IdentityProvide
     public void deleteByIdentityProviderId(String identityProviderId) throws TechnicalException {
         LOGGER.debug("JdbcIdentityProviderActivationRepository.deleteByIdentityProviderId({})", identityProviderId);
         try {
-            jdbcTemplate.update("delete from identity_provider_activations where identity_provider_id = ? "
+            jdbcTemplate.update("delete from " + this.tableName + " where identity_provider_id = ? "
                     , identityProviderId
             );
         } catch (final Exception ex) {
@@ -170,7 +173,7 @@ public class JdbcIdentityProviderActivationRepository implements IdentityProvide
     public void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcIdentityProviderActivationRepository.deleteByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
-            jdbcTemplate.update("delete from identity_provider_activations where reference_id = ? and reference_type = ? "
+            jdbcTemplate.update("delete from " + this.tableName + " where reference_id = ? and reference_type = ? "
                     , referenceId
                     , referenceType.name()
             );

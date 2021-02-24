@@ -4,7 +4,7 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - renameColumn:
-            tableName: plans
+            tableName: ${gravitee_prefix}plans
             columnDataType: nclob
             newColumnName: security_definition
             oldColumnName: definition

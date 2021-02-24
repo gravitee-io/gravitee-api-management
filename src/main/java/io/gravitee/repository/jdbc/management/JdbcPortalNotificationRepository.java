@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.model.PortalNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -38,17 +39,19 @@ public class JdbcPortalNotificationRepository extends JdbcAbstractCrudRepository
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNotificationRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(PortalNotification.class, "portal_notifications", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("title", Types.NVARCHAR, String.class)
-            .addColumn("message", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)           
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .build();
+    JdbcPortalNotificationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "portal_notifications");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<PortalNotification> buildOrm() {
+        return JdbcObjectMapper.builder(PortalNotification.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("title", Types.NVARCHAR, String.class)
+                .addColumn("message", Types.NVARCHAR, String.class)
+                .addColumn("user", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -60,7 +63,7 @@ public class JdbcPortalNotificationRepository extends JdbcAbstractCrudRepository
     public List<PortalNotification> findByUser(String user) throws TechnicalException {
         LOGGER.debug("JdbcPortalNotificationRepository.findByUser({})", user);
         try {
-            List<PortalNotification> items = jdbcTemplate.query("select * from portal_notifications where " + escapeReservedWord("user") + " = ?"
+            List<PortalNotification> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where " + escapeReservedWord("user") + " = ?"
                     , getRowMapper()
                     ,user
             );
@@ -83,7 +86,7 @@ public class JdbcPortalNotificationRepository extends JdbcAbstractCrudRepository
     public void deleteAll(String user) throws TechnicalException {
         LOGGER.debug("JdbcPortalNotificationRepository.deleteAll({})", user);
         try {
-            jdbcTemplate.update("delete from portal_notifications where " + escapeReservedWord("user") + " = ?", user);
+            jdbcTemplate.update("delete from " + this.tableName + " where " + escapeReservedWord("user") + " = ?", user);
         } catch (final Exception ex) {
             final String message = "Failed to delete notifications by user";
             LOGGER.error(message, ex);

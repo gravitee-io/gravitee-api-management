@@ -4,7 +4,7 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - addColumn:
-            tableName: subscriptions
+            tableName: ${gravitee_prefix}subscriptions
             columns:
                 - column:
                     name: request

@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.AlertEventType;
 import io.gravitee.repository.management.model.AlertTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -40,27 +41,29 @@ import static java.lang.String.format;
 public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger, String> implements AlertTriggerRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcAlertRepository.class);
+    private final String ALERT_EVENT_RULES;
 
-    private static final String SELECT_ESCAPED_ALERT_TRIGGERS_TABLE_NAME = "select * from " + escapeReservedWord("alert_triggers");
-
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(AlertTrigger.class, "alert_triggers", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("enabled", Types.BIT, boolean.class)
-            .addColumn("severity", Types.NVARCHAR, String.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("template", Types.BIT, boolean.class)
-            .build();
+    JdbcAlertRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "alert_triggers");
+        ALERT_EVENT_RULES = getTableNameFor("alert_event_rules");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<AlertTrigger> buildOrm() {
+        return JdbcObjectMapper.builder(AlertTrigger.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("enabled", Types.BIT, boolean.class)
+                .addColumn("severity", Types.NVARCHAR, String.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("template", Types.BIT, boolean.class)
+                .build();
     }
 
     @Override
@@ -72,8 +75,8 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     public List<AlertTrigger> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcAlertRepository.findByReference({}, {})", referenceType, referenceId);
         try {
-            List<AlertTrigger> rows = jdbcTemplate.query("select * from alert_triggers where reference_type = ? and reference_id = ?"
-                    , ORM.getRowMapper(), referenceType, referenceId);
+            List<AlertTrigger> rows = jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?"
+                    , getOrm().getRowMapper(), referenceType, referenceId);
 
             List<AlertTrigger> alertTriggers = new ArrayList<>();
             for (AlertTrigger alertTrigger : rows) {
@@ -94,8 +97,8 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
         LOGGER.debug("JdbcAlertRepository.findById({})", id);
         try {
             Optional<AlertTrigger> alert = jdbcTemplate.query(
-                    SELECT_ESCAPED_ALERT_TRIGGERS_TABLE_NAME + " a where id = ?"
-                    , ORM.getRowMapper()
+                    getOrm().getSelectAllSql() + " a where id = ?"
+                    , getOrm().getRowMapper()
                     , id
             )
                     .stream()
@@ -113,7 +116,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     @Override
     public AlertTrigger create(final AlertTrigger alert) throws TechnicalException {
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(alert));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(alert));
             storeEvents(alert, false);
             return findById(alert.getId()).orElse(null);
         } catch (final Exception ex) {
@@ -128,7 +131,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(alert, alert.getId()));
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(alert, alert.getId()));
             storeEvents(alert, true);
             return findById(alert.getId()).orElseThrow(() -> new IllegalStateException(format("No alert found with id [%s]", alert.getId())));
         } catch (final IllegalStateException ex) {
@@ -141,8 +144,8 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
 
     @Override
     public void delete(final String id) throws TechnicalException {
-        jdbcTemplate.update("delete from alert_event_rules where alert_id = ?", id);
-        jdbcTemplate.update(ORM.getDeleteSql(), id);
+        jdbcTemplate.update("delete from " + ALERT_EVENT_RULES + " where alert_id = ?", id);
+        jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
 
     private void addEvents(AlertTrigger parent) {
@@ -151,7 +154,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     }
 
     private List<AlertEventRule> getEvents(String alertId) {
-        List<AlertEventType> events = jdbcTemplate.query("select alert_event from alert_event_rules where alert_id = ?", (ResultSet rs, int rowNum) -> {
+        List<AlertEventType> events = jdbcTemplate.query("select alert_event from " + ALERT_EVENT_RULES + " where alert_id = ?", (ResultSet rs, int rowNum) -> {
             String value = rs.getString(1);
             try {
                 return AlertEventType.valueOf(value);
@@ -173,7 +176,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
 
     private void storeEvents(AlertTrigger alert, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from alert_event_rules where alert_id = ?", alert.getId());
+            jdbcTemplate.update("delete from " + ALERT_EVENT_RULES + " where alert_id = ?", alert.getId());
         }
         List<String> events = new ArrayList<>();
         if (alert.getEventRules() != null) {
@@ -182,8 +185,8 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
 }
         }
         if (!events.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into alert_event_rules ( alert_id, alert_event ) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(alert.getId(), events));
+            jdbcTemplate.batchUpdate("insert into " + ALERT_EVENT_RULES + " ( alert_id, alert_event ) values ( ?, ? )"
+                    , getOrm().getBatchStringSetter(alert.getId(), events));
         }
     }
 
@@ -191,7 +194,7 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     public Set<AlertTrigger> findAll() throws TechnicalException {
         LOGGER.debug("JdbcAlertTriggerRepository.findAll()");
         try {
-            List<AlertTrigger> rows = jdbcTemplate.query(SELECT_ESCAPED_ALERT_TRIGGERS_TABLE_NAME, ORM.getRowMapper());
+            List<AlertTrigger> rows = jdbcTemplate.query(getOrm().getSelectAllSql(), getOrm().getRowMapper());
             Set<AlertTrigger> alertTriggers = new HashSet<>();
             for (AlertTrigger alertTrigger : rows) {
                 addEvents(alertTrigger);

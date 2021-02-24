@@ -4,7 +4,7 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
           - createTable:
-              tableName: quality_rules
+              tableName: ${gravitee_prefix}quality_rules
               columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
@@ -14,12 +14,12 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
           - addPrimaryKey:
-              constraintName: pk_quality_rules
+              constraintName: pk_${gravitee_prefix}quality_rules
               columnNames: id
-              tableName: quality_rules
+              tableName: ${gravitee_prefix}quality_rules
 
           - createTable:
-              tableName: api_quality_rules
+              tableName: ${gravitee_prefix}api_quality_rules
               columns:
                 - column: {name: api, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: quality_rule, type: nvarchar(64), constraints: { nullable: false } }
@@ -28,12 +28,12 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
           - addPrimaryKey:
-              constraintName: pk_api_quality_rules
+              constraintName: pk_${gravitee_prefix}api_quality_rules
               columnNames: api, quality_rule
-              tableName: api_quality_rules
+              tableName: ${gravitee_prefix}api_quality_rules
 
           - createTable:
-              tableName: dashboards
+              tableName: ${gravitee_prefix}dashboards
               columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
@@ -47,20 +47,20 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
           - addPrimaryKey:
-              constraintName: pk_dashboards
+              constraintName: pk_${gravitee_prefix}dashboards
               columnNames: id
-              tableName: dashboards
+              tableName: ${gravitee_prefix}dashboards
 
           - createIndex:
-              indexName: idx_dashboards_reference_type
+              indexName: idx_${gravitee_prefix}dashboards_reference_type
               columns:
                 - column:
                     name: reference_type
                     type: nvarchar(32)
-              tableName: dashboards
+              tableName: ${gravitee_prefix}dashboards
 
           - addColumn:
-              tableName: client_registration_providers
+              tableName: ${gravitee_prefix}client_registration_providers
               columns:
                 - column:
                     name: software_id
@@ -68,10 +68,10 @@ databaseChangeLog:
 
           - dropTable:
               cascadeConstraints: true
-              tableName: alerts
+              tableName: ${gravitee_prefix}alerts
 
           - createTable:
-              tableName: alert_triggers
+              tableName: ${gravitee_prefix}alert_triggers
               columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
@@ -86,6 +86,6 @@ databaseChangeLog:
                 - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
           - addPrimaryKey:
-              constraintName: pk_alert_triggers
+              constraintName: pk_${gravitee_prefix}alert_triggers
               columnNames: id
-              tableName: alert_triggers
+              tableName: ${gravitee_prefix}alert_triggers

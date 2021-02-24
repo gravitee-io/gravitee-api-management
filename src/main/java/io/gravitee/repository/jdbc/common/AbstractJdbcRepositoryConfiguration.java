@@ -25,6 +25,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -57,6 +58,11 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
     @Autowired
     private Environment env;
+
+    @Value("${management.jdbc.prefix:}")
+    private String prefix;
+    @Value("${ratelimit.jdbc.prefix:}")
+    private String rateLimitPrefix;
 
     // Default escape char for reserved keywords
     private static char escapeReservedWordsPrefixChar = '`';
@@ -164,8 +170,10 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     private void runLiquibase(DataSource dataSource) {
         LOGGER.debug("Running Liquibase on {}", dataSource);
 
-        System.setProperty("liquibase.databaseChangeLogTableName", "databasechangelog");
-        System.setProperty("liquibase.databaseChangeLogLockTableName", "databasechangeloglock");
+        System.setProperty("liquibase.databaseChangeLogTableName", prefix + "databasechangelog");
+        System.setProperty("liquibase.databaseChangeLogLockTableName", prefix + "databasechangeloglock");
+        System.setProperty("gravitee_prefix", prefix);
+        System.setProperty("gravitee_rate_limit_prefix", rateLimitPrefix);
 
         try (Connection conn = dataSource.getConnection()) {
             final Liquibase liquibase = new Liquibase("liquibase/master.yml"

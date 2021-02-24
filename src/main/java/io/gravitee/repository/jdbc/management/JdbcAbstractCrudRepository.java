@@ -16,13 +16,9 @@
 package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.RowMapper;
 
 import java.util.HashSet;
 import java.util.List;
@@ -37,16 +33,11 @@ public abstract class JdbcAbstractCrudRepository<T, I> extends JdbcAbstractPagea
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAbstractCrudRepository.class);
 
-    @Autowired
-    protected JdbcTemplate jdbcTemplate;
-
-    protected abstract JdbcObjectMapper getOrm();
+    JdbcAbstractCrudRepository(String prefix, String tableName) {
+        super(prefix, tableName);
+    }
 
     protected abstract I getId(T item);
-
-    protected RowMapper<T> getRowMapper() {
-        return getOrm().getRowMapper();
-    }
 
     public Optional<T> findById(I id) throws TechnicalException {
         LOGGER.debug("JdbcAbstractCrudRepository<{}>.findById({})", getOrm().getTableName(), id);

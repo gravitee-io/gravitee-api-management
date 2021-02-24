@@ -4,7 +4,7 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - addColumn:
-            tableName: client_registration_providers
+            tableName: ${gravitee_prefix}client_registration_providers
             columns:
               - column:
                   name: initial_access_token
@@ -13,25 +13,25 @@ databaseChangeLog:
                   name: initial_access_token_type
                   type: nvarchar(64)
         - dropNotNullConstraint:
-            tableName: client_registration_providers
+            tableName: ${gravitee_prefix}client_registration_providers
             columnName: client_id
             columnDataType: nvarchar(128)
         - dropNotNullConstraint:
-            tableName: client_registration_providers
+            tableName: ${gravitee_prefix}client_registration_providers
             columnName: client_secret
             columnDataType: nvarchar(128)
 
         - addColumn:
-            tableName: apis
+            tableName: ${gravitee_prefix}apis
             columns:
               - column:
                   name: api_lifecycle_state
                   type: nvarchar(64)
         - sql:
-            sql: update apis set api_lifecycle_state='PUBLISHED'
+            sql: update ${gravitee_prefix}apis set api_lifecycle_state='PUBLISHED'
 
         - createTable:
-            tableName: workflows
+            tableName: ${gravitee_prefix}workflows
             columns:
               - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
@@ -43,6 +43,6 @@ databaseChangeLog:
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_workflows
+            constraintName: pk_${gravitee_prefix}workflows
             columnNames: id
-            tableName: workflows
+            tableName: ${gravitee_prefix}workflows

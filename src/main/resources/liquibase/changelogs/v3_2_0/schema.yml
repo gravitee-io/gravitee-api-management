@@ -4,7 +4,7 @@ databaseChangeLog:
       author: GraviteeSource Team
       changes:
         - createTable:
-            tableName: page_revisions
+            tableName: ${gravitee_prefix}page_revisions
             columns:
               - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: revision, type: int, constraints: { nullable: false } }
@@ -15,12 +15,12 @@ databaseChangeLog:
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_page_revisions
+            constraintName: pk_${gravitee_prefix}page_revisions
             columnNames: page_id, revision
-            tableName: page_revisions
+            tableName: ${gravitee_prefix}page_revisions
 
         - addColumn:
-            tableName: plans
+            tableName: ${gravitee_prefix}plans
             columns:
               - column:
                   name: general_conditions
@@ -28,7 +28,7 @@ databaseChangeLog:
                   constraints:
                     nullable: true
         - addColumn:
-            tableName: subscriptions
+            tableName: ${gravitee_prefix}subscriptions
             columns:
               - column:
                   name: general_conditions_accepted
@@ -46,7 +46,7 @@ databaseChangeLog:
                   constraints:
                     nullable: true
         - addColumn:
-            tableName: categories
+            tableName: ${gravitee_prefix}categories
             columns:
               - column:
                   name: page
@@ -55,7 +55,7 @@ databaseChangeLog:
                     nullable: true
 
         - addColumn:
-            tableName: pages
+            tableName: ${gravitee_prefix}pages
             columns:
               - column:
                   name: use_auto_fetch
@@ -63,15 +63,15 @@ databaseChangeLog:
                   constraints:
                     nullable: true
         - createIndex:
-            indexName: idx_pages_with_auto_fetch
+            indexName: idx_${gravitee_prefix}pages_with_auto_fetch
             columns:
               - column:
                   name: use_auto_fetch
                   type: boolean
-            tableName: pages
+            tableName: ${gravitee_prefix}pages
 
         - createTable:
-            tableName: custom_user_fields
+            tableName: ${gravitee_prefix}custom_user_fields
             columns:
               - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -83,12 +83,12 @@ databaseChangeLog:
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_custom_user_fields
+            constraintName: pk_${gravitee_prefix}custom_user_fields
             columnNames: key, reference_type, reference_id
-            tableName: custom_user_fields
+            tableName: ${gravitee_prefix}custom_user_fields
 
         - createIndex:
-            indexName: idx_custom_user_fields_by_ref
+            indexName: idx_${gravitee_prefix}custom_user_fields_by_ref
             columns:
               - column:
                   name: reference_id
@@ -96,10 +96,10 @@ databaseChangeLog:
               - column:
                   name: reference_type
                   type: nvarchar(32)
-            tableName: custom_user_fields
+            tableName: ${gravitee_prefix}custom_user_fields
 
         - createTable:
-            tableName: custom_user_fields_values
+            tableName: ${gravitee_prefix}custom_user_fields_values
             columns:
               - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
@@ -107,7 +107,7 @@ databaseChangeLog:
               - column: { name: value, type: nvarchar(1024), constraints: { nullable: false } }
 
         - createIndex:
-            indexName: idx_custom_user_fields_values
+            indexName: idx_${gravitee_prefix}custom_user_fields_values
             columns:
               - column:
                   name: key
@@ -118,10 +118,10 @@ databaseChangeLog:
               - column:
                   name: reference_type
                   type: nvarchar(32)
-            tableName: custom_user_fields_values
+            tableName: ${gravitee_prefix}custom_user_fields_values
 
         - createTable:
-            tableName: page_attached_media
+            tableName: ${gravitee_prefix}page_attached_media
             columns:
               - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: media_hash, type: nvarchar(64), constraints: { nullable: false } }
@@ -129,7 +129,7 @@ databaseChangeLog:
               - column: {name: attached_at, type: timestamp(6), constraints: { nullable: false } }
 
         - addPrimaryKey:
-            constraintName: pk_page_attached_media
+            constraintName: pk_${gravitee_prefix}page_attached_media
             columnNames: page_id, media_hash, media_name, attached_at
-            tableName: page_attached_media
+            tableName: ${gravitee_prefix}page_attached_media
 

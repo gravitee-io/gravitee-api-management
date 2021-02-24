@@ -4,4 +4,4 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - dropTable:
-            tableName: user_roles
+            tableName: ${gravitee_prefix}user_roles

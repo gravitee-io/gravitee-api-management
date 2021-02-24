@@ -26,8 +26,7 @@ import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -47,35 +46,39 @@ import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcIdentityProviderRepository implements IdentityProviderRepository {
+public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<IdentityProvider> implements IdentityProviderRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIdentityProviderRepository.class);
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    JdbcIdentityProviderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "identity_providers");
+    }
 
     private final static ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     private final Rm mapper = new Rm();
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(IdentityProvider.class, "identity_providers", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("organization_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, IdentityProviderType.class)
-            .addColumn("enabled", Types.BOOLEAN, boolean.class)
-            .addColumn("email_required", Types.BOOLEAN, Boolean.class)
-            .addColumn("sync_mappings", Types.BOOLEAN, Boolean.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    @Override
+    protected JdbcObjectMapper<IdentityProvider> buildOrm() {
+        return JdbcObjectMapper.builder(IdentityProvider.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("organization_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, IdentityProviderType.class)
+                .addColumn("enabled", Types.BOOLEAN, boolean.class)
+                .addColumn("email_required", Types.BOOLEAN, Boolean.class)
+                .addColumn("sync_mappings", Types.BOOLEAN, Boolean.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
+    }
 
     private class Rm implements RowMapper<IdentityProvider> {
         @Override
         public IdentityProvider mapRow(ResultSet rs, int i) throws SQLException {
             IdentityProvider identityProvider = new IdentityProvider();
-            ORM.setFromResultSet(identityProvider, rs);
+            getOrm().setFromResultSet(identityProvider, rs);
 
             identityProvider.setConfiguration(convert(rs.getString("configuration"), Object.class, false));
             identityProvider.setGroupMappings(convert(rs.getString("group_mappings"), String.class, true));
@@ -114,15 +117,17 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
         }
     }
 
-    private static class Psc implements PreparedStatementCreator {
+    private class Psc implements PreparedStatementCreator {
 
         private final String sql;
         private final IdentityProvider identityProvider;
+        private JdbcObjectMapper<IdentityProvider> orm;
         private final Object[] ids;
 
-        public Psc(String sql, IdentityProvider identityProvider, Object... ids) {
+        public Psc(String sql, IdentityProvider identityProvider, JdbcObjectMapper<IdentityProvider> orm, Object... ids) {
             this.sql = sql;
             this.identityProvider = identityProvider;
+            this.orm = orm;
             this.ids = ids;
         }
 
@@ -131,7 +136,7 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
             LOGGER.debug("SQL: {}", sql);
             LOGGER.debug("identity_provider: {}", identityProvider);
             PreparedStatement stmt = cnctn.prepareStatement(sql);
-            int idx = ORM.setStatementValues(stmt, identityProvider, 1);
+            int idx = orm.setStatementValues(stmt, identityProvider, 1);
             stmt.setString(idx++, convert(identityProvider.getConfiguration()));
             stmt.setString(idx++, convert(identityProvider.getGroupMappings()));
             stmt.setString(idx++, convert(identityProvider.getRoleMappings()));
@@ -156,10 +161,10 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
         }
     }
 
-    private static String buildInsertStatement() {
-        final StringBuilder builder = new StringBuilder("insert into identity_providers (");
+    private String buildInsertStatement() {
+        final StringBuilder builder = new StringBuilder("insert into " + this.tableName + " (");
         boolean first = true;
-        for (JdbcColumn column : (List<JdbcColumn>) ORM.getColumns()) {
+        for (JdbcColumn column : getOrm().getColumns()) {
             if (!first) {
                 builder.append(", ");
             }
@@ -172,7 +177,7 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
         builder.append(", user_profile_mapping");
         builder.append(" ) values ( ");
         first = true;
-        for (int i = 0; i < ORM.getColumns().size(); i++) {
+        for (int i = 0; i < getOrm().getColumns().size(); i++) {
             if (!first) {
                 builder.append(", ");
             }
@@ -187,13 +192,13 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
         return builder.toString();
     }
 
-    private static final String INSERT_SQL = buildInsertStatement();
+    private final String INSERT_SQL = buildInsertStatement();
 
-    private static String buildUpdateStatement() {
+    private String buildUpdateStatement() {
         StringBuilder builder = new StringBuilder();
-        builder.append("update identity_providers set ");
+        builder.append("update " + this.tableName + " set ");
         boolean first = true;
-        for (JdbcColumn column : (List<JdbcColumn>) ORM.getColumns()) {
+        for (JdbcColumn column : getOrm().getColumns()) {
             if (!first) {
                 builder.append(", ");
             }
@@ -211,22 +216,19 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
         return builder.toString();
     }
 
-    private static final String UPDATE_SQL = buildUpdateStatement();
+    private final String UPDATE_SQL = buildUpdateStatement();
 
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
-    }
-
+    @Override
     protected RowMapper<IdentityProvider> getRowMapper() {
         return mapper;
     }
 
     protected PreparedStatementCreator buildUpdatePreparedStatementCreator(IdentityProvider identityProvider) {
-        return new Psc(UPDATE_SQL, identityProvider, identityProvider.getId(), identityProvider.getOrganizationId());
+        return new Psc(UPDATE_SQL, identityProvider, getOrm(), identityProvider.getId(), identityProvider.getOrganizationId());
     }
 
     protected PreparedStatementCreator buildInsertPreparedStatementCreator(IdentityProvider identityProvider) {
-        return new Psc(INSERT_SQL, identityProvider);
+        return new Psc(INSERT_SQL, identityProvider, getOrm());
     }
 
     @Override
@@ -279,7 +281,7 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
             throws TechnicalException {
         LOGGER.debug("JdbcIdentityProviderRepository<{}>.delete({})", getOrm().getTableName(), id);
         try {
-            jdbcTemplate.update("delete from identity_providers where id = ?", id);
+            jdbcTemplate.update("delete from " + this.tableName + " where id = ?", id);
 
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete {} identityProvider:", getOrm().getTableName(), ex);
@@ -292,7 +294,7 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
     public Optional<IdentityProvider> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcIdentityProviderRepository<{}>.findById({})", getOrm().getTableName(), id);
         try {
-            List<IdentityProvider> identityProviders = jdbcTemplate.query("select * from identity_providers where id = ?"
+            List<IdentityProvider> identityProviders = jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?"
                     , getRowMapper()
                     , id
             );
@@ -307,7 +309,7 @@ public class JdbcIdentityProviderRepository implements IdentityProviderRepositor
     public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
         LOGGER.debug("JdbcIdentityProviderRepository<{}>.findAllByOrganizationId({}, {})", getOrm().getTableName(), organizationId);
         try {
-            List<IdentityProvider> identityProviders = jdbcTemplate.query("select * from identity_providers where organization_id = ?"
+            List<IdentityProvider> identityProviders = jdbcTemplate.query(getOrm().getSelectAllSql() + " where organization_id = ?"
                     , getRowMapper()
                     , organizationId
             );

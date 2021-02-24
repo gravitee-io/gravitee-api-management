@@ -26,9 +26,13 @@ import java.util.List;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-abstract class JdbcAbstractPageableRepository<T> {
+abstract class JdbcAbstractPageableRepository<T> extends JdbcAbstractRepository<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAbstractPageableRepository.class);
+
+    JdbcAbstractPageableRepository(String prefix, String tableName) {
+        super(prefix, tableName);
+    }
 
     Page<T> getResultAsPage(final Pageable page, final List<T> items) {
         if (page != null) {

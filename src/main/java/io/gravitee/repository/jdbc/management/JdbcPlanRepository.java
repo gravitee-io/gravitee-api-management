@@ -29,9 +29,8 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -44,35 +43,45 @@ import io.gravitee.repository.management.model.Plan;
  * @author njt
  */
 @Repository
-public class JdbcPlanRepository implements PlanRepository {
+public class JdbcPlanRepository extends JdbcAbstractRepository<Plan> implements PlanRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPlanRepository.class);
+    private final String PLAN_TAGS;
+    private final String PLAN_CHARACTERISTICS;
+    private final String PLAN_EXCLUDED_GROUPS;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-    
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Plan.class, "plans", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("validation", Types.NVARCHAR, Plan.PlanValidationType.class)
-            .addColumn("definition", Types.NVARCHAR, String.class)
-            .addColumn("security_definition", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("status", Types.NVARCHAR, Plan.Status.class)
-            .addColumn("security", Types.NVARCHAR, Plan.PlanSecurityType.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("published_at", Types.TIMESTAMP, Date.class)
-            .addColumn("closed_at", Types.TIMESTAMP, Date.class)
-            .addColumn("need_redeploy_at", Types.TIMESTAMP, Date.class)
-            .addColumn("comment_required", Types.BOOLEAN, boolean.class)
-            .addColumn("comment_message", Types.NVARCHAR, String.class)
-            .addColumn("selection_rule", Types.NVARCHAR, String.class)
-            .addColumn("general_conditions", Types.NVARCHAR, String.class)
-            .build();
+    JdbcPlanRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "plans");
+        PLAN_TAGS = getTableNameFor("plan_tags");
+        PLAN_CHARACTERISTICS = getTableNameFor("plan_characteristics");
+        PLAN_EXCLUDED_GROUPS = getTableNameFor("plan_excluded_groups");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Plan> buildOrm() {
+        return JdbcObjectMapper.builder(Plan.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("validation", Types.NVARCHAR, Plan.PlanValidationType.class)
+                .addColumn("definition", Types.NVARCHAR, String.class)
+                .addColumn("security_definition", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("status", Types.NVARCHAR, Plan.Status.class)
+                .addColumn("security", Types.NVARCHAR, Plan.PlanSecurityType.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("published_at", Types.TIMESTAMP, Date.class)
+                .addColumn("closed_at", Types.TIMESTAMP, Date.class)
+                .addColumn("need_redeploy_at", Types.TIMESTAMP, Date.class)
+                .addColumn("comment_required", Types.BOOLEAN, boolean.class)
+                .addColumn("comment_message", Types.NVARCHAR, String.class)
+                .addColumn("selection_rule", Types.NVARCHAR, String.class)
+                .addColumn("general_conditions", Types.NVARCHAR, String.class)
+                .build();
+    }
     
     private void addTags(Plan parent) {
         List<String> tags = getTags(parent.getId());
@@ -94,8 +103,8 @@ public class JdbcPlanRepository implements PlanRepository {
         
         LOGGER.debug("JdbcPlanRepository.findById({})", id);
         try {
-            List<Plan> plans = jdbcTemplate.query("select * from plans p where p.id = ?"
-                    , ORM.getRowMapper()
+            List<Plan> plans = jdbcTemplate.query(getOrm().getSelectAllSql() + " p where p.id = ?"
+                    , getOrm().getRowMapper()
                     , id
             );
             Optional<Plan> result = plans.stream().findFirst();
@@ -116,7 +125,7 @@ public class JdbcPlanRepository implements PlanRepository {
     public Plan create(Plan item) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.create({})", item);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeCharacteristics(item, false);
             storeExcludedGroups(item, false);
             storeTags(item, false);
@@ -134,7 +143,7 @@ public class JdbcPlanRepository implements PlanRepository {
             throw new IllegalStateException();
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(plan, plan.getId()));
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(plan, plan.getId()));
             storeCharacteristics(plan, true);
             storeExcludedGroups(plan, true);
             storeTags(plan, true);
@@ -152,10 +161,10 @@ public class JdbcPlanRepository implements PlanRepository {
     public void delete(String id) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.delete({})", id);
         try {
-            jdbcTemplate.update("delete from plan_tags where plan_id = ?", id);
-            jdbcTemplate.update("delete from plan_characteristics where plan_id = ?", id);
-            jdbcTemplate.update("delete from plan_excluded_groups where plan_id = ?", id);
-            jdbcTemplate.update(ORM.getDeleteSql(), id);
+            jdbcTemplate.update("delete from " + PLAN_TAGS + " where plan_id = ?", id);
+            jdbcTemplate.update("delete from " + PLAN_CHARACTERISTICS + " where plan_id = ?", id);
+            jdbcTemplate.update("delete from " + PLAN_EXCLUDED_GROUPS + " where plan_id = ?", id);
+            jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete plan:", ex);
             throw new TechnicalException("Failed to delete plan", ex);
@@ -164,16 +173,16 @@ public class JdbcPlanRepository implements PlanRepository {
     
     private List<String> getTags(String planId) {
         LOGGER.debug("JdbcPlanRepository.getTags({})", planId);
-        return jdbcTemplate.queryForList("select tag from plan_tags where plan_id = ?", String.class, planId);
+        return jdbcTemplate.queryForList("select tag from " + PLAN_TAGS + " where plan_id = ?", String.class, planId);
     }
     
     private List<String> getCharacteristics(String planId) {
         LOGGER.debug("JdbcPlanRepository.getCharacteristics({})", planId);
-        return jdbcTemplate.queryForList("select characteristic from plan_characteristics where plan_id = ?", String.class, planId);
+        return jdbcTemplate.queryForList("select characteristic from " + PLAN_CHARACTERISTICS + " where plan_id = ?", String.class, planId);
     }
         
     private List<String> getExcludedGroups(String pageId) {
-        return jdbcTemplate.query("select excluded_group from plan_excluded_groups where plan_id = ?"
+        return jdbcTemplate.query("select excluded_group from " + PLAN_EXCLUDED_GROUPS + " where plan_id = ?"
                 , (ResultSet rs, int rowNum) -> rs.getString(1)
                 , pageId);
     }
@@ -182,12 +191,12 @@ public class JdbcPlanRepository implements PlanRepository {
         LOGGER.debug("JdbcPlanRepository.storeApis({}, {})", plan, deleteFirst);
         try {
             if (deleteFirst) {
-                jdbcTemplate.update("delete from plan_characteristics where plan_id = ?", plan.getId());
+                jdbcTemplate.update("delete from " + PLAN_CHARACTERISTICS + " where plan_id = ?", plan.getId());
             }
-            List<String> filteredCharacteristics = ORM.filterStrings(plan.getCharacteristics());
+            List<String> filteredCharacteristics = getOrm().filterStrings(plan.getCharacteristics());
             if (! filteredCharacteristics.isEmpty()) {
-                jdbcTemplate.batchUpdate("insert into plan_characteristics ( plan_id, characteristic ) values ( ?, ? )"
-                        , ORM.getBatchStringSetter(plan.getId(), filteredCharacteristics));
+                jdbcTemplate.batchUpdate("insert into " + PLAN_CHARACTERISTICS + " ( plan_id, characteristic ) values ( ?, ? )"
+                        , getOrm().getBatchStringSetter(plan.getId(), filteredCharacteristics));
             }
         } catch (final Exception ex) {
             LOGGER.error("Failed to store characteristics:", ex);
@@ -197,11 +206,11 @@ public class JdbcPlanRepository implements PlanRepository {
     
     private void storeExcludedGroups(Plan plan, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from plan_excluded_groups where plan_id = ?", plan.getId());
+            jdbcTemplate.update("delete from " + PLAN_EXCLUDED_GROUPS + " where plan_id = ?", plan.getId());
         }
         if ((plan.getExcludedGroups() != null) && !plan.getExcludedGroups().isEmpty()) {
             List<String> excludedGroups = plan.getExcludedGroups();
-            jdbcTemplate.batchUpdate("insert into plan_excluded_groups ( plan_id, excluded_group ) values ( ?, ? )"
+            jdbcTemplate.batchUpdate("insert into " + PLAN_EXCLUDED_GROUPS + " ( plan_id, excluded_group ) values ( ?, ? )"
                     , new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -221,12 +230,12 @@ public class JdbcPlanRepository implements PlanRepository {
         LOGGER.debug("JdbcPlanRepository.storeTags({}, {})", plan, deleteFirst);
         try {
             if (deleteFirst) {
-                jdbcTemplate.update("delete from plan_tags where plan_id = ?", plan.getId());
+                jdbcTemplate.update("delete from " + PLAN_TAGS + " where plan_id = ?", plan.getId());
             }
-            List<String> filteredTags = ORM.filterStrings(plan.getTags());
+            List<String> filteredTags = getOrm().filterStrings(plan.getTags());
             if (! filteredTags.isEmpty()) {
-                jdbcTemplate.batchUpdate("insert into plan_tags ( plan_id, tag ) values ( ?, ? )"
-                        , ORM.getBatchStringSetter(plan.getId(), filteredTags));
+                jdbcTemplate.batchUpdate("insert into " + PLAN_TAGS + " ( plan_id, tag ) values ( ?, ? )"
+                        , getOrm().getBatchStringSetter(plan.getId(), filteredTags));
             }
         } catch (final Exception ex) {
             LOGGER.error("Failed to store tags:", ex);
@@ -239,8 +248,8 @@ public class JdbcPlanRepository implements PlanRepository {
 
         LOGGER.debug("JdbcPlanRepository.findByApi({})", apiId);
         try {
-            List<Plan> plans = jdbcTemplate.query("select * from plans where api = ?"
-                    , ORM.getRowMapper()
+            List<Plan> plans = jdbcTemplate.query(getOrm().getSelectAllSql() + " where api = ?"
+                    , getOrm().getRowMapper()
                     , apiId
             );
             for (Plan plan : plans) {

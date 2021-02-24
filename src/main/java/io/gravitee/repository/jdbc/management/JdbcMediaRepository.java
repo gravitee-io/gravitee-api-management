@@ -21,8 +21,7 @@ import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -41,33 +40,37 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
  * @author Guillaume GILLON
  */
 @Repository
-public class JdbcMediaRepository implements MediaRepository {
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+public class JdbcMediaRepository extends JdbcAbstractRepository<Media> implements MediaRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMediaRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Media.class, "media", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("sub_type", Types.NVARCHAR, String.class)
-            .addColumn("file_name", Types.NVARCHAR, String.class)
-            .addColumn("size", Types.INTEGER, Long.class)
-            .addColumn("data", Types.BLOB, byte[].class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("hash", Types.NVARCHAR, String.class)
-            .build();
+    JdbcMediaRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "media");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Media> buildOrm() {
+        return JdbcObjectMapper.builder(Media.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("type", Types.NVARCHAR, String.class)
+                .addColumn("sub_type", Types.NVARCHAR, String.class)
+                .addColumn("file_name", Types.NVARCHAR, String.class)
+                .addColumn("size", Types.INTEGER, Long.class)
+                .addColumn("data", Types.BLOB, byte[].class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("api", Types.NVARCHAR, String.class)
+                .addColumn("hash", Types.NVARCHAR, String.class)
+                .build();
+    }
 
     @Override
     public List<Media> findAllByApi(String api) {
         LOGGER.debug("JdbcMediaRepository.findAllByApi({})", api);
 
-        String sql = "select * from media where api = ?";
+        String sql = getOrm().getSelectAllSql() + " where api = ?";
         Object[] param = new Object[]{api};
 
-        List<Media> mediaList = jdbcTemplate.query(sql, ORM.getRowMapper(), param);
+        List<Media> mediaList = jdbcTemplate.query(sql, getOrm().getRowMapper(), param);
 
         return mediaList.stream().collect(Collectors.toList());
     }
@@ -81,7 +84,7 @@ public class JdbcMediaRepository implements MediaRepository {
         try {
             Connection conn = DataSourceUtils.getConnection(jdbcTemplate.getDataSource());
             conn.setAutoCommit(false);
-            PreparedStatement ps = ORM.buildInsertPreparedStatementCreator(media).createPreparedStatement(conn);
+            PreparedStatement ps = getOrm().buildInsertPreparedStatementCreator(media).createPreparedStatement(conn);
 
             ps.execute();
             conn.commit();
@@ -96,7 +99,7 @@ public class JdbcMediaRepository implements MediaRepository {
     @Override
     public void deleteAllByApi(String api) {
         LOGGER.debug("JdbcMediaRepository.deleteByApi({})", api);
-        jdbcTemplate.update("delete from media where api = ?", api);
+        jdbcTemplate.update("delete from " + this.tableName + " where api = ?", api);
     }
 
     @Override
@@ -154,7 +157,7 @@ public class JdbcMediaRepository implements MediaRepository {
         if (withContent) {
             select += ", data";
         }
-        String sql = select + " from "+ escapeReservedWord("media")+" where hash = ?";
+        String sql = select + " from "+ escapeReservedWord(this.tableName)+" where hash = ?";
         List<Object> paramList = new ArrayList<>();
         paramList.add(hash);
         Object[] param;
@@ -168,7 +171,7 @@ public class JdbcMediaRepository implements MediaRepository {
         }
 
         List<Media> mediaList = jdbcTemplate.query(sql,
-                ORM.getRowMapper(),
+                getOrm().getRowMapper(),
                 paramList.toArray());
 
         return mediaList.stream().findFirst();

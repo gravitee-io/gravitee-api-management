@@ -6,4 +6,4 @@ databaseChangeLog:
         - dropNotNullConstraint:
             columnDataType: nclob
             columnName: payload
-            tableName: events
+            tableName: ${gravitee_prefix}events

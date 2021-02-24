@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -41,11 +42,15 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcUserRepository.class);
 
-    private static final String SELECT_ESCAPED_USER_TABLE_NAME = "select * from " + escapeReservedWord("users");
-
     private static final String STATUS_FIELD = "status";
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(User.class, "users", "id")
+    JdbcUserRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "users");
+    }
+
+    @Override
+    protected JdbcObjectMapper<User> buildOrm() {
+        return JdbcObjectMapper.builder(User.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -63,10 +68,6 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             .addColumn("first_connection_at", Types.TIMESTAMP, Date.class)
             .addColumn("newsletter_subscribed", Types.BOOLEAN, Boolean.class)
             .build();
-
-    @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
     }
 
     @Override
@@ -78,8 +79,8 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
         LOGGER.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
         try {
-            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and organization_id = ?"
-                    , ORM.getRowMapper()
+            List<User> users = jdbcTemplate.query(getOrm().getSelectAllSql() + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and organization_id = ?"
+                    , getOrm().getRowMapper()
                     , source, sourceId
                     , organizationId
             );
@@ -94,8 +95,8 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     public Optional<User> findByEmail(String email, String organizationId) throws TechnicalException {
         LOGGER.debug("JdbcUserRepository.findByEmail({})", email);
         try {
-            List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where UPPER(u.email) = UPPER(?) and organization_id = ?"
-                    , ORM.getRowMapper()
+            List<User> users = jdbcTemplate.query(getOrm().getSelectAllSql() + " u where UPPER(u.email) = UPPER(?) and organization_id = ?"
+                    , getOrm().getRowMapper()
                     , email
                     , organizationId
             );
@@ -119,10 +120,10 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
         }).collect(Collectors.toList());
         LOGGER.debug("JdbcUserRepository.findByIds({})", uniqueIds);
         try {
-            final List<User> users = jdbcTemplate.query(SELECT_ESCAPED_USER_TABLE_NAME + " u where u.id in ( "
-                            + ORM.buildInClause(uniqueIds) + " )"
-                    , (PreparedStatement ps) -> ORM.setArguments(ps, uniqueIds, 1)
-                    , ORM.getRowMapper()
+            final List<User> users = jdbcTemplate.query(getOrm().getSelectAllSql() + " u where u.id in ( "
+                            + getOrm().buildInClause(uniqueIds) + " )"
+                    , (PreparedStatement ps) -> getOrm().setArguments(ps, uniqueIds, 1)
+                    , getOrm().getRowMapper()
             );
             return new HashSet<>(users);
         } catch (final Exception ex) {
@@ -141,13 +142,13 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             if (criteria == null) {
                 result = jdbcTemplate.query(getOrm().getSelectAllSql() + "order by lastname, firstname", getRowMapper());
             } else {
-                final StringBuilder query = new StringBuilder(SELECT_ESCAPED_USER_TABLE_NAME);
+                final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
 
                 query.append(" where 1=1 ");
 
                 if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
                     List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
-                    ORM.buildInCondition(false, query, STATUS_FIELD, statuses);
+                    getOrm().buildInCondition(false, query, STATUS_FIELD, statuses);
                 }
 
                 if (criteria.hasNoStatus()) {
@@ -165,13 +166,13 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                             int idx = 1;
                             if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
                                 List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
-                                idx = ORM.setArguments(ps, statuses, idx);
+                                idx = getOrm().setArguments(ps, statuses, idx);
                             }
                             if (criteria.getOrganizationId() != null) {
-                                idx = ORM.setArguments(ps, Arrays.asList(criteria.getOrganizationId()), idx);
+                                idx = getOrm().setArguments(ps, Arrays.asList(criteria.getOrganizationId()), idx);
                             }
                         }
-                        , ORM.getRowMapper()
+                        , getOrm().getRowMapper()
                 );
             }
             return getResultAsPage(

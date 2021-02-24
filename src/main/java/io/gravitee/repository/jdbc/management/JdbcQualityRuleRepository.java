@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.QualityRule;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -30,18 +31,20 @@ import java.util.Date;
 @Repository
 public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<QualityRule, String> implements QualityRuleRepository {
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(QualityRule.class, "quality_rules", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("weight", Types.INTEGER, int.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    JdbcQualityRuleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "quality_rules");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<QualityRule> buildOrm() {
+        return JdbcObjectMapper.builder(QualityRule.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("weight", Types.INTEGER, int.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override

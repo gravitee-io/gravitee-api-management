@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -48,20 +49,31 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
     private static final String TYPE_FIELD = "type";
     private static final String STATUS_FIELD = "status";
+    private final String APPLICATION_GROUPS;
+    private final String APPLICATION_METADATA;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Application.class, "applications", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn(TYPE_FIELD, Types.NVARCHAR, ApplicationType.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("picture", Types.NVARCHAR, String.class)
-            .addColumn(STATUS_FIELD, Types.NVARCHAR, ApplicationStatus.class)
-            .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
-            .addColumn("background", Types.NVARCHAR, String.class)
-            .build();
+    JdbcApplicationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "applications");
+        APPLICATION_GROUPS = getTableNameFor("application_groups");
+        APPLICATION_METADATA = getTableNameFor("application_metadata");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Application> buildOrm() {
+        return JdbcObjectMapper.builder(Application.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn(TYPE_FIELD, Types.NVARCHAR, ApplicationType.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("picture", Types.NVARCHAR, String.class)
+                .addColumn(STATUS_FIELD, Types.NVARCHAR, ApplicationStatus.class)
+                .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
+                .addColumn("background", Types.NVARCHAR, String.class)
+                .build();
+    }
 
     private static final JdbcHelper.ChildAdder<Application> CHILD_ADDER = (Application parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();
@@ -75,11 +87,6 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     };
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
-    }
-
-    @Override
     protected String getId(Application item) {
         return item.getId();
     }
@@ -90,27 +97,27 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     }
 
     private List<String> getGroups(String apiId) {
-        return jdbcTemplate.queryForList("select group_id from application_groups where application_id = ?", String.class, apiId);
+        return jdbcTemplate.queryForList("select group_id from " + APPLICATION_GROUPS + " where application_id = ?", String.class, apiId);
     }
 
     private void storeGroups(Application application, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from application_groups where application_id = ?", application.getId());
+            jdbcTemplate.update("delete from " + APPLICATION_GROUPS + " where application_id = ?", application.getId());
         }
-        List<String> filteredGroups = ORM.filterStrings(application.getGroups());
+        List<String> filteredGroups = getOrm().filterStrings(application.getGroups());
         if (! filteredGroups.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into application_groups ( application_id, group_id ) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(application.getId(), filteredGroups));
+            jdbcTemplate.batchUpdate("insert into " + APPLICATION_GROUPS + " ( application_id, group_id ) values ( ?, ? )"
+                    , getOrm().getBatchStringSetter(application.getId(), filteredGroups));
         }
     }
 
     private void storeMetadata(Application application, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from application_metadata where application_id = ?", application.getId());
+            jdbcTemplate.update("delete from " + APPLICATION_METADATA + " where application_id = ?", application.getId());
         }
         if (application.getMetadata() != null && !application.getMetadata().isEmpty()) {
             List<Map.Entry<String, String>> entries = new ArrayList<>(application.getMetadata().entrySet());
-            jdbcTemplate.batchUpdate("insert into application_metadata ( application_id, k, v ) values ( ?, ?, ? )"
+            jdbcTemplate.batchUpdate("insert into " + APPLICATION_METADATA + " ( application_id, k, v ) values ( ?, ?, ? )"
                     , new BatchPreparedStatementSetter() {
                         @Override
                         public void setValues(PreparedStatement ps, int i) throws SQLException {
@@ -131,7 +138,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     public Application create(Application item) throws TechnicalException {
         LOGGER.debug("JdbcApplicationRepository.create({})", item);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeGroups(item, false);
             storeMetadata(item, false);
             return findById(item.getId()).orElse(null);
@@ -148,7 +155,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(application, application.getId()));
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(application, application.getId()));
             storeGroups(application, true);
             storeMetadata(application, true);
             return findById(application.getId()).orElseThrow(() -> new IllegalStateException(format("No application found with id [%s]", application.getId())));
@@ -164,7 +171,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         @Override
         public Application mapRow(ResultSet rs, int i) throws SQLException {
             Application application = new Application();
-            ORM.setFromResultSet(application, rs);
+            getOrm().setFromResultSet(application, rs);
             addGroups(application);
             return application;
         }
@@ -177,7 +184,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         LOGGER.debug("JdbcApplicationRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.id = ?"
+            jdbcTemplate.query("select a.*, am.k as am_k, am.v as am_v from " + this.tableName + " a left join " + APPLICATION_METADATA + " am on a.id = am.application_id where a.id = ?"
                     , rowMapper
                     , id
             );
@@ -199,9 +206,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
                 return emptySet();
             }
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.id in ( "
-                    + ORM.buildInClause(ids) + " )"
-                    , (PreparedStatement ps) -> ORM.setArguments(ps, ids, 1)
+            jdbcTemplate.query("select a.*, am.k as am_k, am.v as am_v from " + this.tableName + " a left join " + APPLICATION_METADATA + " am on a.id = am.application_id where a.id in ( "
+                    + getOrm().buildInClause(ids) + " )"
+                    , (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1)
                     , rowMapper
             );
             for (Application application : rowMapper.getRows()) {
@@ -221,13 +228,13 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         try {
             List<ApplicationStatus> statuses = Arrays.asList(ass);
 
-            StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id");
+            StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from " + this.tableName + " a left join " + APPLICATION_METADATA + " am on a.id = am.application_id");
             boolean first = true;
-            ORM.buildInCondition(first, query, STATUS_FIELD, statuses);
+            getOrm().buildInCondition(first, query, STATUS_FIELD, statuses);
 
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(query.toString()
-                    , (PreparedStatement ps) -> ORM.setArguments(ps, statuses, 1)
+                    , (PreparedStatement ps) -> getOrm().setArguments(ps, statuses, 1)
                     , rowMapper
             );
             for (Application application : rowMapper.getRows()) {
@@ -249,16 +256,16 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         }
         try {
             final List<ApplicationStatus> statuses = Arrays.asList(ass);
-            final StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id join application_groups ag on ag.application_id = a.id ");
+            final StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from " + this.tableName + " a left join " + APPLICATION_METADATA + " am on a.id = am.application_id join " + APPLICATION_GROUPS + " ag on ag.application_id = a.id ");
             boolean first = true;
-            first = ORM.buildInCondition(first, query, "group_id", groupIds);
-            ORM.buildInCondition(first, query, STATUS_FIELD, statuses);
+            first = getOrm().buildInCondition(first, query, "group_id", groupIds);
+            getOrm().buildInCondition(first, query, STATUS_FIELD, statuses);
 
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(query.toString()
                     , (PreparedStatement ps) -> {
-                        int idx = ORM.setArguments(ps, groupIds, 1);
-                        ORM.setArguments(ps, statuses, idx);
+                        int idx = getOrm().setArguments(ps, groupIds, 1);
+                        getOrm().setArguments(ps, statuses, idx);
                     }
                     , rowMapper
             );
@@ -277,7 +284,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         LOGGER.debug("JdbcApplicationRepository.findByName({})", partialName);
         try {
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where lower(name) like ?"
+            jdbcTemplate.query("select a.*, am.k as am_k, am.v as am_v from " + this.tableName + " a left join " + APPLICATION_METADATA + " am on a.id = am.application_id where lower(name) like ?"
                     , rowMapper, "%" + partialName.toLowerCase() + "%"
             );
             for (Application application : rowMapper.getRows()) {
@@ -298,15 +305,15 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         try {
             List<ApplicationStatus> statuses = Arrays.asList(ass);
 
-            StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.environment_id = ?");
+            StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from " + this.tableName + " a left join " + APPLICATION_METADATA + " am on a.id = am.application_id where a.environment_id = ?");
             boolean first = false;
-            ORM.buildInCondition(first, query, STATUS_FIELD, statuses);
+            getOrm().buildInCondition(first, query, STATUS_FIELD, statuses);
 
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(query.toString()
                     , (PreparedStatement ps) -> {
-                        ORM.setArguments(ps, Arrays.asList(environmentId), 1);
-                        ORM.setArguments(ps, statuses, 2);
+                        getOrm().setArguments(ps, Arrays.asList(environmentId), 1);
+                        getOrm().setArguments(ps, statuses, 2);
                     }
                     , rowMapper
             );

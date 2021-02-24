@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.model.Workflow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -38,7 +39,13 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcWorkflowRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Workflow.class, "workflows", "id")
+    JdbcWorkflowRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "workflows");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Workflow> buildOrm() {
+        return JdbcObjectMapper.builder(Workflow.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
@@ -48,10 +55,6 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
             .addColumn("user", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .build();
-
-    @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
     }
 
     @Override
@@ -63,8 +66,8 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
     public List<Workflow> findByReferenceAndType(final String referenceType, final String referenceId, final String type) throws TechnicalException {
         LOGGER.debug("JdbcWorkflowRepository.findByReferenceAndType({}, {}, {})", referenceType, referenceId, type);
         try {
-            return jdbcTemplate.query("select * from workflows where reference_type = ? and reference_id = ? and "
-                    + escapeReservedWord("type") + " = ? order by created_at desc", ORM.getRowMapper(), referenceType, referenceId, type);
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ? and "
+                    + escapeReservedWord("type") + " = ? order by created_at desc", getOrm().getRowMapper(), referenceType, referenceId, type);
         } catch (final Exception ex) {
             final String message = "Failed to find workflows by reference";
             LOGGER.error(message, ex);

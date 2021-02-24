@@ -7,7 +7,7 @@ databaseChangeLog:
         - 8:a1872ce916e96806b18767089dde811d
         changes:
         - addColumn:
-            tableName: ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
             columns:
                 - column:
                     name: subscription
@@ -16,30 +16,30 @@ databaseChangeLog:
                     name: limit
                     type: bigint
         - dropColumn:
-            tableName: ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
             columnName: last_request
         - dropColumn:
-            tableName: ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
             columnName: created_at
         - dropColumn:
-            tableName: ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
             columnName: updated_at
         - dropColumn:
-            tableName: ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
             columnName: async
         - addNotNullConstraint:
             columnDataType: nvarchar(64)
             columnName: subscription
             defaultNullValue: 'unknown'
-            tableName: ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
         - dropPrimaryKey:
-            constraintName: pk_ratelimit
-            tableName: ratelimit
+            constraintName: pk_${gravitee_rate_limit_prefix}ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
         - modifyDataType:
-            tableName: ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
             columnName: key
             newDataType: nvarchar(128) not null
         - addPrimaryKey:
-             constraintName: pk_ratelimit
+             constraintName: pk_${gravitee_rate_limit_prefix}ratelimit
              columnNames: key
-             tableName: ratelimit
+             tableName: ${gravitee_rate_limit_prefix}ratelimit

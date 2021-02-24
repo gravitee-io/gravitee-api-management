@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.model.RatingAnswer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -35,19 +36,21 @@ import java.util.List;
 public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<RatingAnswer, String> implements RatingAnswerRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRatingAnswerRepository.class);
-    
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(RatingAnswer.class, "rating_answers", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("rating", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)
-            .addColumn("comment", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+
+    JdbcRatingAnswerRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "rating_answers");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<RatingAnswer> buildOrm() {
+        return JdbcObjectMapper.builder(RatingAnswer.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("rating", Types.NVARCHAR, String.class)
+                .addColumn("user", Types.NVARCHAR, String.class)
+                .addColumn("comment", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -59,7 +62,7 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
     public RatingAnswer create(RatingAnswer item) throws TechnicalException {
         LOGGER.debug("JdbcRatingAnswerRepository.create({})", item);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create ratingAnswer:", ex);
@@ -71,8 +74,8 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
     public List<RatingAnswer> findByRating(String rating) throws TechnicalException {
         LOGGER.debug("JdbcRatingAnswerRepository.findByRating({})", rating);
         try {
-            return jdbcTemplate.query("select ra.* from rating_answers ra where rating = ?"
-                    , ORM.getRowMapper()
+            return jdbcTemplate.query("select ra.* from " + this.tableName + " ra where rating = ?"
+                    , getOrm().getRowMapper()
                     , rating
             );
         } catch (final Exception ex) {

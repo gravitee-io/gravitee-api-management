@@ -4,6 +4,6 @@ databaseChangeLog:
       author: GraviteeSource Team
       changes:
         - modifyDataType:
-            tableName: subscriptions
+            tableName: ${gravitee_prefix}subscriptions
             columnName: client_id
             newDataType: nvarchar(300)

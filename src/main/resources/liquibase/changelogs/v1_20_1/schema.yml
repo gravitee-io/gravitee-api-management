@@ -6,4 +6,4 @@ databaseChangeLog:
         - modifyDataType:
             columnName: client_id
             newDataType: nvarchar(300)
-            tableName: applications
+            tableName: ${gravitee_prefix}applications

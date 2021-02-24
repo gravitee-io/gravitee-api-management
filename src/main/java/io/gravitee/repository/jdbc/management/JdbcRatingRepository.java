@@ -25,11 +25,8 @@ import io.gravitee.repository.management.model.RatingReferenceType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-
-import static java.lang.String.format;
 
 import java.sql.Types;
 import java.util.Date;
@@ -47,24 +44,23 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRatingRepository.class);
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-    
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Rating.class, "ratings", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, RatingReferenceType.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)
-            .addColumn("rate", Types.TINYINT, byte.class)
-            .addColumn("title", Types.NVARCHAR, String.class)
-            .addColumn("comment", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    JdbcRatingRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "ratings");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Rating> buildOrm() {
+        return JdbcObjectMapper.builder(Rating.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, RatingReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("user", Types.NVARCHAR, String.class)
+                .addColumn("rate", Types.TINYINT, byte.class)
+                .addColumn("title", Types.NVARCHAR, String.class)
+                .addColumn("comment", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -76,7 +72,7 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     public Rating create(Rating item) throws TechnicalException {
         LOGGER.debug("JdbcRatingRepository.create({})", item);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create rating:", ex);
@@ -89,8 +85,8 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
         LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypePageable({}, {}, {})", referenceId, referenceType, page);
         final List<Rating> ratings;
         try {
-            ratings = jdbcTemplate.query("select r.* from ratings r where reference_id = ? and reference_type = ? order by created_at desc"
-                    , ORM.getRowMapper()
+            ratings = jdbcTemplate.query("select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? order by created_at desc"
+                    , getOrm().getRowMapper()
                     , referenceId
                     , referenceType.name()
             );
@@ -107,8 +103,8 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
-            return jdbcTemplate.query("select r.* from ratings r where reference_id = ? and reference_type = ? "
-                    , ORM.getRowMapper()
+            return jdbcTemplate.query("select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? "
+                    , getOrm().getRowMapper()
                     , referenceId
                     , referenceType.name()
             );
@@ -122,8 +118,8 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user) throws TechnicalException {
         LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypeAndUser({}, {}, {})", referenceId, referenceType, user);
         try {
-            List<Rating> ratings = jdbcTemplate.query("select r.* from ratings r where reference_id = ? and reference_type = ?  and " + escapeReservedWord("user") + " = ?"
-                    , ORM.getRowMapper()
+            List<Rating> ratings = jdbcTemplate.query("select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ?  and " + escapeReservedWord("user") + " = ?"
+                    , getOrm().getRowMapper()
                     , referenceId
                     , referenceType.name()
                     , user

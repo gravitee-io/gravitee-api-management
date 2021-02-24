@@ -21,9 +21,8 @@ import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -32,7 +31,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 
 /**
@@ -43,21 +41,20 @@ import static java.lang.String.format;
 public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Installation, String>  implements InstallationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcInstallationRepository.class);
+    private final String INSTALLATION_INFORMATIONS;
 
-    private static final String SELECT_ESCAPED_INSTALLATION_TABLE_NAME = "select * from " + escapeReservedWord("installation");
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Installation.class, "installation", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    JdbcInstallationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "installation");
+        INSTALLATION_INFORMATIONS = getTableNameFor("installation_informations");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Installation> buildOrm() {
+        return JdbcObjectMapper.builder(Installation.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -80,9 +77,9 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
     public Optional<Installation> find() throws TechnicalException {
         LOGGER.debug("JdbcInstallationRepository.find()");
         try {
-            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
+            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
-                    SELECT_ESCAPED_INSTALLATION_TABLE_NAME + " i left join installation_informations ii on i.id = ii.installation_id"
+                    getOrm().getSelectAllSql() + " i left join " + INSTALLATION_INFORMATIONS + " ii on i.id = ii.installation_id"
                     , rowMapper
             );
             return rowMapper.getRows().stream().findFirst();
@@ -96,9 +93,9 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
     public Optional<Installation> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcInstallationRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
+            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
-                    SELECT_ESCAPED_INSTALLATION_TABLE_NAME + " i left join installation_informations ii on i.id = ii.installation_id where i.id = ?"
+                    getOrm().getSelectAllSql() + " i left join " + INSTALLATION_INFORMATIONS + " ii on i.id = ii.installation_id where i.id = ?"
                     , rowMapper
                     , id
             );
@@ -112,7 +109,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
     @Override
     public Installation create(final Installation installation) throws TechnicalException {
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(installation));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(installation));
             storeInstallationInformations(installation, false);
             return findById(installation.getId()).orElse(null);
         } catch (final Exception ex) {
@@ -127,7 +124,7 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(installation, installation.getId()));
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(installation, installation.getId()));
             storeInstallationInformations(installation, true);
             return findById(installation.getId()).orElseThrow(() -> new IllegalStateException(format("No installation found with id [%s]", installation.getId())));
         } catch (final IllegalStateException ex) {
@@ -140,17 +137,17 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
 
     @Override
     public void delete(final String id) throws TechnicalException {
-        jdbcTemplate.update("delete from installation_informations where installation_id = ?", id);
-        jdbcTemplate.update(ORM.getDeleteSql(), id);
+        jdbcTemplate.update("delete from " + INSTALLATION_INFORMATIONS + " where installation_id = ?", id);
+        jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
 
     @Override
     public Set<Installation> findAll() throws TechnicalException {
         LOGGER.debug("JdbcInstallationRepository.findAll()");
         try {
-            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
+            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
             jdbcTemplate.query(
-                    SELECT_ESCAPED_INSTALLATION_TABLE_NAME + " i left join installation_informations ii on i.id = ii.installation_id"
+                    getOrm().getSelectAllSql() + " i left join " + INSTALLATION_INFORMATIONS + " ii on i.id = ii.installation_id"
                     , rowMapper
             );
             return new HashSet<>(rowMapper.getRows());
@@ -162,11 +159,11 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
 
     private void storeInstallationInformations(Installation installation, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from installation_informations where installation_id = ?", installation.getId());
+            jdbcTemplate.update("delete from " + INSTALLATION_INFORMATIONS + " where installation_id = ?", installation.getId());
         }
         if (installation.getAdditionalInformation() != null) {
             List<Map.Entry<String, String>> list = new ArrayList<>(installation.getAdditionalInformation().entrySet());
-            jdbcTemplate.batchUpdate("insert into installation_informations ( installation_id, information_key, information_value ) values ( ?, ?, ? )"
+            jdbcTemplate.batchUpdate("insert into " + INSTALLATION_INFORMATIONS + " ( installation_id, information_key, information_value ) values ( ?, ?, ? )"
                     , new BatchPreparedStatementSetter() {
                         @Override
                         public void setValues(PreparedStatement ps, int i) throws SQLException {

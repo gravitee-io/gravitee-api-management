@@ -4,13 +4,13 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - addColumn:
-            tableName: identity_providers
+            tableName: ${gravitee_prefix}identity_providers
             columns:
                 - column:
                     name: sync_mappings
                     type: boolean
         - addColumn:
-              tableName: memberships
+              tableName: ${gravitee_prefix}memberships
               columns:
                   - column:
                         name: source

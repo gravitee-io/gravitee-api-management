@@ -23,8 +23,7 @@ import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.GroupEventRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -32,7 +31,6 @@ import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.*;
 
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
 
 /**
@@ -43,29 +41,28 @@ import static java.lang.String.format;
 public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, String>  implements GroupRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcGroupRepository.class);
+    private final String GROUP_EVENT_RULES;
 
-    private static final String SELECT_ESCAPED_GROUP_TABLE_NAME = "select * from " + escapeReservedWord("groups");
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Group.class, "groups", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("max_invitation", Types.INTEGER, Integer.class)
-            .addColumn("lock_api_role", Types.BIT, boolean.class)
-            .addColumn("lock_application_role", Types.BIT, boolean.class)
-            .addColumn("system_invitation", Types.BIT, boolean.class)
-            .addColumn("email_invitation", Types.BIT, boolean.class)
-            .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
-            .build();
+    JdbcGroupRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "groups");
+        GROUP_EVENT_RULES = getTableNameFor("group_event_rules");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Group> buildOrm() {
+        return JdbcObjectMapper.builder(Group.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .addColumn("max_invitation", Types.INTEGER, Integer.class)
+                .addColumn("lock_api_role", Types.BIT, boolean.class)
+                .addColumn("lock_application_role", Types.BIT, boolean.class)
+                .addColumn("system_invitation", Types.BIT, boolean.class)
+                .addColumn("email_invitation", Types.BIT, boolean.class)
+                .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
+                .build();
     }
 
     @Override
@@ -77,8 +74,8 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         LOGGER.debug("JdbcGroupRepository.findById({})", id);
         try {
             Optional<Group> group = jdbcTemplate.query(
-                    SELECT_ESCAPED_GROUP_TABLE_NAME + " g where id = ?"
-                    , ORM.getRowMapper()
+                    getOrm().getSelectAllSql() + " g where id = ?"
+                    , getOrm().getRowMapper()
                     , id
             )
                     .stream()
@@ -96,7 +93,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
     @Override
     public Group create(final Group group) throws TechnicalException {
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(group));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(group));
             storeGroupEvents(group, false);
             return findById(group.getId()).orElse(null);
         } catch (final Exception ex) {
@@ -111,7 +108,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(group, group.getId()));
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(group, group.getId()));
             storeGroupEvents(group, true);
             return findById(group.getId()).orElseThrow(() -> new IllegalStateException(format("No group found with id [%s]", group.getId())));
         } catch (final IllegalStateException ex) {
@@ -124,8 +121,8 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     @Override
     public void delete(final String id) throws TechnicalException {
-        jdbcTemplate.update("delete from group_event_rules where group_id = ?", id);
-        jdbcTemplate.update(ORM.getDeleteSql(), id);
+        jdbcTemplate.update("delete from " + GROUP_EVENT_RULES + " where group_id = ?", id);
+        jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
 
     private void addGroupEvents(Group parent) {
@@ -134,7 +131,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
     }
 
     private List<GroupEventRule> getEvents(String groupId) {
-        List<GroupEvent> groupEvents = jdbcTemplate.query("select group_event from group_event_rules where group_id = ?", (ResultSet rs, int rowNum) -> {
+        List<GroupEvent> groupEvents = jdbcTemplate.query("select group_event from " + GROUP_EVENT_RULES + " where group_id = ?", (ResultSet rs, int rowNum) -> {
             String value = rs.getString(1);
             try {
                 return GroupEvent.valueOf(value);
@@ -156,7 +153,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     private void storeGroupEvents(Group group, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from group_event_rules where group_id = ?", group.getId());
+            jdbcTemplate.update("delete from " + GROUP_EVENT_RULES + " where group_id = ?", group.getId());
         }
         List<String> events = new ArrayList<>();
         if (group.getEventRules() != null) {
@@ -165,8 +162,8 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
             }
         }
         if (!events.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into group_event_rules ( group_id, group_event ) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(group.getId(), events));
+            jdbcTemplate.batchUpdate("insert into " + GROUP_EVENT_RULES + " ( group_id, group_event ) values ( ?, ? )"
+                    , getOrm().getBatchStringSetter(group.getId(), events));
         }
     }
 
@@ -175,8 +172,8 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         LOGGER.debug("JdbcGroupRepository.findAll()");
         try {
             List<Group> rows = jdbcTemplate.query(
-                    SELECT_ESCAPED_GROUP_TABLE_NAME
-                    , ORM.getRowMapper());
+                    getOrm().getSelectAllSql()
+                    , getOrm().getRowMapper());
             Set<Group> groups = new HashSet<>();
             for (Group group : rows) {
                 addGroupEvents(group);
@@ -195,12 +192,12 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         if (ids == null || ids.isEmpty()) {
             return Collections.emptySet();
         }
-        final StringBuilder query = new StringBuilder(SELECT_ESCAPED_GROUP_TABLE_NAME);
-        ORM.buildInCondition(true, query, "id", ids);
+        final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
+        getOrm().buildInCondition(true, query, "id", ids);
         try {
             List<Group> rows = jdbcTemplate.query(query.toString()
-                    , (PreparedStatement ps) -> ORM.setArguments(ps, ids, 1)
-                    , ORM.getRowMapper()
+                    , (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1)
+                    , getOrm().getRowMapper()
             );
             Set<Group> groups = new HashSet<>();
             for (Group group : rows) {
@@ -219,8 +216,8 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         LOGGER.debug("JdbcGroupRepository.findAllByEnvironment({})", environmentId);
         try {
             List<Group> rows = jdbcTemplate.query(
-                    SELECT_ESCAPED_GROUP_TABLE_NAME + " where environment_id = ?"
-                    , ORM.getRowMapper()
+                    getOrm().getSelectAllSql() + " where environment_id = ?"
+                    , getOrm().getRowMapper()
                     , environmentId);
             Set<Group> groups = new HashSet<>();
             for (Group group : rows) {

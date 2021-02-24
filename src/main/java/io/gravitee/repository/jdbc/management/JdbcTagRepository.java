@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.model.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -35,15 +36,20 @@ import static java.util.stream.Collectors.toSet;
 @Repository
 public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> implements TagRepository {
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Tag.class, "tags", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .build();
+    private final String TAG_GROUPS;
+
+    JdbcTagRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "tags");
+        TAG_GROUPS = getTableNameFor("tag_groups");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<Tag> buildOrm() {
+        return JdbcObjectMapper.builder(Tag.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .build();
     }
 
     @Override
@@ -77,7 +83,7 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
 
     @Override
     public void delete(final String id) throws TechnicalException {
-        jdbcTemplate.update("delete from tag_groups where tag_id = ?", id);
+        jdbcTemplate.update("delete from " + TAG_GROUPS + " where tag_id = ?", id);
         super.delete(id);
     }
 
@@ -86,12 +92,12 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
             return;
         }
         if (deleteFirst) {
-            jdbcTemplate.update("delete from tag_groups where tag_id = ?", tag.getId());
+            jdbcTemplate.update("delete from " + TAG_GROUPS + " where tag_id = ?", tag.getId());
         }
-        List<String> filteredGroups = ORM.filterStrings(tag.getRestrictedGroups());
+        List<String> filteredGroups = getOrm().filterStrings(tag.getRestrictedGroups());
         if (!filteredGroups.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into tag_groups (tag_id, group_id) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(tag.getId(), filteredGroups));
+            jdbcTemplate.batchUpdate("insert into " + TAG_GROUPS + " (tag_id, group_id) values ( ?, ? )"
+                    , getOrm().getBatchStringSetter(tag.getId(), filteredGroups));
         }
     }
 
@@ -101,6 +107,6 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     }
 
     private List<String> getGroups(final String tagId) {
-        return jdbcTemplate.queryForList("select group_id from tag_groups where tag_id = ?", String.class, tagId);
+        return jdbcTemplate.queryForList("select group_id from " + TAG_GROUPS + " where tag_id = ?", String.class, tagId);
     }
 }

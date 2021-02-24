@@ -23,8 +23,7 @@ import io.gravitee.repository.management.model.MetadataFormat;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Types;
@@ -40,45 +39,48 @@ import static java.lang.String.format;
  * @author njt
  */
 @Repository
-public class JdbcMetadataRepository implements MetadataRepository {
+public class JdbcMetadataRepository extends JdbcAbstractRepository<Metadata> implements MetadataRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMetadataRepository.class);
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-    
-    private static final JdbcObjectMapper ORM = 
-            JdbcObjectMapper.builder(Metadata.class, "metadata", "key")
-                    .updateSql("update metadata set "
-                            + escapeReservedWord("key") + " = ?"
-                            + " , reference_type = ?"
-                            + " , reference_id = ?"
-                            + " , name = ?"
-                            + " , format = ?"
-                            + " , value = ?"
-                            + " , created_at = ? "
-                            + " , updated_at = ? "
-                            + " where "
-                            + escapeReservedWord("key") + " = ? "
-                            + "and reference_type = ? "
-                            + "and reference_id = ? "
-                    )
-                    .addColumn("key", Types.NVARCHAR, String.class)
-                    .addColumn("reference_type", Types.NVARCHAR, MetadataReferenceType.class)
-                    .addColumn("reference_id", Types.NVARCHAR, String.class)
-                    .addColumn("name", Types.NVARCHAR, String.class)
-                    .addColumn("format", Types.NVARCHAR, MetadataFormat.class)
-                    .addColumn("value", Types.NVARCHAR, String.class)
-                    .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                    .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                    .build();    
+    JdbcMetadataRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "metadata");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Metadata> buildOrm() {
+        return JdbcObjectMapper.builder(Metadata.class, this.tableName, "key")
+                .updateSql("update " + this.tableName + " set "
+                        + escapeReservedWord("key") + " = ?"
+                        + " , reference_type = ?"
+                        + " , reference_id = ?"
+                        + " , name = ?"
+                        + " , format = ?"
+                        + " , value = ?"
+                        + " , created_at = ? "
+                        + " , updated_at = ? "
+                        + " where "
+                        + escapeReservedWord("key") + " = ? "
+                        + "and reference_type = ? "
+                        + "and reference_id = ? "
+                )
+                .addColumn("key", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, MetadataReferenceType.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("format", Types.NVARCHAR, MetadataFormat.class)
+                .addColumn("value", Types.NVARCHAR, String.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
+    }
 
 
     @Override
     public Metadata create(final Metadata metadata) throws TechnicalException {
         LOGGER.debug("JdbcMetadataRepository.create({})", metadata);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(metadata));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(metadata));
             return findById(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create metadata", ex);
@@ -93,7 +95,7 @@ public class JdbcMetadataRepository implements MetadataRepository {
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(metadata
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(metadata
                     , metadata.getKey()
                     , metadata.getReferenceType().name()
                     , metadata.getReferenceId()
@@ -112,7 +114,7 @@ public class JdbcMetadataRepository implements MetadataRepository {
     public void delete(String key, String referenceId, MetadataReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcMetadataRepository.delete({}, {}, {})", key, referenceId, referenceType);
         try {
-            jdbcTemplate.update("delete from metadata where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ? "
+            jdbcTemplate.update("delete from " + this.tableName + " where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ? "
                     , key
                     , referenceType.name()
                     , referenceId
@@ -127,8 +129,8 @@ public class JdbcMetadataRepository implements MetadataRepository {
     public Optional<Metadata> findById(String key, String referenceId, MetadataReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcMetadataRepository.findById({}, {}, {})", key, referenceId, referenceType);
         try {
-            final List<Metadata> items = jdbcTemplate.query("select * from metadata where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ?"
-                    , ORM.getRowMapper()
+            final List<Metadata> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ?"
+                    , getOrm().getRowMapper()
                     , key
                     , referenceType.name()
                     , referenceId
@@ -144,8 +146,8 @@ public class JdbcMetadataRepository implements MetadataRepository {
     public List<Metadata> findByKeyAndReferenceType(String key, MetadataReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcMetadataRepository.findByKeyAndReferenceType({}, {})", key, referenceType);
         try {
-            return jdbcTemplate.query("select * from metadata where " + escapeReservedWord("key") + " = ? and reference_type = ?"
-                    , ORM.getRowMapper()
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and reference_type = ?"
+                    , getOrm().getRowMapper()
                     , key
                     , referenceType.name()
             );
@@ -159,8 +161,8 @@ public class JdbcMetadataRepository implements MetadataRepository {
     public List<Metadata> findByReferenceType(final MetadataReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcMetadataRepository.findByReferenceType({})", referenceType);
         try {
-            return jdbcTemplate.query("select * from metadata where reference_type = ?"
-                    , ORM.getRowMapper()
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ?"
+                    , getOrm().getRowMapper()
                     , referenceType.name()
             );
         } catch (final Exception ex) {
@@ -173,8 +175,8 @@ public class JdbcMetadataRepository implements MetadataRepository {
     public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcMetadataRepository.findById({}, {})", referenceId, referenceType);
         try {
-            return jdbcTemplate.query("select * from metadata where reference_type = ? and reference_id = ?"
-                    , ORM.getRowMapper()
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?"
+                    , getOrm().getRowMapper()
                     , referenceType.name()
                     , referenceId
             );

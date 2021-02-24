@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -39,19 +40,21 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiHeaderRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(ApiHeader.class, "api_headers", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("value", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    JdbcApiHeaderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
+        super(tablePrefix, "api_headers");
+    }
 
     @Override
-    protected JdbcObjectMapper getOrm() {
-        return ORM;
+    protected JdbcObjectMapper<ApiHeader> buildOrm() {
+        return JdbcObjectMapper.builder(ApiHeader.class, this.tableName, "id")
+                .addColumn("id", Types.NVARCHAR, String.class)
+                .addColumn("environment_id", Types.NVARCHAR, String.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("value", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .addColumn("created_at", Types.TIMESTAMP, Date.class)
+                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+                .build();
     }
 
     @Override
@@ -63,8 +66,8 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
     public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
         LOGGER.debug("JdbcApiHeaderRepository.findAllByEnvironment({})", environmentId);
         try {
-            List<ApiHeader> apiHeaders = jdbcTemplate.query("select * from api_headers where environment_id = ?"
-                    , ORM.getRowMapper()
+            List<ApiHeader> apiHeaders = jdbcTemplate.query(getOrm().getSelectAllSql() + " where environment_id = ?"
+                    , getOrm().getRowMapper()
                     , environmentId
             );
             return new HashSet<>(apiHeaders);

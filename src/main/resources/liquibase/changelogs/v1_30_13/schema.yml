@@ -4,7 +4,7 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - createTable:
-              tableName: tokens
+              tableName: ${gravitee_prefix}tokens
               columns:
                 - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
                 - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
@@ -15,6 +15,6 @@ databaseChangeLog:
                 - column: {name: expires_at, type: timestamp(6), constraints: { nullable: true } }
                 - column: {name: last_use_at, type: timestamp(6), constraints: { nullable: true } }
         - modifyDataType:
-            tableName: audits
+            tableName: ${gravitee_prefix}audits
             columnName: user
             newDataType: nvarchar(128)

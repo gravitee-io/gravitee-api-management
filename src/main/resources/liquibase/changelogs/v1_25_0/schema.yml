@@ -4,24 +4,24 @@ databaseChangeLog:
         author: GraviteeSource Team
         changes:
         - createTable:
-            tableName: tag_groups
+            tableName: ${gravitee_prefix}tag_groups
             columns:
               - column: {name: tag_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
         - createTable:
-              tableName: application_metadata
+              tableName: ${gravitee_prefix}application_metadata
               columns:
                   - column: {name: application_id, type: nvarchar(64), constraints: { nullable: false } }
                   - column: {name: k, type: nvarchar(128), constraints: { nullable: false } }
                   - column: {name: v, type: nvarchar(4000), constraints: { nullable: false } }
 
         - addPrimaryKey:
-              constraintName: pk_application_metadata
+              constraintName: pk_${gravitee_prefix}application_metadata
               columnNames: application_id, k
-              tableName: application_metadata
+              tableName: ${gravitee_prefix}application_metadata
 
         - createTable:
-            tableName: client_registration_providers
+            tableName: ${gravitee_prefix}client_registration_providers
             columns:
               - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
@@ -33,12 +33,12 @@ databaseChangeLog:
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
 
         - addPrimaryKey:
-            constraintName: pk_client_registration_providers
+            constraintName: pk_${gravitee_prefix}client_registration_providers
             columnNames: id
-            tableName: client_registration_providers
+            tableName: ${gravitee_prefix}client_registration_providers
 
         - createTable:
-            tableName: client_registration_provider_scopes
+            tableName: ${gravitee_prefix}client_registration_provider_scopes
             columns:
               - column: {name: client_registration_provider_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: scope, type: nvarchar(64), constraints: { nullable: false } }
