@@ -14,20 +14,16 @@
 
     <map name="apikeys">
         <!-- Eviction is managed programmatically-->
-        <eviction-policy>NONE</eviction-policy>
-        <max-size>0</max-size>
+        <eviction eviction-policy="NONE" size="0"></eviction>
     </map>
 
     <map name="subscriptions">
         <!-- Eviction is managed programmatically-->
-        <eviction-policy>NONE</eviction-policy>
-        <max-size>0</max-size>
+        <eviction eviction-policy="NONE" size="0"></eviction>
     </map>
 
     <map name="apis">
         <!-- Eviction is managed programmatically-->
-        <eviction-policy>NONE</eviction-policy>
-        <!-- no restriction on the number of API to share -->
-        <max-size>0</max-size>
+        <eviction eviction-policy="NONE" size="0"></eviction>
     </map>
 </hazelcast>
