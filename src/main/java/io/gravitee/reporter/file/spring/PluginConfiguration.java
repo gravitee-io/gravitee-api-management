@@ -27,9 +27,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PluginConfiguration {
 
-    @Bean 
-    public FileReporterConfiguration configuration(){
-    	return new FileReporterConfiguration();
+    @Bean
+    public FileReporterConfiguration configuration() {
+        return new FileReporterConfiguration();
     }
 
     @Bean

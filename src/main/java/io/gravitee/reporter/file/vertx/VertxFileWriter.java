@@ -23,15 +23,14 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,7 +58,7 @@ public class VertxFileWriter<T extends Reportable> {
      */
     private static final char CR = '\r';
 
-    private final static byte[] END_OF_LINE = new byte[]{CR, LF};
+    private static final byte[] END_OF_LINE = new byte[] { CR, LF };
 
     private final Vertx vertx;
 
@@ -87,14 +86,13 @@ public class VertxFileWriter<T extends Reportable> {
 
         if (filename != null) {
             filename = filename.trim();
-            if (filename.length() == 0)
-                filename = null;
+            if (filename.length() == 0) filename = null;
         }
 
         if (filename == null) {
             throw new IllegalArgumentException("Invalid filename");
         }
-        
+
         this.filename = filename;
 
         __rollover = new Timer(VertxFileWriter.class.getName(), true);
@@ -132,29 +130,41 @@ public class VertxFileWriter<T extends Reportable> {
 
                 int datePattern = filename.toLowerCase(Locale.ENGLISH).indexOf(YYYY_MM_DD);
                 if (datePattern >= 0) {
-                    filename = dir.getAbsolutePath() + File.separatorChar + filename.substring(0, datePattern) +
-                                    fileDateFormat.format(new Date(now.toInstant().toEpochMilli())) +
-                                    filename.substring(datePattern + YYYY_MM_DD.length());
+                    filename =
+                        dir.getAbsolutePath() +
+                        File.separatorChar +
+                        filename.substring(0, datePattern) +
+                        fileDateFormat.format(new Date(now.toInstant().toEpochMilli())) +
+                        filename.substring(datePattern + YYYY_MM_DD.length());
                 }
 
                 LOGGER.info("Initializing file reporter to write into file: {}", filename);
 
                 AsyncFile oldAsyncFile = asyncFile;
 
-                vertx.fileSystem().open(filename, new OpenOptions()
-                                .setAppend(true)
-                                .setCreate(true)
-                                .setDsync(true), event -> {
+                vertx
+                    .fileSystem()
+                    .open(
+                        filename,
+                        new OpenOptions().setAppend(true).setCreate(true).setDsync(true),
+                        event -> {
                             if (event.succeeded()) {
                                 asyncFile = event.result();
 
                                 if (oldAsyncFile != null) {
                                     // Now we can close previous file safely
-                                    close(oldAsyncFile).setHandler(closeEvent -> {
-                                        if (!closeEvent.succeeded()) {
-                                            LOGGER.error("An error occurs while closing file writer for type[{}]", this.type, closeEvent.cause());
-                                        }
-                                    });
+                                    close(oldAsyncFile)
+                                        .setHandler(
+                                            closeEvent -> {
+                                                if (!closeEvent.succeeded()) {
+                                                    LOGGER.error(
+                                                        "An error occurs while closing file writer for type[{}]",
+                                                        this.type,
+                                                        closeEvent.cause()
+                                                    );
+                                                }
+                                            }
+                                        );
                                 }
 
                                 future.complete();
@@ -163,7 +173,7 @@ public class VertxFileWriter<T extends Reportable> {
                                 future.fail(event.cause());
                             }
                         }
-                );
+                    );
             } catch (IOException ioe) {
                 future.fail(ioe);
             }
@@ -190,14 +200,17 @@ public class VertxFileWriter<T extends Reportable> {
             }
         }
 
-        close(asyncFile).setHandler(event -> {
-            if (event.succeeded()) {
-                asyncFile = null;
-                future.complete();
-            } else {
-                future.fail(event.cause());
-            }
-        });
+        close(asyncFile)
+            .setHandler(
+                event -> {
+                    if (event.succeeded()) {
+                        asyncFile = null;
+                        future.complete();
+                    } else {
+                        future.fail(event.cause());
+                    }
+                }
+            );
 
         return future;
     }
@@ -206,15 +219,17 @@ public class VertxFileWriter<T extends Reportable> {
         Future<Void> future = Future.future();
 
         if (asyncFile != null) {
-            asyncFile.close(event -> {
-                if (event.succeeded()) {
-                    LOGGER.info("File writer is now closed for type [{}]", this.type);
-                    future.complete();
-                } else {
-                    LOGGER.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
-                    future.fail(event.cause());
+            asyncFile.close(
+                event -> {
+                    if (event.succeeded()) {
+                        LOGGER.info("File writer is now closed for type [{}]", this.type);
+                        future.complete();
+                    } else {
+                        LOGGER.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
+                        future.fail(event.cause());
+                    }
                 }
-            });
+            );
         } else {
             future.complete();
         }
@@ -246,6 +261,7 @@ public class VertxFileWriter<T extends Reportable> {
     }
 
     private class RollTask extends TimerTask {
+
         @Override
         public void run() {
             try {

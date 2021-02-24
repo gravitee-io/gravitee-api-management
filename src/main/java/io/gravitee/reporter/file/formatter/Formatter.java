@@ -23,6 +23,5 @@ import io.vertx.core.buffer.Buffer;
  * @author GraviteeSource Team
  */
 public interface Formatter<T extends Reportable> {
-
     Buffer format(T data);
 }

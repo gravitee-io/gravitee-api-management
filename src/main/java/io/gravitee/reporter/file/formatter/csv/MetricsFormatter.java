@@ -26,7 +26,7 @@ public final class MetricsFormatter extends SingleValueFormatter<Metrics> {
 
     public Buffer format0(Metrics metrics) {
         final Buffer buffer = Buffer.buffer();
-        
+
         appendString(buffer, metrics.getTransactionId());
         appendString(buffer, metrics.getRequestId());
         appendLong(buffer, metrics.timestamp().toEpochMilli());

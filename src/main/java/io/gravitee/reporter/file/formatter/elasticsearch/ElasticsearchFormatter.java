@@ -25,9 +25,6 @@ import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.file.formatter.AbstractFormatter;
 import io.gravitee.reporter.file.formatter.elasticsearch.freemarker.FreeMarkerComponent;
 import io.vertx.core.buffer.Buffer;
-import org.apache.commons.validator.routines.InetAddressValidator;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -38,6 +35,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -161,11 +160,13 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         data.put(Fields.GATEWAY, node.id());
 
         if (monitor.getOs() != null) {
-
             if (monitor.getOs().cpu != null) {
                 data.put(Fields.PERCENT, monitor.getOs().cpu.getPercent());
 
-                if (monitor.getOs().cpu.getLoadAverage() != null && Arrays.stream(monitor.getOs().cpu.getLoadAverage()).anyMatch(load -> load != -1)) {
+                if (
+                    monitor.getOs().cpu.getLoadAverage() != null &&
+                    Arrays.stream(monitor.getOs().cpu.getLoadAverage()).anyMatch(load -> load != -1)
+                ) {
                     if (monitor.getOs().cpu.getLoadAverage()[0] != -1) {
                         data.put(Fields.LOAD_AVERAGE_1M, monitor.getOs().cpu.getLoadAverage()[0]);
                     }
@@ -199,7 +200,6 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
             data.put(Fields.UPTIME_IN_MILLIS, monitor.getJvm().uptime);
 
             if (monitor.getJvm().mem != null) {
-
                 data.put(Fields.HEAP_USED_IN_BYTES, monitor.getJvm().mem.heapUsed);
                 if (monitor.getJvm().mem.getHeapUsedPercent() >= 0) {
                     data.put(Fields.HEAP_USED_PERCENT, monitor.getJvm().mem.getHeapUsedPercent());
@@ -227,10 +227,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
 
     private Buffer generateData(String templateName, Map<String, Object> data) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            freeMarkerComponent.generateFromTemplate(
-                    "/index/" + templateName,
-                    data,
-                    new OutputStreamWriter(baos));
+            freeMarkerComponent.generateFromTemplate("/index/" + templateName, data, new OutputStreamWriter(baos));
 
             return Buffer.buffer(baos.toByteArray());
         } catch (IOException e) {
@@ -239,6 +236,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
     }
 
     static final class Fields {
+
         static final String GATEWAY = "gateway";
         static final String HOSTNAME = "hostname";
         static final String SPECIAL_TIMESTAMP = "@timestamp";

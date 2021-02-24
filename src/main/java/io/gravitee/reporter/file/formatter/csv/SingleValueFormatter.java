@@ -1,4 +1,4 @@
- /**
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,9 @@
  */
 package io.gravitee.reporter.file.formatter.csv;
 
- import io.gravitee.reporter.api.Reportable;
- import io.gravitee.reporter.file.formatter.AbstractFormatter;
- import io.vertx.core.buffer.Buffer;
+import io.gravitee.reporter.api.Reportable;
+import io.gravitee.reporter.file.formatter.AbstractFormatter;
+import io.vertx.core.buffer.Buffer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,7 +25,7 @@ package io.gravitee.reporter.file.formatter.csv;
  */
 abstract class SingleValueFormatter<T extends Reportable> extends AbstractFormatter<T> {
 
-    private final static String EMPTY_VALUE = "";
+    private static final String EMPTY_VALUE = "";
 
     private static final char CSV_DELIMITER = ';';
 
@@ -49,11 +49,11 @@ abstract class SingleValueFormatter<T extends Reportable> extends AbstractFormat
      */
     private static final char CR = '\r';
 
-    final static byte [] END_OF_LINE = new byte [] { CR,  LF};
+    static final byte[] END_OF_LINE = new byte[] { CR, LF };
 
-    private final static byte FIELD_SEPARATOR = (byte) CSV_DELIMITER;
+    private static final byte FIELD_SEPARATOR = (byte) CSV_DELIMITER;
 
-    private final static byte FIELD_QUOTE = (byte) CSV_QUOTE;
+    private static final byte FIELD_QUOTE = (byte) CSV_QUOTE;
 
     private static final String CSV_QUOTE_STR = String.valueOf(CSV_QUOTE);
 
@@ -74,7 +74,7 @@ abstract class SingleValueFormatter<T extends Reportable> extends AbstractFormat
     void appendString(Buffer buffer, String value, boolean escape, boolean last) {
         buffer.appendByte(FIELD_QUOTE);
 
-        if (! escape || value == null || containsNone(value, CSV_SEARCH_CHARS)) {
+        if (!escape || value == null || containsNone(value, CSV_SEARCH_CHARS)) {
             buffer.appendString(value != null ? value : EMPTY_VALUE);
         } else {
             buffer.appendString(value.replace(CSV_QUOTE_STR, CSV_QUOTE_STR + CSV_QUOTE_STR));

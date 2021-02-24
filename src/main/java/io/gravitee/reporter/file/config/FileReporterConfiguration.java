@@ -24,20 +24,20 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class FileReporterConfiguration {
 
-	/**
-	 *  Reporter file name. 
-	 */
-	@Value("${reporters.file.fileName:#{systemProperties['gravitee.home']}/metrics/%s-yyyy_mm_dd}")
-	private String filename;
+    /**
+     *  Reporter file name.
+     */
+    @Value("${reporters.file.fileName:#{systemProperties['gravitee.home']}/metrics/%s-yyyy_mm_dd}")
+    private String filename;
 
-	@Value("${reporters.file.output:json}")
-	private String outputType;
+    @Value("${reporters.file.output:json}")
+    private String outputType;
 
-	public String getFilename() {
-		return filename;
-	}
+    public String getFilename() {
+        return filename;
+    }
 
-	public Type getOutputType() {
-		return outputType == null ? Type.JSON : Type.valueOf(outputType.toUpperCase());
-	}
+    public Type getOutputType() {
+        return outputType == null ? Type.JSON : Type.valueOf(outputType.toUpperCase());
+    }
 }
