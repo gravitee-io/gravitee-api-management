@@ -84,18 +84,6 @@ const NewPageComponent: ng.IComponentOptions = {
       DocumentationService.search(q, null)
         .then(response => {
           this.templates = response.data;
-
-          if (this.templates.length > 0) {
-            const emptyPage: Page = {
-              name: 'Empty page',
-              content: '',
-              type: PageType.MARKDOWN_TEMPLATE,
-              parentId: ''
-            };
-            this.templates.unshift(emptyPage);
-            this.selectedTemplate = emptyPage;
-          }
-
         });
 
       this.emptyFetcher = {
@@ -233,7 +221,9 @@ const NewPageComponent: ng.IComponentOptions = {
     };
 
     this.onChangeMarkdownTemplate = () => {
-      this.page = {...this.page, content: this.selectedTemplate.content};
+      if (this.selectedTemplate.type) {
+        this.page = {...this.page, content: this.selectedTemplate.content};
+      }
     };
 
     this.save = () => {

@@ -200,8 +200,10 @@
                 <md-select ng-model="$ctrl.selectedTemplate" ng-change="$ctrl.onChangeMarkdownTemplate()">
                   <md-option  ng-repeat="template in $ctrl.templates"
                               ng-value="template">
-                    <md-icon md-svg-src="assets/logo_{{template.type | lowercase}}.svg"></md-icon>
-                    <span style="font-style: italic; opacity: 0.5;">{{ template.parentPath }}</span>/{{ template.name }}
+                    <div ng-if="template.type">
+                      <md-icon  md-svg-src="assets/logo_{{template.type | lowercase}}.svg"></md-icon>
+                      <span style="font-style: italic; opacity: 0.5;">{{ template.parentPath }}</span>/{{ template.name }}
+                    </div>
                   </md-option>
                 </md-select>
                 <div class="hint">
@@ -210,7 +212,7 @@
               </md-input-container>
             </div>
 
-            <div class="gv-page-info-banner" ng-hide="!$ctrl.page.content">
+            <div class="gv-page-info-banner" ng-if="($ctrl.isMarkdown() || $ctrl.isMarkdownTemplate()) && $ctrl.templates.length > 0">
               <ng-md-icon icon="info" class="gv-info"></ng-md-icon>
               Selecting a template will override the current documentation.
             </div>

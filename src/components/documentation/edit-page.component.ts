@@ -57,10 +57,15 @@ const EditPageComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
     this.apiId = $state.params.apiId;
-    this.tabs = ['content', 'translations', 'config', 'fetchers', 'access-control', 'attached-resources'];
-    const indexOfTab = this.tabs.indexOf($state.params.tab);
-    this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
-    this.currentTab = this.tabs[this.selectedTab];
+    this.tabs =
+      [ {id: 0, name: 'content', isUnavailable: () => {}},
+        {id: 1, name: 'translations', isUnavailable: () => this.isMarkdownTemplate()},
+        {id: 2, name: 'config', isUnavailable: () => {}},
+        {id: 3, name: 'fetchers', isUnavailable: () => {}},
+        {id: 4, name: 'access-control', isUnavailable: () => {}},
+        {id: 5, name: 'attached-resources', isUnavailable: () => this.isMarkdownTemplate()},
+      ];
+
     this.shouldShowOpenApiDocFormat = false;
 
     this.error = null;
@@ -68,6 +73,10 @@ const EditPageComponent: ng.IComponentOptions = {
 
     this.$onInit = () => {
       this.page = this.resolvedPage;
+      this.tabs = this.tabs.filter(tab => !tab.isUnavailable());
+      const indexOfTab = this.tabs.findIndex(tab => tab.name === $state.params.tab);
+      this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
+      this.currentTab = this.tabs[this.selectedTab].name;
       if (this.resolvedPage.messages && this.resolvedPage.messages.length > 0) {
         this.error = {
           title: 'Validation messages',
@@ -136,7 +145,6 @@ const EditPageComponent: ng.IComponentOptions = {
     this.isMarkdown = (): boolean => PageType.MARKDOWN === this.page.type;
     this.isMarkdownTemplate = (): boolean => PageType.MARKDOWN_TEMPLATE === this.page.type;
 
-
     this.usedAsGeneralConditions = () => {
       return this.page.generalConditions;
     };
@@ -154,7 +162,7 @@ const EditPageComponent: ng.IComponentOptions = {
         parentId: this.page.id,
         configuration: {}
       };
-      if (this.isMarkdown() || this.isSwagger() || this.isMarkdownTemplate()) {
+      if (this.isMarkdown() || this.isSwagger()) {
         this.currentTranslation.configuration.inheritContent = 'true';
       }
     };
@@ -401,8 +409,8 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.changeTab = (idx: number) => {
-      this.selectedTab = idx;
-      this.currentTab = this.tabs[this.selectedTab];
+      this.selectedTab = this.tabs.findIndex(tab => tab.id === idx);
+      this.currentTab = this.tabs[this.selectedTab].name;
     };
 
     this.fetch = () => {

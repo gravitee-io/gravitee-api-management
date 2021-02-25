@@ -300,7 +300,7 @@
                 </md-tab>
 
                 <!-- translations -->
-                <md-tab md-on-select="$ctrl.selectTab(1)" ng-if="$ctrl.canUpdate">
+                <md-tab md-on-select="$ctrl.selectTab(1)" ng-if="$ctrl.canUpdate && !$ctrl.isMarkdownTemplate()">
                     <md-tab-label>Translations</md-tab-label>
                     <md-tab-body>
                         <md-table-container>

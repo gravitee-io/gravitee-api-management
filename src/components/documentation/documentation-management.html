@@ -281,11 +281,11 @@
                 </md-fab-trigger>
 
                 <md-fab-actions>
-                    <md-button ng-repeat="type in $ctrl.supportedTypes"
+                    <md-button ng-repeat="typeInfo in $ctrl.supportedTypes"
                                class="md-fab md-raised md-mini"
-                               ng-click="$ctrl.newPage(type)">
-                        <md-tooltip md-direction="{{$ctrl.pages.length > 0 ? 'top' : 'right'}}">{{type}}</md-tooltip>
-                        <md-icon md-svg-src="assets/logo_{{type | lowercase}}.svg"></md-icon>
+                               ng-click="$ctrl.newPage(typeInfo.type)">
+                        <md-tooltip md-direction="{{$ctrl.pages.length > 0 ? 'top' : 'right'}}">{{typeInfo.tooltip}}</md-tooltip>
+                        <md-icon md-svg-src="assets/logo_{{typeInfo.type | lowercase}}.svg"></md-icon>
                     </md-button>
                 </md-fab-actions>
             </md-fab-speed-dial>

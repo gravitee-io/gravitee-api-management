@@ -60,7 +60,11 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       this.currentFolder = this.getFolder(this.rootDir);
       this.supportedTypes = DocumentationService
                               .supportedTypes(this.getFolderSituation(this.rootDir))
-                              .filter(type => !this.apiId || type !== PageType.MARKDOWN_TEMPLATE);
+                              .filter(type => !this.apiId || type !== PageType.MARKDOWN_TEMPLATE)
+                              .map(type => ({
+                                type,
+                                tooltip: type.replace('_', ' ')
+                              }));
       this.breadcrumb = this.generateBreadcrumb();
       $scope.renameFolder = false;
       $scope.translateFolder = false;
