@@ -122,7 +122,7 @@ public class ApplicationService_CreateTest {
         settings.setoAuthClient(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
-        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.FALSE);
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.FALSE);
 
         applicationService.create(newApplication, USER_NAME);
     }
@@ -134,7 +134,7 @@ public class ApplicationService_CreateTest {
         clientSettings.setApplicationType("web");
         settings.setoAuthClient(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
         applicationService.create(newApplication, USER_NAME);
     }
 
@@ -145,8 +145,8 @@ public class ApplicationService_CreateTest {
         clientSettings.setApplicationType("web");
         settings.setoAuthClient(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
-        when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
         applicationService.create(newApplication, USER_NAME);
     }
 
@@ -160,8 +160,8 @@ public class ApplicationService_CreateTest {
         ApplicationTypeEntity applicationType = mock(ApplicationTypeEntity.class);
         when(applicationTypeService.getApplicationType(any())).thenReturn(applicationType);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
-        when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
         applicationService.create(newApplication, USER_NAME);
     }
 
@@ -179,8 +179,8 @@ public class ApplicationService_CreateTest {
         when(applicationType.getAllowed_grant_types()).thenReturn(Arrays.asList(foobar));
         when(applicationTypeService.getApplicationType(any())).thenReturn(applicationType);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
-        when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
+        when(parameterService.findAsBoolean(Key.APPLICATION_TYPE_WEB_ENABLED, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
         applicationService.create(newApplication, USER_NAME);
     }
 
