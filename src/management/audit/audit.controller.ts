@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ApiService from '../../services/api.service';
+import ApplicationService from '../../services/application.service';
+
 class AuditController {
   constructor(
-    private resolvedApis,
-    private resolvedApplications,
+    private ApiService: ApiService,
+    private ApplicationService: ApplicationService,
     private resolvedEvents: string[],
     private $scope
   ) {
     'ngInject';
-    this.$scope.apis = resolvedApis;
-    this.$scope.applications = resolvedApplications;
     this.$scope.events = resolvedEvents;
+  }
+
+  $onInit() {
+    this.ApiService.list().then(response => this.$scope.apis = response.data );
+    this.ApplicationService.list().then(response => this.$scope.applications = response.data );
   }
 }
 export default AuditController;

@@ -58,7 +58,6 @@ function applicationsConfig($stateProvider) {
       url: '/create',
       component: 'createApplication',
       resolve: {
-        apis: (ApiService: ApiService) => ApiService.list(null, true).then(response => response.data),
         enabledApplicationTypes: (ApplicationTypesService: ApplicationTypesService) =>
           ApplicationTypesService.getEnabledApplicationTypes().then(response => response.data.map((appType) => new ApplicationType(appType))),
       },

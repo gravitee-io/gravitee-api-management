@@ -117,10 +117,10 @@ function apisRouterConfig($stateProvider: StateProvider) {
       resolve: {
         resolvedApis: function ($stateParams, ApiService: ApiService) {
           if ($stateParams.q) {
-            return ApiService.searchApis($stateParams.q);
+            return ApiService.searchApis($stateParams.q, 1);
           }
 
-          return ApiService.list();
+          return ApiService.list(null, false, 1);
         }
       },
       data: {
