@@ -15,7 +15,7 @@
  */
 import { StateService } from '@uirouter/core';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
-import hljs from 'highlight.js';
+import * as hljs  from 'highlight.js';
 import NotificationService from '../../../services/notification.service';
 
 class ComponentCtrl implements ng.IComponentController {

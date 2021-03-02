@@ -1,6 +1,7 @@
 .tmp/
 coverage/
 dist/
+dist-tsc/
 node_modules/
 npm-debug.log
 .idea/

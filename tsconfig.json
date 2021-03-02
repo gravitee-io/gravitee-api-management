@@ -1,33 +1,24 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "sourceMap": true,
+    "outDir": "dist-tsc",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "removeComments": false,
-    "noImplicitAny": false,
-    "skipLibCheck": true,
-    "typeRoots": ["node_modules/@types/"],
-    "types": [
-      "@uirouter/angularjs",
-      "angular",
-      "angular-mocks",
-      "angular-material",
-      "jquery",
-      "node",
-      "jasmine",
-      "es6-shim"
-    ],
     "lib": [
       "dom",
       "es2018"
+    ],
+    "target": "ES5",
+    "noImplicitAny": false,
+    "removeComments": false,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "types": [
+      "jasmine"
     ]
   },
-  "compileOnSave": false,
   "include": [
     "src/**/*.ts",
     "node_modules/@gravitee/ui-components"
-  ],
-  "exclude": [
-    "node_modules"
   ]
 }

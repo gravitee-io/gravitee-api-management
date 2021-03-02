@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
-import hljs from 'highlight.js';
+import * as hljs from 'highlight.js';
 import * as _ from 'lodash';
 import * as remark from 'remark';
 
