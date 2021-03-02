@@ -18,6 +18,7 @@ import * as _ from 'lodash';
 export class Role {
   default: boolean;
   name: string;
+  system: boolean;
 }
 
 function DialogAddGroupMemberController(
@@ -28,7 +29,8 @@ function DialogAddGroupMemberController(
   apiRoles: Role[],
   applicationRoles: Role[],
   canChangeDefaultApiRole,
-  canChangeDefaultApplicationRole
+  canChangeDefaultApplicationRole,
+  isApiRoleDisabled
   ) {
   'ngInject';
 
@@ -44,6 +46,7 @@ function DialogAddGroupMemberController(
 
   this.canChangeDefaultApiRole = canChangeDefaultApiRole;
   this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;
+  this.isApiRoleDisabled = isApiRoleDisabled;
 
   this.hide = () => {
     $mdDialog.cancel();
@@ -71,6 +74,7 @@ function DialogAddGroupMemberController(
   this.invalid = () => {
     return (!this.defaultApiRole && !this.defaultApplicationRole) || (this.usersSelected.length === 0);
   };
+
 }
 
 export default DialogAddGroupMemberController;

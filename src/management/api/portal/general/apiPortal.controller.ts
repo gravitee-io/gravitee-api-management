@@ -24,6 +24,8 @@ class ApiPortalController {
   private initialApi: any;
   private api: any;
   private groups: any;
+  private attachableGroups: any;
+  private attachedGroups: any;
   private categories: any;
   private tags: any;
   private tenants: any;
@@ -113,6 +115,8 @@ class ApiPortalController {
 
     this.tags = resolvedTags;
     this.groups = resolvedGroups;
+    this.attachableGroups = resolvedGroups.filter(group => group.apiPrimaryOwner == null);
+    this.attachedGroups = this.api.groups.map(groupId => this.getGroup(groupId)).filter(group => group.apiPrimaryOwner == null);
 
     this.headers = [
       'Accept', 'Accept-Charset', 'Accept-Encoding', 'Accept-Language', 'Accept-Ranges', 'Access-Control-Allow-Credentials',
@@ -503,6 +507,7 @@ class ApiPortalController {
       }
     });
   }
+
 }
 
 export default ApiPortalController;

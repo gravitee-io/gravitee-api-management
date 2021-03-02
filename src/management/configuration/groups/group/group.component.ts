@@ -16,8 +16,8 @@
 import GroupService from '../../../../services/group.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import _ = require('lodash');
 import UserService from '../../../../services/user.service';
+import _ = require('lodash');
 
 interface IGroupDetailComponentScope extends ng.IScope {
   groupApis: any[];
@@ -70,6 +70,8 @@ const GroupComponent: ng.IComponentOptions = {
 
       this.apiByDefault = this.group.event_rules && this.group.event_rules.findIndex(rule => rule.event === 'API_CREATE') !== -1;
       this.applicationByDefault = this.group.event_rules && this.group.event_rules.findIndex(rule => rule.event === 'APPLICATION_CREATE') !== -1;
+
+      this.loadGroupApis();
     };
 
     this.updateRole = (member: any) => {
@@ -143,9 +145,10 @@ const GroupComponent: ng.IComponentOptions = {
         if (response) {
           GroupService.deleteMember(this.group.id, member.id).then((response) => {
             NotificationService.show('Member ' + member.displayName + ' has been successfully removed');
-            GroupService.getMembers(this.group.id).then(response =>
-              this.members = response.data
-            );
+            GroupService.getMembers(this.group.id).then(response => {
+              this.members = response.data;
+              this.group.apiPrimaryOwner = this.members.find(member => member.roles.API === 'PRIMARY_OWNER').id;
+            });
           });
         }
       });
@@ -164,7 +167,8 @@ const GroupComponent: ng.IComponentOptions = {
           apiRoles: this.apiRoles,
           applicationRoles: this.applicationRoles,
           canChangeDefaultApiRole: this.canChangeDefaultApiRole,
-          canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole
+          canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole,
+          isApiRoleDisabled: this.isApiRoleDisabled
         }
       }).then( (members) => {
         if (members) {
@@ -235,7 +239,7 @@ const GroupComponent: ng.IComponentOptions = {
     this.showInviteMemberModal = () => {
       $mdDialog.show({
         controller: function($mdDialog, group, apiRoles, applicationRoles, defaultApiRole, defaultApplicationRole,
-                             canChangeDefaultApiRole, canChangeDefaultApplicationRole) {
+                             canChangeDefaultApiRole, canChangeDefaultApplicationRole, isApiRoleDisabled) {
           'ngInject';
           this.group = group;
           this.group.api_role = group.api_role || defaultApiRole;
@@ -244,6 +248,7 @@ const GroupComponent: ng.IComponentOptions = {
           this.applicationRoles = applicationRoles;
           this.canChangeDefaultApiRole = canChangeDefaultApiRole;
           this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;
+          this.isApiRoleDisabled = isApiRoleDisabled;
           this.hide = function () {$mdDialog.hide(); };
           this.save = function () {$mdDialog.hide(this.email); };
         },
@@ -257,7 +262,8 @@ const GroupComponent: ng.IComponentOptions = {
           apiRoles: this.apiRoles,
           applicationRoles: this.applicationRoles,
           canChangeDefaultApiRole: this.canChangeDefaultApiRole,
-          canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole
+          canChangeDefaultApplicationRole: this.canChangeDefaultApplicationRole,
+          isApiRoleDisabled: this.isApiRoleDisabled
         }
       }).then((email) => {
         if (email) {
@@ -308,6 +314,18 @@ const GroupComponent: ng.IComponentOptions = {
       });
       return hasGroupAdmin;
     };
+
+    this.isApiRoleDisabled = (role) => {
+      return (
+        (role.system && role.name !== 'PRIMARY_OWNER') ||
+        (role.system &&
+          role.name === 'PRIMARY_OWNER' &&
+          (this.group.apiPrimaryOwner != null ||
+            ($scope.groupApis && $scope.groupApis.length > 0)))
+      );
+    };
+
+
   }
 };
 

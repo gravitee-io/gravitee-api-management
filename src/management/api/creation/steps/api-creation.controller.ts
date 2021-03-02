@@ -16,16 +16,19 @@
 import * as _ from 'lodash';
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import NewApiController, {
   getDefinitionVersionDescription,
   getDefinitionVersionTitle
 } from '../newApiPortal.controller';
+import UserService from '../../../../services/user.service';
 
 class ApiCreationController {
 
   api: any;
   selectedTenants: any[];
+  attachableGroups: any[];
+  poGroups: any[];
 
   private parent: NewApiController;
   private vm: {
@@ -71,6 +74,7 @@ class ApiCreationController {
               private $window,
               private ApiService: ApiService,
               private NotificationService: NotificationService,
+              private UserService: UserService,
               private $state: StateService,
               private Constants: any,
               private $rootScope) {
@@ -118,6 +122,17 @@ class ApiCreationController {
 
     // init documentation settings
     this.initDocumentationSettings();
+  }
+
+  $onInit = () => {
+    this.attachableGroups = this.groups.filter(
+      (group) => group.apiPrimaryOwner == null
+    );
+    this.UserService.getUserGroups(this.UserService.currentUser.id)
+      .then((response) => {
+        this.poGroups = this.groups.filter(
+          (group) => group.apiPrimaryOwner != null && response.data.some(userGroup => userGroup.id === group.id));
+      });
   }
 
   /*

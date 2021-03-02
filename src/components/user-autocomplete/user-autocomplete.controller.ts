@@ -25,6 +25,7 @@ class UserAutocompleteController {
   private selectedUser: string;
   private userFilterFn;
   private defaultUsersList: any[];
+  private disabled: boolean;
 
   private minLength: number;
   private autofocus: boolean;

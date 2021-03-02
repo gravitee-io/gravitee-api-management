@@ -84,7 +84,9 @@
   </div>
 
   <div class="gv-form" ng-repeat="grp in apiMembersCtrl.groupIdsWithMembers">
-    <h2>{{apiMembersCtrl.groupMembers[grp].length}} members inherited from group "{{apiMembersCtrl.groupById[grp].name}}"</h2>
+    <h2>{{apiMembersCtrl.groupMembers[grp].length}} members inherited from group "{{apiMembersCtrl.groupById[grp].name}}"
+      <span ng-if="apiMembersCtrl.groupById[grp].primary_owner" flex class="badge" style="background-color: #039be5">Primary Owner</span>
+    </h2>
     <div class="gv-form-content" layout="column">
       <div layout="row" layout-align="start end">
         <div style="margin-bottom: 5px;" ng-model="apiMembersCtrl.displayGroups[grp]"

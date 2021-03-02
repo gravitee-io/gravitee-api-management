@@ -17,6 +17,7 @@ import angular = require('angular');
 import _ = require('lodash');
 import ApiService from '../../../../../services/api.service';
 import UserService from '../../../../../services/user.service';
+import ApiPrimaryOwnerModeService from '../../../../../services/apiPrimaryOwnerMode.service';
 
 class ApiTransferOwnershipController {
   private api: any;
@@ -31,9 +32,13 @@ class ApiTransferOwnershipController {
   private usersSelected = [];
   private userFilterFn;
   private defaultUsersList: string[];
+  private poGroups: any[];
+  private newPrimaryOwnerGroup: string;
+  private useGroupAsPrimaryOwner: boolean;
 
   constructor(
     private ApiService: ApiService,
+    private ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService,
     private resolvedApi,
     private resolvedMembers,
     private resolvedGroups,
@@ -48,6 +53,11 @@ class ApiTransferOwnershipController {
   ) {
     'ngInject';
     this.api = resolvedApi.data;
+    this.poGroups = this.resolvedGroups.filter(group => group.apiPrimaryOwner != null);
+    if (this.api.owner.type === 'GROUP') {
+      this.poGroups = this.poGroups.filter(group => group.id !== this.api.owner.id);
+    }
+    this.useGroupAsPrimaryOwner = this.ApiPrimaryOwnerModeService.isGroupOnly();
     this.members = resolvedMembers.data;
     this.groupById = _.keyBy(resolvedGroups, 'id');
     this.displayGroups = {};
@@ -93,12 +103,13 @@ class ApiTransferOwnershipController {
     };
 
     this.defaultUsersList = _.filter(this.members, (member: any) => {
-      return member.role !== 'PRIMARY_OWNER';
+      return member.role !== 'PRIMARY_OWNER' && member.type === 'USER';
     });
   }
 
   isPrimaryOwner() {
-    return this.UserService.currentUser.id === this.api.owner.id;
+    return (this.api.owner.type === 'USER' && this.UserService.currentUser.id === this.api.owner.id)
+      || (this.api.owner.type === 'GROUP' && this.resolvedGroups.some(group => group.id === this.api.owner.id && group.apiPrimaryOwner === this.UserService.currentUser.id));
   }
 
   showTransferOwnershipConfirm(ev) {
@@ -126,12 +137,22 @@ class ApiTransferOwnershipController {
   }
 
   private transferOwnership(newRole: string) {
-    let ownership = {
-      id: this.usersSelected[0].id,
-      reference: this.usersSelected[0].reference,
-      role: newRole
-    };
-
+    let ownership;
+    if (this.useGroupAsPrimaryOwner) {
+      ownership = {
+        id: this.newPrimaryOwnerGroup,
+        reference: null,
+        role: newRole,
+        type: 'GROUP'
+      };
+    } else {
+      ownership = {
+        id: this.usersSelected[0].id,
+        reference: this.usersSelected[0].reference,
+        role: newRole,
+        type: 'USER'
+      };
+    }
     this.ApiService.transferOwnership(this.api.id, ownership).then(() => {
       this.NotificationService.show('API ownership changed !');
       this.$state.go('management.apis.list');

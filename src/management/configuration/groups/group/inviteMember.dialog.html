@@ -26,7 +26,7 @@
                    class="md-no-underline" ng-disabled="!$ctrl.canChangeDefaultApiRole()">
           <md-option ng-repeat="role in $ctrl.apiRoles"
                      ng-value="role.name"
-                     ng-disabled="role.system">
+                     ng-disabled="$ctrl.isApiRoleDisabled(role)">
             {{role.name}}
           </md-option>
         </md-select>

@@ -26,16 +26,16 @@
 
   <md-input-container permission permission-only="'api-definition-u'" class="flex">
     <label>Groups</label>
-    <md-select ng-model="portalCtrl.api.groups" multiple ng-disabled="!(portalCtrl.groups && portalCtrl.groups.length > 0)">
-      <md-option ng-repeat="group in portalCtrl.groups" ng-value="group.id">
+    <md-select ng-model="portalCtrl.api.groups" multiple ng-disabled="!(portalCtrl.attachableGroups && portalCtrl.attachableGroups.length > 0)">
+      <md-option ng-repeat="group in portalCtrl.attachableGroups" ng-value="group.id">
         {{group.name}}
       </md-option>
     </md-select>
   </md-input-container>
   <div permission permission-except="'api-definition-u'" layout="column">
     <label>Groups</label>
-    <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="portalCtrl.api.groups">
-      <md-chip-template>{{portalCtrl.getGroup($chip).name}}</md-chip-template>
+    <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="portalCtrl.attachedGroups">
+      <md-chip-template>{{$chip.name}}</md-chip-template>
     </md-chips>
   </div>
   <div class="md-actions gravitee-api-save-button" layout="row">

@@ -23,6 +23,7 @@ const UserAutocompleteComponent: ng.IComponentOptions = {
     selectedUser: '<',
     userFilterFn: '<',
     defaultUsersList: '<',
+    disabled: '<'
   }
 };
 

@@ -92,6 +92,16 @@
         </md-chips>
         <md-tooltip ng-if="$ctrl.isReadonlySetting('api.labelsDictionary')">Configuration provided by the system</md-tooltip>
       </md-input-container>
+
+      <h3>API Primary Owner mode</h3>
+      <md-input-container class="md-block">
+        <md-radio-group ng-model="$ctrl.settings.api.primaryOwnerMode">
+          <md-radio-button ng-value="'HYBRID'" aria-label="Hybrid">HYBRID: an API primary owner can be either a user or a group (Default)</md-radio-button>
+          <md-radio-button ng-value="'USER'" aria-label="User">USER: an API primary owner can only be a user</md-radio-button>
+          <md-radio-button ng-value="'GROUP'" aria-label="Group">GROUP: an API primary owner can only be a group</md-radio-button>
+        </md-radio-group>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('api.primaryOwnerMode')">Configuration provided by the system</md-tooltip>
+      </md-input-container>
     </div>
   </div>
 

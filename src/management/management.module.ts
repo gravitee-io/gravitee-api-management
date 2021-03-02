@@ -34,7 +34,8 @@ import GvModelDirective from '../libraries/gv-model.directive';
 import ApiService from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisController from '../management/api/apis.controller';
-import ApisStatusDashboardController from '../management/dashboard/apis-status-dashboard/apis-status-dashboard.controller';
+import ApisStatusDashboardController
+  from '../management/dashboard/apis-status-dashboard/apis-status-dashboard.controller';
 import ApiPortalController from '../management/api/portal/general/apiPortal.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
 import ApiAnalyticsController from '../management/api/analytics/overview/analytics.controller';
@@ -101,6 +102,8 @@ import ApiEditPlanWizardSecurityComponent from '../management/api/portal/plans/p
 import ApiEditPlanWizardRestrictionsComponent
   from '../management/api/portal/plans/plan/plan-wizard-restrictions.component';
 import ApiEditPlanWizardPoliciesComponent from '../management/api/portal/plans/plan/plan-wizard-policies.component';
+// API PrimaryOwner Mode
+import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';
 // API Subscription
 import ApiSubscriptionsComponent from '../management/api/portal/subscriptions/subscriptions.component';
 import ApiSubscriptionComponent from '../management/api/portal/subscriptions/subscription.component';
@@ -787,6 +790,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.service('ApplicationService', ApplicationService);
   graviteeManagementModule.service('ApplicationTypesService', ApplicationTypesService);
   graviteeManagementModule.service('ApiService', ApiService);
+  graviteeManagementModule.service('ApiPrimaryOwnerModeService', ApiPrimaryOwnerModeService);
   graviteeManagementModule.service('CorsService', CorsService);
   graviteeManagementModule.service('DocumentationService', DocumentationService);
   graviteeManagementModule.service('InstancesService', InstancesService);

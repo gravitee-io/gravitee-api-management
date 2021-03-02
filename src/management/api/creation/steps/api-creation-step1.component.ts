@@ -13,11 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ApiCreationController from './api-creation.controller';
+import ApiPrimaryOwnerModeService from '../../../../services/apiPrimaryOwnerMode.service';
+
 const ApiCreationStep1Component: ng.IComponentOptions = {
   require: {
     parent: '^apiCreation'
   },
-  template: require('./api-creation-step1.html')
+  template: require('./api-creation-step1.html'),
+  controller: class {
+    private parent: ApiCreationController;
+    private advancedMode: boolean;
+    private useGroupAsPrimaryOwner: boolean;
+
+    constructor(private ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService) {
+      'ngInject';
+      this.advancedMode = false;
+      this.useGroupAsPrimaryOwner = this.ApiPrimaryOwnerModeService.isGroupOnly();
+    }
+
+    toggleAdvancedMode = () => {
+      this.advancedMode = !this.advancedMode;
+      if (!this.advancedMode) {
+        this.parent.api.groups = [];
+      }
+    }
+
+    canUseAdvancedMode = () => {
+      return (
+        (this.ApiPrimaryOwnerModeService.isHybrid() &&
+          ((this.parent.attachableGroups &&
+            this.parent.attachableGroups.length > 0) ||
+            (this.parent.poGroups && this.parent.poGroups.length > 0))) ||
+        (this.ApiPrimaryOwnerModeService.isGroupOnly() &&
+          this.parent.attachableGroups &&
+          this.parent.attachableGroups.length > 0)
+      );
+    }
+
+
+  }
 };
 
 export default ApiCreationStep1Component;

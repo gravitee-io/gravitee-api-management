@@ -17,6 +17,8 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import NotificationService from '../../services/notification.service';
 import ApiService from '../../services/api.service';
+import UserService from '../../services/user.service';
+import ApiPrimaryOwnerModeService from '../../services/apiPrimaryOwnerMode.service';
 import _ = require('lodash');
 
 
@@ -34,6 +36,8 @@ const ImportComponent: ng.IComponentOptions = {
     $mdDialog: angular.material.IDialogService,
     NotificationService: NotificationService,
     ApiService: ApiService,
+    UserService: UserService,
+    ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService,
     $attrs,
   ) {
 
@@ -59,6 +63,8 @@ const ImportComponent: ng.IComponentOptions = {
       this.importCreatePathMapping = true;
       this.importCreateMocks = false;
       this.error = null;
+      this.importError = null;
+      this.computeRightToImport();
       $scope.$watch('$ctrl.importAPIFile.content', function (data) {
         if (data) {
           that.enableFileImport = true;
@@ -78,6 +84,21 @@ const ImportComponent: ng.IComponentOptions = {
 
     this.cancel = () => {
       this.cancelAction();
+    };
+
+    this.computeRightToImport = () => {
+      if (ApiPrimaryOwnerModeService.isGroupOnly()) {
+        UserService.getUserGroups(UserService.currentUser.id).then(response => {
+          if (response.data.every(group => group.apiPrimaryOwner == null)) {
+            this.importError = {
+              title: 'You are not allowed to import an API',
+              message: [
+                'You must belong to at least one group with an API primary owner member'
+              ]
+            };
+          }
+        });
+      }
     };
 
     this.isSwaggerImport = () => {
