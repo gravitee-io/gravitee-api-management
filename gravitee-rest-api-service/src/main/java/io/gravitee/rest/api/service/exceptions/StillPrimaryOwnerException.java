@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,10 +31,18 @@ public class StillPrimaryOwnerException extends AbstractManagementException {
 
     private final long apiCount;
     private final long applicationCount;
+    private final ApiPrimaryOwnerMode primaryOwnerMode;
 
     public StillPrimaryOwnerException(long apiCount, long applicationCount) {
         this.apiCount = apiCount;
         this.applicationCount = applicationCount;
+        this.primaryOwnerMode = ApiPrimaryOwnerMode.USER;
+    }
+
+    public StillPrimaryOwnerException(long apiCount, ApiPrimaryOwnerMode primaryOwnerMode) {
+        this.apiCount = apiCount;
+        this.applicationCount = 0;
+        this.primaryOwnerMode = primaryOwnerMode;
     }
 
     @Override
@@ -43,12 +52,16 @@ public class StillPrimaryOwnerException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "The user is still primary owner of '" + apiCount + "' APIs and '" + applicationCount + "' Applications.";
+        String message = "The " + primaryOwnerMode.name().toLowerCase() + " is still primary owner of '" + apiCount + "' APIs";
+        if (ApiPrimaryOwnerMode.USER == primaryOwnerMode) {
+            message += " and '" + applicationCount + "' Applications.";
+        }
+        return message;
     }
 
     @Override
     public String getTechnicalCode() {
-        return "user.notDeletable";
+        return primaryOwnerMode.name().toLowerCase() + ".notDeletable";
     }
 
     @Override
@@ -57,6 +70,7 @@ public class StillPrimaryOwnerException extends AbstractManagementException {
             {
                 put("apiCount", valueOf(apiCount));
                 put("applicationCount", valueOf(applicationCount));
+                put("primaryOwnerMode", primaryOwnerMode.name());
             }
         };
     }

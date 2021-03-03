@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.rest.api.model.MembershipMemberType;
 
 import javax.validation.constraints.NotNull;
 
@@ -26,14 +27,19 @@ import javax.validation.constraints.NotNull;
 public class TransferOwnership {
 
     /**
-     * User identifier
+     * Member identifier
      */
     private String id;
 
     /**
-     * User reference
+     * Member reference
      */
     private String reference;
+
+    /**
+     * Member type
+     */
+    private MembershipMemberType type;
 
     @NotNull
     @JsonProperty("role")
@@ -61,5 +67,13 @@ public class TransferOwnership {
 
     public void setPoRole(String poRole) {
         this.poRole = poRole;
+    }
+
+    public MembershipMemberType getType() {
+        return type;
+    }
+
+    public void setType(MembershipMemberType type) {
+        this.type = type;
     }
 }

@@ -16,7 +16,10 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.model.GroupEvent;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.NewGroupEntity;
+import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 
 import java.util.List;
@@ -28,8 +31,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface GroupService {
-
-    void                    addUserToGroup                      (String groupId, String username, String... roleIds);
     GroupEntity             create                              (NewGroupEntity group);
     void                    delete                              (String groupId);
     void                    deleteUserFromGroup                 (String groupId, String username);
@@ -46,4 +47,5 @@ public interface GroupService {
     boolean                 isUserAuthorizedToAccessApiData     (ApiEntity api, List<String> excludedGroups, String username);
     boolean                 isUserAuthorizedToAccessPortalData  (List<String> excludedGroups, String username);
     GroupEntity             update                              (String groupId, UpdateGroupEntity group);
+    void                    updateApiPrimaryOwner               (String groupId, String newApiPrimaryOwner);
 }

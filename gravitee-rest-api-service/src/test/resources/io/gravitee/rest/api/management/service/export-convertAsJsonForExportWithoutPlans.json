@@ -4,6 +4,11 @@
   "resources": [],
   "properties" : [ ],
   "flow_mode": "DEFAULT",
+  "primaryOwner": {
+    "id": "johndoe",
+    "displayName": "johndoe-sourceId",
+    "type": "USER"
+  },
   "groups": [
     "My Group"
   ],

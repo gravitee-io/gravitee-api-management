@@ -38,7 +38,6 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -100,6 +99,7 @@ public class ApiMembersResource extends AbstractResource {
         apiService.findById(api);
         return membershipService.getMembersByReference(MembershipReferenceType.API, api)
                 .stream()
+                .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
                 .map(MembershipListItem::new)
                 .sorted(Comparator.comparing(MembershipListItem::getId))
                 .collect(Collectors.toList());
@@ -168,7 +168,7 @@ public class ApiMembersResource extends AbstractResource {
 
         apiService.findById(api);
         membershipService.transferApiOwnership(api, new MembershipService.MembershipMember(
-                transferOwnership.getId(), transferOwnership.getReference(), MembershipMemberType.USER), newRoles);
+                transferOwnership.getId(), transferOwnership.getReference(), transferOwnership.getType()), newRoles);
         return Response.ok().build();
     }
 

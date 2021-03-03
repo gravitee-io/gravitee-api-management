@@ -57,6 +57,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.plan.PlanQuery;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
@@ -80,6 +81,7 @@ import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -251,6 +253,27 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    private Set<String> removePOGroups(Set<String> groups, String apiId) {
+        Stream<GroupEntity> groupEntityStream = groupService.findByIds(groups).stream();
+
+
+        if (apiId != null) {
+            final MembershipEntity primaryOwner = membershipService.getPrimaryOwner(MembershipReferenceType.API, apiId);
+            if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
+                // don't remove the primary owner group of this API.
+                groupEntityStream = groupEntityStream.filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()) || group.getId().equals(primaryOwner.getMemberId()));
+            } else {
+                groupEntityStream = groupEntityStream.filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()));
+            }
+        } else {
+            groupEntityStream = groupEntityStream.filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()));
+        }
+
+        return groupEntityStream
+                .map(GroupEntity::getId)
+                .collect(Collectors.toSet());
+    }
+
     private void createMetadata(List<ApiMetadataEntity> apiMetadata, String apiId) {
         if (apiMetadata != null && !apiMetadata.isEmpty()) {
             apiMetadata.stream()
@@ -274,8 +297,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setDescription(newApiEntity.getDescription());
         apiEntity.setVersion(newApiEntity.getVersion());
 
-        checkGroupExistence(newApiEntity.getGroups());
-        apiEntity.setGroups(newApiEntity.getGroups());
+        Set<String> groups = newApiEntity.getGroups();
+        checkGroupExistence(groups);
+        groups = removePOGroups(groups, null);
+        newApiEntity.setGroups(groups);
+        apiEntity.setGroups(groups);
 
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(newApiEntity.getContextPath())));
@@ -401,6 +427,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check policy configurations.
             checkPolicyConfigurations(api);
 
+            // check primary owner
+            PrimaryOwnerEntity primaryOwner = findPrimaryOwner(apiDefinition, userId);
+
             if (apiDefinition != null) {
                 apiDefinition = ((ObjectNode) apiDefinition).put("id", id);
             }
@@ -433,6 +462,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     repoApi.getGroups().addAll(defaultGroups);
                 }
 
+                // if po is a group, add it as a member of the API
+                if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwner.getType())) {
+                    if (repoApi.getGroups() == null) {
+                        repoApi.setGroups(new HashSet<>());
+                    }
+                    repoApi.getGroups().add(primaryOwner.getId());
+                }
+
                 repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
                 if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
                     workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
@@ -453,12 +490,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     null,
                     createdApi);
 
+
                 // Add the primary owner of the newly created API
-                UserEntity primaryOwner = userService.findById(userId);
                 if (primaryOwner != null) {
                     membershipService.addRoleToMemberOnReference(
                         new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
-                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                        new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
                         new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
 
                     // create the default mail notification
@@ -489,8 +526,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     searchEngineService.index(apiWithMetadata, false);
                     return apiEntity;
                 } else {
-                    LOGGER.error("Unable to create API {} because primary owner role has not been found.", api.getName());
-                    throw new TechnicalManagementException("Unable to create API " + api.getName() + " because primary owner role has not been found");
+                    LOGGER.error("Unable to create API {} because primary owner role has not been found.", createdApi.getName());
+                    throw new TechnicalManagementException("Unable to create API " + createdApi.getName() + " because primary owner role has not been found");
                 }
             } else {
                 LOGGER.error("Unable to create API {} because of previous error.", api.getName());
@@ -500,6 +537,97 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
         }
+    }
+
+    public PrimaryOwnerEntity findPrimaryOwner(JsonNode apiDefinition, String userId) {
+        ApiPrimaryOwnerMode poMode = ApiPrimaryOwnerMode.valueOf(this.parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT));
+        PrimaryOwnerEntity primaryOwnerFromDefinition = findPrimaryOwnerFromApiDefinition(apiDefinition);
+        switch (poMode) {
+            case USER:
+                if(primaryOwnerFromDefinition == null || ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerFromDefinition.getType())) {
+                    return new PrimaryOwnerEntity(userService.findById(userId));
+                }
+                if(ApiPrimaryOwnerMode.USER.name().equals(primaryOwnerFromDefinition.getType())) {
+                    try {
+                        return new PrimaryOwnerEntity(userService.findById(primaryOwnerFromDefinition.getId()));
+                    } catch(UserNotFoundException unfe) {
+                        return new PrimaryOwnerEntity(userService.findById(userId));
+                    }
+                }
+                break;
+            case GROUP:
+                if(primaryOwnerFromDefinition == null) {
+                    return getFirstPoGroupUserBelongsTo(userId);
+                }
+                if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerFromDefinition.getType())) {
+                    try {
+                        return new PrimaryOwnerEntity(groupService.findById(primaryOwnerFromDefinition.getId()));
+                    } catch(GroupNotFoundException unfe) {
+                        return getFirstPoGroupUserBelongsTo(userId);
+                    }
+                }
+                if (ApiPrimaryOwnerMode.USER.name().equals(primaryOwnerFromDefinition.getType())) {
+                    try {
+                        final String poUserId = primaryOwnerFromDefinition.getId();
+                        userService.findById(poUserId);
+                        final Set<GroupEntity> poGroupsOfPoUser = groupService.findByUser(poUserId).stream().filter(group -> group.getApiPrimaryOwner()!=null && !group.getApiPrimaryOwner().isEmpty()).collect(toSet());
+                        if (poGroupsOfPoUser.isEmpty()) {
+                            return getFirstPoGroupUserBelongsTo(userId);
+                        }
+                        return new PrimaryOwnerEntity(poGroupsOfPoUser.iterator().next());
+                    } catch(UserNotFoundException unfe) {
+                        return getFirstPoGroupUserBelongsTo(userId);
+                    }
+                }
+                break;
+            case HYBRID:
+            default:
+                if(primaryOwnerFromDefinition == null) {
+                    return new PrimaryOwnerEntity(userService.findById(userId));
+                }
+                if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerFromDefinition.getType())) {
+                    try {
+                        return new PrimaryOwnerEntity(groupService.findById(primaryOwnerFromDefinition.getId()));
+                    } catch(GroupNotFoundException unfe) {
+                        try {
+                            return getFirstPoGroupUserBelongsTo(userId);
+                        } catch(NoPrimaryOwnerGroupForUserException ex) {
+                            return new PrimaryOwnerEntity(userService.findById(userId));
+                        }
+                    }
+                }
+                if (ApiPrimaryOwnerMode.USER.name().equals(primaryOwnerFromDefinition.getType())) {
+                    try {
+                        return new PrimaryOwnerEntity(userService.findById(primaryOwnerFromDefinition.getId()));
+                    } catch(UserNotFoundException unfe) {
+                        return new PrimaryOwnerEntity(userService.findById(userId));
+                    }
+                }
+                break;
+        }
+
+        return new PrimaryOwnerEntity(userService.findById(userId));
+    }
+
+    @NotNull
+    private PrimaryOwnerEntity getFirstPoGroupUserBelongsTo(String userId) {
+        final Set<GroupEntity> poGroupsOfCurrentUser = groupService.findByUser(userId).stream().filter(group -> !StringUtils.isEmpty(group.getApiPrimaryOwner())).collect(toSet());
+        if (poGroupsOfCurrentUser.isEmpty()) {
+            throw new NoPrimaryOwnerGroupForUserException(userId);
+        }
+        return new PrimaryOwnerEntity(poGroupsOfCurrentUser.iterator().next());
+    }
+
+    private PrimaryOwnerEntity findPrimaryOwnerFromApiDefinition(JsonNode apiDefinition) {
+        PrimaryOwnerEntity primaryOwnerEntity = null;
+        if (apiDefinition != null && apiDefinition.has("primaryOwner")) {
+            try {
+               primaryOwnerEntity = objectMapper.readValue(apiDefinition.get("primaryOwner").toString(), PrimaryOwnerEntity.class);
+            } catch (JsonProcessingException e) {
+                LOGGER.warn("Cannot parse primary owner from definition, continue with current user", e);
+            }
+        }
+        return primaryOwnerEntity;
     }
 
     private void createSystemFolder(String apiId) {
@@ -687,14 +815,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private UserEntity getPrimaryOwner(Api api) throws TechnicalException {
-        MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(io.gravitee.rest.api.model.MembershipReferenceType.API, api.getId());
+    @Override
+    public PrimaryOwnerEntity getPrimaryOwner(String apiId) throws TechnicalManagementException {
+        MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(io.gravitee.rest.api.model.MembershipReferenceType.API, apiId);
         if (primaryOwnerMemberEntity == null) {
-            LOGGER.error("The API {} doesn't have any primary owner.", api.getId());
-            throw new TechnicalException("The API " + api.getId() + " doesn't have any primary owner.");
+            LOGGER.error("The API {} doesn't have any primary owner.", apiId);
+            throw new TechnicalManagementException("The API " + apiId + " doesn't have any primary owner.");
         }
+        if (MembershipMemberType.GROUP == primaryOwnerMemberEntity.getMemberType()) {
+            return new PrimaryOwnerEntity(groupService.findById(primaryOwnerMemberEntity.getMemberId()));
+        }
+        return new PrimaryOwnerEntity(userService.findById(primaryOwnerMemberEntity.getMemberId()));
+    }
 
-        return userService.findById(primaryOwnerMemberEntity.getMemberId());
+    private PrimaryOwnerEntity getPrimaryOwner(Api api) throws TechnicalManagementException {
+        return this.getPrimaryOwner(api.getId());
     }
 
     private void calculateEntrypoints(ApiEntity api, String environmentId) {
@@ -1057,6 +1192,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // check the existence of groups
             checkGroupExistence(updateApiEntity.getGroups());
+
+            // remove PO group if exists
+            updateApiEntity.setGroups(removePOGroups(updateApiEntity.getGroups(), apiId));
 
             // add a default path
             if ((updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty())) {
@@ -1957,10 +2095,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 createdOrUpdatedPage = pageService.findById(pageEntityToImport.getId());
             } else {
                 PageQuery query = new PageQuery.Builder()
-                        .api(apiId)
-                        .name(pageEntityToImport.getName())
-                        .type(PageType.valueOf(pageEntityToImport.getType()))
-                        .build();
+                    .api(apiId)
+                    .name(pageEntityToImport.getName())
+                    .type(PageType.valueOf(pageEntityToImport.getType()))
+                    .build();
 
                 List<PageEntity> pages = pageService.search(query);
                 if (pages.size() == 1) {
@@ -2293,17 +2431,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints) {
         boolean globalHC = api.getServices() != null &&
-                api.getServices().getAll() != null &&
-                api.getServices().getAll()
-                        .stream()
-                        .anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
+            api.getServices().getAll() != null &&
+            api.getServices().getAll()
+                .stream()
+                .anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
         if (globalHC) {
             return true;
         } else {
             final Predicate<Endpoint> endpointHealthCheckEnabledPredicate = endpoint -> {
                 if (endpoint instanceof HttpEndpoint) {
                     return ((HttpEndpoint) endpoint).getHealthCheck() != null &&
-                            ((HttpEndpoint) endpoint).getHealthCheck().isEnabled();
+                        ((HttpEndpoint) endpoint).getHealthCheck().isEnabled();
                 } else {
                     return false;
                 }
@@ -2312,8 +2450,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 return api.getProxy().getGroups().stream().allMatch(group -> group.getEndpoints().stream().allMatch(endpointHealthCheckEnabledPredicate));
             } else {
                 return (api.getProxy() != null &&
-                        api.getProxy().getGroups() != null &&
-                        api.getProxy().getGroups().stream().anyMatch(group -> group.getEndpoints() != null && group.getEndpoints().stream().anyMatch(endpointHealthCheckEnabledPredicate)));
+                    api.getProxy().getGroups() != null &&
+                    api.getProxy().getGroups().stream().anyMatch(group -> group.getEndpoints() != null && group.getEndpoints().stream().anyMatch(endpointHealthCheckEnabledPredicate)));
             }
         }
     }
@@ -2324,19 +2462,69 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final Map<String, Object> mapMetadata = new HashMap<>(metadataList.size());
 
         metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(),
-                metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
+            metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
 
         String decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
-                apiEntity.getId(),
-                new StringReader(mapMetadata.toString()),
-                Collections.singletonMap("api", apiEntity));
+            apiEntity.getId(),
+            new StringReader(mapMetadata.toString()),
+            Collections.singletonMap("api", apiEntity));
         Map<String, Object> metadataDecoded = Arrays
-                .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                .map(entry -> entry.split("="))
-                .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+            .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+            .map(entry -> entry.split("="))
+            .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
         apiEntity.setMetadata(metadataDecoded);
 
         return apiEntity;
+    }
+
+    @Override
+    public void addGroup(String apiId, String group) {
+        try {
+            LOGGER.debug("Add group {} to API {}", group, apiId);
+
+            Optional<Api> optApi = apiRepository.findById(apiId);
+
+            if (GraviteeContext.getCurrentEnvironment() != null) {
+                optApi = optApi.filter(result -> result.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()));
+            }
+
+            Api api = optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
+
+            Set<String> groups = api.getGroups();
+            if (groups == null) {
+                groups = new HashSet<>();
+                api.setGroups(groups);
+            }
+            groups.add(group);
+
+            apiRepository.update(api);
+
+
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to add group {} to API {}: {}", group, apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to add group " + group + " to API " + apiId, ex);
+        }
+    }
+
+    @Override
+    public void removeGroup(String apiId, String group) {
+        try {
+            LOGGER.debug("Remove group {} to API {}", group, apiId);
+
+            Optional<Api> optApi = apiRepository.findById(apiId);
+
+            if (GraviteeContext.getCurrentEnvironment() != null) {
+                optApi = optApi.filter(result -> result.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()));
+            }
+
+            Api api = optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
+            if (api.getGroups() != null && api.getGroups().remove(group)) {
+                apiRepository.update(api);
+            }
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to remove group {} from API {}: {}", group, apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to remove group " + group + " from API " + apiId, ex);
+        }
     }
 
     private UpdateApiEntity convert(final ApiEntity apiEntity) {
@@ -2598,16 +2786,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             streamApis = streamApis.filter(api -> !apiIds.contains(api.getId()));
         }
 
-        Map<String, String> apiToUser = new HashMap<>(memberships.size());
-        memberships.forEach(membership -> apiToUser.put(membership.getReferenceId(), membership.getId()));
+        Map<String, String> apiToMember = new HashMap<>(memberships.size());
+        memberships.forEach(membership -> apiToMember.put(membership.getReferenceId(), membership.getId()));
 
-        Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
-        userService.findByIds(memberships.stream().map(MemberEntity::getId).collect(toList()))
-            .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
+        Map<String, PrimaryOwnerEntity> primaryOwnerIdToPrimaryOwnerEntity = new HashMap<>(memberships.size());
+        final List<String> userIds = memberships.stream().filter(membership -> membership.getType() == MembershipMemberType.USER).map(MemberEntity::getId).collect(toList());
+        if(userIds != null && !userIds.isEmpty()) {
+            userService.findByIds(userIds)
+                    .forEach(userEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(userEntity.getId(), new PrimaryOwnerEntity(userEntity)));
+        }
+        final Set<String> groupIds = memberships.stream().filter(membership -> membership.getType() == MembershipMemberType.GROUP).map(MemberEntity::getId).collect(Collectors.toSet());
+        if(groupIds != null && !groupIds.isEmpty()) {
+            groupService.findByIds(groupIds)
+                    .forEach(groupEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(groupEntity.getId(), new PrimaryOwnerEntity(groupEntity)));
+        }
+
 
         final List<CategoryEntity> categories = categoryService.findAll();
         return streamApis
-            .map(publicApi -> this.convert(publicApi, userIdToUserEntity.get(apiToUser.get(publicApi.getId())), categories))
+            .map(publicApi -> this.convert(publicApi, primaryOwnerIdToPrimaryOwnerEntity.get(apiToMember.get(publicApi.getId())), categories))
             .collect(toSet());
     }
 
@@ -2615,7 +2812,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return convert(api, null, null);
     }
 
-    private ApiEntity convert(Api api, UserEntity primaryOwner, List<CategoryEntity> categories) {
+    private ApiEntity convert(Api api, PrimaryOwnerEntity primaryOwner, List<CategoryEntity> categories) {
         ApiEntity apiEntity = new ApiEntity();
 
         apiEntity.setId(api.getId());
@@ -2693,7 +2890,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         if (primaryOwner != null) {
-            apiEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
+            apiEntity.setPrimaryOwner(primaryOwner);
         }
         final ApiLifecycleState lifecycleState = api.getApiLifecycleState();
         if (lifecycleState != null) {

@@ -29,11 +29,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.mockito.internal.util.collections.Sets;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -71,7 +71,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         memberEntity2.setId(MEMBER_2);
         doReturn(new Member().id(MEMBER_2)).when(memberMapper).convert(eq(memberEntity2), any());
         doReturn(new Member().id(MEMBER_1)).when(memberMapper).convert(eq(memberEntity1), any());
-        doReturn(new HashSet<>(Arrays.asList(memberEntity1, memberEntity2))).when(membershipService).getMembersByReference(MembershipReferenceType.APPLICATION, APPLICATION);
+        doReturn(Sets.newSet(memberEntity1, memberEntity2)).when(membershipService).getMembersByReference(MembershipReferenceType.APPLICATION, APPLICATION);
         doReturn(memberEntity1).when(membershipService).getUserMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_1);
         doReturn(null).when(membershipService).getUserMember(MembershipReferenceType.APPLICATION, APPLICATION, MEMBER_2);
 
@@ -88,8 +88,11 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         MembersResponse membersResponse = response.readEntity(MembersResponse.class);
         assertEquals(2, membersResponse.getData().size());
-        assertEquals(MEMBER_1, membersResponse.getData().get(0).getId());
-        assertEquals(MEMBER_2, membersResponse.getData().get(1).getId());
+        assertTrue(
+                (MEMBER_1.equals(membersResponse.getData().get(0).getId()) && MEMBER_2.equals(membersResponse.getData().get(1).getId())) ||
+                        (MEMBER_1.equals(membersResponse.getData().get(1).getId()) && MEMBER_2.equals(membersResponse.getData().get(0).getId()))
+                );
+
 
         Links links = membersResponse.getLinks();
         assertNotNull(links);

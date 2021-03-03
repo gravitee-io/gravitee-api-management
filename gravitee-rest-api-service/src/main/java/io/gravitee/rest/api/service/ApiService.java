@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 
 import java.util.Collection;
 import java.util.List;
@@ -143,4 +144,9 @@ public interface ApiService {
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
 
     ApiEntity fetchMetadataForApi(ApiEntity apiEntity);
+
+    PrimaryOwnerEntity getPrimaryOwner(String apiId) throws TechnicalManagementException;
+
+    void addGroup(String api, String group);
+    void removeGroup(String api, String group);
 }

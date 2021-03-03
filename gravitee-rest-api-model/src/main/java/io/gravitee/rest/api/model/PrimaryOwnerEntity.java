@@ -23,24 +23,40 @@ import io.swagger.annotations.ApiModelProperty;
  */
 public class PrimaryOwnerEntity {
     @ApiModelProperty(
-            value = "The user id.",
+            value = "The user or group id.",
             example = "005197cc-cc84-86a6-a75a-88f9772c67db")
-    private final String id;
+    private String id;
 
     @ApiModelProperty(
-            value = "The user email.",
+            value = "The user or group email.",
             example = "contact@gravitee.io")
-    private final String email;
+    private String email;
 
     @ApiModelProperty(
-            value = "The user display name.",
+            value = "The user or group display name.",
             example = "John Doe")
-    private final String displayName;
+    private String displayName;
+
+    @ApiModelProperty(
+        value = "The primary owner type",
+        example = "USER")
+    private String type;
+
+    public PrimaryOwnerEntity() {
+    }
 
     public PrimaryOwnerEntity(UserEntity user) {
         this.id = user.getId();
         this.email = user.getEmail();
         this.displayName = user.getDisplayName();
+        this.type = "USER";
+    }
+
+    public PrimaryOwnerEntity(GroupEntity group) {
+        this.id = group.getId();
+        this.email = null;
+        this.displayName = group.getName();
+        this.type = "GROUP";
     }
 
     public String getId() {
@@ -53,5 +69,25 @@ public class PrimaryOwnerEntity {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

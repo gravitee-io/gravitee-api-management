@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.model.parameters;
 
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -126,6 +128,7 @@ public enum Key {
     EMAIL_PROPERTIES_SSL_TRUST("email.properties.ssl.trust", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
     API_LABELS_DICTIONARY("api.labelsDictionary", List.class, new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    API_PRIMARY_OWNER_MODE("api.primary.owner.mode", ApiPrimaryOwnerMode.HYBRID.name(), new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
     CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED("console.authentication.localLogin.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     CONSOLE_SCHEDULER_TASKS("console.scheduler.tasks", "10", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

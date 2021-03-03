@@ -24,6 +24,8 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
@@ -47,6 +49,7 @@ import java.io.Reader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -125,6 +128,7 @@ public class ApiService_CreateWithDefinitionTest {
     @Before
     public void setUp() {
         when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("toDecode=decoded-value");
+        when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn("USER");
         reset(searchEngineService);
     }
 
@@ -311,6 +315,87 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
         verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
+            new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+            new MembershipService.MembershipMember("admin", null, MembershipMemberType.USER),
+            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
+
+    }
+
+    @Test
+    public void shouldCreateImportApiWithOnlyDefinitionWithPrimaryOwner() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+primaryOwner.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        admin.setSource(SOURCE);
+        admin.setSourceId(API_ID);
+        UserEntity user = new UserEntity();
+        user.setId("user");
+        user.setSource(SOURCE);
+        user.setSourceId(API_ID);
+
+        when(userService.findById(any())).thenReturn(user);
+        when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn("HYBRID");
+
+        apiService.createWithImportedDefinition(null, toBeImport, "admin");
+
+        verify(pageService, times(1)).createPage(any(), any(NewPageEntity.class));
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
+
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
+            new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+            new MembershipService.MembershipMember("user", null, MembershipMemberType.USER),
+            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
+    }
+
+    @Test
+    public void shouldCreateImportApiWithOnlyDefinitionWithPrimaryOwnerGroup() throws IOException, TechnicalException {
+        URL url =  Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+primaryOwnerGroup.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        admin.setSource(SOURCE);
+        admin.setSourceId(API_ID);
+        UserEntity user = new UserEntity();
+        user.setId("user");
+        user.setSource(SOURCE);
+        user.setSourceId(API_ID);
+
+        GroupEntity group = new GroupEntity();
+        group.setApiPrimaryOwner(user.getId());
+        group.setId("group");
+
+        when(groupService.findById(any())).thenReturn(group);
+        when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn("GROUP");
+
+        apiService.createWithImportedDefinition(null, toBeImport, "admin");
+
+        verify(pageService, times(1)).createPage(any(), any(NewPageEntity.class));
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
+        verify(searchEngineService, times(1)).index(any(), eq(false));
+
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
+            new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+            new MembershipService.MembershipMember("group", null, MembershipMemberType.GROUP),
+            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
     }
 
     @Test

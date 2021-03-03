@@ -35,8 +35,10 @@ public class MemberEntity {
 
     private String email;
 
+    private MembershipMemberType type;
+
     private MembershipReferenceType referenceType;
-    
+
     private String referenceId;
     
     private List<RoleEntity> roles;
@@ -121,6 +123,14 @@ public class MemberEntity {
         this.permissions = permissions;
     }
 
+    public MembershipMemberType getType() {
+        return type;
+    }
+
+    public void setType(MembershipMemberType type) {
+        this.type = type;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -128,7 +138,7 @@ public class MemberEntity {
 
         MemberEntity that = (MemberEntity) o;
 
-        return id.equals(that.id) && referenceType.equals(that.referenceType) && referenceId.equals(that.referenceId);
+        return id.equals(that.id) && type.equals(that.type) && referenceType.equals(that.referenceType) && referenceId.equals(that.referenceId);
     }
 
     @Override
@@ -136,6 +146,7 @@ public class MemberEntity {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((type == null) ? 0 : type.hashCode());
         result = prime * result + ((referenceId == null) ? 0 : referenceId.hashCode());
         result = prime * result + ((referenceType == null) ? 0 : referenceType.hashCode());
         return result;

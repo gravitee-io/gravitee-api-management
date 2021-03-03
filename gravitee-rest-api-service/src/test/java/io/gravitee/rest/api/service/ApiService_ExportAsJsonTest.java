@@ -156,7 +156,7 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
         api.setEnvironmentId("DEFAULT");
         api.setGroups(Collections.singleton("my-group"));
         api.setEnvironmentId("DEFAULT");
-
+        
         // set proxy
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));

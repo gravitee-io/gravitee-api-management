@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.gravitee.rest.api.model.permissions.RoleScope;
 
 import java.util.Date;
@@ -25,7 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GroupEntity {
@@ -52,6 +51,9 @@ public class GroupEntity {
     private boolean emailInvitation;
     @JsonProperty("disable_membership_notifications")
     private boolean disableMembershipNotifications;
+    private String apiPrimaryOwner;
+    @JsonProperty("primary_owner")
+    private boolean primaryOwner;
 
     public String getId() {
         return id;
@@ -157,6 +159,22 @@ public class GroupEntity {
         this.disableMembershipNotifications = disableMembershipNotifications;
     }
 
+    public String getApiPrimaryOwner() {
+        return apiPrimaryOwner;
+    }
+
+    public void setApiPrimaryOwner(String apiPrimaryOwner) {
+        this.apiPrimaryOwner = apiPrimaryOwner;
+    }
+
+    public boolean isPrimaryOwner() {
+        return primaryOwner;
+    }
+
+    public void setPrimaryOwner(boolean primaryOwner) {
+        this.primaryOwner = primaryOwner;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -186,6 +204,8 @@ public class GroupEntity {
                 ", systemInvitation=" + systemInvitation +
                 ", emailInvitation=" + emailInvitation +
                 ", disableMembershipNotifications=" + disableMembershipNotifications +
+                ", apiPrimaryOwner=" + apiPrimaryOwner +
+                ", primaryOwner=" + primaryOwner +
                 '}';
     }
 }

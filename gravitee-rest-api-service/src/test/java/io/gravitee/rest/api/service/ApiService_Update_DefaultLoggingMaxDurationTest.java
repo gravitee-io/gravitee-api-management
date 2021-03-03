@@ -27,6 +27,9 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -179,6 +182,10 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         SecurityContextHolder.setContext(securityContext);
 
         when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("toDecode=decoded-value");
+        when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn("USER");
+        MembershipEntity primaryOwner = new MembershipEntity();
+        primaryOwner.setMemberType(MembershipMemberType.USER);
+        when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), any())).thenReturn(primaryOwner);
         reset(searchEngineService);
     }
 

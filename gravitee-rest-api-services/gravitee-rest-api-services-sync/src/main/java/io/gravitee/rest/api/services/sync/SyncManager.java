@@ -25,10 +25,9 @@ import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.repository.management.model.EventType;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
@@ -81,6 +80,8 @@ public class SyncManager {
     private UserService userService;
     @Autowired
     private EnvironmentService environmentService;
+    @Autowired
+    private ApiService apiService;
 
     private final AtomicLong counter = new AtomicLong(0);
 
@@ -335,9 +336,7 @@ public class SyncManager {
         EnvironmentEntity environmentEntity = this.environmentService.findById(api.getEnvironmentId());
         GraviteeContext.setCurrentOrganization(environmentEntity.getOrganizationId());
 
-        MembershipEntity optPrimaryOwner = membershipService.getPrimaryOwner(MembershipReferenceType.API, api.getId());
-        final UserEntity user = userService.findById(optPrimaryOwner.getMemberId());
-        apiEntity.setPrimaryOwner(new PrimaryOwnerEntity(user));
+        apiEntity.setPrimaryOwner(apiService.getPrimaryOwner(api.getId()));
 
         return apiEntity;
     }

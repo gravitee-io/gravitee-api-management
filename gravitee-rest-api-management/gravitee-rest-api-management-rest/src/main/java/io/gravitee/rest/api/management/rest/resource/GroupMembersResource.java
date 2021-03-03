@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
@@ -198,7 +199,11 @@ public class GroupMembersResource extends AbstractResource {
                                 updatedMembership.getId(),
                                 previousApiRole.getId());
                     }
-
+                    if (previousApiRole != null && previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name())) {
+                        groupService.updateApiPrimaryOwner(group, null);
+                    } else if(roleName.equals(SystemRole.PRIMARY_OWNER.name())) {
+                        groupService.updateApiPrimaryOwner(group, updatedMembership.getId());
+                    }
                 }
                 
                 RoleEntity applicationRoleEntity = roleEntities.get(RoleScope.APPLICATION);

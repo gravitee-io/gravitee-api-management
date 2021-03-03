@@ -197,6 +197,9 @@ public class ApiService_UpdateTest {
         when(api.getEnvironmentId()).thenReturn("DEFAULT");
 
         when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("toDecode=decoded-value");
+        MembershipEntity primaryOwner = new MembershipEntity();
+        primaryOwner.setMemberType(MembershipMemberType.USER);
+        when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), any())).thenReturn(primaryOwner);
         reset(searchEngineService);
     }
 
@@ -314,6 +317,26 @@ public class ApiService_UpdateTest {
 
         when(existingApi.getPaths()).thenReturn(paths);
         doThrow(new InvalidDataException()).when(policyService).validatePolicyConfiguration(any(Policy.class));
+
+        apiService.update(API_ID, existingApi);
+
+        fail("should throw InvalidDataException");
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUpdateWithPOGroups() throws TechnicalException {
+
+        prepareUpdate();
+
+        Set<String> groups = Sets.newSet("group-with-po");
+        when(existingApi.getGroups()).thenReturn(groups);
+
+        GroupEntity poGroup = new GroupEntity();
+        poGroup.setId("group-with-po");
+        poGroup.setApiPrimaryOwner("a-api-po-user");
+        Set<GroupEntity> groupEntitySet = Sets.newSet(poGroup);
+//        when(groupService.findByIds(groups)).thenReturn(groupEntitySet);
+        when(groupService.findByIds(groups)).thenThrow(GroupsNotFoundException.class);
 
         apiService.update(API_ID, existingApi);
 

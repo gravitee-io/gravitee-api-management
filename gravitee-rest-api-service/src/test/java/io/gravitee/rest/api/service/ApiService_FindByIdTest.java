@@ -19,18 +19,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.model.MemberEntity;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.model.Api;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -97,6 +98,7 @@ public class ApiService_FindByIdTest {
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);
         when(membershipService.getPrimaryOwner(MembershipReferenceType.API, API_ID)).thenReturn(po);
+        when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
 
         final ApiEntity apiEntity = apiService.findById(API_ID);
 

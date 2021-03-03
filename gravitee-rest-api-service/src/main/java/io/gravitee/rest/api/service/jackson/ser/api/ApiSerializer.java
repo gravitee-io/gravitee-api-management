@@ -151,16 +151,19 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
                 List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
                 if (memberEntities != null) {
-                    memberEntities.forEach(m -> {
-                        UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
-                        if (userEntity != null) {
-                            Member member = new Member();
-                            member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
-                            member.setSource(userEntity.getSource());
-                            member.setSourceId(userEntity.getSourceId());
-                            members.add(member);
-                        }
-                    });
+                    final UserService userService = applicationContext.getBean(UserService.class);
+                    memberEntities.stream()
+                            .filter(m -> m.getType() == MembershipMemberType.USER)
+                            .forEach(m -> {
+                                UserEntity userEntity = userService.findById(m.getId());
+                                if (userEntity != null) {
+                                    Member member = new Member();
+                                    member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
+                                    member.setSource(userEntity.getSource());
+                                    member.setSourceId(userEntity.getSourceId());
+                                    members.add(member);
+                                }
+                            });
                 }
                 jsonGenerator.writeObjectField("members", members);
             }

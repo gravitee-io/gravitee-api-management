@@ -3,6 +3,11 @@
   "gravitee": "1.0.0",
   "resources": [],
   "properties": [],
+  "primaryOwner": {
+    "id": "johndoe",
+    "displayName": "johndoe-sourceId",
+    "type": "USER"
+  },
   "flow_mode": "DEFAULT",
   "groups": [
     "My Group"
@@ -86,8 +91,8 @@
     "logging": {
       "mode": "CLIENT_PROXY",
       "condition": "condition",
-      "content":"NONE",
-      "scope":"NONE"
+      "content": "NONE",
+      "scope": "NONE"
     },
     "groups": [
       {

@@ -29,6 +29,8 @@ import java.util.List;
 public class Api {
     @ParameterKey(Key.API_LABELS_DICTIONARY)
     private List<String> labelsDictionary;
+    @ParameterKey(Key.API_PRIMARY_OWNER_MODE)
+    private String primaryOwnerMode;
 
     public List<String> getLabelsDictionary() {
         return labelsDictionary;
@@ -36,5 +38,13 @@ public class Api {
 
     public void setLabelsDictionary(List<String> labelsDictionary) {
         this.labelsDictionary = labelsDictionary;
+    }
+
+    public String getPrimaryOwnerMode() {
+        return primaryOwnerMode;
+    }
+
+    public void setPrimaryOwnerMode(String primaryOwnerMode) {
+        this.primaryOwnerMode = primaryOwnerMode;
     }
 }

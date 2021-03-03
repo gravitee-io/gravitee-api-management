@@ -74,6 +74,10 @@ public class ApiDefaultSerializer extends ApiSerializer {
             jsonGenerator.writeEndObject();
         }
 
+        if (apiEntity.getPrimaryOwner() != null) {
+            jsonGenerator.writeObjectField("primaryOwner", apiEntity.getPrimaryOwner());
+        }
+
         // must end the writing process
         jsonGenerator.writeEndObject();
     }
