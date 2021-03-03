@@ -61,7 +61,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
                 .addColumn("lock_application_role", Types.BIT, boolean.class)
                 .addColumn("system_invitation", Types.BIT, boolean.class)
                 .addColumn("email_invitation", Types.BIT, boolean.class)
-                .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
+                .addColumn("disable_membership_notifications", Types.BIT, boolean.class)                .addColumn("api_primary_owner", Types.NVARCHAR, String.class)
                 .build();
     }
 
@@ -70,6 +70,7 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         return item.getId();
     }
 
+    @Override
     public Optional<Group> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcGroupRepository.findById({})", id);
         try {
