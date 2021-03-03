@@ -38,6 +38,7 @@ public class GroupMongo extends Auditable {
     private boolean systemInvitation;
     private boolean emailInvitation;
     private boolean disableMembershipNotifications;
+    private String apiPrimaryOwner;
 
     public String getId() {
         return id;
@@ -125,5 +126,13 @@ public class GroupMongo extends Auditable {
 
     public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
         this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
+    public String getApiPrimaryOwner() {
+        return apiPrimaryOwner;
+    }
+
+    public void setApiPrimaryOwner(String apiPrimaryOwner) {
+        this.apiPrimaryOwner = apiPrimaryOwner;
     }
 }
