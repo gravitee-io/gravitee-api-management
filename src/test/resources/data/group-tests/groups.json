@@ -16,7 +16,8 @@
       {
         "event": "APPLICATION_CREATE"
       }
-    ]
+    ],
+    "apiPrimaryOwner": "api-primary-owner-id"
   },
   {
     "id": "group-api-to-delete",
