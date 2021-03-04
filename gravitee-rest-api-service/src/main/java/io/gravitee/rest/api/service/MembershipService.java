@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 
@@ -39,8 +41,13 @@ public interface MembershipService {
     void                    deleteReferenceMember                       (MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
     List<UserMembership>    findUserMembership                          (MembershipReferenceType referenceType, String userId);
     Metadata                findUserMembershipMetadata                  (List<UserMembership> memberships, MembershipReferenceType type);
-    Set<MemberEntity>       getMembersByReference                       (MembershipReferenceType referenceType, String referenceId);
-    Set<MemberEntity>       getMembersByReferenceAndRole                (MembershipReferenceType referenceType, String referenceId, String role);
+    Page<MemberEntity>      getMembersByReference                       (MembershipReferenceType referenceType, String referenceId, Pageable pageable);
+    Set<MemberEntity>      getMembersByReference                        (MembershipReferenceType referenceType, String referenceId);
+    Page<MemberEntity>      getMembersByReference                       (MembershipReferenceType referenceType, String referenceId, String role, Pageable pageable);
+    Set<MemberEntity>      getMembersByReference                        (MembershipReferenceType referenceType, String referenceId, String role);
+    Page<MemberEntity>      getMembersByReferenceAndRole                (MembershipReferenceType referenceType, String referenceId, String role, Pageable pageable);
+    Set<MemberEntity>      getMembersByReferenceAndRole                 (MembershipReferenceType referenceType, String referenceId, String role);
+    Page<MemberEntity>       getMembersByReferencesAndRole              (MembershipReferenceType referenceType, List<String> referenceIds, String role, Pageable pageable);
     Set<MemberEntity>       getMembersByReferencesAndRole               (MembershipReferenceType referenceType, List<String> referenceIds, String role);
     Set<MembershipEntity>   getMembershipsByMember                      (MembershipMemberType memberType, String memberId);
     Set<MembershipEntity>   getMembershipsByMemberAndReference          (MembershipMemberType memberType, String memberId, MembershipReferenceType referenceType);

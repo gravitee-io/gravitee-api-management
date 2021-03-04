@@ -313,13 +313,23 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public Set<UserEntity> findByIds(List<String> ids) {
+        return this.findByIds(ids, true);
+    }
+
+    @Override
+    public Set<UserEntity> findByIds(List<String> ids, boolean withUserMetadata) {
         try {
             LOGGER.debug("Find users by ID: {}", ids);
 
             Set<User> users = userRepository.findByIds(ids);
 
             if (!users.isEmpty()) {
-                return users.stream().map(u -> this.convert(u, false, userMetadataService.findAllByUserId(u.getId()))).collect(Collectors.toSet());
+                return users.stream().map(u ->
+                        this.convert(
+                                u,
+                                false,
+                                withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : Collections.emptyList()
+                                )).collect(Collectors.toSet());
             }
 
             Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);

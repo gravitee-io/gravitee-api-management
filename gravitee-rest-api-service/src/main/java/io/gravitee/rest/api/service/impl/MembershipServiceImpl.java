@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -24,8 +25,11 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
@@ -50,6 +54,7 @@ import static io.gravitee.repository.management.model.Membership.AuditEvent.MEMB
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -287,12 +292,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     private MemberEntity convertToMemberEntity(io.gravitee.repository.management.model.Membership membership) {
         final MemberEntity member = new MemberEntity();
-        final UserEntity userEntity = userService.findById(membership.getMemberId());
         member.setId(membership.getMemberId());
         member.setCreatedAt(membership.getCreatedAt());
         member.setUpdatedAt(membership.getUpdatedAt());
-        member.setDisplayName(userEntity.getDisplayName());
-        member.setEmail(userEntity.getEmail());
         member.setReferenceId(membership.getReferenceId());
         member.setReferenceType(convert(membership.getReferenceType()));
         if (membership.getRoleId() != null) {
@@ -304,6 +306,23 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
 
         return member;
+    }
+
+    private void fillMemberUserInformation(Set<io.gravitee.repository.management.model.Membership> memberships, List<MemberEntity> members) {
+        if (memberships!=null && !memberships.isEmpty()) {
+            Set<UserEntity> userEntities = userService.findByIds(members.stream().map(MemberEntity::getId).collect(toList()), false);
+
+            members.forEach(m -> {
+                Optional<io.gravitee.repository.management.model.Membership> membership = memberships.stream().filter(ms -> ms.getMemberId().equals(m.getId())).findFirst();
+                membership.ifPresent(ms -> {
+                    Optional<UserEntity> user = userEntities.stream().filter(u -> u.getId().equals(ms.getMemberId())).findFirst();
+                    user.ifPresent(u -> {
+                        m.setDisplayName(u.getDisplayName());
+                        m.setEmail(u.getEmail());
+                    });
+                });
+            });
+        }
     }
 
     private UserEntity findUserFromMembershipMember(MembershipMember member) {
@@ -537,44 +556,105 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
+    public Page<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId, Pageable pageable) {
+        return this.getMembersByReferenceAndRole(referenceType, referenceId, null, pageable);
+    }
+
+    @Override
     public Set<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId) {
-        return this.getMembersByReferenceAndRole(referenceType, referenceId, null);
+        return new HashSet<>(
+                this.getMembersByReferenceAndRole(referenceType, referenceId, null, null).getContent()
+        );
+    }
+
+    @Override
+    public Page<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId, String role, Pageable pageable) {
+        return this.getMembersByReferenceAndRole(referenceType, referenceId, role, pageable);
+    }
+
+    @Override
+    public Set<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId, String role) {
+        return new HashSet<>(
+                this.getMembersByReferenceAndRole(referenceType, referenceId, role, null).getContent()
+        );
+    }
+
+    @Override
+    public Page<MemberEntity> getMembersByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, String role, Pageable pageable) {
+        return this.getMembersByReferencesAndRole(referenceType, Collections.singletonList(referenceId), role, pageable);
     }
 
     @Override
     public Set<MemberEntity> getMembersByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, String role) {
-        return this.getMembersByReferencesAndRole(referenceType, Arrays.asList(referenceId), role);
+        return new HashSet<>(
+                this.getMembersByReferencesAndRole(referenceType, Collections.singletonList(referenceId), role, null).getContent()
+        );
     }
 
     @Override
-    public Set<MemberEntity> getMembersByReferencesAndRole(MembershipReferenceType referenceType, List<String> referencesId, String role) {
+    public Set<MemberEntity> getMembersByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role) {
+        return new HashSet<>(
+                this.getMembersByReferencesAndRole(referenceType, referenceIds, role, null).getContent()
+        );
+    }
+
+    @Override
+    public Page<MemberEntity> getMembersByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role, Pageable pageable) {
         try {
-            LOGGER.debug("Get members for {} {}", referenceType, referencesId);
+            LOGGER.debug("Get members for {} {}", referenceType, referenceIds);
             Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByReferencesAndRoleId(
                     convert(referenceType),
-                    referencesId,
+                    referenceIds,
                     role);
             Map<String, MemberEntity> results = new HashMap<>();
             memberships.stream()
-            .filter(member -> member.getMemberType() == io.gravitee.repository.management.model.MembershipMemberType.USER)
-            .map(this::convertToMemberEntity)
-            .forEach(member -> {
-                String key = member.getId()+member.getReferenceId();
-                MemberEntity existingEntity = results.get(key);
-                if(existingEntity == null) {
-                    results.put(key, member);
-                    existingEntity = member;
-                } else {
-                    Set<RoleEntity> existingRoles = new HashSet<>(existingEntity.getRoles());
-                    existingRoles.addAll(member.getRoles());
-                    existingEntity.setRoles(new ArrayList<>(existingRoles));
-                }
-            });
-            return new HashSet<>(results.values());
+                    .filter(member -> member.getMemberType() == io.gravitee.repository.management.model.MembershipMemberType.USER)
+                    .map(this::convertToMemberEntity)
+                    .forEach(member -> {
+                        String key = member.getId() + member.getReferenceId();
+                        MemberEntity existingEntity = results.get(key);
+                        if(existingEntity == null) {
+                            results.put(key, member);
+                            existingEntity = member;
+                        } else {
+                            Set<RoleEntity> existingRoles = new HashSet<>(existingEntity.getRoles());
+                            existingRoles.addAll(member.getRoles());
+                            existingEntity.setRoles(new ArrayList<>(existingRoles));
+                        }
+                    });
+
+            List<MemberEntity> members = new ArrayList<>(results.values());
+            fillMemberUserInformation(memberships, members);
+            return paginate(results.values(), pageable);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to get members for {} {}", referenceType, referencesId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referencesId, ex);
+            LOGGER.error("An error occurs while trying to get members for {} {}", referenceType, referenceIds, ex);
+            throw new TechnicalManagementException("An error occurs while trying to get members for " + referenceType + " " + referenceIds, ex);
         }
+    }
+
+    private Page<MemberEntity> paginate(Collection<MemberEntity> members, Pageable pageable) {
+
+        // Pagination requires sorting members to be able to navigate through pages.
+        Comparator<MemberEntity> comparator = Comparator.comparing(memberEntity -> memberEntity.getDisplayName().toLowerCase(Locale.ROOT));
+
+        if (pageable == null) {
+            pageable = new PageableImpl(1, Integer.MAX_VALUE);
+        }
+
+        int totalCount = members.size();
+        int startIndex = (pageable.getPageNumber() - 1) * pageable.getPageSize();
+
+        if (pageable.getPageNumber() < 1 || (totalCount > 0 && startIndex >= totalCount)) {
+            throw new PaginationInvalidException();
+        }
+
+        List<MemberEntity> subsetApis = members.stream()
+                .sorted(comparator)
+                .skip(startIndex)
+                .limit(pageable.getPageSize())
+                .collect(toList());
+
+        return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), members.size());
     }
 
     private io.gravitee.repository.management.model.MembershipReferenceType convert(MembershipReferenceType referenceType) {

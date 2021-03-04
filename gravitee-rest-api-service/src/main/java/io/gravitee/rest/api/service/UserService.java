@@ -51,6 +51,8 @@ public interface UserService {
 
     Set<UserEntity> findByIds(List<String> ids);
 
+    Set<UserEntity> findByIds(List<String> ids, boolean withUserMetadata);
+
     UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
 
     UserEntity update(String userId, UpdateUserEntity updateUserEntity);
