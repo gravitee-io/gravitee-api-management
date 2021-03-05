@@ -87,6 +87,24 @@ public class HttpProviderTest {
     }
 
     @Test
+    public void shouldGetPropertiesWithoutMethod() throws IOException {
+        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
+        when(configuration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));
+        when(configuration.getBody()).thenReturn("{}");
+
+        HttpProvider provider = new HttpProvider(configuration);
+        provider.setMapper(mapper);
+        provider.setVertx(Vertx.vertx());
+
+        CompletableFuture<Collection<DynamicProperty>> future = provider.get();
+        Collection<DynamicProperty> dynamicProperties = future.join();
+
+        assertNotNull(dynamicProperties);
+
+        verify(mapper, times(1)).map(anyString());
+    }
+
+    @Test
     public void shouldGetPropertiesFromPOST() throws IOException {
         when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
         when(configuration.getSpecification()).thenReturn(IOUtils.toString(read("/jolt/specification.json"), Charset.defaultCharset()));

@@ -87,7 +87,7 @@ public class HttpProvider implements Provider {
         try {
             String relativeUri = (requestUri.getRawQuery() == null) ? requestUri.getRawPath() : requestUri.getRawPath() + '?' + requestUri.getRawQuery();
             HttpClientRequest request = httpClient.request(
-                    configuration.getMethod(),
+                    configuration.getMethod() != null ? configuration.getMethod() : HttpMethod.GET,
                     port,
                     requestUri.getHost(),
                     relativeUri
