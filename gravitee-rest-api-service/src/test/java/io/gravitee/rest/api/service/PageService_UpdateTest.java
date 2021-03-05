@@ -81,6 +81,9 @@ public class PageService_UpdateTest {
     private PlanService planService;
 
     @Mock
+    private CategoryService categoryService;
+
+    @Mock
     private NotificationTemplateService notificationTemplateService;
 
     @Test
@@ -506,6 +509,28 @@ public class PageService_UpdateTest {
         verify(planService).findByApi(argThat(p -> p.equals(API_ID)));
     }
 
+    @Test(expected = PageUsedByCategoryException.class)
+    public void shouldNotUnpublishPage_LinkedToCategory() throws TechnicalException {
+        final String API_ID = "API_ID_TEST";
+        Page unpublishedPage = new Page();
+        unpublishedPage.setId(PAGE_ID);
+        unpublishedPage.setOrder(1);
+        unpublishedPage.setReferenceId(API_ID);
+        unpublishedPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        unpublishedPage.setType("MARKDOWN");
+        unpublishedPage.setPublished(true);
+        doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
+
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setPublished(false);
+        updatePageEntity.setOrder(1);
+
+        when(categoryService.findByPage(PAGE_ID)).thenReturn(Collections.singletonList(new CategoryEntity()));
+
+        pageService.update(PAGE_ID, updatePageEntity);
+
+        verify(planService).findByApi(argThat(p -> p.equals(API_ID)));
+    }
 
     @Test(expected = PageUsedAsGeneralConditionsException.class)
     public void shouldNotUnpublishPage_LinkedToPublishedPlan() throws TechnicalException {
