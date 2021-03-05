@@ -33,4 +33,41 @@
   },
   "flows" : [ ],
   "comment_required" : false
-} ]
+},
+  {
+    "id" : "closed-plan-id",
+    "name" : "closed-plan-name",
+    "description" : "Closed plan description",
+    "validation" : "manual",
+    "security" : "api_key",
+    "securityDefinition" : "{\"propagateApiKey\":false}",
+    "type" : "api",
+    "status" : "closed",
+    "tags" : [ "first-tag", "second-tag" ],
+    "api" : "api-id",
+    "order" : 1,
+    "characteristics" : [ ],
+    "created_at" : 1607435987336,
+    "updated_at" : 1607436042289,
+    "published_at" : 1607436042289,
+    "paths" : {
+      "/" : [ {
+        "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE", "OTHER" ],
+        "policy-assign-attributes" : {"scope":"REQUEST","attributes":[{"name":"add","value":"yeah"}]},
+        "enabled" : true
+      }, {
+        "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE" ],
+        "policy-assign-content" : {"scope":"REQUEST","body":"einkef"},
+        "description" : "Description of the Assign content Policy",
+        "enabled" : true
+      }, {
+        "methods" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE" ],
+        "policy-assign-attributes" : {"scope":"RESPONSE","attributes":[{"name":"non","value":"si"}]},
+        "description" : "Description of the Assign attributes Policy",
+        "enabled" : true
+      } ]
+    },
+    "flows" : [ ],
+    "comment_required" : false
+  }
+]
