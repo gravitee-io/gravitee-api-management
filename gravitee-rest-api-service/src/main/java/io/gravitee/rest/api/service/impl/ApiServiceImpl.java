@@ -1120,6 +1120,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             Api apiToUpdate = optApiToUpdate.get();
+
+            if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(updateApiEntity.getLifecycleState())) {
+                planService.findByApi(apiId).forEach(plan -> {
+                    if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
+                        planService.deprecate(plan.getId(), true);
+                        updateApiEntity.getPlans()
+                                .stream()
+                                .filter(p -> p.getId().equals(plan.getId()))
+                                .forEach(p -> p.setStatus(PlanStatus.DEPRECATED.name()));
+                    }
+                });
+            }
+
             Api api = convert(apiId, updateApiEntity, apiToUpdate.getDefinition());
 
             if (api != null) {
@@ -1149,11 +1162,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
-                    planService.findByApi(api.getId()).forEach(plan -> {
-                        if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
-                            planService.deprecate(plan.getId(), true);
-                        }
-                    });
                     notifierService.trigger(ApiHook.API_DEPRECATED, apiId,
                         new NotificationParamsBuilder()
                             .api(apiToCheck)

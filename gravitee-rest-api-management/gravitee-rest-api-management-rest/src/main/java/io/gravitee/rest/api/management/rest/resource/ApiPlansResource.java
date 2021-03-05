@@ -16,12 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.rest.resource.param.PlanSecurityParam;
 import io.gravitee.rest.api.management.rest.resource.param.PlanStatusParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiService;
@@ -38,7 +40,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -212,6 +213,8 @@ public class ApiPlansResource extends AbstractResource {
 
         planService.delete(plan);
 
+        removePlanFromApiDefinition(plan, api);
+
         return Response.noContent().build();
     }
 
@@ -236,7 +239,11 @@ public class ApiPlansResource extends AbstractResource {
                     .build();
         }
 
-        return Response.ok(planService.close(plan, getAuthenticatedUser())).build();
+        PlanEntity closedPlan = planService.close(plan, getAuthenticatedUser());
+
+        removePlanFromApiDefinition(plan, api);
+
+        return Response.ok(closedPlan).build();
     }
 
     @POST
@@ -329,5 +336,24 @@ public class ApiPlansResource extends AbstractResource {
         filtered.setGeneralConditions(entity.getGeneralConditions());
 
         return filtered;
+    }
+
+    private void removePlanFromApiDefinition(String planId, String apiId) {
+        // Remove plan from api definition
+        if (apiId != null) {
+            ApiEntity api = apiService.findById(apiId);
+            if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
+                List<io.gravitee.definition.model.Plan> plans = api.getPlans().stream()
+                        .filter(plan1 -> plan1.getId() != null && !plan1.getId().equals(planId))
+                        .collect(Collectors.toList());
+
+                UpdateApiEntity updateApiEntity = ApiService.convert(api);
+                updateApiEntity.setPlans(plans);
+
+                if (api.getPlans().size() != updateApiEntity.getPlans().size()) {
+                    apiService.update(apiId, updateApiEntity);
+                }
+            }
+        }
     }
 }
