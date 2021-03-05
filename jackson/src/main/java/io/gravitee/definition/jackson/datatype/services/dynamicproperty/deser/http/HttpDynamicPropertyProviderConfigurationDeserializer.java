@@ -59,11 +59,13 @@ public class HttpDynamicPropertyProviderConfigurationDeserializer extends StdSca
         }
 
         final JsonNode methodNode = node.get("method");
+        HttpMethod method = HttpMethod.GET;
         if (methodNode != null) {
-            configuration.setMethod(HttpMethod.valueOf(methodNode.asText()));
-        } else {
-            configuration.setMethod(HttpMethod.GET);
+            try {
+                method = HttpMethod.valueOf(methodNode.asText());
+            } catch (IllegalArgumentException ignored) { }
         }
+        configuration.setMethod(method);
 
         final JsonNode headersNode = node.get("headers");
         if (headersNode != null) {
