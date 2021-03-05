@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravite.gateway.http.endpoint;
+package io.gravitee.gateway.http.endpoint;
 
 import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
