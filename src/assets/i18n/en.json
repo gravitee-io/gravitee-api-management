@@ -430,6 +430,7 @@
         "description": "Find the APIs for your application and add the plans you want to subscribe to"
       },
       "remove": "Remove",
+      "resubscribe": "Retry",
       "subscribe": "Subscribe",
       "validation": {
         "auto": "Automatic",
@@ -567,7 +568,7 @@
     },
     "general_conditions": {
       "accept": "I accept the terms and conditions",
-      "title": "General Conditions"
+      "title": "General conditions of use"
     },
     "ok": "Validate",
     "options": "Options",
@@ -609,6 +610,7 @@
       "title": "Your applications"
     },
     "empty": "You don't have an application yet",
+    "noApplicationPermission": "There is nothing in your dashboard",
     "stats": {
       "avg": "average response time",
       "max": "maximum response time",
@@ -646,8 +648,9 @@
       "invalid": "The password is not valid according to policy rules"
     },
     "plan": {
-      "general_conditions_accept": "Plan {plan} require acceptance of general conditions.",
-      "general_conditions_status": "Plan {plan} references a non published page as general conditions.",
+      "general_conditions_accept": "Plan {plan} requires acceptance of the general conditions of use.",
+      "general_conditions_revision": "The terms of use of plan {plan} have changed.",
+      "general_conditions_status": "Plan {plan} references an unpublished terms of use page.",
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
     },
@@ -1002,8 +1005,9 @@
       "title": "Personal informations"
     },
     "change_picture": "Change photo",
-    "display_name": "Name:",
     "email": "Email:",
+    "first_name": "First name",
+    "last_name": "Last name",
     "notifications": {
       "empty": "No notification received",
       "read": "Read",

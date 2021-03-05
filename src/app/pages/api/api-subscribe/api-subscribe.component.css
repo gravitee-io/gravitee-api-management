@@ -77,15 +77,13 @@
 }
 
 .general_conditions {
-  padding: 2rem;
-  background-color: var(--gv-theme-neutral-color-lighter);
+  margin: 1rem 0.2rem;
+  box-sizing: border-box;
+  border-left: 6px double var(--gv-theme-neutral-color-dark);
   font-size: var(--gv-theme-font-size-m);
-}
-
-.general_conditions_content {
   overflow-y: auto;
   overflow-x: hidden;
-  height: 30rem;
+  max-height: 350px;
   overflow-wrap: anywhere;
   word-break: break-word;
 }

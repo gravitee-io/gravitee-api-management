@@ -430,6 +430,7 @@
         "description": "Recherchez les APIs votre application et ajouter les plans auxquels vous souhaitez souscrire"
       },
       "remove": "Supprimer",
+      "resubscribe": "Réessayer",
       "subscribe": "Souscrire",
       "validation": {
         "auto": "Automatique",
@@ -567,7 +568,7 @@
     },
     "general_conditions": {
       "accept": "J'accepte les conditions générales",
-      "title": "Conditions Générales"
+      "title": "Conditions générales d'utilisation"
     },
     "ok": "Valider",
     "options": "Options",
@@ -609,6 +610,7 @@
       "title": "Vos applications"
     },
     "empty": "Vous n'avez pas encore d'application",
+    "noApplicationPermission": "Il n'y a rien dans votre tableau de bord",
     "stats": {
       "avg": "temps de réponse moyen",
       "max": "temps de réponse maximum",
@@ -646,8 +648,9 @@
       "invalid": "Le mot de passe n'est pas valide selon les règles en vigueur"
     },
     "plan": {
-      "general_conditions_accept": "Le plan {plan} requiert l'acceptation des conditions générales.",
-      "general_conditions_status": "Le plan {plan} référence une page de conditions générales non publiée.",
+      "general_conditions_accept": "Le plan {plan} requiert l'acceptation des conditions générales d'utilisation.",
+      "general_conditions_revision": "Les conditions générales d'utilisation du plan {plan} ont changées. ",
+      "general_conditions_status": "Le plan {plan} référence une page de conditions générales d'utilisation non publiée.",
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
     },
@@ -1002,8 +1005,9 @@
       "title": "Informations personnelles"
     },
     "change_picture": "Changer la photo",
-    "display_name": "Nom :",
     "email": "Email :",
+    "first_name": "Prénom",
+    "last_name": "Nom",
     "notifications": {
       "empty": "Aucune notification reçue",
       "read": "Lu",

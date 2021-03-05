@@ -74,12 +74,21 @@
   <div class="message message-full message-pending"
        *ngIf="!canValidate && !creationSuccess && !creationError">
     <gv-icon shape="general:smile"></gv-icon>
-    <h2>{{'applicationCreation.validation.pending.title' | translate}} </h2>
+    <h2>{{'applicationCreation.validation.pending.title' | translate}}</h2>
     <p [innerHTML]="'applicationCreation.validation.pending.description' | translate"></p>
   </div>
   <div class="message message-full message-confirm" *ngIf="creationSuccess">
     <gv-icon shape="general:smile"></gv-icon>
     <h2>{{'apiSubscribe.success.congratulations' | translate}} </h2>
+    <div *ngIf="this.subscriptionErrors && this.subscriptionErrors.length > 0" class="application-creation__subscription-errors">
+      <ul>
+        <li *ngFor="let subscriptionError of this.subscriptionErrors">
+          <span>{{subscriptionError.message}}</span>
+          <gv-button link outlined [routerLink]="['/catalog/api/', subscriptionError.api.id, 'subscribe']">{{'applicationCreation.subscription.resubscribe' | translate}}</gv-button>
+        </li>
+      </ul>
+
+    </div>
     <gv-button link
                outlined
                [routerLink]="['/applications/', createdApplication.id]"
