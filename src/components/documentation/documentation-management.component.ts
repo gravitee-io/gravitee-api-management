@@ -300,8 +300,8 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
       if (page.generalConditions) {
         NotificationService.showError('Page ' + page.name + ' is used as general conditions');
       } else {
-        page.published = !page.published;
-        DocumentationService.partialUpdate('published', page.published, page.id, this.apiId).then( () => {
+        DocumentationService.partialUpdate('published', !page.published, page.id, this.apiId).then( () => {
+          page.published = !page.published;
           NotificationService.show('Page ' + page.name + ' has been ' + (page.published ? '' : 'un') + 'published with success');
         });
       }
