@@ -33,9 +33,11 @@ import java.util.Optional;
  */
 public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
 
+    private final SubscriptionRepository wrapped;
     private final Map<String, Subscription> cache;
 
-    public SubscriptionRepositoryWrapper(Map<String, Subscription> cache) {
+    public SubscriptionRepositoryWrapper(final SubscriptionRepository wrapped, final Map<String, Subscription> cache) {
+        this.wrapped = wrapped;
         this.cache = cache;
     }
 
@@ -66,8 +68,14 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
 
     @Override
     public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
-        String key = criteria.getApis().iterator().next() + '-' + criteria.getClientId();
-        Subscription subscription = this.cache.get(key);
-        return (subscription != null) ? Collections.singletonList(subscription) : null;
+        // If criteria does not include the clientId, it is a search from underlying repository
+        // If clientId is included, the search is done by the gateway to check a subscription from the cache.
+        if (criteria.getClientId() == null) {
+            return this.wrapped.search(criteria);
+        } else {
+            String key = criteria.getApis().iterator().next() + '-' + criteria.getClientId();
+            Subscription subscription = this.cache.get(key);
+            return (subscription != null) ? Collections.singletonList(subscription) : null;
+        }
     }
 }
