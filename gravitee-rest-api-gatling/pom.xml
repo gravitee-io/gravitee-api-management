@@ -24,11 +24,10 @@
   <parent>
     <groupId>io.gravitee.rest.api</groupId>
     <artifactId>gravitee-rest-api</artifactId>
-    <version>3.5.5-SNAPSHOT</version>
+    <version>3.5.6-SNAPSHOT</version>
   </parent>
 
   <artifactId>gravitee-rest-api-gatling</artifactId>
-  <version>3.5.5-SNAPSHOT</version>
 
   <name>Gravitee.io Rest APIs - Gatling</name>
   <description>Gravitee IO Gatling module for performance tests</description>
