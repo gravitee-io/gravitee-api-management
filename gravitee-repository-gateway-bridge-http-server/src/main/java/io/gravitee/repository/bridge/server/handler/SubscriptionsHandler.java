@@ -17,6 +17,7 @@ package io.gravitee.repository.bridge.server.handler;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
@@ -57,16 +58,19 @@ public class SubscriptionsHandler {
             SubscriptionCriteria subscriptionCriteria = readCriteria(searchPayload);
             List<Subscription> subscriptions = subscriptionRepository.search(subscriptionCriteria);
 
-            if (subscriptions == null) {
-                response.setStatusCode(HttpStatusCode.NOT_FOUND_404);
-            } else {
-                response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                response.setStatusCode(HttpStatusCode.OK_200);
-                response.setChunked(true);
+            Object ret = subscriptions;
 
-                Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                response.write(Json.prettyMapper.writeValueAsString(subscriptions));
+            if (subscriptions == null) {
+                // Create an empty array node.
+                ret = Json.prettyMapper.createArrayNode();
             }
+
+            response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+            response.setStatusCode(HttpStatusCode.OK_200);
+            response.setChunked(true);
+
+            Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            response.write(Json.prettyMapper.writeValueAsString(ret));
         } catch (JsonProcessingException jpe) {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             LOGGER.error("Unable to transform data object to JSON", jpe);
