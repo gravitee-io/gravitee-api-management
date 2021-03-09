@@ -26,10 +26,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.JksOptions;
-import io.vertx.core.net.PemKeyCertOptions;
-import io.vertx.core.net.PemTrustOptions;
-import io.vertx.core.net.PfxOptions;
+import io.vertx.core.net.*;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -43,9 +40,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -159,6 +158,9 @@ public class WebClientFactory implements FactoryBean<WebClient> {
         WebClientOptions options = new WebClientOptions()
                 .setUserAgent("gio-gw/" + Version.RUNTIME_VERSION.MAJOR_VERSION);
 
+        // Add support for proxy
+        options.setProxyOptions(getProxyOptions());
+
         options
                 .setKeepAlive(readPropertyValue(propertyPrefix + "keepAlive", Boolean.class, true))
                 .setIdleTimeout(readPropertyValue(propertyPrefix + "idleTimeout", Integer.class, 30000))
@@ -226,6 +228,22 @@ public class WebClientFactory implements FactoryBean<WebClient> {
         }
 
         return options;
+    }
+
+    private ProxyOptions getProxyOptions() {
+        if (environment.containsProperty(propertyPrefix + "proxy.host")) {
+            ProxyOptions proxyOptions = new ProxyOptions();
+
+            proxyOptions.setHost(readPropertyValue(propertyPrefix + "proxy.host"));
+            proxyOptions.setPort(readPropertyValue(propertyPrefix + "proxy.port", Integer.class));
+            proxyOptions.setType(ProxyType.valueOf(readPropertyValue(propertyPrefix + "proxy.type", String.class, ProxyType.HTTP.toString())));
+            proxyOptions.setUsername(readPropertyValue(propertyPrefix + "proxy.username"));
+            proxyOptions.setPassword(readPropertyValue(propertyPrefix + "proxy.password"));
+
+            return proxyOptions;
+        }
+
+        return null;
     }
 
     private List<String> getArrayValues(String property) {
