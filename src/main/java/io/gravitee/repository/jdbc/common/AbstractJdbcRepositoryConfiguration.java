@@ -64,6 +64,8 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
     private static final String POSTGRESQL_DRIVER_TYPE = "postgresql";
     private static final String SQLSERVER_DRIVER_TYPE = "sqlserver";
+    
+    private static final String DEFAULT_SCHEMA = "public";
 
     public static String escapeReservedWord(final String word) {
         return escapeReservedWordsPrefixChar + word + escapeReservedWordsSufixChar;
@@ -98,6 +100,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         dsConfig.setJdbcUrl(jdbcUrl);
         dsConfig.setUsername(readPropertyValue("jdbc.username"));
         dsConfig.setPassword(readPropertyValue("jdbc.password", false));
+        dsConfig.setSchema(readPropertyValue("jdbc.schema", String.class, DEFAULT_SCHEMA));
         // Pooling
         dsConfig.setAutoCommit(readPropertyValue("jdbc.pool.autoCommit", Boolean.class, DEFAULT_AUTO_COMMIT));
         dsConfig.setConnectionTimeout(readPropertyValue("jdbc.pool.connectionTimeout", Long.class, DEFAULT_CONNECTION_TIMEOUT));
