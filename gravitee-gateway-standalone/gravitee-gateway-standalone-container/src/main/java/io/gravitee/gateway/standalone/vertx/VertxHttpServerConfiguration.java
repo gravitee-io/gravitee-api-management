@@ -39,6 +39,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.secured:false}")
     private boolean secured;
 
+    @Value("${http.sni:false}")
+    private boolean sni;
+
     @Value("${http.alpn:false}")
     private boolean alpn;
 
@@ -120,6 +123,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setSecured(boolean secured) {
         this.secured = secured;
+    }
+
+    public boolean isSni() {
+        return sni;
+    }
+
+    public void setSni(boolean sni) {
+        this.sni = sni;
     }
 
     public String getKeyStorePath() {
