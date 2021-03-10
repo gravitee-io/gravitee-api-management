@@ -40,6 +40,7 @@ public class Group {
     private boolean systemInvitation;
     private boolean emailInvitation;
     private boolean disableMembershipNotifications;
+    private String apiPrimaryOwner;
 
     public String getEnvironmentId() {
         return environmentId;
@@ -135,5 +136,13 @@ public class Group {
 
     public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
         this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
+    public String getApiPrimaryOwner() {
+        return apiPrimaryOwner;
+    }
+
+    public void setApiPrimaryOwner(String apiPrimaryOwner) {
+        this.apiPrimaryOwner = apiPrimaryOwner;
     }
 }
