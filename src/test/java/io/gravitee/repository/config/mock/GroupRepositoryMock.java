@@ -21,7 +21,8 @@ import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.GroupEventRule;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
@@ -71,6 +72,7 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
         GroupEventRule eventRule2 = new GroupEventRule();
         eventRule2.setEvent(GroupEvent.APPLICATION_CREATE);
         group_application_1.setEventRules(asList(eventRule1, eventRule2));
+        group_application_1.setApiPrimaryOwner("api-primary-owner-id");
 
         final Group group_api_to_delete = new Group();
         group_api_to_delete.setId("group-api-to-delete");
@@ -86,6 +88,7 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
         group_updated.setEmailInvitation(true);
         group_updated.setDisableMembershipNotifications(false);
         group_updated.setMaxInvitation(99);
+        group_updated.setApiPrimaryOwner("new-po-user-id");
 
         when(groupRepository.findAll()).thenReturn(newSet(group_application_1, group_api_to_delete));
         when(groupRepository.findAllByEnvironment("DEFAULT")).thenReturn(newSet(createGroup));
