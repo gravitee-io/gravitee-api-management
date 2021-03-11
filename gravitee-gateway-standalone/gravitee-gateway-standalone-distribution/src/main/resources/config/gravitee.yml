@@ -26,6 +26,7 @@
 #  secured: false
 #  alpn: false
 #  ssl:
+#    sni: false
 #    clientAuth: none # Supports none, request, requires
 #    tlsProtocols: TLSv1.2, TLSv1.3
 #    tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA

@@ -42,6 +42,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.alpn:false}")
     private boolean alpn;
 
+    @Value("${http.ssl.sni:false}")
+    private boolean sni;
+
     @Value("${http.ssl.tlsProtocols:#{null}}")
     private String tlsProtocols;
 
@@ -280,6 +283,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setPerFrameWebSocketCompressionSupported(boolean perFrameWebSocketCompressionSupported) {
         this.perFrameWebSocketCompressionSupported = perFrameWebSocketCompressionSupported;
+    }
+
+    public boolean isSni() {
+        return sni;
+    }
+
+    public void setSni(boolean sni) {
+        this.sni = sni;
     }
 
     @Override
