@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -57,7 +58,6 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
             userFieldsQuery.add(new WildcardQuery(new Term("displayname", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             userFieldsQuery.add(new WildcardQuery(new Term("email", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             userFieldsQuery.add(new WildcardQuery(new Term("reference", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-
             userQuery.add(userFieldsQuery.build(), BooleanClause.Occur.MUST);
             userQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
 

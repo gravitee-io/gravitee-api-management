@@ -18,13 +18,25 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilterFactory;
+import org.apache.lucene.analysis.util.CharTokenizer;
+import org.apache.lucene.analysis.util.TokenizerFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.util.AttributeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,6 +57,21 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
     private static final String FIELD_REFERENCE = "reference";
 
     private final Logger logger = LoggerFactory.getLogger(UserDocumentTransformer.class);
+
+    @Autowired
+    private Analyzer defaultAnalyzer;
+
+    private Analyzer userFieldAnalyzer() {
+        try {
+            return CustomAnalyzer.builder()
+                    .withTokenizer(SingleTokenTokenizerFactory.class)
+                    .addTokenFilter(LowerCaseFilterFactory.class)
+                    .addTokenFilter(ASCIIFoldingFilterFactory.class)
+                    .build();
+        } catch (IOException e) {
+            return defaultAnalyzer;
+        }
+    }
 
     @Override
     public Document transform(UserEntity user) {
@@ -67,15 +94,21 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
         }
 
         if (user.getDisplayName() != null) {
-            doc.add(new StringField(FIELD_DISPLAYNAME, user.getDisplayName(), Field.Store.NO));
+            TextField displayName = new TextField(FIELD_DISPLAYNAME, user.getDisplayName(), Field.Store.NO);
+            displayName.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_DISPLAYNAME, user.getDisplayName()));
+            doc.add(displayName);
             doc.add(new TextField(FIELD_DISPLAYNAME_SPLIT, user.getDisplayName(), Field.Store.NO));
         }
         if (user.getFirstname() != null) {
-            doc.add(new StringField(FIELD_FIRSTNAME, user.getFirstname(), Field.Store.NO));
+            TextField firstname = new TextField(FIELD_FIRSTNAME, user.getFirstname(), Field.Store.NO);
+            firstname.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_FIRSTNAME, user.getFirstname()));
+            doc.add(firstname);
         }
 
         if (user.getLastname() != null) {
-            doc.add(new StringField(FIELD_LASTNAME, user.getLastname(), Field.Store.NO));
+            TextField lastname = new TextField(FIELD_LASTNAME, user.getLastname(), Field.Store.NO);
+            lastname.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_LASTNAME, user.getLastname()));
+            doc.add(lastname);
         }
 
         if (user.getEmail() != null) {
@@ -93,5 +126,25 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
     @Override
     public boolean handle(Class<? extends Indexable> source) {
         return UserEntity.class.isAssignableFrom(source);
+    }
+
+
+    /**
+     * Return the field content as single token
+     */
+    public static class SingleTokenTokenizerFactory extends TokenizerFactory {
+        public SingleTokenTokenizerFactory(Map<String, String> args) {
+            super(args);
+        }
+
+        @Override
+        public Tokenizer create(AttributeFactory attributeFactory) {
+            return new CharTokenizer() {
+                @Override
+                protected boolean isTokenChar(int i) {
+                    return true;
+                }
+            };
+        }
     }
 }
