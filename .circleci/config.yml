@@ -48,6 +48,7 @@ workflows:
           dry_run: << pipeline.parameters.dry_run >>
           secrethub_org: << pipeline.parameters.secrethub_org >>
           secrethub_repo: << pipeline.parameters.secrethub_repo >>
+          maven_container_image_tag: "3.6.3-openjdk-8"
           maven_profile_id: << pipeline.parameters.maven_profile_id >>
           s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
   release_dry_run:
@@ -61,6 +62,7 @@ workflows:
           dry_run: << pipeline.parameters.dry_run >>
           secrethub_org: << pipeline.parameters.secrethub_org >>
           secrethub_repo: << pipeline.parameters.secrethub_repo >>
+          maven_container_image_tag: "3.6.3-openjdk-8"
           maven_profile_id: << pipeline.parameters.maven_profile_id >>
           s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
 
