@@ -86,6 +86,9 @@
             <fileset>
               <directory>coverage</directory>
             </fileset>
+            <fileset>
+              <directory>node_modules</directory>
+            </fileset>
           </filesets>
         </configuration>
       </plugin>
