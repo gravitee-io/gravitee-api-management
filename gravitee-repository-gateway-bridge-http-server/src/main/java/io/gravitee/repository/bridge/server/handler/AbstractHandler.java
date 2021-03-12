@@ -68,10 +68,12 @@ public abstract class AbstractHandler {
 
                 response.end();
             } catch (JsonProcessingException jpe) {
+                LOGGER.error("Unable to transform data object to JSON", jpe);
                 response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
                 response.end(jpe.getMessage());
             }
         } else {
+            LOGGER.error("Unexpected error from the bridge", result.cause());
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             response.end(result.cause().getMessage());
         }

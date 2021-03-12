@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.repository.bridge.server.handler.*;
 import io.gravitee.repository.bridge.server.http.configuration.HttpServerConfiguration;
+import io.gravitee.repository.bridge.server.version.VersionHandler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.Router;
@@ -96,6 +97,8 @@ public class BridgeService  extends AbstractService {
 
             // Set default handler
             mainRouter.route().handler(ctx -> ctx.fail(HttpStatusCode.NOT_FOUND_404));
+
+            bridgeRouter.route().handler(new VersionHandler());
 
             // Add request handler
             httpServer.requestHandler(mainRouter::accept).listen(event ->
