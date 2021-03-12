@@ -49,20 +49,20 @@ public class LoggableProxyConnection implements ProxyConnection {
         this.proxyConnection = proxyConnection;
         this.proxyRequest = proxyRequest;
         this.context = context;
-        Log log = proxyRequest.metrics().getLog();
+        Log log = context.request().metrics().getLog();
 
         // If log is enable only for 'Proxy only' mode, the log structure is not yet created
         if (log == null) {
-            log = new Log(proxyRequest.metrics().timestamp().toEpochMilli());
-            log.setRequestId(proxyRequest.metrics().getRequestId());
+            log = new Log(context.request().metrics().timestamp().toEpochMilli());
+            log.setRequestId(context.request().metrics().getRequestId());
 
             // Associate log
-            proxyRequest.metrics().setLog(log);
+            context.request().metrics().setLog(log);
         }
 
         this.log = log;
         this.log.setProxyRequest(new Request());
-        this.log.getProxyRequest().setUri(proxyRequest.metrics().getEndpoint());
+        this.log.getProxyRequest().setUri(context.request().metrics().getEndpoint());
         this.log.getProxyRequest().setMethod(proxyRequest.method());
         if (LoggingUtils.isProxyRequestHeadersLoggable(context)) {
             this.log.getProxyRequest().setHeaders(proxyRequest.headers());

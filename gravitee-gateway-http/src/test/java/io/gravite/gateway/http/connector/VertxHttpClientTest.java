@@ -17,6 +17,7 @@ package io.gravite.gateway.http.connector;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.definition.model.HttpClientOptions;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.Request;
@@ -159,6 +160,176 @@ public class VertxHttpClientTest {
         vertxHttpClient.request(proxyRequest);
 
         assertEquals("http://gravitee.io/test?foo&bar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvoke() {
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
+                .method(HttpMethod.GET)
+                .uri("http://gravitee.io/test")
+                .parameters(new LinkedMultiValueMap())
+                .headers(new HttpHeaders())
+                .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeWithParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("foo", "bar");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
+                .method(HttpMethod.GET)
+                .uri("http://gravitee.io/test")
+                .parameters(parameters)
+                .headers(new HttpHeaders())
+                .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo=bar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeWithoutEncodeParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("foo", "=bar");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
+                .method(HttpMethod.GET)
+                .uri("http://gravitee.io/test")
+                .parameters(parameters)
+                .headers(new HttpHeaders())
+                .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo==bar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeWithoutEncodeEncodedParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("foo", "%3Dbar");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
+                .method(HttpMethod.GET)
+                .uri("http://gravitee.io/test")
+                .parameters(parameters)
+                .headers(new HttpHeaders())
+                .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo=%3Dbar", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeMergedQueryParams() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParams", "value");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
+                .method(HttpMethod.GET)
+                .uri("http://gravitee.io/test?foo=bar")
+                .parameters(parameters)
+                .headers(new HttpHeaders())
+                .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?foo=bar&urlParams=value", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeEmptyQueryParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParam", "");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
+                .method(HttpMethod.GET)
+                .uri("http://gravitee.io/test")
+                .parameters(parameters)
+                .headers(new HttpHeaders())
+                .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?urlParam=", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeEmptyQueryParams() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParam1", "");
+        parameters.add("urlParam2", "");
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
+                .method(HttpMethod.GET)
+                .uri("http://gravitee.io/test")
+                .parameters(parameters)
+                .headers(new HttpHeaders())
+                .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?urlParam1=&urlParam2=", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeNullQueryParam() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParam", null);
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
+                .method(HttpMethod.GET)
+                .uri("http://gravitee.io/test")
+                .parameters(parameters)
+                .headers(new HttpHeaders())
+                .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?urlParam", request.metrics().getEndpoint());
+    }
+
+    @Test
+    public void shouldInvokeNullQueryParams() {
+        LinkedMultiValueMap parameters = new LinkedMultiValueMap();
+        parameters.add("urlParam1", null);
+        parameters.add("urlParam2", null);
+
+        HttpClientOptions httpOptions = mock(HttpClientOptions.class);
+        when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
+        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
+                .method(HttpMethod.GET)
+                .uri("http://gravitee.io/test")
+                .parameters(parameters)
+                .headers(new HttpHeaders())
+                .build();
+
+        vertxHttpClient.request(proxyRequest);
+
+        assertEquals("http://gravitee.io/test?urlParam1&urlParam2", request.metrics().getEndpoint());
     }
 
     class MockedHttpClientRequest implements HttpClientRequest{

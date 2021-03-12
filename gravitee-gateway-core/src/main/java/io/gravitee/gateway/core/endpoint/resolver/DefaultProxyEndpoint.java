@@ -15,28 +15,32 @@
  */
 package io.gravitee.gateway.core.endpoint.resolver;
 
-import io.gravitee.gateway.api.Connector;
-import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.endpoint.Endpoint;
+import io.gravitee.gateway.api.proxy.ProxyRequest;
+import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
+
+import java.util.function.Function;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EndpointResolver {
+class DefaultProxyEndpoint extends AbstractProxyEndpoint {
 
-    /**
-     * Returns an endpoint according to the incoming HTTP request. If not endpoint corresponds to the request,
-     * or if the selected endpoint is not available, the method returns <code>null</code>.
-     *
-     * @param context
-     * @return
-     */
-    ConnectorEndpoint resolve(ExecutionContext context);
+    DefaultProxyEndpoint(Endpoint endpoint) {
+        super(endpoint);
+    }
 
-    interface ConnectorEndpoint {
+    @Override
+    public ProxyRequest createProxyRequest(Request request, Function<ProxyRequestBuilder, ProxyRequestBuilder> mapper) {
+        ProxyRequestBuilder builder = ProxyRequestBuilder.from(request)
+                .uri(target() + request.pathInfo());
 
-        String getUri();
+        if (mapper != null) {
+            builder = mapper.apply(builder);
+        }
 
-        Connector getConnector();
+        return builder.build();
     }
 }
