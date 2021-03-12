@@ -21,7 +21,7 @@ import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
-import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecyleManager;
+import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
@@ -237,7 +237,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         // Start resources before
         applicationContext.getBean(ResourceLifecycleManager.class).start();
         applicationContext.getBean(PolicyManager.class).start();
-        applicationContext.getBean(GroupLifecyleManager.class).start();
+        applicationContext.getBean(GroupLifecycleManager.class).start();
 
         dumpVirtualHosts();
 
@@ -251,7 +251,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
         applicationContext.getBean(PolicyManager.class).stop();
         applicationContext.getBean(ResourceLifecycleManager.class).stop();
-        applicationContext.getBean(GroupLifecyleManager.class).stop();
+        applicationContext.getBean(GroupLifecycleManager.class).stop();
 
         super.doStop();
         logger.info("API handler is now stopped: {}", this);

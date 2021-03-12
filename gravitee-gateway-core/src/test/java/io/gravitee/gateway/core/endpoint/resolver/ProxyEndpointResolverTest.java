@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.endpoint.resolver.impl;
+package io.gravitee.gateway.core.endpoint.resolver;
 
-import io.gravitee.common.util.LinkedMultiValueMap;
-import io.gravitee.common.util.MultiValueMap;
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.endpoint.Endpoint;
+import io.gravitee.gateway.api.endpoint.resolver.ProxyEndpoint;
+import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.core.endpoint.GroupManager;
 import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
 import io.gravitee.gateway.core.endpoint.ref.GroupReference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
-import io.gravitee.gateway.core.endpoint.resolver.EndpointResolver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,16 +43,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class TargetEndpointResolverTest {
+public class ProxyEndpointResolverTest {
 
     @InjectMocks
-    private TargetEndpointResolver resolver;
-
-    @Mock
-    private ExecutionContext executionContext;
-
-    @Mock
-    private Request serverRequest;
+    private ProxyEndpointResolver resolver;
 
     @Spy
     private ReferenceRegister referenceRegister = new DefaultReferenceRegister();
@@ -72,7 +64,6 @@ public class TargetEndpointResolverTest {
         LoadBalancedEndpointGroup group = mock(LoadBalancedEndpointGroup.class);
         when(group.getName()).thenReturn("default-group");
         referenceRegister.add(new GroupReference(group));
-        when(executionContext.request()).thenReturn(serverRequest);
     }
 
     @Test
@@ -182,13 +173,12 @@ public class TargetEndpointResolverTest {
         String requestEndpoint = "lo:cal:";
         String endpointName = "lo:cal";
         String endpointTarget = "http://host:8080/test";
-        when(executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT)).thenReturn(requestEndpoint);
 
         Endpoint endpoint = mock(Endpoint.class);
         when(endpoint.name()).thenReturn(endpointName);
         referenceRegister.add(new EndpointReference(endpoint));
 
-        EndpointResolver.ConnectorEndpoint connectorEndpoint = resolver.resolve(executionContext);
+        ProxyEndpoint connectorEndpoint = resolver.resolve(requestEndpoint);
 
         Assert.assertNull(connectorEndpoint);
         verify(endpoint, never()).target();
@@ -298,6 +288,7 @@ public class TargetEndpointResolverTest {
         );
     }
 
+    /*
     @Test
     public void shouldResolveUserDefinedEndpoint_withQueryParamsInTarget() {
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
@@ -351,6 +342,7 @@ public class TargetEndpointResolverTest {
                 "http://host:8080/test?endpointParam=v"
         );
     }
+    */
 
     @Test
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_selectFirstEndpoint_wss() {
@@ -363,30 +355,18 @@ public class TargetEndpointResolverTest {
     }
 
     private void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {
-        resolveUserDefinedEndpoint(expectedURI, null, requestEndpoint, endpointName, endpointTarget);
-    }
-    private void resolveUserDefinedEndpoint(String expectedURI, MultiValueMap<String, String> expectedParameters, String requestEndpoint, String endpointName, String endpointTarget) {
-        when(executionContext.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT)).thenReturn(requestEndpoint);
-
         Endpoint endpoint = mock(Endpoint.class);
         when(endpoint.name()).thenReturn(endpointName);
         when(endpoint.target()).thenReturn(endpointTarget);
-        when(endpoint.available()).thenReturn(true);
         referenceRegister.add(new EndpointReference(endpoint));
 
         when(groupManager.getDefault()).thenReturn(loadBalancedEndpointGroup);
         when(loadBalancedEndpointGroup.next()).thenReturn(endpoint);
-        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
-        when(serverRequest.parameters()).thenReturn(parameters);
 
-        EndpointResolver.ConnectorEndpoint connectorEndpoint = resolver.resolve(executionContext);
+        ProxyEndpoint proxyEndpoint = resolver.resolve(requestEndpoint);
+        Assert.assertNotNull(proxyEndpoint);
 
-        Assert.assertNotNull(connectorEndpoint);
-        Assert.assertEquals(expectedURI, connectorEndpoint.getUri());
-        if (expectedParameters != null) {
-            expectedParameters.forEach( (paramKey, paramValue) -> {
-                Assert.assertTrue(parameters.containsKey(paramKey));
-            });
-        }
+        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock((Request.class)));
+        Assert.assertEquals(expectedURI, proxyRequest.uri());
     }
 }

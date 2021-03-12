@@ -17,26 +17,21 @@ package io.gravitee.gateway.core.invoker;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Invoker;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
+import io.gravitee.gateway.api.endpoint.resolver.ProxyEndpoint;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
-import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
 import io.gravitee.gateway.api.stream.ReadStream;
-import io.gravitee.gateway.core.endpoint.resolver.EndpointResolver;
-import io.gravitee.gateway.core.logging.LimitedLoggableProxyConnection;
-import io.gravitee.gateway.core.logging.LoggableProxyConnection;
-import io.gravitee.gateway.core.logging.utils.LoggingUtils;
+import io.gravitee.gateway.core.logging.LoggableProxyConnectionDecorator;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.StringJoiner;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,61 +40,43 @@ import java.util.StringJoiner;
  */
 public class EndpointInvoker implements Invoker {
 
-    private static final String URI_PARAM_SEPARATOR = "&";
-    private static final char URI_PARAM_SEPARATOR_CHAR = '&';
-    private static final char URI_PARAM_VALUE_SEPARATOR_CHAR = '=';
-    private static final char URI_QUERY_DELIMITER_CHAR = '?';
-    private static final CharSequence URI_QUERY_DELIMITER_CHAR_SEQUENCE = "?";
-
     @Autowired
     private EndpointResolver endpointResolver;
 
     @Override
     public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
-        EndpointResolver.ConnectorEndpoint endpoint = endpointResolver.resolve(context);
+        // Look at the request context attribute to retrieve the final target (which could be overridden by a policy)
+        final ProxyEndpoint endpoint = endpointResolver.resolve(
+                (String) context.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT));
 
         // Endpoint can be null if none endpoint can be selected or if the selected endpoint is unavailable
-        if (endpoint == null) {
+        if (endpoint == null || !endpoint.available()) {
             DirectProxyConnection statusOnlyConnection = new DirectProxyConnection(HttpStatusCode.SERVICE_UNAVAILABLE_503);
             connectionHandler.handle(statusOnlyConnection);
             statusOnlyConnection.sendResponse();
         } else {
             try {
-                // Build absolute URI, including query
-                String uri = buildURI(endpoint.getUri(), context.request());
+                final ProxyRequest proxyRequest = endpoint.createProxyRequest(context.request(),
+                        proxyRequestBuilder -> proxyRequestBuilder.method(getHttpMethod(context)));
 
-                ProxyRequest proxyRequest = ProxyRequestBuilder.from(context.request())
-                        .uri(uri)
-                        .method(setHttpMethod(context))
-                        .rawMethod(context.request().rawMethod())
-                        .headers(context.request().headers())
-                        .build();
-
-                ProxyConnection proxyConnection = endpoint.getConnector().request(proxyRequest);
-
-                // Enable logging at proxy level
-                if (LoggingUtils.isProxyLoggable(context)) {
-                    int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
-                    proxyConnection = maxSizeLogMessage == -1 ?
-                            new LoggableProxyConnection(proxyConnection, proxyRequest, context) :
-                            new LimitedLoggableProxyConnection(proxyConnection, proxyRequest, context, maxSizeLogMessage);
-                }
+                final ProxyConnection proxyConnection = LoggableProxyConnectionDecorator.decorate(
+                        endpoint.connector().request(proxyRequest),
+                        proxyRequest,
+                        context);
 
                 connectionHandler.handle(proxyConnection);
 
                 // Plug underlying stream to connection stream
-                ProxyConnection finalProxyConnection = proxyConnection;
-
                 stream
                         .bodyHandler(buffer -> {
-                            finalProxyConnection.write(buffer);
+                            proxyConnection.write(buffer);
 
-                            if (finalProxyConnection.writeQueueFull()) {
+                            if (proxyConnection.writeQueueFull()) {
                                 context.request().pause();
-                                finalProxyConnection.drainHandler(aVoid -> context.request().resume());
+                                proxyConnection.drainHandler(aVoid -> context.request().resume());
                             }
                         })
-                        .endHandler(aVoid -> finalProxyConnection.end());
+                        .endHandler(aVoid -> proxyConnection.end());
             } catch (Exception ex) {
                 context.request().metrics().setMessage(getStackTraceAsString(ex));
 
@@ -114,39 +91,7 @@ public class EndpointInvoker implements Invoker {
         context.request().resume();
     }
 
-    private String buildURI(String uri, Request request) {
-        MultiValueMap<String, String> parameters = request.parameters();
-
-        if (parameters == null || parameters.isEmpty()) {
-            return uri;
-        }
-
-        return addQueryParameters(uri, parameters);
-    }
-
-    private String addQueryParameters(String uri, MultiValueMap<String, String> parameters) {
-        StringJoiner parametersAsString = new StringJoiner(URI_PARAM_SEPARATOR);
-        parameters.forEach( (paramName, paramValues) -> {
-            if (paramValues != null) {
-                for (String paramValue: paramValues) {
-                    if (paramValue == null) {
-                        parametersAsString.add(paramName);
-                    } else {
-                        parametersAsString.add(paramName + URI_PARAM_VALUE_SEPARATOR_CHAR + paramValue);
-                    }
-                }
-            }
-        });
-
-        if (uri.contains(URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
-            return uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString();
-        } else {
-            return uri + URI_QUERY_DELIMITER_CHAR + parametersAsString.toString();
-
-        }
-    }
-
-    private HttpMethod setHttpMethod(ExecutionContext context) {
+    private HttpMethod getHttpMethod(ExecutionContext context) {
         io.gravitee.common.http.HttpMethod overrideMethod = (io.gravitee.common.http.HttpMethod)
                 context.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
         return (overrideMethod == null) ? context.request().method() : overrideMethod;

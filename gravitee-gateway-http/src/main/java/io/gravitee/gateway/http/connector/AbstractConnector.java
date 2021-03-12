@@ -17,6 +17,7 @@ package io.gravitee.gateway.http.connector;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.ProtocolVersion;
@@ -43,9 +44,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -56,6 +61,12 @@ import java.util.function.Function;
  * @author GraviteeSource Team
  */
 public abstract class AbstractConnector<T extends HttpEndpoint> extends AbstractLifecycleComponent<Connector> implements Connector {
+
+    private static final String URI_PARAM_SEPARATOR = "&";
+    private static final char URI_PARAM_SEPARATOR_CHAR = '&';
+    private static final char URI_PARAM_VALUE_SEPARATOR_CHAR = '=';
+    private static final char URI_QUERY_DELIMITER_CHAR = '?';
+    private static final CharSequence URI_QUERY_DELIMITER_CHAR_SEQUENCE = "?";
 
     private final Logger LOGGER = LoggerFactory.getLogger(AbstractConnector.class);
 
@@ -78,7 +89,7 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
      */
     private final URLStreamHandler URL_HANDLER = new URLStreamHandler() {
         @Override
-        protected URLConnection openConnection(URL u) throws IOException {
+        protected URLConnection openConnection(URL u) {
             return null;
         }
     };
@@ -94,7 +105,8 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     @Override
     public ProxyConnection request(ProxyRequest proxyRequest) {
-        final String uri = proxyRequest.uri();
+        // For Vertx HTTP client query parameters have to be passed along the URI
+        final String uri = appendQueryParameters(proxyRequest.uri(), proxyRequest.parameters());
 
         // Add the endpoint reference in metrics to know which endpoint has been invoked while serving the request
         proxyRequest.metrics().setEndpoint(uri);
@@ -127,7 +139,8 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
             // Connect to the upstream
             return connection.connect(client, port, url.getHost(),
-                    (url.getQuery() == null) ? url.getPath() : url.getPath() + '?' + url.getQuery(), result -> requestTracker.decrementAndGet());
+                    (url.getQuery() == null) ? url.getPath() : url.getPath() + URI_QUERY_DELIMITER_CHAR +
+                            url.getQuery(), result -> requestTracker.decrementAndGet());
         } catch (MalformedURLException ex) {
             throw new IllegalArgumentException();
         }
@@ -139,6 +152,31 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
     protected void doStart() throws Exception {
         this.options = this.getOptions();
         printHttpClientConfiguration();
+    }
+
+    private String appendQueryParameters(String uri, MultiValueMap<String, String> parameters) {
+        if (parameters != null && ! parameters.isEmpty()) {
+            StringJoiner parametersAsString = new StringJoiner(URI_PARAM_SEPARATOR);
+            parameters.forEach((paramName, paramValues) -> {
+                if (paramValues != null) {
+                    for (String paramValue : paramValues) {
+                        if (paramValue == null) {
+                            parametersAsString.add(paramName);
+                        } else {
+                            parametersAsString.add(paramName + URI_PARAM_VALUE_SEPARATOR_CHAR + paramValue);
+                        }
+                    }
+                }
+            });
+
+            if (uri.contains(URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
+                return uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString();
+            } else {
+                return uri + URI_QUERY_DELIMITER_CHAR + parametersAsString.toString();
+            }
+        } else {
+            return uri;
+        }
     }
 
     protected HttpClientOptions getOptions() throws EndpointException {
@@ -345,8 +383,8 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
                     '}');
         }
     }
-    private ProxyOptions getSystemProxyOptions() {
 
+    private ProxyOptions getSystemProxyOptions() {
         StringBuilder errors = new StringBuilder();
         ProxyOptions proxyOptions = new ProxyOptions();
 

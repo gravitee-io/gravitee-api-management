@@ -18,7 +18,7 @@ package io.gravitee.gateway.core.endpoint.lifecycle.impl;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecyleManager;
+import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.lifecycle.impl.tenant.MultiTenantAwareEndpointLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.GroupReference;
@@ -43,8 +43,8 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<GroupLifecyleManager>
-        implements GroupLifecyleManager, ApplicationContextAware {
+public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<GroupLifecycleManager>
+        implements GroupLifecycleManager, ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultGroupLifecycleManager.class);
 
