@@ -112,7 +112,6 @@
     "ignore-loader": "^0.1.2",
     "image-webpack-loader": "^6.0.0",
     "jest": "^26.6.3",
-    "jshint-stylish": "^2.2.1",
     "json-loader": "^0.5.7",
     "main-bower-files": "^2.13.3",
     "merge-stream": "^1.0.1",
