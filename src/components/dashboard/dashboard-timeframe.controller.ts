@@ -19,7 +19,7 @@ import moment = require('moment');
 import { StateService } from '@uirouter/core';
 import { Moment } from 'moment';
 
-// tslint:disable-next-line:interface-name
+// eslint:disable-next-line:interface-name
 interface Timeframe {
   id: string;
   title: string;
@@ -27,7 +27,7 @@ interface Timeframe {
   interval: number;
 }
 
-// tslint:disable-next-line:interface-name
+// eslint:disable-next-line:interface-name
 interface AutoRefreshInterval {
   interval: number;
   label: string;

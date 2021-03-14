@@ -394,7 +394,7 @@ class ThemeController {
           this.$scope.themeForm.$setPristine();
           this.NotificationService.show('The "Gravitee" default theme has been restore.');
         });
-        // tslint:disable-next-line:no-empty
+        // eslint:disable-next-line:no-empty
       },
       () => {},
     );

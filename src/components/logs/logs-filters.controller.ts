@@ -271,7 +271,7 @@ class LogsFiltersController {
   }
 
   private isEmpty(map) {
-    // tslint:disable-next-line:forin
+    // eslint:disable-next-line:forin
     for (let key in map) {
       let val = map[key];
       if (val !== undefined && val.length > 0) {

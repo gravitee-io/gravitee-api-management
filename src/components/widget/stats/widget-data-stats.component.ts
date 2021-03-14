@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-stats');
 const WidgetDataStatsComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats.html'),

@@ -16,9 +16,9 @@
 import ApiService from '../../../services/api.service';
 import { ITimeframe, TimeframeRanges } from '../../../components/quick-time-range/quick-time-range.component';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-gauge');
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-line');
 
 class ApisStatusDashboardController {

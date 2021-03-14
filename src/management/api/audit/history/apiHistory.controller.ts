@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 const copy = require('clipboard-copy');
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 const JsDiff = require('diff/dist/diff.min.js');
 import '@gravitee/ui-components/wc/gv-policy-studio';
 import '@gravitee/ui-components/wc/gv-switch';

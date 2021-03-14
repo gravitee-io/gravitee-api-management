@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-option');
 
 export function getDefinitionVersionTitle(definitionVersion) {

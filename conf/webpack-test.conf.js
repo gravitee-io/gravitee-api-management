@@ -23,12 +23,6 @@ module.exports = {
         loaders: ['json-loader'],
       },
       {
-        test: /.ts$/,
-        exclude: /node_modules/,
-        loader: 'tslint-loader',
-        enforce: 'pre',
-      },
-      {
         test: /\.ts$/,
         exclude: /node_modules/,
         loaders: ['ng-annotate-loader', 'ts-loader'],
@@ -50,9 +44,6 @@ module.exports = {
         resolve: {},
         ts: {
           configFileName: 'tsconfig.json',
-        },
-        tslint: {
-          configuration: require('../tslint.json'),
         },
       },
       debug: true,

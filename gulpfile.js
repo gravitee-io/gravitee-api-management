@@ -16,7 +16,6 @@
 const gulp = require('gulp');
 const HubRegistry = require('gulp-hub');
 const browserSync = require('browser-sync');
-const tslint = require('gulp-tslint');
 const ts = require('gulp-typescript');
 const conf = require('./conf/gulp.conf');
 
@@ -33,8 +32,6 @@ gulp.task('serve:nightly', gulp.series('webpack:watch', 'watch', 'browsersync:ni
 gulp.task('serve:dist', gulp.series('default'));
 gulp.task('default', gulp.series('clean', 'build'));
 gulp.task('watch', watch);
-gulp.task('lint', lint);
-gulp.task('lint:fix', lintFix);
 gulp.task('compile', compile);
 
 function compile() {
@@ -50,30 +47,4 @@ function reloadBrowserSync(cb) {
 function watch(done) {
   gulp.watch(conf.path.tmp('index.html'), reloadBrowserSync);
   done();
-}
-
-function lint() {
-  return gulp
-    .src('src/**/*.ts')
-    .pipe(tslint())
-    .pipe(
-      tslint.report({
-        summarizeFailureOutput: true,
-      }),
-    );
-}
-
-function lintFix() {
-  return gulp
-    .src('src/**/*.ts')
-    .pipe(
-      tslint({
-        fix: true,
-      }),
-    )
-    .pipe(
-      tslint.report({
-        summarizeFailureOutput: true,
-      }),
-    );
 }

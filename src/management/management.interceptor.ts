@@ -190,7 +190,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
     return {
       request: function (config) {
         if (config.url.startsWith(Constants.baseURL)) {
-          // tslint:disable:no-string-literal
+          // eslint:disable:no-string-literal
           config['skipAuthorization'] = true;
         }
         return config;

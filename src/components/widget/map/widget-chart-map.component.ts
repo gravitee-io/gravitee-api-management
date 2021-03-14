@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 import * as Highcharts from 'highcharts';
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-map');
 const WidgetChartMapComponent: ng.IComponentOptions = {
   template: require('./widget-chart-map.html'),

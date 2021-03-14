@@ -15,7 +15,7 @@
  */
 import AnalyticsService from '../../../services/analytics.service';
 import EventsService from '../../../services/events.service';
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-line');
 
 const WidgetChartLineComponent: ng.IComponentOptions = {

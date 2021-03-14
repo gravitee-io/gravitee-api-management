@@ -101,7 +101,7 @@ class ApplicationSubscribeController {
             this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
             this.$state.reload();
           });
-          // tslint:disable-next-line:no-empty
+          // eslint:disable-next-line:no-empty
         },
         () => {},
       );
@@ -128,7 +128,7 @@ class ApplicationSubscribeController {
           this.NotificationService.show('Subscription has been successfully closed');
           this.$state.reload();
         });
-        // tslint:disable-next-line:no-empty
+        // eslint:disable-next-line:no-empty
       },
       () => {},
     );

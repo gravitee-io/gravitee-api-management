@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 const JsDiff = require('diff/dist/diff.min.js');
 
 const DiffDirective: ng.IDirective = {

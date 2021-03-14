@@ -27,12 +27,6 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /.ts$/,
-        exclude: /node_modules/,
-        loader: 'tslint-loader',
-        enforce: 'pre',
-      },
-      {
         test: /\.(scss)$/,
         loaders: ['style-loader', 'css-loader', 'sass-loader'],
         include: [path.resolve(__dirname, '..') + '/src/index.scss'],
@@ -79,9 +73,6 @@ module.exports = {
         resolve: {},
         ts: {
           configFileName: 'tsconfig.json',
-        },
-        tslint: {
-          configuration: require('../tslint.json'),
         },
       },
     }),

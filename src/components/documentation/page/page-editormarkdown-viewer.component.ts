@@ -72,7 +72,7 @@ class ComponentCtrl implements ng.IComponentController {
     content = remark.stringify(ast);
 
     const Viewer = require('@toast-ui/editor/dist/toastui-editor-viewer');
-    // tslint:disable-next-line:no-unused-expression
+    // eslint:disable-next-line:no-unused-expression
     new Viewer(
       Object.assign(
         {

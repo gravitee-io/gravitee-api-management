@@ -28,9 +28,9 @@ const DashboardComponent: ng.IComponentOptions = {
   controller: function ($scope) {
     'ngInject';
     this.initialEventCounter = 2;
-    // tslint:disable-next-line:no-unused-expression
+    // eslint:disable-next-line:no-unused-expression
     this.initialTimeFrame;
-    // tslint:disable-next-line:no-unused-expression
+    // eslint:disable-next-line:no-unused-expression
     this.initialQuery;
 
     this.dashboardOptions = {

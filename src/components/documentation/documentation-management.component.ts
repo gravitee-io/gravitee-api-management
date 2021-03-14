@@ -95,7 +95,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
         }
         return FolderSituation.FOLDER_IN_FOLDER;
       }
-      // tslint:disable-next-line:no-console
+      // eslint:disable-next-line:no-console
       console.debug('impossible to determine folder situation : ' + folderId);
     };
 

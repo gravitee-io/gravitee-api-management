@@ -494,7 +494,7 @@ import MovedComponent from './configuration/moved/moved.component';
 
 (<any>window).CodeMirror = CodeMirror;
 
-// tslint:disable:no-var-requires
+// eslint:disable:no-var-requires
 require('satellizer');
 require('angular-marked');
 require('angular-highlightjs');

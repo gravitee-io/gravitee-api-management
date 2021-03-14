@@ -29,12 +29,6 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.ts$/,
-        exclude: /node_modules/,
-        use: 'tslint-loader',
-        enforce: 'pre',
-      },
-      {
         test: /\.(scss)$/,
         loaders: ExtractTextPlugin.extract({
           fallback: 'style-loader',
@@ -98,9 +92,6 @@ module.exports = {
         resolve: {},
         ts: {
           configFileName: 'tsconfig.json',
-        },
-        tslint: {
-          configuration: require('../tslint.json'),
         },
       },
     }),

@@ -94,7 +94,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
     vm.windowNotification = (title: string, message: string) => {
       if ('Notification' in window) {
         Notification.requestPermission().then(() => {
-          // tslint:disable-next-line:no-unused-expression
+          // eslint:disable-next-line:no-unused-expression
           new Notification(title, { body: message, icon: '/favicon.ico' });
         });
       }

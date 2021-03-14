@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// tslint:disable-next-line:no-var-requires
+// eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-pie');
 const WidgetChartPieComponent: ng.IComponentOptions = {
   template: require('./widget-chart-pie.html'),
