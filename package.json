@@ -75,6 +75,8 @@
     "@types/jquery": "^3.3.32",
     "@types/lodash": "^4.14.149",
     "@types/node": "^10.17.14",
+    "@typescript-eslint/eslint-plugin": "^4.22.0",
+    "@typescript-eslint/parser": "^4.22.0",
     "@uirouter/angularjs": "^1.0.25",
     "angular-mocks": "^1.7.9",
     "angular-scroll": "^1.0.2",
@@ -91,11 +93,10 @@
     "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^1.0.1",
     "del": "^3.0.0",
-    "eslint": "^5.16.0",
+    "eslint": "^7.25.0",
     "eslint-config-angular": "^0.5.0",
-    "eslint-config-xo-space": "^0.19.0",
-    "eslint-plugin-angular": "^3.3.0",
-    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-angular": "^4.0.1",
+    "eslint-plugin-jsdoc": "^33.0.0",
     "express": "^4.17.1",
     "extract-text-webpack-plugin": "v4.0.0-beta.0",
     "file-loader": "^1.1.11",
@@ -136,22 +137,12 @@
   "engines": {
     "node": ">=0.10.0"
   },
-  "eslintConfig": {
-    "globals": {
-      "expect": true
-    },
-    "root": true,
-    "env": {
-      "browser": true
-    },
-    "extends": [
-      "xo-space/esnext"
-    ]
-  },
   "scripts": {
     "build:prod": "gulp serve:dist",
     "compile": "gulp compile",
     "lint": "gulp lint && npm run prettier",
+    "lint:eslint": "eslint --ext .json,.ts ./src",
+    "lint:eslint:fix": "eslint --ext .json,.ts ./src --fix",
     "lint:fix": "gulp lint:fix && npm run prettier:fix",
     "postinstall": "rm -rf node_modules/codemirror/mode/rpm/changes",
     "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
