@@ -298,9 +298,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setVersion(newApiEntity.getVersion());
 
         Set<String> groups = newApiEntity.getGroups();
-        checkGroupExistence(groups);
-        groups = removePOGroups(groups, null);
-        newApiEntity.setGroups(groups);
+        if (groups != null && !groups.isEmpty()) {
+            checkGroupExistence(groups);
+            groups = removePOGroups(groups, null);
+            newApiEntity.setGroups(groups);
+        }
         apiEntity.setGroups(groups);
 
         Proxy proxy = new Proxy();
@@ -1190,11 +1192,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check lifecycle state
             checkLifecycleState(updateApiEntity, apiToCheck);
 
-            // check the existence of groups
-            checkGroupExistence(updateApiEntity.getGroups());
+            Set<String> groups = updateApiEntity.getGroups();
+            if (groups != null && !groups.isEmpty()) {
+                // check the existence of groups
+                checkGroupExistence(groups);
 
-            // remove PO group if exists
-            updateApiEntity.setGroups(removePOGroups(updateApiEntity.getGroups(), apiId));
+                // remove PO group if exists
+                groups = removePOGroups(groups, apiId);
+                updateApiEntity.setGroups(groups);
+            }
 
             // add a default path
             if ((updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty())) {

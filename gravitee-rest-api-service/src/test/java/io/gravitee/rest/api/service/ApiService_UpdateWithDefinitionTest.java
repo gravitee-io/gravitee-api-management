@@ -121,9 +121,6 @@ public class ApiService_UpdateWithDefinitionTest {
     @Before
     public void setUp() {
         when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("toDecode=decoded-value");
-        MembershipEntity primaryOwner = new MembershipEntity();
-        primaryOwner.setMemberType(MembershipMemberType.USER);
-        when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), any())).thenReturn(primaryOwner);
         reset(searchEngineService);
     }
 
