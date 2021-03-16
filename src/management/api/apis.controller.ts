@@ -219,10 +219,7 @@ export class ApisController {
   }
 
   loadMore = () => {
-    // check if data must be refreshed or not when sorting or searching (when user is typing text)
-    const doNotLoad = this.currentApisResponse.page.current === this.currentApisResponse.page.total_pages;
-
-    if (!doNotLoad && this.currentApisResponse.data) {
+    if (this.currentApisResponse.data) {
       _.forEach(this.currentApisResponse.data, (api: any) => {
         if (_.isUndefined(this.syncStatus[api.id])) {
           this.ApiService.isAPISynchronized(api.id)
