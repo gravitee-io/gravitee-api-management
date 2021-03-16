@@ -21,6 +21,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableSet;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.services.schedule.Trigger;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -111,6 +112,23 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     private void stopHealthCheck(Api api) {
         removeTriggers(api);
+    }
+
+    private long getDelayMillis(Trigger trigger) {
+        switch (trigger.getUnit()) {
+            case MILLISECONDS:
+                return trigger.getRate();
+            case SECONDS:
+                return trigger.getRate() * 1000;
+            case MINUTES:
+                return trigger.getRate() * 1000 * 60;
+            case HOURS:
+                return trigger.getRate() * 1000 * 60 * 60;
+            case DAYS:
+                return trigger.getRate() * 1000 * 60 * 60 * 24;
+        }
+
+        return -1;
     }
 
     private void addTrigger(Api api, EndpointRule rule) {
