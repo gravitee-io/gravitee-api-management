@@ -38,7 +38,11 @@ public interface UserService {
 
     UserEntity connect(String userId);
 
-    UserEntity findById(String id);
+    UserEntity findById(String id, boolean defaultValue);
+
+    default UserEntity findById(String id) {
+        return findById(id, false);
+    }
 
     Optional<UserEntity> findByEmail(String email);
 

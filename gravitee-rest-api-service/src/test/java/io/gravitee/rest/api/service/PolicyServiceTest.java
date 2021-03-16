@@ -40,6 +40,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
@@ -274,5 +275,35 @@ public class PolicyServiceTest {
             assertEquals("Invalid policy configuration : Invalid java regular expression [( INVALID regex]", e.getMessage());
             throw e;
         }
+    }
+
+    @Test
+    public void shouldAcceptValidJssonConfiguration_defaultValue() throws Exception {
+        final String JSON_SCHEMA = "{\n" +
+                "  \"type\": \"object\",\n" +
+                "  \"id\": \"urn:jsonschema:io:gravitee:policy:test\",\n" +
+                "  \"properties\": {\n" +
+                "    \"name\": {\n" +
+                "      \"title\": \"Name\",\n" +
+                "      \"type\": \"string\",\n" +
+                "      \"default\": \"test\"\n" +
+                "    },\n" +
+                "    \"valid\": {\n" +
+                "      \"title\": \"Valid\",\n" +
+                "      \"type\": \"boolean\",\n" +
+                "      \"default\": false\n" +
+                "    }\n" +
+                "  },\n" +
+                "  \"required\": [\n" +
+                "    \"name\"\n" +
+                "  ]\n" +
+                "}";
+
+        Policy policy = new Policy();
+        policy.setName("my-policy");
+        policy.setConfiguration("{ \"valid\": true }");
+        when(policyManager.getSchema("my-policy")).thenReturn(JSON_SCHEMA);
+
+        policyService.validatePolicyConfiguration(policy);
     }
 }
