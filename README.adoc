@@ -9,7 +9,12 @@ endif::[]
 
 **NPM tasks are ran from this base dir.**
 
-- Install http://nodejs.org[nodejs], it comes with http://npmjs.org[npm]
+- Install https://github.com/nvm-sh/nvm[nvm]
+- Install the Angular CLI
+```
+npm install -g @angular/cli
+```
+- Use with `nvm use` or install with `nvm install` the node version declared in `.nvmrc`
 - Then install node modules with:
 ```
 npm install
@@ -47,6 +52,38 @@ popd
 If you wanna serve the built version on dev mode :
 ```
 npm run serve
+```
+
+IF you have this error with node-sass
+```
+ERROR in ./src/index.scss (./node_modules/css-loader!./node_modules/sass-loader/dist/cjs.js!./src/index.scss)
+Module build failed (from ./node_modules/sass-loader/dist/cjs.js):
+Error: ENOENT: no such file or directory, scandir '/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/vendor'
+    at Object.readdirSync (fs.js:1021:3)
+    at Object.getInstalledBinaries (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/extensions.js:133:13)
+    at foundBinariesList (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/errors.js:20:15)
+    at foundBinaries (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/errors.js:15:5)
+    at Object.module.exports.missingBinary (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/errors.js:45:5)
+    at module.exports (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/binding.js:15:30)
+    at Object.<anonymous> (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/index.js:14:35)
+    at Module._compile (internal/modules/cjs/loader.js:1063:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1092:10)
+    at Module.load (internal/modules/cjs/loader.js:928:32)
+    at Function.Module._load (internal/modules/cjs/loader.js:769:14)
+    at Module.require (internal/modules/cjs/loader.js:952:19)
+    at require (internal/modules/cjs/helpers.js:88:18)
+    at getDefaultSassImpl (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/sass-loader/dist/index.js:198:10)
+    at Object.loader (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/sass-loader/dist/index.js:80:29)
+ @ ./src/index.scss 2:14-115
+ @ ./src/index.ts
+
+```
+
+Remove `node_modules` and reinstall
+```js
+npm install
+// or you can rebuild node-sass
+npm rebuild node-sass
 ```
 
 If you wanna serve the built version on production mode :

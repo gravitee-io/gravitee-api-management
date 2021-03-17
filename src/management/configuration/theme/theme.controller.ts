@@ -456,7 +456,7 @@ class ThemeController {
       const reader = new FileReader();
       reader.readAsText(file);
       reader.onload = (event) => {
-        let jsonFromFile = JSON.parse(event.target.result);
+        let jsonFromFile = JSON.parse(event.target.result as string);
 
         // force to false, to force the user to validate the imported theme before saving and enabling it.
         jsonFromFile.enabled = false;

@@ -37,7 +37,7 @@ class ReCaptchaService {
   load() {
     let self = this;
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       if (this.enabled && !document.getElementById(this.scriptId)) {
         if (!this.siteKey) {
           reject('[reCaptchaService] Missing public site_key');

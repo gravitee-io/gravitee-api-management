@@ -13,23 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService from '../../services/api.service';
-import ApplicationService from '../../services/application.service';
 
-class AuditController {
-  constructor(
-    private ApiService: ApiService,
-    private ApplicationService: ApplicationService,
-    private resolvedEvents: string[],
-    private $scope
-  ) {
-    'ngInject';
-    this.$scope.events = resolvedEvents;
-  }
-
-  $onInit() {
-    this.ApiService.list().then(response => this.$scope.apis = response.data );
-    this.ApplicationService.list().then(response => this.$scope.applications = response.data );
-  }
+// tslint:disable-next-line:interface-name
+export interface PageQuery {
+  page: number;
+  size: number;
 }
-export default AuditController;

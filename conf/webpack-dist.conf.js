@@ -135,6 +135,10 @@ module.exports = {
         from: './node_modules/@gravitee/ui-components/assets/i18n',
         to: 'i18n'
       },
+      {
+        from: './node_modules/@gravitee/ui-components/assets/icons',
+        to: 'icons'
+      },
       {from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html'}
     ], {
       copyUnmodified: true

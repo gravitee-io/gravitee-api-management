@@ -17,6 +17,7 @@ import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import { ApplicationType } from '../../../../entities/application';
 import _ = require('lodash');
+import ApiService from '../../../../services/api.service';
 
 class ApplicationCreationController {
   application: any;
@@ -27,9 +28,11 @@ class ApplicationCreationController {
   private selectedPlans: any[] = [];
   private messageByPlan: any = {};
   private applicationType: string;
+  private apis: any[] = [];
 
   constructor(private Constants, private $state, private $mdDialog, private ApplicationService: ApplicationService,
-              private NotificationService: NotificationService, private $q) {
+              private NotificationService: NotificationService, private $q,
+              private ApiService: ApiService) {
     'ngInject';
     this.steps = [{
       badgeClass: 'disable',
@@ -51,6 +54,11 @@ class ApplicationCreationController {
       completed: false
     }];
   }
+
+  $onInit() {
+    this.ApiService.list().then(response => this.apis = response.data );
+  }
+
 
   next() {
     this.steps[this.selectedStep].completed = true;

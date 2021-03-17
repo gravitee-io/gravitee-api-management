@@ -69,6 +69,9 @@ class CategoryController {
       }
       return comparison;
     });
+    if (this.pages && this.pages.length > 0) {
+      this.pages.unshift({});
+    }
     let self = this;
     this.$scope.$on('apiPictureChangeSuccess', function(event, args) {
       if (!self.category) {

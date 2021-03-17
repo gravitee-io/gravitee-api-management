@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { PageQuery } from '../entities/pageQuery';
 
 class GroupService {
 
@@ -46,8 +47,23 @@ class GroupService {
     return this.$http.get(this.groupsURL);
   }
 
-  getMembers(groupId): ng.IPromise<any> {
-    return this.$http.get([this.groupsURL, groupId, 'members'].join('/'));
+  getMembers(groupId: string, page?: PageQuery, opts?: any): ng.IPromise<any> {
+
+    let url = [this.groupsURL, groupId, 'members'].join('/');
+
+    if (page !== undefined) {
+      url = url + '/_paged';
+    }
+
+    if (opts === undefined) {
+      opts = {};
+    }
+
+    opts.params = {
+      ...page
+    };
+
+    return this.$http.get(url, opts);
   }
 
   create(newGroup): ng.IPromise<any> {

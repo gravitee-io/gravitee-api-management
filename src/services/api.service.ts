@@ -66,28 +66,47 @@ class ApiService {
     return this.Constants.env.settings.analytics.clientTimeout as number;
   }
 
-  list(category?: string, portal?: boolean, opts?: any): ng.IPromise<any> {
-    let params = '';
-    if (category !== undefined && category !== null) {
-      params += '?category=' + category;
+  list(category?: string, portal?: boolean, page?: any, order?: string, opts?: any): ng.IPromise<any> {
+    let url = this.apisURL;
+
+    // Fallback to paginated list if a page parameter is provided.
+    if (page !== undefined) {
+      url = url + '_paged';
     }
-    if (portal !== undefined) {
-      if (params === '') {
-        params += '?';
-      } else {
-        params += '&';
-      }
-      params += 'portal=' + portal;
+
+    if (opts === undefined) {
+      opts = {};
     }
-    return this.$http.get(this.apisURL + params, {}, opts);
+
+    opts.params = {
+      category: category,
+      portal: portal,
+      page: page,
+      order: order
+    };
+
+    return this.$http.get(url, opts);
   }
 
-  searchApis(query?: string, opts?: any): ng.IPromise<any> {
-    if (query) {
-      return this.$http.post(this.apisURL + '_search?q=' + query, {}, opts);
-    } else {
-      return this.$http.post(this.apisURL + '_search?q=*', {}, opts);
+  searchApis(query?: string, page?: any, order?: string, opts?: any): ng.IPromise<any> {
+    let url = this.apisURL + '_search/';
+
+    // Fallback to paginated search if a page parameter is provided.
+    if (page !== undefined) {
+      url = url + '_paged';
     }
+
+    if (opts === undefined) {
+      opts = {};
+    }
+
+    opts.params = {
+      q: query ? query : '*',
+      page: page,
+      order: order
+    };
+
+    return this.$http.post(url, {}, opts);
   }
 
   listTopAPIs(): ng.IPromise<any> {
