@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
+import io.gravitee.rest.api.model.settings.Logging;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.impl.ConfigServiceImpl;
 import org.junit.Test;
@@ -211,10 +212,30 @@ public class ConfigServiceTest {
     public void shouldCreateConsoleSettings() {
         ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
         consoleSettingsEntity.getAlert().setEnabled(true);
+        Logging logging = new Logging();
+        logging.setMaxDurationMillis(3000l);
+        Logging.Audit audit = new Logging.Audit();
+        audit.setEnabled(true);
+        Logging.Audit.AuditTrail trail = new Logging.Audit.AuditTrail();
+        trail.setEnabled(true);
+        audit.setTrail(trail);
+        logging.setAudit(audit);
+        Logging.User user = new Logging.User();
+        user.setDisplayed(true);
+        logging.setUser(user);
+        consoleSettingsEntity.setLogging(logging);
         when(mockParameterService.save(ALERT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION)).thenReturn(new Parameter());
+        when(mockParameterService.save(LOGGING_DEFAULT_MAX_DURATION, "3000", "DEFAULT", ParameterReferenceType.ORGANIZATION)).thenReturn(new Parameter());
+        when(mockParameterService.save(LOGGING_USER_DISPLAYED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION)).thenReturn(new Parameter());
+        when(mockParameterService.save(LOGGING_AUDIT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION)).thenReturn(new Parameter());
+        when(mockParameterService.save(LOGGING_AUDIT_TRAIL_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION)).thenReturn(new Parameter());
 
         configService.save(consoleSettingsEntity);
 
         verify(mockParameterService, times(1)).save(ALERT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1)).save(LOGGING_DEFAULT_MAX_DURATION, "3000", "DEFAULT", ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1)).save(LOGGING_USER_DISPLAYED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1)).save(LOGGING_AUDIT_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
+        verify(mockParameterService, times(1)).save(LOGGING_AUDIT_TRAIL_ENABLED, "true", "DEFAULT", ParameterReferenceType.ORGANIZATION);
     }
 }
