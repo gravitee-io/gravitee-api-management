@@ -65,11 +65,11 @@
       <div class="page__box-content">
           <div class="page__box-row">
             <span>{{'application.subscriptions.processed_at' | translate}}</span>
-            {{ selectedSubscription.processed_at | localizedDate }}
+            {{ selectedSubscription.processed_at | localizedDate: 'shortDate': '--' }}
           </div>
           <div class="page__box-row">
             <span>{{'application.subscriptions.start_at' | translate}}</span>
-            {{ selectedSubscription.start_at | localizedDate }}
+            {{ selectedSubscription.start_at | localizedDate: 'shortDate': '--' }}
           </div>
       </div>
       <div class="page__box-footer form__actions">

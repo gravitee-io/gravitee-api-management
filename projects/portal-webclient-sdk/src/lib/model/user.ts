@@ -11,6 +11,7 @@
  */
 import { UserLinks } from './userLinks';
 import { UserConfig } from './userConfig';
+import { UserPermissions } from './userPermissions';
 
 
 export interface User { 
@@ -26,6 +27,11 @@ export interface User {
     last_name?: string;
     display_name?: string;
     email?: string;
+    /**
+     * True if the user can edit the MyAccount information
+     */
+    editable_profile?: boolean;
+    permissions?: UserPermissions;
     /**
      * Values for CustomUserFields
      */

@@ -15,18 +15,18 @@
  */
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
-import { Role } from '../model/role.enum';
 import { CurrentUserService } from './current-user.service';
 
 @Injectable({ providedIn: 'root' })
 export class PermissionGuardService implements CanActivate {
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private currentUserService: CurrentUserService,) {
   }
 
   canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
     let canActivate: boolean | UrlTree = true;
-    const permissions = route.data.permissions;
+    const permissions = route.data.permissions ||
+      (this.currentUserService.get().getValue() && this.currentUserService.get().getValue().permissions);
     if (permissions && route.data && route.data.expectedPermissions) {
       const expectedPermissions = route.data.expectedPermissions;
       const expectedPermissionsObject = {};

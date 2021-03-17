@@ -59,8 +59,9 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     this.subscription = this.currentUserService.get().subscribe((user) => {
       this.currentUser = user;
       const formDescriptor: any = {
-        display_name: new FormControl( { value: this.displayName, disabled: true }, Validators.required),
-        email: new FormControl({ value: this.email, disabled: true }, Validators.required),
+        last_name: new FormControl( { value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
+        first_name: new FormControl( { value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
+        email: new FormControl({ value: this.email, disabled: !this.isProfileEditable }, Validators.email),
         avatar: new FormControl(this.avatar)
       };
 
@@ -110,9 +111,16 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     return this.currentUser._links ? this.currentUser._links.avatar : null;
   }
 
-  get displayName() {
+  get firstName() {
     if (this.currentUser) {
-      return this.currentUser.first_name ? `${this.currentUser.first_name} ${this.currentUser.last_name}` : this.currentUser.display_name;
+      return this.currentUser.first_name;
+    }
+    return '';
+  }
+
+  get lastName() {
+    if (this.currentUser) {
+      return this.currentUser.last_name;
     }
     return '';
   }
@@ -124,8 +132,18 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  get isProfileEditable() {
+    if (this.currentUser) {
+      return this.currentUser.editable_profile;
+    }
+    return false;
+  }
+
   reset() {
     this.userForm.get('avatar').patchValue(this.avatar);
+    this.userForm.get('first_name').patchValue(this.firstName);
+    this.userForm.get('last_name').patchValue(this.lastName);
+    this.userForm.get('email').patchValue(this.email);
 
     if (this.customUserFields) {
       this.customUserFields.forEach((field) => {
@@ -138,12 +156,18 @@ export class UserAccountComponent implements OnInit, OnDestroy {
 
   submit() {
     const userInput: any = {
-      id:  this.currentUser.id
+      id:  this.currentUser.id,
+      first_name: this.userForm.get('first_name').value,
+      last_name: this.userForm.get('last_name').value,
+      email: this.userForm.get('email').value
     };
 
     if (this.avatarHasChanged) {
       const avatarProp = 'avatar';
-      userInput[avatarProp] = this.userForm.get(avatarProp).value;
+      const avatarValue = this.userForm.get(avatarProp).value;
+      // if avatar start with "http", the avatar doesn't changed, do not
+      // send it to the REST API to avoid reset user avatar
+      userInput[avatarProp] =  avatarValue && avatarValue.startsWith('http') ? null : avatarValue;
     }
 
     if (this.customUserFields && this.customUserFields.length >0 ) {

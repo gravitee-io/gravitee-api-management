@@ -54,9 +54,8 @@ export class ApiSubscribeComponent implements OnInit {
   private _missingClientIdLabel: any;
   private _allSubscriptions: Array<Subscription>;
   private _subscription: Subscription;
-  private currentGeneralConditions: Page;
-
-  private generalConditions: Map<string, Page> = new Map();
+  private _currentGeneralConditions: Page;
+  private _generalConditions: Map<string, Page>;
 
   steps: any;
   currentStep: number;
@@ -85,13 +84,17 @@ export class ApiSubscribeComponent implements OnInit {
               private formBuilder: FormBuilder,
               private configurationService: ConfigurationService
   ) {
-    this.currentStep = 1;
-    this.skeleton = true;
-    this._applications = [];
-    this._canSubscribe = true;
+
   }
 
   async ngOnInit() {
+    this.currentStep = 1;
+    this._currentPlan = null;
+    this.skeleton = true;
+    this._applications = [];
+    this._canSubscribe = true;
+    this._generalConditions = new Map<string, Page>();
+    this._currentGeneralConditions = null;
     this.connectedApps = [];
     this.subscribeForm = this.formBuilder.group({
       application: new FormControl(null, [Validators.required]),
@@ -146,11 +149,11 @@ export class ApiSubscribeComponent implements OnInit {
 
         });
 
-        this.subscribeForm.valueChanges
+      this.subscribeForm.valueChanges
         .pipe(distinctUntilChanged((prev, curr) => prev.general_conditions_accepted === curr.general_conditions_accepted))
         .subscribe(() => {
           if (this.subscribeForm.get('general_conditions_accepted').value === true) {
-            this.subscribeForm.get('general_conditions_content_revision').setValue(this.currentGeneralConditions.contentRevisionId);
+            this.subscribeForm.get('general_conditions_content_revision').setValue(this._currentGeneralConditions.contentRevisionId);
           } else {
             this.subscribeForm.get('general_conditions_content_revision').setValue(null);
           }
@@ -207,20 +210,21 @@ export class ApiSubscribeComponent implements OnInit {
       if (this._currentPlan == null || this._currentPlan.id !== planId) {
         this._currentPlan = this.findPlanById(planId);
         if (this.planHasGeneralConditions()) {
-          if (this.generalConditions.get(this._currentPlan.general_conditions) === undefined) {
+          if (this._generalConditions.get(this._currentPlan.general_conditions) == null) {
             this.apiService.getPageByApiIdAndPageId({
               apiId: this.apiId,
-              pageId:this._currentPlan.general_conditions,
-              include: ['content'] }).toPromise()
-            .then((p) => {
-              this.generalConditions.set(p.id, p);
-              this.currentGeneralConditions = p;
-            });
+              pageId: this._currentPlan.general_conditions,
+              include: ['content']
+            }).toPromise()
+              .then((p) => {
+                this._generalConditions.set(p.id, p);
+                this._currentGeneralConditions = p;
+              });
           } else {
-            this.currentGeneralConditions = this.generalConditions.get(this._currentPlan.general_conditions);
+            this._currentGeneralConditions = this._generalConditions.get(this._currentPlan.general_conditions);
           }
         } else {
-          this.currentGeneralConditions = null;
+          this._currentGeneralConditions = null;
         }
       }
       return this._currentPlan;
@@ -273,14 +277,11 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   getCurrentGeneralConditions() {
-    return this.currentGeneralConditions;
-  }
-  planHasGeneralConditions() {
-    return this._currentPlan && this._currentPlan.general_conditions && this._currentPlan.general_conditions !== '';
+    return this._currentGeneralConditions;
   }
 
-  hasAcceptedGeneralCondition() {
-    return !this.planHasGeneralConditions() || (this.subscribeForm.value.general_conditions_accepted === true)
+  planHasGeneralConditions() {
+    return this._currentPlan && this._currentPlan.general_conditions && this._currentPlan.general_conditions !== '';
   }
 
   hasStepper() {
@@ -364,8 +365,12 @@ export class ApiSubscribeComponent implements OnInit {
       } catch (exception) {
         if (exception.error && exception.error.errors) {
           const error = exception.error.errors[0];
-          const translation = await this.translateService.get(error.code).toPromise();
-          this.subscriptionError = translation;
+          if (error.code === 'errors.plan.general_conditions_revision') {
+            return this.ngOnInit();
+          } else {
+            const translation = await this.translateService.get(error.code).toPromise();
+            this.subscriptionError = translation;
+          }
         }
         this.hasSubscriptionError = true;
       } finally {
@@ -413,7 +418,19 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   displayGeneralConditions() {
-    return !(this.hasSubscriptionAccepted() || this.hasSubscriptionPending() || this.hasSubscriptionRejected())
+    if (this.planHasGeneralConditions()) {
+      if (this.hasSubscription() || this.hasSubscriptionError) {
+        return false;
+      }
+      if (this.subscribeForm.valid) {
+        return true;
+      }
+      const invalidControls = Object.values(this.subscribeForm.controls).filter((control) => control.invalid);
+      if (invalidControls.length === 1 && invalidControls[0] === this.subscribeForm.get('general_conditions_accepted')) {
+        return true;
+      }
+    }
+    return false;
   }
 
   getSubscriptionKey() {

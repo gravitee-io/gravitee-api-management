@@ -434,6 +434,7 @@
         "description": "Najděte API pro vaši aplikaci a přidejte plány, které chcete přihlásit k odběru"
       },
       "remove": "Odstranit",
+      "resubscribe": "Zkus to znovu",
       "subscribe": "Předplatit",
       "validation": {
         "auto": "Automatické",
@@ -613,6 +614,7 @@
       "title": "Vaše aplikace"
     },
     "empty": "Zatím nemáte aplikaci",
+    "noApplicationPermission": "Na palubní desce není nic",
     "stats": {
       "avg": "průměrná doba odezvy",
       "max": "maximální doba odezvy",
@@ -650,8 +652,9 @@
       "invalid": "Heslo není platné podle platných pravidel\n"
     },
     "plan": {
-      "general_conditions_accept": "Plán {plan} vyžadoval přijetí obecných podmínek.",
-      "general_conditions_status": "Plan {plan} odkazuje na nezveřejněnou stránku jako obecné podmínky.",
+      "general_conditions_accept": "Plán {plan} vyžaduje souhlas s obecnými podmínkami použití.",
+      "general_conditions_revision": "Obecné podmínky používání plánu {plan} se změnily.",
+      "general_conditions_status": "Odkazy na plán {plan} na nepublikovanou stránku podmínek použití.",
       "notSubscribable": "K objednání plánu OAuth2 nebo JWT je vyžadován identifikátor client_id.",
       "otherOAuth2OrJWTSubscribed": "Další plán OAuth2 nebo JWT je již předplacen stejnou aplikací",
       "subscribed": "Pro tento plán již existuje předplatné PENDING nebo ACCEPTED."
@@ -1007,8 +1010,9 @@
       "title": "Osobní údaje"
     },
     "change_picture": "Změnit fotografii",
-    "display_name": "Jméno:",
     "email": "Email:",
+    "first_name": "Křestní jméno",
+    "last_name": "Přijmení",
     "notifications": {
       "empty": "Nebylo přijato žádné oznámení",
       "read": "Přečtěte si",

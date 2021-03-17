@@ -22,6 +22,7 @@ import { Router } from '@angular/router';
 import { ScrollService } from 'src/app/services/scroll.service';
 import '@gravitee/ui-components/wc/gv-button';
 import { dispatchCustomEvent } from '@gravitee/ui-components/src/lib/events';
+import { ConfigurationService } from 'src/app/services/configuration.service';
 
 @Component({
   selector: 'app-gv-page-markdown',
@@ -36,10 +37,12 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   pageContent: string;
   pageElementsPosition: any[];
   page: Page;
+  baseURL: string;
 
   @ViewChild('mdContent', { static: false }) mdContent: ElementRef;
 
   constructor(
+    private configurationService: ConfigurationService,
     private pageService: PageService,
     private router: Router,
     private scrollService: ScrollService,
@@ -48,6 +51,8 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.baseURL = this.configurationService.get('baseURL');
+
     this.page = this.pageService.getCurrentPage();
     if (this.page && this.page.content) {
       marked.use({ renderer: this.renderer });
@@ -65,27 +70,25 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
   private get renderer() {
     const defaultRenderer = new marked.Renderer();
-
+    const that = this;
     return {
       image(href, title, text) {
         // is it a portal media ?
-        let parsedURL = /.*\/environments\/([A-Za-z0-9-]*)\/portal\/media\/([A-Za-z0-9]*).*/g.exec(href);
+        let parsedURL = /.*\/environments\/[A-Za-z0-9-]*\/portal\/media\/([A-Za-z0-9]*).*/g.exec(href);
         if (parsedURL) {
-          const portalHref = `/portal/environments/${parsedURL[1]}/media/${parsedURL[2]}`;
+          const portalHref = `${that.baseURL}/media/${parsedURL[1]}`;
           return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
         } else {
           // is it a API media ?
-          parsedURL = /\/management\/organizations\/[A-Za-z0-9-]*\/environments\/([A-Za-z0-9-]*)\/apis\/.*/g.exec(href);
+          parsedURL = /.*\/environments\/[A-Za-z0-9-]*\/apis\/([A-Za-z0-9-]*)\/media\/([A-Za-z0-9-]*).*/g.exec(href);
           if (parsedURL) {
-            const portalHref = href.replace(/\/management\/organizations\/[A-Za-z0-9-]*/g, '/portal');
+            const portalHref = `${that.baseURL}/apis/${parsedURL[1]}/media/${parsedURL[2]}`;
             return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
           }
         }
         return defaultRenderer.image(href, title, text);
       },
-
-      link(href, title, text) {
-        // is it a portal page URL ?
+      link(href, title, text) {        // is it a portal page URL ?
         let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
         if (!parsedURL) {
           // is it a API page URL ?
