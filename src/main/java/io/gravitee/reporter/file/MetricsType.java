@@ -26,7 +26,6 @@ import io.gravitee.reporter.api.monitor.Monitor;
  * @author GraviteeSource Team
  */
 public enum MetricsType {
-
     REQUEST("request", Metrics.class),
     NODE("node", Monitor.class),
     HEALTH_CHECK("health-check", EndpointStatus.class),

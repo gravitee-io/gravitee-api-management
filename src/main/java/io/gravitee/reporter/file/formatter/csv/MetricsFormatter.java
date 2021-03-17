@@ -17,7 +17,6 @@ package io.gravitee.reporter.file.formatter.csv;
 
 import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.core.buffer.Buffer;
-
 import java.util.Iterator;
 import java.util.Map;
 
@@ -31,7 +30,7 @@ public final class MetricsFormatter extends SingleValueFormatter<Metrics> {
         final Map<String, String> customMetrics = metrics.getCustomMetrics();
 
         final Buffer buffer = Buffer.buffer();
-        
+
         appendString(buffer, metrics.getTransactionId());
         appendString(buffer, metrics.getRequestId());
         appendLong(buffer, metrics.timestamp().toEpochMilli());
