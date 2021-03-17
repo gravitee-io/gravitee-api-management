@@ -107,7 +107,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
 
             LOGGER.debug("Register subscription repository implementation {}", SubscriptionRepositoryWrapper.class.getName());
             beanFactory.registerSingleton(SubscriptionRepository.class.getName(),
-                    new SubscriptionRepositoryWrapper(cacheManager.getCache(CACHE_NAME)));
+                    new SubscriptionRepositoryWrapper(subscriptionRepository, cacheManager.getCache(CACHE_NAME)));
 
             eventManager.subscribeForEvents(this, ReactorEvent.class);
 
