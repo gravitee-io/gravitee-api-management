@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.GroupMembership;
+import io.gravitee.rest.api.management.rest.model.Pageable;
+import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
@@ -80,20 +83,43 @@ public class GroupMembersResource extends AbstractResource {
             @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ)
     })
     public List<GroupMemberEntity> getGroupMembers() {
+        return new ArrayList<>(getGroupMembers(null).getData());
+    }
+
+    @GET
+    @Path("_paged")
+    @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "List group members with pagination")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of group's members", response = MemberEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ)
+    })
+    public PagedResult<GroupMemberEntity> getGroupMembers(@Valid @BeanParam Pageable pageable) {
         //check that group exists
         groupService.findById(group);
 
-        Map<String, List<MemberEntity>> members = membershipService.
-                getMembersByReference(MembershipReferenceType.GROUP, group).
-                stream().
-                filter(Objects::nonNull).
-                collect(Collectors.groupingBy(MemberEntity::getId));
+        io.gravitee.rest.api.model.common.Pageable commonPageable = null;
 
-        return members.keySet().stream().
+        if(pageable != null) {
+            commonPageable = pageable.toPageable();
+        }
+
+        Page<MemberEntity> membersPage = membershipService.getMembersByReference(MembershipReferenceType.GROUP, group, commonPageable);
+
+        Map<String, List<MemberEntity>> members = membersPage
+                .getContent()
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(MemberEntity::getId));
+
+        List<GroupMemberEntity> groupMemberEntities = members.keySet().stream().
                 map(id -> {
                     Map<String, String> roles = members.get(id).stream()
-                        .flatMap(m-> m.getRoles().stream())
-                        .collect(Collectors.toMap(role -> role.getScope().name(), RoleEntity::getName));
+                            .flatMap(m -> m.getRoles().stream())
+                            .collect(Collectors.toMap(role -> role.getScope().name(), RoleEntity::getName));
 
                     GroupMemberEntity groupMemberEntity = new GroupMemberEntity(members.get(id).get(0));
                     groupMemberEntity.setRoles(roles);
@@ -101,6 +127,12 @@ public class GroupMembersResource extends AbstractResource {
                 }).
                 sorted(Comparator.comparing(GroupMemberEntity::getId)).
                 collect(toList());
+
+        return new PagedResult<>(
+                groupMemberEntities,
+                membersPage.getPageNumber(),
+                (int) membersPage.getPageElements(),
+                (int) membersPage.getTotalElements());
     }
 
     @POST

@@ -105,7 +105,7 @@ public class ApplicationService_FindByUserTest {
         when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
                 thenReturn(Collections.singleton(application));
         when(application.getEnvironmentId()).thenReturn("envId");
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(mock(RoleEntity.class)));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
         
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USERNAME);
@@ -165,7 +165,7 @@ public class ApplicationService_FindByUserTest {
                 thenReturn(ApplicationType.SIMPLE);
         when(groupApplication.getEnvironmentId()).
                 thenReturn("envId");
-        
+
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)).
                 thenReturn(Collections.singleton(appMembership));
         
@@ -174,7 +174,7 @@ public class ApplicationService_FindByUserTest {
         
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(RoleScope.APPLICATION);
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(role));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(role);
         when(roleService.findById(any())).thenReturn(role);
 
         when(applicationRepository.findByIds(any())).

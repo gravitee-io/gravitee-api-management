@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserMetadataService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MetadataNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer;
@@ -74,10 +75,12 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
 
     @Override
     public List<UserMetadataEntity> findAllByUserId(String userId) {
-        final List<ReferenceMetadataEntity> allMetadata = findAllByReference(USER, userId, false);
-        return allMetadata.stream()
-                .map(m -> convert(m, userId))
-                .collect(toList());
+        return GraviteeContext.getCurrentUsersMetadata().computeIfAbsent(userId, k -> {
+            final List<ReferenceMetadataEntity> allMetadata = findAllByReference(USER, userId, false);
+            return allMetadata.stream()
+                    .map(m -> convert(m, userId))
+                    .collect(toList());
+        });
     }
 
     @Override

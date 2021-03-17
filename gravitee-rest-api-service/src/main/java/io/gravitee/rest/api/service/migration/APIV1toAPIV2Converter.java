@@ -27,6 +27,7 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -141,6 +142,7 @@ public class APIV1toAPIV2Converter {
     private List<Plan> migratePlans(Set<PlanEntity> plans, Set<PolicyEntity> policies) {
         return plans
                 .stream()
+                .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
                 .map(planEntity -> {
                     final Plan plan = new Plan();
                     plan.setId(planEntity.getId());

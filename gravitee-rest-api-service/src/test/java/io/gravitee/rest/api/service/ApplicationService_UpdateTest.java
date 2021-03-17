@@ -114,7 +114,7 @@ public class ApplicationService_UpdateTest {
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.update(any())).thenReturn(application);
         
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(mock(RoleEntity.class)));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);
@@ -179,7 +179,7 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(application);
         
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(mock(RoleEntity.class)));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);

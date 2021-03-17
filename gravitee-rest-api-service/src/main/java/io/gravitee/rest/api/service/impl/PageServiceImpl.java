@@ -975,6 +975,18 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 }
             }
 
+            // if the page is used by a category,
+            // we can't unpublish it
+            if (PageReferenceType.ENVIRONMENT.equals(pageToUpdate.getReferenceType())) {
+                if (updatePageEntity.isPublished() != null && !updatePageEntity.isPublished()) {
+                    List<CategoryEntity> categoriesUsingPage = categoryService.findByPage(pageId);
+                    if (!categoriesUsingPage.isEmpty()) {
+                        String categoriesName = categoriesUsingPage.stream().map(CategoryEntity::getName).collect(Collectors.joining(", ", "{ ", " }"));
+                        throw new PageUsedByCategoryException(pageId, page.getName(), "unpublish", categoriesName);
+                    }
+                }
+            }
+
             // if order change, reorder all pages
             if (page.getOrder() != pageToUpdate.getOrder()) {
                 reorderAndSavePages(page);

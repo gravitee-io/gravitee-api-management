@@ -15,11 +15,18 @@
  */
 package io.gravitee.rest.api.service.common;
 
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.UserMetadataEntity;
+import io.gravitee.rest.api.model.parameters.Key;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -31,11 +38,19 @@ public class GraviteeContext {
 
     private static final String CURRENT_ENVIRONMENT_CONTEXT_KEY = "currentEnvironment";
     private static final String CURRENT_ORGANIZATION_CONTEXT_KEY = "currentOrganization";
+    private static final String ROLES_CONTEXT_CACHE_KEY = "currentRoles";
+    private static final String USERS_CONTEXT_CACHE_KEY = "currentUsers";
+    private static final String USERS_METADATA_CONTEXT_CACHE_KEY = "currentUsersMetadata";
+    private static final String PARAMETERS_CONTEXT_CACHE_KEY = "currentParameters";
 
     private static final ThreadLocal<Map<String, Object>> contextThread = ThreadLocal.withInitial(() -> {
         Map<String, Object> propertiesMap = new HashMap<>();
         propertiesMap.put(CURRENT_ENVIRONMENT_CONTEXT_KEY, DEFAULT_ENVIRONMENT);
         propertiesMap.put(CURRENT_ORGANIZATION_CONTEXT_KEY, DEFAULT_ORGANIZATION);
+        propertiesMap.put(ROLES_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
+        propertiesMap.put(USERS_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
+        propertiesMap.put(USERS_METADATA_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
+        propertiesMap.put(PARAMETERS_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
         return propertiesMap;
     });
 
@@ -70,6 +85,22 @@ public class GraviteeContext {
 
     public static String getDefaultOrganization() {
         return DEFAULT_ORGANIZATION;
+    }
+
+    public static ConcurrentMap<Key, String> getCurrentParameters() {
+        return (ConcurrentMap) contextThread.get().get(PARAMETERS_CONTEXT_CACHE_KEY);
+    }
+
+    public static ConcurrentMap<String, RoleEntity> getCurrentRoles() {
+        return (ConcurrentMap) contextThread.get().get(ROLES_CONTEXT_CACHE_KEY);
+    }
+
+    public static ConcurrentMap<String, UserEntity> getCurrentUsers() {
+        return (ConcurrentMap) contextThread.get().get(USERS_CONTEXT_CACHE_KEY);
+    }
+
+    public static ConcurrentMap<String, List<UserMetadataEntity>> getCurrentUsersMetadata() {
+        return (ConcurrentMap) contextThread.get().get(USERS_METADATA_CONTEXT_CACHE_KEY);
     }
 
     public static ReferenceContext getCurrentContext() {
@@ -112,6 +143,6 @@ public class GraviteeContext {
     }
 
     public enum ReferenceContextType {
-        ENVIRONMENT, ORGANIZATION;
+        ENVIRONMENT, ORGANIZATION
     }
 }

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
@@ -32,6 +33,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -59,7 +61,9 @@ public class ApiPageResource extends AbstractResource {
             @PathParam("apiId") String apiId,
             @PathParam("pageId") String pageId,
             @QueryParam("include") List<String> include) {
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
             final ApiEntity apiEntity = apiService.findById(apiId);
@@ -97,7 +101,9 @@ public class ApiPageResource extends AbstractResource {
     @RequirePortalAuth
     public Response getPageContentByApiIdAndPageId(@PathParam("apiId") String apiId,
             @PathParam("pageId") String pageId) {
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             final ApiEntity apiEntity = apiService.findById(apiId);

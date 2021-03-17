@@ -360,8 +360,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                         });
             }
 
-            removePlanFromApiDefinition(planId, plan);
-
             // Save plan
             plan = planRepository.update(plan);
 
@@ -402,8 +400,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                     throw new PlanWithSubscriptionsException(plan);
                 }
             }
-
-            removePlanFromApiDefinition(plan, optPlan.get());
 
             // Delete plan
             planRepository.delete(plan);
@@ -454,25 +450,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         return plan;
     }
 
-    private void removePlanFromApiDefinition(String planId, Plan plan) {
-        // Remove plan from api definition
-        String apiId = plan.getApi();
-        if (apiId != null) {
-            ApiEntity api = apiService.findById(apiId);
-            if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
-                List<io.gravitee.definition.model.Plan> plans = api.getPlans().stream()
-                    .filter(plan1 -> plan1.getId() != null && !plan1.getId().equals(planId))
-                    .collect(Collectors.toList());
 
-                UpdateApiEntity updateApiEntity = ApiService.convert(api);
-                updateApiEntity.setPlans(plans);
-
-                if (api.getPlans().size() != updateApiEntity.getPlans().size()) {
-                    apiService.update(apiId, updateApiEntity);
-                }
-            }
-        }
-    }
 
     @Override
     public PlanEntity publish(String planId) {

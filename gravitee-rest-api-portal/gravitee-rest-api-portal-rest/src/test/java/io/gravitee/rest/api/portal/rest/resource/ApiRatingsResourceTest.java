@@ -37,10 +37,11 @@ import java.util.List;
 import java.util.Set;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -64,7 +65,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         RatingEntity rating1 = new RatingEntity();
         RatingEntity rating2 = new RatingEntity();
@@ -92,8 +93,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         //test
         final Response response = target(API).path("ratings").request().get();
@@ -179,8 +179,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         //init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any());
+        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         //test
         RatingInput ratingInput = new RatingInput()

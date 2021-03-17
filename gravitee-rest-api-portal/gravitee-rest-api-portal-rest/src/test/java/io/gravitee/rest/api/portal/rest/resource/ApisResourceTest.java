@@ -35,8 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 
 /**
@@ -244,7 +243,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         searchedApi.setName("3");
         searchedApi.setId("3");
 
-        doReturn(new HashSet<>(Arrays.asList(searchedApi))).when(apiService).search(any(), any());
+        doReturn(new HashSet<>(Arrays.asList(searchedApi))).when(apiService).search(any(), anyMap());
         final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 

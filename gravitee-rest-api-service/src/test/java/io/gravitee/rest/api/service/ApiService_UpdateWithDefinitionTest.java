@@ -126,7 +126,7 @@ public class ApiService_UpdateWithDefinitionTest {
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(any(), eq("PRIMARY_OWNER"))).thenReturn(Optional.of(poRoleEntity));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
 
@@ -192,7 +192,7 @@ public class ApiService_UpdateWithDefinitionTest {
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRole));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
         RoleEntity ownerRole = new RoleEntity();
         ownerRole.setId("API_OWNER");
 
@@ -234,7 +234,7 @@ public class ApiService_UpdateWithDefinitionTest {
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(any(), eq("PRIMARY_OWNER"))).thenReturn(Optional.of(poRoleEntity));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -266,7 +266,7 @@ public class ApiService_UpdateWithDefinitionTest {
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(any(), eq("PRIMARY_OWNER"))).thenReturn(Optional.of(poRoleEntity));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
 
@@ -297,7 +297,7 @@ public class ApiService_UpdateWithDefinitionTest {
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(any(), eq("PRIMARY_OWNER"))).thenReturn(Optional.of(poRoleEntity));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
         RoleEntity ownerRoleEntity = new RoleEntity();
         ownerRoleEntity.setId("API_OWNER");
 
@@ -333,7 +333,7 @@ public class ApiService_UpdateWithDefinitionTest {
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRole));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -370,7 +370,7 @@ public class ApiService_UpdateWithDefinitionTest {
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRole));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
