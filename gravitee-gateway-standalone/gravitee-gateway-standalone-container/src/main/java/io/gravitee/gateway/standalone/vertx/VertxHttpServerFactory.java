@@ -60,6 +60,7 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         if (httpServerConfiguration.isSecured()) {
             options.setSsl(httpServerConfiguration.isSecured());
             options.setUseAlpn(httpServerConfiguration.isAlpn());
+            options.setSni(httpServerConfiguration.isSni());
 
             // TLS protocol support
             if (httpServerConfiguration.getTlsProtocols() != null) {
