@@ -89,6 +89,7 @@
             <exclude>.*/**</exclude>
             <exclude>**/*.adoc</exclude>
             <exclude>node_modules/**</exclude>
+            <exclude>node/**</exclude>
           </excludes>
         </configuration>
       </plugin>
