@@ -15,25 +15,18 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -44,107 +37,81 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EventsHandler {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(EventsHandler.class);
+public class EventsHandler extends AbstractHandler {
 
     @Autowired
     private EventRepository eventRepository;
 
+    private final static int DEFAULT_PAGE_SIZE = 10;
+    private final static int DEFAULT_PAGE_NUMBER = 1;
+
     public void search(RoutingContext ctx) {
-        HttpServerResponse response = ctx.response();
+        final JsonObject searchPayload = ctx.getBodyAsJson();
+        final EventCriteria eventCriteria = readCriteria(searchPayload);
 
-        try {
-            JsonObject searchPayload = ctx.getBodyAsJson();
-            EventCriteria eventCriteria = readCriteria(searchPayload);
+        final String sPageNumber = ctx.request().getParam("page");
 
-            String pageNumber = ctx.request().getParam("page");
-            if (pageNumber != null) {
-                String pageSize = ctx.request().getParam("size");
-                if (pageSize == null || pageSize.isEmpty()) {
-                    pageSize = "10";
+        if (sPageNumber != null) {
+            ctx.vertx().executeBlocking(promise -> {
+                final String sPageSize = ctx.request().getParam("size");
+                int pageSize, pageNumber;
+
+                try {
+                    pageSize = Integer.parseInt(sPageSize);
+                } catch (NumberFormatException nfe) {
+                    pageSize = DEFAULT_PAGE_SIZE;
                 }
 
                 try {
-                    int page = Integer.parseInt(pageNumber);
-                    int size = Integer.parseInt(pageSize);
-
-                    Page<Event> events = eventRepository.search(eventCriteria,
-                            new PageableBuilder().pageNumber(page).pageSize(size).build());
-
-                    response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                    response.setStatusCode(HttpStatusCode.OK_200);
-                    response.setChunked(true);
-
-                    Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                    response.write(Json.prettyMapper.writeValueAsString(events));
+                    pageNumber = Integer.parseInt(sPageNumber);
                 } catch (NumberFormatException nfe) {
-                    response.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
+                    pageNumber = DEFAULT_PAGE_NUMBER;
                 }
-            } else {
-                List<Event> events = eventRepository.search(eventCriteria);
 
-                response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                response.setStatusCode(HttpStatusCode.OK_200);
-                response.setChunked(true);
-
-                Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                response.write(Json.prettyMapper.writeValueAsString(events));
-            }
-        } catch (JsonProcessingException jpe) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to transform data object to JSON", jpe);
+                try {
+                    promise.complete(eventRepository.search(eventCriteria,
+                            new PageableBuilder().pageNumber(pageNumber).pageSize(pageSize).build()));
+                } catch (Exception ex) {
+                    LOGGER.error("Unable to search for events", ex);
+                    promise.fail(ex);
+                }
+            }, (Handler<AsyncResult<Page<Event>>>) event -> handleResponse(ctx, event));
+        } else {
+            ctx.vertx().executeBlocking(
+                    (Handler<Promise<List<Event>>>) promise ->  {
+                        try {
+                            promise.complete(eventRepository.search(eventCriteria));
+                        } catch (Exception ex) {
+                            LOGGER.error("Unable to search for events", ex);
+                            promise.fail(ex);
+                        }
+                    },
+                    event -> handleResponse(ctx, event));
         }
-
-        response.end();
     }
 
     public void create(RoutingContext ctx) {
-        HttpServerResponse response = ctx.response();
-
-        try {
-            Event event = ctx.getBodyAsJson().mapTo(Event.class);
-            Event createdEvent = eventRepository.create(event);
-
-            response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-            response.setStatusCode(HttpStatusCode.OK_200);
-            response.setChunked(true);
-
-            Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            response.write(Json.prettyMapper.writeValueAsString(createdEvent));
-        } catch (JsonProcessingException jpe) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to transform data object to JSON", jpe);
-        } catch (TechnicalException te) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to update an event", te);
-        }
-
-        response.end();
+        ctx.vertx().executeBlocking(promise -> {
+            try {
+                Event event = ctx.getBodyAsJson().mapTo(Event.class);
+                promise.complete(eventRepository.create(event));
+            } catch (Exception ex) {
+                LOGGER.error("Unable to create an event", ex);
+                promise.fail(ex);
+            }
+        }, (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event));
     }
 
     public void update(RoutingContext ctx) {
-        HttpServerResponse response = ctx.response();
-
-        try {
-            Event event = ctx.getBodyAsJson().mapTo(Event.class);
-            Event updatedEvent = eventRepository.update(event);
-
-            response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-            response.setStatusCode(HttpStatusCode.OK_200);
-            response.setChunked(true);
-
-            Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            response.write(Json.prettyMapper.writeValueAsString(updatedEvent));
-        } catch (JsonProcessingException jpe) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to transform data object to JSON", jpe);
-        } catch (TechnicalException te) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to update an event", te);
-        }
-
-        response.end();
+        ctx.vertx().executeBlocking(promise -> {
+            try {
+                Event event = ctx.getBodyAsJson().mapTo(Event.class);
+                promise.complete(eventRepository.update(event));
+            } catch (Exception ex) {
+                LOGGER.error("Unable to update an event", ex);
+                promise.fail(ex);
+            }
+        }, (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event));
     }
 
     private EventCriteria readCriteria(JsonObject payload) {

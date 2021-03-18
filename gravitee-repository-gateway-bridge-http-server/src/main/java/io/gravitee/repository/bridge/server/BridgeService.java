@@ -19,6 +19,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.repository.bridge.server.handler.*;
 import io.gravitee.repository.bridge.server.http.configuration.HttpServerConfiguration;
+import io.gravitee.repository.bridge.server.version.VersionHandler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.Router;
@@ -97,6 +98,8 @@ public class BridgeService  extends AbstractService {
             // Set default handler
             mainRouter.route().handler(ctx -> ctx.fail(HttpStatusCode.NOT_FOUND_404));
 
+            bridgeRouter.route().handler(new VersionHandler());
+
             // Add request handler
             httpServer.requestHandler(mainRouter::accept).listen(event ->
                     LOGGER.info("HTTP server for bridge listening on port {}", event.result().actualPort()));
@@ -116,12 +119,12 @@ public class BridgeService  extends AbstractService {
             // API Plans handler
             ApiPlansHandler apiPlansHandler = new ApiPlansHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPlansHandler);
-            bridgeRouter.get("/apis/:apiId/plans").handler(apiPlansHandler);
+            bridgeRouter.get("/apis/:apiId/plans").handler(apiPlansHandler::handle);
 
             // API Keys handler
             ApiKeysHandler apiKeysHandler = new ApiKeysHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(apiKeysHandler);
-            bridgeRouter.post("/keys/_search").handler(apiKeysHandler);
+            bridgeRouter.post("/keys/_search").handler(apiKeysHandler::handle);
 
             // Subscriptions handler
             SubscriptionsHandler subscriptionsHandler = new SubscriptionsHandler();

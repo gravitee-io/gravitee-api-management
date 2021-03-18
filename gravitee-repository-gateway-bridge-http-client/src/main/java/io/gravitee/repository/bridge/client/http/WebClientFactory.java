@@ -40,11 +40,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -72,8 +70,6 @@ public class WebClientFactory implements FactoryBean<WebClient> {
     private final String propertyPrefix;
 
     private CircuitBreaker circuitBreaker;
-
-    private String clientVersion = Version.RUNTIME_VERSION.MAJOR_VERSION;
 
     public WebClientFactory(String propertyPrefix) {
         this.propertyPrefix = propertyPrefix + ".http.";
@@ -127,19 +123,8 @@ public class WebClientFactory implements FactoryBean<WebClient> {
                                 logger.error(msg);
                                 future.fail(msg);
                             } else {
-                                String serverVersion = version.getString("MAJOR_VERSION");
-
-                                if (serverVersion.equals(clientVersion)) {
-                                    logger.info("Bridge Server connection successful.");
-                                    future.complete(client);
-                                } else {
-                                    String msg = String.format(
-                                            "Bridge client and server versions vary (client:%s - server:%s). They must be the same.",
-                                            clientVersion,
-                                            serverVersion);
-                                    logger.error(msg);
-                                    throw new IllegalStateException(msg);
-                                }
+                                logger.info("Bridge connection successful.");
+                                future.complete(client);
                             }
                         } else {
                             String msg = String.format("Invalid Bridge Server response. Retry in %s ms.", retryDuration);
@@ -156,7 +141,7 @@ public class WebClientFactory implements FactoryBean<WebClient> {
 
     private WebClientOptions getWebClientOptions() {
         WebClientOptions options = new WebClientOptions()
-                .setUserAgent("gio-gw/" + Version.RUNTIME_VERSION.MAJOR_VERSION);
+                .setUserAgent("gio-client-bridge/" + Version.RUNTIME_VERSION.MAJOR_VERSION);
 
         // Add support for proxy
         options.setProxyOptions(getProxyOptions());

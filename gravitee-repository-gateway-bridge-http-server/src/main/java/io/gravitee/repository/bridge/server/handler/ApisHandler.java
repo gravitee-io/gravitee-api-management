@@ -15,20 +15,13 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
@@ -38,66 +31,43 @@ import java.util.Optional;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApisHandler {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ApisHandler.class);
+public class ApisHandler extends AbstractHandler {
 
     @Autowired
     private ApiRepository apiRepository;
 
     public void search(RoutingContext ctx) {
-        HttpServerResponse response = ctx.response();
-        response.setStatusCode(HttpStatusCode.OK_200);
-        response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-        response.setChunked(true);
+        final boolean excludeDefinition = Boolean.parseBoolean(ctx.request().getParam("excludeDefinition"));
+        final boolean excludePicture = Boolean.parseBoolean(ctx.request().getParam("excludePicture"));
+        final ApiFieldExclusionFilter.Builder builder = new ApiFieldExclusionFilter.Builder();
 
-        boolean excludeDefinition = Boolean.parseBoolean(ctx.request().getParam("excludeDefinition"));
-        boolean excludePicture = Boolean.parseBoolean(ctx.request().getParam("excludePicture"));
-        try {
-            final ApiFieldExclusionFilter.Builder builder = new ApiFieldExclusionFilter.Builder();
-            if (excludeDefinition) {
-                builder.excludeDefinition();
-            }
-            if (excludePicture) {
-                builder.excludePicture();
-            }
-            Collection<Api> apis = apiRepository.search(null, builder.build());
-
-            Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            response.write(Json.prettyMapper.writeValueAsString(apis));
-        } catch (JsonProcessingException jpe) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to transform data object to JSON", jpe);
+        if (excludeDefinition) {
+            builder.excludeDefinition();
+        }
+        if (excludePicture) {
+            builder.excludePicture();
         }
 
-        response.end();
+        ctx.vertx().executeBlocking(promise -> {
+            try {
+                promise.complete(apiRepository.search(null, builder.build()));
+            } catch (Exception te) {
+                LOGGER.error("Unable to search for APIs", te);
+                promise.fail(te);
+            }
+        }, (Handler<AsyncResult<Collection<Api>>>) result -> handleResponse(ctx, result));
     }
 
     public void findById(RoutingContext ctx) {
-        HttpServerResponse response = ctx.response();
+        final String sApi = ctx.request().getParam("apiId");
 
-        try {
-            String sApi = ctx.request().getParam("apiId");
-            Optional<Api> optApi = apiRepository.findById(sApi);
-
-            if (optApi == null || !optApi.isPresent()) {
-                response.setStatusCode(HttpStatusCode.NOT_FOUND_404);
-            } else {
-                response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                response.setStatusCode(HttpStatusCode.OK_200);
-                response.setChunked(true);
-
-                Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                response.write(Json.prettyMapper.writeValueAsString(optApi.get()));
+        ctx.vertx().executeBlocking(promise -> {
+            try {
+                promise.complete(apiRepository.findById(sApi));
+            } catch (TechnicalException te) {
+                LOGGER.error("Unable to find an API", te);
+                promise.fail(te);
             }
-        } catch (JsonProcessingException jpe) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to transform data object to JSON", jpe);
-        } catch (TechnicalException te) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to get an API", te);
-        }
-
-        response.end();
+        }, (Handler<AsyncResult<Optional<Api>>>) result -> handleResponse(ctx, result));
     }
 }

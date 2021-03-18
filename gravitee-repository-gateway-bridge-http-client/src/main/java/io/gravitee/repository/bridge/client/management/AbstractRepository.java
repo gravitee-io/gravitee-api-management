@@ -69,7 +69,7 @@ public abstract class AbstractRepository implements InitializingBean {
         try {
             return completable.get();
         } catch (Exception ex) {
-            logger.error("Unexpected error", ex);
+            logger.error("Unexpected error while invoking bridge: {}", ex.getMessage());
             throw new TechnicalException(ex);
         }
     }
