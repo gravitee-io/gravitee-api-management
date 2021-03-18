@@ -46,6 +46,9 @@ class ComponentCtrl implements ng.IComponentController {
     } else {
       mediaURL = this.Constants.env.baseURL + '/portal/media/';
     }
+    if (mediaURL.includes('{:envId}')) {
+      mediaURL = mediaURL.replace('{:envId}', this.Constants.org.currentEnv.id);
+    }
     var toolbarItems = [
       'heading',
       'bold',
