@@ -37,6 +37,7 @@ import { ApplicationsComponent } from './applications.component';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { PermissionsResolver } from '../../resolvers/permissions-resolver.service';
 import { PermissionGuardService } from '../../services/permission-guard.service';
+import { Role } from '../../model/role.enum';
 
 const routes: Routes = [
   { path: '', redirectTo: 'mine', pathMatch: 'full' },
@@ -89,7 +90,8 @@ const routes: Routes = [
         data: {
           icon: 'general:clipboard',
           title: i18n('route.catalogApi'),
-          animation: { type: 'slide', group: 'app', index: 1 }
+          animation: { type: 'slide', group: 'app', index: 1 },
+          expectedPermissions: []
         },
         resolve: {
           applicationType: ApplicationTypeResolver,
@@ -102,6 +104,7 @@ const routes: Routes = [
           icon: 'home:book-open',
           title: i18n('route.metadata'),
           animation: { type: 'slide', group: 'app', index: 2 },
+          expectedPermissions: []
         }
       },
       {
@@ -110,7 +113,8 @@ const routes: Routes = [
         data: {
           icon: 'home:key',
           title: i18n('route.subscriptions'),
-          animation: { type: 'slide', group: 'app', index: 3 }
+          animation: { type: 'slide', group: 'app', index: 3 },
+          expectedPermissions: []
         }
       },
       {
@@ -119,7 +123,8 @@ const routes: Routes = [
         data: {
           icon: 'communication:group',
           title: i18n('route.members'),
-          animation: { type: 'slide', group: 'app', index: 4 }
+          animation: { type: 'slide', group: 'app', index: 4 },
+          expectedPermissions: []
         }
       },
       {
@@ -129,7 +134,8 @@ const routes: Routes = [
           icon: 'shopping:chart-line#1',
           menu: { slots: { right: GvSelectDashboardComponent } },
           title: i18n('route.analyticsApplication'),
-          animation: { type: 'slide', group: 'app', index: 5 }
+          animation: { type: 'slide', group: 'app', index: 5 },
+          expectedPermissions: []
         },
         resolve: {
           dashboards: DashboardsResolver
@@ -141,13 +147,13 @@ const routes: Routes = [
         data: {
           icon: 'communication:clipboard-list',
           title: i18n('route.logsApplication'),
-          animation: { type: 'slide', group: 'app', index: 6 }
+          animation: { type: 'slide', group: 'app', index: 6 },
+          expectedPermissions: []
         }
       },
       {
         path: 'notifications',
         component: ApplicationNotificationsComponent,
-        canActivate: [PermissionGuardService],
         data: {
           icon: 'general:notifications#2',
           title: i18n('route.notifications'),

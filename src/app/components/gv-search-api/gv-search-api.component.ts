@@ -54,6 +54,8 @@ export class GvSearchApiComponent implements OnInit {
           this.options = apisResponse.data.map((a) => {
             const row = document.createElement('gv-row');
             // @ts-ignore
+            row.small = true;
+            // @ts-ignore
             row.item = a;
             return { value: a.name, element: row, id: a.id };
           });

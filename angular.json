@@ -35,14 +35,14 @@
                 "output": "images/"
               },
               {
-                "glob": "**/*.svg",
-                "input": "node_modules/@gravitee/ui-components/assets/icons",
-                "output": "icons/"
-              },
-              {
                 "glob": "**/*.css",
                 "input": "node_modules/@gravitee/ui-components/assets/css",
                 "output": "css/"
+              },
+              {
+                "glob": "**/*.svg",
+                "input": "node_modules/@gravitee/ui-components/assets/icons",
+                "output": "icons/"
               },
               {
                 "glob": "oauth2-redirect.html",

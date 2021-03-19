@@ -72,6 +72,14 @@ export class GvPageSwaggerUIComponent implements OnInit {
     };
   }
 
+  DisableAuthorizePlugin() {
+    return {
+      wrapComponents: {
+        authorizeBtn: () => () => null
+      }
+    };
+  };
+
   refresh(page: Page) {
     if (page) {
       const cfg: any = this._prepareConfig(page);
@@ -88,6 +96,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
     const customPlugins = [];
     if (!this._tryItEnabled(page)) {
       customPlugins.push(this.DisableTryItOutPlugin);
+      customPlugins.push(this.DisableAuthorizePlugin);
     }
 
     let contentAsJson = {};
