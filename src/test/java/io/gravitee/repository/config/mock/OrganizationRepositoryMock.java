@@ -19,6 +19,7 @@ import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -54,7 +55,10 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         final Organization orgUpdated = new Organization();
         orgUpdated.setId("DEFAULT-ORG-update");
         orgUpdated.setName("New name");
-        
+        orgUpdated.setDescription("New description");
+        orgUpdated.setDomainRestrictions(Collections.singletonList("New domain restriction"));
+        orgUpdated.setHrids(Collections.singletonList("New hrid"));
+
         final Organization orgDelete = new Organization();
         orgDelete.setId("DEFAULT-ORG-delete");
         orgDelete.setName("Default org for delete");

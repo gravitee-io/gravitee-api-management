@@ -15,10 +15,7 @@
  */
 package io.gravitee.repository;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -68,10 +65,16 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
         final Organization org = optional.get();
         org.setName("New name");
+        org.setDescription("New description");
+        org.setDomainRestrictions(Collections.singletonList("New domain restriction"));
+        org.setHrids(Collections.singletonList("New hrid"));
 
         final Organization fetchedOrganization = organizationRepository.update(org);
         assertEquals(org.getName(), fetchedOrganization.getName());
-        
+        assertEquals(org.getDescription(), fetchedOrganization.getDescription());
+        assertEquals(org.getHrids(), fetchedOrganization.getHrids());
+        assertEquals(org.getDomainRestrictions(), fetchedOrganization.getDomainRestrictions());
+
         optional = organizationRepository.findById("DEFAULT-ORG-update");
         Assert.assertTrue("Organization to update not found", optional.isPresent());
     }
