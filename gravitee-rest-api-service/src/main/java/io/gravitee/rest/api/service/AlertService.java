@@ -29,6 +29,7 @@ public interface AlertService {
     AlertTriggerEntity create(NewAlertTriggerEntity alert);
     AlertTriggerEntity update(UpdateAlertTriggerEntity alert);
     List<AlertTriggerEntity> findByReference(AlertReferenceType referenceType, String referenceId);
+    List<AlertTriggerEntity> findByReferenceWithEventCounts(AlertReferenceType referenceType, String referenceId);
     void delete(String alertId, String referenceId);
     AlertStatusEntity getStatus();
     Page<AlertEventEntity> findEvents(String alertId, AlertEventQuery eventQuery);

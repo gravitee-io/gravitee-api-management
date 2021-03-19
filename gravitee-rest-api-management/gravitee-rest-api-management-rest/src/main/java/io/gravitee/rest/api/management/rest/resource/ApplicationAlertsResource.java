@@ -62,8 +62,9 @@ public class ApplicationAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = APPLICATION_ALERT, acls = READ)
     })
-    public List<AlertTriggerEntity> getApplicationAlerts() {
-        return alertService.findByReference(APPLICATION, application);
+    public List<AlertTriggerEntity> getApplicationAlerts(@QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
+        return withEventCounts ? alertService.findByReferenceWithEventCounts(APPLICATION, application)
+                : alertService.findByReference(APPLICATION, application);
     }
 
     @GET

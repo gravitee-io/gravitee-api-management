@@ -17,13 +17,16 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.param.AlertAnalyticsParam;
 import io.gravitee.rest.api.management.rest.resource.param.AlertEventSearchParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.AlertAnalyticsQuery;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.AlertAnalyticsService;
 import io.gravitee.rest.api.service.AlertService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -52,6 +55,9 @@ public class PlatformAlertsResource extends AbstractResource {
     @Inject
     private AlertService alertService;
 
+    @Inject
+    private AlertAnalyticsService alertAnalyticsService;
+
     @GET
     @ApiOperation(value = "List configured alerts of the platform",
             notes = "User must have the MANAGEMENT_ALERT[READ] permission to use this service")
@@ -62,8 +68,32 @@ public class PlatformAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
     })
-    public List<AlertTriggerEntity> getPlatformAlerts() {
-        return alertService.findByReference(PLATFORM, PLATFORM_REFERENCE_ID);
+    public List<AlertTriggerEntity> getPlatformAlerts(@QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
+        return withEventCounts ? alertService.findByReferenceWithEventCounts(PLATFORM, PLATFORM_REFERENCE_ID)
+                : alertService.findByReference(PLATFORM, PLATFORM_REFERENCE_ID);
+    }
+
+    @GET
+    @Path("analytics")
+    @ApiOperation(value = "List configured alerts of the platform",
+            notes = "User must have the MANAGEMENT_ALERT[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of alerts", response = AlertTriggerEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
+    })
+    public AlertAnalyticsEntity getPlatformAlertsAnalytics(@BeanParam AlertAnalyticsParam param) {
+        param.validate();
+        return alertAnalyticsService.findByReference(PLATFORM,
+                PLATFORM_REFERENCE_ID,
+                new AlertAnalyticsQuery
+                        .Builder()
+                        .from(param.getFrom())
+                        .to(param.getTo())
+                        .build()
+        );
     }
 
     @GET

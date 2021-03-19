@@ -17,13 +17,16 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.param.AlertAnalyticsParam;
 import io.gravitee.rest.api.management.rest.resource.param.AlertEventSearchParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.AlertAnalyticsQuery;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.alert.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.AlertAnalyticsService;
 import io.gravitee.rest.api.service.AlertService;
 import io.swagger.annotations.*;
 
@@ -47,6 +50,9 @@ public class ApiAlertsResource extends AbstractResource {
     @Inject
     private AlertService alertService;
 
+    @Inject
+    private AlertAnalyticsService alertAnalyticsService;
+
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
     @ApiParam(name = "api", hidden = true)
@@ -62,8 +68,9 @@ public class ApiAlertsResource extends AbstractResource {
     @Permissions({
             @Permission(value = API_ALERT, acls = READ)
     })
-    public List<AlertTriggerEntity> getApiAlerts() {
-        return alertService.findByReference(API, api);
+    public List<AlertTriggerEntity> getApiAlerts(@QueryParam("event_counts") @DefaultValue("true") Boolean withEventCounts) {
+        return withEventCounts ? alertService.findByReferenceWithEventCounts(API, api)
+                : alertService.findByReference(API, api);
     }
 
     @GET
@@ -79,6 +86,29 @@ public class ApiAlertsResource extends AbstractResource {
     })
     public AlertStatusEntity getApiAlertsStatus() {
         return alertService.getStatus();
+    }
+
+    @GET
+    @Path("analytics")
+    @ApiOperation(value = "List configured alerts of the API",
+            notes = "User must have the API_ALERT[READ] permission to use this service")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "List of alerts", response = AlertTriggerEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({
+            @Permission(value = API_ALERT, acls = READ)
+    })
+    public AlertAnalyticsEntity getPlatformAlertsAnalytics(@BeanParam AlertAnalyticsParam param) {
+        param.validate();
+        return alertAnalyticsService.findByReference(API,
+                api,
+                new AlertAnalyticsQuery
+                        .Builder()
+                        .from(param.getFrom())
+                        .to(param.getTo())
+                        .build()
+        );
     }
 
     @POST

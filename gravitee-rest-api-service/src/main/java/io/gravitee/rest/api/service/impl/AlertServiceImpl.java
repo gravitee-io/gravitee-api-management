@@ -242,6 +242,22 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
     @Override
     public List<AlertTriggerEntity> findByReference(final AlertReferenceType referenceType, final String referenceId) {
         try {
+            return alertTriggerRepository.findByReference(referenceType.name(), referenceId)
+                    .stream()
+                    .map(this::convert)
+                    .sorted(comparing(alertTriggerEntity -> alertTriggerEntity != null ? alertTriggerEntity.getName() : null))
+                    .collect(toList());
+        } catch (TechnicalException ex) {
+            final String message = "An error occurs while trying to list alerts by reference " + referenceType
+                    + '/' + referenceId;
+            LOGGER.error(message, ex);
+            throw new TechnicalManagementException(message, ex);
+        }
+    }
+
+    @Override
+    public List<AlertTriggerEntity> findByReferenceWithEventCounts(final AlertReferenceType referenceType, final String referenceId) {
+        try {
             final List<AlertTrigger> triggers = alertTriggerRepository.findByReference(referenceType.name(), referenceId);
             return triggers.stream().map(new Function<AlertTrigger, AlertTriggerEntity>() {
                 @Override
