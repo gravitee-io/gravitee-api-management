@@ -20,7 +20,6 @@ package io.gravitee.reporter.file.formatter.elasticsearch;
  * @author GraviteeSource Team
  */
 public enum Type {
-
     REQUEST("request"),
     HEALTH_CHECK("health"),
     LOG("log"),

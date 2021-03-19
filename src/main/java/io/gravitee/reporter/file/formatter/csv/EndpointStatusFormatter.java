@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.vertx.core.buffer.Buffer;
-
 import java.util.List;
 
 /**
@@ -58,7 +57,7 @@ public class EndpointStatusFormatter extends SingleValueFormatter<EndpointStatus
             Step last = steps.get(0);
             appendString(buffer, last.getName());
             appendBoolean(buffer, last.isSuccess());
-            appendLong(buffer,last.getResponseTime());
+            appendLong(buffer, last.getResponseTime());
             appendString(buffer, last.getMessage(), true);
 
             try {

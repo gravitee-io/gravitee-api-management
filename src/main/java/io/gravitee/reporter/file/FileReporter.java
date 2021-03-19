@@ -24,14 +24,13 @@ import io.gravitee.reporter.file.formatter.FormatterFactory;
 import io.gravitee.reporter.file.vertx.VertxFileWriter;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Vertx;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,9 +53,7 @@ public class FileReporter extends AbstractService implements Reporter {
 
     @Override
     public void report(Reportable reportable) {
-        writers
-                .get(reportable.getClass())
-                .write(reportable);
+        writers.get(reportable.getClass()).write(reportable);
     }
 
     @Override
@@ -72,33 +69,45 @@ public class FileReporter extends AbstractService implements Reporter {
                 Formatter formatter = FormatterFactory.getFormatter(configuration.getOutputType());
                 applicationContext.getAutowireCapableBeanFactory().autowireBean(formatter);
 
-                writers.put(type.getClazz(), new VertxFileWriter<>(
-                        vertx, type, formatter,
-                        configuration.getFilename() + '.' + configuration.getOutputType().getExtension()));
+                writers.put(
+                    type.getClazz(),
+                    new VertxFileWriter<>(
+                        vertx,
+                        type,
+                        formatter,
+                        configuration.getFilename() + '.' + configuration.getOutputType().getExtension()
+                    )
+                );
             }
 
-            CompositeFuture.join(writers.values().stream().map(VertxFileWriter::initialize).collect(Collectors.toList()))
-                    .setHandler(event -> {
+            CompositeFuture
+                .join(writers.values().stream().map(VertxFileWriter::initialize).collect(Collectors.toList()))
+                .setHandler(
+                    event -> {
                         if (event.succeeded()) {
                             logger.info("File reporter successfully started");
                         } else {
                             logger.info("An error occurs while starting file reporter", event.cause());
                         }
-                    });
+                    }
+                );
         }
     }
 
     @Override
     protected void doStop() throws Exception {
         if (enabled) {
-            CompositeFuture.join(writers.values().stream().map(VertxFileWriter::close).collect(Collectors.toList()))
-                    .setHandler(event -> {
+            CompositeFuture
+                .join(writers.values().stream().map(VertxFileWriter::close).collect(Collectors.toList()))
+                .setHandler(
+                    event -> {
                         if (event.succeeded()) {
                             logger.info("File reporter successfully stopped");
                         } else {
                             logger.info("An error occurs while stopping file reporter", event.cause());
                         }
-                    });
+                    }
+                );
         }
     }
 }
