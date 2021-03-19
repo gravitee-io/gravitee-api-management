@@ -35,9 +35,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -137,7 +135,9 @@ public abstract class AbstractResource {
             // fetch group memberships
             final ApiQuery apiQuery = new ApiQuery();
             apiQuery.setGroups(new ArrayList<>(groups));
-            final boolean canReadAPI = apiService.searchIds(apiQuery).contains(api);
+            apiQuery.setIds(Collections.singletonList(api));
+            final Collection<String> strings = apiService.searchIds(apiQuery);
+            final boolean canReadAPI = strings.contains(api);
             if (!canReadAPI) {
                 throw new ForbiddenAccessException();
             }

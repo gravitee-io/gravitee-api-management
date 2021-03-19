@@ -236,21 +236,31 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     @Override
-    public UserEntity findById(String id) {
-        try {
-            LOGGER.debug("Find user by ID: {}", id);
+    public UserEntity findById(String id, boolean defaultValue) {
+        return GraviteeContext.getCurrentUsers().computeIfAbsent(id, k -> {
+            try {
+                LOGGER.debug("Find user by ID: {}", k);
 
-            Optional<User> optionalUser = userRepository.findById(id);
+                Optional<User> optionalUser = userRepository.findById(k);
 
-            if (optionalUser.isPresent()) {
-                return convert(optionalUser.get(), false, userMetadataService.findAllByUserId(id));
+                if (optionalUser.isPresent()) {
+                    return convert(optionalUser.get(), false, userMetadataService.findAllByUserId(k));
+                }
+
+                if (defaultValue) {
+                    UserEntity unknownUser = new UserEntity();
+                    unknownUser.setId(k);
+                    unknownUser.setFirstname("Unknown user");
+                    return unknownUser;
+                }
+
+                //should never happen
+                throw new UserNotFoundException(k);
+            } catch (TechnicalException ex) {
+                LOGGER.error("An error occurs while trying to find user using its ID {}", k, ex);
+                throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + k, ex);
             }
-            //should never happen
-            throw new UserNotFoundException(id);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find user using its ID {}", id, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + id, ex);
-        }
+        });
     }
 
     @Override
@@ -307,13 +317,23 @@ public class UserServiceImpl extends AbstractService implements UserService {
 
     @Override
     public Set<UserEntity> findByIds(List<String> ids) {
+        return this.findByIds(ids, true);
+    }
+
+    @Override
+    public Set<UserEntity> findByIds(List<String> ids, boolean withUserMetadata) {
         try {
             LOGGER.debug("Find users by ID: {}", ids);
 
             Set<User> users = userRepository.findByIds(ids);
 
             if (!users.isEmpty()) {
-                return users.stream().map(u -> this.convert(u, false, userMetadataService.findAllByUserId(u.getId()))).collect(Collectors.toSet());
+                return users.stream().map(u ->
+                        this.convert(
+                                u,
+                                false,
+                                withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : Collections.emptyList()
+                                )).collect(Collectors.toSet());
             }
 
             Optional<String> idsAsString = ids.stream().reduce((a, b) -> a + '/' + b);
@@ -970,10 +990,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     private void populateUserFlags(final List<UserEntity> users) {
-        RoleEntity apiPORole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-                .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
-        RoleEntity applicationPORole = roleService.findByScopeAndName(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name())
-                .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
+        RoleEntity apiPORole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+        RoleEntity applicationPORole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.APPLICATION);
 
         users.forEach(user -> {
             final boolean apiPO = !membershipService.getMembershipsByMemberAndReferenceAndRole(

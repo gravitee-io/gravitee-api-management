@@ -187,11 +187,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         if (!groupIds.isEmpty()) {
             ApiQuery apiQuery = new ApiQuery();
             apiQuery.setGroups(groupIds);
-            apiIds.addAll(apiService
-                    .search(apiQuery)
-                    .stream()
-                    .map(ApiEntity::getId)
-                    .collect(Collectors.toSet()));
+            apiIds.addAll(apiService.searchIds(apiQuery));
         }
 
         return apiIds;

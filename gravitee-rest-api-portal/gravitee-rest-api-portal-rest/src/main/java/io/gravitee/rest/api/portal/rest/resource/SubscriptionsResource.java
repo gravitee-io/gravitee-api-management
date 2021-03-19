@@ -172,7 +172,7 @@ public class SubscriptionsResource extends AbstractResource {
                 m.put("name", plan.getName());
                 metadata.put(plan.getId(), m);
             }
-            final UserEntity user = userService.findById(subscription.getSubscribedBy());
+            final UserEntity user = userService.findById(subscription.getSubscribedBy(), true);
             if (user != null) {
                 final Map<String, Object> m = new HashMap<>();
                 m.put("name", user.getDisplayName());

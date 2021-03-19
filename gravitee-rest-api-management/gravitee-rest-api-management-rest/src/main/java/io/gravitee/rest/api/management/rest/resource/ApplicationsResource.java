@@ -101,11 +101,9 @@ public class ApplicationsResource extends AbstractResource {
         final UriBuilder uriBuilder = ub.path("organizations").path(GraviteeContext.getCurrentOrganization())
                 .path("environments").path(GraviteeContext.getCurrentEnvironment())
                 .path("applications").path(application.getId()).path("picture");
-        if (application.getPicture() != null) {
-            // force browser to get if updated
-            uriBuilder.queryParam("hash", application.getPicture().hashCode());
-            application.setPicture(null);
-        }
+        // force browser to get if updated
+        uriBuilder.queryParam("hash", application.getUpdatedAt().getTime());
+        application.setPicture(null);
         application.setPictureUrl(uriBuilder.build().toString());
     }
 

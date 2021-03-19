@@ -67,6 +67,13 @@ public class ApisParam {
     @QueryParam("portal")
     private boolean portal;
 
+    @QueryParam("order")
+    @ApiParam(
+            value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
+            example = "-name"
+    )
+    private OrderParam order;
+
     public String getCategory() {
         return category;
     }
@@ -154,4 +161,9 @@ public class ApisParam {
     public void setPortal(boolean portal) {
         this.portal = portal;
     }
+
+    public OrderParam.Order getOrder() {
+        return (order == null) ? null : order.getValue();
+    }
+
 }

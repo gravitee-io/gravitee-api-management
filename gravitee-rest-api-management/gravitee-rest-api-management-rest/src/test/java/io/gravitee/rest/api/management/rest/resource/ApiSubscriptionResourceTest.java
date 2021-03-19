@@ -80,7 +80,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         fakeApplicationEntity.setDescription("applicationDescription");
         fakeApplicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(fakeUserEntity));
 
-        when(userService.findById(any())).thenReturn(fakeUserEntity);
+        when(userService.findById(any(), anyBoolean())).thenReturn(fakeUserEntity);
         when(planService.findById(any())).thenReturn(fakePlanEntity);
         when(applicationService.findById(any())).thenReturn(fakeApplicationEntity);
     }

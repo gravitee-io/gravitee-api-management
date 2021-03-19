@@ -133,14 +133,16 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     // Specific context
     @Override
     public String find(final Key key, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
-        final List<String> values = findAll(key, referenceId, referenceType);
-        final String value;
-        if (values == null || values.isEmpty()) {
-            value = key.defaultValue();
-        } else {
-            value = String.join(SEPARATOR, values);
-        }
-        return value;
+        return GraviteeContext.getCurrentParameters().computeIfAbsent(key, k -> {
+            final List<String> values = findAll(k, referenceId, referenceType);
+            final String value;
+            if (values == null || values.isEmpty()) {
+                value = k.defaultValue();
+            } else {
+                value = String.join(SEPARATOR, values);
+            }
+            return value;
+        });
     }
 
     @Override
@@ -211,7 +213,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             Map<String, List<T>> result = new HashMap<>();
 
             // Get System parameters
-            for (Key keyToFind: keys) {
+            for (Key keyToFind : keys) {
                 this.getSystemParameter(keyToFind).ifPresent(p -> {
                     result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
                     keysToFind.remove(keyToFind);
@@ -222,16 +224,16 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 switch (referenceType) {
                     case ENVIRONMENT:
                         this.getEnvParameters(keysToFind, refIdToUse).forEach(p -> {
-                                result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                                keysToFind.remove(Key.findByKey(p.getKey()));
-                            });
+                            result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                            keysToFind.remove(Key.findByKey(p.getKey()));
+                        });
                         if (!keysToFind.isEmpty()) {
                             //String organizationId = "DEFAULT";//environmentService.findById(referenceId).getOrganizationId();
                             String organizationId = environmentService.findById(refIdToUse).getOrganizationId();
                             this.getOrgParameters(keysToFind, organizationId).forEach(p -> {
-                                    result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                                    keysToFind.remove(Key.findByKey(p.getKey()));
-                                });
+                                result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                                keysToFind.remove(Key.findByKey(p.getKey()));
+                            });
                             if (!keysToFind.isEmpty()) {
                                 keysToFind.forEach(k -> result.put(k.key(), splitValue(k.defaultValue(), mapper, filter)));
                             }
@@ -373,7 +375,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         if (!keysToFind.isEmpty()) {
             return parameterRepository.findByKeys(
                     keysToFind.stream().map(Key::key).collect(toList()),
-                   environmentId,
+                    environmentId,
                     ParameterReferenceType.ENVIRONMENT).stream().filter(Objects::nonNull).collect(toList());
         }
         return Collections.emptyList();

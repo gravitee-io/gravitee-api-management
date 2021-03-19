@@ -45,4 +45,5 @@ public interface RoleService {
     void                    initialize                  (String organizationId);
     RoleEntity              update                      (UpdateRoleEntity role);
     RoleScope               findScopeByMembershipReferenceType (MembershipReferenceType type);
+    RoleEntity              findPrimaryOwnerRoleByOrganization (String organizationId, RoleScope roleScope);
 }

@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.UpdateRatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
@@ -38,6 +39,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -60,7 +62,10 @@ public class ApiRatingResource extends AbstractResource {
             @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.DELETE)
     })
     public Response deleteApiRating(@PathParam("apiId") String apiId, @PathParam("ratingId") String ratingId) {
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        // FIXME: are we sure we need to fetch the api while the permission system alreay allowed the user to delete the rating ?
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             RatingEntity ratingEntity = ratingService.findById(ratingId);
@@ -87,7 +92,9 @@ public class ApiRatingResource extends AbstractResource {
         if (ratingInput == null) {
             throw new BadRequestException("Input must not be null.");
         }
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             RatingEntity ratingEntity = ratingService.findById(ratingId);

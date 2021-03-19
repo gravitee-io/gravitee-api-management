@@ -330,7 +330,7 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.setSubscribedBy(
                 new Subscription.User(
                         subscriptionEntity.getSubscribedBy(),
-                        userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()));
+                        userService.findById(subscriptionEntity.getSubscribedBy(), true).getDisplayName()));
         subscription.setClientId(subscriptionEntity.getClientId());
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());

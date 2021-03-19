@@ -46,6 +46,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
@@ -93,11 +95,23 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
                     JsonNode jsonSchema = JsonLoader.fromString(schema);
                     ListProcessingReport report = (ListProcessingReport) jsonSchemaFactory.getValidator().validate(jsonSchema, jsonConfiguration, true);
                     if (!report.isSuccess()) {
+                        boolean hasDefaultValue = false;
                         String msg = "";
                         if (report.iterator().hasNext()) {
                             msg = " : " + report.iterator().next().getMessage();
+                            Pattern pattern = Pattern.compile("\\(\\[\\\"(.*?)\\\"\\]\\)");
+                            Matcher matcher = pattern.matcher(msg);
+                            if (matcher.find()) {
+                                String field = matcher.group(1);
+                                JsonNode properties = jsonSchema.get("properties");
+                                hasDefaultValue = properties != null &&
+                                        properties.get(field) != null &&
+                                        properties.get(field).get("default") != null;
+                            }
                         }
-                        throw new InvalidDataException("Invalid policy configuration" + msg);
+                        if (!hasDefaultValue) {
+                            throw new InvalidDataException("Invalid policy configuration" + msg);
+                        }
                     }
                 }
 

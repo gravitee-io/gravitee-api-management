@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
@@ -62,7 +63,9 @@ public class ApiSubscribersResource extends AbstractResource {
     public Response getSubscriberApplicationsByApiId(@BeanParam PaginationParam paginationParam,
             @PathParam("apiId") String apiId, @QueryParam("statuses") List<SubscriptionStatus> statuses) {
         String currentUser = getAuthenticatedUserOrNull();
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(currentUser);
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(currentUser, apiQuery);
         Optional<ApiEntity> optionalApi = userApis.stream().filter(a -> a.getId().equals(apiId)).findFirst();
         if (optionalApi.isPresent()) {
 

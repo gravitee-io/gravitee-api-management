@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -26,6 +27,8 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import org.junit.Before;
@@ -49,7 +52,6 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ApiService_FindByUserTest {
 
-    private static final String API_ID = "id-api";
     private static final String USER_NAME = "myUser";
 
     @InjectMocks
@@ -104,7 +106,7 @@ public class ApiService_FindByUserTest {
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(poRole));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
 
         MemberEntity poMember = new MemberEntity();
         poMember.setId("admin");
@@ -118,6 +120,54 @@ public class ApiService_FindByUserTest {
 
         assertNotNull(apiEntities);
         assertEquals(1, apiEntities.size());
+    }
+
+    @Test
+    public void shouldFindByUserPaginated() throws TechnicalException {
+        final Api api1 = new Api();
+        api1.setId("api1");
+        api1.setName("api1");
+        final Api api2 = new Api();
+        api2.setId("api2");
+        api2.setName("api2");
+
+        MembershipEntity membership1 = new MembershipEntity();
+        membership1.setId("id1");
+        membership1.setMemberId(USER_NAME);
+        membership1.setMemberType(MembershipMemberType.USER);
+        membership1.setReferenceId(api1.getId());
+        membership1.setReferenceType(MembershipReferenceType.API);
+        membership1.setRoleId("API_USER");
+
+        MembershipEntity membership2 = new MembershipEntity();
+        membership2.setId(api2.getId());
+        membership2.setMemberId(USER_NAME);
+        membership2.setMemberType(MembershipMemberType.USER);
+        membership2.setReferenceId("api2");
+        membership2.setReferenceType(MembershipReferenceType.API);
+        membership2.setRoleId("API_USER");
+
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)).thenReturn(new HashSet<>(Arrays.asList(membership1, membership2)));
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api1.getId(), api2.getId()).build()))
+                .thenReturn(Arrays.asList(api1, api2));
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId("API_PRIMARY_OWNER");
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
+
+        MemberEntity poMember = new MemberEntity();
+        poMember.setId("admin");
+        poMember.setRoles(Collections.singletonList(poRole));
+        when(membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, Collections.singletonList(api1.getId()), "API_PRIMARY_OWNER")).thenReturn(new HashSet<>(singletonList(poMember)));
+
+        final Page<ApiEntity> apiPage = apiService.findByUser(USER_NAME, null, new SortableImpl("name", false), new PageableImpl(2, 1), false);
+
+        assertNotNull(apiPage);
+        assertEquals(1, apiPage.getContent().size());
+        assertEquals(api1.getId(), apiPage.getContent().get(0).getId());
+        assertEquals(2, apiPage.getPageNumber());
+        assertEquals(1, apiPage.getPageElements());
+        assertEquals(2, apiPage.getTotalElements());
     }
 
     @Test

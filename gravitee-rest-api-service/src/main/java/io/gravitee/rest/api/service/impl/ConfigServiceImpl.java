@@ -355,7 +355,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                 consoleConfigEntity.getLogging(),
                 consoleConfigEntity.getLogging().getAudit(),
                 consoleConfigEntity.getLogging().getAudit().getTrail(),
-                consoleConfigEntity.getLogging().getAudit().getTrail(),
+                consoleConfigEntity.getLogging().getUser(),
                 consoleConfigEntity.getMaintenance(),
                 consoleConfigEntity.getManagement(),
                 consoleConfigEntity.getNewsletter(),

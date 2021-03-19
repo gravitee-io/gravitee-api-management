@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
@@ -33,6 +34,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,7 +65,10 @@ public class ApiPlansResource extends AbstractResource {
                                        @BeanParam PaginationParam paginationParam) {
         String username = getAuthenticatedUserOrNull();
 
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(username);
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(username, apiQuery);
         if (userApis.stream().anyMatch(a->a.getId().equals(apiId))) {
             
             ApiEntity apiEntity = apiService.findById(apiId);

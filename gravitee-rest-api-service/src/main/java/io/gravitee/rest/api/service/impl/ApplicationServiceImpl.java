@@ -258,7 +258,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Create a simple "internal" application
             if (newApplicationEntity.getSettings().getApp() != null) {
                 // If client registration is enabled, check that the simple type is allowed
-                if (isClientRegistrationEnabled() && !isApplicationTypeAllowed("simple")) {
+                if (isClientRegistrationEnabled(environmentId) && !isApplicationTypeAllowed("simple", environmentId)) {
                     throw new IllegalStateException("Application type 'simple' is not allowed");
                 }
 
@@ -268,7 +268,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 if (clientId != null && !clientId.trim().isEmpty()) {
                     LOGGER.debug("Check that client_id is unique among all applications");
                     try {
-                        final Set<Application> applications = applicationRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment(), ApplicationStatus.ACTIVE);
+                        final Set<Application> applications = applicationRepository.findAllByEnvironment(environmentId, ApplicationStatus.ACTIVE);
                         final boolean alreadyExistingApp = applications.stream().anyMatch(app ->
                                 app.getMetadata() != null && clientId.equals(app.getMetadata().get("client_id")));
                         if (alreadyExistingApp) {
@@ -283,11 +283,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             } else {
 
                 // Check that client registration is enabled
-                checkClientRegistrationEnabled();
+                checkClientRegistrationEnabled(environmentId);
 
                 String appType = newApplicationEntity.getSettings().getoAuthClient().getApplicationType();
                 // Check that the application_type is allowed
-                if (!isApplicationTypeAllowed(appType)) {
+                if (!isApplicationTypeAllowed(appType, environmentId)) {
                     throw new IllegalStateException("Application type '" + appType + "' is not allowed");
                 }
                 checkClientSettings(newApplicationEntity.getSettings().getoAuthClient());
@@ -580,19 +580,23 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private void checkClientRegistrationEnabled() {
-        if (!isClientRegistrationEnabled()) {
+        checkClientRegistrationEnabled(GraviteeContext.getCurrentEnvironment());
+    }
+
+
+    private void checkClientRegistrationEnabled(String environmentId) {
+        if (!isClientRegistrationEnabled(environmentId)) {
             throw new IllegalStateException("The client registration is disabled");
         }
     }
 
-
-    private boolean isClientRegistrationEnabled() {
-        return parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, ParameterReferenceType.ENVIRONMENT);
+    private boolean isClientRegistrationEnabled(String environmentId) {
+        return parameterService.findAsBoolean(Key.APPLICATION_REGISTRATION_ENABLED, environmentId, ParameterReferenceType.ENVIRONMENT);
     }
 
-    private boolean isApplicationTypeAllowed(String applicationType) {
+    private boolean isApplicationTypeAllowed(String applicationType, String environmentId) {
         Key key = Key.valueOf("APPLICATION_TYPE_" + applicationType.toUpperCase() + "_ENABLED");
-        return parameterService.findAsBoolean(key, ParameterReferenceType.ENVIRONMENT);
+        return parameterService.findAsBoolean(key, environmentId, ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override
@@ -653,15 +657,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (applications == null || applications.isEmpty()) {
             return Collections.emptySet();
         }
-        Optional<RoleEntity> optPrimaryOwnerRole = roleService.findByScopeAndName(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name());
-        if (!optPrimaryOwnerRole.isPresent()) {
+        RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.APPLICATION);
+        if (primaryOwnerRole == null) {
             throw new RoleNotFoundException("APPLICATION_PRIMARY_OWNER");
         }
 
         //find primary owners usernames of each applications
         final List<String> appIds = applications.stream().map(Application::getId).collect(Collectors.toList());
 
-        Set<MembershipEntity> memberships = membershipService.getMembershipsByReferencesAndRole(io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION, appIds, optPrimaryOwnerRole.get().getId());
+        Set<MembershipEntity> memberships = membershipService.getMembershipsByReferencesAndRole(io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION, appIds, primaryOwnerRole.getId());
         int poMissing = applications.size() - memberships.size();
         if (poMissing > 0) {
             Set<String> appMembershipsIds = memberships.stream().map(MembershipEntity::getReferenceId).collect(Collectors.toSet());

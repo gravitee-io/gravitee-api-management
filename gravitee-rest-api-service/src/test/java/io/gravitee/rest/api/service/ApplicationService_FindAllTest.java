@@ -25,7 +25,6 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -34,15 +33,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -74,7 +70,7 @@ public class ApplicationService_FindAllTest {
         application.setStatus(ApplicationStatus.ACTIVE);
         when(applicationRepository.findAllByEnvironment(eq("DEFAULT"), eq(ApplicationStatus.ACTIVE)))
                 .thenReturn(new HashSet<>(Collections.singletonList(application)));
-        when(roleService.findByScopeAndName(any(), any())).thenReturn(Optional.of(new RoleEntity()));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(new RoleEntity());
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
                 .thenReturn(new HashSet<>(Collections.singletonList(new MembershipEntity())));
         when(userService.findByIds(any())).thenReturn(Collections.emptySet());

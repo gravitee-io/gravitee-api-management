@@ -66,20 +66,25 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     @Autowired
     private AuditService auditService;
 
+    private Map<String, RoleEntity> apiPrimaryOwnersByOrganization = new HashMap<>();
+    private Map<String, RoleEntity> applicationPrimaryOwnersByOrganization = new HashMap<>();
+
     @Override
     public RoleEntity findById(final String roleId) {
-        try {
-            LOGGER.debug("Find Role by id");
+        return GraviteeContext.getCurrentRoles().computeIfAbsent(roleId, k -> {
+            try {
+                LOGGER.debug("Find Role by id");
 
-            Optional<Role> role = roleRepository.findById(roleId);
-            if (!role.isPresent()) {
-                throw new RoleNotFoundException(roleId);
+                Optional<Role> role = roleRepository.findById(k);
+                if (!role.isPresent()) {
+                    throw new RoleNotFoundException(k);
+                }
+                return convert(role.get());
+            } catch (TechnicalException ex) {
+                LOGGER.error("An error occurs while trying to find a role : {}", k, ex);
+                throw new TechnicalManagementException("An error occurs while trying to find a role : " + k, ex);
             }
-            return convert(role.get());
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a role : {}", roleId,  ex);
-            throw new TechnicalManagementException("An error occurs while trying to find a role : " + roleId, ex);
-        }
+        });
     }
 
     @Override
@@ -215,10 +220,14 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
 
     @Override
     public Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name) {
+        return this.findByScopeAndName(scope, name, GraviteeContext.getCurrentOrganization());
+    }
+
+    private Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name, String organizationId) {
         try {
             LOGGER.debug("Find Roles by scope and name");
-            
-            Optional<Role> optRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(convert(scope), name, GraviteeContext.getCurrentOrganization(), RoleReferenceType.ORGANIZATION);
+
+            Optional<Role> optRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(convert(scope), name, organizationId, RoleReferenceType.ORGANIZATION);
             if (optRole.isPresent()) {
                 return Optional.of(this.convert(optRole.get()));
             } else {
@@ -465,6 +474,17 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             case PLATFORM: return RoleScope.PLATFORM;
         }
         return null;
+    }
+
+    @Override
+    public RoleEntity findPrimaryOwnerRoleByOrganization(String organizationId, RoleScope roleScope) {
+        if (roleScope == RoleScope.API) {
+            return apiPrimaryOwnersByOrganization.computeIfAbsent(organizationId, s -> this.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), s).get());
+        }
+        if (roleScope == RoleScope.APPLICATION) {
+            return applicationPrimaryOwnersByOrganization.computeIfAbsent(organizationId, s -> this.findByScopeAndName(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name(), s).get());
+        }
+        throw new RoleNotFoundException(roleScope+ "_PRIMARY_OWNER");
     }
 
     private void createOrUpdateSystemRole(SystemRole roleName, RoleScope roleScope, Permission[] permissions, String organizationId) throws TechnicalException {

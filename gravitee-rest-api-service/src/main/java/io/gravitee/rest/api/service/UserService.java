@@ -38,7 +38,11 @@ public interface UserService {
 
     UserEntity connect(String userId);
 
-    UserEntity findById(String id);
+    UserEntity findById(String id, boolean defaultValue);
+
+    default UserEntity findById(String id) {
+        return findById(id, false);
+    }
 
     Optional<UserEntity> findByEmail(String email);
 
@@ -47,6 +51,8 @@ public interface UserService {
     UserEntity findBySource(String source, String sourceId, boolean loadRoles);
 
     Set<UserEntity> findByIds(List<String> ids);
+
+    Set<UserEntity> findByIds(List<String> ids, boolean withUserMetadata);
 
     UserEntity create(NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole);
 

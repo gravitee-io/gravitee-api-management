@@ -54,6 +54,7 @@ public class CategoryResource extends AbstractResource {
     public Response get(@PathParam("categoryId") String categoryId) {
         CategoryEntity category = categoryService.findNotHiddenById(categoryId);
 
+        // FIXME: retrieve all the apis of the user can be heavy because it involves a lot of data fetching. Find a way to just retrieve only necessary data.
         Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         category.setTotalApis(categoryService.getTotalApisByCategory(apis, category));
 

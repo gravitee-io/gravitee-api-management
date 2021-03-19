@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -79,7 +80,9 @@ public class ApiResource extends AbstractResource {
                                   @QueryParam("include") List<String> include) {
         String username = getAuthenticatedUserOrNull();
 
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(username);
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(username, apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             ApiEntity apiEntity = apiService.findById(apiId);
@@ -120,8 +123,11 @@ public class ApiResource extends AbstractResource {
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
     @RequirePortalAuth
     public Response getPictureByApiId(@Context Request request, @PathParam("apiId") String apiId) {
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+
         // Do not filter on visibility to display the picture on subscription screen even if the API is no more published
-        Collection<ApiEntity> userApis = apiService.findByUser(getAuthenticatedUserOrNull(), null, true);
+        Collection<ApiEntity> userApis = apiService.findByUser(getAuthenticatedUserOrNull(), apiQuery, true);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             InlinePictureEntity image = apiService.getPicture(apiId);
             return createPictureResponse(request, image);
@@ -132,8 +138,10 @@ public class ApiResource extends AbstractResource {
     @GET
     @Path("background")
     @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
-    public Response getBAckgroundByApiId(@Context Request request, @PathParam("apiId") String apiId) {
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
+    public Response getBackgroundByApiId(@Context Request request, @PathParam("apiId") String apiId) {
+        final ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Collections.singletonList(apiId));
+        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             InlinePictureEntity image = apiService.getBackground(apiId);
 

@@ -58,7 +58,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         SubscriptionEntity createdSubscription = new SubscriptionEntity();
         createdSubscription.setId(SUBSCRIPTION);
         when(subscriptionService.create(any())).thenReturn(createdSubscription);
-        when(userService.findById(any())).thenReturn(mock(UserEntity.class));
+        when(userService.findById(any(), anyBoolean())).thenReturn(mock(UserEntity.class));
 
         ApiEntity foundApi = new ApiEntity();
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));

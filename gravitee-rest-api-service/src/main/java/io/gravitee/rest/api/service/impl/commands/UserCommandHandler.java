@@ -22,9 +22,11 @@ import io.gravitee.cockpit.api.command.user.UserCommand;
 import io.gravitee.cockpit.api.command.user.UserPayload;
 import io.gravitee.cockpit.api.command.user.UserReply;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
+import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +65,28 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
         GraviteeContext.setCurrentOrganization(userPayload.getOrganizationId());
 
         try {
+            final UserEntity existingUser = userService.findBySource(COCKPIT_SOURCE, userPayload.getId(), false);
+
+            UpdateUserEntity updatedUser = new UpdateUserEntity();
+            updatedUser.setFirstname(userPayload.getFirstName());
+            updatedUser.setLastname(userPayload.getLastName());
+            updatedUser.setEmail(userPayload.getEmail());
+            updatedUser.setPicture(userPayload.getPicture());
+            updatedUser.setCustomFields(new HashMap<>());
+
+            if (userPayload.getAdditionalInformation() != null) {
+                updatedUser.getCustomFields().putAll(userPayload.getAdditionalInformation());
+            }
+
+            updatedUser.getCustomFields().computeIfAbsent(PICTURE, k -> userPayload.getPicture());
+            updatedUser.getCustomFields().computeIfAbsent(SUB, k -> userPayload.getUsername());
+
+            UserEntity cockpitUserEntity = userService.update(existingUser.getId(), updatedUser);
+            logger.info("User [{}] with APIM id [{}] updated.", userPayload.getUsername(), cockpitUserEntity.getId());
+
+            return Single.just(new UserReply(command.getId(), CommandStatus.SUCCEEDED));
+
+        } catch(UserNotFoundException unfe) {
             NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setSourceId(userPayload.getId());
             newUser.setFirstname(userPayload.getFirstName());
@@ -79,11 +103,17 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
             newUser.getCustomFields().computeIfAbsent(PICTURE, k -> userPayload.getPicture());
             newUser.getCustomFields().computeIfAbsent(SUB, k -> userPayload.getUsername());
 
-            final UserEntity userEntity = userService.create(newUser, false);
-            logger.info("User [{}] created with id [{}].", userPayload.getUsername(), userEntity.getId());
-            return Single.just(new UserReply(command.getId(), CommandStatus.SUCCEEDED));
+            try {
+                UserEntity cockpitUserEntity = userService.create(newUser, false);
+                logger.info("User [{}] created with APIM id [{}].", userPayload.getUsername(), cockpitUserEntity.getId());
+                return Single.just(new UserReply(command.getId(), CommandStatus.SUCCEEDED));
+            } catch (Exception e) {
+                logger.info("Error occurred when creating user [{}] for organization [{}].", userPayload.getUsername(), userPayload.getOrganizationId(), e);
+                return Single.just(new UserReply(command.getId(), CommandStatus.ERROR));
+            }
+
         } catch (Exception e) {
-            logger.info("Error occurred when creating user [{}] for organization [{}].", userPayload.getUsername(), userPayload.getOrganizationId(), e);
+            logger.info("Error occurred when updating user [{}] for organization [{}].", userPayload.getUsername(), userPayload.getOrganizationId(), e);
             return Single.just(new UserReply(command.getId(), CommandStatus.ERROR));
         } finally {
             GraviteeContext.cleanContext();
