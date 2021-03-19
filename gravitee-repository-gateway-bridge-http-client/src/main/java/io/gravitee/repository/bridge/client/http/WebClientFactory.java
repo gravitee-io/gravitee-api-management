@@ -26,10 +26,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.JksOptions;
-import io.vertx.core.net.PemKeyCertOptions;
-import io.vertx.core.net.PemTrustOptions;
-import io.vertx.core.net.PfxOptions;
+import io.vertx.core.net.*;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -73,8 +70,6 @@ public class WebClientFactory implements FactoryBean<WebClient> {
     private final String propertyPrefix;
 
     private CircuitBreaker circuitBreaker;
-
-    private String clientVersion = Version.RUNTIME_VERSION.MAJOR_VERSION;
 
     public WebClientFactory(String propertyPrefix) {
         this.propertyPrefix = propertyPrefix + ".http.";
@@ -128,19 +123,8 @@ public class WebClientFactory implements FactoryBean<WebClient> {
                                 logger.error(msg);
                                 future.fail(msg);
                             } else {
-                                String serverVersion = version.getString("MAJOR_VERSION");
-
-                                if (serverVersion.equals(clientVersion)) {
-                                    logger.info("Bridge Server connection successful.");
-                                    future.complete(client);
-                                } else {
-                                    String msg = String.format(
-                                            "Bridge client and server versions vary (client:%s - server:%s). They must be the same.",
-                                            clientVersion,
-                                            serverVersion);
-                                    logger.error(msg);
-                                    throw new IllegalStateException(msg);
-                                }
+                                logger.info("Bridge connection successful.");
+                                future.complete(client);
                             }
                         } else {
                             String msg = String.format("Invalid Bridge Server response. Retry in %s ms.", retryDuration);
@@ -157,7 +141,10 @@ public class WebClientFactory implements FactoryBean<WebClient> {
 
     private WebClientOptions getWebClientOptions() {
         WebClientOptions options = new WebClientOptions()
-                .setUserAgent("gio-gw/" + Version.RUNTIME_VERSION.MAJOR_VERSION);
+                .setUserAgent("gio-client-bridge/" + Version.RUNTIME_VERSION.MAJOR_VERSION);
+
+        // Add support for proxy
+        options.setProxyOptions(getProxyOptions());
 
         options
                 .setKeepAlive(readPropertyValue(propertyPrefix + "keepAlive", Boolean.class, true))
@@ -226,6 +213,22 @@ public class WebClientFactory implements FactoryBean<WebClient> {
         }
 
         return options;
+    }
+
+    private ProxyOptions getProxyOptions() {
+        if (environment.containsProperty(propertyPrefix + "proxy.host")) {
+            ProxyOptions proxyOptions = new ProxyOptions();
+
+            proxyOptions.setHost(readPropertyValue(propertyPrefix + "proxy.host"));
+            proxyOptions.setPort(readPropertyValue(propertyPrefix + "proxy.port", Integer.class));
+            proxyOptions.setType(ProxyType.valueOf(readPropertyValue(propertyPrefix + "proxy.type", String.class, ProxyType.HTTP.toString())));
+            proxyOptions.setUsername(readPropertyValue(propertyPrefix + "proxy.username"));
+            proxyOptions.setPassword(readPropertyValue(propertyPrefix + "proxy.password"));
+
+            return proxyOptions;
+        }
+
+        return null;
     }
 
     private List<String> getArrayValues(String property) {

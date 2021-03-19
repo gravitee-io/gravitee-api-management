@@ -15,23 +15,15 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -42,41 +34,25 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiKeysHandler implements Handler<RoutingContext> {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(ApiKeysHandler.class);
+public class ApiKeysHandler extends AbstractHandler {
 
     @Autowired
     private ApiKeyRepository apiKeyRepository;
 
-    @Override
     public void handle(RoutingContext ctx) {
-        HttpServerResponse response = ctx.response();
+        final JsonObject searchPayload = ctx.getBodyAsJson();
 
-        try {
-            JsonObject searchPayload = ctx.getBodyAsJson();
-            ApiKeyCriteria apiKeyCriteria = readCriteria(searchPayload);
-            List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(apiKeyCriteria);
+        // Parse criteria
+        final ApiKeyCriteria apiKeyCriteria = readCriteria(searchPayload);
 
-            if (apiKeys == null) {
-                response.setStatusCode(HttpStatusCode.NOT_FOUND_404);
-            } else {
-                response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                response.setStatusCode(HttpStatusCode.OK_200);
-                response.setChunked(true);
-
-                Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                response.write(Json.prettyMapper.writeValueAsString(apiKeys));
+        ctx.vertx().executeBlocking(promise -> {
+            try {
+                promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
+            } catch (TechnicalException te) {
+                LOGGER.error("Unable to search for API Keys", te);
+                promise.fail(te);
             }
-        } catch (JsonProcessingException jpe) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to transform data object to JSON", jpe);
-        } catch (TechnicalException te) {
-            response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-            LOGGER.error("Unable to search for API Keys", te);
-        }
-
-        response.end();
+        }, (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result));
     }
 
     private ApiKeyCriteria readCriteria(JsonObject payload) {

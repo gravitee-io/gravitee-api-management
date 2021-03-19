@@ -25,16 +25,12 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RootHandler implements Handler<RoutingContext> {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(RootHandler.class);
 
     @Override
     public void handle(RoutingContext ctx) {
