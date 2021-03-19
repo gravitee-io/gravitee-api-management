@@ -27,6 +27,7 @@ class EmptyStateDirective {
         createMode: '=',
         fill: '@fill'
       },
+      transclude: true,
       template: require('./emptystate.html')
     };
 

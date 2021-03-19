@@ -13,29 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
+class ApiAlertsDashboardController {
+  private hasConfiguredAlerts: boolean;
+  private hasAlertingPlugin: boolean;
 
-class DashboardController {
-  private selectedIndex;
-  private alertsEnabled;
-
-  constructor(
-    private $state: StateService,
-    private Constants
-  ) {
+  constructor(private configuredAlerts, private alertingStatus) {
     'ngInject';
-
-    this.alertsEnabled = Constants.org.settings.alert.enabled;
-    if (this.$state.is('management.dashboard.alerts')) {
-      this.selectedIndex = 3;
-    } else if (this.$state.is('management.dashboard.analytics')) {
-      this.selectedIndex = 2;
-    } else if (this.$state.is('management.dashboard.apis-status')) {
-      this.selectedIndex = 1;
-    } else {
-      this.selectedIndex = 0;
-    }
+    this.hasConfiguredAlerts = configuredAlerts?.length > 0;
+    this.hasAlertingPlugin = alertingStatus?.available_plugins > 0;
   }
 }
 
-export default DashboardController;
+export default ApiAlertsDashboardController;

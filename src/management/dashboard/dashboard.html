@@ -29,6 +29,10 @@
       <md-tab-label><ng-md-icon icon="insert_chart" style="fill: #28444F;"></ng-md-icon> Analytics</md-tab-label>
       <md-tab-body></md-tab-body>
     </md-tab>
+    <md-tab ng-if="$ctrl.alertsEnabled" ui-sref="management.dashboard.alerts" permission permission-only="'environment-alert-r'">
+      <md-tab-label><ng-md-icon icon="alarm" style="fill: #28444F;"></ng-md-icon> Alerts</md-tab-label>
+      <md-tab-body></md-tab-body>
+    </md-tab>
   </md-tabs>
   <ui-view></ui-view>
 </div>

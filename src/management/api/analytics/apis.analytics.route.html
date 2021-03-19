@@ -33,6 +33,8 @@
               <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.analytics.logs'><a class="execute">Logs</a></li>
               <li class="iterable-item" permission permission-only="['api-definition-u']"
                   ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.analytics.pathMappings'><a class="execute">Path mappings</a></li>
+              <li class="iterable-item" permission permission-only="['api-alert-r']" ng-if="apiCtrl.Constants.org.settings.alert.enabled"
+                  ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.analytics.alerts'><a class="execute">Alerts</a></li>
             </ul>
         </div>
 

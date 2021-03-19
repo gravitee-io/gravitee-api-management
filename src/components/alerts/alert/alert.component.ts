@@ -31,7 +31,7 @@ const AlertComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$onInit = () => {
-      this.tabs = ['general', 'notifications'];
+      this.tabs = ['general', 'notifications', 'history'];
       this.severities = ['info', 'warning', 'critical'];
       const indexOfTab = this.tabs.indexOf($state.params.tab);
       this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;

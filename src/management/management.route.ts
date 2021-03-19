@@ -17,6 +17,7 @@ import InstancesService from '../services/instances.service';
 import AuditService from '../services/audit.service';
 import ApiService from '../services/api.service';
 import ApplicationService from '../services/application.service';
+import AlertService from '../services/alert.service';
 import { User } from '../entities/user';
 import RoleService from '../services/role.service';
 import DashboardService from '../services/dashboard.service';
@@ -24,6 +25,7 @@ import { StateParams } from '@uirouter/core';
 import AnalyticsService from '../services/analytics.service';
 import TicketsListController from './support/tickets-list.controller';
 import TicketService from '../services/ticket.service';
+import { Scope } from '../entities/alert';
 
 function managementRouterConfig($stateProvider) {
   'ngInject';
@@ -107,6 +109,23 @@ function managementRouterConfig($stateProvider) {
         dashboard: {
           type: 'string',
           dynamic: true
+        }
+      }
+    })
+    .state('management.dashboard.alerts', {
+      url: '/alerts',
+      template: require('./dashboard/alerts-dashboard/platform-alerts-dashboard.html'),
+      controller: 'PlatformAlertsDashboardController',
+      controllerAs: '$ctrl',
+      resolve: {
+        configuredAlerts: (AlertService: AlertService) =>
+          AlertService.listAlerts(undefined, Scope.PLATFORM, false).then(response => response.data),
+        alertingStatus: (AlertService: AlertService) =>
+          AlertService.getStatus(undefined, Scope.PLATFORM).then(response => response.data)
+      },
+      data: {
+        docs: {
+          page: 'management-dashboard-alerts'
         }
       }
     })

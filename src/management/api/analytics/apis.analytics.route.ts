@@ -18,6 +18,8 @@ import { StateParams } from '@uirouter/core';
 import SpelService from '../../../services/spel.service';
 import TenantService from '../../../services/tenant.service';
 import DashboardService from '../../../services/dashboard.service';
+import AlertService from '../../../services/alert.service';
+import { Scope } from '../../../entities/alert';
 
 export default apisAnalyticsRouterConfig;
 
@@ -154,6 +156,26 @@ function apisAnalyticsRouterConfig($stateProvider) {
         },
         docs: {
           page: 'management-api-pathMappings'
+        }
+      }
+    })
+    .state('management.apis.detail.analytics.alerts', {
+      url: '/analytics/alerts',
+      template: require('./alerts/api-alerts-dashboard.html'),
+      controller: 'ApiAlertsDashboardController',
+      controllerAs: '$ctrl',
+      resolve: {
+        configuredAlerts: (AlertService: AlertService, $stateParams) =>
+          AlertService.listAlerts($stateParams.apiId, Scope.API, false).then(response => response.data),
+        alertingStatus: (AlertService: AlertService, $stateParams) =>
+          AlertService.getStatus($stateParams.apiId, Scope.API).then(response => response.data)
+      },
+      data: {
+        perms: {
+          only: ['api-alert-r']
+        },
+        docs: {
+          page: 'management-api-alerts'
         }
       }
     });

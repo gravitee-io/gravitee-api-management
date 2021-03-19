@@ -15,11 +15,6 @@
     limitations under the License.
 
 -->
-<div layout="column" flex layout-align="center center" style="color: #424E5A;">
-  <ng-md-icon icon="{{icon}}" ng-style="{'fill':fill?fill:'#cdcccc'}" size="120"></ng-md-icon>
-  <h2>{{message}}</h2>
-  <div>
-    <h5>{{subMessage}}</h5>
-  </div>
-  <div ng-transclude></div>
-</div>
+<gv-alert-dashboard has-configured-alerts="$ctrl.hasConfiguredAlerts"
+                    has-alerting-plugin="$ctrl.hasAlertingPlugin"
+></gv-alert-dashboard>

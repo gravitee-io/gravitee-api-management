@@ -529,6 +529,8 @@ import organizationRouterConfig from '../organization/organization.route';
 import SpelService from '../services/spel.service';
 import DashboardController from './dashboard/dashboard.controller';
 import HomeDashboardController from './dashboard/home-dashboard/home-dashboard.controller';
+import AlertsDashboardComponent from '../components/alerts/dashboard/alerts-dashboard.component';
+import PlatformAlertsDashboardController from './dashboard/alerts-dashboard/platform-alerts-dashboard.controller';
 import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
 
 (<any>window).jQuery = jQuery;
@@ -536,6 +538,7 @@ import WidgetChartCountComponent from '../components/widget/count/widget-chart-c
 import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
+import ApiAlertsDashboardController from './api/analytics/alerts/api-alerts-dashboard.controller';
 
 (<any>window).traverse = traverse;
 
@@ -739,6 +742,9 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.controller('AnalyticsDashboardController', AnalyticsDashboardController);
   graviteeManagementModule.controller('DashboardController', DashboardController);
   graviteeManagementModule.controller('HomeDashboardController', HomeDashboardController);
+  graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
+  graviteeManagementModule.controller('PlatformAlertsDashboardController', PlatformAlertsDashboardController);
+  graviteeManagementModule.controller('ApiAlertsDashboardController', ApiAlertsDashboardController);
   graviteeManagementModule.controller('CategoriesController', CategoriesController);
   graviteeManagementModule.controller('CategoryController', CategoryController);
   graviteeManagementModule.controller('TenantsController', TenantsController);

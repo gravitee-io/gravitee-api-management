@@ -17,6 +17,18 @@
 import { IHttpPromise } from 'angular';
 import { Alert, Scope } from '../entities/alert';
 
+export interface IAlertAnalytics {
+  alerts: IAlertTriggerAnalytics[];
+  bySeverity: Record<string, number>;
+}
+
+export interface IAlertTriggerAnalytics {
+  events_count: number;
+  id: string;
+  severity: string;
+  type: string;
+}
+
 class AlertService {
 
   constructor(private $http: ng.IHttpService, private Constants) {
@@ -31,8 +43,13 @@ class AlertService {
     return this.$http.get(this.getReferenceURL(referenceType, referenceId) + 'alerts/status');
   }
 
-  listAlerts(referenceId?: string, referenceType?: Scope): IHttpPromise<any> {
-    return this.$http.get(this.getReferenceURL(referenceType, referenceId) + 'alerts');
+  listAlerts(referenceId?: string, referenceType?: Scope, withEventCounts: boolean = true): IHttpPromise<any> {
+    return this.$http.get(`${this.getReferenceURL(referenceType, referenceId)}alerts?event_counts=${withEventCounts}`);
+  }
+
+
+  getAnalytics(from, to, referenceType?: Scope, referenceId?: string): IHttpPromise<IAlertAnalytics> {
+    return this.$http.get(`${this.getReferenceURL(referenceType, referenceId)}alerts/analytics?from=${from}&to=${to}`);
   }
 
   create(alert: Alert): IHttpPromise<any> {

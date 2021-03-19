@@ -115,7 +115,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       }
     })
     .state('management.settings.alerts.alert', {
-      url: '/:alertId',
+      url: '/:alertId?:tab',
       component: 'alertComponent',
       data: {
         menu: null,
