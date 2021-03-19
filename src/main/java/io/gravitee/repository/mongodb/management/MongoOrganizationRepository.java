@@ -86,6 +86,9 @@ public class MongoOrganizationRepository implements OrganizationRepository {
         try {
             //Update
             organizationMongo.setName(organization.getName());
+            organizationMongo.setDescription(organization.getDescription());
+            organizationMongo.setHrids(organization.getHrids());
+            organizationMongo.setDomainRestrictions(organization.getDomainRestrictions());
 
             OrganizationMongo organizationMongoUpdated = internalOrganizationRepo.save(organizationMongo);
             return mapper.map(organizationMongoUpdated, Organization.class);
