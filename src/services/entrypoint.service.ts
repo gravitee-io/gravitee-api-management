@@ -14,36 +14,34 @@
  * limitations under the License.
  */
 class EntrypointService {
-  private entrypointsURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.entrypointsURL = `${Constants.env.baseURL}/configuration/entrypoints/`;
   }
 
   findById(entrypoint) {
-    return this.$http.get(this.entrypointsURL + entrypoint);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/entrypoints/` + entrypoint);
   }
 
   list() {
-    return this.$http.get(this.entrypointsURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/entrypoints/`);
   }
 
   create(entrypoint) {
     if (entrypoint) {
-      return this.$http.post(this.entrypointsURL, entrypoint);
+      return this.$http.post(`${this.Constants.env.baseURL}/configuration/entrypoints/`, entrypoint);
     }
   }
 
   update(entrypoint) {
     if (entrypoint) {
-      return this.$http.put(this.entrypointsURL, entrypoint);
+      return this.$http.put(`${this.Constants.env.baseURL}/configuration/entrypoints/`, entrypoint);
     }
   }
 
   delete(entrypoint) {
     if (entrypoint) {
-      return this.$http.delete(this.entrypointsURL + entrypoint.id);
+      return this.$http.delete(`${this.Constants.env.baseURL}/configuration/entrypoints/` + entrypoint.id);
     }
   }
 }

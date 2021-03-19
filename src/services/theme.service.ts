@@ -17,24 +17,22 @@
 import { Theme } from '../entities/theme';
 
 class ThemeService {
-  private themeURL: string;
 
-  constructor(private $http, private $q, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.themeURL = `${Constants.env.baseURL}/configuration/themes/`;
   }
 
   get() {
-    return this.$http.get(`${this.themeURL}default`);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/themes/default`);
   }
 
   restoreDefaultTheme(theme: Theme) {
-    return this.$http.post(`${this.themeURL}${theme.id}/reset`);
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/themes/${theme.id}/reset`);
   }
 
   update(theme: Theme) {
     if (theme) {
-      return this.$http.put(`${this.themeURL}${theme.id}`, {
+      return this.$http.put(`${this.Constants.env.baseURL}/configuration/themes/${theme.id}`, {
         id: theme.id,
         name: theme.name,
         reference_type: theme.reference_type,
@@ -70,7 +68,7 @@ class ThemeService {
   }
 
   private getImageUrl(theme, image) {
-    return `${this.themeURL}${theme.id}/${image}?${theme.updated_at}`;
+    return `${this.Constants.env.baseURL}/configuration/themes/${theme.id}/${image}?${theme.updated_at}`;
   }
 
 }

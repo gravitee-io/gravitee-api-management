@@ -15,7 +15,7 @@
  */
 import { StateService } from '@uirouter/core';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
-import hljs from 'highlight.js';
+import * as hljs  from 'highlight.js';
 import NotificationService from '../../../services/notification.service';
 import { PageType } from '../../../services/documentation.service';
 
@@ -46,6 +46,9 @@ class ComponentCtrl implements ng.IComponentController {
       mediaURL = this.Constants.env.baseURL + '/apis/' + this.$state.params.apiId + '/media/';
     } else {
       mediaURL = this.Constants.env.baseURL + '/portal/media/';
+    }
+    if (mediaURL.includes('{:envId}')) {
+      mediaURL = mediaURL.replace('{:envId}', this.Constants.org.currentEnv.id);
     }
     var toolbarItems = [
       'heading',

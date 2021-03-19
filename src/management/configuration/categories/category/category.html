@@ -62,8 +62,8 @@
                 <md-select ng-model="$ctrl.category.page">
                   <md-option  ng-repeat="resource in $ctrl.pages"
                               ng-value="resource.id">
-                    <md-icon md-svg-src="assets/logo_{{resource.type | lowercase}}.svg"></md-icon>
-                    <span style="font-style: italic; opacity: 0.5;">{{ resource.parentPath }}</span>/{{ resource.name }}
+                    <md-icon ng-if="resource.type" md-svg-src="assets/logo_{{resource.type | lowercase}}.svg"></md-icon>
+                    <div ng-if="resource.type"><span style="font-style: italic; opacity: 0.5;">{{ resource.parentPath }}</span>/{{ resource.name }}</div>
                   </md-option>
                 </md-select>
                 <div class="hint">

@@ -19,15 +19,9 @@ import { IHttpPromise } from 'angular';
 import UserService from './user.service';
 
 class TaskService {
-  private URL: string;
-  private Constants: any;
-  private UserService: any;
 
-  constructor(private $http: ng.IHttpService, Constants, UserService: UserService) {
+  constructor(private $http: ng.IHttpService, private Constants, private UserService: UserService) {
     'ngInject';
-    this.Constants = Constants;
-    this.URL = this.Constants.org.baseURL + '/user/tasks';
-    this.UserService = UserService;
   }
 
   getTaskSchedulerInSeconds(): number {
@@ -39,7 +33,7 @@ class TaskService {
 
   getTasks(): IHttpPromise<any> {
     const config = { ignoreLoadingBar: true, silentCall: true } as ng.IRequestShortcutConfig;
-    return this.$http.get(this.URL, config);
+    return this.$http.get(this.Constants.org.baseURL + '/user/tasks', config);
   }
 
   fillUserTasks(tasks: PagedResult) {

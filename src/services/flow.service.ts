@@ -15,15 +15,12 @@
  */
 class FlowService {
 
-  private flowURL: string;
-
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.flowURL = `${Constants.env.baseURL}/configuration/flow/`;
   }
 
   getSchema() {
-    return this.$http.get(`${this.flowURL}schema`);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/flow/schema`);
   }
 
 }

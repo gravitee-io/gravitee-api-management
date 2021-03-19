@@ -14,26 +14,8 @@
  * limitations under the License.
  */
 
-class ConsoleSettingsService {
-
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
-
-  save(config) {
-    return this.$http.post(`${this.Constants.org.baseURL}/settings/`, config);
-  }
-
-  get() {
-    return this.$http.get(`${this.Constants.org.baseURL}/settings/`);
-  }
-
-  isReadonly(settings: any, property: string): boolean {
-    if (settings && settings.metadata && settings.metadata.readonly) {
-      return settings.metadata.readonly.some(key => key === property);
-    }
-    return false;
-  }
+// tslint:disable-next-line:interface-name
+export interface PageQuery {
+  page: number;
+  size: number;
 }
-
-export default ConsoleSettingsService;

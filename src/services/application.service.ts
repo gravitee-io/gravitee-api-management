@@ -41,11 +41,9 @@ interface IMembership {
 }
 
 class ApplicationService {
-  private applicationsURL: string;
 
   constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
-    this.applicationsURL = `${Constants.env.baseURL}/applications/`;
   }
 
   getAnalyticsHttpTimeout() {
@@ -54,44 +52,44 @@ class ApplicationService {
 
 
   get(applicationId: string): ng.IHttpPromise<any> {
-    return this.$http.get(this.applicationsURL + applicationId);
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId);
   }
 
   getApplicationType(applicationId: string): ng.IHttpPromise<any> {
-    return this.$http.get(this.applicationsURL + applicationId + '/configuration');
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId + '/configuration');
   }
 
   getMembers(applicationId): ng.IHttpPromise<any> {
-    return this.$http.get(this.applicationsURL + applicationId + '/members');
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId + '/members');
   }
 
   addOrUpdateMember(applicationId: string, membership: IMembership): ng.IHttpPromise<any> {
-    return this.$http.post(`${this.applicationsURL}${applicationId}/members`, membership);
+    return this.$http.post(`${this.Constants.env.baseURL}/applications/${applicationId}/members`, membership);
   }
 
   deleteMember(applicationId: string, userId: string): ng.IHttpPromise<any> {
-    return this.$http.delete(this.applicationsURL + applicationId + '/members?user=' + userId);
+    return this.$http.delete(`${this.Constants.env.baseURL}/applications/` + applicationId + '/members?user=' + userId);
   }
 
   transferOwnership(applicationId: string, ownership: IMembership): ng.IHttpPromise<any> {
-    return this.$http.post(this.applicationsURL + applicationId + '/members/transfer_ownership', ownership);
+    return this.$http.post(`${this.Constants.env.baseURL}/applications/` + applicationId + '/members/transfer_ownership', ownership);
   }
 
   list(): ng.IHttpPromise<any> {
-    return this.$http.get(this.applicationsURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/`);
   }
 
   listByGroup(group) {
-    return this.$http.get(this.applicationsURL + '?group=' + group);
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + '?group=' + group);
   }
 
   create(application): ng.IHttpPromise<any> {
-    return this.$http.post(this.applicationsURL, application);
+    return this.$http.post(`${this.Constants.env.baseURL}/applications/`, application);
   }
 
   update(application): ng.IHttpPromise<any> {
     return this.$http.put(
-      this.applicationsURL + application.id,
+      `${this.Constants.env.baseURL}/applications/` + application.id,
       {
         'name': application.name,
         'description': application.description,
@@ -106,11 +104,11 @@ class ApplicationService {
   }
 
   delete(applicationId: string): ng.IHttpPromise<any> {
-    return this.$http.delete(this.applicationsURL + applicationId);
+    return this.$http.delete(`${this.Constants.env.baseURL}/applications/` + applicationId);
   }
 
   search(query) {
-    return this.$http.get(this.applicationsURL + '?query=' + query);
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + '?query=' + query);
   }
 
   /*
@@ -136,7 +134,7 @@ class ApplicationService {
   }
 
   getSubscribedAPI(applicationId: string): ng.IHttpPromise<any> {
-    return this.$http.get(this.applicationsURL + applicationId + '/subscribed');
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId + '/subscribed');
   }
 
   getSubscription(applicationId, subscriptionId) {
@@ -163,7 +161,7 @@ class ApplicationService {
    * Analytics
    */
   analytics(application, request) {
-    var url = this.applicationsURL + application + '/analytics?';
+    var url = `${this.Constants.env.baseURL}/applications/` + application + '/analytics?';
 
     var keys = Object.keys(request);
     _.forEach(keys, function (key) {
@@ -177,26 +175,26 @@ class ApplicationService {
   }
 
   findLogs(application: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.applicationsURL + application + '/logs?'), { timeout: 30000 });
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), `${this.Constants.env.baseURL}/applications/` + application + '/logs?'), { timeout: 30000 });
   }
 
   exportLogsAsCSV(application: string, query: LogsQuery): ng.IPromise<any> {
     const logsQuery = this.cloneQuery(query);
     logsQuery.page = 1;
     logsQuery.size = 10000;
-    return this.$http.get(this.buildURLWithQuery(logsQuery, this.applicationsURL + application + '/logs/export?'), { timeout: 30000 });
+    return this.$http.get(this.buildURLWithQuery(logsQuery, `${this.Constants.env.baseURL}/applications/` + application + '/logs/export?'), { timeout: 30000 });
   }
 
   getLog(api, logId, timestamp) {
-    return this.$http.get(this.applicationsURL + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
   }
 
   getPermissions(application): ng.IPromise<IHttpResponse<any>> {
-    return this.$http.get(this.applicationsURL + application + '/members/permissions');
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + application + '/members/permissions');
   }
 
   renewClientSecret(applicationId: string): ng.IHttpPromise<any> {
-    return this.$http.post(`${this.applicationsURL}${applicationId}/renew_secret`, {});
+    return this.$http.post(`${this.Constants.env.baseURL}/applications/${applicationId}/renew_secret`, {});
   }
 
   getType(application: any): string {
@@ -225,23 +223,23 @@ class ApplicationService {
   }
 
   listMetadata(applicationId): ng.IPromise<any> {
-    return this.$http.get(this.applicationsURL + applicationId + '/metadata');
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId + '/metadata');
   }
 
   createMetadata(applicationId, metadata): ng.IPromise<any> {
-    return this.$http.post(this.applicationsURL + applicationId + '/metadata', metadata);
+    return this.$http.post(`${this.Constants.env.baseURL}/applications/` + applicationId + '/metadata', metadata);
   }
 
   updateMetadata(applicationId, metadata): ng.IPromise<any> {
-    return this.$http.put(this.applicationsURL + applicationId + '/metadata/' + metadata.key, metadata);
+    return this.$http.put(`${this.Constants.env.baseURL}/applications/` + applicationId + '/metadata/' + metadata.key, metadata);
   }
 
   deleteMetadata(applicationId, metadataId): ng.IPromise<any> {
-    return this.$http.delete(this.applicationsURL + applicationId + '/metadata/' + metadataId);
+    return this.$http.delete(`${this.Constants.env.baseURL}/applications/` + applicationId + '/metadata/' + metadataId);
   }
 
   private subscriptionsURL(applicationId: string): string {
-    return `${this.applicationsURL}${applicationId}/subscriptions/`;
+    return `${this.Constants.env.baseURL}/applications/${applicationId}/subscriptions/`;
   }
 
   /*

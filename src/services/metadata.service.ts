@@ -16,9 +16,8 @@
 class MetadataService {
   private metadataURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.metadataURL = `${Constants.env.baseURL}/configuration/metadata/`;
   }
 
   listFormats() {
@@ -26,19 +25,19 @@ class MetadataService {
   }
 
   list() {
-    return this.$http.get(this.metadataURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/metadata/`);
   }
 
   create(metadata) {
-    return this.$http.post(this.metadataURL, metadata);
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/metadata/`, metadata);
   }
 
   update(metadata) {
-    return this.$http.put(this.metadataURL, metadata);
+    return this.$http.put(`${this.Constants.env.baseURL}/configuration/metadata/`, metadata);
   }
 
   delete(metadata) {
-    return this.$http.delete(this.metadataURL + metadata.key);
+    return this.$http.delete(`${this.Constants.env.baseURL}/configuration/metadata/` + metadata.key);
   }
 }
 

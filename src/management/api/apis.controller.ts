@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 
 import UserService from '../../services/user.service';
-import { StateParams, StateService, TransitionService } from '@uirouter/core';
+import {StateParams, StateService, TransitionService} from '@uirouter/core';
 import ApiService from '../../services/api.service';
 
 interface IApisScope extends ng.IScope {
@@ -24,11 +24,12 @@ interface IApisScope extends ng.IScope {
   formApi: any;
   searchResult: boolean;
 }
+
 export class ApisController {
 
   private query: string = '';
-  private order: string = '';
-  private apisProvider: any;
+  private order: string = undefined;
+  private currentOrder: string = undefined;
   private apis: any;
   private graviteeUIVersion: string;
   private isAPIsHome: boolean;
@@ -40,6 +41,7 @@ export class ApisController {
   private isQualityDisplayed: boolean;
   private timer: any;
   private canceler: any;
+  private currentApisResponse: any;
 
   constructor(private ApiService: ApiService,
               private $mdDialog: ng.material.IDialogService,
@@ -61,8 +63,11 @@ export class ApisController {
     this.graviteeUser = graviteeUser;
     this.graviteeUIVersion = Build.version;
     this.query = $state.params.q;
-    this.apisProvider = resolvedApis.data;
-    if (!this.apisProvider.length) {
+    this.currentApisResponse = resolvedApis.data;
+    this.order = this.currentOrder;
+    this.apis = this.currentApisResponse.data;
+
+    if (!this.currentApisResponse.data.length) {
       // if no APIs, maybe the auth token has been expired
       UserService.current();
     }
@@ -78,38 +83,81 @@ export class ApisController {
       $timeout.cancel(this.timer);
       this.timer = $timeout(() => {
         if (query !== undefined && query !== previousQuery) {
-          this.search();
+          this.searchWithQuery(query);
         }
       }, 300);
     });
     this.canceler = $q.defer();
+
+    this.loadMore();
   }
 
-  search() {
-    // if search is already executed, cancel timer
-    this.$timeout.cancel(this.timer);
+  searchWithQuery(query: string) {
 
-    this.$scope.searchResult = true;
-    this.$scope.apisLoading = true;
     this.canceler.resolve();
     this.canceler = this.$q.defer();
 
-    let promise;
     let promOpts = {timeout: this.canceler.promise};
     this.$state.transitionTo(
       this.$state.current,
       {q: this.query},
       {notify: false});
 
-    if (this.query) {
-      promise = this.ApiService.searchApis(this.query, promOpts);
-    } else {
-      promise = this.ApiService.list(null, false, promOpts);
+    this.ApiService.searchApis(query, 1, this.currentOrder, promOpts).then((response) => {
+      this.currentApisResponse = response.data;
+      this.apis = this.currentApisResponse.data;
+      this.loadMore();
+    });
+  }
+
+  sort(order: string, field: string) {
+
+    if (order === this.currentOrder || (order !== undefined && !order.includes(field))) {
+      return;
     }
 
-    promise.then( (response) => {
-      this.apisProvider = response.data;
-      this.loadMore(this.order, false);
+    if (order !== undefined) {
+      this.currentOrder = order;
+    }
+
+    this.gotToPage(1);
+  }
+
+  scroll() {
+    return this.gotToPage(this.currentApisResponse.page.current + 1);
+  }
+
+  gotToPage(requestedPage: number) {
+
+    if (this.$scope.apisLoading) {
+      return;
+    }
+
+    this.$scope.apisLoading = true;
+    this.$scope.searchResult = true;
+    let promise;
+
+    if (requestedPage > this.currentApisResponse.page.total_pages) {
+      // The last page has been reached, no need to search for more;
+      this.$scope.apisLoading = false;
+      return;
+    }
+
+    if (this.query) {
+      promise = this.ApiService.searchApis(this.query, requestedPage, this.currentOrder);
+    } else {
+      promise = this.ApiService.list(null, false, requestedPage, this.currentOrder);
+    }
+
+    promise.then((response) => {
+      this.currentApisResponse = response.data;
+      if (requestedPage > 1) {
+        this.apis = this.apis.concat(this.currentApisResponse.data);
+      } else {
+        this.apis = this.currentApisResponse.data;
+      }
+      this.loadMore();
+
       this.$scope.apisLoading = false;
     });
   }
@@ -170,19 +218,9 @@ export class ApisController {
     }
   }
 
-  loadMore = (order, showNext) => {
-    // check if data must be refreshed or not when sorting or searching (when user is typing text)
-    const doNotLoad = showNext && (this.apisProvider && this.apisProvider.length) === (this.apis && this.apis.length) &&
-      _.difference(_.map(this.apisProvider, 'id'), _.map(this.apis, 'id')).length === 0;
-    if (!doNotLoad && this.apisProvider) {
-      let apisProvider = _.clone(this.apisProvider);
-      apisProvider = _.sortBy(apisProvider, _.replace(order, '-', ''));
-      if (_.startsWith(order, '-')) {
-        apisProvider.reverse();
-      }
-      let apisLength = this.apis ? this.apis.length : 0;
-      this.apis = _.take(apisProvider, 20 + apisLength);
-      _.forEach(this.apis, (api: any) => {
+  loadMore = () => {
+    if (this.currentApisResponse.data) {
+      _.forEach(this.currentApisResponse.data, (api: any) => {
         if (_.isUndefined(this.syncStatus[api.id])) {
           this.ApiService.isAPISynchronized(api.id)
             .then((sync) => {

@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 class ResourceService {
-  private resourcesURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.resourcesURL = `${Constants.env.baseURL}/resources/`;
   }
 
   list(expandSchema = false, expandIcon = false) {
@@ -29,7 +27,7 @@ class ResourceService {
     if (expandIcon) {
       expandParams.push('expand=icon');
     }
-    let url = this.resourcesURL;
+    let url = `${this.Constants.env.baseURL}/resources/`;
     if (expandParams.length > 0) {
       url += `?${expandParams.join('&')}`;
     }
@@ -37,11 +35,11 @@ class ResourceService {
   }
 
   getSchema(resourceId) {
-    return this.$http.get(`${this.resourcesURL + resourceId}/schema`);
+    return this.$http.get(`${this.Constants.env.baseURL}/resources/${resourceId}/schema`);
   }
 
   getDocumentation(resourceId) {
-    return this.$http.get(this.resourcesURL + resourceId + '/documentation');
+    return this.$http.get(`${this.Constants.env.baseURL}/resources/${resourceId}/documentation`);
   }
 
 }

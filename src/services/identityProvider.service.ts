@@ -18,19 +18,17 @@ import { IdentityProvider } from '../entities/identityProvider';
 import { IHttpPromise, IPromise } from 'angular';
 
 class IdentityProviderService {
-  private URL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.URL = `${Constants.org.baseURL}/configuration/identities/`;
   }
 
   list(): IPromise<IdentityProvider[]> {
-    return this.$http.get(this.URL).then(response => response.data);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/identities/`).then(response => response.data);
   }
 
   get(id: string): IPromise<IdentityProvider> {
-    return this.$http.get(this.URL + id).then(response => {
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/identities/` + id).then(response => {
       let identityProvider = response.data;
       identityProvider.configuration = identityProvider.configuration || {};
       identityProvider.configuration.scopes = identityProvider.configuration.scopes || [];
@@ -49,12 +47,12 @@ class IdentityProviderService {
   }
 
   create(identityProvider: IdentityProvider): IHttpPromise<IdentityProvider> {
-    return this.$http.post(this.URL, identityProvider);
+    return this.$http.post(`${this.Constants.org.baseURL}/configuration/identities/`, identityProvider);
   }
 
   update(identityProvider: IdentityProvider): IPromise<IdentityProvider> {
 
-    return this.$http.put(this.URL + identityProvider.id,
+    return this.$http.put(`${this.Constants.org.baseURL}/configuration/identities/` + identityProvider.id,
       {
         name: identityProvider.name,
         description: identityProvider.description,
@@ -85,7 +83,7 @@ class IdentityProviderService {
   }
 
   delete(identityProvider: IdentityProvider): IHttpPromise<any> {
-    return this.$http.delete(this.URL + identityProvider.id);
+    return this.$http.delete(`${this.Constants.org.baseURL}/configuration/identities/` + identityProvider.id);
   }
 }
 

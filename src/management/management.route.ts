@@ -253,10 +253,6 @@ function managementRouterConfig($stateProvider) {
         }
       },
       resolve: {
-        resolvedApis:
-          (ApiService: ApiService) => ApiService.list().then(response => response.data),
-        resolvedApplications:
-          (ApplicationService: ApplicationService) => ApplicationService.list().then(response => response.data),
         resolvedEvents:
           (AuditService: AuditService) => AuditService.listEvents().then(response => response.data)
       }

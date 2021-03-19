@@ -18,19 +18,17 @@ import { ClientRegistrationProvider } from '../entities/clientRegistrationProvid
 import { IHttpPromise, IPromise } from 'angular';
 
 class ClientRegistrationProviderService {
-  private URL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.URL = `${Constants.env.baseURL}/configuration/applications/registration/providers/`;
   }
 
   list(): IPromise<ClientRegistrationProvider[]> {
-    return this.$http.get(this.URL).then(response => response.data);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/`).then(response => response.data);
   }
 
   get(id: string): IPromise<ClientRegistrationProvider> {
-    return this.$http.get(this.URL + id).then(response => {
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + id).then(response => {
       let clientRegistrationProvider = response.data;
       clientRegistrationProvider.scopes = clientRegistrationProvider.scopes || [];
       return clientRegistrationProvider;
@@ -38,12 +36,12 @@ class ClientRegistrationProviderService {
   }
 
   create(clientRegistrationProvider: ClientRegistrationProvider): IHttpPromise<ClientRegistrationProvider> {
-    return this.$http.post(this.URL, clientRegistrationProvider);
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/`, clientRegistrationProvider);
   }
 
   update(clientRegistrationProvider: ClientRegistrationProvider): IPromise<ClientRegistrationProvider> {
 
-    return this.$http.put(this.URL + clientRegistrationProvider.id,
+    return this.$http.put(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + clientRegistrationProvider.id,
       {
         name: clientRegistrationProvider.name,
         description: clientRegistrationProvider.description,
@@ -65,7 +63,7 @@ class ClientRegistrationProviderService {
   }
 
   delete(clientRegistrationProvider: ClientRegistrationProvider): IHttpPromise<any> {
-    return this.$http.delete(this.URL + clientRegistrationProvider.id);
+    return this.$http.delete(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + clientRegistrationProvider.id);
   }
 }
 

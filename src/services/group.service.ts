@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { PageQuery } from '../entities/pageQuery';
 
 class GroupService {
-
-  private groupsURL: string;
 
   static _mapToEntity(grp) {
     return {
@@ -33,50 +32,59 @@ class GroupService {
     };
   }
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.groupsURL = `${Constants.env.baseURL}/configuration/groups`;
   }
 
   get(groupId: string): ng.IPromise<any> {
-    return this.$http.get(`${this.groupsURL}/${groupId}`);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/groups/${groupId}`);
   }
 
   list(): ng.IPromise<any> {
-    return this.$http.get(this.groupsURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/groups`);
   }
 
-  getMembers(groupId): ng.IPromise<any> {
-    return this.$http.get([this.groupsURL, groupId, 'members'].join('/'));
+  getMembers(groupId: string, page?: PageQuery, opts?: any): ng.IPromise<any> {
+    let url = `${this.Constants.env.baseURL}/configuration/groups/${groupId}/members`;
+    if (page != null) {
+      url += '/_paged';
+    }
+
+    opts = opts || {};
+    opts.params = {
+      ...page
+    };
+
+    return this.$http.get(url, opts);
   }
 
   create(newGroup): ng.IPromise<any> {
     if (newGroup) {
       let grpEntity = GroupService._mapToEntity(newGroup);
-      return this.$http.post(this.groupsURL, grpEntity);
+      return this.$http.post(`${this.Constants.env.baseURL}/configuration/groups`, grpEntity);
     }
   }
 
   update(updatedGroup): ng.IPromise<any> {
     if (updatedGroup.id && updatedGroup) {
       let grpEntity = GroupService._mapToEntity(updatedGroup);
-      return this.$http.put([this.groupsURL, updatedGroup.id].join('/'), grpEntity);
+      return this.$http.put([`${this.Constants.env.baseURL}/configuration/groups`, updatedGroup.id].join('/'), grpEntity);
     }
   }
 
   remove(groupId): ng.IPromise<any> {
     if (groupId) {
-      return this.$http.delete([this.groupsURL, groupId].join('/'));
+      return this.$http.delete([`${this.Constants.env.baseURL}/configuration/groups`, groupId].join('/'));
     }
   }
 
   updateEventRules(group, defaultApi, defaultApplication) {
     let eventRules = [];
     if (defaultApi) {
-      eventRules.push({ event: 'API_CREATE' });
+      eventRules.push({event: 'API_CREATE'});
     }
     if (defaultApplication) {
-      eventRules.push({ event: 'APPLICATION_CREATE' });
+      eventRules.push({event: 'APPLICATION_CREATE'});
     }
 
     group.event_rules = eventRules;
@@ -105,24 +113,24 @@ class GroupService {
     });
 
     if (body.length > 0) {
-      return this.$http.post([this.groupsURL, group, 'members'].join('/'), body);
+      return this.$http.post([`${this.Constants.env.baseURL}/configuration/groups`, group, 'members'].join('/'), body);
     }
   }
 
   deleteMember(group, memberUsername): ng.IPromise<any> {
-    return this.$http.delete([this.groupsURL, group, 'members', memberUsername].join('/'));
+    return this.$http.delete([`${this.Constants.env.baseURL}/configuration/groups`, group, 'members', memberUsername].join('/'));
   }
 
   getMemberships(group: string, type: string): ng.IPromise<any> {
-    return this.$http.get(`${this.groupsURL}/${group}/memberships?type=${type}`);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/groups/${group}/memberships?type=${type}`);
   }
 
   associate(group: string, type: string): ng.IPromise<any> {
-    return this.$http.post(`${this.groupsURL}/${group}/memberships?type=${type}`);
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/groups/${group}/memberships?type=${type}`);
   }
 
   getInvitationsURL(groupId: string): string {
-    return this.groupsURL + '/' + groupId + '/invitations/';
+    return `${this.Constants.env.baseURL}/configuration/groups` + '/' + groupId + '/invitations/';
   }
 
   getInvitations(groupId: string): ng.IPromise<any> {

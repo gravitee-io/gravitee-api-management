@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 class FetcherService {
-  private resourcesURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.resourcesURL = `${Constants.env.baseURL}/fetchers/`;
   }
 
   list(onlyImportFromDirectory?: boolean) {
-    let url = `${this.resourcesURL}?expand=schema` + (onlyImportFromDirectory ? '&import=true' : '');
+    let url = `${this.Constants.env.baseURL}/fetchers/?expand=schema` + (onlyImportFromDirectory ? '&import=true' : '');
     return this.$http.get(url);
   }
 }

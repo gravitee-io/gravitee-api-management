@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 class CustomUserFieldsService {
-  private resourceURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.resourceURL = `${Constants.org.baseURL}/configuration/custom-user-fields`;
   }
 
   valuesAsList = function (field: any) {
@@ -61,19 +59,19 @@ class CustomUserFieldsService {
   }
 
   list() {
-    return this.$http.get(this.resourceURL);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/custom-user-fields`);
   }
 
   create(field) {
-    return this.$http.post(this.resourceURL, this.valuesAsList(field));
+    return this.$http.post(`${this.Constants.org.baseURL}/configuration/custom-user-fields`, this.valuesAsList(field));
   }
 
   update(field) {
-    return this.$http.put(this.resourceURL + '/' + field.key, this.valuesAsList(field));
+    return this.$http.put(`${this.Constants.org.baseURL}/configuration/custom-user-fields` + '/' + field.key, this.valuesAsList(field));
   }
 
   delete(field) {
-    return this.$http.delete(this.resourceURL + '/' + field.key);
+    return this.$http.delete(`${this.Constants.org.baseURL}/configuration/custom-user-fields` + '/' + field.key);
   }
 }
 

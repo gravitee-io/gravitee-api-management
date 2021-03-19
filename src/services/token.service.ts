@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 class TokenService {
-  private tokensURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.tokensURL = `${Constants.org.baseURL}/user/tokens/`;
   }
 
   list() {
-    return this.$http.get(this.tokensURL);
+    return this.$http.get(`${this.Constants.org.baseURL}/user/tokens/`);
   }
 
   create(token) {
     if (token) {
-      return this.$http.post(this.tokensURL, token);
+      return this.$http.post(`${this.Constants.org.baseURL}/user/tokens/`, token);
     }
   }
 
   revoke(token) {
     if (token) {
-      return this.$http.delete(this.tokensURL + token.id);
+      return this.$http.delete(`${this.Constants.org.baseURL}/user/tokens/` + token.id);
     }
   }
 }

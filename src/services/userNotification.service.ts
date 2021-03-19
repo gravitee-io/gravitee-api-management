@@ -20,13 +20,9 @@ import { UserNotification } from '../entities/userNotification';
 import { IHttpPromise } from 'angular';
 
 class UserNotificationService {
-  private URL: string;
-  private Constants: any;
 
-  constructor(private $http: ng.IHttpService, Constants) {
+  constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
-    this.Constants = Constants;
-    this.URL = this.Constants.org.baseURL + '/user/notifications';
   }
 
   getNotificationSchedulerInSeconds(): number {
@@ -38,15 +34,15 @@ class UserNotificationService {
 
   getNotifications(): IHttpPromise<any> {
     const config = { ignoreLoadingBar: true, silentCall: true } as ng.IRequestShortcutConfig;
-    return this.$http.get(this.URL, config);
+    return this.$http.get(this.Constants.org.baseURL + '/user/notifications', config);
   }
 
   delete(notification: UserNotification): IHttpPromise<any> {
-    return this.$http.delete(this.URL + '/' + notification.id);
+    return this.$http.delete(this.Constants.org.baseURL + '/user/notifications' + '/' + notification.id);
   }
 
   deleteAll(): IHttpPromise<any> {
-    return this.$http.delete(this.URL);
+    return this.$http.delete(this.Constants.org.baseURL + '/user/notifications');
   }
 
   fillUserNotifications(user: User, notifications: PagedResult) {

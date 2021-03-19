@@ -17,23 +17,21 @@
 import { IdentityProviderActivation } from '../entities/identityProvider';
 
 class OrganizationService {
-  private organizationURL: string;
 
-  constructor(private $http, Constants, private $q) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.organizationURL = `${Constants.org.baseURL}`;
   }
 
   listSocialIdentityProviders() {
-    return this.$http.get(this.organizationURL + '/social-identities');
+    return this.$http.get(`${this.Constants.org.baseURL}` + '/social-identities');
   }
 
   listOrganizationIdentities() {
-    return this.$http.get(`${this.organizationURL}/identities`);
+    return this.$http.get(`${this.Constants.org.baseURL}/identities`);
   }
 
   updateOrganizationIdentities(updatedIPA: IdentityProviderActivation[]) {
-    return this.$http.put(`${this.organizationURL}/identities`, updatedIPA);
+    return this.$http.put(`${this.Constants.org.baseURL}/identities`, updatedIPA);
   }
 }
 

@@ -30,7 +30,6 @@ interface IGroupDetailComponentScope extends ng.IScope {
 const GroupComponent: ng.IComponentOptions = {
   bindings: {
     group: '<',
-    members: '<',
     apiRoles: '<',
     applicationRoles: '<',
     invitations: '<',
@@ -50,13 +49,27 @@ const GroupComponent: ng.IComponentOptions = {
     this.$rootScope = $rootScope;
 
     this.$onInit = () => {
+
       this.updateMode = this.group !== undefined && this.group.id !== undefined;
+      this.membersLoaded = false;
+      this.defaultPageSize = 10;
+
+      this.membersPageQuery = {
+        page: $state.params.page ? parseInt($state.params.page, 0) : 1,
+        size: this.defaultPageSize
+      };
 
       if (!this.updateMode) {
         this.group = {};
         this.group.lock_api_role = false;
         this.group.lock_application_role = false;
         this.group.disable_membership_notifications = false;
+      } else {
+        GroupService.getMembers(this.group.id, this.membersPageQuery).then(response => {
+          this.membersPage = response.data;
+          this.members = this.membersPage.data;
+          this.membersLoaded = true;
+        });
       }
 
       $scope.groupApis = [];
@@ -129,6 +142,15 @@ const GroupComponent: ng.IComponentOptions = {
       }
     };
 
+    this.onPaginate = (page: number) => {
+      GroupService.getMembers(this.group.id, { page: page, size: this.defaultPageSize }).then(response => {
+        this.membersPage = response.data;
+        this.membersPageQuery.page = this.membersPage.page.current;
+        this.members = this.membersPage.data;
+        this.membersLoaded = true;
+      });
+    };
+
     this.removeUser = (ev, member: any) => {
       ev.stopPropagation();
       $mdDialog.show({
@@ -143,11 +165,14 @@ const GroupComponent: ng.IComponentOptions = {
         }
       }).then( (response) => {
         if (response) {
-          GroupService.deleteMember(this.group.id, member.id).then((response) => {
+          GroupService.deleteMember(this.group.id, member.id).then(() => {
             NotificationService.show('Member ' + member.displayName + ' has been successfully removed');
-            GroupService.getMembers(this.group.id).then(response => {
-              this.members = response.data;
-              this.group.apiPrimaryOwner = this.members.find(member => member.roles.API === 'PRIMARY_OWNER').id;
+            GroupService.getMembers(this.group.id, this.membersPageQuery).then(response => {
+                this.membersPage = response.data;
+                this.members = this.membersPage.data;
+                if (this.group.apiPrimaryOwner === member.id) {
+                  delete this.group.apiPrimaryOwner;
+                }
             });
           });
         }

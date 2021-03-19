@@ -26,21 +26,17 @@ export class AuditQuery {
 }
 
 class AuditService {
-  private auditURL: string;
-  private apiAuditURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.auditURL = `${Constants.env.baseURL}/audit`;
-    this.apiAuditURL = `${Constants.env.baseURL}/apis/`;
   }
 
   list(query?: AuditQuery, api?: string) {
     let url;
     if (api) {
-      url = this.apiAuditURL + api + '/audit?';
+      url = `${this.Constants.env.baseURL}/apis/` + api + '/audit?';
     } else {
-      url = this.auditURL + '?';
+      url = `${this.Constants.env.baseURL}/audit` + '?';
     }
 
     _.forEach(query, (value, key) => {
@@ -55,9 +51,9 @@ class AuditService {
   listEvents(api?: string) {
     let url;
     if (api) {
-      url = this.apiAuditURL + api + '/audit/events';
+      url = `${this.Constants.env.baseURL}/apis/` + api + '/audit/events';
     } else {
-      url = this.auditURL + '/events';
+      url = `${this.Constants.env.baseURL}/audit` + '/events';
     }
 
     return this.$http.get(url);

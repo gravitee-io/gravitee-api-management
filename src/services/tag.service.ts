@@ -14,36 +14,34 @@
  * limitations under the License.
  */
 class TagService {
-  private tagsURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.tagsURL = `${Constants.env.baseURL}/configuration/tags/`;
   }
 
   list() {
-    return this.$http.get(this.tagsURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/tags/`);
   }
 
   get(tagId: string) {
-    return this.$http.get(this.tagsURL + tagId);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/tags/` + tagId);
   }
 
   create(tag) {
     if (tag) {
-      return this.$http.post(this.tagsURL, tag);
+      return this.$http.post(`${this.Constants.env.baseURL}/configuration/tags/`, tag);
     }
   }
 
   update(tag) {
     if (tag && tag.id) {
-      return this.$http.put(this.tagsURL + tag.id, tag);
+      return this.$http.put(`${this.Constants.env.baseURL}/configuration/tags/` + tag.id, tag);
     }
   }
 
   delete(tag) {
     if (tag) {
-      return this.$http.delete(this.tagsURL + tag.id);
+      return this.$http.delete(`${this.Constants.env.baseURL}/configuration/tags/` + tag.id);
     }
   }
 }

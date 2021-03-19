@@ -32,15 +32,13 @@ class AnalyticsService {
 
   constructor(private $http, private Constants, public $stateParams) {
     'ngInject';
-    this.platformUrl = `${Constants.env.baseURL}/platform`;
-    this.analyticsURL = `${Constants.env.baseURL}/platform/analytics`;
   }
 
   /*
    * Analytics
    */
   analytics(request) {
-    var url = this.analyticsURL + '?';
+    var url = `${this.Constants.env.baseURL}/platform/analytics` + '?';
     var keys = Object.keys(request);
     _.forEach(keys, function (key) {
       var val = request[key];
@@ -58,18 +56,18 @@ class AnalyticsService {
   }
 
   findLogs(query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.platformUrl + '/logs?'), { timeout: 30000 });
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), `${this.Constants.env.baseURL}/platform` + '/logs?'), { timeout: 30000 });
   }
 
   exportLogsAsCSV(query: LogsQuery): ng.IPromise<any> {
     const logsQuery = this.cloneQuery(query);
     logsQuery.page = 1;
     logsQuery.size = 10000;
-    return this.$http.get(this.buildURLWithQuery(logsQuery, this.platformUrl + '/logs/export?'), { timeout: 30000 });
+    return this.$http.get(this.buildURLWithQuery(logsQuery, `${this.Constants.env.baseURL}/platform` + '/logs/export?'), { timeout: 30000 });
   }
 
   getLog(logId, timestamp) {
-    return this.$http.get(this.platformUrl + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
+    return this.$http.get(`${this.Constants.env.baseURL}/platform` + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
   }
 
   getQueryFilters() {

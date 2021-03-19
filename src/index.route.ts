@@ -20,6 +20,23 @@ import { StateService } from '@uirouter/core';
 import { StateProvider, UrlService } from '@uirouter/angularjs';
 import OrganizationService from './services/organization.service';
 
+function reinitToDefaultOrganization($window: angular.IWindowService, Constants) {
+  $window.localStorage.setItem('gv-last-organization-loaded', 'DEFAULT');
+  if (Constants.baseURL.endsWith('/')) {
+    Constants.baseURL = Constants.baseURL.slice(0, -1);
+  }
+
+  let basePath;
+  let orgEnvIndex = Constants.baseURL.indexOf('/organizations');
+  if (orgEnvIndex >= 0) {
+    Constants.baseURL = Constants.baseURL.substr(0, orgEnvIndex);
+  }
+  basePath = Constants.baseURL;
+
+  Constants.org.baseURL = `${basePath}/organizations/DEFAULT`;
+  Constants.env.baseURL = `${Constants.org.baseURL}/environments/{:envId}`;
+}
+
 function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlService) {
   'ngInject';
   $stateProvider
@@ -148,6 +165,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
             $rootScope.$broadcast('graviteeUserCancelScheduledServices');
             let userLogoutEndpoint = $window.localStorage.getItem('user-logout-url');
             $window.localStorage.removeItem('user-logout-url');
+            reinitToDefaultOrganization($window, Constants);
             if (userLogoutEndpoint != null) {
               $window.location.href = userLogoutEndpoint + encodeURIComponent(window.location.origin);
             }

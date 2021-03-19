@@ -18,23 +18,21 @@ import { ApiPortalHeader } from '../entities/apiPortalHeader';
 import { IHttpPromise } from 'angular';
 
 class ApiHeaderService {
-  private URL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.URL = `${Constants.env.baseURL}/configuration/apiheaders/`;
   }
 
   list(): IHttpPromise<ApiPortalHeader[]> {
-    return this.$http.get(this.URL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/apiheaders/`);
   }
 
   create(apiHeader: ApiPortalHeader): IHttpPromise<ApiPortalHeader> {
-    return this.$http.post(this.URL, apiHeader);
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/apiheaders/`, apiHeader);
   }
 
   update(apiHeader: ApiPortalHeader): IHttpPromise<ApiPortalHeader> {
-    return this.$http.put(this.URL + apiHeader.id,
+    return this.$http.put(`${this.Constants.env.baseURL}/configuration/apiheaders/` + apiHeader.id,
       {
         name: apiHeader.name,
         value: apiHeader.value,
@@ -43,7 +41,7 @@ class ApiHeaderService {
   }
 
   delete(apiHeader: ApiPortalHeader): IHttpPromise<any> {
-    return this.$http.delete(this.URL + apiHeader.id);
+    return this.$http.delete(`${this.Constants.env.baseURL}/configuration/apiheaders/` + apiHeader.id);
   }
 }
 

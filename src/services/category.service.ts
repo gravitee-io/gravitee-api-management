@@ -15,37 +15,35 @@
  */
 
 class CategoryService {
-  private categoriesURL: string;
 
-  constructor(private $http, Constants) {
+  constructor(private $http, private Constants) {
     'ngInject';
-    this.categoriesURL = `${Constants.env.baseURL}/configuration/categories/`;
   }
 
   list() {
-    return this.$http.get(this.categoriesURL);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/categories/`);
   }
 
   get(categoryId) {
-    return this.$http.get(this.categoriesURL + categoryId);
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/categories/` + categoryId);
   }
 
   create(category) {
-    return this.$http.post(this.categoriesURL, category);
+    return this.$http.post(`${this.Constants.env.baseURL}/configuration/categories/`, category);
   }
 
   update(category) {
-    return this.$http.put(this.categoriesURL + category.id, category);
+    return this.$http.put(`${this.Constants.env.baseURL}/configuration/categories/` + category.id, category);
   }
 
   updateCategories(categories) {
     if (categories && categories.length) {
-      return this.$http.put(this.categoriesURL, categories);
+      return this.$http.put(`${this.Constants.env.baseURL}/configuration/categories/`, categories);
     }
   }
 
   delete(category) {
-    return this.$http.delete(this.categoriesURL + category.id);
+    return this.$http.delete(`${this.Constants.env.baseURL}/configuration/categories/` + category.id);
   }
 }
 

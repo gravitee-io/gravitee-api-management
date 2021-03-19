@@ -200,7 +200,7 @@
                 Enable email invitation and/or user search to allow the group administrator to add users.
               </div>
             </div>
-            <md-table-container>
+            <md-table-container ng-if="$ctrl.membersLoaded" ng-cloak>
               <table md-table ng-init="orderGrp = 'displayName'">
                 <thead md-head md-order="orderGrp">
                 <tr md-row>
@@ -320,6 +320,19 @@
                 </table>
               </div>
             </md-table-container>
+            <gravitee-empty-state
+              message="Loading members..."
+              icon="person"
+              ng-if="!$ctrl.membersLoaded"
+            ></gravitee-empty-state>
+            <md-table-pagination
+              ng-if="$ctrl.membersPage.page.size > 0"
+              md-limit="$ctrl.membersPage.page.per_page"
+              md-page="$ctrl.membersPage.page.current"
+              md-total="{{$ctrl.membersPage.page.total_elements}}"
+              md-on-paginate="$ctrl.onPaginate"
+            >
+            </md-table-pagination>
           </md-tab-body>
         </md-tab>
         <md-tab md-on-select="currentTab='apis'; $ctrl.loadGroupApis();">
