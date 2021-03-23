@@ -35,7 +35,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
  * @author njt
  */
 @Repository
-public class JdbcCategoryRepository implements CategoryRepository {
+public class JdbcCategoryRepository extends TransactionalRepository implements CategoryRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCategoryRepository.class);
 

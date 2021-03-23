@@ -39,7 +39,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcPageRevisionRepository implements PageRevisionRepository {
+public class JdbcPageRevisionRepository extends TransactionalRepository implements PageRevisionRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPageRevisionRepository.class);
 

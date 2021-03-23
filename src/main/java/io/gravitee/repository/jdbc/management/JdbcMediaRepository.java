@@ -41,7 +41,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
  * @author Guillaume GILLON
  */
 @Repository
-public class JdbcMediaRepository implements MediaRepository {
+public class JdbcMediaRepository extends TransactionalRepository implements MediaRepository {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

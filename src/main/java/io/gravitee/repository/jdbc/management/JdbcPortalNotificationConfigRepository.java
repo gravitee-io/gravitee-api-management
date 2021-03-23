@@ -40,7 +40,7 @@ import static java.lang.String.format;
  * @author njt
  */
 @Repository
-public class JdbcPortalNotificationConfigRepository implements PortalNotificationConfigRepository {
+public class JdbcPortalNotificationConfigRepository extends TransactionalRepository implements PortalNotificationConfigRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNotificationConfigRepository.class);
 
