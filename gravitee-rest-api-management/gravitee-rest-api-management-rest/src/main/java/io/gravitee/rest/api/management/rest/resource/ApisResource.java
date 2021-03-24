@@ -141,7 +141,7 @@ public class ApisResource extends AbstractResource {
                 apiQuery.setLifecycleStates(singletonList(PUBLISHED));
             }
             if (isAuthenticated()) {
-                apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, sortable, commonPageable,false);
+                apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, sortable, commonPageable, apisParam.isPortal());
             } else {
                 apiQuery.setVisibility(PUBLIC);
                 apis = apiService.search(apiQuery, sortable, commonPageable);
