@@ -1327,7 +1327,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         if (mappings == null || mappings.isEmpty()) {
             // provide default roles in this case otherwise user will not have roles if the RoleMapping isn't provided and if the
             // option to refresh user profile on each connection is enabled
-            return roleService.findDefaultRoleByScopes(RoleScope.ENVIRONMENT, RoleScope.ORGANIZATION).stream().collect(toSet());
+            return roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT).stream().collect(toSet());
         }
 
         Set<RoleEntity> roles = new HashSet<>();
