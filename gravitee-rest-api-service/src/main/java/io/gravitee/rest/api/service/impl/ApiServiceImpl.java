@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.*;
@@ -114,6 +115,7 @@ import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -129,7 +131,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final static Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
-    private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^(?:(?:[htps\\(\\)?\\|]+):\\/\\/)*(?:[\\w\\(\\)\\[\\]\\{\\}?\\|.*-](?:(?:[?+*]|\\{\\d+(?:,\\d*)?\\}))?)+(?:[a-zA-Z0-9]{2,6})?(?::\\d{1,5})?$");
+    // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
+    private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
     private static final String URI_PATH_SEPARATOR = "/";
     private static final String CONFIGURATION_DEFINITION_PATH = "/api/apim-configuration-schema.json";
 
@@ -2327,9 +2330,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity duplicate(final String apiId, final DuplicateApiEntity duplicateApiEntity) {
+    public ApiEntity duplicate(final ApiEntity apiEntity, final DuplicateApiEntity duplicateApiEntity) {
+        requireNonNull(apiEntity, "Missing ApiEntity");
+        final String apiId = apiEntity.getId();
         LOGGER.debug("Duplicate API {}", apiId);
-        final ApiEntity apiEntity = findById(apiId);
 
         final UpdateApiEntity newApiEntity = convert(apiEntity);
         final Proxy proxy = apiEntity.getProxy();

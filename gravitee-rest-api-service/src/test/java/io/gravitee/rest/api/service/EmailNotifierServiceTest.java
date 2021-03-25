@@ -22,6 +22,8 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.notification.*;
 import io.gravitee.rest.api.service.notifiers.impl.EmailNotifierServiceImpl;
+
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -30,8 +32,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -125,7 +129,6 @@ public class EmailNotifierServiceTest {
             verify(mockEmailService, never()).sendEmailNotification(any());
         }
     }
-
     @Test
     public void shouldHaveATemplateForPortalHooks() {
         GenericNotificationConfig cfg = new GenericNotificationConfig();
@@ -174,5 +177,40 @@ public class EmailNotifierServiceTest {
             ), any());
             verify(mockEmailService, never()).sendEmailNotification(any());
         }
+    }
+
+    @Test
+    public void shouldHaveEmail() {
+        GenericNotificationConfig cfg = new GenericNotificationConfig();
+        cfg.setConfig("test@mail.com");
+        ApiEntity api = new ApiEntity();
+        api.setName("api-name");
+        PlanEntity plan = new PlanEntity();
+        plan.setName("plan-name");
+        Map<String, Object> params = new HashMap<>();
+        params.put((NotificationParamsBuilder.PARAM_API), api);
+        params.put((NotificationParamsBuilder.PARAM_PLAN), plan);
+
+        List<String> mails = service.getMails(cfg, params);
+        assertNotNull(mails);
+        assertFalse(mails.isEmpty());
+        assertThat(mails, CoreMatchers.hasItem(cfg.getConfig()));
+    }
+
+    @Test
+    public void shouldHaveEmptyEmailList() {
+        GenericNotificationConfig cfg = new GenericNotificationConfig();
+        Map<String, Object> params = new HashMap<>();
+        List<String> mails = service.getMails(cfg, params);
+        assertNotNull(mails);
+        assertTrue(mails.isEmpty());
+    }
+
+    @Test
+    public void shouldHaveEmptyEmailList_NoConfig() {
+        Map<String, Object> params = new HashMap<>();
+        List<String> mails = service.getMails(null, params);
+        assertNotNull(mails);
+        assertTrue(mails.isEmpty());
     }
 }

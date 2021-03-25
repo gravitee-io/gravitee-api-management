@@ -3842,6 +3842,10 @@ components:
               type: array
               items:
                 type: string
+            USER:
+              type: array
+              items:
+                type: string
         customFields:
           type: object
           description: Values for CustomUserFields
