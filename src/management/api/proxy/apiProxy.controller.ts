@@ -40,6 +40,8 @@ class ApiProxyController {
   private domainRestrictions: string[];
   private domainRegexList: RegExp[] = [];
   private hostPattern: string;
+  // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
+  private allowOriginPattern = '^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$';
 
   constructor(
     private ApiService: ApiService,

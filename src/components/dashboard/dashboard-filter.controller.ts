@@ -23,7 +23,7 @@ class DashboardFilterController {
   private onFilterChange: any;
   private lastSource: any;
 
-  constructor(private $rootScope, private $state: StateService, private AnalyticsService: AnalyticsService) {
+  constructor(private $rootScope, private $state: StateService, private AnalyticsService: AnalyticsService, private $timeout: ng.ITimeoutService) {
     'ngInject';
 
     this.fields = {};
@@ -130,13 +130,16 @@ class DashboardFilterController {
 
     // Update the query parameter
     if (!silent) {
-      this.$state.transitionTo(
-        this.$state.current,
-        _.merge(this.$state.params, {
-          q: query
-        }),
-        {notify: false});
-      this.onFilterChange({query: query, widget: this.lastSource});
+      this.$timeout(async () => {
+        await this.$state.transitionTo(
+          this.$state.current,
+          _.merge(this.$state.params, {
+            q: query
+          }),
+          {notify: false});
+        this.onFilterChange({query: query, widget: this.lastSource});
+      });
+
     }
   }
 
