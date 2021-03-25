@@ -4,6 +4,11 @@
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
     "@asyncapi/web-component": "^1.0.0-next.15",
+    "@angular/common": "^12.2.0",
+    "@angular/compiler": "^12.2.0",
+    "@angular/core": "^12.2.0",
+    "@angular/platform-browser": "^12.2.0",
+    "@angular/upgrade": "^12.2.0",
     "@fontsource/libre-franklin": "^4.4.5",
     "@gravitee/ui-components": "^3.12.1",
     "@highcharts/map-collection": "^1.1.3",
