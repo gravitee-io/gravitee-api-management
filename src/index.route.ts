@@ -158,7 +158,10 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       url: '/newsletter',
       template: require('./user/newsletter/newsletter-subscription.html'),
       controller: 'NewsletterSubscriptionController',
-      controllerAs: '$ctrl'
+      controllerAs: '$ctrl',
+      resolve: {
+        taglines: (UserService: UserService) => UserService.getNewsletterTaglines().then(response => response.data)
+      }
     });
 
   $urlServiceProvider.rules.otherwise('/login');
