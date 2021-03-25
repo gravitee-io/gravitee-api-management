@@ -3869,6 +3869,10 @@ components:
           type: string
         state:
           type: string
+        access_token:
+          type: string
+        id_token:
+          type: string
     Category:
       properties:
         id:

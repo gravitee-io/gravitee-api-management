@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -81,6 +82,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     private final static String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
     private static final String ACCESS_TOKEN_PROPERTY = "access_token";
+    private static final String ID_TOKEN_PROPERTY = "id_token";
 
     // Dirty hack: only used to force class loading
     static {
@@ -149,7 +151,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     boolean active = introspectPayload.path("active").asBoolean(true);
 
                     if (active) {
-                        return authenticateUser(identityProvider, servletResponse, token, null);
+                        return authenticateUser(identityProvider, servletResponse, token, null, null);
                     } else {
                         return Response
                                 .status(Response.Status.UNAUTHORIZED)
@@ -197,8 +199,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             accessData.clear();
 
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                final String accessToken = (String) getResponseEntity(response).get(ACCESS_TOKEN_PROPERTY);
-                return authenticateUser(identityProvider, servletResponse, accessToken, payload.getState());
+                final Map<String, Object> responseEntity = getResponseEntity(response);
+                final String accessToken = (String) responseEntity.get(ACCESS_TOKEN_PROPERTY);
+                final String idToken = (String) responseEntity.get(ID_TOKEN_PROPERTY);
+                return authenticateUser(identityProvider, servletResponse, accessToken, idToken, payload.getState());
             } else {
                 LOGGER.error("Exchange authorization code failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
             }
@@ -218,6 +222,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private Response authenticateUser(final SocialIdentityProviderEntity socialProvider,
                                       final HttpServletResponse servletResponse,
                                       final String accessToken,
+                                      final String idToken,
                                       final String state) throws IOException {
         // Step 2. Retrieve profile information about the authenticated end-user.
         Response response = client
@@ -230,7 +235,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return processUser(socialProvider, servletResponse, userInfo, state);
+            return processUser(socialProvider, servletResponse, userInfo, state, accessToken, idToken);
         } else {
             LOGGER.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
 
@@ -239,7 +244,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo, final String state) {
+    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo, final String state, final String accessToken, final String idToken) {
         UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(socialProvider, userInfo);
 
         final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
@@ -249,6 +254,6 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         userDetails.setEmail(user.getEmail());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
-        return connectUser(user.getId(), state, servletResponse);
+        return connectUser(user.getId(), state, servletResponse, accessToken, idToken);
     }
 }
