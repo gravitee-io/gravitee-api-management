@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   gio_action:
     type: enum
-    enum: [release, pr_build]
+    enum: [release, nexus_staging, pr_build]
     default: pr_build
   dry_run:
     type: boolean
@@ -15,12 +15,16 @@ parameters:
     description: "Maven ID of the Maven profile to use for a dry run ?"
   secrethub_org:
     type: string
-    default: "gravitee-lab"
+    default: "gravitee-io"
     description: "SecretHub Org to use to fetch secrets ?"
   secrethub_repo:
     type: string
     default: "cicd"
     description: "SecretHub Repo to use to fetch secrets ?"
+  s3_bucket_name:
+    type: string
+    default: $s3_bucket_name
+    description: "Name of the S3 Bucket used to store and retrieve the state of the maven project, to perform the nexus staging ?"
 
 orbs:
   gravitee: gravitee-io/gravitee@dev:1.0.4
@@ -34,30 +38,39 @@ workflows:
       - gravitee/pr-build:
           context: cicd-orchestrator
   release:
-    # see https://circleci.com/docs/2.0/configuration-reference/#logic-statement-examples
     when:
       and:
         - equal: [ release, << pipeline.parameters.gio_action >> ]
         - not: << pipeline.parameters.dry_run >>
     jobs:
-      # return to simple definition :
       - gravitee/release:
           context: cicd-orchestrator
           dry_run: << pipeline.parameters.dry_run >>
           secrethub_org: << pipeline.parameters.secrethub_org >>
           secrethub_repo: << pipeline.parameters.secrethub_repo >>
           maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
   release_dry_run:
-    # see https://circleci.com/docs/2.0/configuration-reference/#logic-statement-examples
     when:
       and:
         - equal: [ release, << pipeline.parameters.gio_action >> ]
         - << pipeline.parameters.dry_run >>
     jobs:
-      # return to simple definition :
       - gravitee/release:
           context: cicd-orchestrator
           dry_run: << pipeline.parameters.dry_run >>
           secrethub_org: << pipeline.parameters.secrethub_org >>
           secrethub_repo: << pipeline.parameters.secrethub_repo >>
           maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+
+  nexus_staging:
+    when:
+      equal: [ nexus_staging, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - gravitee/nexus_staging:
+          context: cicd-orchestrator
+          secrethub_org: << pipeline.parameters.secrethub_org >>
+          secrethub_repo: << pipeline.parameters.secrethub_repo >>
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
