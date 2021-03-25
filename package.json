@@ -8,6 +8,7 @@
     "@angular/compiler": "^12.2.0",
     "@angular/core": "^12.2.0",
     "@angular/platform-browser": "^12.2.0",
+    "@angular/platform-browser-dynamic": "^12.2.0",
     "@angular/upgrade": "^12.2.0",
     "@fontsource/libre-franklin": "^4.4.5",
     "@gravitee/ui-components": "^3.12.1",
@@ -62,6 +63,8 @@
     "ng-showdown": "^1.1.0",
     "ngclipboard": "^2.0.0",
     "read-more": "^0.0.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^6.6.6",
     "satellizer": "^0.15.5",
     "showdown": "^1.9.1",
     "showdown-highlightjs-extension": "^0.1.2",
@@ -70,7 +73,8 @@
     "tinycolor2": "^1.4.2",
     "traverse": "^0.6.6",
     "unicode": "^11.0.1",
-    "v-accordion": "^1.6.0"
+    "v-accordion": "^1.6.0",
+    "zone.js": "^0.11.4"
   },
   "devDependencies": {
     "@babel/core": "^7.14.0",
@@ -79,6 +83,7 @@
     "@types/angular-local-storage": "^0.6.2",
     "@types/angular-material": "^1.1.72",
     "@types/angular-mocks": "^1.7.0",
+    "@types/core-js": "^2.5.4",
     "@types/jest": "^26.0.23",
     "@types/jquery": "^3.5.5",
     "@types/lodash": "^4.14.168",
@@ -139,7 +144,7 @@
     "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
     "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
     "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
-    "serve": "webpack serve -c ./conf/webpack.conf.js --progress",
+    "serve": "webpack serve -c ./conf/webpack.conf.js --progress --hot",
     "serve:nightly": "BACKEND_ENV=nightly npm run serve",
     "serve:prod": "node scripts/serve.js",
     "test": "jest",

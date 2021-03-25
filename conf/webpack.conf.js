@@ -36,7 +36,7 @@ module.exports = {
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        use: ['ng-annotate-loader', 'ts-loader?transpileOnly=true'],
+        use: ['ng-annotate-loader', 'ts-loader'],
       },
       {
         test: /\.html$/i,

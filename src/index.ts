@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import 'zone.js';
+import 'reflect-metadata';
+
 import angular = require('angular');
 import _ = require('lodash');
 import './index.scss';
-import './management/management.module';
+import './management/management.module.ajs';
 import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+
+import { AppModule } from './app.module';
 
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
@@ -138,7 +144,5 @@ function initComponents() {
 }
 
 function bootstrapApplication() {
-  angular.element(document).ready(() => {
-    angular.bootstrap(document, ['gravitee-management'], { strictDi: true });
-  });
+  platformBrowserDynamic().bootstrapModule(AppModule);
 }
