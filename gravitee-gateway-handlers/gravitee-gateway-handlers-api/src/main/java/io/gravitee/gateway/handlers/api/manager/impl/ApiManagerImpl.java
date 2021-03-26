@@ -38,7 +38,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.ORIGIN_KUBERNETES;
 import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
 
 /**

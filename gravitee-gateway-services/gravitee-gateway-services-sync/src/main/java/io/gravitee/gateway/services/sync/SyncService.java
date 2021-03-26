@@ -20,7 +20,9 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.apikeys.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.handler.SyncHandler;
+import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
 import io.gravitee.gateway.services.sync.subscriptions.SubscriptionsCacheService;
+import io.gravitee.node.api.healthcheck.ProbeManager;
 import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,13 +76,21 @@ public class SyncService extends AbstractService implements Runnable {
     @Autowired
     private SubscriptionsCacheService subscriptionsCacheService;
 
+    @Autowired
+    private ProbeManager probeManager;
+
+    @Autowired
+    private ApiSyncProbe apiSyncProbe;
+
     private ScheduledFuture<?> schedule;
 
     @Override
     protected void doStart() throws Exception {
-        if (! localRegistryEnabled) {
+        if (!localRegistryEnabled) {
             if (enabled) {
                 super.doStart();
+
+                probeManager.register(apiSyncProbe);
 
                 logger.info("Sync service has been initialized with cron [{}]", cronTrigger);
 
@@ -122,6 +132,10 @@ public class SyncService extends AbstractService implements Runnable {
     @Override
     public void run() {
         syncStateManager.refresh();
+    }
+
+    public boolean isAllApisSync() {
+        return syncStateManager.isAllApisSync();
     }
 
     @Override

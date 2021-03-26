@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.spring;
 import io.gravitee.gateway.services.sync.SyncManager;
 import io.gravitee.gateway.services.sync.apikeys.spring.ApiKeysConfiguration;
 import io.gravitee.gateway.services.sync.cache.CacheManager;
+import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
 import io.gravitee.gateway.services.sync.subscriptions.spring.SubscriptionsConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,5 +53,10 @@ public class SyncConfiguration {
     @Bean
     public CacheManager cacheManager() {
         return new CacheManager();
+    }
+
+    @Bean
+    public ApiSyncProbe apisProbe() {
+        return new ApiSyncProbe();
     }
 }

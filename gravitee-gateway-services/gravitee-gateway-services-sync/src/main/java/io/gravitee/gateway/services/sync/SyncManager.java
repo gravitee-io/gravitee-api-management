@@ -100,6 +100,8 @@ public class SyncManager {
 
     private String lastErrorMessage;
 
+    private boolean allApisSync = false;
+
     void refresh() {
         long nextLastRefreshAt = System.currentTimeMillis();
         boolean error = false;
@@ -271,6 +273,11 @@ public class SyncManager {
                 logger.error("An unexpected error occurs while managing the deployment of API id[{}]", apiId, t);
             }
         });
+        allApisSync = true;
+    }
+
+    public boolean isAllApisSync() {
+        return allApisSync;
     }
 
     private Event getLastDictionaryEvent(final String dictionary) {
