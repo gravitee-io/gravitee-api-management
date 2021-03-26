@@ -185,5 +185,10 @@ deleteNetwork: # delete network
 prune: deleteData deleteContainer deleteImage deleteNetwork ## /!\ Erase all (repositories folder & volumes, containers, images & data)
 	@rm -rf .working
 
+bulk:
+	@echo "\033[0;32m Waiting for localhost to be ready on localhost:8083 \033[0m"
+	sh ./postman/scripts/wait-for.sh localhost:8083 --timeout=30 -- \
+	sh ./postman/scripts/bulk.sh --postman-dir=./postman --app=100 --api=100
+
 .DEFAULT_GOAL := help
 .PHONY: all test clean build version postman

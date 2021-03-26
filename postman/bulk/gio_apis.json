@@ -1,0 +1,740 @@
+{
+	"info": {
+		"_postman_id": "914cadab-3faa-4828-8e18-9098b815e71b",
+		"name": "Gravitee.io-Test.Suite-Create.And.Start.Api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "create.category",
+			"item": [
+				{
+					"name": "Create a category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;"
+								],
+								"id": "82839f9b-d351-411c-836e-5a66821c53f8"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"100+ apis\",\"description\": \"a category with more 100+ apis\"}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/categories",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"configuration",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "create.api",
+			"item": [
+				{
+					"name": "Create API",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"tests[\"API is stopped\"] = jsonData.state === \"stopped\";",
+									"tests[\"API is private\"] = jsonData.visibility === \"private\";",
+									"",
+									"",
+									"postman.setGlobalVariable(\"API_ID\", jsonData.id);",
+									"postman.setGlobalVariable(\"API\", responseBody);"
+								],
+								"id": "d64fa6cf-60b6-4b21-a55e-647e759e9af3"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var uid = (\"0000\" + (Math.random()*Math.pow(36,8) << 0).toString(36)).slice(-8);",
+									"postman.setEnvironmentVariable(\"RANDOM_NUMBER\", uid);"
+								],
+								"id": "3bd3e948-6bc3-4106-b312-b03e02e577ba"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"contextPath\": \"/api{{RANDOM_NUMBER}}\",\n\t\"description\": \"The API {{RANDOM_NUMBER}}\",\n\t\"endpoint\": \"http://api/{{RANDOM_NUMBER}}\",\n\t\"name\": \"API {{RANDOM_NUMBER}}\",\n\t\"version\": \"{{RANDOM_NUMBER}}\"\n}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get API category id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"postman.setEnvironmentVariable(\"id\", jsonData[Math.floor(Math.random() * jsonData.length)].id);",
+									"postman.setEnvironmentVariable(\"100-apis\", jsonData.find(v => '100+ apis' === v.name).id);"
+								],
+								"id": "4bf32d8d-761c-4782-a616-42a96a3d085a"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/categories/",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"configuration",
+								"categories",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update API category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"tests[\"API is stopped\"] = jsonData.state === \"stopped\";",
+									"tests[\"API is private\"] = jsonData.visibility === \"private\";"
+								],
+								"id": "1677952e-c845-45da-ac82-3fea5e519d6f"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"version\":\"{{RANDOM_NUMBER}}\",\n\t\"description\":\"The API {{RANDOM_NUMBER}}\",\n\t\"proxy\":{\n\t\t\"context_path\":\"/api{{RANDOM_NUMBER}}\",\n\t\t\"strip_context_path\":false,\"dumpRequest\":false,\n\t\t\"endpoints\":[\n\t\t\t{\n\t\t\t\t\"name\":\"default\",\"target\":\"http://api/{{RANDOM_NUMBER}}\",\n\t\t\t\t\"weight\":1,\n\t\t\t\t\"backup\":false,\n\t\t\t\t\"healthcheck\":true,\n\t\t\t\t\"http\":{\n\t\t\t\t\t\"connectTimeout\":5000,\n\t\t\t\t\t\"idleTimeout\":60000,\n\t\t\t\t\t\"keepAlive\":true,\n\t\t\t\t\t\"readTimeout\":10000,\n\t\t\t\t\t\"pipelining\":false,\n\t\t\t\t\t\"maxConcurrentConnections\":100,\n\t\t\t\t\t\"useCompression\":false\n\t\t\t\t}\n\t\t\t}\n\t\t],\n\t\t\"load_balancing\":{\n\t\t\t\"type\":\"ROUND_ROBIN\"\n\t\t}\n\t},\n\t\"paths\":{\n\t\t\"/\":[]\n\t\n\t},\n\t\"visibility\":\"private\",\n\t\"name\":\"API {{RANDOM_NUMBER}}\",\n\t\"services\":{},\n\t\"tags\":[],\n\t\"resources\":[],\n\t\"categories\":[\"{{100-apis}}\", \"{{id}}\"],\n\t\"groups\":null\n\n}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish API and make public",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = JSON.parse(globals.API);",
+									"jsonData.lifecycle_state = 'published';",
+									"jsonData.visibility = 'public';",
+									"delete jsonData.id;",
+									"delete jsonData.state;",
+									"delete jsonData.created_at;",
+									"delete jsonData.updated_at;",
+									"delete jsonData.owner;",
+									"delete jsonData.context_path;",
+									"postman.setGlobalVariable(\"API\", JSON.stringify(jsonData));"
+								],
+								"id": "2f1d7878-0ae5-4ef1-b773-31519c0611e9"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"tests[\"API is stopped\"] = jsonData.state === \"stopped\";",
+									"tests[\"API is private\"] = jsonData.visibility === \"public\";"
+								],
+								"id": "6cbe3f97-9dd1-4ed9-a9a0-a48fec163857"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{API}}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Plan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var plan = JSON.parse(responseBody);",
+									"tests[\"Plan has ID\"] = plan.id !== undefined;",
+									"tests[\"Plan with type API\"] = plan.type === \"api\";",
+									"",
+									"",
+									"postman.setGlobalVariable(\"PLAN_ID\", plan.id);"
+								],
+								"id": "746e85d8-15e7-4e0d-bfb9-c34972c57c7b"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"name\": \"Freemium\",\n\t\"description\": \"Free Plan\",\n\t\"validation\": \"auto\",\n\t\"characteristics\": [],\n\t\"paths\": {\n\t\t\"/\": []\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}/plans",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}",
+								"plans"
+							]
+						}
+					},
+					"response": []
+				},
+
+				{
+					"name": "Publish plan",
+					"event": {
+						"listen": "test",
+						"script": {
+							"type": "text/javascript",
+							"exec": [
+								"tests[\"Status code is 200\"] = responseCode.code === 200;"
+							],
+							"id": "746e85d8-15e7-4e0d-bfb9-c34972c57c7b"
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}/plans/{{PLAN_ID}}/_publish",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}",
+								"plans",
+								"{{PLAN_ID}}",
+								"_publish"
+							]
+						}
+					},
+					"response": []
+				},
+
+				{
+					"name": "Check State - Not synchronized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"var state = JSON.parse(responseBody);",
+									"tests[\"API is not synchronized\"] = state.is_synchronized === false;"
+								],
+								"id": "73676362-6a9b-414d-a1e6-426c13eebcd7"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}/state",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}",
+								"state"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deploy API",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"tests[\"API is stopped\"] = jsonData.state === \"stopped\";",
+									"tests[\"API is public\"] = jsonData.visibility === \"public\";"
+								],
+								"id": "0b4fb1d4-0d60-4747-9eb1-d9fb219c7e60"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}/deploy",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}",
+								"deploy"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check State - Synchronized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var state = JSON.parse(responseBody);",
+									"tests[\"API is not synchronized\"] = state.is_synchronized === true;"
+								],
+								"id": "8e62ee01-df9e-4d8c-8965-e3164b3aa6c2"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}/state",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}",
+								"state"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start  API",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 204\"] = responseCode.code === 204;",
+									""
+								],
+								"id": "e51730af-710a-4c22-ab78-ddc9c194e8a0"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}?action=START",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}"
+							],
+							"query": [
+								{
+									"key": "action",
+									"value": "START"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rate API by api1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"postman.setEnvironmentVariable(\"rate\", Math.round(Math.random() * 4 + 1));"
+								],
+								"id": "fb566896-40b7-416c-aa39-330f3d0cd35e"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_API1}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"rate\": {{rate}}}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}/ratings",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}",
+								"ratings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rate API by admin",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"postman.setEnvironmentVariable(\"rate\", Math.round(Math.random() * 4 + 1));"
+								],
+								"id": "9a22a686-188e-42a7-9569-f1fca8f32c0a"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"rate\": {{rate}}}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}/ratings",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}",
+								"ratings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add homepage",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"Homepage\",\"type\":\"MARKDOWN\",\"parentId\":\"\",\"published\":true,\"content\":\"<#if api.picture??>\\n<img src=\\\"${api.picture}\\\" style=\\\"float: right;max-width: 60px;\\\"></img>\\n</#if>\\n\\n# Welcome to the API ${api.name}(${api.version})!\\n\\nThe API is <span style=\\\"text-transform: lowercase;color: <#if api.state=='STARTED'>green<#else>red</#if>\\\">${api.state}</span>.\\n\\nThis API has been created on ${api.createdAt?datetime} and updated on ${api.updatedAt?datetime}.\\n\\n<#if api.deployedAt??>\\nThis API has been deployed on ${api.deployedAt?datetime}.\\n<#else>\\nThis API has not yet been deployed.\\n</#if>\\n\\n<#if api.visibility=='PUBLIC'>\\nThis API is publicly exposed.\\n<#else>\\nThis API is not publicly exposed.\\n</#if>\\n\\n<#if api.tags?has_content>\\nSharding tags: ${api.tags?join(\\\", \\\")}\\n</#if>\\n\\n## Description\\n\\n${api.description}\\n\\n## How to access\\n\\nThe API can be accessed through https://api.company.com${api.proxy.contextPath}:\\n\\ncurl https://api.company.com${api.proxy.contextPath}\\n\\n## Rating\\n\\nYou can rate and put a comment for this API <a href='/#!/apis/${api.id}/ratings'>here</a>.\\n\\n## Contact\\n\\nThe support contact is <a href=\\\"mailto:${api.metadata['email-support']}\\\">${api.metadata['email-support']}</a>.\\n\\nThe API owner is <#if api.primaryOwner.email??><a href=\\\"mailto:${api.primaryOwner.email}\\\">${api.primaryOwner.displayName}</a><#else>${api.primaryOwner.displayName}</#if>.\",\"homepage\":true}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}/pages",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}",
+								"pages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add technical doc",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"Petstore\",\"type\":\"SWAGGER\",\"parentId\":\"\",\"published\":true,\"source\":{\"type\":\"http-fetcher\",\"configuration\":{\"useSystemProxy\":false,\"url\":\"https://petstore.swagger.io/v2/swagger.json\"}}}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/{{API_ID}}/pages",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"apis",
+								"{{API_ID}}",
+								"pages"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "c2e51120-d8c8-4d25-bdcc-b17ba6eadbcc",
+				"type": "text/javascript",
+				"exec": [
+					"if(!pm.environment.get('X-Xsrf-Token')) {",
+					"    pm.sendRequest({",
+					"        url: pm.environment.get('GRAVITEEIO_MGMT_URL') + '/portal',",
+					"        method: 'GET',",
+					"    ",
+					"    }, function (err, res) {",
+					"        pm.environment.set('X-Xsrf-Token', res.headers.get('X-Xsrf-Token'));",
+					"    });",
+					"}",
+					"",
+					"pm.request.headers.add({key: 'X-Xsrf-Token', value: pm.environment.get('X-Xsrf-Token') });"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "c57e48bf-8e26-4e68-9bdc-7b68be347d3d",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

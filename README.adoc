@@ -64,3 +64,8 @@ You can specify `nightly` or `demo` parameters to choose where to run collection
 
 `make postman env=demo`
 
+=== Insert bulk of data
+
+Your environment need to be up. A message will be prompted if it is not the case.
+
+`make bulk` will insert 100 Applications and 100 Apis on localhost.
