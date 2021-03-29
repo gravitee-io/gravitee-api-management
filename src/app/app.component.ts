@@ -90,6 +90,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   private homepageBackgroundHeight: number;
   private interval: any;
   public numberOfPortalNotifications: any;
+  public homepageTitle: string;
 
   constructor(
     private titleService: Title,
@@ -108,6 +109,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private googleAnalyticsService: GoogleAnalyticsService,
     private previewService: PreviewService,
   ) {
+    this.homepageTitle = this.configurationService.get('portal.homepageTitle');
 
     this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has('preview') && params.get('preview') === 'on') {
