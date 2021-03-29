@@ -31,8 +31,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
-
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
@@ -96,6 +94,7 @@ public class MongoThemeRepository implements ThemeRepository {
             themeMongo.setLogo(theme.getLogo());
             themeMongo.setOptionalLogo(theme.getOptionalLogo());
             themeMongo.setBackgroundImage(theme.getBackgroundImage());
+            themeMongo.setFavicon(theme.getFavicon());
 
             ThemeMongo themeMongoUpdated = internalThemeRepo.save(themeMongo);
             return mapper.map(themeMongoUpdated, Theme.class);

@@ -69,6 +69,8 @@ public class ThemeMongo {
 
     private String loader;
 
+    private String favicon;
+
     public String getId() {
         return id;
     }
@@ -148,6 +150,14 @@ public class ThemeMongo {
 
     public void setOptionalLogo(String optionalLogo) {
         this.optionalLogo = optionalLogo;
+    }
+
+    public String getFavicon() {
+        return favicon;
+    }
+
+    public void setFavicon(String favicon) {
+        this.favicon = favicon;
     }
 
     @Override
