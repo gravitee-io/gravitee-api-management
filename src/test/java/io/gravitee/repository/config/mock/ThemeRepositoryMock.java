@@ -20,9 +20,7 @@ import io.gravitee.repository.management.model.Theme;
 
 import java.util.Date;
 import java.util.Set;
-import java.util.TreeSet;
 
-import static java.util.Arrays.asList;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
@@ -51,7 +49,8 @@ public class ThemeRepositoryMock extends AbstractRepositoryMock<ThemeRepository>
                 new Date(1111111111111L),
                 "logo",
                 "backgroundImage",
-                "optionalLogo");
+                "optionalLogo",
+                "favicon");
 
         final Theme theme2 = mockTheme(
                 "light",
@@ -64,7 +63,8 @@ public class ThemeRepositoryMock extends AbstractRepositoryMock<ThemeRepository>
                 new Date(1111111111111L),
                 "logo",
                 "backgroundImage",
-                "optionalLogo");
+                "optionalLogo",
+                "favicon");
 
         final Theme theme2Updated = mockTheme(
                 "light",
@@ -77,7 +77,8 @@ public class ThemeRepositoryMock extends AbstractRepositoryMock<ThemeRepository>
                 new Date(1030141710801L),
                 "updateLogo",
                 "updateBackground",
-                null);
+                null,
+                "updateFavicon");
 
         final Theme theme3 = mockTheme(
                 "simple",
@@ -90,7 +91,8 @@ public class ThemeRepositoryMock extends AbstractRepositoryMock<ThemeRepository>
                 new Date(1111111111111L),
                 "logo",
                 "backgroundImage",
-                "optionalLogo");
+                "optionalLogo",
+                "favicon");
 
         final Set<Theme> themes = newSet(theme, theme2, theme3);
         final Set<Theme> themesAfterDelete = newSet(theme, theme2);
@@ -117,7 +119,8 @@ public class ThemeRepositoryMock extends AbstractRepositoryMock<ThemeRepository>
                             final Date updatedAt,
                             final String logo,
                             final String backgroundImage,
-                            final String optionalLogo
+                            final String optionalLogo,
+                            final String favicon
     ) {
         final Theme theme = mock(Theme.class);
         when(theme.getId()).thenReturn(id);
@@ -131,6 +134,7 @@ public class ThemeRepositoryMock extends AbstractRepositoryMock<ThemeRepository>
         when(theme.getLogo()).thenReturn(logo);
         when(theme.getBackgroundImage()).thenReturn(backgroundImage);
         when(theme.getOptionalLogo()).thenReturn(optionalLogo);
+        when(theme.getFavicon()).thenReturn(favicon);
         return theme;
     }
 }

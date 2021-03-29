@@ -36,6 +36,7 @@
       "updatedAt": 1111111111111,
       "logo": "logo",
       "backgroundImage": "backgroundImage",
-      "optionalLogo": "optionalLogo"
+      "optionalLogo": "optionalLogo",
+      "favicon": "favicon"
    }
 ]

@@ -43,6 +43,7 @@ public class ThemeRepositoryTest extends AbstractRepositoryTest {
         assertEquals("{\"def\": \"value\"}", themeSimple.getDefinition());
         assertEquals("logo", themeSimple.getLogo());
         assertEquals("optionalLogo", themeSimple.getOptionalLogo());
+        assertEquals("favicon", themeSimple.getFavicon());
         assertEquals("TEST", themeSimple.getReferenceId());
         assertEquals("ENVIRONMENT", themeSimple.getReferenceType());
         assertTrue(compareDate(1111111111111L, themeSimple.getUpdatedAt().getTime()));
@@ -75,6 +76,7 @@ public class ThemeRepositoryTest extends AbstractRepositoryTest {
         theme.setOptionalLogo("optionalLogo");
         theme.setBackgroundImage("backgroundImage");
         theme.setEnabled(true);
+        theme.setFavicon("favicon");
 
         int nbThemesBeforeCreation = themeRepository.findAll().size();
         themeRepository.create(theme);
@@ -91,6 +93,7 @@ public class ThemeRepositoryTest extends AbstractRepositoryTest {
         assertEquals("{\"def\": \"value\"}", themeSaved.getDefinition());
         assertEquals("logo", themeSaved.getLogo());
         assertEquals("optionalLogo", themeSaved.getOptionalLogo());
+        assertEquals("favicon", themeSaved.getFavicon());
         assertEquals("DEFAULT", themeSaved.getReferenceId());
         assertEquals("ENVIRONMENT", themeSaved.getReferenceType());
         assertTrue(compareDate(1111111111111L, themeSaved.getUpdatedAt().getTime()));
@@ -115,6 +118,7 @@ public class ThemeRepositoryTest extends AbstractRepositoryTest {
         theme.setReferenceId("TEST");
         theme.setCreatedAt(new Date(1010101010101L));
         theme.setUpdatedAt(new Date(1030141710801L));
+        theme.setFavicon("updateFavicon");
 
         int nbThemeBeforeUpdate = themeRepository.findAll().size();
         themeRepository.update(theme);
@@ -132,6 +136,7 @@ public class ThemeRepositoryTest extends AbstractRepositoryTest {
         assertEquals("{\"def\": \"test\"}", themeUpdated.getDefinition());
         assertEquals("updateLogo", themeUpdated.getLogo());
         assertEquals(null, themeUpdated.getOptionalLogo());
+        assertEquals("updateFavicon", themeUpdated.getFavicon());
         assertEquals("TEST", themeUpdated.getReferenceId());
         assertEquals("PLATFORM", themeUpdated.getReferenceType());
         assertTrue(compareDate(1030141710801L, themeUpdated.getUpdatedAt().getTime()));
