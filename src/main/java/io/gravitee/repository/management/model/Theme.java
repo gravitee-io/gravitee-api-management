@@ -38,6 +38,7 @@ public class Theme {
         this.optionalLogo = cloned.getOptionalLogo();
         this.backgroundImage = cloned.getBackgroundImage();
         this.definition = cloned.getDefinition();
+        this.favicon = cloned.getFavicon();
     }
 
     public enum AuditEvent  implements Audit.AuditEvent {
@@ -65,6 +66,8 @@ public class Theme {
     private String backgroundImage;
 
     private String optionalLogo;
+
+    private String favicon;
 
     public String getId() {
         return id;
@@ -152,6 +155,14 @@ public class Theme {
 
     public void setOptionalLogo(String optionalLogo) {
         this.optionalLogo = optionalLogo;
+    }
+
+    public String getFavicon() {
+        return favicon;
+    }
+
+    public void setFavicon(String favicon) {
+        this.favicon = favicon;
     }
 
     @Override
