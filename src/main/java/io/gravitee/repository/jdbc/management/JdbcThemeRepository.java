@@ -56,6 +56,7 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
                 .addColumn("logo", Types.NVARCHAR, String.class)
                 .addColumn("optional_logo", Types.NVARCHAR, String.class)
                 .addColumn("background_image", Types.NVARCHAR, String.class)
+                .addColumn("favicon", Types.NVARCHAR, String.class)
                 .build();
     }
 

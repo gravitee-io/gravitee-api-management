@@ -12,3 +12,11 @@ databaseChangeLog:
                   defaultValue: PUBLIC
                   constraints:
                     nullable: false
+        - addColumn:
+            tableName: ${gravitee_prefix}themes
+            columns:
+              - column:
+                  name: favicon
+                  type: nclob
+                  constraints:
+                    nullable: true
