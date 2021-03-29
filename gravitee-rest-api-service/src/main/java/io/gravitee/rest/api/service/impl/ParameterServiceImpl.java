@@ -275,7 +275,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private <T> List<T> splitValue(final String value, final Function<String, T> mapper, final Predicate<String> filter) {
-        if (value == null || value.isEmpty()) {
+        if (value == null) {
             return emptyList();
         }
         Stream<String> stream = stream(value.split(SEPARATOR));
@@ -344,7 +344,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Override
     public Parameter save(final Key key, final List<String> values, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
-        return save(key, values == null ? null : join(SEPARATOR, values), referenceId, referenceType);
+        return save(key, (values == null || values.isEmpty()) ? null : join(SEPARATOR, values), referenceId, referenceType);
     }
 
     @Override

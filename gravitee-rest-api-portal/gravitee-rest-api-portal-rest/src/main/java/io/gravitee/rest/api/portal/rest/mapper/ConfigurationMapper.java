@@ -66,6 +66,7 @@ public class ConfigurationMapper {
         configuration.setRating(convert(portal.getRating()));
         configuration.setSupport(convert(portal.getSupport()));
         configuration.setUserCreation(convert(portal.getUserCreation().getEnabled()));
+        configuration.setHomepageTitle(portal.getHomepageTitle());
 
         Application.ApplicationTypes types = application.getTypes();
         if (!application.getRegistration().getEnabled() && !types.getSimpleType().isEnabled()

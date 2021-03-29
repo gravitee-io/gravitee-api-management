@@ -4067,6 +4067,9 @@ components:
           $ref: '#/components/schemas/ConfigurationPortalRating'
         uploadMedia:
           $ref: '#/components/schemas/ConfigurationPortalMedia'
+        homepageTitle:
+          description: Main phrase to display on the homepage.
+          type: string
     ConfigurationPortalApis:
       properties:
         tilesMode:

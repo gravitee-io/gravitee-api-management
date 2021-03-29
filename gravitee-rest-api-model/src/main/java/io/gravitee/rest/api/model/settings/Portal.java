@@ -33,6 +33,8 @@ public class Portal {
     private Enabled support;
     @ParameterKey(Key.PORTAL_URL)
     private String url;
+    @ParameterKey(Key.PORTAL_HOMEPAGE_TITLE)
+    private String homepageTitle;
 
     private PortalApis apis;
     private PortalAnalytics analytics;
@@ -72,6 +74,14 @@ public class Portal {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getHomepageTitle() {
+        return homepageTitle;
+    }
+
+    public void setHomepageTitle(String homepageTitle) {
+        this.homepageTitle = homepageTitle;
     }
 
     public PortalApis getApis() {

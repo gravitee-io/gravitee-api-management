@@ -198,10 +198,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     private String getFirstValueOrDefault(final List<String> values, final String defaultValue) {
-        if (values == null) {
+        if (values == null || values.isEmpty()) {
             return defaultValue;
-        } else if (values.isEmpty()) {
-            return "";
         }
         return values.get(0);
     }
@@ -269,24 +267,26 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     boolean accessible = f.isAccessible();
                     f.setAccessible(true);
                     try {
-                        if (f.get(o) != null) {
-                            if (Enabled.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), Boolean.toString(((Enabled) f.get(o)).isEnabled()), referenceId, referenceType);
-                            } else if (Boolean.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), Boolean.toString((Boolean) f.get(o)), referenceId, referenceType);
-                            } else if (Integer.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), Integer.toString((Integer) f.get(o)), referenceId, referenceType);
-                            } else if (Long.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), Long.toString((Long) f.get(o)), referenceId, referenceType);
-                            } else if (List.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), (List) f.get(o), referenceId, referenceType);
-                            } else if (Map.class.isAssignableFrom(f.getType())) {
-                                parameterService.save(parameterKey.value(), (Map) f.get(o), referenceId, referenceType);
-                            } else {
-                                final String value = (String) f.get(o);
-                                if (! parameterKey.sensitive() || ! value.equals(SENSITIVE_VALUE)) {
-                                    parameterService.save(parameterKey.value(), (String) f.get(o), referenceId, referenceType);
-                                }
+                        if (Enabled.class.isAssignableFrom(f.getType())) {
+                            final String value = f.get(o) == null? null : Boolean.toString(((Enabled) f.get(o)).isEnabled());
+                            parameterService.save(parameterKey.value(), value, referenceId, referenceType);
+                        } else if (Boolean.class.isAssignableFrom(f.getType())) {
+                            final String value = f.get(o) == null? null : Boolean.toString((Boolean) f.get(o));
+                            parameterService.save(parameterKey.value(), value, referenceId, referenceType);
+                        } else if (Integer.class.isAssignableFrom(f.getType())) {
+                            final String value = f.get(o) == null? null : Integer.toString((Integer) f.get(o));
+                            parameterService.save(parameterKey.value(), value, referenceId, referenceType);
+                        } else if (Long.class.isAssignableFrom(f.getType())) {
+                            final String value = f.get(o) == null? null : Long.toString((Long) f.get(o));
+                            parameterService.save(parameterKey.value(), value, referenceId, referenceType);
+                        } else if (List.class.isAssignableFrom(f.getType())) {
+                            parameterService.save(parameterKey.value(), (List) f.get(o), referenceId, referenceType);
+                        } else if (Map.class.isAssignableFrom(f.getType())) {
+                            parameterService.save(parameterKey.value(), (Map) f.get(o), referenceId, referenceType);
+                        } else {
+                            final String value = (String) f.get(o);
+                            if (! parameterKey.sensitive() || ! SENSITIVE_VALUE.equals(value)) {
+                                parameterService.save(parameterKey.value(), (String) f.get(o), referenceId, referenceType);
                             }
                         }
                     } catch (IllegalAccessException e) {
