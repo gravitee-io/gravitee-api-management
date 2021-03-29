@@ -96,6 +96,7 @@ public class ThemeServiceTest {
         when(theme.getReferenceId()).thenReturn("DEFAULT");
         when(theme.getCreatedAt()).thenReturn(new Date(1));
         when(theme.getUpdatedAt()).thenReturn(new Date(2));
+        when(theme.getFavicon()).thenReturn("favicon.png");
         when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
 
         final ThemeEntity themeEntity = themeService.findById(THEME_ID);
@@ -104,6 +105,7 @@ public class ThemeServiceTest {
         assertEquals(definition, definitionMapper.writeValueAsString(themeEntity.getDefinition()));
         assertEquals(new Date(1), themeEntity.getCreatedAt());
         assertEquals(new Date(2), themeEntity.getUpdatedAt());
+        assertEquals(themeEntity.getFavicon(), theme.getFavicon());
     }
 
     @Test(expected = ThemeNotFoundException.class)

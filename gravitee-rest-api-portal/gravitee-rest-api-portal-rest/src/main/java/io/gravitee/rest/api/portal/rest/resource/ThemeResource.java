@@ -71,6 +71,12 @@ public class ThemeResource extends AbstractResource {
         return this.buildPictureResponse(themeService.getBackgroundImage(id), request);
     }
 
+    @GET
+    @Path("{themeId}/favicon")
+    public Response getFavicon(@PathParam("themeId") String id, @Context Request request) {
+        return this.buildPictureResponse(themeService.getFavicon(id), request);
+    }
+
     private Response buildPictureResponse(PictureEntity picture, @Context Request request) {
         if (picture == null) {
             return Response.ok().build();

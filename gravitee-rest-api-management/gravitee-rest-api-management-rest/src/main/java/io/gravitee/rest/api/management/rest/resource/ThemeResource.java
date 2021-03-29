@@ -103,6 +103,12 @@ public class ThemeResource extends AbstractResource  {
     }
 
     @GET
+    @Path("/favicon")
+    public Response getFavicon(@Context Request request) {
+        return this.buildPictureResponse(themeService.getFavicon(themeId), request);
+    }
+
+    @GET
     @Path("/backgroundImage")
     public Response getThemeBackground(@Context Request request) {
         return this.buildPictureResponse(themeService.getBackgroundImage(themeId), request);

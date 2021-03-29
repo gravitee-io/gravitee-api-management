@@ -39,6 +39,8 @@ public class NewThemeEntity {
 
     private String optionalLogo;
 
+    private String favicon;
+
     public String getName() {
         return name;
     }
@@ -85,6 +87,14 @@ public class NewThemeEntity {
 
     public void setOptionalLogo(String optionalLogo) {
         this.optionalLogo = optionalLogo;
+    }
+
+    public String getFavicon() {
+        return favicon;
+    }
+
+    public void setFavicon(String favicon) {
+        this.favicon = favicon;
     }
 
     @Override

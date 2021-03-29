@@ -4767,6 +4767,8 @@ components:
           type: string
         optionalLogo:
           type: string
+        favicon:
+          type: string
     UserLinks:
       properties:
         self:

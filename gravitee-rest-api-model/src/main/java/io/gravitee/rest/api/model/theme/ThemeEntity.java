@@ -50,6 +50,8 @@ public class ThemeEntity {
 
     private String optionalLogo;
 
+    private String favicon;
+
     public String getId() {
         return id;
     }
@@ -145,5 +147,13 @@ public class ThemeEntity {
                 ", enabled='"+ enabled + '\'' +
                 ", definition='" + definition + '\'' +
                 '}';
+    }
+
+    public String getFavicon() {
+        return favicon;
+    }
+
+    public void setFavicon(String favicon) {
+        this.favicon = favicon;
     }
 }

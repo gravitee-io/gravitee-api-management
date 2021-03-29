@@ -41,6 +41,7 @@ public class ThemeMapper {
         themeLinks.setBackgroundImage(basePath + "/backgroundImage?" + hash);
         themeLinks.setLogo(basePath + "/logo?" + hash);
         themeLinks.setOptionalLogo(basePath + "/optionalLogo?" + hash);
+        themeLinks.setFavicon(basePath + "/favicon?" + hash);
         return themeLinks;
     }
 }

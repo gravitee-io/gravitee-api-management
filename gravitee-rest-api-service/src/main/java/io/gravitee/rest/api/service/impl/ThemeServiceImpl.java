@@ -185,6 +185,12 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                     theme.setOptionalLogo(this.getDefaultOptionalLogo());
                 }
 
+                if (updateThemeEntity.getFavicon() != null) {
+                    theme.setFavicon(updateThemeEntity.getFavicon());
+                } else {
+                    theme.setFavicon(this.getDefaultFavicon());
+                }
+
                 final ThemeEntity savedTheme = convert(themeRepository.update(theme));
                 auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(THEME, theme.getId()),
@@ -200,6 +206,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
                 newTheme.setBackgroundImage(updateThemeEntity.getBackgroundImage());
                 newTheme.setLogo(updateThemeEntity.getLogo());
                 newTheme.setOptionalLogo(updateThemeEntity.getOptionalLogo());
+                newTheme.setFavicon(updateThemeEntity.getFavicon());
                 newTheme.setEnabled(updateThemeEntity.isEnabled());
                 return create(newTheme);
             }
@@ -249,6 +256,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             theme.setDefinition(MAPPER.readDefinition(getDefaultDefinition()));
             theme.setLogo(this.getDefaultLogo());
             theme.setOptionalLogo(this.getDefaultOptionalLogo());
+            theme.setFavicon(this.getDefaultFavicon());
             return theme;
 
         } catch (IOException ex) {
@@ -302,6 +310,19 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         }
     }
 
+    @Override
+    public PictureEntity getFavicon(String themeId) {
+        try {
+            final String favicon = findEnabled().getFavicon();
+            if (favicon != null) {
+                return convertToPicture(favicon);
+            }
+        } catch (Exception ex) {
+            LOGGER.warn("Unable to get favicon picture theme for id[{}]", themeId);
+        }
+        return null;
+    }
+
     public String getDefaultDefinition() {
         return this.getDefinition(themesPath + DEFAULT_THEME_PATH);
     }
@@ -326,6 +347,10 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
 
     public String getDefaultOptionalLogo() {
         return getImage("logo-light.png");
+    }
+
+    public String getDefaultFavicon() {
+        return getImage("favicon.png");
     }
 
     private String getImage(String filename) {
@@ -428,6 +453,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             theme.setEnabled(themeEntity.isEnabled());
             theme.setBackgroundImage(themeEntity.getBackgroundImage());
             theme.setOptionalLogo(themeEntity.getOptionalLogo());
+            theme.setFavicon(themeEntity.getFavicon());
             return theme;
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException("Cannot convert new theme entity", e);
@@ -449,6 +475,7 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
         themeEntity.setLogo(theme.getLogo());
         themeEntity.setBackgroundImage(theme.getBackgroundImage());
         themeEntity.setOptionalLogo(theme.getOptionalLogo());
+        themeEntity.setFavicon(theme.getFavicon());
         return themeEntity;
     }
 

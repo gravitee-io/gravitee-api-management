@@ -38,4 +38,5 @@ public interface ThemeService {
     PictureEntity getOptionalLogo(String themeId);
     PictureEntity getBackgroundImage(String themeId);
     void updateDefaultTheme();
+    PictureEntity getFavicon(String themeId);
 }
