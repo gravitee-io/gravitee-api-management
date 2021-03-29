@@ -35,9 +35,9 @@
                 </md-radio-group>
             </div>
             <div layout="column" flex="50" ng-if="$ctrl.channel !== 'HTTP'">
-                <label>Choose the <b>{{$ctrl.resolvedScope}}</b> role you want to contact</label>
-                <md-select ng-model="$ctrl.roleValues" ng-required="true" multiple>
-                    <md-option ng-repeat="r in $ctrl.roles" ng-value="r.name">{{r.name}}</md-option>
+                <label>Choose the recipients</label>
+                <md-select ng-model="$ctrl.recipientValues" ng-required="true" multiple>
+                    <md-option ng-repeat="r in $ctrl.recipients" ng-value="r.name">{{r.displayName}}</md-option>
                 </md-select>
             </div>
 
