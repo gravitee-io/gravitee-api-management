@@ -106,6 +106,22 @@
                                   checkered-background="true">
                   </gravitee-image>
                 </div>
+
+                <div>
+                  <label class="theme-component-label">Favicon</label>
+                  <gravitee-image image-id="'theme-favicon'"
+                                  accept="image/png, image/x-icon"
+                                  image="theme.favicon"
+                                  image-url="$ctrl.getFaviconUrl()"
+                                  image-form="themeForm"
+                                  success-event-name="themePictureChangeSuccess"
+                                  no-default-image="true"
+                                  ng-model="theme.favicon"
+                                  change-label="Change"
+                                  checkered-background="true">
+                  </gravitee-image>
+                </div>
+
               </v-pane-content>
             </v-pane>
             <v-pane >

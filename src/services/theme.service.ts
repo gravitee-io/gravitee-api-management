@@ -41,7 +41,8 @@ class ThemeService {
         definition: theme.definition,
         logo: theme.logo,
         optionalLogo: theme.optionalLogo,
-        backgroundImage: theme.backgroundImage
+        backgroundImage: theme.backgroundImage,
+        favicon: theme.favicon,
       });
     }
   }
@@ -56,6 +57,13 @@ class ThemeService {
   getOptionalLogoUrl(theme) {
     if (theme) {
       return this.getImageUrl(theme, 'optionalLogo');
+    }
+    return '';
+  }
+
+  getFaviconUrl(theme) {
+    if (theme) {
+      return this.getImageUrl(theme, 'favicon');
     }
     return '';
   }

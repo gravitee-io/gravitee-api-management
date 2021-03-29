@@ -26,4 +26,5 @@ export class Theme {
   public optionalLogo: string;
   public loader: string;
   public backgroundImage: string;
+  public favicon: string;
 }

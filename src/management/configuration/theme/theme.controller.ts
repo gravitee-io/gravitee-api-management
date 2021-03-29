@@ -398,6 +398,13 @@ class ThemeController {
     return '';
   }
 
+  getFaviconUrl() {
+    if (this.$scope.theme) {
+      return this.ThemeService.getFaviconUrl(this.$scope.theme);
+    }
+    return '';
+  }
+
   getOptionalLogoUrl() {
     if (this.$scope.theme) {
       if (this.$scope.theme.optionalLogo) {
@@ -436,6 +443,7 @@ class ThemeController {
       logo: theme.logo,
       optionalLogo: theme.optionalLogo,
       backgroundImage: theme.backgroundImage,
+      favicon: theme.favicon,
     };
 
     const link = document.createElement('a');

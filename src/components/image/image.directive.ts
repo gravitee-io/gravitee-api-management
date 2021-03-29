@@ -39,7 +39,8 @@ class ImageDirective {
         deleteLabel: '@',
         canDelete: '=',
         successEventName: '@',
-        checkeredBackground: '<'
+        checkeredBackground: '<',
+        accept: '@'
       },
       template: require('./image.html'),
       controller: ImageController,
@@ -54,6 +55,9 @@ class ImageController {
   constructor(private $rootScope, private $scope, private Upload, private NotificationService: NotificationService) {
     'ngInject';
     $scope.maxSize = '1MB';
+    if ($scope.accept == null) {
+      $scope.accept = 'image/*';
+    }
     if ($scope.changeLabel == null) {
       $scope.changeLabel = 'Change picture';
     }
