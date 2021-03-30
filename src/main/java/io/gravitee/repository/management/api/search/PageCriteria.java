@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import io.gravitee.repository.management.model.Visibility;
+
 import java.util.Objects;
 
 /**
@@ -28,6 +30,7 @@ public class PageCriteria {
     private String type;
     private Boolean homepage;
     private Boolean published;
+    private String visibility;
     private String parent;
     private Boolean rootParent;
     private Boolean useAutoFetch;
@@ -61,6 +64,10 @@ public class PageCriteria {
         return referenceType;
     }
 
+    public String getVisibility() {
+        return visibility;
+    }
+
     public void setReferenceType(String referenceType) {
         this.referenceType = referenceType;
     }
@@ -89,6 +96,10 @@ public class PageCriteria {
 
     public void setUseAutoFetch(Boolean useAutoFetch) { this.useAutoFetch = useAutoFetch; }
 
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -100,13 +111,14 @@ public class PageCriteria {
             Objects.equals(type, that.type) &&
             Objects.equals(homepage, that.homepage) &&
             Objects.equals(published, that.published) &&
+            Objects.equals(visibility, that.visibility) &&
             Objects.equals(parent, that.parent) &&
             Objects.equals(rootParent, that.rootParent);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(referenceId, referenceType, name, type, homepage, published, parent, rootParent);
+        return Objects.hash(referenceId, referenceType, name, type, homepage, published, visibility, parent, rootParent);
     }
 
     public static class Builder {
@@ -148,6 +160,11 @@ public class PageCriteria {
 
         public Builder published(Boolean published) {
             this.query.setPublished(published);
+            return this;
+        }
+
+        public Builder visibility(String visibility) {
+            this.query.setVisibility(visibility);
             return this;
         }
 

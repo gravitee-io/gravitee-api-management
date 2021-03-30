@@ -39,6 +39,7 @@ public class Page {
 	private String lastContributor;
 	private int order;
 	private boolean published;
+	private String visibility;
 	private PageSource source;
 	private Map<String, String> configuration;
 	private boolean homepage;
@@ -198,6 +199,14 @@ public class Page {
 		this.attachedMedia = attachedMedia;
 	}
 
+	public String getVisibility() {
+		return visibility;
+	}
+
+	public void setVisibility(String visibility) {
+		this.visibility = visibility;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -225,6 +234,7 @@ public class Page {
 				", lastContributor='" + lastContributor + '\'' +
 				", order=" + order +
 				", published=" + published +
+				", visibility=" + visibility +
 				", source=" + source +
 				", configuration=" + configuration +
 				", homepage=" + homepage +
