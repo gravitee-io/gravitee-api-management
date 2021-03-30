@@ -18,11 +18,13 @@ package io.gravitee.repository.mongodb.management.internal.page;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.List;
@@ -67,6 +69,18 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
             }
 			if (criteria.getPublished() != null) {
 				q.addCriteria(where("published").is(criteria.getPublished()));
+			}
+			if (criteria.getVisibility() != null) {
+				if (Visibility.PUBLIC.name().equals(criteria.getVisibility())) {
+					q.addCriteria(
+						new Criteria().orOperator(
+							where("visibility").exists(false),
+							where("visibility").is(Visibility.PUBLIC.name())
+						)
+					);
+				} else {
+					q.addCriteria(where("visibility").is(Visibility.PRIVATE.name()));
+				}
 			}
 			if (criteria.getName() != null) {
 				q.addCriteria(where("name").is(criteria.getName()));

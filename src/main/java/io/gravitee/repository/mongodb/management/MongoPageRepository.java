@@ -110,6 +110,7 @@ public class MongoPageRepository implements PageRepository {
             pageMongo.setUpdatedAt(page.getUpdatedAt());
             pageMongo.setOrder(page.getOrder());
             pageMongo.setPublished(page.isPublished());
+            pageMongo.setVisibility(page.getVisibility());
             pageMongo.setHomepage(page.isHomepage());
             pageMongo.setExcludedGroups(page.getExcludedGroups());
             if (page.getAttachedMedia() != null) {

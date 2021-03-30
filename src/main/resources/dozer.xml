@@ -17,6 +17,17 @@
     </mapping>
 
     <mapping>
+        <class-a>io.gravitee.repository.management.model.Page</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.PageMongo</class-b>
+        <field custom-converter="io.gravitee.repository.mongodb.management.mapper.NullToDefaultValueConverter"
+                custom-converter-param="PUBLIC"
+        >
+            <a>visibility</a>
+            <b>visibility</b>
+        </field>
+    </mapping>
+
+    <mapping>
         <class-a>io.gravitee.repository.management.model.PageRevision</class-a>
         <class-b>io.gravitee.repository.mongodb.management.internal.model.PageRevisionMongo</class-b>
         <field>
