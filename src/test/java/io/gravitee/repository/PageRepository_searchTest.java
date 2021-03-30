@@ -19,6 +19,7 @@ import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.Visibility;
 import org.junit.Test;
 
 import java.util.*;
@@ -137,5 +138,13 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
         Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().build());
         assertNotNull(pages);
         assertEquals(11, pages.size());
+    }
+
+    @Test
+    public void shouldFindPortalPageByVisibilityPublic() throws Exception {
+        Collection<Page> pages = pageRepository.search(new PageCriteria.Builder().visibility(Visibility.PUBLIC.name()).build());
+        assertNotNull(pages);
+        assertEquals(1, pages.size());
+        assertEquals("FindApiPage", pages.iterator().next().getId());
     }
 }

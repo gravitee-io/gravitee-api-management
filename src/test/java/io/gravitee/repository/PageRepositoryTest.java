@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageMedia;
 import io.gravitee.repository.management.model.PageReferenceType;
+import io.gravitee.repository.management.model.Visibility;
 import org.junit.Test;
 
 import java.util.*;
@@ -148,6 +149,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
         page.setUseAutoFetch(Boolean.FALSE);
+        page.setVisibility(Visibility.PUBLIC.name());
 
         final Map<String, String> configuration = new HashMap<>();
         configuration.put("displayOperationId", "true");
@@ -194,6 +196,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setReferenceId("my-api");
         page.setReferenceType(PageReferenceType.API);
         page.setHomepage(false);
+        page.setVisibility(Visibility.PUBLIC.name());
         page.setParentId("");
         page.setType("FOLDER");
         page.setCreatedAt(new Date());
@@ -227,6 +230,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setParentId("2");
         page.setCreatedAt(new Date());
         page.setUpdatedAt(new Date());
+        page.setVisibility(Visibility.PUBLIC.name());
 
         final Map<String, String> configuration = new HashMap<>();
         configuration.put("displayOperationId", "true");
@@ -277,6 +281,7 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setParentId("");
         page.setParentId("");
         page.setUseAutoFetch(false);
+        page.setVisibility(Visibility.PUBLIC.name());
 
         Optional<Page> optionalBefore = pageRepository.findById("new-portal-page-folder");
         pageRepository.create(page);

@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageMedia;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
+import io.gravitee.repository.management.model.Visibility;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -256,6 +257,13 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
                             return new io.gravitee.common.data.domain.Page<Page>(Arrays.asList(findAllPages.get(pageable.pageNumber())), pageable.pageNumber(), 1, 11);
                         }
                     }});
+
+        //Find portal pages
+        when(pageRepository.search(argThat(o -> o == null || o.getVisibility() != null && Visibility.PUBLIC.name().equals(o.getVisibility())))).thenReturn(singletonList(findApiPage));
+        when(pageRepository.search(argThat(o -> o != null && o.getReferenceId() == null && o.getReferenceType() == null && o.getVisibility() == null)))
+                .thenReturn(asList(findApiPage, mock(Page.class), mock(Page.class), mock(Page.class), mock(Page.class), mock(Page.class),
+                        mock(Page.class), mock(Page.class), mock(Page.class), mock(Page.class), mock(Page.class)));
+
 
         // search autoFetch
         when(pageRepository.search(argThat(criteria -> criteria != null && Boolean.TRUE.equals(criteria.getUseAutoFetch())))).thenReturn(Arrays.asList(findApiPage));
