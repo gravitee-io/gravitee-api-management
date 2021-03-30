@@ -80,6 +80,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 .addColumn("order", Types.INTEGER, int.class)
                 .addColumn("published", Types.BOOLEAN, boolean.class)
                 .addColumn("homepage", Types.BOOLEAN, boolean.class)
+                .addColumn("visibility", Types.NVARCHAR, String.class)
                 .addColumn("created_at", Types.TIMESTAMP, Date.class)
                 .addColumn("updated_at", Types.TIMESTAMP, Date.class)
                 .addColumn("parent_id", Types.NVARCHAR, String.class)
@@ -487,6 +488,10 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
                 if (criteria.getPublished() != null) {
                     where.add("p.published = ?");
                     params.add(criteria.getPublished());
+                }
+                if (criteria.getVisibility() != null) {
+                    where.add("p.visibility = ?");
+                    params.add(criteria.getVisibility());
                 }
                 if (criteria.getName() != null) {
                     where.add("p.name = ?");
