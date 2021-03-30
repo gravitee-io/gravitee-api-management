@@ -34,6 +34,8 @@ public abstract class ScheduledServiceSerializer<T extends ScheduledService> ext
     @Override
     protected void doSerialize(T service, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
         super.doSerialize(service, jgen, serializerProvider);
-        jgen.writeObjectField("schedule", service.getSchedule());
+        if(service.getSchedule() != null) {
+            jgen.writeObjectField("schedule", service.getSchedule());
+        }
     }
 }

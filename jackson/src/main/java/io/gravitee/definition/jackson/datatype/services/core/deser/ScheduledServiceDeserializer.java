@@ -88,8 +88,8 @@ public abstract class ScheduledServiceDeserializer<T extends ScheduledService> e
     }
 
     public static String convertToCron(Long rate, TimeUnit unit) {
-        if (unit == null) {
-            return "";
+        if (rate == null || unit == null) {
+            return null;
         }
         String schedule;
         List<String> scheduleList = Arrays.asList("*", "*", "*", "*", "*", "*");
