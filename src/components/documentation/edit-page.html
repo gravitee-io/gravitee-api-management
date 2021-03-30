@@ -406,7 +406,7 @@
                     <md-tab-label>Configuration</md-tab-label>
                     <md-tab-body>
                         <h3>General</h3>
-                        <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block">
+                        <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
                             <md-checkbox ng-model="$ctrl.page.homepage"
                                          aria-label="set as homepage"
                                          class="md-align-top-left"
@@ -414,7 +414,7 @@
                                 Set as homepage
                             </md-checkbox>
                         </md-input-container>
-                        <md-input-container class="md-block">
+                        <md-input-container class="md-block gv-input-container-dense">
                             <md-checkbox ng-model="$ctrl.page.published"
                                          aria-label="{{!$ctrl.isMarkdownTemplate() ? 'Published' : 'Available'}}"
                                          class="md-align-top-left"
@@ -423,6 +423,16 @@
                                 {{($ctrl.usedAsGeneralConditions() ? 'Publish this page (Used as general conditions, publishing actions are disabled)'
                                   : !$ctrl.isMarkdownTemplate() ? 'Publish this page' : 'Make template available')}}
                             </md-checkbox>
+                        </md-input-container>
+                        <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
+                          <md-checkbox ng-model="$ctrl.page.visibility"
+                                       ng-true-value="'public'"
+                                       ng-false-value="'private'"
+                                       aria-label="visibility"
+                                       class="md-align-top-left"
+                                       flex>
+                            Allow access to anonymous user
+                          </md-checkbox>
                         </md-input-container>
                         <!-- SWAGGER Configuration -->
                         <div ng-if="$ctrl.isSwagger()" layout="column">

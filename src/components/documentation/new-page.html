@@ -30,6 +30,16 @@
                     <label>Name</label>
                     <input ng-model="$ctrl.page.name" required>
                 </md-input-container>
+              <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
+                <md-checkbox ng-model="$ctrl.page.visibility"
+                             ng-true-value="'public'"
+                             ng-false-value="'private'"
+                             aria-label="visibility"
+                             class="md-align-top-left"
+                             flex>
+                  Allow access to anonymous user
+                </md-checkbox>
+              </md-input-container>
                 <div class="md-actions gravitee-api-save-button" layout="row">
                     <md-button class="md-raised md-primary" type="submit" ng-disabled="$ctrl.formNewFolder.$invalid || $ctrl.formNewFolder.$pristine">
                         Save
@@ -171,6 +181,16 @@
                                 flex>
                     {{!$ctrl.isMarkdownTemplate() ? 'Publish this page' : 'Make template available'}}
                 </md-checkbox>
+            </md-input-container>
+            <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
+              <md-checkbox ng-model="$ctrl.page.visibility"
+                           ng-true-value="'public'"
+                           ng-false-value="'private'"
+                           aria-label="visibility"
+                           class="md-align-top-left"
+                           flex>
+                Allow access to anonymous user
+              </md-checkbox>
             </md-input-container>
             <h3>How to get the content ?</h3>
             <md-radio-group ng-model="getContentMode" ng-change="$ctrl.changeContentMode(getContentMode)">

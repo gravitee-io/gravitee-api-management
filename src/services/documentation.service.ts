@@ -145,6 +145,7 @@ class DocumentationService {
         content: page.content || '',
         source: page.source,
         published: page.published,
+        visibility: page.visibility,
         homepage: page.homepage,
         configuration: page.configuration,
         excluded_groups: page.excluded_groups,

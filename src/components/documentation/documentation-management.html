@@ -40,6 +40,12 @@
             </h2>
             <div ng-if="$ctrl.breadcrumb.length > 1 && $ctrl.currentFolder.type != 'SYSTEM_FOLDER'">
                 <md-button type="button"
+                         class="md-raised md-primary"
+                         ng-click="$ctrl.changeFolderVisibility()"
+                         aria-label="visibility"
+                         permission permission-only="['environment-documentation-u', 'api-documentation-u']">
+                    {{ $ctrl.currentFolder.visibility === 'private' ? 'Make PUBLIC' : 'Make PRIVATE'}}</md-button>
+                <md-button type="button"
                            class="md-raised md-primary"
                            ng-click="$ctrl.toggleRenameFolder()"
                            aria-label="Edit"
@@ -160,6 +166,7 @@
                         <th md-column width="76px"></th>
                         <th md-column width="1%" nowrap>Last Update</th>
                         <th md-column width="48px"></th>
+                        <th md-column width="24px"></th>
                     </tr>
                     </thead>
                     <tbody md-body>
@@ -176,6 +183,7 @@
                         <td md-cell width="76px"></td>
                         <td md-cell width="1%"></td>
                         <td md-cell width="48px"></td>
+                        <td md-cell width="24px"></td>
                     </tr>
                     <tr md-row ng-repeat="page in $ctrl.pages">
                         <td md-cell>
@@ -256,6 +264,11 @@
                                         permission permission-only="['environment-documentation-u', 'api-documentation-u']">
                                 <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
                             </ng-md-icon>
+                        </td>
+                        <td md-cell width="24px">
+                          <ng-md-icon ng-if="$ctrl.isPage(page.type) || $ctrl.isFolder(page.type)" icon="{{ page.visibility === 'private' ? 'lock' : 'public' }}" size="20" style="fill: #cdcdcd;">
+                            <md-tooltip>{{ page.visibility | uppercase }}</md-tooltip>
+                          </ng-md-icon>
                         </td>
                     </tr>
                     </tbody>

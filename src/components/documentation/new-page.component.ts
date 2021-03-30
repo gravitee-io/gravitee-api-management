@@ -53,7 +53,8 @@ const NewPageComponent: ng.IComponentOptions = {
     this.page = {
       name: '',
       type: $state.params.type,
-      parentId: $state.params.parent
+      parentId: $state.params.parent,
+      visibility: 'public'
     };
 
     $scope.getContentMode = 'inline';
