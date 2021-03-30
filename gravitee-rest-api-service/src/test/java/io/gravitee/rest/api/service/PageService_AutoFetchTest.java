@@ -143,6 +143,7 @@ public class PageService_AutoFetchTest {
                 .now()
                 .minus(2, ChronoUnit.SECONDS)
                 .toEpochMilli()));
+        when(mockPage.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.search(any())).thenReturn(Arrays.asList(mockPage));
         when(pageRepository.update(any())).thenReturn(mockPage);
 
@@ -205,6 +206,7 @@ public class PageService_AutoFetchTest {
                 .now()
                 .minus(2, ChronoUnit.SECONDS)
                 .toEpochMilli()));
+        when(mockRootPage.getVisibility()).thenReturn("PUBLIC");
 
         when(mockPage.getSource()).thenReturn(pageSource);
         when(mockPage.getId()).thenReturn("someid");
@@ -215,6 +217,7 @@ public class PageService_AutoFetchTest {
                 .now()
                 .minus(2, ChronoUnit.SECONDS)
                 .toEpochMilli()));
+        when(mockPage.getVisibility()).thenReturn("PUBLIC");
 
 
         when(pageRepository.findById(any())).thenReturn(Optional.of(mockPage));

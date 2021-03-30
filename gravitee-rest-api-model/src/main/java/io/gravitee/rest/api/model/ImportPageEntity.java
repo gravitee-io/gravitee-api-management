@@ -18,8 +18,6 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +30,8 @@ public class ImportPageEntity {
 	@NotNull
 	private PageType type;
 	private boolean published;
+	@NotNull
+	private Visibility visibility;
 	private String lastContributor;
 	private PageSourceEntity source;
 	private Map<String, String> configuration;
@@ -86,11 +86,20 @@ public class ImportPageEntity {
 		this.excludedGroups = excludedGroups;
 	}
 
+	public Visibility getVisibility() {
+		return visibility;
+	}
+
+	public void setVisibility(Visibility visibility) {
+		this.visibility = visibility;
+	}
+
 	@Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
         sb.append("type='").append(type).append('\'');
         sb.append(", published='").append(published).append('\'');
+        sb.append(", visibility='").append(visibility).append('\'');
         sb.append(", lastContributor='").append(lastContributor).append('\'');
         sb.append('}');
         return sb.toString();

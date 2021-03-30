@@ -20,6 +20,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageType;
@@ -32,6 +33,7 @@ import io.gravitee.rest.api.service.exceptions.PageUsedAsGeneralConditionsExcept
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -39,6 +41,9 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -82,10 +87,25 @@ public class PageService_DeleteTest {
     @Mock
     private PlanService planService;
 
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(new SecurityContext() {
+            @Override
+            public Authentication getAuthentication() {
+                return null;
+            }
+            @Override
+            public void setAuthentication(Authentication authentication) {
+            }
+        });
+    }
+
     @Test
     public void shouldDeletePage() throws TechnicalException {
         Page page = mock(Page.class);
         when(page.getId()).thenReturn(PAGE_ID);
+        when(page.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
 
         pageService.delete(PAGE_ID);
@@ -123,6 +143,7 @@ public class PageService_DeleteTest {
         when(page.getId()).thenReturn(PAGE_ID);
         when(page.getReferenceType()).thenReturn(PageReferenceType.API);
         when(page.getReferenceId()).thenReturn(API_ID);
+        when(page.getVisibility()).thenReturn("PUBLIC");
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
         when(planService.findByApi(API_ID)).thenReturn(Collections.emptySet());
@@ -138,6 +159,7 @@ public class PageService_DeleteTest {
         when(page.getId()).thenReturn(PAGE_ID);
         when(page.getReferenceType()).thenReturn(PageReferenceType.API);
         when(page.getReferenceId()).thenReturn(API_ID);
+        when(page.getVisibility()).thenReturn("PUBLIC");
 
         PlanEntity plan = mock(PlanEntity.class);
         when(plan.getGeneralConditions()).thenReturn(PAGE_ID);
@@ -224,6 +246,13 @@ public class PageService_DeleteTest {
 
     @Test
     public void shouldDeleteAllByApi() throws TechnicalException {
+
+        final SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getPrincipal()).thenReturn(mock(UserDetails.class));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
         Page folder = mock(Page.class);
         String folderId = "folder";
         when(folder.getId()).thenReturn(folderId);
@@ -232,6 +261,7 @@ public class PageService_DeleteTest {
         when(folder.getReferenceId()).thenReturn(refId);
         when(folder.getOrder()).thenReturn(1);
         when(folder.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(folder.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(folderId)).thenReturn(Optional.of(folder));
 
         Page child = mock(Page.class);
@@ -241,12 +271,14 @@ public class PageService_DeleteTest {
         when(child.getType()).thenReturn(PageType.FOLDER.toString());
         when(child.getReferenceId()).thenReturn(refId);
         when(child.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(child.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(childId)).thenReturn(Optional.of(child));
 
         Page childPage = mock(Page.class);
         String childPageId = "childPageId";
         when(childPage.getId()).thenReturn(childPageId);
         when(childPage.getType()).thenReturn(PageType.SWAGGER.toString());
+        when(childPage.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(childPageId)).thenReturn(Optional.of(childPage));
 
         Page link = mock(Page.class);
@@ -258,6 +290,7 @@ public class PageService_DeleteTest {
         Page page = mock(Page.class);
         when(page.getId()).thenReturn(PAGE_ID);
         when(page.getType()).thenReturn(PageType.MARKDOWN.toString());
+        when(page.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
 
         Page translation = mock(Page.class);
@@ -267,6 +300,7 @@ public class PageService_DeleteTest {
         configuration.put(PageConfigurationKeys.TRANSLATION_LANG, "EN");
         when(translation.getConfiguration()).thenReturn(configuration);
         when(translation.getType()).thenReturn(PageType.TRANSLATION.toString());
+        when(translation.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build())).thenReturn(Arrays.asList(translation));
 
         when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build())).thenReturn(Arrays.asList(folder, child, childPage, page));

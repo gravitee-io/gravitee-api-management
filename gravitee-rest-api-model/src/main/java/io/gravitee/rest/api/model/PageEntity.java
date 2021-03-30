@@ -36,6 +36,7 @@ public class PageEntity implements Indexable {
     private int order;
     private String lastContributor;
     private boolean published;
+    private Visibility visibility;
     private Date lastModificationDate;
     private String contentType;
     private PageSourceEntity source;
@@ -231,6 +232,14 @@ public class PageEntity implements Indexable {
         this.attachedMedia = attachedMedia;
     }
 
+    public Visibility getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Visibility visibility) {
+        this.visibility = visibility;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -258,6 +267,7 @@ public class PageEntity implements Indexable {
 				", order=" + order +
 				", lastContributor='" + lastContributor + '\'' +
 				", published=" + published +
+				", visibility=" + visibility +
 				", lastModificationDate=" + lastModificationDate +
 				", contentType='" + contentType + '\'' +
 				", source=" + source +

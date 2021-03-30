@@ -148,11 +148,13 @@ public class ApiService_ExportAsJsonTestSetup {
         page.setOrder(1);
         page.setType(PageType.MARKDOWN.toString());
         page.setContent("Read the doc");
+        page.setVisibility(Visibility.PUBLIC);
         PageEntity asideFolder = new PageEntity();
         asideFolder.setName("Aside");
         asideFolder.setOrder(1);
         asideFolder.setPublished(true);
         asideFolder.setType(PageType.SYSTEM_FOLDER.toString());
+        asideFolder.setVisibility(Visibility.PUBLIC);
         when(pageService.search(any(), eq(true))).thenReturn(Arrays.asList(page, asideFolder));
 
         RoleEntity poRole = new RoleEntity();

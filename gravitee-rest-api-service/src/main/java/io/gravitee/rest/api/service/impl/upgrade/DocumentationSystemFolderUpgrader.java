@@ -89,6 +89,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
         newFolder.setPublished(true);
         newFolder.setType(PageType.FOLDER);
         newFolder.setParentId(parentId);
+        newFolder.setVisibility(Visibility.PUBLIC);
         
         return pageService.createPage(newFolder);
     }
@@ -100,6 +101,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
         newLink.setPublished(true);
         newLink.setType(PageType.LINK);
         newLink.setParentId(parentId);
+        newLink.setVisibility(Visibility.PUBLIC);
         
         Map<String, String> configuration = new HashMap<>();
         configuration.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, resourceType);

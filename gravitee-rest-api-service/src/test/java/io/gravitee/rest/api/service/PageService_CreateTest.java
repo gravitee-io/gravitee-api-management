@@ -112,6 +112,7 @@ public class PageService_CreateTest {
         when(page1.getLastContributor()).thenReturn(contrib);
         when(page1.getOrder()).thenReturn(1);
         when(page1.getContent()).thenReturn(content);
+        when(page1.getVisibility()).thenReturn("PUBLIC");
 
         when(pageRepository.create(any())).thenReturn(page1);
 
@@ -120,6 +121,7 @@ public class PageService_CreateTest {
         when(newPage.getContent()).thenReturn(content);
         when(newPage.getLastContributor()).thenReturn(contrib);
         when(newPage.getType()).thenReturn(PageType.SWAGGER);
+        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
 
         final PageEntity createdPage = pageService.createPage(API_ID, newPage);
 
@@ -151,6 +153,7 @@ public class PageService_CreateTest {
         when(newPage.getContent()).thenReturn(
                 getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent()
         );
+        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
 
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 
@@ -190,11 +193,13 @@ public class PageService_CreateTest {
         NewPageEntity newFolder = new NewPageEntity();
         newFolder.setType(PageType.FOLDER);
         newFolder.setParentId("SYS");
+        newFolder.setVisibility(Visibility.PUBLIC);
 
         Page createdPage = new Page();
         createdPage.setId("NEW_FOLD");
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        createdPage.setVisibility("PUBLIC");
         doReturn(createdPage).when(pageRepository).create(any());
 
         final PageEntity createdFolder = pageService.createPage(newFolder);
@@ -287,11 +292,13 @@ public class PageService_CreateTest {
         newFolder.setParentId("SYS");
         newFolder.setConfiguration(conf);
         newFolder.setContent("root");
+        newFolder.setVisibility(Visibility.PUBLIC);
 
         Page createdPage = new Page();
         createdPage.setId("NEW_LINK");
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        createdPage.setVisibility("PUBLIC");
         doReturn(createdPage).when(pageRepository).create(any());
 
         pageService.createPage(newFolder);
@@ -307,6 +314,7 @@ public class PageService_CreateTest {
         page.setId("PAGE");
         page.setType("MARKDOWN");
         page.setPublished(true);
+        page.setVisibility("PUBLIC");
         doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
 
         Map<String, String> conf = new HashMap<>();
@@ -317,11 +325,13 @@ public class PageService_CreateTest {
         newLink.setParentId("SYS");
         newLink.setConfiguration(conf);
         newLink.setContent(PAGE_ID);
+        newLink.setVisibility(Visibility.PUBLIC);
 
         Page createdPage = new Page();
         createdPage.setId("NEW_LINK");
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        createdPage.setVisibility("PUBLIC");
         doReturn(createdPage).when(pageRepository).create(any());
 
         pageService.createPage(newLink);
@@ -425,12 +435,14 @@ public class PageService_CreateTest {
         conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
         newTranslation.setConfiguration(conf);
         newTranslation.setPublished(false);
+        newTranslation.setVisibility(Visibility.PUBLIC);
 
         Page createdPage = new Page();
         createdPage.setId("NEW_TRANSLATION");
         createdPage.setType("TRANSLATION");
         createdPage.setReferenceId("DEFAULT");
         createdPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+        createdPage.setVisibility("PUBLIC");
         doReturn(createdPage).when(pageRepository).create(any());
 
         pageService.createPage(newTranslation);
@@ -451,6 +463,7 @@ public class PageService_CreateTest {
 
         when(newPage.getName()).thenReturn(name);
         when(newPage.getSource()).thenReturn(pageSource);
+        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
 
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
         when(importConfiguration.getImportWhitelist()).thenReturn(Collections.emptyList());
@@ -474,6 +487,7 @@ public class PageService_CreateTest {
         when(newPage.getContent()).thenReturn(content);
         when(newPage.getLastContributor()).thenReturn(contrib);
         when(newPage.getType()).thenReturn(PageType.MARKDOWN);
+        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
         when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any())).thenReturn(content);
         this.pageService.createPage(API_ID, newPage);
 

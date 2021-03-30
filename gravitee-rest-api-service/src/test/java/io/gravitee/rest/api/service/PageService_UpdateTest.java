@@ -24,6 +24,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -86,6 +87,12 @@ public class PageService_UpdateTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
+    @Before
+    public void setUp() {
+        when(page1.getVisibility()).thenReturn("PUBLIC");
+        when(existingPage.getVisibility()).thenReturn(Visibility.PUBLIC);
+    }
+
     @Test
     public void shouldUpdate() throws TechnicalException {
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
@@ -138,7 +145,9 @@ public class PageService_UpdateTest {
 
         when(page1.getType()).thenReturn(PageType.FOLDER.name());
         when(page1.getName()).thenReturn("some");
+        when(page1.getVisibility()).thenReturn("PUBLIC");
         when(existingPage.getName()).thenReturn("awesome");
+        when(existingPage.getVisibility()).thenReturn(Visibility.PUBLIC);
         pageService.update(PAGE_ID, existingPage);
 
         verify(pageRepository).update(
@@ -156,18 +165,21 @@ public class PageService_UpdateTest {
         pageOrder1.setReferenceId(API_ID);
         pageOrder1.setReferenceType(PageReferenceType.API);
         pageOrder1.setPublished(true);
+        pageOrder1.setVisibility("PUBLIC");
 
         final Page pageOrder2 = new Page();
         pageOrder2.setId("2");
         pageOrder2.setOrder(2);
         pageOrder2.setReferenceId(API_ID);
         pageOrder2.setReferenceType(PageReferenceType.API);
+        pageOrder2.setVisibility("PUBLIC");
 
         final Page pageOrder3 = new Page();
         pageOrder3.setId("3");
         pageOrder3.setOrder(3);
         pageOrder3.setReferenceId(API_ID);
         pageOrder3.setReferenceType(PageReferenceType.API);
+        pageOrder3.setVisibility("PUBLIC");
 
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(pageOrder1));
         when(pageRepository.search(argThat(o -> o == null || "LINK".equals(o.getType()))))
@@ -178,6 +190,7 @@ public class PageService_UpdateTest {
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setOrder(2);
+        updatePageEntity.setVisibility(Visibility.PUBLIC);
 
         pageService.update(PAGE_ID, updatePageEntity);
 
@@ -205,18 +218,21 @@ public class PageService_UpdateTest {
         pageOrder1.setReferenceId(API_ID);
         pageOrder1.setReferenceType(PageReferenceType.API);
         pageOrder1.setPublished(true);
+        pageOrder1.setVisibility("PUBLIC");
 
         final Page pageOrder2 = new Page();
         pageOrder2.setId("2");
         pageOrder2.setOrder(2);
         pageOrder2.setReferenceId(API_ID);
         pageOrder2.setReferenceType(PageReferenceType.API);
+        pageOrder2.setVisibility("PUBLIC");
 
         final Page pageOrder3 = new Page();
         pageOrder3.setId("3");
         pageOrder3.setOrder(3);
         pageOrder3.setReferenceId(API_ID);
         pageOrder3.setReferenceType(PageReferenceType.API);
+        pageOrder3.setVisibility("PUBLIC");
 
         when(pageRepository.findById("3")).thenReturn(Optional.of(pageOrder3));
 
@@ -226,6 +242,7 @@ public class PageService_UpdateTest {
 
         final UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setOrder(1);
+        updatePageEntity.setVisibility(Visibility.PUBLIC);
 
         pageService.update("3", updatePageEntity);
 
@@ -274,12 +291,14 @@ public class PageService_UpdateTest {
         linkPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         linkPage.setType("LINK");
         linkPage.setContent("A");
+        linkPage.setVisibility("PUBLIC");
         doReturn(Optional.of(linkPage)).when(pageRepository).findById(PAGE_ID);
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setPublished(false);
         updatePageEntity.setOrder(1);
         updatePageEntity.setContent("A");
+        updatePageEntity.setVisibility(Visibility.PUBLIC);
 
         Page updatedPage = new Page();
         updatedPage.setId(PAGE_ID);
@@ -287,6 +306,7 @@ public class PageService_UpdateTest {
         updatedPage.setReferenceId("DEFAULT");
         updatedPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         updatedPage.setType("LINK");
+        updatedPage.setVisibility("PUBLIC");
         doReturn(updatedPage).when(pageRepository).update(any());
 
         pageService.update(PAGE_ID, updatePageEntity);
@@ -304,6 +324,7 @@ public class PageService_UpdateTest {
         unpublishedPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         unpublishedPage.setType("MARKDOWN");
         unpublishedPage.setPublished(false);
+        unpublishedPage.setVisibility("PUBLIC");
         doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
 
         Page linkPage = new Page();
@@ -317,6 +338,7 @@ public class PageService_UpdateTest {
         conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, "page");
         linkPage.setConfiguration(conf);
         linkPage.setContent(PAGE_ID);
+        linkPage.setVisibility("PUBLIC");
 
         Map<String, String> translationConf = new HashMap<String, String>();
         translationConf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
@@ -330,6 +352,7 @@ public class PageService_UpdateTest {
         translationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         translationPage.setType("TRANSLATION");
         translationPage.setConfiguration(translationConf);
+        translationPage.setVisibility("PUBLIC");
 
         Page linkTranslationPage = new Page();
         linkTranslationPage.setId("LINK_TRANSLATION_ID");
@@ -340,6 +363,7 @@ public class PageService_UpdateTest {
         linkTranslationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         linkTranslationPage.setType("TRANSLATION");
         linkTranslationPage.setConfiguration(translationConf);
+        linkTranslationPage.setVisibility("PUBLIC");
 
         doReturn(asList(linkPage)).when(pageRepository).search(argThat(p -> PageType.LINK.name().equals(p.getType())));
         doReturn(asList(translationPage)).when(pageRepository).search(argThat(p -> PageType.TRANSLATION.name().equals(p.getType()) && PAGE_ID.equals(p.getParent())));
@@ -351,6 +375,7 @@ public class PageService_UpdateTest {
         updatePageEntity.setContent("");
         updatePageEntity.setOrder(1);
         updatePageEntity.setConfiguration(conf);
+        updatePageEntity.setVisibility(Visibility.PUBLIC);
 
         Page updatedPage = new Page();
         updatedPage.setId(PAGE_ID);
@@ -359,6 +384,7 @@ public class PageService_UpdateTest {
         updatedPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         updatedPage.setType("TRANSLATION");
         updatedPage.setPublished(true);
+        updatedPage.setVisibility("PUBLIC");
         doReturn(updatedPage).when(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID)));
 
         pageService.update(PAGE_ID, updatePageEntity);
@@ -483,11 +509,13 @@ public class PageService_UpdateTest {
         unpublishedPage.setReferenceType(PageReferenceType.API);
         unpublishedPage.setType("MARKDOWN");
         unpublishedPage.setPublished(true);
+        unpublishedPage.setVisibility("PUBLIC");
         doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setPublished(false);
         updatePageEntity.setOrder(1);
+        updatePageEntity.setVisibility(Visibility.PUBLIC);
 
         Page updatedPage = new Page();
         updatedPage.setId(PAGE_ID);
@@ -496,6 +524,7 @@ public class PageService_UpdateTest {
         updatedPage.setReferenceType(PageReferenceType.API);
         updatedPage.setType("MARKDOWN");
         updatedPage.setPublished(false);
+        updatedPage.setVisibility("PUBLIC");
         doReturn(updatedPage).when(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID)));
 
         PlanEntity plan = mock(PlanEntity.class);
@@ -519,11 +548,13 @@ public class PageService_UpdateTest {
         unpublishedPage.setReferenceType(PageReferenceType.ENVIRONMENT);
         unpublishedPage.setType("MARKDOWN");
         unpublishedPage.setPublished(true);
+        unpublishedPage.setVisibility("PUBLIC");
         doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setPublished(false);
         updatePageEntity.setOrder(1);
+        updatePageEntity.setVisibility(Visibility.PUBLIC);
 
         when(categoryService.findByPage(PAGE_ID)).thenReturn(Collections.singletonList(new CategoryEntity()));
 
@@ -551,11 +582,13 @@ public class PageService_UpdateTest {
         unpublishedPage.setReferenceType(PageReferenceType.API);
         unpublishedPage.setType("MARKDOWN");
         unpublishedPage.setPublished(true);
+        unpublishedPage.setVisibility("PUBLIC");
         doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setPublished(false);
         updatePageEntity.setOrder(1);
+        updatePageEntity.setVisibility(Visibility.PUBLIC);
 
         PlanEntity plan = mock(PlanEntity.class);
         when(plan.getGeneralConditions()).thenReturn(PAGE_ID);

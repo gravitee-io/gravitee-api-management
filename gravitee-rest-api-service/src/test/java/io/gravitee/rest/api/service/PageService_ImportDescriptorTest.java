@@ -25,6 +25,7 @@ import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.impl.GraviteeDescriptorServiceImpl;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
@@ -100,6 +101,7 @@ public class PageService_ImportDescriptorTest {
         pageSource.setConfiguration(mapper.readTree("{}"));
         ImportPageEntity pageEntity = new ImportPageEntity();
         pageEntity.setSource(pageSource);
+        pageEntity.setVisibility(Visibility.PUBLIC);
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
         when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.PageService_ImportDescriptorMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockDescriptorFetcherConfiguration.class);
@@ -117,6 +119,7 @@ public class PageService_ImportDescriptorTest {
         when(newPage.getId()).thenReturn(RandomString.generate());
         when(newPage.getSource()).thenReturn(ps);
         when(newPage.getType()).thenReturn("MARKDOWN");
+        when(newPage.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
         when(graviteeDescriptorService.read(anyString())).thenCallRealMethod();

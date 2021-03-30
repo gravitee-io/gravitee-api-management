@@ -642,6 +642,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
         asideSystemFolder.setPublished(true);
         asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
+        asideSystemFolder.setVisibility(io.gravitee.rest.api.model.Visibility.PUBLIC);
         pageService.createPage(apiId, asideSystemFolder);
     }
 

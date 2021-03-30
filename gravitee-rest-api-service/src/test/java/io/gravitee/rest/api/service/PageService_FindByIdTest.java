@@ -70,6 +70,7 @@ public class PageService_FindByIdTest {
         when(translationPage.getId()).thenReturn(TRANSLATION_ID);
         when(translationPage.getOrder()).thenReturn(1);
         when(translationPage.getParentId()).thenReturn(PAGE_ID);
+        when(translationPage.getVisibility()).thenReturn("PUBLIC");
         Map<String, String> conf = new HashMap<>();
         conf.put(PageConfigurationKeys.TRANSLATION_LANG, "FR");
         when(translationPage.getConfiguration()).thenReturn(conf);
@@ -77,6 +78,7 @@ public class PageService_FindByIdTest {
         when(page1.getId()).thenReturn(PAGE_ID);
         when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
         when(page1.getOrder()).thenReturn(1);
+        when(page1.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.search(argThat(p->"TRANSLATION".equals(p.getType()) && PAGE_ID.equals(p.getParent())))).thenReturn(Arrays.asList(translationPage));
 

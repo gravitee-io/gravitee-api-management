@@ -42,6 +42,9 @@ public class NewPageEntity {
 
 	private boolean published;
 
+	@NotNull
+	private Visibility visibility;
+
 	private String lastContributor;
 
 	private PageSourceEntity source;
@@ -142,6 +145,14 @@ public class NewPageEntity {
 
 	public void setParentId(String parentId) { this.parentId = parentId; }
 
+	public Visibility getVisibility() {
+		return visibility;
+	}
+
+	public void setVisibility(Visibility visibility) {
+		this.visibility = visibility;
+	}
+
 	@Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
@@ -149,6 +160,7 @@ public class NewPageEntity {
         sb.append(", type='").append(type).append('\'');
         sb.append(", order='").append(order).append('\'');
 		sb.append(", homepage='").append(homepage).append('\'');
+		sb.append(", visibility='").append(visibility).append('\'');
         sb.append(", lastContributor='").append(lastContributor).append('\'');
         sb.append('}');
         return sb.toString();

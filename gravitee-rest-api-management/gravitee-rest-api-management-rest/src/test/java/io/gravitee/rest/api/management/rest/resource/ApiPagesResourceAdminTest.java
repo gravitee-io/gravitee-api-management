@@ -182,6 +182,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         NewPageEntity newPageEntity = new NewPageEntity();
         newPageEntity.setName("my-page-name");
         newPageEntity.setType(PageType.MARKDOWN);
+        newPageEntity.setVisibility(Visibility.PUBLIC);
 
         PageEntity returnedPage = new PageEntity();
         returnedPage.setId("my-beautiful-page");

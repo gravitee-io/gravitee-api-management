@@ -88,7 +88,7 @@ import static java.util.stream.Collectors.toList;
  * @author GraviteeSource Team
  */
 @Component
-public class PageServiceImpl extends TransactionalService implements PageService, ApplicationContextAware {
+public class PageServiceImpl extends AbstractService implements PageService, ApplicationContextAware {
     public static final String SYSTEM_CONTRIBUTOR = "system";
 
     private static final Gson gson = new Gson();
@@ -151,6 +151,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         page.setLastContributor(newPageEntity.getLastContributor());
         page.setOrder(newPageEntity.getOrder());
         page.setPublished(newPageEntity.isPublished());
+        page.setVisibility(newPageEntity.getVisibility().name());
         page.setHomepage(newPageEntity.isHomepage());
         page.setSource(convert(newPageEntity.getSource()));
         page.setConfiguration(newPageEntity.getConfiguration());
@@ -169,6 +170,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         }
         page.setLastContributor(importPageEntity.getLastContributor());
         page.setPublished(importPageEntity.isPublished());
+        page.setVisibility(importPageEntity.getVisibility().name());
         page.setSource(convert(importPageEntity.getSource()));
         page.setConfiguration(importPageEntity.getConfiguration());
         page.setExcludedGroups(importPageEntity.getExcludedGroups());
@@ -194,6 +196,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
         );
         page.setPublished(
                 updatePageEntity.isPublished() != null ? updatePageEntity.isPublished() : withUpdatePage.isPublished()
+        );
+        page.setVisibility(
+                updatePageEntity.getVisibility() != null ? updatePageEntity.getVisibility().name() : withUpdatePage.getVisibility()
+
         );
         PageSource pageSource = convert(updatePageEntity.getSource());
         page.setSource(
@@ -231,6 +237,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         page.setLastContributor(updatePageEntity.getLastContributor());
         page.setOrder(updatePageEntity.getOrder());
         page.setPublished(Boolean.TRUE.equals(updatePageEntity.isPublished()));
+        page.setVisibility(updatePageEntity.getVisibility().name());
         page.setSource(convert(updatePageEntity.getSource()));
         page.setConfiguration(updatePageEntity.getConfiguration());
         page.setHomepage(Boolean.TRUE.equals(updatePageEntity.isHomepage()));
@@ -553,12 +560,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 });
             }
 
-            if (query != null && query.getPublished() != null && query.getPublished()) {
+            if (query != null && query.getPublished() != null && query.getPublished() || !isAuthenticated()) {
                 // remove child of unpublished folders
                 return pages.stream()
                         .filter(page -> {
                             if (page.getParentId() != null) {
-                                return this.findById(page.getParentId()).isPublished();
+                                PageEntity parent = this.findById(page.getParentId());
+                                if (!isAuthenticated()) {
+                                    return parent.isPublished() && Visibility.PUBLIC.equals(parent.getVisibility());
+                                } else {
+                                    return parent.isPublished();
+                                }
                             }
                             return true;
                         })
@@ -684,6 +696,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                         Page relatedPage = optionalRelatedPage.get();
                         checkLinkRelatedPageType(relatedPage);
                         newPageEntity.setPublished(relatedPage.isPublished());
+                        newPageEntity.setVisibility(Visibility.valueOf(relatedPage.getVisibility()));
                     }
                 }
             }
@@ -1000,11 +1013,12 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 List<String> messages = validateSafeContent(page) ;
                 Page updatedPage = pageRepository.update(page);
 
-                if (pageToUpdate.isPublished() != page.isPublished()
+                if ((pageToUpdate.isPublished() != page.isPublished()
+                        || !Objects.equals(pageToUpdate.getVisibility(), page.getVisibility()))
                         && !PageType.LINK.name().equalsIgnoreCase(pageType)
                         && !PageType.TRANSLATION.name().equalsIgnoreCase(pageType)) {
                     // update all the related links and translations publication status.
-                    this.changeRelatedPagesPublicationStatus(pageId, updatePageEntity.isPublished());
+                    this.changeRelatedPagesPublicationStatus(pageId, updatePageEntity.isPublished(), updatePageEntity.getVisibility());
                 }
 
                 createAuditLog(PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
@@ -1092,7 +1106,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
 
     }
 
-    private void changeRelatedPagesPublicationStatus(String pageId, Boolean published) {
+    private void changeRelatedPagesPublicationStatus(String pageId, Boolean published, Visibility visibility) {
         try {
             // Update related page's links
             this.pageRepository.search(new PageCriteria.Builder().type(PageType.LINK.name()).build()).stream()
@@ -1101,17 +1115,18 @@ public class PageServiceImpl extends TransactionalService implements PageService
                         try {
                             // Update link
                             p.setPublished(published);
+                            p.setVisibility(visibility.name());
                             pageRepository.update(p);
 
                             // Update link's translations
-                            changeTranslationPagesPublicationStatus(p.getId(), published);
+                            changeTranslationPagesPublicationStatus(p.getId(), published, visibility);
                         } catch (TechnicalException ex) {
                             throw onUpdateFail(p.getId(), ex);
                         }
                     });
 
             // Update related page's translations
-            changeTranslationPagesPublicationStatus(pageId, published);
+            changeTranslationPagesPublicationStatus(pageId, published, visibility);
 
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to search pages", ex);
@@ -1119,12 +1134,13 @@ public class PageServiceImpl extends TransactionalService implements PageService
         }
     }
 
-    private void changeTranslationPagesPublicationStatus(String translatedPageId, Boolean published) {
+    private void changeTranslationPagesPublicationStatus(String translatedPageId, Boolean published, Visibility visibility) {
         try {
             this.pageRepository.search(new PageCriteria.Builder().parent(translatedPageId).type(PageType.TRANSLATION.name()).build()).stream()
                     .forEach(p -> {
                         try {
                             p.setPublished(published);
+                            p.setVisibility(visibility.name());
                             pageRepository.update(p);
                         } catch (TechnicalException ex) {
                             throw onUpdateFail(p.getId(), ex);
@@ -1321,6 +1337,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 pageEntity.setPublished(page.isPublished());
                 pageEntity.setExcludedGroups(page.getExcludedGroups());
                 pageEntity.setLastContributor(SYSTEM_CONTRIBUTOR);
+                pageEntity.setVisibility(Visibility.valueOf(page.getVisibility()));
                 return fetchPages(page.getReferenceId(), pageEntity);
             } else {
                 return Arrays.asList(fetch(page, SYSTEM_CONTRIBUTOR));
@@ -1381,6 +1398,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 newPage.setPublished(descriptorPageEntity.isPublished());
                 newPage.setSource(descriptorPageEntity.getSource());
                 newPage.setOrder(order++);
+                newPage.setVisibility(descriptorPageEntity.getVisibility());
 
                 String parentPath = descriptorPage.getDest() == null || descriptorPage.getDest().isEmpty()
                         ? getParentPathFromFilePath(descriptorPage.getSrc())
@@ -1531,6 +1549,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
                         newPage.setLastContributor(newPageEntity.getLastContributor());
                         newPage.setName(pathElement);
                         newPage.setType(PageType.FOLDER);
+                        newPage.setVisibility(Visibility.PUBLIC);
                         folder = this.createPage(apiId, newPage);
                     } else {
                         folder = convert(pages.get(0));
@@ -1557,6 +1576,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
             FilepathAwareFetcherConfiguration configuration = (FilepathAwareFetcherConfiguration) fetcher.getConfiguration();
             configuration.setFilepath(src);
             newPageEntity.getSource().setConfiguration(mapper.valueToTree(configuration));
+            newPageEntity.setVisibility(Visibility.PUBLIC);
             createdPages.add(this.createPage(apiId, newPageEntity));
         } else {
             Page page = pages.get(0);
@@ -1884,6 +1904,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         newPageEntity.setName(pageEntity.getName());
         newPageEntity.setOrder(pageEntity.getOrder());
         newPageEntity.setPublished(pageEntity.isPublished());
+        newPageEntity.setVisibility(pageEntity.getVisibility());
         newPageEntity.setSource(pageEntity.getSource());
         newPageEntity.setType(PageType.valueOf(pageEntity.getType()));
         newPageEntity.setParentId(pageEntity.getParentId());
@@ -1929,6 +1950,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         pageEntity.setLastModificationDate(page.getUpdatedAt());
         pageEntity.setOrder(page.getOrder());
         pageEntity.setPublished(page.isPublished());
+        pageEntity.setVisibility(Visibility.valueOf(page.getVisibility()));
 
         if (page.getSource() != null) {
             pageEntity.setSource(convert(page.getSource()));
@@ -1997,6 +2019,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         updatePageEntity.setExcludedGroups(page.getExcludedGroups());
         updatePageEntity.setAttachedMedia(convertMedia(page.getAttachedMedia()));
         updatePageEntity.setParentId("".equals(page.getParentId()) ? null : page.getParentId());
+        updatePageEntity.setVisibility(Visibility.valueOf(page.getVisibility()));
         return updatePageEntity;
     }
 
@@ -2160,7 +2183,11 @@ public class PageServiceImpl extends TransactionalService implements PageService
             }
             builder.name(query.getName());
             builder.parent(query.getParent());
+
             builder.published(query.getPublished());
+            if (!isAuthenticated()) {
+                builder.visibility(Visibility.PUBLIC.name());
+            }
             if (query.getType() != null) {
                 builder.type(query.getType().name());
             }
@@ -2189,6 +2216,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
         newSysFolder.setOrder(order);
         newSysFolder.setPublished(true);
         newSysFolder.setType(PageType.SYSTEM_FOLDER);
+        newSysFolder.setVisibility(Visibility.PUBLIC);
         return this.createPage(apiId, newSysFolder, environmentId);
     }
 
@@ -2241,7 +2269,7 @@ public class PageServiceImpl extends TransactionalService implements PageService
     }
 
     private enum PageSituation {
-        ROOT, IN_ROOT, IN_FOLDER_IN_ROOT, IN_FOLDER_IN_FOLDER, SYSTEM_FOLDER, IN_SYSTEM_FOLDER, IN_FOLDER_IN_SYSTEM_FOLDER, TRANSLATION;
+        ROOT, IN_ROOT, IN_FOLDER_IN_ROOT, IN_FOLDER_IN_FOLDER, SYSTEM_FOLDER, IN_SYSTEM_FOLDER, IN_FOLDER_IN_SYSTEM_FOLDER, TRANSLATION
     }
 
 }

@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.NewPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
+import io.gravitee.rest.api.model.Visibility;
 import org.junit.Test;
 
 import javax.ws.rs.client.Entity;
@@ -103,6 +104,7 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         NewPageEntity newPageEntity = new NewPageEntity();
         newPageEntity.setName("my-page-name");
         newPageEntity.setType(PageType.MARKDOWN);
+        newPageEntity.setVisibility(Visibility.PUBLIC);
 
         PageEntity returnedPage = new PageEntity();
         returnedPage.setId("my-beautiful-page");

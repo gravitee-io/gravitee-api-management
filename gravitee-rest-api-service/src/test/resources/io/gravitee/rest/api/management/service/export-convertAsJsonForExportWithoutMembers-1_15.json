@@ -10,6 +10,7 @@
     "type" : "MARKDOWN",
     "content" : "Read the doc",
     "order" : 1,
+    "visibility": "PUBLIC",
     "published" : false,
     "homepage" : false
   } ],

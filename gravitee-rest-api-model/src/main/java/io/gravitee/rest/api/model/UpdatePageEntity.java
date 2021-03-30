@@ -40,6 +40,9 @@ public class UpdatePageEntity {
 
 	private Boolean published;
 
+	@NotNull
+	private Visibility visibility;
+
 	private PageSourceEntity source;
 
 	private Map<String, String> configuration;
@@ -136,5 +139,13 @@ public class UpdatePageEntity {
 
 	public void setAttachedMedia(List<PageMediaEntity> attachedMedia) {
 		this.attachedMedia = attachedMedia;
+	}
+
+	public Visibility getVisibility() {
+		return visibility;
+	}
+
+	public void setVisibility(Visibility visibility) {
+		this.visibility = visibility;
 	}
 }

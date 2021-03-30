@@ -103,6 +103,7 @@
       "order": 1,
       "lastContributor": "admin",
       "published": false,
+      "visibility": "PUBLIC",
       "source": {
         "type": "http-fetcher",
         "configuration": {
@@ -114,6 +115,7 @@
       "name": "petstore",
       "type": "SWAGGER",
       "order": 2,
+      "visibility": "PUBLIC",
       "lastContributor": "admin",
       "published": false
     }

@@ -118,6 +118,7 @@
       "name": "toto",
       "type": "MARKDOWN",
       "order": 1,
+      "visibility": "PUBLIC",
       "lastContributor": "admin",
       "published": false,
       "source": {
@@ -132,6 +133,7 @@
       "name": "petstore",
       "type": "SWAGGER",
       "order": 2,
+      "visibility": "PUBLIC",
       "lastContributor": "admin",
       "published": false
     }
