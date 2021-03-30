@@ -97,7 +97,7 @@ public class CategoryService_UpdateTest {
         when(updatedCategory.isHidden()).thenReturn(true);
         when(updatedCategory.getUpdatedAt()).thenReturn(new Date(1234567890L));
         when(updatedCategory.getCreatedAt()).thenReturn(new Date(9876543210L));
-        when(mockCategoryRepository.update(any())).thenReturn(updatedCategory);
+        when(mockCategoryRepository.update(argThat(cat -> cat.getUpdatedAt() != null))).thenReturn(updatedCategory);
 
         List<CategoryEntity> list = categoryService.update(singletonList(mockCategory));
 
@@ -130,7 +130,7 @@ public class CategoryService_UpdateTest {
         when(updatedCategory.isHidden()).thenReturn(true);
         when(updatedCategory.getUpdatedAt()).thenReturn(new Date(1234567890L));
         when(updatedCategory.getCreatedAt()).thenReturn(new Date(9876543210L));
-        when(mockCategoryRepository.update(any())).thenReturn(updatedCategory);
+        when(mockCategoryRepository.update(argThat(cat -> cat.getUpdatedAt() != null))).thenReturn(updatedCategory);
 
         CategoryEntity category = categoryService.update("category-id", mockCategory);
 
