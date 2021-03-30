@@ -23,8 +23,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <!-- <version>19.2.2-SNAPSHOT</version> -->
-        <version>19.2.2</version>
+        <version>19.2.3-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.rest.api</groupId>
@@ -58,7 +57,7 @@
         <guava.version>29.0-jre</guava.version>
         <jsonpath.version>2.4.0</jsonpath.version>
         <lucene.version>7.5.0</lucene.version>
-        <powermock.version>2.0.0</powermock.version>
+        <powermock.version>2.0.9</powermock.version>
         <commons-lang3.version>3.9</commons-lang3.version>
         <swagger.version>1.6.2</swagger.version>
         <nimbus-jose-jwt.version>8.15</nimbus-jose-jwt.version>
