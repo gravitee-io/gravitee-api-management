@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
+import UserService from '../../services/user.service';
 
 class DashboardController {
+  canViewAnalytics: boolean;
   private selectedIndex;
 
   constructor(
     private $state: StateService,
+    private UserService: UserService,
   ) {
     'ngInject';
 
@@ -30,6 +33,8 @@ class DashboardController {
     } else {
       this.selectedIndex = 0;
     }
+
+    this.canViewAnalytics = UserService.isUserHasAllPermissions(['environment-platform-r']);
   }
 }
 
