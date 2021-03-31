@@ -17,6 +17,7 @@ import ApiService, {LogsQuery} from '../../../../services/api.service';
 import {StateService} from '@uirouter/core';
 import {IScope} from 'angular';
 import _ = require('lodash');
+import AnalyticsService from '../../../../services/analytics.service';
 
 class ApiLogsController {
 
@@ -39,7 +40,8 @@ class ApiLogsController {
     private $scope: IScope,
     private Constants,
     private $state: StateService,
-    private $timeout: ng.ITimeoutService
+    private $timeout: ng.ITimeoutService,
+    private AnalyticsService: AnalyticsService,
   ) {
   'ngInject';
     this.ApiService = ApiService;
@@ -61,13 +63,7 @@ class ApiLogsController {
 
     this.onPaginate = this.onPaginate.bind(this);
 
-    this.query = new LogsQuery();
-    this.query.page = this.$state.params.page || 1;
-    this.query.size = this.$state.params.size || 15;
-    this.query.from = this.$state.params.from;
-    this.query.to = this.$state.params.to;
-    this.query.query = this.$state.params.q;
-    this.query.field = '-@timestamp';
+    this.query = this.AnalyticsService.buildQueryFromState(this.$state);
 
     this.$scope.$watch('logsCtrl.query.field', (field) => {
       if (field && this.init) {
@@ -103,6 +99,7 @@ class ApiLogsController {
       {notify: false});
     this.ApiService.findLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
+      this.AnalyticsService.setFetchedLogs(logs.data.logs);
     });
   }
 

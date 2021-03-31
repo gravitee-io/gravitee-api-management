@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "3.7.0",
+  "version": "3.8.0-SNAPSHOT",
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
     "@gravitee/ui-components": "^2.2.0",

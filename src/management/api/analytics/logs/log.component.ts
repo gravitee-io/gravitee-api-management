@@ -1,6 +1,8 @@
 import { StateService } from '@uirouter/core';
 import NotificationService from '../../../../services/notification.service';
 import { toPairs } from 'lodash';
+import AnalyticsService from '../../../../services/analytics.service';
+import ApiService from '../../../../services/api.service';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -38,6 +40,9 @@ class LogComponentController {
     page: any
   };
 
+  public previousLog: string;
+  public nextLog: string;
+
   private static headersAsList(obj) {
     if (obj) {
       obj.headersAsList = [];
@@ -59,6 +64,8 @@ class LogComponentController {
     public readonly Constants: any,
     private readonly $state: StateService,
     private readonly NotificationService: NotificationService,
+    private readonly AnalyticsService: AnalyticsService,
+    private readonly ApiService: ApiService,
   ) {
     'ngInject';
     this.backStateParams = {
@@ -70,7 +77,6 @@ class LogComponentController {
     };
   }
 
-
   $onInit() {
     if (this.log.clientRequest != null) {
       LogComponentController.headersAsList(this.log.clientRequest);
@@ -79,7 +85,6 @@ class LogComponentController {
         queryParams: this.extractQueryParams(this.log.clientRequest.uri),
       };
     }
-
 
     if (this.log.proxyRequest != null) {
       LogComponentController.headersAsList(this.log.proxyRequest);
@@ -97,6 +102,42 @@ class LogComponentController {
       LogComponentController.headersAsList(this.log.proxyResponse);
     }
 
+    if (this.AnalyticsService.getFetchedLogs()) {
+      this.fillPreviousNext();
+    } else {
+      const query = this.AnalyticsService.buildQueryFromState(this.$state);
+      this.ApiService.findLogs(this.$state.params.apiId, query).then((logs) => {
+        this.AnalyticsService.setFetchedLogs(logs.data.logs);
+        this.fillPreviousNext();
+      });
+    }
+  }
+
+  goToLog(logId) {
+    this.$state.transitionTo(
+      this.$state.current,
+      {
+        ...this.$state.params, ...{
+          logId: logId
+        }
+      },
+      {notify: false, });
+    this.ApiService.getLog(this.$state.params.apiId, logId, this.$state.params.timestamp)
+      .then(response => {
+        this.log = response.data;
+        this.$onInit();
+      });
+  }
+
+  fillPreviousNext() {
+    const logs = this.AnalyticsService.getFetchedLogs();
+    for (let i = 0; i < logs.length; i++) {
+      if (logs[i] === this.$state.params.logId) {
+        this.previousLog = logs[i - 1];
+        this.nextLog = logs[i + 1];
+        break;
+      }
+    }
   }
 
   getMimeType(log): string | null {

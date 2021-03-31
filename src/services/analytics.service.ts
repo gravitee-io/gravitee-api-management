@@ -15,6 +15,7 @@
  */
 
 import * as _ from 'lodash';
+import {StateService} from '@uirouter/core';
 
 export class LogsQuery {
   from: number;
@@ -29,6 +30,7 @@ export class LogsQuery {
 class AnalyticsService {
   private platformUrl: string;
   private analyticsURL: string;
+  private logs: [any];
 
   constructor(private $http, private Constants, public $stateParams) {
     'ngInject';
@@ -98,6 +100,25 @@ class AnalyticsService {
       queryParam = queryParam.replace(/\//g, '\\\\/');
     }
     return queryParam;
+  }
+
+  buildQueryFromState($state: StateService) {
+    const query = new LogsQuery();
+    query.page = $state.params.page || 1;
+    query.size = $state.params.size || 15;
+    query.from = $state.params.from;
+    query.to = $state.params.to;
+    query.query = $state.params.q;
+    query.field = '-@timestamp';
+    return query;
+  }
+
+  setFetchedLogs(logs) {
+    this.logs = logs.map(log => log.id);
+  }
+
+  getFetchedLogs() {
+    return this.logs;
   }
 
   /*
