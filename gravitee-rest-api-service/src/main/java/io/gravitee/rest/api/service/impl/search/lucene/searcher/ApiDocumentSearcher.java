@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
@@ -83,7 +84,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 "paths",
                 "paths_split",
                 "hosts",
-                "hosts_split",
+                "hosts_split"
         }, analyzer, API_FIELD_BOOST);
         apiParser.setFuzzyMinSim(0.6f);
         apiParser.setAllowLeadingWildcard(true);
@@ -142,6 +143,13 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 pageQuery.add(new DocValuesFieldExistsQuery(FIELD_API_TYPE_VALUE), BooleanClause.Occur.MUST);
             }
 
+            BooleanQuery.Builder envCriteria = new BooleanQuery.Builder();
+            envCriteria.add(new TermQuery(new Term(FIELD_REFERENCE_TYPE, GraviteeContext.ReferenceContextType.ENVIRONMENT.name())), BooleanClause.Occur.MUST);
+            envCriteria.add(new TermQuery(new Term(FIELD_REFERENCE_ID, GraviteeContext.getCurrentEnvironmentOrDefault())), BooleanClause.Occur.MUST);
+
+            apiQuery.add(envCriteria.build(), BooleanClause.Occur.FILTER);
+            pageQuery.add(envCriteria.build(), BooleanClause.Occur.FILTER);
+
             BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
             mainQuery.add(new BoostQuery(apiQuery.build(), 2.0f), BooleanClause.Occur.SHOULD);
             //mainQuery.add(new BoostQuery(pathQuery.build(), 4.0f), BooleanClause.Occur.SHOULD);
@@ -163,6 +171,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 });
 
                 if (hasClause[0]) {
+                    filtersQuery.add(envCriteria.build(), BooleanClause.Occur.FILTER);
                     mainQuery.add(filtersQuery.build(), BooleanClause.Occur.MUST);
                 }
 
@@ -179,7 +188,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         if (filter != null) {
             BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
 
-            ((Collection)filter)
+            ((Collection) filter)
                     .stream()
                     .forEach(value1 -> filterApisQuery.add(new TermQuery(new Term(field, (String) value1)), BooleanClause.Occur.SHOULD));
 

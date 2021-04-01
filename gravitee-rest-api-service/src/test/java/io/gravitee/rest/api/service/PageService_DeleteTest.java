@@ -86,6 +86,8 @@ public class PageService_DeleteTest {
     public void shouldDeletePage() throws TechnicalException {
         Page page = mock(Page.class);
         when(page.getId()).thenReturn(PAGE_ID);
+        when(page.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page.getReferenceId()).thenReturn("envId");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
 
         pageService.delete(PAGE_ID);
@@ -247,6 +249,8 @@ public class PageService_DeleteTest {
         String childPageId = "childPageId";
         when(childPage.getId()).thenReturn(childPageId);
         when(childPage.getType()).thenReturn(PageType.SWAGGER.toString());
+        when(childPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(childPage.getReferenceId()).thenReturn(refId);
         when(pageRepository.findById(childPageId)).thenReturn(Optional.of(childPage));
 
         Page link = mock(Page.class);
@@ -258,6 +262,8 @@ public class PageService_DeleteTest {
         Page page = mock(Page.class);
         when(page.getId()).thenReturn(PAGE_ID);
         when(page.getType()).thenReturn(PageType.MARKDOWN.toString());
+        when(page.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page.getReferenceId()).thenReturn(refId);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page));
 
         Page translation = mock(Page.class);
@@ -267,6 +273,8 @@ public class PageService_DeleteTest {
         configuration.put(PageConfigurationKeys.TRANSLATION_LANG, "EN");
         when(translation.getConfiguration()).thenReturn(configuration);
         when(translation.getType()).thenReturn(PageType.TRANSLATION.toString());
+        when(translation.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(translation.getReferenceId()).thenReturn(refId);
         when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build())).thenReturn(Arrays.asList(translation));
 
         when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build())).thenReturn(Arrays.asList(folder, child, childPage, page));

@@ -1255,6 +1255,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
         userEntity.setLastConnectionAt(user.getLastConnectionAt());
         userEntity.setFirstConnectionAt(user.getFirstConnectionAt());
         userEntity.setPicture(user.getPicture());
+        userEntity.setReferenceType(GraviteeContext.ReferenceContextType.ORGANIZATION.name());
+        userEntity.setReferenceId(user.getOrganizationId());
+
         if (user.getStatus() != null) {
             userEntity.setStatus(user.getStatus().name());
         }

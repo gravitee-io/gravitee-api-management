@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -58,6 +59,8 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
 
             pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
             pageQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
+
+            // Note: Page search does not seem to be used so for now we don't implement any filtering for organization or environment.
             return search(pageQuery.build());
         } catch (ParseException pe) {
             logger.error("Invalid query to search for page documents", pe);

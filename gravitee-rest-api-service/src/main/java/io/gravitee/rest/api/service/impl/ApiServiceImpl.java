@@ -771,11 +771,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public Set<ApiEntity> findAll() {
         try {
-            LOGGER.debug("Find all APIs");
+            LOGGER.debug("Find all APIs for current environment {}", GraviteeContext.getCurrentEnvironment());
             return new HashSet<>(convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build())));
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all APIs", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
+            LOGGER.error("An error occurs while trying to find all APIs for current environment {}", GraviteeContext.getCurrentEnvironment(), ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all APIs for current environment", ex);
         }
     }
 
@@ -2737,6 +2737,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setCreatedAt(api.getCreatedAt());
         apiEntity.setGroups(api.getGroups());
         apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
+        apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+        apiEntity.setReferenceId(api.getEnvironmentId());
 
         if (api.getDefinition() != null) {
             try {

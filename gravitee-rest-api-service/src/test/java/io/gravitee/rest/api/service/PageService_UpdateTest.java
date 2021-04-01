@@ -88,6 +88,10 @@ public class PageService_UpdateTest {
 
     @Test
     public void shouldUpdate() throws TechnicalException {
+
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page1.getReferenceId()).thenReturn("envId");
+
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenReturn(page1);
 
@@ -102,6 +106,9 @@ public class PageService_UpdateTest {
 
     @Test
     public void shouldUpdateWithRevision_becauseOfContentChange() throws TechnicalException {
+
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page1.getReferenceId()).thenReturn("envId");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenReturn(page1);
 
@@ -123,6 +130,8 @@ public class PageService_UpdateTest {
 
         when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
         when(page1.getName()).thenReturn("some");
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page1.getReferenceId()).thenReturn("envId");
         when(existingPage.getName()).thenReturn("awesome");
         pageService.update(PAGE_ID, existingPage);
 
@@ -133,11 +142,16 @@ public class PageService_UpdateTest {
     }
     @Test
     public void shouldUpdateWithoutRevision_becauseOfNoRevisionForType() throws TechnicalException {
+
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page1.getReferenceId()).thenReturn("envId");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenReturn(page1);
 
         when(page1.getType()).thenReturn(PageType.FOLDER.name());
         when(page1.getName()).thenReturn("some");
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page1.getReferenceId()).thenReturn("envId");
         when(existingPage.getName()).thenReturn("awesome");
         pageService.update(PAGE_ID, existingPage);
 
@@ -256,6 +270,9 @@ public class PageService_UpdateTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
+
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page1.getReferenceId()).thenReturn("envId");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
         when(pageRepository.update(any(Page.class))).thenThrow(TechnicalException.class);
 

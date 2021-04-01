@@ -112,6 +112,8 @@ public class PageService_CreateTest {
         when(page1.getLastContributor()).thenReturn(contrib);
         when(page1.getOrder()).thenReturn(1);
         when(page1.getContent()).thenReturn(content);
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page1.getReferenceId()).thenReturn("envId");
 
         when(pageRepository.create(any())).thenReturn(page1);
 

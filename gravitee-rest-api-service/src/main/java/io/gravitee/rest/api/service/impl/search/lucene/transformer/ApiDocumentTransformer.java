@@ -17,9 +17,12 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import org.apache.lucene.document.*;
 import org.springframework.stereotype.Component;
+
+import javax.lang.model.type.ReferenceType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,6 +57,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
     public Document transform(io.gravitee.rest.api.model.api.ApiEntity api) {
         Document doc = new Document();
 
+        doc.add(new StringField(FIELD_REFERENCE_TYPE, api.getReferenceType(), Field.Store.NO));
+        doc.add(new StringField(FIELD_REFERENCE_ID, api.getReferenceId(), Field.Store.NO));
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
         if (api.getName() != null) {
