@@ -237,6 +237,7 @@ services:
   monitoring:
     delay: 5000
     unit: MILLISECONDS
+    distributed: false # By enabling this mode, data monitoring gathering process is distributed over clustered API gateways.
 
   # metrics service
   metrics:

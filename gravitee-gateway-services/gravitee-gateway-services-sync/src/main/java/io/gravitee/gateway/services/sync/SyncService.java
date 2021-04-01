@@ -90,9 +90,9 @@ public class SyncService extends AbstractService implements Runnable {
             if (enabled) {
                 super.doStart();
 
-                probeManager.register(apiSyncProbe);
-
                 logger.info("Sync service has been initialized with cron [{}]", cronTrigger);
+
+                probeManager.register(this.apiSyncProbe);
 
                 logger.info("Associate a new HTTP handler on {}", PATH);
 
