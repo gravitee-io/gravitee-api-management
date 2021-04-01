@@ -15,21 +15,19 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Organization;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
+
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Organization;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -98,6 +96,26 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
             throw new TechnicalException("An error occurred when counting organization");
         }
     }
+
+    @Override
+    public Set<Organization> findAll() throws TechnicalException {
+        try {
+            final Set<Organization> organizations = super.findAll();
+
+            // Note: we should find a proper way to store domain restrictions and hrids to avoid such (N*2)+1 queries.
+            // For now we assume that the number of organizations remains low and this function is not widely used.
+            organizations.forEach(organization -> {
+                addDomainRestrictions(organization);
+                addHrids(organization);
+            });
+
+            return organizations;
+        } catch (Exception e) {
+            LOGGER.error("An error occurred when listing all organizations", e);
+            throw new TechnicalException("An error occurred when listing all organizations");
+        }
+    }
+
 
     private void addDomainRestrictions(Organization parent) {
         List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from organization_domain_restrictions where organization_id = ?", String.class, parent.getId());
