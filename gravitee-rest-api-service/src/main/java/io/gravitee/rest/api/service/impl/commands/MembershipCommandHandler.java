@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static io.gravitee.rest.api.service.impl.commands.UserCommandHandler.COCKPIT_SOURCE;
@@ -87,8 +88,12 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
 
             final UserEntity userEntity = userService.findBySource(COCKPIT_SOURCE, membershipPayload.getUserId(), false);
             final RoleEntity roleEntity = findRole(roleScope, membershipPayload.getRole());
+            final MembershipService.MembershipReference membershipReference = new MembershipService.MembershipReference(membershipReferenceType, membershipPayload.getReferenceId());
+            final MembershipService.MembershipMember membershipMember = new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER);
+            final MembershipService.MembershipRole membershipRole = new MembershipService.MembershipRole(roleEntity.getScope(), roleEntity.getName());
 
-            membershipService.addRoleToMemberOnReference(membershipReferenceType, membershipPayload.getReferenceId(), MembershipMemberType.USER, userEntity.getId(), roleEntity.getId(), COCKPIT_SOURCE);
+            membershipService.updateRolesToMemberOnReference(membershipReference, membershipMember, Collections.singletonList(membershipRole), COCKPIT_SOURCE, false);
+
             logger.info("Role [{}] assigned on {} [{}] for user [{}] and organization [{}].", membershipPayload.getRole(), membershipPayload.getReferenceType(), membershipPayload.getReferenceId(), userEntity.getId(), membershipPayload.getOrganizationId());
             return Single.just(new MembershipReply(command.getId(), CommandStatus.SUCCEEDED));
         } catch (Exception e) {
