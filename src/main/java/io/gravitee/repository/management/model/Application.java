@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public class Application {
     public enum AuditEvent implements Audit.AuditEvent {
-        APPLICATION_CREATED, APPLICATION_UPDATED, APPLICATION_ARCHIVED
+        APPLICATION_CREATED, APPLICATION_UPDATED, APPLICATION_ARCHIVED, APPLICATION_RESTORED
     }
     /**
      * The application ID.

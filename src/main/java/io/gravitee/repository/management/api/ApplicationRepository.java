@@ -64,5 +64,5 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @return applications
      * @throws TechnicalException
      */
-    Set<Application> findByName(String partialName) throws TechnicalException;
+    Set<Application> findByNameAndStatuses(String partialName, ApplicationStatus ...statuses) throws TechnicalException;
 }
