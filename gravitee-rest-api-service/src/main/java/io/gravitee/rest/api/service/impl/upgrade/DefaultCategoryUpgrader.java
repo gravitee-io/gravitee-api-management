@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
@@ -53,14 +54,37 @@ public class DefaultCategoryUpgrader implements Upgrader, Ordered {
         final Set<Category> categories;
         try {
             categories = categoryRepository.findAll();
+
             Optional<Category> optionalKeyLessCategory = categories.
                     stream().
-                    filter(v -> v.getKey() == null || v.getKey().isEmpty()).
+                    filter(c -> c.getKey() == null || c.getKey().isEmpty()).
                     findFirst();
-            if (optionalKeyLessCategory.isPresent()) {
-                logger.info("Update categories to add field key");
+            Optional<Category> optionalCategoryWithoutCreationDate = categories.
+                    stream().
+                    filter(c -> c.getCreatedAt() == null).
+                    findFirst();
+
+            final boolean keyLessCategoriesExist = optionalKeyLessCategory.isPresent();
+            final boolean categoriesWithoutCreationDateExist = optionalCategoryWithoutCreationDate.isPresent();
+
+            if (keyLessCategoriesExist || categoriesWithoutCreationDateExist) {
+                if (keyLessCategoriesExist) {
+                    logger.info("Update categories to add field key");
+                }
+                if (categoriesWithoutCreationDateExist) {
+                    logger.info("Update categories to add createdAt");
+                }
                 for (final Category category : categories) {
-                    category.setKey(IdGenerator.generate(category.getName()));
+                    if (keyLessCategoriesExist) {
+                        // add a key for keyless categories
+                        category.setKey(IdGenerator.generate(category.getName()));
+                    }
+                    if (categoriesWithoutCreationDateExist) {
+                        // add createdAt if not exist (https://github.com/gravitee-io/issues/issues/5275)
+                        final Date createdAt = new Date();
+                        category.setCreatedAt(createdAt);
+                        category.setUpdatedAt(createdAt);
+                    }
                     categoryRepository.update(category);
                 }
             }

@@ -16,25 +16,21 @@
 package io.gravitee.rest.api.management.rest.resource.auth;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.ReadContext;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.spel.function.JsonPathFunction;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.rest.utils.BlindTrustManager;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.builder.JerseyClientBuilder;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
-import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.annotations.Api;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
@@ -62,8 +58,9 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Base64;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,6 +75,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     private final static String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
     private static final String ACCESS_TOKEN_PROPERTY = "access_token";
+    private static final String ID_TOKEN_PROPERTY = "id_token";
 
     // Dirty hack: only used to force class loading
     static {
@@ -90,12 +88,6 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     @Autowired
     private SocialIdentityProviderService socialIdentityProviderService;
-    @Autowired
-    private GroupService groupService;
-    @Autowired
-    private RoleService roleService;
-    @Autowired
-    private EnvironmentService environmentService;
     @Autowired
     private Environment environment;
     @Autowired
@@ -146,7 +138,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     boolean active = introspectPayload.path("active").asBoolean(true);
 
                     if (active) {
-                        return authenticateUser(identityProvider, servletResponse, token, null);
+                        return authenticateUser(identityProvider, servletResponse, token, null, null);
                     } else {
                         return Response
                                 .status(Response.Status.UNAUTHORIZED)
@@ -194,8 +186,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             accessData.clear();
 
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                final String accessToken = (String) getResponseEntity(response).get(ACCESS_TOKEN_PROPERTY);
-                return authenticateUser(identityProvider, servletResponse, accessToken, payload.getState());
+                final Map<String, Object> responseEntity = getResponseEntity(response);
+                final String accessToken = (String) responseEntity.get(ACCESS_TOKEN_PROPERTY);
+                final String idToken = (String) responseEntity.get(ID_TOKEN_PROPERTY);
+                return authenticateUser(identityProvider, servletResponse, accessToken, idToken, payload.getState());
             } else {
                 LOGGER.error("Exchange authorization code failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
             }
@@ -215,6 +209,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private Response authenticateUser(final SocialIdentityProviderEntity socialProvider,
                                       final HttpServletResponse servletResponse,
                                       final String accessToken,
+                                      final String idToken,
                                       final String state) throws IOException {
         // Step 2. Retrieve profile information about the authenticated end-user.
         Response response = client
@@ -227,7 +222,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return processUser(socialProvider, servletResponse, userInfo, state);
+            return processUser(socialProvider, servletResponse, userInfo, state, accessToken, idToken);
         } else {
             LOGGER.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
 
@@ -236,282 +231,16 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo, final String state) {
-        Map<String, String> attrs = extractUserProfileAttributes(socialProvider.getUserProfileMapping(), userInfo);
-
-        String email = attrs.get(SocialIdentityProviderEntity.UserProfile.EMAIL);
-        if (email == null && socialProvider.isEmailRequired()) {
-            throw new BadRequestException("No public email linked to your account");
-        }
-
-        boolean created = false;
-        UserEntity user;
-
-        // Compute group and role mappings
-        // This is done BEFORE updating or creating the user account to ensure this one is properly created with correct
-        // information (ie. mappings)
-        Set<GroupEntity> userGroups = computeUserGroupsFromProfile(email, socialProvider.getGroupMappings(), userInfo);
-        Set<RoleEntity> userOrganizationRoles = new HashSet<>();
-        Map<String, Set<RoleEntity>> userEnvironmentRoles = new HashMap<>();
-        userService.computeRolesToAddUser(email, socialProvider.getRoleMappings(), userInfo, userOrganizationRoles, userEnvironmentRoles);
-
-        try {
-            user = userService.findBySource(socialProvider.getId(), attrs.get(SocialIdentityProviderEntity.UserProfile.ID), false);
-
-            // Update user information from its user info profile
-            UpdateUserEntity updatedUser = new UpdateUserEntity();
-
-            // User email is invariant
-            updatedUser.setEmail(email);
-
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
-                updatedUser.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
-                updatedUser.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
-                updatedUser.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
-            }
-
-            user = userService.update(user.getId(), updatedUser);
-        } catch (UserNotFoundException unfe) {
-            final NewExternalUserEntity newUser = new NewExternalUserEntity();
-            newUser.setEmail(email);
-            newUser.setSource(socialProvider.getId());
-
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.ID) != null) {
-                newUser.setSourceId(attrs.get(SocialIdentityProviderEntity.UserProfile.ID));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
-                newUser.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
-                newUser.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
-            }
-            if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
-                newUser.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
-            }
-
-            user = userService.create(newUser, true);
-            created = true;
-        }
-        final String userId = user.getId();
-
-        // Memberships must be refresh only when it is a user creation context or mappings should be synced during
-        // later authentication
-        List<MembershipService.Membership> groupMemberships = refreshUserGroups(userId, socialProvider.getId(), userGroups);
-        List<MembershipService.Membership> roleOrganizationMemberships = refreshUserOrganizationRoles(userId, socialProvider.getId(), userOrganizationRoles);
-        List<MembershipService.Membership> roleEnvironmentMemberships = refreshUserEnvironmentRoles(userId, socialProvider.getId(), userEnvironmentRoles);
-
-        if (created || socialProvider.isSyncMappings()) {
-            refreshUserMemberships(userId, socialProvider.getId(), groupMemberships, MembershipReferenceType.GROUP);
-            refreshUserMemberships(userId, socialProvider.getId(), roleOrganizationMemberships, MembershipReferenceType.ORGANIZATION);
-            refreshUserMemberships(userId, socialProvider.getId(), roleEnvironmentMemberships, MembershipReferenceType.ENVIRONMENT);
-        }
+    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo, final String state, final String accessToken, final String idToken) {
+        UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(socialProvider, userInfo);
 
         final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
 
         //set user to Authentication Context
-        UserDetails userDetails = new UserDetails(userId, "", authorities);
-        userDetails.setEmail(email);
+        UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
+        userDetails.setEmail(user.getEmail());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
-        return connectUser(userId, state, servletResponse);
+        return connectUser(user.getId(), state, servletResponse, accessToken, idToken);
     }
-
-    private Map<String, String> extractUserProfileAttributes(Map<String, String> userProfileMapping, String userInfo) {
-        TemplateEngine templateEngine = TemplateEngine.templateEngine();
-        templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-
-        ReadContext userInfoPath = JsonPath.parse(userInfo);
-        HashMap<String, String> map = new HashMap<>(userProfileMapping.size());
-
-        for (Map.Entry<String, String> entry : userProfileMapping.entrySet()) {
-            String field = entry.getKey();
-            String mapping = entry.getValue();
-
-            if (mapping != null && !mapping.isEmpty()) {
-                try {
-                    if (mapping.contains("{#")) {
-                        map.put(field, templateEngine.convert(mapping));
-                    } else {
-                        map.put(field, userInfoPath.read(mapping).toString());
-                    }
-                } catch (Exception e) {
-                    LOGGER.warn("Using mapping: \"{}\", no fields are located in {}", mapping, userInfo);
-                }
-            }
-        }
-
-        return map;
-    }
-
-    private List<MembershipService.Membership> refreshUserGroups(String userId, String identityProviderId, Collection<GroupEntity> userGroups) {
-        List<MembershipService.Membership> memberships = new ArrayList<>();
-
-        // Get the default group roles from system
-        List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION);
-
-        // Add groups to user
-        for (GroupEntity groupEntity : userGroups) {
-            for (RoleEntity roleEntity : roleEntities) {
-                String defaultRole = roleEntity.getName();
-
-                // If defined, get the override default role at the group level
-                if (groupEntity.getRoles() != null) {
-                    String groupDefaultRole = groupEntity.getRoles().get(RoleScope.valueOf(roleEntity.getScope().name()));
-                    if (groupDefaultRole != null) {
-                        defaultRole = groupDefaultRole;
-                    }
-                }
-
-                MembershipService.Membership membership = new MembershipService.Membership(
-                        new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupEntity.getId()),
-                        new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                        new MembershipService.MembershipRole(mapScope(roleEntity.getScope()), defaultRole));
-
-                membership.setSource(identityProviderId);
-
-                memberships.add(membership);
-            }
-        }
-
-        return memberships;
-    }
-
-    private List<MembershipService.Membership> refreshUserOrganizationRoles(String userId, String identityProviderId, Collection<RoleEntity> userOrganizationRoles) {
-        return userOrganizationRoles.stream()
-                .map(roleEntity -> {
-                    MembershipService.Membership membership = new MembershipService.Membership(
-                            new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization()),
-                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                            new MembershipService.MembershipRole(
-                                    RoleScope.valueOf(roleEntity.getScope().name()),
-                                    roleEntity.getName()));
-
-                    membership.setSource(identityProviderId);
-
-                    return membership;
-                }).collect(Collectors.toList());
-    }
-
-    private List<MembershipService.Membership> refreshUserEnvironmentRoles(String userId, String identityProviderId, Map<String, Set<RoleEntity>> userRolesByEnvironment) {
-        List<MembershipService.Membership> result = new ArrayList<>();
-        userRolesByEnvironment.forEach((environmentId, userRoles) ->
-            result.addAll(userRoles.stream()
-                    .map(roleEntity -> {
-                        MembershipService.Membership membership = new MembershipService.Membership(
-                                new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, environmentId),
-                                new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                                new MembershipService.MembershipRole(
-                                        RoleScope.valueOf(roleEntity.getScope().name()),
-                                        roleEntity.getName()));
-
-                        membership.setSource(identityProviderId);
-                        return membership;
-                    })
-                    .collect(Collectors.toList())
-            )
-        );
-        return result;
-    }
-
-    /**
-     * Refresh user memberships.
-     *
-     * @param userId User identifier.
-     * @param identityProviderId The identity provider used to authenticate the user.
-     * @param memberships List of memberships to associate to the user
-     * @param type The type of user memberships to manage
-     */
-    private void refreshUserMemberships(String userId, String identityProviderId, List<MembershipService.Membership> memberships,
-                                        MembershipReferenceType type) {
-        // Get existing memberships for a given type
-        List<UserMembership> userMemberships = membershipService.findUserMembership(type, userId);
-
-        // Delete existing memberships
-        userMemberships.forEach(membership -> {
-            // Consider only membership "created by" the identity provider
-            if (identityProviderId.equals(membership.getSource())) {
-                membershipService.deleteReferenceMember(
-                        MembershipReferenceType.valueOf(membership.getType()),
-                        membership.getReference(),
-                        MembershipMemberType.USER,
-                        userId);
-            }
-        });
-
-        Map<MembershipService.MembershipReference,
-                Map<MembershipService.MembershipMember,
-                        Map<String, Collection<MembershipService.MembershipRole>>>> groupedRoles = new HashMap<>();
-        memberships.forEach(membership -> groupedRoles
-                .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
-                .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
-                .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
-                .add(membership.getRole())
-        );
-        // Create updated memberships
-        groupedRoles.forEach((reference, memberMapping) ->
-                memberMapping.forEach((member, scopeMapping) ->
-                        scopeMapping.forEach((scope, roles) ->
-                                membershipService.updateRolesToMemberOnReference(reference, member, roles, scope, false))));
-    }
-
-    /**
-     * Calculate the list of groups to associate to a user according to its OIDC profile (ie. UserInfo)
-     *
-     * @param userId
-     * @param mappings
-     * @param userInfo
-     * @return
-     */
-    private Set<GroupEntity> computeUserGroupsFromProfile(String userId, List<GroupMappingEntity> mappings, String userInfo) {
-        if (mappings == null || mappings.isEmpty()) {
-            return Collections.emptySet();
-        }
-
-        Set<GroupEntity> groups = new HashSet<>();
-
-        for (GroupMappingEntity mapping : mappings) {
-            TemplateEngine templateEngine = TemplateEngine.templateEngine();
-            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
-
-            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
-
-            trace(userId, match, mapping.getCondition());
-
-            // Get groups
-            if (match) {
-                for (String groupName : mapping.getGroups()) {
-                    try {
-                        groups.add(groupService.findById(groupName));
-                    } catch (GroupNotFoundException gnfe) {
-                        LOGGER.error("Unable to create user, missing group in repository : {}", groupName);
-                    }
-                }
-            }
-        }
-
-        return groups;
-    }
-
-    private void trace(String userId, boolean match, String condition) {
-        if (LOGGER.isDebugEnabled()) {
-            if (match) {
-                LOGGER.debug("the expression {} match on {} user's info ", condition, userId);
-            } else {
-                LOGGER.debug("the expression {} didn't match {} on user's info ", condition, userId);
-            }
-        }
-    }
-
-    private RoleScope mapScope(io.gravitee.rest.api.model.permissions.RoleScope scope) {
-        if (io.gravitee.rest.api.model.permissions.RoleScope.API == scope) {
-            return RoleScope.API;
-        } else {
-            return RoleScope.APPLICATION;
-        }
-    }
-
 }

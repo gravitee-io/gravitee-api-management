@@ -138,12 +138,15 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             this.environmentService.findById(environment);
             
             Category category = convert(newCategory);
+            final Date createdAt = new Date();
+            category.setCreatedAt(createdAt);
+            category.setUpdatedAt(createdAt);
             category.setEnvironmentId(environment);
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
             auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(CATEGORY, category.getId()),
                     CATEGORY_CREATED,
-                    new Date(),
+                    createdAt,
                     null,
                     category);
 
@@ -164,20 +167,23 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                 throw new CategoryNotFoundException(categoryId);
             }
 
-            Category category = convert(categoryEntity, optCategoryToUpdate.get().getEnvironmentId());
+            final Category categoryToUpdate = optCategoryToUpdate.get();
+            Category category = convert(categoryEntity, categoryToUpdate.getEnvironmentId());
 
             // check if picture has been set
             // If no new picture and the current picture url is not the default one, keep the current picture
             if (categoryEntity.getPicture() == null && categoryEntity.getPictureUrl() != null && categoryEntity.getPictureUrl().indexOf("?hash") > 0) {
-                category.setPicture(optCategoryToUpdate.get().getPicture());
+                category.setPicture(categoryToUpdate.getPicture());
             }
-
+            final Date updatedAt = new Date();
+            category.setCreatedAt(categoryToUpdate.getCreatedAt());
+            category.setUpdatedAt(updatedAt);
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
             auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(CATEGORY, category.getId()),
                     CATEGORY_UPDATED,
-                    new Date(),
-                    optCategoryToUpdate.get(),
+                    updatedAt,
+                    categoryToUpdate,
                     category);
 
             return updatedCategory;
@@ -188,35 +194,38 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     }
 
     @Override
-    public List<CategoryEntity> update(final List<UpdateCategoryEntity> Entities) {
-        final List<CategoryEntity> savedCategories = new ArrayList<>(Entities.size());
-        Entities.forEach(Entity -> {
+    public List<CategoryEntity> update(final List<UpdateCategoryEntity> categoriesEntities) {
+        final List<CategoryEntity> savedCategories = new ArrayList<>(categoriesEntities.size());
+        categoriesEntities.forEach(categoryEntity -> {
             try {
-                Optional<Category> Optional = categoryRepository.findById(Entity.getId());
-                if (Optional.isPresent()) {
-                    Category category = convert(Entity, Optional.get().getEnvironmentId());
+                Optional<Category> optCategoryToUpdate = categoryRepository.findById(categoryEntity.getId());
+                if (optCategoryToUpdate.isPresent()) {
+                    final Category categoryToUpdate = optCategoryToUpdate.get();
+                    Category category = convert(categoryEntity, categoryToUpdate.getEnvironmentId());
                     // check if picture has been set
                     if (category.getPicture() == null) {
                         // Picture can not be updated when re-ordering categories
-                        category.setPicture(Optional.get().getPicture());
+                        category.setPicture(categoryToUpdate.getPicture());
                     }
                     // check if background has been set
                     if (category.getBackground() == null) {
                         // Background can not be updated when re-ordering categories
-                        category.setBackground(Optional.get().getBackground());
+                        category.setBackground(categoryToUpdate.getBackground());
                     }
-
+                    final Date updatedAt = new Date();
+                    category.setCreatedAt(categoryToUpdate.getCreatedAt());
+                    category.setUpdatedAt(updatedAt);
                     savedCategories.add(convert(categoryRepository.update(category)));
                     auditService.createEnvironmentAuditLog(
                             Collections.singletonMap(CATEGORY, category.getId()),
                             CATEGORY_UPDATED,
-                            new Date(),
-                            Optional.get(),
+                            updatedAt,
+                            categoryToUpdate,
                             category);
                 }
             } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to update category {}", Entity.getName(), ex);
-                throw new TechnicalManagementException("An error occurs while trying to update category " + Entity.getName(), ex);
+                LOGGER.error("An error occurs while trying to update category {}", categoryEntity.getName(), ex);
+                throw new TechnicalManagementException("An error occurs while trying to update category " + categoryEntity.getName(), ex);
             }
         });
         return savedCategories;

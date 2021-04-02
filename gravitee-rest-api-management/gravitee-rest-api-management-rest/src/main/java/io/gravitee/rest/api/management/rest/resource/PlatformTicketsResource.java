@@ -65,7 +65,7 @@ public class PlatformTicketsResource extends AbstractResource  {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Search for platform tickets written by current user")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List platform tickets written by current user", response = TicketEntity.class, responseContainer = "Page"),
+            @ApiResponse(code = 200, message = "List platform tickets written by current user", response = Page.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     public Page<TicketEntity> getTickets(
             @Valid @BeanParam Pageable pageable,

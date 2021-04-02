@@ -27,6 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.util.*;
+
+import static io.gravitee.rest.api.service.notification.ApiHook.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +71,12 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
                 GraviteeContext.getCurrentContext());
     }
 
-    private List<String> getMails(final GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
+    public List<String> getMails(final GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
+        if (genericNotificationConfig == null || genericNotificationConfig.getConfig() == null || genericNotificationConfig.getConfig().isEmpty()) {
+            LOGGER.error("Email Notifier configuration is empty");
+            return Collections.emptyList();
+        }
+
         String[] mails = genericNotificationConfig.getConfig().split(",|;|\\s");
         List<String> result = new ArrayList<>();
         for (String mail : mails) {
