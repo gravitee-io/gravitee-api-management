@@ -68,15 +68,16 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                             .build());
 
             if (subscriptions != null && !subscriptions.isEmpty()) {
-                Subscription subscription = subscriptions.get(0);
-                if (subscription.getClientId().equals(clientId) &&
+                final String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
+                final Subscription subscription =
+                        subscriptions.stream().filter(sub -> sub.getPlan().equals(plan)).findAny().orElse(null);
+                if (subscription != null && subscription.getClientId().equals(clientId) &&
                         (
                                 subscription.getEndingAt() == null ||
                                         subscription.getEndingAt().after(new Date(request.timestamp())))) {
 
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
-                    executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
 
                     policyChain.doNext(request, response);
                     return;
