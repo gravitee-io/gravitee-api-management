@@ -15,31 +15,48 @@
  */
 import * as _ from 'lodash';
 import UserService from '../../services/user.service';
+import { StateService } from '@uirouter/core';
+import ApplicationService from '../../services/application.service';
+import NotificationService from '../../services/notification.service';
 
 class ApplicationsController {
   private applications: any;
   private applicationsToDisplay: any;
   private selectedApplications: any;
   private subMessage: string;
+  private selectedTabIdx: number;
+  private currentTab: string;
+  private tabs: string[];
+  private searchApplications: string;
+  private loading: boolean = false;
 
   constructor(
     private UserService: UserService,
-    private $filter
+    private $filter,
+    private $state: StateService,
+    private ApplicationService: ApplicationService,
+    private $mdDialog: angular.material.IDialogService,
+    private NotificationService: NotificationService
   ) {
     'ngInject';
     this.selectedApplications = [];
 
     const that = this;
     UserService.current().then(function (user) {
-      if (!user.username) {
-        that.subMessage = 'Login to get access to your applications';
-      } else if (UserService.isUserHasPermissions(['environment-application-c'])) {
+      if (UserService.isUserHasPermissions(['environment-application-c'])) {
         that.subMessage = 'Start creating an application';
+      } else if (!user.username) {
+        that.subMessage = 'Login to get access to your applications';
       } else {
         that.subMessage = '';
       }
     });
+    this.tabs = ['active', 'archived'];
+    this.selectedTabIdx = 0;
+    this.currentTab = this.tabs[this.selectedTabIdx];
   }
+
+  isAdmin = () => this.UserService.currentUser.roles.some(role => role.scope === 'ENVIRONMENT' && role.name === 'ADMIN');
 
   loadMore = function (order, searchApplications, showNext) {
     const doNotLoad = showNext && (this.applications && this.applications.length) === (this.applicationsToDisplay && this.applicationsToDisplay.length);
@@ -56,6 +73,49 @@ class ApplicationsController {
       this.applicationsToDisplay = _.take(applications, 20 + applicationsLength);
     }
   };
+
+  selectTab(idx: number) {
+    this.loading = true;
+    this.selectedTabIdx = idx;
+    this.currentTab = this.tabs[this.selectedTabIdx];
+    this.selectedApplications = [];
+    this.applications = [];
+    this.applicationsToDisplay = [];
+    this.ApplicationService.list(this.currentTab).then(applications => {
+      this.applications = applications.data;
+      this.searchApplications = '';
+    })
+      .finally(() => this.loading = false);
+  }
+
+  showRestoreConfirm(ev, applicationId: string, applicationName: string) {
+    ev.stopPropagation();
+    let that = this;
+    this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../components/dialog/confirmWarning.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: 'Would you like to restore the application "' + applicationName + '"?',
+        confirmButton: 'Restore',
+        msg: 'Every subscriptions belonging to this application will be restored in PENDING status. Don\'t forget to reactivate the needed ones.'
+      }
+    }).then(function(response) {
+      if (response) {
+        that.restoreApplication(applicationId);
+      }
+    });
+  }
+
+  restoreApplication(application: string) {
+    this.ApplicationService.restore(application).then((response) => {
+      this.applications = this.applications.filter(app => app.id !== application);
+      this.applicationsToDisplay = this.applicationsToDisplay.filter(app => app.id !== application);
+      this.NotificationService.show('Application ' + response.data.name + ' has been restored');
+      this.$state.go('management.applications.application.subscriptions.list', {applicationId: application}, {reload: true});
+    });
+  }
 }
 
 export default ApplicationsController;

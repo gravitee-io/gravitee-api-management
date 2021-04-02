@@ -142,7 +142,8 @@
   </div>
 
   <div class="gv-form"
-       ng-if="$ctrl.subscription.status !== 'pending' && $ctrl.subscription.status !== 'rejected' && $ctrl.subscription.plan.security === 'api_key'">
+       ng-if="$ctrl.subscription.status === 'pending' && $ctrl.keys.length > 0
+       || $ctrl.subscription.status !== 'pending' && $ctrl.subscription.status !== 'rejected' && $ctrl.subscription.plan.security === 'api_key'">
     <h2>Api Keys</h2>
     <div class="gv-form-content" layout="column">
         <md-table-container>

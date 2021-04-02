@@ -75,8 +75,8 @@ class ApplicationService {
     return this.$http.post(`${this.Constants.env.baseURL}/applications/` + applicationId + '/members/transfer_ownership', ownership);
   }
 
-  list(): ng.IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/applications/`);
+  list(status: string = 'active'): ng.IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/applications/?status=${status}`);
   }
 
   listByGroup(group) {
@@ -195,6 +195,10 @@ class ApplicationService {
 
   renewClientSecret(applicationId: string): ng.IHttpPromise<any> {
     return this.$http.post(`${this.Constants.env.baseURL}/applications/${applicationId}/renew_secret`, {});
+  }
+
+  restore(applicationId: string): ng.IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/applications/${applicationId}/_restore`, {});
   }
 
   getType(application: any): string {
