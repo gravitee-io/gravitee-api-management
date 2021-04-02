@@ -109,8 +109,12 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	}
 
 	@Override
-	public Set<Application> findByName(String partialName) throws TechnicalException {
-		return mapApplications(internalApplicationRepo.findByName(partialName));
+	public Set<Application> findByNameAndStatuses(String partialName, ApplicationStatus ...statuses) throws TechnicalException {
+		if (statuses != null && statuses.length > 0) {
+			return mapApplications(internalApplicationRepo.findByNameAndStatuses(partialName, Arrays.asList(statuses)));
+		} else {
+			return mapApplications(internalApplicationRepo.findByName(partialName));
+		}
 	}
 
 	@Override
