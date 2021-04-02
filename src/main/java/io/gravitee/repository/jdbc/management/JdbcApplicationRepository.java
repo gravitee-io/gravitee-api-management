@@ -36,6 +36,7 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
@@ -280,12 +281,20 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     }
 
     @Override
-    public Set<Application> findByName(String partialName) throws TechnicalException {
-        LOGGER.debug("JdbcApplicationRepository.findByName({})", partialName);
+    public Set<Application> findByNameAndStatuses(String partialName, ApplicationStatus ...ass) throws TechnicalException {
+        LOGGER.debug("JdbcApplicationRepository.findByName({}, {})", partialName, ass);
         try {
+            final List<ApplicationStatus> statuses = Arrays.asList(ass);
+            StringBuilder query = new StringBuilder("select a.*, am.k as am_k, am.v as am_v from " + this.tableName + " a left join " + APPLICATION_METADATA + " am on a.id = am.application_id where lower(name) like ?");
+            getOrm().buildInCondition(false, query, "status", statuses);
+
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query("select a.*, am.k as am_k, am.v as am_v from " + this.tableName + " a left join " + APPLICATION_METADATA + " am on a.id = am.application_id where lower(name) like ?"
-                    , rowMapper, "%" + partialName.toLowerCase() + "%"
+            jdbcTemplate.query(query.toString()
+                    , (PreparedStatement ps) -> {
+                        int idx = getOrm().setArguments(ps, singleton("%" + partialName.toLowerCase() + "%"), 1);
+                        getOrm().setArguments(ps, statuses, idx);
+                    }
+                    , rowMapper
             );
             for (Application application : rowMapper.getRows()) {
                 addGroups(application);
