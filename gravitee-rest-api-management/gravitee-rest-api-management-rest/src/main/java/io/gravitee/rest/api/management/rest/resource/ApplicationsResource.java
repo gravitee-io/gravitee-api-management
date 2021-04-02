@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -27,6 +28,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.swagger.annotations.*;
@@ -71,15 +73,19 @@ public class ApplicationsResource extends AbstractResource {
     })
     public List<ApplicationListItem> getApplications(
             @QueryParam("group") final String group,
-            @QueryParam("query") final String query) {
+            @QueryParam("query") final String query,
+            @QueryParam("status") @DefaultValue("ACTIVE") final String status) {
         Set<ApplicationListItem> applications;
 
         if (query != null && !query.trim().isEmpty()) {
-            applications = applicationService.findByName(query);
+            if (!isAdmin() && ApplicationStatus.ARCHIVED.name().equalsIgnoreCase(status)) {
+                throw new ForbiddenAccessException();
+            }
+            applications = applicationService.findByNameAndStatus(query, status);
         } else if (isAdmin()) {
             applications = group != null
-                    ? applicationService.findByGroups(Collections.singletonList(group))
-                    : applicationService.findAll();
+                    ? applicationService.findByGroupsAndStatus(Collections.singletonList(group), status)
+                    : applicationService.findByStatus(status);
         } else {
             applications = applicationService.findByUser(getAuthenticatedUser());
             if (group != null && !group.isEmpty()) {

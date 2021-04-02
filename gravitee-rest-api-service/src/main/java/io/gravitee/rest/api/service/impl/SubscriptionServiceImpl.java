@@ -721,6 +721,57 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
     }
 
+    /**
+     * Restore a closed subscription in PENDING status
+     */
+    @Override
+    public SubscriptionEntity restore(String subscriptionId) {
+        try {
+            logger.debug("Restore subscription {}", subscriptionId);
+
+            Subscription subscription =  subscriptionRepository
+                    .findById(subscriptionId)
+                    .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+
+            if (subscription.getStatus() == Subscription.Status.CLOSED || subscription.getStatus() == Subscription.Status.REJECTED) {
+                Subscription previousSubscription = new Subscription(subscription);
+                final Date now = new Date();
+                subscription.setUpdatedAt(now);
+                subscription.setPausedAt(null);
+                subscription.setStatus(Subscription.Status.PENDING);
+
+                subscription = subscriptionRepository.update(subscription);
+
+                createAudit(
+                        subscription.getApi(),
+                        subscription.getApplication(),
+                        SUBSCRIPTION_RESUMED,
+                        subscription.getUpdatedAt(),
+                        previousSubscription,
+                        subscription);
+
+//                // API Keys are automatically revoked
+                List<ApiKeyEntity> apiKeys = apiKeyService.findBySubscription(subscription.getId());
+                for (ApiKeyEntity apiKey : apiKeys) {
+                    Date expireAt = apiKey.getExpireAt();
+                    if (!apiKey.isRevoked() && (expireAt == null || expireAt.equals(now) || expireAt.after(now))) {
+                        apiKey.setPaused(false);
+                        apiKey.setUpdatedAt(now);
+                        apiKeyService.update(apiKey);
+                    }
+                }
+
+                return convert(subscription);
+            }
+
+            throw new SubscriptionNotClosedException(subscriptionId);
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to restore subscription {}", subscriptionId, ex);
+            throw new TechnicalManagementException(String.format(
+                    "An error occurs while trying to restore subscription %s", subscriptionId), ex);
+        }
+    }
+
     @Override
     public void delete(String subscriptionId) {
         try {

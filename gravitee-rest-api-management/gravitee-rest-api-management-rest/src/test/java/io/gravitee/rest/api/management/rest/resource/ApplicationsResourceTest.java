@@ -29,6 +29,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
@@ -57,7 +58,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         ApplicationEntity returnedApp = new ApplicationEntity();
         returnedApp.setId("my-beautiful-application");
-        doReturn(returnedApp).when(applicationService).create(Mockito.any(NewApplicationEntity.class),
+        doReturn(returnedApp).when(applicationService).create(any(NewApplicationEntity.class),
                 Mockito.eq(JerseySpringTest.USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(appEntity));
@@ -73,7 +74,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         ApplicationEntity createdApplication = new ApplicationEntity();
         createdApplication.setId("my-beautiful-application");
-        doReturn(createdApplication).when(applicationService).create(Mockito.any(NewApplicationEntity.class),
+        doReturn(createdApplication).when(applicationService).create(any(NewApplicationEntity.class),
                 Mockito.eq(USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(newApplicationEntity));

@@ -58,6 +58,8 @@ public interface SubscriptionService {
 
     SubscriptionEntity resume(String subscription);
 
+    SubscriptionEntity restore(String subscription);
+
     SubscriptionEntity close(String subscription);
 
     void delete(String subscription);

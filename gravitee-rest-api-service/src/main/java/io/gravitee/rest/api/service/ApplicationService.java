@@ -35,11 +35,14 @@ public interface ApplicationService {
 
     Set<ApplicationListItem> findByUser(String username);
 
-    Set<ApplicationListItem> findByName(String name);
+    Set<ApplicationListItem> findByNameAndStatus(String name, String status);
 
     Set<ApplicationListItem> findByGroups(List<String> groupId);
+    Set<ApplicationListItem> findByGroupsAndStatus(List<String> groupId, String status);
 
     Set<ApplicationListItem> findAll();
+
+    Set<ApplicationListItem> findByStatus(String status);
 
     ApplicationEntity create(NewApplicationEntity application, String username);
 
@@ -48,6 +51,8 @@ public interface ApplicationService {
     ApplicationEntity update(String applicationId, UpdateApplicationEntity application);
 
     ApplicationEntity renewClientSecret(String applicationId);
+
+    ApplicationEntity restore(String applicationId);
 
     void archive(String applicationId);
     

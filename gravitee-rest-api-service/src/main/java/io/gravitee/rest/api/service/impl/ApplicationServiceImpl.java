@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -28,6 +29,8 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import io.gravitee.rest.api.model.audit.AuditEntity;
+import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
@@ -58,7 +61,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.management.model.Application.AuditEvent.*;
+import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CLOSED;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -99,6 +104,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
+
+    @Autowired
+    private PortalNotificationConfigService portalNotificationConfigService;
 
     @Autowired
     private ClientRegistrationService clientRegistrationService;
@@ -186,18 +194,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByName(String name) {
-        LOGGER.debug("Find applications by name {}", name);
+    public Set<ApplicationListItem> findByNameAndStatus(String name, String status) {
+        LOGGER.debug("Find applications by name {} and status {}", name, status);
         try {
             if (name == null || name.trim().isEmpty()) {
                 return emptySet();
             }
+            ApplicationStatus requestedStatus = ApplicationStatus.valueOf(status.toUpperCase());
             Set<Application> applications = applicationRepository.
-                findByName(name.trim()).stream().
-                filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus())).
+                findByNameAndStatuses(name.trim(), requestedStatus).stream().
                 filter(app -> GraviteeContext.getCurrentEnvironment().equals(app.getEnvironmentId())).
                 collect(Collectors.toSet());
-            return convertToList(applications);
+            return ApplicationStatus.ACTIVE.equals(requestedStatus) ?
+                    convertToList(applications)
+                    : convertToSimpleList(applications);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for name {}", name, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for name " + name, ex);
@@ -206,9 +216,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Override
     public Set<ApplicationListItem> findByGroups(List<String> groupIds) {
+        return this.findByGroupsAndStatus(groupIds, ApplicationStatus.ACTIVE.name());
+    }
+
+    @Override
+    public Set<ApplicationListItem> findByGroupsAndStatus(List<String> groupIds, String status) {
         LOGGER.debug("Find applications by groups {}", groupIds);
         try {
-            return convertToList(applicationRepository.findByGroups(groupIds, ApplicationStatus.ACTIVE));
+            ApplicationStatus requestedStatus = ApplicationStatus.valueOf(status.toUpperCase());
+            Set<Application> applications = applicationRepository.findByGroups(groupIds, ApplicationStatus.valueOf(status.toUpperCase()));
+
+            return ApplicationStatus.ACTIVE.equals(requestedStatus) ?
+                    convertToList(applications)
+                    : convertToSimpleList(applications);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for groups {}", groupIds, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for groups " + groupIds, ex);
@@ -227,6 +247,27 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             return this.convertToList(applications);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all applications", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all applications", ex);
+        }
+    }
+
+    @Override
+    public Set<ApplicationListItem> findByStatus(String status) {
+        try {
+            LOGGER.debug("Find all applications");
+
+            ApplicationStatus requestedStatus = ApplicationStatus.valueOf(status.toUpperCase());
+            final Set<Application> applications = applicationRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment(), requestedStatus);
+
+            if (applications == null || applications.isEmpty()) {
+                return emptySet();
+            }
+
+            return ApplicationStatus.ACTIVE.equals(requestedStatus) ?
+                    convertToList(applications)
+                    : convertToSimpleList(applications);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all applications", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all applications", ex);
@@ -579,6 +620,67 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
+    @Override
+    public ApplicationEntity restore(String applicationId) {
+        try {
+            LOGGER.debug("Restore application {}", applicationId);
+
+            Application application = applicationRepository
+                    .findById(applicationId)
+                    .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+
+            if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
+                throw new ApplicationActiveException(application.getName());
+            }
+
+            application.setStatus(ApplicationStatus.ACTIVE);
+            application.setUpdatedAt(new Date());
+
+            String userId = getAuthenticatedUsername();
+            membershipService.deleteReference(MembershipReferenceType.APPLICATION, applicationId);
+            // Add the primary owner of the newly created Application
+            membershipService.addRoleToMemberOnReference(
+                    new MembershipService.MembershipReference(MembershipReferenceType.APPLICATION, applicationId),
+                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                    new MembershipService.MembershipRole(RoleScope.APPLICATION, SystemRole.PRIMARY_OWNER.name()));
+
+            // delete notifications
+            genericNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
+            portalNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
+
+            Application restoredApplication = applicationRepository.update(application);
+
+            Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(applicationId, null);
+
+            subscriptions.forEach(subscription -> {
+                try {
+                    subscriptionService.restore(subscription.getId());
+                } catch (SubscriptionNotPausedException snce) {
+                    // Subscription can not be closed because it is already closed or not yet accepted
+                    LOGGER.debug("The subscription can not be closed: {}", snce.getMessage());
+                }
+            });
+
+            UserEntity userEntity = userService.findById(userId);
+
+            // Audit
+            auditService.createApplicationAuditLog(
+                    restoredApplication.getId(),
+                    Collections.emptyMap(),
+                    APPLICATION_RESTORED,
+                    restoredApplication.getUpdatedAt(),
+                    application,
+                    restoredApplication);
+
+            return convert(restoredApplication, userEntity);
+
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to restore {}", applicationId, ex);
+            throw new TechnicalManagementException(String.format(
+                    "An error occurs while trying to restore %s", applicationId), ex);
+        }
+    }
+
     private void checkClientRegistrationEnabled() {
         checkClientRegistrationEnabled(GraviteeContext.getCurrentEnvironment());
     }
@@ -690,6 +792,22 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return applications.stream()
             .map(publicApplication -> convert(publicApplication, userIdToUserEntity.get(applicationToUser.get(publicApplication.getId()))))
             .collect(Collectors.toSet());
+    }
+
+    private Set<ApplicationListItem> convertToSimpleList(Set<Application> applications) {
+        return applications.stream().map(application -> {
+            ApplicationListItem item = new ApplicationListItem();
+            item.setId(application.getId());
+            item.setName(application.getName());
+            item.setDescription(application.getDescription());
+            item.setCreatedAt(application.getCreatedAt());
+            item.setUpdatedAt(application.getUpdatedAt());
+            item.setType(application.getType().name());
+            item.setStatus(application.getStatus().name());
+            item.setPicture(application.getPicture());
+            item.setBackground(application.getBackground());
+            return item;
+        }).collect(Collectors.toSet());
     }
 
     private Set<ApplicationListItem> convertToList(Set<Application> applications) throws TechnicalException {

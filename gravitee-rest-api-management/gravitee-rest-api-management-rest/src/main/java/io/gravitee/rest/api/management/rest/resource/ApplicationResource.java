@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -205,6 +206,24 @@ public class ApplicationResource extends AbstractResource {
     })
     public ApplicationEntity renewApplicationClientSecret() {
         return applicationService.renewClientSecret(application);
+    }
+
+    @POST
+    @Path("/_restore")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Restore the application",
+            notes = "User must have APPLICATION_DEFINITION[UPDATE] permission to restore an application.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Restored application", response = ApplicationEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error")})
+    @Permissions({
+            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
+    })
+    public ApplicationEntity restoreApplication() {
+        if (!isAdmin()) {
+            throw new ForbiddenAccessException();
+        }
+        return applicationService.restore(application);
     }
 
     @DELETE

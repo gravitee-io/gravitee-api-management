@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 
@@ -48,25 +49,25 @@ public class ApplicationService_FindByNameTest {
 
     @Test
     public void shouldNotFindByNameWhenNull() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findByName(null);
+        Set<ApplicationListItem> set = applicationService.findByNameAndStatus(null, null);
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
-        verify(applicationRepository, never()).findByName(any());
+        verify(applicationRepository, never()).findByNameAndStatuses(any(), any());
     }
 
     @Test
     public void shouldNotFindByNameWhenEmpty() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findByName(" ");
+        Set<ApplicationListItem> set = applicationService.findByNameAndStatus(" ", "");
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
-        verify(applicationRepository, never()).findByName(any());
+        verify(applicationRepository, never()).findByNameAndStatuses(any(), any());
     }
 
     @Test
     public void shouldNotFindByName() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findByName("a");
+        Set<ApplicationListItem> set = applicationService.findByNameAndStatus("a", "ACTIVE");
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
-        verify(applicationRepository, times(1)).findByName("a");
+        verify(applicationRepository, times(1)).findByNameAndStatuses("a", ApplicationStatus.ACTIVE);
     }
 }
