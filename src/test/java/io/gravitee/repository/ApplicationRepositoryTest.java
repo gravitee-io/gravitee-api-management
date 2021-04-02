@@ -183,7 +183,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindApplicationByExactName() throws Exception {
-        Set<Application> apps = applicationRepository.findByName("searched-app1");
+        Set<Application> apps = applicationRepository.findByNameAndStatuses("searched-app1");
         assertNotNull(apps);
         assertEquals(1, apps.size());
         assertEquals("searched-app1", apps.iterator().next().getId());
@@ -191,21 +191,35 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldNotFindApplicationByName() throws Exception {
-        Set<Application> apps = applicationRepository.findByName("unknowd-app");
+        Set<Application> apps = applicationRepository.findByNameAndStatuses("unknowd-app");
         assertNotNull(apps);
         assertEquals(0, apps.size());
     }
 
     @Test
     public void shouldFindApplicationByPartialName() throws Exception {
-        Set<Application> apps = applicationRepository.findByName("arched");
+        Set<Application> apps = applicationRepository.findByNameAndStatuses("arched");
         assertNotNull(apps);
         assertEquals(2, apps.size());
     }
 
     @Test
     public void shouldFindApplicationByPartialNameIgnoreCase() throws Exception {
-        Set<Application> apps = applicationRepository.findByName("aRcHEd");
+        Set<Application> apps = applicationRepository.findByNameAndStatuses("aRcHEd");
+        assertNotNull(apps);
+        assertEquals(2, apps.size());
+    }
+
+    @Test
+    public void shouldFindApplicationByPartialNameAndActiveStatus() throws Exception {
+        Set<Application> apps = applicationRepository.findByNameAndStatuses("aRcHEd", ApplicationStatus.ARCHIVED);
+        assertNotNull(apps);
+        assertEquals(0, apps.size());
+    }
+
+    @Test
+    public void shouldNotFindApplicationByPartialNameAndArchivedStatus() throws Exception {
+        Set<Application> apps = applicationRepository.findByNameAndStatuses("aRcHEd", ApplicationStatus.ACTIVE);
         assertNotNull(apps);
         assertEquals(2, apps.size());
     }

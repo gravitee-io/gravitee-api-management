@@ -132,9 +132,11 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(searchedApp1.getName()).thenReturn("searched-app1");
         when(searchedApp2.getId()).thenReturn("searched-app2");
         when(searchedApp2.getName()).thenReturn("searched-app2");
-        when(applicationRepository.findByName("searched-app1")).thenReturn(singleton(searchedApp1));
-        when(applicationRepository.findByName("arched")).thenReturn(newSet(searchedApp1, searchedApp2));
-        when(applicationRepository.findByName("aRcHEd")).thenReturn(newSet(searchedApp1, searchedApp2));
+        when(applicationRepository.findByNameAndStatuses("searched-app1")).thenReturn(singleton(searchedApp1));
+        when(applicationRepository.findByNameAndStatuses("arched")).thenReturn(newSet(searchedApp1, searchedApp2));
+        when(applicationRepository.findByNameAndStatuses("aRcHEd")).thenReturn(newSet(searchedApp1, searchedApp2));
+        when(applicationRepository.findByNameAndStatuses("aRcHEd", ApplicationStatus.ACTIVE)).thenReturn(newSet(searchedApp1, searchedApp2));
+        when(applicationRepository.findByNameAndStatuses("aRcHEd", ApplicationStatus.ARCHIVED)).thenReturn(emptySet());
 
         when(applicationRepository.findByIds(asList("searched-app1", "searched-app2"))).thenReturn(newSet(searchedApp1, searchedApp2));
         when(applicationRepository.findByGroups(singletonList("application-group"))).thenReturn(newSet(groupedApplication1, groupedApplication2));
