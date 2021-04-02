@@ -42,7 +42,6 @@ public class NewPageEntity {
 
 	private boolean published;
 
-	@NotNull
 	private Visibility visibility;
 
 	private String lastContributor;

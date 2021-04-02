@@ -661,6 +661,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             PageType newPageType = newPageEntity.getType();
 
+            // handle default visibility
+            if (newPageEntity.getVisibility() == null) {
+                newPageEntity.setVisibility(Visibility.PUBLIC);
+            }
+
             // create page revision only for :
             // - SWAGGER
             // - Markdown
