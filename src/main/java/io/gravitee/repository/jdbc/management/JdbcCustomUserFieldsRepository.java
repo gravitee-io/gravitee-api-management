@@ -45,7 +45,7 @@ import static java.lang.String.format;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcCustomUserFieldsRepository  implements CustomUserFieldsRepository {
+public class JdbcCustomUserFieldsRepository extends TransactionalRepository implements CustomUserFieldsRepository {
     public static final String TABLE_NAME = "custom_user_fields";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCustomUserFieldsRepository.class);

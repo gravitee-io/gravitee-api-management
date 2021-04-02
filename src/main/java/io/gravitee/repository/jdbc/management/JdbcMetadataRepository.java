@@ -40,7 +40,7 @@ import static java.lang.String.format;
  * @author njt
  */
 @Repository
-public class JdbcMetadataRepository implements MetadataRepository {
+public class JdbcMetadataRepository extends TransactionalRepository implements MetadataRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMetadataRepository.class);
 

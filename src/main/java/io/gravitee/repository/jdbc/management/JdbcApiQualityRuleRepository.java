@@ -19,8 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.model.ApiQualityRule;
-import io.gravitee.repository.management.model.ApiQualityRule;
-import io.gravitee.repository.management.model.Membership;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +28,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +39,7 @@ import static java.lang.String.format;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcApiQualityRuleRepository implements ApiQualityRuleRepository {
+public class JdbcApiQualityRuleRepository extends TransactionalRepository implements ApiQualityRuleRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiQualityRuleRepository.class);
 

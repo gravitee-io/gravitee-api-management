@@ -26,7 +26,7 @@ import java.util.List;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-abstract class JdbcAbstractPageableRepository<T> {
+abstract class JdbcAbstractPageableRepository<T> extends TransactionalRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAbstractPageableRepository.class);
 

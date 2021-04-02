@@ -15,18 +15,10 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static java.lang.String.format;
-
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Plan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,17 +26,20 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.*;
+
+import static java.lang.String.format;
 
 /**
  *
  * @author njt
  */
 @Repository
-public class JdbcPlanRepository implements PlanRepository {
+public class JdbcPlanRepository extends TransactionalRepository implements PlanRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPlanRepository.class);
 

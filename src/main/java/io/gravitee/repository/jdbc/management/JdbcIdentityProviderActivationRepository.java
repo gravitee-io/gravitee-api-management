@@ -34,7 +34,7 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcIdentityProviderActivationRepository implements IdentityProviderActivationRepository {
+public class JdbcIdentityProviderActivationRepository extends TransactionalRepository implements IdentityProviderActivationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcIdentityProviderActivationRepository.class);
 

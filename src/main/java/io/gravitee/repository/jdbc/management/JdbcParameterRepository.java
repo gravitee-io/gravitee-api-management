@@ -45,7 +45,7 @@ import static org.springframework.util.StringUtils.isEmpty;
  *
  */
 @Repository
-public class JdbcParameterRepository implements ParameterRepository {
+public class JdbcParameterRepository extends TransactionalRepository implements ParameterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcParameterRepository.class);
     private static final JdbcObjectMapper ORM =
