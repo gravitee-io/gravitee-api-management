@@ -29,8 +29,10 @@ class DashboardService {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + dashboardId);
   }
 
-  list(referenceType: string) {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + '?reference_type=' + referenceType);
+  list(referenceType: string, silent: boolean = false) {
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + '?reference_type=' + referenceType, {
+      silentCall: silent
+    });
   }
 
   create(dashboard: Dashboard) {

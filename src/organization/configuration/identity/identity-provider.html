@@ -48,7 +48,7 @@
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Name</label>
-            <input autofocus maxlength="50" name="name" ng-model="$ctrl.identityProvider.name" required type="text">
+            <input autofocus minlength="2" maxlength="50" name="name" ng-model="$ctrl.identityProvider.name" required type="text">
             <div class="hint" ng-if="formIdentityProvider.name.$valid || formIdentityProvider.name.$pristine">
               Identity provider name. The name will be used to define the authentication endpoint.
             </div>
