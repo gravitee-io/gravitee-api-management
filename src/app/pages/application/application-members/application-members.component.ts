@@ -87,6 +87,7 @@ export class ApplicationMembersComponent implements OnInit {
   }
 
   readonly = true;
+  canSearchUser = false;
   application: Application;
   connectedApis: Promise<any[]>;
   members: Array<Member>;
@@ -108,6 +109,10 @@ export class ApplicationMembersComponent implements OnInit {
   async ngOnInit() {
     this.application = this.route.snapshot.data.application;
     if (this.application) {
+
+      this.canSearchUser = this.currentUser.get().getValue()
+        && this.currentUser.get().getValue().permissions.USER
+        && this.currentUser.get().getValue().permissions.USER.includes('R');
 
       this.readonly = await this.isReadOnly(true);
 
