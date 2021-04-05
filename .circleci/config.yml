@@ -206,8 +206,6 @@ workflows:
           dry_run: true
           # maven_profile_id: << pipeline.parameters.maven_profile_id >>
           maven_profile_id: "gravitee-release"
-          # => If you are running a standalone release, your S3 Bucket name
-          #    is 'prepared-standalone-nexus-staging-${GRAVITEE_REPO_NAME}-${RELEASE_VERSION_NUMBER}'
           # container_gun_image_org: 'circleci'
           # container_gun_image_name: 'openjdk'
           # container_gun_image_tag: '11.0.3-jdk-stretch'
@@ -225,8 +223,6 @@ workflows:
           dry_run: false
           # maven_profile_id: << pipeline.parameters.maven_profile_id >>
           maven_profile_id: "gravitee-release"
-          # => If you are running a standalone release, your S3 Bucket name
-          #    is 'prepared-standalone-nexus-staging-${GRAVITEE_REPO_NAME}-${RELEASE_VERSION_NUMBER}'
           # container_gun_image_org: 'circleci'
           # container_gun_image_name: 'openjdk'
           # container_gun_image_tag: '11.0.3-jdk-stretch'
