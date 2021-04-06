@@ -31,14 +31,14 @@
                     <input ng-model="$ctrl.page.name" required>
                 </md-input-container>
               <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
-                <md-checkbox ng-model="$ctrl.page.visibility"
-                             ng-true-value="'public'"
-                             ng-false-value="'private'"
-                             aria-label="visibility"
-                             class="md-align-top-left"
-                             flex>
-                  Allow access to anonymous user
-                </md-checkbox>
+                  <md-checkbox ng-model="$ctrl.page.visibility"
+                               ng-false-value="'public'"
+                               ng-true-value="'private'"
+                               aria-label="visibility"
+                               class="md-align-top-left"
+                               flex>
+                      Make private <i>(Deny access to anonymous user)</i>
+                  </md-checkbox>
               </md-input-container>
                 <div class="md-actions gravitee-api-save-button" layout="row">
                     <md-button class="md-raised md-primary" type="submit" ng-disabled="$ctrl.formNewFolder.$invalid || $ctrl.formNewFolder.$pristine">
@@ -184,12 +184,12 @@
             </md-input-container>
             <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
               <md-checkbox ng-model="$ctrl.page.visibility"
-                           ng-true-value="'public'"
-                           ng-false-value="'private'"
+                           ng-false-value="'public'"
+                           ng-true-value="'private'"
                            aria-label="visibility"
                            class="md-align-top-left"
                            flex>
-                Allow access to anonymous user
+                Make private <i>(Deny access to anonymous user)</i>
               </md-checkbox>
             </md-input-container>
             <h3>How to get the content ?</h3>

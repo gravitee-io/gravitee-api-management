@@ -15,6 +15,7 @@
  */
 
 import NotificationService from '../../services/notification.service';
+import RoleService from '../../services/role.service';
 import DocumentationService, {
   FolderSituation,
   PageType,
@@ -31,6 +32,7 @@ interface IPageScope extends IScope {
   editorReadonly: boolean;
   currentTab: string;
   currentTranslation: any;
+  acls: any;
 }
 const EditPageComponent: ng.IComponentOptions = {
   bindings: {
@@ -54,11 +56,12 @@ const EditPageComponent: ng.IComponentOptions = {
     $scope: IPageScope,
     $http: ng.IHttpService,
     Constants: any,
+    RoleService: RoleService,
   ) {
     'ngInject';
     this.apiId = $state.params.apiId;
-    this.tabs =
-      [ {id: 0, name: 'content', isUnavailable: () => {}},
+    this.tabs = [
+        {id: 0, name: 'content', isUnavailable: () => {}},
         {id: 1, name: 'translations', isUnavailable: () => this.isMarkdownTemplate()},
         {id: 2, name: 'config', isUnavailable: () => {}},
         {id: 3, name: 'fetchers', isUnavailable: () => {}},
@@ -70,6 +73,10 @@ const EditPageComponent: ng.IComponentOptions = {
 
     this.error = null;
     $scope.rename = false;
+    $scope.acls = {
+      groups: [],
+      roles: [],
+    };
 
     this.$onInit = () => {
       this.page = this.resolvedPage;

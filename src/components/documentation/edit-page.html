@@ -35,7 +35,7 @@
                        class="md-raised md-primary"
                        ng-click="$ctrl.toggleRename()"
                        aria-label="Rename"
-                       ng-if="!$ctrl.isLink() || ($ctrl.isLink() && (!$ctrl.page.configuration.inherit || $ctrl.page.configuration.inherit === 'false')) ">
+                       ng-disabled="$ctrl.isLink() && $ctrl.page.configuration.inherit && $ctrl.page.configuration.inherit !== 'false'">
                 Rename
             </md-button>
             <md-button ng-if="$ctrl.page.metadata.edit_url" type="button" style="padding: 0 6px;"
@@ -152,18 +152,13 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="md-actions gravitee-api-save-button" layout="row">
-                                <md-button class="md-raised md-primary" type="submit" ng-disabled="$ctrl.formNewLink.$invalid || $ctrl.formNewLink.$pristine">
-                                    Save
-                                </md-button>
-                            </div>
                         </form>
                     </md-tab-body>
                 </md-tab>
 
                 <!-- translations -->
-                <md-tab md-on-select="$ctrl.changeTab(1)" ng-if="$ctrl.canUpdate && (!$ctrl.page.configuration.inherit || $ctrl.page.configuration.inherit === 'false')">
+                <md-tab md-on-select="$ctrl.changeTab(1)" ng-if="$ctrl.canUpdate"
+                    ng-disabled="$ctrl.page.configuration.inherit && $ctrl.page.configuration.inherit !== 'false'">
                     <md-tab-label>
                         Translations
                     </md-tab-label>
@@ -231,10 +226,24 @@
 
                     </md-tab-body>
                 </md-tab>
+
+                <!-- access control -->
+                <md-tab md-on-select="$ctrl.changeTab(2)" ng-if="$ctrl.canUpdate">
+                    <md-tab-label>Access Control</md-tab-label>
+                    <md-tab-body>
+                        <gv-edit-page-acls page="$ctrl.page" groups="$ctrl.groups" roles="$ctrl.roles"></gv-edit-page-acls>
+                    </md-tab-body>
+
+                </md-tab>
             </md-tabs>
 
-            <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate && $ctrl.currentTab === 'translations' && $ctrl.currentTranslation">
+            <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px;" ng-if="$ctrl.canUpdate">
+
+                <md-button class="md-raised md-primary" type="submit" ng-click="$ctrl.save()">
+                    Save
+                </md-button>
                 <md-button permission permission-only="['environment-documentation-u', 'api-documentation-u']"
+                           ng-if="$ctrl.currentTab === 'translations' && $ctrl.currentTranslation"
                            type="button"
                            aria-label="Save translation"
                            class="md-raised md-primary"
@@ -424,16 +433,6 @@
                                   : !$ctrl.isMarkdownTemplate() ? 'Publish this page' : 'Make template available')}}
                             </md-checkbox>
                         </md-input-container>
-                        <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
-                          <md-checkbox ng-model="$ctrl.page.visibility"
-                                       ng-true-value="'public'"
-                                       ng-false-value="'private'"
-                                       aria-label="visibility"
-                                       class="md-align-top-left"
-                                       flex>
-                            Allow access to anonymous user
-                          </md-checkbox>
-                        </md-input-container>
                         <!-- SWAGGER Configuration -->
                         <div ng-if="$ctrl.isSwagger()" layout="column">
 
@@ -523,15 +522,7 @@
                 <md-tab md-on-select="$ctrl.selectTab(4)" ng-if="$ctrl.canUpdate">
                     <md-tab-label>Access Control</md-tab-label>
                     <md-tab-body>
-                        <h3>Groups Authorizations</h3>
-                        <md-input-container class="md-block" flex="100">
-                            <label>Groups excluded</label>
-                            <md-select ng-model="$ctrl.page.excluded_groups" multiple>
-                                <md-option ng-repeat="group in $ctrl.groups | orderBy:'name'" ng-value="group.id">
-                                    {{group.name}}
-                                </md-option>
-                            </md-select>
-                        </md-input-container>
+                        <gv-edit-page-acls page="$ctrl.page" groups="$ctrl.groups" roles="$ctrl.roles"></gv-edit-page-acls>
                     </md-tab-body>
                 </md-tab>
 

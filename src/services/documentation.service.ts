@@ -35,6 +35,8 @@ export class ImportPageEntity {
   source: any;
   configuration: any;
   excluded_groups: string[];
+  excludedAccessControls: boolean;
+  accessControls: any[];
 }
 
 export class Page {
@@ -148,9 +150,10 @@ class DocumentationService {
         visibility: page.visibility,
         homepage: page.homepage,
         configuration: page.configuration,
-        excluded_groups: page.excluded_groups,
         attached_media: page.attached_media,
-        parentId: page.parentId
+        parentId: page.parentId,
+        accessControls: page.accessControls,
+        excludedAccessControls: page.excludedAccessControls,
       }, config
     );
   }
@@ -196,6 +199,8 @@ class DocumentationService {
     entity.source = newPage.source;
     entity.configuration = newPage.configuration;
     entity.excluded_groups = newPage.excluded_groups;
+    entity.excludedAccessControls = newPage.excludedAccessControls;
+    entity.accessControls = newPage.accessControls;
     return this.$http.post(this.url(apiId, null, true), entity, { timeout: 30000 });
   }
 

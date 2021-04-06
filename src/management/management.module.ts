@@ -305,6 +305,7 @@ import PageEditorMarkdownViewerComponent from '../components/documentation/page/
 import PageSidenavDirective from '../components/documentation/page/page-sidenav.directive';
 import NewPageComponent from '../components/documentation/new-page.component';
 import EditPageComponent from '../components/documentation/edit-page.component';
+import EditPageAclsComponent from '../components/documentation/edit-page-acls.components';
 import ImportPagesComponent from '../components/documentation/import-pages.component';
 // Healthcheck
 import ApiHealthCheckConfigureController
@@ -973,6 +974,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [uiRouter
   graviteeManagementModule.component('newPage', NewPageComponent);
   graviteeManagementModule.component('importPages', ImportPagesComponent);
   graviteeManagementModule.component('editPage', EditPageComponent);
+  graviteeManagementModule.component('gvEditPageAcls', EditPageAclsComponent);
   graviteeManagementModule.component('gvPage', PageComponent);
   graviteeManagementModule.component('gvPageMarkdown', PageMarkdownComponent);
   graviteeManagementModule.component('gvPageEditorMarkdown', PageEditorMarkdownComponent);
