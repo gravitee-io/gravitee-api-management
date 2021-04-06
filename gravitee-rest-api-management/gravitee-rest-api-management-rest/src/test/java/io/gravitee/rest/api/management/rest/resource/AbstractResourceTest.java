@@ -203,6 +203,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected GroupRepository groupRepository;
 
+    @Autowired
+    protected AccessControlService accessControlService;
+
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
     static class ContextConfiguration {
@@ -445,6 +448,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public GroupRepository groupRepository() {
             return mock(GroupRepository.class);
+        }
+
+        @Bean
+        public AccessControlService accessControlService() {
+            return mock(AccessControlService.class);
         }
     }
 }

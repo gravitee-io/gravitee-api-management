@@ -16,22 +16,17 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.Visibility;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Collections;
 
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
@@ -79,10 +74,9 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
     public void shouldGetPage_LoginOptional() {
         PageEntity page = new PageEntity();
         page.setPublished(true);
-        page.setExcludedGroups(Collections.emptyList());
+        page.setVisibility(Visibility.PUBLIC);
         doReturn(page).when(pageService).findById(any(), any());
         doReturn(false).when(configService).portalLoginForced();
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(Collections.emptyList(), null);
 
 //        final Response response = envTarget(PAGE_NAME).request().get();
 //
@@ -94,10 +88,9 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
     public void shouldNotGetPage_LoginRequired() {
         PageEntity page = new PageEntity();
         page.setPublished(true);
-        page.setExcludedGroups(Collections.emptyList());
+        page.setVisibility(Visibility.PUBLIC);
         doReturn(page).when(pageService).findById(any(), any());
         doReturn(true).when(configService).portalLoginForced();
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(Collections.emptyList(), null);
 
 //        final Response response = envTarget(PAGE_NAME).request().get();
 //

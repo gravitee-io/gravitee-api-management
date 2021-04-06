@@ -29,7 +29,8 @@
       "order": 1,
       "visibility": "PUBLIC",
       "published": false,
-      "homepage": false
+      "homepage": false,
+      "excludedAccessControls": false
     },
     {
       "name": "Aside",
@@ -37,7 +38,8 @@
       "order": 1,
       "visibility": "PUBLIC",
       "published": true,
-      "homepage": false
+      "homepage": false,
+      "excludedAccessControls": false
     }
   ],
   "metadata": [

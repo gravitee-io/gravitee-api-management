@@ -30,10 +30,7 @@ import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
 import javax.inject.Inject;
@@ -68,6 +65,8 @@ public class ApiResource extends AbstractResource {
     @Inject
     private GroupService groupService;
     @Inject
+    private AccessControlService accessControlService;
+    @Inject
     private ParameterService parameterService;
 
     private static final String INCLUDE_PAGES = "pages";
@@ -80,18 +79,14 @@ public class ApiResource extends AbstractResource {
                                   @QueryParam("include") List<String> include) {
         String username = getAuthenticatedUserOrNull();
 
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(username, apiQuery);
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (accessControlService.canAccessApiFromPortal(apiId)) {
 
             ApiEntity apiEntity = apiService.findById(apiId);
             Api api = apiMapper.convert(apiEntity);
 
             if (include.contains(INCLUDE_PAGES)) {
                 List<Page> pages = pageService.search(new PageQuery.Builder().api(apiId).published(true).build()).stream()
-                        .filter(page -> !"SYSTEM_FOLDER".equals(page.getType()))
-                        .filter(page -> groupService.isUserAuthorizedToAccessApiData(apiEntity, page.getExcludedGroups(), username))
+                        .filter(page -> accessControlService.canAccessPageFromPortal(page))
                         .map(pageMapper::convert)
                         .collect(Collectors.toList());
                 api.setPages(pages);
@@ -199,7 +194,7 @@ public class ApiResource extends AbstractResource {
 
     private List<Link> getLinksFromFolder(PageEntity folder, String apiId, String acceptedLocale) {
         return pageService.search(new PageQuery.Builder().api(apiId).parent(folder.getId()).build(), acceptedLocale).stream()
-                .filter(PageEntity::isPublished)
+                .filter(accessControlService::canAccessPageFromPortal)
                 .filter(p -> !PageType.FOLDER.name().equals(p.getType())
                         && !PageType.MARKDOWN_TEMPLATE.name().equals(p.getType()))
                 .map(p -> {

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -35,8 +36,12 @@ public class ImportPageEntity {
 	private String lastContributor;
 	private PageSourceEntity source;
 	private Map<String, String> configuration;
+
 	@JsonProperty("excluded_groups")
 	private List<String> excludedGroups;
+
+	private boolean excludedAccessControls;
+	private Set<AccessControlEntity> accessControls;
 
 	public PageType getType() {
 		return type;
@@ -78,12 +83,20 @@ public class ImportPageEntity {
 		this.configuration = configuration;
 	}
 
-	public List<String> getExcludedGroups() {
-		return excludedGroups;
+	public Set<AccessControlEntity> getAccessControls() {
+		return accessControls;
 	}
 
-	public void setExcludedGroups(List<String> excludedGroups) {
-		this.excludedGroups = excludedGroups;
+	public void setAccessControls(Set<AccessControlEntity> accessControls) {
+		this.accessControls = accessControls;
+	}
+
+	public boolean isExcludedAccessControls() {
+		return excludedAccessControls;
+	}
+
+	public void setExcludedAccessControls(boolean excludedAccessControls) {
+		this.excludedAccessControls = excludedAccessControls;
 	}
 
 	public Visibility getVisibility() {
@@ -92,6 +105,14 @@ public class ImportPageEntity {
 
 	public void setVisibility(Visibility visibility) {
 		this.visibility = visibility;
+	}
+
+	public List<String> getExcludedGroups() {
+		return excludedGroups;
+	}
+
+	public void setExcludedGroups(List<String> excludedGroups) {
+		this.excludedGroups = excludedGroups;
 	}
 
 	@Override
@@ -104,5 +125,5 @@ public class ImportPageEntity {
         sb.append('}');
         return sb.toString();
     }
-	
+
 }

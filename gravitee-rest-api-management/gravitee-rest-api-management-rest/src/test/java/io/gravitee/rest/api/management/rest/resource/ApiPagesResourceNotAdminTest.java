@@ -38,7 +38,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
@@ -58,7 +58,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPublicApiPublishedPage() {
-        reset(apiService, pageService, membershipService);
+        reset(apiService, pageService, membershipService, accessControlService);
         final ApiEntity apiMock = mock(ApiEntity.class);
         when(apiMock.getVisibility()).thenReturn(Visibility.PUBLIC);
         when(apiMock.getName()).thenReturn(API_NAME);
@@ -66,10 +66,9 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
-        when(groupService.isUserAuthorizedToAccessApiData(any(), any(), any())).thenReturn(Boolean.TRUE);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
-        doReturn(true).when(pageService).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
+        doReturn(true).when(accessControlService).canAccessPageFromConsole(apiMock, pageMock);
 
         final Response response = envTarget().request().get();
 
@@ -80,7 +79,6 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
-        verify(pageService, times(1)).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
 
     @Test
@@ -95,9 +93,7 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
-        doReturn(false).when(pageService).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
         doReturn(true).when(roleService).hasPermission(any(), eq(ApiPermission.DOCUMENTATION), eq(new RolePermissionAction[]{RolePermissionAction.READ}));
-        when(groupService.isUserAuthorizedToAccessApiData(any(), any(), any())).thenReturn(Boolean.FALSE);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
 
         final Response response = envTarget().request().get();
@@ -105,7 +101,6 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         assertEquals(UNAUTHORIZED_401, response.getStatus());
         verify(apiService, atLeastOnce()).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
-        verify(pageService, times(1)).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
 
     @Priority(50)

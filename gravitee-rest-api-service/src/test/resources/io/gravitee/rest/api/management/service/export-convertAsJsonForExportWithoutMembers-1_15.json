@@ -12,7 +12,8 @@
     "order" : 1,
     "visibility": "PUBLIC",
     "published" : false,
-    "homepage" : false
+    "homepage" : false,
+    "excludedAccessControls": false
   } ],
   "plans" : [ {
     "id" : "plan-id",

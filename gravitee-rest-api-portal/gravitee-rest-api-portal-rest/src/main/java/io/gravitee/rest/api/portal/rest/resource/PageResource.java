@@ -22,7 +22,7 @@ import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
-import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 
@@ -44,7 +44,7 @@ public class PageResource extends AbstractResource {
     private PageService pageService;
 
     @Inject
-    private GroupService groupService;
+    private AccessControlService accessControlService;
 
     private static final String INCLUDE_CONTENT = "content";
 
@@ -58,18 +58,19 @@ public class PageResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
-        if (isDisplayable(pageEntity)) {
+        if (accessControlService.canAccessPageFromPortal(pageEntity)) {
+
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
             }
             pageService.transformWithTemplate(pageEntity, null);
-            
+
             Page page = pageMapper.convert(uriInfo.getBaseUriBuilder(), null, pageEntity);
-            
+
             if (include.contains(INCLUDE_CONTENT)) {
                 page.setContent(pageEntity.getContent());
             }
-            
+
             page.setLinks(pageMapper.computePageLinks(
                     PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), pageId),
                     PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getParent())
@@ -88,7 +89,7 @@ public class PageResource extends AbstractResource {
 
         PageEntity pageEntity = pageService.findById(pageId, null);
 
-        if (isDisplayable(pageEntity)) {
+        if (accessControlService.canAccessPageFromPortal(pageEntity)) {
             pageService.transformWithTemplate(pageEntity, null);
             return Response.ok(pageEntity.getContent()).build();
         } else {
@@ -96,7 +97,4 @@ public class PageResource extends AbstractResource {
         }
     }
 
-    private boolean isDisplayable(PageEntity page) {
-        return page.isPublished() && groupService.isUserAuthorizedToAccessPortalData(page.getExcludedGroups(), getAuthenticatedUserOrNull());
-    }
 }

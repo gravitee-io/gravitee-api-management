@@ -36,6 +36,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -50,11 +51,11 @@ public class PagesResourceTest extends AbstractResourceTest {
     @Before
     public void init() throws IOException {
         resetAllMocks();
-        
+
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
     }
-    
+
     @Test
     public void shouldGetPagesIfAuthorizeAndPublishedPageAndNotSystemFolder() {
         PageEntity publishedPage = new PageEntity();
@@ -64,7 +65,11 @@ public class PagesResourceTest extends AbstractResourceTest {
         markdownTemplatePage.setType(PageType.MARKDOWN_TEMPLATE.name());
         doReturn(Arrays.asList(publishedPage, markdownTemplatePage)).when(pageService).search(any(), isNull());
 
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
+        when(accessControlService.canAccessPageFromPortal(any(PageEntity.class))).thenAnswer(invocationOnMock -> {
+            PageEntity  page = invocationOnMock.getArgument(0);
+            return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
+        });
+
 
         final Response response = target().request().get();
 
@@ -76,15 +81,13 @@ public class PagesResourceTest extends AbstractResourceTest {
         assertEquals(1, pages.size());
         assertNotNull(pages.get(0).getLinks());
     }
-    
+
     @Test
     public void shouldGetNoPageIfNotAuthorizeAndPublishedPageAndNotSystemFolder() {
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
         doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
 
-        doReturn(false).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-        
         Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -94,7 +97,7 @@ public class PagesResourceTest extends AbstractResourceTest {
         assertNotNull(pages);
         assertEquals(0, pages.size());
     }
-    
+
     @Test
     public void shouldGetNoPageIfAuthorizeAndPublishedPageAndSystemFolder() {
         PageEntity publishedPage = new PageEntity();
@@ -102,8 +105,6 @@ public class PagesResourceTest extends AbstractResourceTest {
         publishedPage.setType("SYSTEM_FOLDER");
         doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
 
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-        
         Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -111,13 +112,13 @@ public class PagesResourceTest extends AbstractResourceTest {
 
         List<Page> pages = pagesResponse.getData();
         assertNotNull(pages);
-        assertEquals(0, pages.size()); 
+        assertEquals(0, pages.size());
     }
-    
+
     @Test
     public void shouldGetNoPageIfAuthorizeAndNotPublished() {
         doReturn(Collections.emptyList()).when(pageService).search(any(), isNull());
-        
+
         Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -125,7 +126,7 @@ public class PagesResourceTest extends AbstractResourceTest {
 
         List<Page> pages = pagesResponse.getData();
         assertNotNull(pages);
-        assertEquals(0, pages.size()); 
+        assertEquals(0, pages.size());
     }
 
 }

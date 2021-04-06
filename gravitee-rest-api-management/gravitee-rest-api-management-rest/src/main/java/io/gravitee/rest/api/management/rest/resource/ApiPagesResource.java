@@ -24,8 +24,8 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.PageMarkdownTemplateActionException;
@@ -58,7 +58,7 @@ public class ApiPagesResource extends AbstractResource {
     private PageService pageService;
 
     @Inject
-    private GroupService groupService;
+    private AccessControlService accessControlService;
 
     @Context
     private ResourceContext resourceContext;
@@ -86,6 +86,7 @@ public class ApiPagesResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
         final ApiEntity apiEntity = apiService.findById(api);
+
         if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
                 || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
 
@@ -100,7 +101,7 @@ public class ApiPagesResource extends AbstractResource {
                             .build()
                             , translated?acceptedLocale:null)
                     .stream()
-                    .filter(page -> isDisplayable(apiEntity, page.isPublished(), page.getExcludedGroups()))
+                    .filter(page -> isDisplayable(apiEntity, page))
                     .map(page -> {
                         // check if the page is used as GeneralCondition by an active Plan
                         // and update the PageEntity to transfer the information to the FrontEnd
@@ -203,11 +204,9 @@ public class ApiPagesResource extends AbstractResource {
         return pageService.importFiles(api, pageEntity);
     }
 
-    private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
-        return (isAuthenticated() && isAdmin())
-                ||
-                ( pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull()) &&
-                        groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull()));
+    private boolean isDisplayable(ApiEntity api, PageEntity page) {
+        return (isAuthenticated() && isAdmin()) || accessControlService.canAccessPageFromConsole(api, page);
 
     }
+
 }

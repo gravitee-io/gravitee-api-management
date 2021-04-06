@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 
@@ -64,8 +63,6 @@ public interface PageService {
 
 	int findMaxPortalPageOrder();
 
-	boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
-
 	void fetchAll(PageQuery query, String contributor);
 
 	long execAutoFetch();
@@ -100,4 +97,5 @@ public interface PageService {
 	boolean shouldHaveRevision(String pageType);
 
 	void attachMedia(String pageId, String mediaId, String mediaName);
+
 }

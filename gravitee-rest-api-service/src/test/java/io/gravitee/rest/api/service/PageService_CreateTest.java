@@ -427,7 +427,6 @@ public class PageService_CreateTest {
         page.setPublished(true);
         doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
 
-
         NewPageEntity newTranslation = new NewPageEntity();
         newTranslation.setType(PageType.TRANSLATION);
         newTranslation.setParentId(PAGE_ID);

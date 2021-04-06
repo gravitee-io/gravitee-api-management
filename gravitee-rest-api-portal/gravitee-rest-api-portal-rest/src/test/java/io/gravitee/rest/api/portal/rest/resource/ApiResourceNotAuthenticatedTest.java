@@ -36,14 +36,13 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -54,12 +53,12 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
     protected String contextPath() {
         return "apis/";
     }
-    
+
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
     }
-    
+
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
         @Override
@@ -75,7 +74,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
                 }
                 @Override
                 public boolean isSecure() { return false; }
-                
+
                 @Override
                 public String getAuthenticationScheme() { return "BASIC"; }
             });
@@ -85,22 +84,20 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
     private static final String API = "my-api";
 
     private ApiEntity mockApi;
-    
+
     @Before
     public void init() {
         resetAllMocks();
-        
-        
+
         mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(API);
 
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(isNull(), argThat(q -> singletonList(API).equals(q.getIds())));
+        when(accessControlService.canAccessApiFromPortal(API)).thenReturn(true);
+        when(accessControlService.canAccessApiFromPortal(mockApi)).thenReturn(true);
 
-        
         doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any());
-        
+
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("A");
         plan1.setStatus(PlanStatus.PUBLISHED);
@@ -108,43 +105,48 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         PlanEntity plan2 = new PlanEntity();
         plan2.setId("B");
         plan2.setStatus(PlanStatus.PUBLISHED);
-        
+
         PlanEntity plan3 = new PlanEntity();
         plan3.setId("C");
         plan3.setStatus(PlanStatus.CLOSED);
-        
-        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);        
-        
-        
+
+        doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);
+
         doReturn(new Api()).when(apiMapper).convert(any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any());
 
     }
-    
+
     @Test
     public void shouldGetApiWithPagesAndPlansIncluded() {
+        // Useful for plans
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        // For pages
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(any());
         callResourceAndCheckResult(1, 2);
     }
-    
+
     @Test
     public void shouldGetApiWithNoElementsIncluded() {
+        // Useful for plans
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        // For pages
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
         callResourceAndCheckResult(0, 0);
     }
-    
+
     private void callResourceAndCheckResult(Integer expectedTotalPage, Integer expectedTotalPlan) {
         final Response response = target(API).queryParam("include", "pages","plans") .request().get();
         assertEquals(OK_200, response.getStatus());
 
         Api responseApi = response.readEntity(Api.class);
         assertNotNull(responseApi);
-        
+
         List<Page> pages = responseApi.getPages();
         assertNotNull(pages);
         assertEquals(expectedTotalPage.intValue(), pages.size());
-        
+
         List<Plan> plans = responseApi.getPlans();
         assertNotNull(plans);
         assertEquals(expectedTotalPlan.intValue(), plans.size());

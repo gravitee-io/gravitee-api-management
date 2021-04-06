@@ -275,8 +275,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return groupEntityStream
-                .map(GroupEntity::getId)
-                .collect(Collectors.toSet());
+            .map(GroupEntity::getId)
+            .collect(Collectors.toSet());
     }
 
     private void createMetadata(List<ApiMetadataEntity> apiMetadata, String apiId) {
@@ -551,25 +551,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         PrimaryOwnerEntity primaryOwnerFromDefinition = findPrimaryOwnerFromApiDefinition(apiDefinition);
         switch (poMode) {
             case USER:
-                if(primaryOwnerFromDefinition == null || ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerFromDefinition.getType())) {
+                if (primaryOwnerFromDefinition == null || ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerFromDefinition.getType())) {
                     return new PrimaryOwnerEntity(userService.findById(userId));
                 }
-                if(ApiPrimaryOwnerMode.USER.name().equals(primaryOwnerFromDefinition.getType())) {
+                if (ApiPrimaryOwnerMode.USER.name().equals(primaryOwnerFromDefinition.getType())) {
                     try {
                         return new PrimaryOwnerEntity(userService.findById(primaryOwnerFromDefinition.getId()));
-                    } catch(UserNotFoundException unfe) {
+                    } catch (UserNotFoundException unfe) {
                         return new PrimaryOwnerEntity(userService.findById(userId));
                     }
                 }
                 break;
             case GROUP:
-                if(primaryOwnerFromDefinition == null) {
+                if (primaryOwnerFromDefinition == null) {
                     return getFirstPoGroupUserBelongsTo(userId);
                 }
                 if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerFromDefinition.getType())) {
                     try {
                         return new PrimaryOwnerEntity(groupService.findById(primaryOwnerFromDefinition.getId()));
-                    } catch(GroupNotFoundException unfe) {
+                    } catch (GroupNotFoundException unfe) {
                         return getFirstPoGroupUserBelongsTo(userId);
                     }
                 }
@@ -577,28 +577,28 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     try {
                         final String poUserId = primaryOwnerFromDefinition.getId();
                         userService.findById(poUserId);
-                        final Set<GroupEntity> poGroupsOfPoUser = groupService.findByUser(poUserId).stream().filter(group -> group.getApiPrimaryOwner()!=null && !group.getApiPrimaryOwner().isEmpty()).collect(toSet());
+                        final Set<GroupEntity> poGroupsOfPoUser = groupService.findByUser(poUserId).stream().filter(group -> group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty()).collect(toSet());
                         if (poGroupsOfPoUser.isEmpty()) {
                             return getFirstPoGroupUserBelongsTo(userId);
                         }
                         return new PrimaryOwnerEntity(poGroupsOfPoUser.iterator().next());
-                    } catch(UserNotFoundException unfe) {
+                    } catch (UserNotFoundException unfe) {
                         return getFirstPoGroupUserBelongsTo(userId);
                     }
                 }
                 break;
             case HYBRID:
             default:
-                if(primaryOwnerFromDefinition == null) {
+                if (primaryOwnerFromDefinition == null) {
                     return new PrimaryOwnerEntity(userService.findById(userId));
                 }
                 if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwnerFromDefinition.getType())) {
                     try {
                         return new PrimaryOwnerEntity(groupService.findById(primaryOwnerFromDefinition.getId()));
-                    } catch(GroupNotFoundException unfe) {
+                    } catch (GroupNotFoundException unfe) {
                         try {
                             return getFirstPoGroupUserBelongsTo(userId);
-                        } catch(NoPrimaryOwnerGroupForUserException ex) {
+                        } catch (NoPrimaryOwnerGroupForUserException ex) {
                             return new PrimaryOwnerEntity(userService.findById(userId));
                         }
                     }
@@ -606,7 +606,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 if (ApiPrimaryOwnerMode.USER.name().equals(primaryOwnerFromDefinition.getType())) {
                     try {
                         return new PrimaryOwnerEntity(userService.findById(primaryOwnerFromDefinition.getId()));
-                    } catch(UserNotFoundException unfe) {
+                    } catch (UserNotFoundException unfe) {
                         return new PrimaryOwnerEntity(userService.findById(userId));
                     }
                 }
@@ -629,7 +629,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         PrimaryOwnerEntity primaryOwnerEntity = null;
         if (apiDefinition != null && apiDefinition.has("primaryOwner")) {
             try {
-               primaryOwnerEntity = objectMapper.readValue(apiDefinition.get("primaryOwner").toString(), PrimaryOwnerEntity.class);
+                primaryOwnerEntity = objectMapper.readValue(apiDefinition.get("primaryOwner").toString(), PrimaryOwnerEntity.class);
             } catch (JsonProcessingException e) {
                 LOGGER.warn("Cannot parse primary owner from definition, continue with current user", e);
             }
@@ -913,7 +913,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Find all APIs without some fields (definition, picture...)");
             return new HashSet<>(convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
-                    new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())));
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs light", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs light", ex);
@@ -980,70 +980,70 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private List<Api> findApisByUser(String userId, ApiQuery apiQuery, boolean portal) {
 
-            //get all public apis
-            List<Api> publicApis;
-            if (portal) {
-                publicApis = apiRepository.search(queryToCriteria(apiQuery).visibility(PUBLIC).build());
-            } else {
-                publicApis = emptyList();
+        //get all public apis
+        List<Api> publicApis;
+        if (portal) {
+            publicApis = apiRepository.search(queryToCriteria(apiQuery).visibility(PUBLIC).build());
+        } else {
+            publicApis = emptyList();
+        }
+
+        List<Api> userApis = emptyList();
+        List<Api> groupApis = emptyList();
+        List<Api> subscribedApis = emptyList();
+
+        // for others API, user must be authenticated
+        if (userId != null) {
+            // get user apis
+            final String[] userApiIds = membershipService
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API).stream()
+                .map(MembershipEntity::getReferenceId)
+                .filter(apiId -> {
+                    if (apiQuery != null && !CollectionUtils.isEmpty(apiQuery.getIds())) {
+                        // We already have api ids to focus on.
+                        return apiQuery.getIds().contains(apiId);
+                    } else {
+                        return true;
+                    }
+                })
+                .toArray(String[]::new);
+
+            if (userApiIds.length > 0) {
+                userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
             }
 
-            List<Api> userApis = emptyList();
-            List<Api> groupApis = emptyList();
-            List<Api> subscribedApis = emptyList();
+            // get user groups apis
+            final String[] groupIds = membershipService
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP).stream()
+                .filter(m -> {
+                    final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
+                    if (!portal) {
+                        return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API) && canManageApi(roleInGroup.getPermissions());
+                    }
+                    return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
+                })
+                .map(MembershipEntity::getReferenceId)
+                .toArray(String[]::new);
+            if (groupIds.length > 0 && groupIds[0] != null) {
+                groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
+            }
 
-            // for others API, user must be authenticated
-            if (userId != null) {
-                // get user apis
-                final String[] userApiIds = membershipService
-                        .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API).stream()
-                        .map(MembershipEntity::getReferenceId)
-                        .filter(apiId -> {
-                            if (apiQuery != null && !CollectionUtils.isEmpty(apiQuery.getIds())) {
-                                // We already have api ids to focus on.
-                                return apiQuery.getIds().contains(apiId);
-                            }else {
-                                return true;
-                            }
-                        })
-                        .toArray(String[]::new);
-
-                if (userApiIds.length > 0) {
-                    userApis = apiRepository.search(queryToCriteria(apiQuery).ids(userApiIds).build());
-                }
-
-                // get user groups apis
-                final String[] groupIds = membershipService
-                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP).stream()
-                    .filter(m -> {
-                        final RoleEntity roleInGroup = roleService.findById(m.getRoleId());
-                        if (!portal) {
-                            return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API) && canManageApi(roleInGroup.getPermissions());
-                        }
-                        return m.getRoleId() != null && roleInGroup.getScope().equals(RoleScope.API);
-                    })
-                    .map(MembershipEntity::getReferenceId)
-                    .toArray(String[]::new);
-                if (groupIds.length > 0 && groupIds[0] != null) {
-                    groupApis = apiRepository.search(queryToCriteria(apiQuery).groups(groupIds).build());
-                }
-
-                // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
-                if (portal) {
-                    final Set<String> applications =
-                        applicationService.findByUser(userId).stream().map(ApplicationListItem::getId).collect(toSet());
-                    if (!applications.isEmpty()) {
-                        final SubscriptionQuery query = new SubscriptionQuery();
-                        query.setApplications(applications);
-                        final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
-                        if (subscriptions != null && !subscriptions.isEmpty()) {
-                            subscribedApis = apiRepository
-                                .search(queryToCriteria(apiQuery).ids(subscriptions.stream()
-                                    .map(SubscriptionEntity::getApi).distinct().toArray(String[]::new)).build());
-                        }
+            // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
+            if (portal) {
+                final Set<String> applications =
+                    applicationService.findByUser(userId).stream().map(ApplicationListItem::getId).collect(toSet());
+                if (!applications.isEmpty()) {
+                    final SubscriptionQuery query = new SubscriptionQuery();
+                    query.setApplications(applications);
+                    final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
+                    if (subscriptions != null && !subscriptions.isEmpty()) {
+                        subscribedApis = apiRepository
+                            .search(queryToCriteria(apiQuery).ids(subscriptions.stream()
+                                .map(SubscriptionEntity::getApi).distinct().toArray(String[]::new)).build());
                     }
                 }
             }
+        }
 
         List<Api> allApis = new ArrayList<>();
         allApis.addAll(publicApis);
@@ -1055,13 +1055,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     }
 
-    private boolean canManageApi(Map<String,char[]> permissions) {
+    private boolean canManageApi(Map<String, char[]> permissions) {
         return permissions.entrySet().stream()
-                .filter(entry -> !entry.getKey().equals(ApiPermission.RATING.name()) && !entry.getKey().equals(ApiPermission.RATING_ANSWER.name()))
-                .anyMatch(entry -> {
-                    String stringPerm = new String(entry.getValue());
-                    return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
-                });
+            .filter(entry -> !entry.getKey().equals(ApiPermission.RATING.name()) && !entry.getKey().equals(ApiPermission.RATING_ANSWER.name()))
+            .anyMatch(entry -> {
+                String stringPerm = new String(entry.getValue());
+                return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
+            });
     }
 
     @Override
@@ -1292,9 +1292,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
                         planService.deprecate(plan.getId(), true);
                         updateApiEntity.getPlans()
-                                .stream()
-                                .filter(p -> p.getId().equals(plan.getId()))
-                                .forEach(p -> p.setStatus(PlanStatus.DEPRECATED.name()));
+                            .stream()
+                            .filter(p -> p.getId().equals(plan.getId()))
+                            .forEach(p -> p.setStatus(PlanStatus.DEPRECATED.name()));
                     }
                 });
             }
@@ -2173,7 +2173,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private void createOrUpdateChildrenPages(String apiId, String parentId, List<PageEntityTreeNode> children) {
+    private void createOrUpdateChildrenPages (String apiId, String parentId, List<PageEntityTreeNode> children) {
         for (final PageEntityTreeNode child : children) {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
@@ -2201,7 +2201,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 NewPageEntity newPage = new NewPageEntity();
                 newPage.setConfiguration(pageEntityToImport.getConfiguration());
                 newPage.setContent(pageEntityToImport.getContent());
-                newPage.setExcludedGroups(pageEntityToImport.getExcludedGroups());
+                newPage.setExcludedAccessControls(pageEntityToImport.isExcludedAccessControls());
+                newPage.setAccessControls(pageEntityToImport.getAccessControls());
                 newPage.setHomepage(pageEntityToImport.isHomepage());
                 newPage.setLastContributor(pageEntityToImport.getLastContributor());
                 newPage.setName(pageEntityToImport.getName());
@@ -2216,7 +2217,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 UpdatePageEntity updatePageEntity = new UpdatePageEntity();
                 updatePageEntity.setConfiguration(pageEntityToImport.getConfiguration());
                 updatePageEntity.setContent(pageEntityToImport.getContent());
-                updatePageEntity.setExcludedGroups(pageEntityToImport.getExcludedGroups());
+                updatePageEntity.setExcludedAccessControls(pageEntityToImport.isExcludedAccessControls());
+                updatePageEntity.setAccessControls(pageEntityToImport.getAccessControls());
                 updatePageEntity.setHomepage(pageEntityToImport.isHomepage());
                 updatePageEntity.setLastContributor(pageEntityToImport.getLastContributor());
                 updatePageEntity.setName(pageEntityToImport.getName());
@@ -2446,13 +2448,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.debug("Search paged APIs by {}", query);
 
             Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class)
-                    .setQuery(query)
-                    .setFilters(filters)
-                    .build();
+                .setQuery(query)
+                .setFilters(filters)
+                .build();
 
             SearchResult matchApis = searchEngineService.search(apiQuery);
 
-            if(matchApis.getDocuments().isEmpty()) {
+            if (matchApis.getDocuments().isEmpty()) {
                 return new Page<>(emptyList(), 0, 0, 0);
             }
 
@@ -2930,14 +2932,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         Map<String, PrimaryOwnerEntity> primaryOwnerIdToPrimaryOwnerEntity = new HashMap<>(memberships.size());
         final List<String> userIds = memberships.stream().filter(membership -> membership.getType() == MembershipMemberType.USER).map(MemberEntity::getId).collect(toList());
-        if(userIds != null && !userIds.isEmpty()) {
+        if (userIds != null && !userIds.isEmpty()) {
             userService.findByIds(userIds)
-                    .forEach(userEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(userEntity.getId(), new PrimaryOwnerEntity(userEntity)));
+                .forEach(userEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(userEntity.getId(), new PrimaryOwnerEntity(userEntity)));
         }
         final Set<String> groupIds = memberships.stream().filter(membership -> membership.getType() == MembershipMemberType.GROUP).map(MemberEntity::getId).collect(Collectors.toSet());
-        if(groupIds != null && !groupIds.isEmpty()) {
+        if (groupIds != null && !groupIds.isEmpty()) {
             groupService.findByIds(groupIds)
-                    .forEach(groupEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(groupEntity.getId(), new PrimaryOwnerEntity(groupEntity)));
+                .forEach(groupEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(groupEntity.getId(), new PrimaryOwnerEntity(groupEntity)));
         }
 
 
@@ -3204,10 +3206,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         List<Api> subsetApis = apis.stream()
-                .sorted(comparator)
-                .skip(startIndex)
-                .limit(pageable.getPageSize())
-                .collect(toList());
+            .sorted(comparator)
+            .skip(startIndex)
+            .limit(pageable.getPageSize())
+            .collect(toList());
 
         return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apis.size());
     }
@@ -3215,9 +3217,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     /*
         Handy method to initialize a default pageable if none is provided.
      */
-    private Pageable buildPageable(Pageable pageable){
+    private Pageable buildPageable(Pageable pageable) {
 
-        if(pageable == null) {
+        if (pageable == null) {
             // No page specified, get all apis in one page.
             return new PageableImpl(1, Integer.MAX_VALUE);
         }
@@ -3234,7 +3236,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         Comparator<Api> comparator = (api1, api2) -> 0;
 
-        if(pageable != null) {
+        if (pageable != null) {
             // Pagination requires sorting apis to be able to navigate through pages.
             comparator = comparing(api -> api.getName().toLowerCase());
         }
@@ -3249,7 +3251,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apis.stream().filter(api -> api.getDefinition() != null).forEach(api -> {
                     try {
                         apiDefinitions.put(api.getId(), objectMapper.readValue(api.getDefinition(),
-                                io.gravitee.definition.model.Api.class));
+                            io.gravitee.definition.model.Api.class));
                     } catch (JsonProcessingException e) {
                         // Ignore invalid api definition.
                     }
@@ -3261,18 +3263,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                     if (apiDefinition1 != null && apiDefinition2 != null) {
                         if (apiDefinition1.getProxy().getVirtualHosts() != null &&
-                                !apiDefinition1.getProxy().getVirtualHosts().isEmpty()
-                                && apiDefinition2.getProxy().getVirtualHosts() != null &&
-                                !apiDefinition2.getProxy().getVirtualHosts().isEmpty()) {
+                            !apiDefinition1.getProxy().getVirtualHosts().isEmpty()
+                            && apiDefinition2.getProxy().getVirtualHosts() != null &&
+                            !apiDefinition2.getProxy().getVirtualHosts().isEmpty()) {
                             return apiDefinition1.getProxy().getVirtualHosts().get(0).getPath().toLowerCase()
-                                    .compareTo(apiDefinition2.getProxy().getVirtualHosts().get(0).getPath().toLowerCase());
+                                .compareTo(apiDefinition2.getProxy().getVirtualHosts().get(0).getPath().toLowerCase());
                         }
                     }
                     return api1.getName().toLowerCase().compareTo(api2.getName().toLowerCase());
                 };
             }
 
-            if(!sortable.isAscOrder()) {
+            if (!sortable.isAscOrder()) {
                 comparator = comparator.reversed();
             }
         }

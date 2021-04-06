@@ -20,7 +20,8 @@
       "order": 1,
       "published": false,
       "visibility": "PUBLIC",
-      "homepage": false
+      "homepage": false,
+      "excludedAccessControls": false
     },
     {
       "name": "Aside",
@@ -28,7 +29,8 @@
       "order": 1,
       "published": true,
       "visibility": "PUBLIC",
-      "homepage": false
+      "homepage": false,
+      "excludedAccessControls": false
     }
   ],
   "plans": [

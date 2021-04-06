@@ -23,17 +23,12 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.exceptions.PageMarkdownTemplateActionException;
-import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
-import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
-import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.swagger.annotations.*;
 
 import javax.inject.Inject;
@@ -44,7 +39,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -58,7 +52,7 @@ public class ApiPageResource extends AbstractResource {
     private PageService pageService;
 
     @Inject
-    private GroupService groupService;
+    private AccessControlService accessControlService;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("api")
@@ -102,7 +96,7 @@ public class ApiPageResource extends AbstractResource {
                     pageEntity.getMetadata().clear();
                 }
             }
-            if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+            if (isDisplayable(apiEntity, pageEntity)) {
                 if (pageEntity.getContentType() != null) {
                     try {
                         pageEntity.setMessages(pageService.validateSafeContent(pageEntity, api));
@@ -237,12 +231,8 @@ public class ApiPageResource extends AbstractResource {
         pageService.delete(page);
     }
 
-    private boolean isDisplayable(ApiEntity api, boolean isPagePublished, List<String> excludedGroups) {
-        return (isAuthenticated() && isAdmin())
-                ||
-                ( pageService.isDisplayable(api, isPagePublished, getAuthenticatedUserOrNull()) &&
-                        groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull()));
-
+    private boolean isDisplayable(ApiEntity api, PageEntity pageEntity) {
+        return (isAuthenticated() && isAdmin()) || accessControlService.canAccessPageFromConsole(api, pageEntity);
     }
 
     @Path("media")

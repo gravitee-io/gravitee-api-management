@@ -21,10 +21,11 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE
- * @author Guillaume GILLON 
+ * @author Guillaume GILLON
  */
 public class UpdatePageEntity {
 
@@ -40,7 +41,6 @@ public class UpdatePageEntity {
 
 	private Boolean published;
 
-	@NotNull
 	private Visibility visibility;
 
 	private PageSourceEntity source;
@@ -56,6 +56,10 @@ public class UpdatePageEntity {
 	private List<PageMediaEntity> attachedMedia;
 
     private String parentId;
+
+    private Boolean excludedAccessControls;
+
+	private Set<AccessControlEntity> accessControls;
 
 	public String getName() {
 		return name;
@@ -147,5 +151,21 @@ public class UpdatePageEntity {
 
 	public void setVisibility(Visibility visibility) {
 		this.visibility = visibility;
+	}
+
+	public void setExcludedAccessControls(Boolean excludedAccessControls) {
+		this.excludedAccessControls = excludedAccessControls;
+	}
+
+	public Boolean isExcludedAccessControls() {
+		return excludedAccessControls;
+	}
+
+	public Set<AccessControlEntity> getAccessControls() {
+		return accessControls;
+	}
+
+	public void setAccessControls(Set<AccessControlEntity> accessControls) {
+		this.accessControls = accessControls;
 	}
 }

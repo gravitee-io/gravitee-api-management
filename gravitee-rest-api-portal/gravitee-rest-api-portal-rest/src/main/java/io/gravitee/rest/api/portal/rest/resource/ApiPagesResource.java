@@ -16,9 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
@@ -27,7 +24,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
-import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 
@@ -36,8 +33,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,11 +52,11 @@ public class ApiPagesResource extends AbstractResource {
     @Inject
     private PageService pageService;
 
-    @Inject
-    private GroupService groupService;
-
     @Context
     private ResourceContext resourceContext;
+
+    @Inject
+    private AccessControlService accessControlService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -70,14 +69,12 @@ public class ApiPagesResource extends AbstractResource {
             @QueryParam("parent") String parent) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (accessControlService.canAccessApiFromPortal(apiId)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
-            final ApiEntity apiEntity = apiService.findById(apiId);
-            
+
             Stream<Page> pageStream = pageService.search(new PageQuery.Builder().api(apiId).homepage(homepage).published(true).build(), acceptedLocale)
                     .stream()
-                    .filter(pageEntity -> isDisplayable(apiEntity, pageEntity))
+                    .filter(accessControlService::canAccessPageFromPortal)
                     .map(pageMapper::convert)
                     .map(page -> this.addPageLink(apiId, page));
 
@@ -121,12 +118,6 @@ public class ApiPagesResource extends AbstractResource {
         return resourceContext.getResource(ApiPageResource.class);
     }
 
-    private boolean isDisplayable(ApiEntity api, PageEntity page) {
-        return groupService.isUserAuthorizedToAccessApiData(api, page.getExcludedGroups(), getAuthenticatedUserOrNull())
-                && !PageType.SYSTEM_FOLDER.name().equals(page.getType())
-                && !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
-    }
-    
     private Page addPageLink(String apiId, Page page) {
         return page.links(pageMapper.computePageLinks(
                 PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getId()),

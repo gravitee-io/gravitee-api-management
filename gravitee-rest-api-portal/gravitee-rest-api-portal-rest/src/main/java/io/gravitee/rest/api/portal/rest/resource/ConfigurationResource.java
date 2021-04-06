@@ -67,9 +67,7 @@ public class ConfigurationResource extends AbstractResource {
     @Inject
     private CustomUserFieldService customUserFieldService;
     @Autowired
-    private IdentityProviderActivationService identityProviderActivationService;
-    @Autowired
-    private EnvironmentService environmentService;
+    private AccessControlService accessControlService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -85,9 +83,9 @@ public class ConfigurationResource extends AbstractResource {
         List<CustomUserFieldEntity> fields = customUserFieldService.listAllFields();
         if (fields != null) {
             return Response
-                    .ok()
-                    .entity(fields)
-                    .build();
+                .ok()
+                .entity(fields)
+                .build();
         }
 
         return Response.serverError().build();
@@ -97,10 +95,10 @@ public class ConfigurationResource extends AbstractResource {
     @Path("identities")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalIdentityProviders(@BeanParam PaginationParam paginationParam) {
-         List<IdentityProvider> identities = socialIdentityProviderService.findAll(new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT)).stream()
-                .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
-                .map(identityProviderMapper::convert)
-                .collect(Collectors.toList());
+        List<IdentityProvider> identities = socialIdentityProviderService.findAll(new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT)).stream()
+            .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
+            .map(identityProviderMapper::convert)
+            .collect(Collectors.toList());
         return createListResponse(identities, paginationParam);
     }
 
@@ -118,71 +116,76 @@ public class ConfigurationResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> portalLinks = new HashMap<>();
         pageService.search(new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build(), acceptedLocale).stream()
-                .filter(PageEntity::isPublished)
-                .forEach(sysPage -> {
-                    List<CategorizedLinks> catLinksList = new ArrayList<>();
+            .filter(PageEntity::isPublished)
+            .forEach(systemFolder -> {
+                List<CategorizedLinks> catLinksList = new ArrayList<>();
 
-                    // for pages under sysFolder
-                    List<Link> links = getLinksFromFolder(sysPage, acceptedLocale);
-                    if (!links.isEmpty()) {
-                        CategorizedLinks catLinks = new CategorizedLinks();
-                        catLinks.setCategory(sysPage.getName());
-                        catLinks.setLinks(links);
-                        catLinks.setRoot(true);
-                        catLinksList.add(catLinks);
-                    }
+                // for pages under sysFolder
+                List<Link> links = getLinksFromFolder(systemFolder, acceptedLocale);
+                if (!links.isEmpty()) {
+                    CategorizedLinks catLinks = new CategorizedLinks();
+                    catLinks.setCategory(systemFolder.getName());
+                    catLinks.setLinks(links);
+                    catLinks.setRoot(true);
+                    catLinksList.add(catLinks);
+                }
 
-                    // for pages into folders
-                    pageService.search(new PageQuery.Builder().parent(sysPage.getId()).build(), acceptedLocale).stream()
-                            .filter(PageEntity::isPublished)
-                            .filter(p -> p.getType().equals("FOLDER"))
-                            .forEach(folder -> {
-                                List<Link> folderLinks = getLinksFromFolder(folder, acceptedLocale);
-                                if (folderLinks != null && !folderLinks.isEmpty()) {
-                                    CategorizedLinks catLinks = new CategorizedLinks();
-                                    catLinks.setCategory(folder.getName());
-                                    catLinks.setLinks(folderLinks);
-                                    catLinks.setRoot(false);
-                                    catLinksList.add(catLinks);
-                                }
+                // for pages into folders
+                pageService.search(new PageQuery.Builder().parent(systemFolder.getId()).build(), acceptedLocale).stream()
+                    .filter(PageEntity::isPublished)
+                    .filter(p -> p.getType().equals("FOLDER"))
+                    .forEach(folder -> {
+                        List<Link> folderLinks = getLinksFromFolder(folder, acceptedLocale);
+                        if (folderLinks != null && !folderLinks.isEmpty()) {
+                            CategorizedLinks catLinks = new CategorizedLinks();
+                            catLinks.setCategory(folder.getName());
+                            catLinks.setLinks(folderLinks);
+                            catLinks.setRoot(false);
+                            catLinksList.add(catLinks);
+                        }
 
-                            });
-                    if (!catLinksList.isEmpty()) {
-                        portalLinks.put(sysPage.getName().toLowerCase(), catLinksList);
-                    }
-                });
+                    });
+                if (!catLinksList.isEmpty()) {
+                    portalLinks.put(systemFolder.getName().toLowerCase(), catLinksList);
+                }
+            });
 
         return Response
-                .ok(new LinksResponse().slots(portalLinks))
-                .build();
+            .ok(new LinksResponse().slots(portalLinks))
+            .build();
     }
 
     private List<Link> getLinksFromFolder(PageEntity folder, String acceptedLocale) {
         return pageService.search(new PageQuery.Builder().parent(folder.getId()).build(), acceptedLocale).stream()
-                .filter(PageEntity::isPublished)
-                .filter(p -> !PageType.FOLDER.name().equals(p.getType())
-                        && !PageType.MARKDOWN_TEMPLATE.name().equals(p.getType()))
-                .map(p -> {
-                    if ("LINK".equals(p.getType())) {
-                        String relatedPageId = p.getContent();
-                        Link link = new Link()
-                                .name(p.getName())
-                                .resourceRef(relatedPageId)
-                                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)));
-                        String isFolderConfig = p.getConfiguration().get(PageConfigurationKeys.LINK_IS_FOLDER);
-                        if (isFolderConfig != null && !isFolderConfig.isEmpty()) {
-                            link.setFolder(Boolean.valueOf(isFolderConfig));
-                        }
+            .filter((p) -> {
+                if (PageType.FOLDER.name().equals(p.getType()) ||
+                    PageType.MARKDOWN_TEMPLATE.name().equals(p.getType())) {
+                    return false;
+                }
+                return accessControlService.canAccessPageFromPortal(p);
+            })
+            .map(ConfigurationResource::convertToLink)
+            .collect(Collectors.toList());
+    }
 
-                        return link;
-                    } else {
-                        return new Link()
-                                .name(p.getName())
-                                .resourceRef(p.getId())
-                                .resourceType(ResourceTypeEnum.PAGE);
-                    }
-                })
-                .collect(Collectors.toList());
+    private static Link convertToLink(PageEntity p) {
+        if ("LINK".equals(p.getType())) {
+            String relatedPageId = p.getContent();
+            Link link = new Link()
+                .name(p.getName())
+                .resourceRef(relatedPageId)
+                .resourceType(ResourceTypeEnum.fromValue(p.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)));
+            String isFolderConfig = p.getConfiguration().get(PageConfigurationKeys.LINK_IS_FOLDER);
+            if (isFolderConfig != null && !isFolderConfig.isEmpty()) {
+                link.setFolder(Boolean.valueOf(isFolderConfig));
+            }
+            return link;
+        } else {
+            return new Link()
+                .name(p.getName())
+                .resourceRef(p.getId())
+                .resourceType(ResourceTypeEnum.PAGE);
+        }
     }
 
     @GET
@@ -191,8 +194,8 @@ public class ConfigurationResource extends AbstractResource {
     public Response getEnabledApplicationTypes() {
         ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes();
         return Response
-                .ok(convert(enabledApplicationTypes))
-                .build();
+            .ok(convert(enabledApplicationTypes))
+            .build();
     }
 
     @GET
@@ -200,18 +203,18 @@ public class ConfigurationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApplicationRoles() {
         return Response
-                .ok(new ConfigurationApplicationRolesResponse()
-                        .data(roleService.findByScope(RoleScope.APPLICATION).stream()
-                                .map(roleEntity -> new ApplicationRole()
-                                        ._default(roleEntity.isDefaultRole())
-                                        .id(roleEntity.getName())
-                                        .name(roleEntity.getName())
-                                        .system(roleEntity.isSystem())
-                                )
-                                .collect(Collectors.toList())
-                        )
+            .ok(new ConfigurationApplicationRolesResponse()
+                .data(roleService.findByScope(RoleScope.APPLICATION).stream()
+                    .map(roleEntity -> new ApplicationRole()
+                        ._default(roleEntity.isDefaultRole())
+                        .id(roleEntity.getName())
+                        .name(roleEntity.getName())
+                        .system(roleEntity.isSystem())
+                    )
+                    .collect(Collectors.toList())
                 )
-                .build();
+            )
+            .build();
     }
 
     private ConfigurationApplicationTypesResponse convert(ApplicationTypesEntity enabledApplicationTypes) {

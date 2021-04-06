@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
@@ -28,7 +29,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +36,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
 /**
@@ -47,12 +48,12 @@ public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
     protected String contextPath() {
         return "pages/";
     }
-    
+
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
     }
-    
+
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
         @Override
@@ -68,7 +69,7 @@ public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
                 }
                 @Override
                 public boolean isSecure() { return false; }
-                
+
                 @Override
                 public String getAuthenticationScheme() { return "BASIC"; }
             });
@@ -79,14 +80,13 @@ public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     private PageEntity mockAnotherPage;
 
-    
     @Before
     public void init() {
         resetAllMocks();
-        
+
         mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);
-        mockAnotherPage.setExcludedGroups(new ArrayList<String>());
+        mockAnotherPage.setVisibility(Visibility.PUBLIC);
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
@@ -94,11 +94,12 @@ public class PageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
     }
-    
+
     @Test
     public void shouldHaveMetadataCleared() {
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
-        
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(anyString());
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(any(PageEntity.class));
+
         Response anotherResponse = target(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());
 

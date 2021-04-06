@@ -31,7 +31,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiPagesResourceAdminTest extends AbstractResourceTest {
@@ -53,6 +53,7 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         doReturn(apiMock).when(apiService).findById(API_NAME);
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
+        pageMock.setVisibility(Visibility.PUBLIC);
         pageMock.setName(PAGE_NAME);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
 
@@ -65,7 +66,6 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
-        verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
 
     @Test
@@ -89,7 +89,6 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
-        verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
 
     @Test
@@ -113,7 +112,6 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         verify(membershipService, never()).getRoles(any(), any(), any(), any());
         verify(apiService, times(1)).findById(API_NAME);
         verify(pageService, times(1)).findById(PAGE_NAME, null);
-        verify(pageService, never()).isDisplayable(apiMock, pageMock.isPublished(), USER_NAME);
     }
 
     @Test

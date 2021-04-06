@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
@@ -25,7 +23,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
-import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 
 import javax.inject.Inject;
@@ -33,7 +31,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -54,7 +51,7 @@ public class PagesResource extends AbstractResource {
     private PageService pageService;
 
     @Inject
-    private GroupService groupService;
+    private AccessControlService accessControlService;
 
     @Context
     private ResourceContext resourceContext;
@@ -70,7 +67,7 @@ public class PagesResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Stream<Page> pageStream = pageService.search(new PageQuery.Builder().homepage(homepage).published(true).build(), acceptedLocale)
                 .stream()
-                .filter(this::isDisplayable)
+                .filter(accessControlService::canAccessPageFromPortal)
                 .map(pageMapper::convert)
                 .map(this::addPageLink);
 
@@ -109,12 +106,6 @@ public class PagesResource extends AbstractResource {
     @Path("{pageId}")
     public PageResource getPageResource() {
         return resourceContext.getResource(PageResource.class);
-    }
-
-    private boolean isDisplayable(PageEntity page) {
-        return groupService.isUserAuthorizedToAccessPortalData(page.getExcludedGroups(), getAuthenticatedUserOrNull())
-                && !PageType.SYSTEM_FOLDER.name().equals(page.getType())
-                && !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
     }
 
     private Page addPageLink(Page page) {

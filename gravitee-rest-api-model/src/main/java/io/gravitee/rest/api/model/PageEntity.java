@@ -18,10 +18,7 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Titouan COMPIEGNE
@@ -44,8 +41,8 @@ public class PageEntity implements Indexable {
     private boolean homepage;
     private String parentId;
     private String parentPath;
-    @JsonProperty("excluded_groups")
-    private List<String> excludedGroups;
+    private boolean excludedAccessControls;
+    private Set<AccessControlEntity> accessControls;
     private List<String> messages ;
     @JsonProperty("attached_media")
     private List<PageMediaEntity> attachedMedia;
@@ -160,14 +157,6 @@ public class PageEntity implements Indexable {
         this.homepage = homepage;
     }
 
-    public List<String> getExcludedGroups() {
-        return excludedGroups;
-    }
-
-    public void setExcludedGroups(List<String> excludedGroups) {
-        this.excludedGroups = excludedGroups;
-    }
-
     public String getParentId() {
         return parentId;
     }
@@ -240,6 +229,22 @@ public class PageEntity implements Indexable {
         this.visibility = visibility;
     }
 
+    public void setExcludedAccessControls(boolean excludedAccessControls) {
+        this.excludedAccessControls = excludedAccessControls;
+    }
+
+    public boolean isExcludedAccessControls() {
+        return excludedAccessControls;
+    }
+
+    public Set<AccessControlEntity> getAccessControls() {
+        return accessControls;
+    }
+
+    public void setAccessControls(Set<AccessControlEntity> accessControls) {
+        this.accessControls = accessControls;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -275,7 +280,8 @@ public class PageEntity implements Indexable {
 				", homepage=" + homepage +
 				", parentId='" + parentId + '\'' +
                 ", parentPath='" + parentPath + '\'' +
-                ", excludedGroups=" + excludedGroups +
+                ", excludedAccessControls='" + excludedAccessControls + '\'' +
+                ", accessControls='" + accessControls + '\'' +
                 ", attachedMedia=" + attachedMedia +
                 ", metadata='" + metadata + '\'' +
                 ", translations='" + translations + '\'' +

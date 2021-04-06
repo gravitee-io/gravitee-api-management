@@ -17,14 +17,13 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
-import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
@@ -32,7 +31,6 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,7 +47,7 @@ public class ApiPageResource extends AbstractResource {
     private PageService pageService;
 
     @Inject
-    private GroupService groupService;
+    private AccessControlService accessControlService;
 
     private static final String INCLUDE_CONTENT = "content";
 
@@ -63,26 +61,25 @@ public class ApiPageResource extends AbstractResource {
             @QueryParam("include") List<String> include) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
+        if (accessControlService.canAccessApiFromPortal(apiId)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
-            final ApiEntity apiEntity = apiService.findById(apiId);
 
             PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
-            pageService.transformSwagger(pageEntity, apiId);
 
-            if (isDisplayable(apiEntity, pageEntity.getExcludedGroups(), pageEntity.getType())) {
-                
+            if (accessControlService.canAccessPageFromPortal(pageEntity)) {
+
+                pageService.transformSwagger(pageEntity, apiId);
+
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                     pageEntity.getMetadata().clear();
                 }
-                
+
                 Page page = pageMapper.convert(uriInfo.getBaseUriBuilder(), apiId, pageEntity);
-                
+
                 if (include.contains(INCLUDE_CONTENT)) {
                     page.setContent(pageEntity.getContent());
                 }
-                
+
                 page.setLinks(pageMapper.computePageLinks(
                         PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, pageId),
                         PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getParent())
@@ -103,15 +100,10 @@ public class ApiPageResource extends AbstractResource {
             @PathParam("pageId") String pageId) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-
-            final ApiEntity apiEntity = apiService.findById(apiId);
-
+        if (accessControlService.canAccessApiFromPortal(apiId)) {
             PageEntity pageEntity = pageService.findById(pageId, null);
-            pageService.transformSwagger(pageEntity, apiId);
-
-            if (isDisplayable(apiEntity, pageEntity.getExcludedGroups(), pageEntity.getType())) {
+            if (accessControlService.canAccessPageFromPortal(pageEntity)) {
+                pageService.transformSwagger(pageEntity, apiId);
                 return Response.ok(pageEntity.getContent()).build();
             } else {
                 throw new UnauthorizedAccessException();
@@ -120,9 +112,4 @@ public class ApiPageResource extends AbstractResource {
         throw new ApiNotFoundException(apiId);
     }
 
-    private boolean isDisplayable(ApiEntity api, List<String> excludedGroups, String pageType) {
-        return groupService.isUserAuthorizedToAccessApiData(api, excludedGroups, getAuthenticatedUserOrNull())
-                && !"SYSTEM_FOLDER".equals(pageType);
-
-    }
 }

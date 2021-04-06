@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -54,6 +55,10 @@ public class NewPageEntity {
 
 	@JsonProperty("excluded_groups")
 	private List<String> excludedGroups;
+
+	private boolean excludedAccessControls;
+
+	private Set<AccessControlEntity> accessControls;
 
 	@JsonProperty("attached_media")
 	private List<PageMediaEntity> attachedMedia;
@@ -138,6 +143,22 @@ public class NewPageEntity {
 
 	public void setExcludedGroups(List<String> excludedGroups) {
 		this.excludedGroups = excludedGroups;
+	}
+
+	public void setExcludedAccessControls(boolean excludedAccessControls) {
+		this.excludedAccessControls = excludedAccessControls;
+	}
+
+	public Boolean isExcludedAccessControls() {
+		return excludedAccessControls;
+	}
+
+	public Set<AccessControlEntity> getAccessControls() {
+		return accessControls;
+	}
+
+	public void setAccessControls(Set<AccessControlEntity> accessControls) {
+		this.accessControls = accessControls;
 	}
 
 	public String getParentId() { return parentId; }

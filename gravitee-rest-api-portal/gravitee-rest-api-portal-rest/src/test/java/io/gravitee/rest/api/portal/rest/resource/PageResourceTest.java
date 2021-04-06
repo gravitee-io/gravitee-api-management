@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Page;
@@ -25,8 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +33,7 @@ import java.util.Map;
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -57,24 +57,24 @@ public class PageResourceTest extends AbstractResourceTest {
     private PageEntity mockAnotherPage;
 
     @Before
-    public void init() throws IOException {
+    public void init() {
         resetAllMocks();
 
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
-        publishedPage.setExcludedGroups(new ArrayList<String>());
+        publishedPage.setVisibility(Visibility.PUBLIC);
         publishedPage.setContent(PAGE_CONTENT);
         doReturn(publishedPage).when(pageService).findById(PUBLISHED_PAGE, null);
 
         PageEntity unPublishedPage = new PageEntity();
         unPublishedPage.setPublished(false);
-        unPublishedPage.setExcludedGroups(new ArrayList<String>());
+        publishedPage.setVisibility(Visibility.PUBLIC);
         unPublishedPage.setContent(PAGE_CONTENT);
         doReturn(unPublishedPage).when(pageService).findById(UNPUBLISHED_PAGE, null);
 
         mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);
-        mockAnotherPage.setExcludedGroups(new ArrayList<String>());
+        publishedPage.setVisibility(Visibility.PUBLIC);
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
@@ -84,7 +84,8 @@ public class PageResourceTest extends AbstractResourceTest {
 
         doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
-        doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(anyString());
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(any());
 
     }
 
@@ -129,15 +130,9 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetPageBecauseOfGroupService() {
-        doReturn(false).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
 
         Response response = target(PUBLISHED_PAGE).request().get();
-        assertEquals(UNAUTHORIZED_401, response.getStatus());
-    }
-
-    @Test
-    public void shouldNotGetUnpublishedPage() {
-        Response response = target(UNPUBLISHED_PAGE).request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
 
@@ -180,15 +175,9 @@ public class PageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotGetPageContentBecauseOfGroupService() {
-        doReturn(false).when(groupService).isUserAuthorizedToAccessPortalData(any(), any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
 
         Response response = target(PUBLISHED_PAGE).path("content").request().get();
-        assertEquals(UNAUTHORIZED_401, response.getStatus());
-    }
-
-    @Test
-    public void shouldNotGetUnpublishedPageContent() {
-        Response response = target(UNPUBLISHED_PAGE).path("content").request().get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
     }
 

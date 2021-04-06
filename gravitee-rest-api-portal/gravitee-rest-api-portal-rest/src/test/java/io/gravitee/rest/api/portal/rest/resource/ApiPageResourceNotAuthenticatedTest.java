@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -47,12 +48,12 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     protected String contextPath() {
         return "apis/";
     }
-    
+
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
     }
-    
+
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
         @Override
@@ -68,7 +69,7 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
                 }
                 @Override
                 public boolean isSecure() { return false; }
-                
+
                 @Override
                 public String getAuthenticationScheme() { return "BASIC"; }
             });
@@ -83,25 +84,25 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     private PageEntity mockPage;
     private PageEntity mockAnotherPage;
 
-    
+
     @Before
     public void init() {
         resetAllMocks();
-        
+
         mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(isNull(), argThat(q -> singletonList(API).equals(q.getIds())));
-        
+
         mockPage = new PageEntity();
         mockPage.setPublished(true);
-        mockPage.setExcludedGroups(new ArrayList<String>());
+        mockPage.setVisibility(Visibility.PUBLIC);
         doReturn(mockPage).when(pageService).findById(PAGE, null);
-        
+
         mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);
-        mockAnotherPage.setExcludedGroups(new ArrayList<String>());
+        mockAnotherPage.setVisibility(Visibility.PUBLIC);
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
@@ -112,9 +113,9 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveMetadataCleared() {
-        
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(any(PageEntity.class));
+
         Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());
 

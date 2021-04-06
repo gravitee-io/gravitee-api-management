@@ -31,7 +31,6 @@ import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import javax.validation.Valid;
@@ -118,21 +117,19 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(any(PageQuery.class), isNull())).thenAnswer(new Answer<List<PageEntity>>() {
-
-            @Override
-            public List<PageEntity> answer(InvocationOnMock invocation) throws Throwable {
-                PageQuery pq = invocation.getArgument(0);
-                if(PageType.SYSTEM_FOLDER.equals(pq.getType())) {
-                    return Arrays.asList(sysFolder);
-                } else if ("SYS_FOLDER".equals(pq.getParent())) {
-                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
-                } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent())) {
-                    return Arrays.asList(markdownFolderSysFolder);
-                }
-                return null;
+        when(pageService.search(any(PageQuery.class), isNull())).thenAnswer((Answer<List<PageEntity>>) invocation -> {
+            PageQuery pq = invocation.getArgument(0);
+            if(PageType.SYSTEM_FOLDER.equals(pq.getType())) {
+                return Arrays.asList(sysFolder);
+            } else if ("SYS_FOLDER".equals(pq.getParent())) {
+                return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
+            } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent())) {
+                return Arrays.asList(markdownFolderSysFolder);
             }
+            return null;
         });
+
+        when(accessControlService.canAccessPageFromPortal(any())).thenReturn(true);
 
         final Response response = target("/links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

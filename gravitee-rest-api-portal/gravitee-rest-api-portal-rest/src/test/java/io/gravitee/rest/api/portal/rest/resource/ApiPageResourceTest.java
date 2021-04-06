@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -27,11 +28,9 @@ import org.junit.Test;
 
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.util.*;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
-import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,7 +56,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     }
 
     @Before
-    public void init() throws IOException {
+    public void init() {
         resetAllMocks();
 
         ApiEntity mockApi = new ApiEntity();
@@ -66,14 +65,14 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
-
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
         PageEntity page1 = new PageEntity();
         page1.setPublished(true);
-        page1.setExcludedGroups(new ArrayList<String>());
+        page1.setVisibility(Visibility.PUBLIC);
         page1.setContent(PAGE_CONTENT);
         doReturn(page1).when(pageService).findById(PAGE, null);
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(page1);
 
-        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
         doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
     }
@@ -83,7 +82,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(false).when(accessControlService).canAccessApiFromPortal(API);
 
         // test
         final Response response = target(API).path("pages").path(PAGE).request().get();
@@ -102,6 +101,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotFoundPageWhileGettingApiPage() {
+
         doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE, null);
 
         final Response response = target(API).path("pages").path(UNKNOWN_PAGE).request().get();
@@ -138,11 +138,11 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         assertEquals(PAGE_CONTENT, pageResponse.getContent());
         assertNotNull(pageResponse.getLinks());
     }
-    
+
     @Test
     public void shouldNotGetApiPage() {
         final Builder request = target(API).path("pages").path(PAGE).request();
-        doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
@@ -152,7 +152,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     public void shouldNotHaveMetadataCleared() {
         PageEntity mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);
-        mockAnotherPage.setExcludedGroups(new ArrayList<String>());
+        mockAnotherPage.setVisibility(Visibility.PUBLIC);
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
@@ -172,7 +172,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(false).when(accessControlService).canAccessApiFromPortal(API);
 
         // test
         final Response response = target(API).path("pages").path(PAGE).path("content").request().get();
@@ -218,7 +218,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetApiPageContent() {
         final Builder request = target(API).path("pages").path(PAGE).path("content").request();
-        doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());

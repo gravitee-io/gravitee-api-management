@@ -23,8 +23,8 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.ConfigService;
-import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
@@ -52,7 +52,7 @@ public class PortalPagesResource extends AbstractResource {
     private PageService pageService;
 
     @Inject
-    private GroupService groupService;
+    private AccessControlService accessControlService;
 
     @Inject
     private ConfigService configService;
@@ -75,7 +75,7 @@ public class PortalPagesResource extends AbstractResource {
                 @QueryParam("translated") boolean translated) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(page, translated ? acceptedLocale : null);
-        if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+        if (isDisplayable(pageEntity)) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
             }
@@ -98,8 +98,8 @@ public class PortalPagesResource extends AbstractResource {
     public Response getPortalPageContent(
             @PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page);
-        pageService.transformSwagger(pageEntity);
-        if (isDisplayable(pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
+        if (isDisplayable(pageEntity)) {
+            pageService.transformSwagger(pageEntity);
             return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
         } else {
             throw new UnauthorizedAccessException();
@@ -134,7 +134,7 @@ public class PortalPagesResource extends AbstractResource {
                         .build()
                         , translated?acceptedLocale:null)
                 .stream()
-                .filter(page -> isDisplayable(page.isPublished(), page.getExcludedGroups()))
+                .filter(this::isDisplayable)
                 .collect(Collectors.toList());
     }
 
@@ -328,13 +328,15 @@ public class PortalPagesResource extends AbstractResource {
         return pageService.importFiles(importPageEntity);
     }
 
-    private boolean isDisplayable(boolean isPagePublished, List<String> excludedGroups) {
+    private boolean isDisplayable(PageEntity pageEntity) {
         if (!isAuthenticated() && configService.portalLoginForced())  {
             // if portal requires login, this endpoint should hide the api pages even PUBLIC ones
             return false;
-        } else {
-            return (isAuthenticated() && hasPermission(RolePermission.ENVIRONMENT_DOCUMENTATION, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE)) ||
-                    (isPagePublished && groupService.isUserAuthorizedToAccessPortalData(excludedGroups, getAuthenticatedUserOrNull()));
+        } else if(isAuthenticated() && isAdmin()){
+            // if user is org admin
+            return true;
+        }else {
+            return accessControlService.canAccessPageFromPortal(pageEntity);
         }
     }
 

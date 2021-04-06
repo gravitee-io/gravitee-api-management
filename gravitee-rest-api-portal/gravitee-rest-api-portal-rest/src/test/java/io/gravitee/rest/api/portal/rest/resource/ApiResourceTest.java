@@ -39,8 +39,6 @@ import java.util.*;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
@@ -68,7 +66,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         doReturn(mockApi).when(apiService).findById(API);
 
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
         doReturn(mockApis).when(apiService).findByUser(any(), any(), eq(true));
 
         Api api = new Api();
@@ -80,7 +78,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetApiwithoutIncluded() {
+    public void shouldGetApiWithoutIncluded() {
         final Response response = target(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
@@ -129,8 +127,12 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);
 
+        // For pages
+        doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(pagePublished);
+        // For plans
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        
+
         // test
         final Response response = target(API).queryParam("include", "pages", "plans").request().get();
 
@@ -154,7 +156,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(false).when(accessControlService).canAccessApiFromPortal(API);
 
         // test
         final Response response = target(API).request().get();
@@ -278,6 +280,8 @@ public class ApiResourceTest extends AbstractResourceTest {
             }
         });
 
+        when(accessControlService.canAccessPageFromPortal(any())).thenReturn(true);
+        
         final Response response = target(API).path("links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
