@@ -29,12 +29,12 @@
 
 	<groupId>io.gravitee.repository</groupId>
 	<artifactId>gravitee-repository-mongodb</artifactId>
-	<version>3.6.2-SNAPSHOT</version>
+	<version>3.6.2</version>
 	<name>Gravitee.io APIM - Repository - MongoDB</name>
 
 	<properties>
-		<gravitee-repository.version>3.6.1-SNAPSHOT</gravitee-repository.version>
-		<gravitee-repository-test.version>3.6.2-SNAPSHOT</gravitee-repository-test.version>
+		<gravitee-repository.version>3.6.1</gravitee-repository.version>
+		<gravitee-repository-test.version>3.6.2</gravitee-repository-test.version>
 		<embed.mongo.version>2.0.0</embed.mongo.version>
 		<mongo.version>3.12.0</mongo.version>
 		<mongodb-driver-reactivestreams.version>1.13.0</mongodb-driver-reactivestreams.version>
