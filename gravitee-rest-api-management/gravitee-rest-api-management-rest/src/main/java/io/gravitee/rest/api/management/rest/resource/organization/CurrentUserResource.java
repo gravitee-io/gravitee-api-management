@@ -19,6 +19,9 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.util.Maps;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.idp.api.authentication.UserDetailRole;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -30,10 +33,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.utils.ImageUtils;
-import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.TagService;
-import io.gravitee.rest.api.service.TaskService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
@@ -100,8 +100,10 @@ public class CurrentUserResource extends AbstractResource {
     private CookieGenerator cookieGenerator;
     @Inject
     private TagService tagService;
-    @Autowired
+    @Inject
     private EnvironmentService environmentService;
+    @Inject
+    private GroupRepository groupRepository;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -167,6 +169,29 @@ public class CurrentUserResource extends AbstractResource {
                         userDetailRole.setPermissions(userEntityRole.getPermissions());
                         return userDetailRole;
                     }).collect(Collectors.toList()));
+
+            final Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(
+                    MembershipMemberType.USER, userId, MembershipReferenceType.GROUP);
+            if (!memberships.isEmpty()) {
+                final Map<String, Set<String>> userGroups = new HashMap<>();
+                environmentService.findByOrganization(GraviteeContext.getCurrentOrganization()).forEach(environment -> {
+                    try {
+                        final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
+                        userGroups.put(environment.getName(), new HashSet<>());
+                        memberships.stream()
+                                .map(MembershipEntity::getReferenceId)
+                                .forEach(groupId -> {
+                                    final Optional<Group> optionalGroup = groups.stream()
+                                            .filter(group -> groupId.equals(group.getId())).findFirst();
+                                    optionalGroup.ifPresent(entity ->
+                                            userGroups.get(environment.getName()).add(entity.getName()));
+                                });
+                        userDetails.setGroupsByEnvironment(userGroups);
+                    } catch (TechnicalException e) {
+                        LOG.error("Error while trying to get groups of the user " + userId, e);
+                    }
+                });
+            }
 
             userDetails.setFirstLogin(1 == userEntity.getLoginCount());
             if (userEntity.getCustomFields() != null) {
