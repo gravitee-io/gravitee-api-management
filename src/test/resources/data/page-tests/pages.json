@@ -30,7 +30,21 @@
          "size": 256
       },
       "homepage": true,
-      "excludedGroups": [ "grp1", "grp2" ],
+      "excludedAccessControls": true,
+      "accessControls": [
+          {
+             "referenceId": "grp1",
+             "referenceType": "GROUP"
+          },
+          {
+             "referenceId": "grp2",
+             "referenceType": "GROUP"
+          },
+          {
+             "referenceId": "role1",
+             "referenceType": "ROLE"
+          }
+      ],
       "attachedMedia": [
          {
             "mediaHash": "media_id_1",

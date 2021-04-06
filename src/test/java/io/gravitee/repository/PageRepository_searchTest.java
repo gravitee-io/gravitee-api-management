@@ -17,15 +17,14 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import org.junit.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 /**
@@ -47,6 +46,7 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
         assertEquals(1, pages.size());
         assertFindPage(pages.get(0));
     }
+
     private void assertFindPage(Page page) {
         assertEquals("id", "FindApiPage", page.getId());
         assertEquals("name", "Find apiPage by apiId or Id", page.getName());
@@ -72,7 +72,13 @@ public class PageRepository_searchTest extends AbstractRepositoryTest {
         assertEquals("configuration maxDisplayedTags", "1234", page.getConfiguration().get("maxDisplayedTags"));
 
         assertTrue("homepage", page.isHomepage());
-        assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
+
+        assertEquals("access control list", new HashSet<>(asList(
+            new AccessControl("grp1", "GROUP"),
+            new AccessControl("grp2", "GROUP"),
+            new AccessControl("role1", "ROLE")
+        )), page.getAccessControls());
+
         assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
         assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
     }

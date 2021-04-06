@@ -19,15 +19,13 @@ import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageMedia;
-import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import org.junit.Test;
 
 import java.util.*;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 /**
@@ -119,19 +117,24 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertEquals("metadata size", "256", page.getMetadata().get("size"));
 
         assertTrue("homepage", page.isHomepage());
-        assertEquals("excludedGroups", Arrays.asList("grp1", "grp2"), page.getExcludedGroups());
+        assertEquals("excluded access controls", true, page.isExcludedAccessControls());
+        assertEquals("access controls", new HashSet<>(asList(
+            new AccessControl("grp1", "GROUP"),
+            new AccessControl("grp2", "GROUP"),
+            new AccessControl("role1", "ROLE")
+        )), page.getAccessControls());
 
         final List<PageMedia> attachedMedia = page.getAttachedMedia();
         assertNotNull(attachedMedia);
         assertEquals("attachedMedia", 2, attachedMedia.size());
-        assertEquals("attachedMedia", Arrays.asList(
-                new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
-                new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L)))
-                , attachedMedia);
+        assertEquals("attachedMedia", asList(
+            new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
+            new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L)))
+            , attachedMedia);
 
         assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
         assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
-        assertTrue("no autofetch",page.getUseAutoFetch().booleanValue());
+        assertTrue("no autofetch", page.getUseAutoFetch().booleanValue());
     }
 
     @Test
@@ -317,7 +320,12 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setCreatedAt(new Date(1486772200000L));
         page.setParentId("parent-123");
         page.setHomepage(true);
-        page.setExcludedGroups(Collections.singletonList("excluded"));
+        page.setExcludedAccessControls(true);
+        page.setAccessControls(new HashSet<>(asList(
+            new AccessControl("grp1", "GROUP"),
+            new AccessControl("grp2", "GROUP"),
+            new AccessControl("role1", "ROLE")
+        )));
         page.setAttachedMedia(Collections.singletonList(new PageMedia("media_id", "media_name", new Date(1586771200000L))));
         page.setLastContributor("me");
         page.setPublished(true);
@@ -353,7 +361,9 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         assertTrue("Invalid createdAt.", compareDate(new Date(1486772200000L), updatedPage.getCreatedAt()));
         assertEquals("Invalid parent id.", "parent-123", updatedPage.getParentId());
         assertTrue("Invalid homepage.", updatedPage.isHomepage());
-        assertTrue("Invalid excluded groups.", !updatedPage.getExcludedGroups().isEmpty());
+        assertTrue("Invalid ACL excluded value.", updatedPage.isExcludedAccessControls());
+        assertTrue("Invalid ACL controls.", !updatedPage.getAccessControls().isEmpty());
+        assertEquals("Invalid ACL size", 3, updatedPage.getAccessControls().size());
         assertTrue("Invalid attached media.", !updatedPage.getAttachedMedia().isEmpty());
         assertEquals("Invalid last contributor.", "me", updatedPage.getLastContributor());
         assertTrue("Invalid published.", updatedPage.isPublished());

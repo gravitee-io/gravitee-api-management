@@ -17,11 +17,7 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageMedia;
-import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.PageSource;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -84,7 +80,12 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(findApiPage.getMetadata()).thenReturn(metadata);
 
         when(findApiPage.isHomepage()).thenReturn(true);
-        when(findApiPage.getExcludedGroups()).thenReturn(asList("grp1", "grp2"));
+        when(findApiPage.isExcludedAccessControls()).thenReturn(true);
+        when(findApiPage.getAccessControls()).thenReturn(new HashSet<>(asList(
+            new AccessControl("grp1", "GROUP"),
+            new AccessControl("grp2", "GROUP"),
+            new AccessControl("role1", "ROLE")
+        )));
         when(findApiPage.getAttachedMedia()).thenReturn(asList(
                 new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
                 new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L))));
@@ -174,7 +175,14 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         when(updatePageAfter.getCreatedAt()).thenReturn(new Date(1486772200000L));
         when(updatePageAfter.getParentId()).thenReturn("parent-123");
         when(updatePageAfter.isHomepage()).thenReturn(true);
-        when(updatePageAfter.getExcludedGroups()).thenReturn(Collections.singletonList("excluded"));
+
+        when(updatePageAfter.isExcludedAccessControls()).thenReturn(true);
+        when(updatePageAfter.getAccessControls()).thenReturn(new HashSet<>(asList(
+            new AccessControl("grp1", "GROUP"),
+            new AccessControl("grp2", "GROUP"),
+            new AccessControl("role1", "ROLE")
+        )));
+
         when(updatePageAfter.getAttachedMedia()).thenReturn(Collections.singletonList(new PageMedia("media_id", "media_name", new Date(1586771200000L))));
         when(updatePageAfter.getLastContributor()).thenReturn("me");
         when(updatePageAfter.isPublished()).thenReturn(true);
@@ -193,6 +201,7 @@ public class PageRepositoryMock extends AbstractRepositoryMock<PageRepository> {
         metadata.put("edit_url", "url");
         metadata.put("size", "10");
         when(updatePageAfter.getMetadata()).thenReturn(metadata);
+
         when(pageRepository.findById("updatePage")).thenReturn(of(updatePageBefore), of(updatePageAfter));
 
         when(pageRepository.update(argThat(o -> o != null && o.getId().equals("updatePage")))).thenReturn(updatePageAfter);
