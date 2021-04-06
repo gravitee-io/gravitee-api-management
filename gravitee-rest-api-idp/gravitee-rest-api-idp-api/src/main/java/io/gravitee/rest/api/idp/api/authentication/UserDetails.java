@@ -20,10 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -40,6 +37,7 @@ public class UserDetails extends User implements org.springframework.security.co
     private String sourceId;
     private boolean isPrimaryOwner;
     private List<UserDetailRole> roles;
+    private Map<String, Set<String>> groupsByEnvironment;
     private String username;
     private byte[] picture;
     private boolean firstLogin;
@@ -184,6 +182,14 @@ public class UserDetails extends User implements org.springframework.security.co
 
     public void setRoles(List<UserDetailRole> roles) {
         this.roles = roles;
+    }
+
+    public Map<String, Set<String>> getGroupsByEnvironment() {
+        return groupsByEnvironment;
+    }
+
+    public void setGroupsByEnvironment(Map<String, Set<String>> groupsByEnvironment) {
+        this.groupsByEnvironment = groupsByEnvironment;
     }
 
     public boolean isFirstLogin() {

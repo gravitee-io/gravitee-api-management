@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
@@ -198,6 +199,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected SearchEngineService searchEngineService;
+
+    @Autowired
+    protected GroupRepository groupRepository;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -436,6 +440,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public SearchEngineService searchEngineService() {
             return mock(SearchEngineService.class);
+        }
+
+        @Bean
+        public GroupRepository groupRepository() {
+            return mock(GroupRepository.class);
         }
     }
 }
