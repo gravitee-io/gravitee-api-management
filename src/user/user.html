@@ -31,34 +31,40 @@
       </md-card-title-media>
     </md-card-title>
     <md-card-content>
-      <div layout="row" layout-align="start center">
-        <ng-md-icon flex="10" icon="person"></ng-md-icon>
-        <md-input-container>
-          <label>Firstname</label>
-          <input ng-model="$ctrl.user.firstname" type="text" ng-required="$ctrl.isInternalUser()" ng-disabled="!$ctrl.isInternalUser()">
-        </md-input-container>
-      </div>
-      <div layout="row" layout-align="start center">
-        <ng-md-icon flex="10" icon="person" ></ng-md-icon>
-        <md-input-container>
-          <label>Lastname</label>
-          <input ng-model="$ctrl.user.lastname" type="text" ng-required="$ctrl.isInternalUser()" ng-disabled="!$ctrl.isInternalUser()">
-        </md-input-container>
-      </div>
-      <div layout="row" layout-align="start center">
-        <ng-md-icon flex="10" icon="contact_mail"></ng-md-icon>
-        <md-input-container>
-          <label>Email</label>
-          <input ng-model="$ctrl.user.email" type="text" ng-required="$ctrl.isInternalUser()" ng-disabled="!$ctrl.isInternalUser()">
-        </md-input-container>
-      </div>
-      <div layout="row" layout-align="start center">
-        <ng-md-icon flex="10" icon="lock">
-          <md-tooltip>
-            <span ng-repeat="auth in $ctrl.user.authorities">{{auth.authority}}{{$last ? '' : ',&nbsp'}}</span>
-          </md-tooltip>
-        </ng-md-icon>
-        <label ng-repeat="role in $ctrl.user.roles">{{"[" + role.scope + "]&nbsp;" + role.name}}{{$last ? '' : '&nbsp;-&nbsp;'}}</label>
+      <div layout="column">
+        <div layout="row" layout-align="start center">
+          <ng-md-icon flex="10" icon="person"></ng-md-icon>
+          <md-input-container>
+            <label>Firstname</label>
+            <input ng-model="$ctrl.user.firstname" type="text" ng-required="$ctrl.isInternalUser()" ng-disabled="!$ctrl.isInternalUser()">
+          </md-input-container>
+        </div>
+        <div layout="row" layout-align="start center">
+          <ng-md-icon flex="10" icon="person" ></ng-md-icon>
+          <md-input-container>
+            <label>Lastname</label>
+            <input ng-model="$ctrl.user.lastname" type="text" ng-required="$ctrl.isInternalUser()" ng-disabled="!$ctrl.isInternalUser()">
+          </md-input-container>
+        </div>
+        <div layout="row" layout-align="start center">
+          <ng-md-icon flex="10" icon="contact_mail"></ng-md-icon>
+          <md-input-container>
+            <label>Email</label>
+            <input ng-model="$ctrl.user.email" type="text" ng-required="$ctrl.isInternalUser()" ng-disabled="!$ctrl.isInternalUser()">
+          </md-input-container>
+        </div>
+        <div layout="row" layout-align="start center">
+          <ng-md-icon flex="10" icon="lock">
+            <md-tooltip>
+              <span ng-repeat="auth in $ctrl.user.authorities">{{auth.authority}}{{$last ? '' : ',&nbsp'}}</span>
+            </md-tooltip>
+          </ng-md-icon>
+          <label ng-repeat="role in $ctrl.user.roles">{{"[" + role.scope + "]&nbsp;" + role.name}}{{$last ? '' : '&nbsp;-&nbsp;'}}</label>
+        </div>
+        <div layout="row" layout-align="start center">
+          <ng-md-icon flex="10" icon="group"></ng-md-icon>
+          <label>{{$ctrl.groups}}</label>
+        </div>
       </div>
 
       <div layout="row" ng-if="$ctrl.fields && $ctrl.fields.length > 0" ng-repeat="field in $ctrl.fields">

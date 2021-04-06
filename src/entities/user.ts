@@ -23,6 +23,7 @@ export class User {
   public email: string;
   public source: string;
   public roles: any[];
+  public groupsByEnvironment: any[];
   public primaryOwner: boolean;
   public userPermissions: string[];
   public userApiPermissions: string[];

@@ -4,6 +4,11 @@ $userImageSize: 160px;
   ng-md-icon {
     top: -5px;
   }
+
+  md-input-container {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
 }
 
 .gravitee-user-token {

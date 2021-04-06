@@ -30,6 +30,7 @@ class UserController {
   private tokens: Array<any>;
 
   private fields: any[] = [];
+  private groups: string = '';
 
   constructor(
     private UserService: UserService,
@@ -52,6 +53,21 @@ class UserController {
       this.TokenService.list().then(response => {
         this.tokens = response.data;
       });
+      if (this.user.groupsByEnvironment) {
+        let groupsByEnvironmentKeys = Object.keys(this.user.groupsByEnvironment);
+        if (groupsByEnvironmentKeys.length === 1) {
+          this.groups = Object.values(this.user.groupsByEnvironment)[0].join(' - ');
+        } else {
+          groupsByEnvironmentKeys.forEach((env, i) => {
+            this.groups += '[' + env + '] ' + this.user.groupsByEnvironment[env].join(' / ');
+            if (!this.user.groupsByEnvironment[env].length || (groupsByEnvironmentKeys.length - 1) !== i) {
+              this.groups += ' - ';
+            }
+          });
+        }
+      } else {
+        this.groups = '-';
+      }
     }
   }
 
