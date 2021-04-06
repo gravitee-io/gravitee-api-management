@@ -34,9 +34,16 @@
 
     <properties>
         <gravitee-common.version>1.18.0</gravitee-common.version>
+        <gravitee-node-api.version>1.12.0-SNAPSHOT</gravitee-node-api.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-api</artifactId>
+            <version>${gravitee-node-api.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
