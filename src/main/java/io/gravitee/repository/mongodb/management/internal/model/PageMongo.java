@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -44,7 +45,8 @@ public class PageMongo extends Auditable {
 	private PageSourceMongo source;
 	private Map<String, String> configuration;
 	private boolean homepage;
-	private List<String> excludedGroups;
+	private boolean excludedAccessControls;
+	private Set<AccessControlMongo> accessControls;
 	private List<PageMediaMongo> attachedMedia;
     private String parentId;
 	private Map<String, String> metadata;
@@ -154,15 +156,23 @@ public class PageMongo extends Auditable {
 		this.homepage = homepage;
 	}
 
-	public List<String> getExcludedGroups() {
-		return excludedGroups;
+	public boolean isExcludedAccessControls() {
+		return excludedAccessControls;
 	}
 
-	public void setExcludedGroups(List<String> excludedGroups) {
-		this.excludedGroups = excludedGroups;
+	public void setExcludedAccessControls(boolean excludedAccessControls) {
+		this.excludedAccessControls = excludedAccessControls;
 	}
 
-    public String getParentId() { return parentId; }
+	public Set<AccessControlMongo> getAccessControls() {
+		return accessControls;
+	}
+
+	public void setAccessControls(Set<AccessControlMongo> accessControls) {
+		this.accessControls = accessControls;
+	}
+
+	public String getParentId() { return parentId; }
 
     public void setParentId(String parentId) { this.parentId = parentId; }
 
@@ -228,7 +238,8 @@ public class PageMongo extends Auditable {
 				", source=" + source +
 				", configuration=" + configuration +
 				", homepage=" + homepage +
-				", excludedGroups=" + excludedGroups +
+				", excludedAccessControls=" + excludedAccessControls +
+				", accessControls=" + accessControls +
 				", attachedMedia=" + attachedMedia +
 				", parentId='" + parentId + '\'' +
 				", metadata=" + metadata +

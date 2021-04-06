@@ -19,10 +19,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageMedia;
-import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.PageSource;
+import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.mongodb.management.internal.model.AccessControlMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageMediaMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
@@ -35,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -112,7 +111,8 @@ public class MongoPageRepository implements PageRepository {
             pageMongo.setPublished(page.isPublished());
             pageMongo.setVisibility(page.getVisibility());
             pageMongo.setHomepage(page.isHomepage());
-            pageMongo.setExcludedGroups(page.getExcludedGroups());
+            pageMongo.setExcludedAccessControls(page.isExcludedAccessControls());
+            pageMongo.setAccessControls(convertACL(page.getAccessControls()));
             if (page.getAttachedMedia() != null) {
                 pageMongo.setAttachedMedia(convert(page.getAttachedMedia()));
             } else {
@@ -138,6 +138,20 @@ public class MongoPageRepository implements PageRepository {
         }
     }
 
+    private Set<AccessControlMongo> convertACL(Set<AccessControl> accessControls) {
+        if (accessControls != null) {
+            return accessControls.stream().map(this::convert).collect(Collectors.toSet());
+        }
+        return null;
+    }
+
+    private AccessControlMongo convert(AccessControl accessControl) {
+        AccessControlMongo accessControlMongo = new AccessControlMongo();
+        accessControlMongo.setReferenceId(accessControl.getReferenceId());
+        accessControlMongo.setReferenceType(accessControl.getReferenceType());
+        return accessControlMongo;
+    }
+
     @Override
     public void delete(String pageId) throws TechnicalException {
         try {
@@ -153,7 +167,7 @@ public class MongoPageRepository implements PageRepository {
         try {
             return internalPageRepo.findMaxPageReferenceIdAndReferenceTypeOrder(referenceId, referenceType.name());
         } catch (Exception e) {
-            logger.error("An error occured when searching max order page for reference [{}, {}]", referenceId,referenceType, e);
+            logger.error("An error occured when searching max order page for reference [{}, {}]", referenceId, referenceType, e);
             throw new TechnicalException("An error occured when searching max order page for reference");
         }
     }
@@ -179,13 +193,13 @@ public class MongoPageRepository implements PageRepository {
 
     private List<PageMediaMongo> convert(List<PageMedia> attachedMedia) {
         return attachedMedia.stream()
-                .map(pageMedia -> {
-                    PageMediaMongo pmm = new PageMediaMongo();
-                    pmm.setMediaHash(pageMedia.getMediaHash());
-                    pmm.setMediaName(pageMedia.getMediaName());
-                    pmm.setAttachedAt(pageMedia.getAttachedAt());
-                    return pmm;
-                })
-                .collect(Collectors.toList());
+            .map(pageMedia -> {
+                PageMediaMongo pmm = new PageMediaMongo();
+                pmm.setMediaHash(pageMedia.getMediaHash());
+                pmm.setMediaName(pageMedia.getMediaName());
+                pmm.setAttachedAt(pageMedia.getAttachedAt());
+                return pmm;
+            })
+            .collect(Collectors.toList());
     }
 }
