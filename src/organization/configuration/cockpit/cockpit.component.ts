@@ -50,6 +50,12 @@ const CockpitComponent: ng.IComponentOptions = {
           this.icon = 'warning';
           this.message = 'No luck!';
           this.subMessage = `Seems that your installation is connected to ${cockpitLink}, but has been rejected...`;
+
+        } else if (installation.additionalInformation.COCKPIT_INSTALLATION_STATUS === 'DELETED') {
+          // REJECTED
+          this.icon = 'gps_off';
+          this.message = 'Installation unlinked!';
+          this.subMessage = `Seems that your installation is connected to ${cockpitLink}, but is not linked anymore...`;
         }
 
         document.querySelector('.gv-cockpit_submessage').innerHTML = this.subMessage;
