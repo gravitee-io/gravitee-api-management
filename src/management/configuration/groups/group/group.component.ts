@@ -198,8 +198,8 @@ const GroupComponent: ng.IComponentOptions = {
       }).then( (members) => {
         if (members) {
           GroupService.addOrUpdateMember(this.group.id, members).then((response) => {
-              NotificationService.show('Member(s) successfully added');
-              $state.reload();
+            NotificationService.show('Member(s) successfully added');
+            $state.reload();
           });
         }
       }, () => {

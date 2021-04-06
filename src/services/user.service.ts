@@ -116,7 +116,6 @@ class UserService {
 
   current(): ng.IPromise<User> {
     let that = this;
-
     if (!this.currentUser || !this.currentUser.authenticated) {
       const promises: ng.IPromise<IHttpResponse<any>>[] = [this.$http.get(`${this.Constants.org.baseURL}/user/`, {
         silentCall: true,
