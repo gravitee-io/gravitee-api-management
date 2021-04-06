@@ -1,0 +1,29 @@
+[
+  {
+    "id": "nodeMonitoring1",
+    "nodeId": "nodeId1",
+    "type": "NODE_INFOS",
+    "payload": "{}",
+    "createdAt": 1617667200000,
+    "updatedAt": 1617667200000,
+    "evaluatedAt": 1617667200000
+  },
+  {
+    "id": "nodeMonitoring2",
+    "nodeId": "nodeId1",
+    "type": "MONITOR",
+    "payload": "{}",
+    "createdAt": 1617753600000,
+    "updatedAt": 1617753600000,
+    "evaluatedAt": 1617753600000
+  },
+  {
+    "id": "nodeMonitoring3",
+    "nodeId": "nodeId1",
+    "type": "HEALTH_CHECK",
+    "payload": "{}",
+    "createdAt": 1617840000000,
+    "updatedAt": 1617840000000,
+    "evaluatedAt": 1617840000000
+  }
+]

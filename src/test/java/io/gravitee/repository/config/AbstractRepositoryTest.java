@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.config;
 
+import io.gravitee.node.api.Monitoring;
+import io.gravitee.node.api.NodeMonitoringRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.model.*;
@@ -151,8 +153,10 @@ public abstract class AbstractRepositoryTest {
     protected TicketRepository ticketRepository;
     @Inject
     protected InstallationRepository installationRepository;
+    @Inject
+    protected NodeMonitoringRepository nodeMonitoringRepository;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     protected abstract String getTestCasesPath();
 
@@ -315,9 +319,12 @@ public abstract class AbstractRepositoryTest {
         else if( object instanceof Installation) {
             installationRepository.create((Installation) object);
         }
+        else if( object instanceof Monitoring) {
+            nodeMonitoringRepository.create((Monitoring) object);
+        }
     }
 
-    private Class getClassFromFileName(final String baseName) {
+    protected Class getClassFromFileName(final String baseName) {
         final String className = capitalize(baseName.substring(0, baseName.length() - 1));
         try {
             return forName(MODEL_PACKAGE + className);

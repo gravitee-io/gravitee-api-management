@@ -256,4 +256,9 @@ public class MockTestRepositoryConfiguration {
     public InstallationRepositoryMock installationRepositoryMock() {
         return new InstallationRepositoryMock();
     }
+
+    @Bean
+    public NodeMonitoringRepositoryMock nodeMonitoringRepositoryMock() {
+        return new NodeMonitoringRepositoryMock();
+    }
 }
