@@ -91,7 +91,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "organization_domain_restrictions",
             "parameters",
             "pages",
-            "page_excluded_groups",
+            "page_acl",
             "page_attached_media",
             "page_configuration",
             "page_revisions",
