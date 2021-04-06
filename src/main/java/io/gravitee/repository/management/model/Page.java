@@ -15,10 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -46,7 +43,8 @@ public class Page {
 	private Date createdAt;
 	private Date updatedAt;
 	private String parentId;
-	private List<String> excludedGroups;
+	private boolean excludedAccessControls;
+	private Set<AccessControl> accessControls;
 	private Map<String, String> metadata;
 	private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
 	private List<PageMedia> attachedMedia;
@@ -78,7 +76,7 @@ public class Page {
 	public String getType() {
 		return type;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -86,7 +84,7 @@ public class Page {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	public void setType(String type) {
 		this.type = type;
 	}
@@ -106,7 +104,7 @@ public class Page {
 	public void setLastContributor(String lastContributor) {
 		this.lastContributor = lastContributor;
 	}
-	
+
 	public int getOrder() {
 		return order;
 	}
@@ -163,14 +161,6 @@ public class Page {
 		this.homepage = homepage;
 	}
 
-	public List<String> getExcludedGroups() {
-		return excludedGroups;
-	}
-
-	public void setExcludedGroups(List<String> excludedGroups) {
-		this.excludedGroups = excludedGroups;
-	}
-
 	public String getParentId() { return parentId; }
 
 	public void setParentId(String parentId) { this.parentId = parentId; }
@@ -207,13 +197,29 @@ public class Page {
 		this.visibility = visibility;
 	}
 
+	public void setExcludedAccessControls(boolean excludedAccessControls) {
+		this.excludedAccessControls = excludedAccessControls;
+	}
+
+	public boolean isExcludedAccessControls() {
+		return excludedAccessControls;
+	}
+
+	public Set<AccessControl> getAccessControls() {
+		return accessControls;
+	}
+
+	public void setAccessControls(Set<AccessControl> accessControls) {
+		this.accessControls = accessControls;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Page page = (Page) o;
-		return Objects.equals(id, page.id) && 
-		        Objects.equals(referenceId, page.referenceId) && 
+		return Objects.equals(id, page.id) &&
+		        Objects.equals(referenceId, page.referenceId) &&
 		        referenceType == page.referenceType ;
 	}
 
@@ -241,7 +247,8 @@ public class Page {
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
 				", parentId='" + parentId + '\'' +
-				", excludedGroups=" + excludedGroups +
+				", excludedAccessControls=" + excludedAccessControls +
+				", accessControlList=" + accessControls +
 				", metadata=" + metadata +
 				", attachedMedia=" + attachedMedia +
 				'}';
