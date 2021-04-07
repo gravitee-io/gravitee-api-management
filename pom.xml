@@ -33,7 +33,7 @@
     <name>Gravitee.io Rest APIs</name>
 
     <properties>
-        <gravitee-node.version>1.9.0</gravitee-node.version>
+        <gravitee-node.version>1.12.0-SNAPSHOT</gravitee-node.version>
         <spring.version>5.2.5.RELEASE</spring.version>
         <gravitee-common.version>1.20.0</gravitee-common.version>
         <gravitee-definition.version>1.27.0</gravitee-definition.version>
@@ -46,8 +46,8 @@
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
         <gravitee-notifier-api.version>1.2.1</gravitee-notifier-api.version>
         <gravitee-resource-oauth2-provider-api.version>1.3.0</gravitee-resource-oauth2-provider-api.version>
-        <gravitee-cockpit-api.version>1.3.0</gravitee-cockpit-api.version>
         <gravitee-resource-cache-provider-api.version>1.0.0-SNAPSHOT</gravitee-resource-cache-provider-api.version>
+        <gravitee-cockpit-api.version>1.4.0-SNAPSHOT</gravitee-cockpit-api.version>
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
         <spring.security.version>5.3.1.RELEASE</spring.security.version>

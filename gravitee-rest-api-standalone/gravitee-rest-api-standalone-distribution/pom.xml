@@ -117,22 +117,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.gravitee.node.services</groupId>
-			<artifactId>gravitee-node-services-healthcheck</artifactId>
-			<version>${gravitee-node.version}</version>
-			<type>zip</type>
-			<scope>runtime</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>io.gravitee.node.services</groupId>
-			<artifactId>gravitee-node-services-monitoring</artifactId>
-			<version>${gravitee-node.version}</version>
-			<type>zip</type>
-			<scope>runtime</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>io.gravitee.rest.api.services</groupId>
 			<artifactId>gravitee-rest-api-services-dictionary</artifactId>
 			<version>${project.version}</version>
@@ -198,18 +182,6 @@
 									<groupId>io.gravitee.rest.api.services</groupId>
 									<artifactId>gravitee-rest-api-services-dynamic-properties</artifactId>
 									<version>${project.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.node.services</groupId>
-									<artifactId>gravitee-node-services-healthcheck</artifactId>
-									<version>${gravitee-node.version}</version>
-									<type>zip</type>
-								</artifactItem>
-								<artifactItem>
-									<groupId>io.gravitee.node.services</groupId>
-									<artifactId>gravitee-node-services-monitoring</artifactId>
-									<version>${gravitee-node.version}</version>
 									<type>zip</type>
 								</artifactItem>
 								<artifactItem>
