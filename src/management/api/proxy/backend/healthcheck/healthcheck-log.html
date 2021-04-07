@@ -49,8 +49,8 @@
 
 <div class="log-table" layout="row" layout-padding>
 
-  <div layout="row" layout-padding flex="45" style="background-color: #f1f8e9; border: 1px solid #dcedc8;">
-    <div flex="10" layout="row" layout-align="center center" style="background-color: #dcedc8;">
+  <div layout="row" layout-padding flex="45" class="gv-log-response-panel">
+    <div flex="10" layout="row" layout-align="center center">
       <span class="vertical-text log-header" style="text-align: center;">REQUEST</span>
     </div>
 
@@ -102,8 +102,8 @@
         </span>
   </div>
 
-  <div layout="row" layout-padding flex="45" style="background-color: #e1f5fe; margin-top:3px; border: 1px solid #b3e5fc;">
-    <div flex="10" layout="row" layout-align="center center" style="background-color: #b3e5fc;">
+  <div layout="row" layout-padding flex="45" ng-class="{'gv-log-response-panel-{{healthCheckLogCtrl.log.response.status / 100 | number:0}}': true}">
+    <div flex="10" layout="row" layout-align="center center">
       <span class="vertical-text log-header" style="text-align: center;">RESPONSE</span>
     </div>
 
