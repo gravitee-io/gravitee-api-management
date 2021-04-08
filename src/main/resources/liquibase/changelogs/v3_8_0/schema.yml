@@ -20,3 +20,18 @@ databaseChangeLog:
                   type: nclob
                   constraints:
                     nullable: true
+
+        - createTable:
+            tableName: ${gravitee_prefix}node_monitoring
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: node_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: payload, type: nclob, constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: { name: evaluated_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+              - addPrimaryKey:
+                  constraintName: pk_${gravitee_prefix}node_monitoring
+                  columnNames: id
