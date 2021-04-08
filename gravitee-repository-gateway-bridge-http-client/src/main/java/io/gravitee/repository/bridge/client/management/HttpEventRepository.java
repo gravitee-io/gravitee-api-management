@@ -43,13 +43,13 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
     @Override
     public Event create(Event event) throws TechnicalException {
         return blockingGet(post("/events", BodyCodec.json(Event.class))
-                .send(event));
+                .send(event)).payload();
     }
 
     @Override
     public Event update(Event event) throws TechnicalException {
         return blockingGet(put("/events/" + event.getId(), BodyCodec.json(Event.class))
-                .send(event));
+                .send(event)).payload();
     }
 
     @Override
@@ -63,7 +63,7 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
             return blockingGet(post("/events/_search", BodyCodecs.page(Event.class))
                     .addQueryParam("page", Integer.toString(pageable.pageNumber()))
                     .addQueryParam("size", Integer.toString(pageable.pageSize()))
-                    .send(filter));
+                    .send(filter)).payload();
         } catch (TechnicalException te) {
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);
@@ -74,7 +74,7 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
     public List<Event> search(EventCriteria filter) {
         try {
             return blockingGet(post("/events/_search", BodyCodecs.list(Event.class))
-                    .send(filter));
+                    .send(filter)).payload();
         } catch (TechnicalException te) {
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);

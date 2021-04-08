@@ -142,6 +142,13 @@ public class BridgeService  extends AbstractService {
             DictionariesHandler dictionariesHandler = new DictionariesHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(dictionariesHandler);
             bridgeRouter.get("/dictionaries").handler(dictionariesHandler::findAll);
+
+            // Node Monitoring handler
+            NodeMonitoringHandler nodeMonitoringHandler = new NodeMonitoringHandler();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(nodeMonitoringHandler);
+            bridgeRouter.post("/node/monitoring").handler(nodeMonitoringHandler::create);
+            bridgeRouter.put("/node/monitoring").handler(nodeMonitoringHandler::update);
+            bridgeRouter.get("/node/monitoring").handler(nodeMonitoringHandler::findByNodeIdAndType);
         }
     }
 

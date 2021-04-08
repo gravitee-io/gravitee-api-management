@@ -42,37 +42,43 @@ public abstract class AbstractHandler {
     protected <T> void handleResponse(final RoutingContext ctx, AsyncResult<T> result) {
         final HttpServerResponse response = ctx.response();
 
-        if (result.succeeded()) {
-            T data = result.result();
+        try {
+            if (result.succeeded()) {
+                T data = result.result();
 
-            final Class<?> dataClass = data.getClass();
+                final Class<?> dataClass = data.getClass();
 
-            if (Optional.class.isAssignableFrom(dataClass) && data != null) {
-                Optional<T> opt = (Optional<T>) (data);
-                data = opt.orElse(null);
-            }
-
-            if (Collection.class.isAssignableFrom(dataClass) && data == null) {
-                data = (T) Collections.emptySet();
-            }
-
-            response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-            response.setStatusCode( (data != null) ? HttpStatusCode.OK_200 : HttpStatusCode.NOT_FOUND_404);
-            response.setChunked(true);
-
-            Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            try {
-                if (data != null) {
-                    response.write(Json.prettyMapper.writeValueAsString(data));
+                if (Optional.class.isAssignableFrom(dataClass) && data != null) {
+                    Optional<T> opt = (Optional<T>) (data);
+                    data = opt.orElse(null);
                 }
 
-                response.end();
-            } catch (JsonProcessingException jpe) {
-                LOGGER.error("Unable to transform data object to JSON", jpe);
+                if (Collection.class.isAssignableFrom(dataClass) && data == null) {
+                    data = (T) Collections.emptySet();
+                }
+
+                response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+                response.setStatusCode((data != null) ? HttpStatusCode.OK_200 : HttpStatusCode.NOT_FOUND_404);
+                response.setChunked(true);
+
+                Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                try {
+                    if (data != null) {
+                        response.write(Json.prettyMapper.writeValueAsString(data));
+                    }
+
+                    response.end();
+                } catch (JsonProcessingException jpe) {
+                    LOGGER.error("Unable to transform data object to JSON", jpe);
+                    response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
+                    response.end(jpe.getMessage());
+                }
+            } else {
+                LOGGER.error("Unexpected error from the bridge", result.cause());
                 response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-                response.end(jpe.getMessage());
+                response.end(result.cause().getMessage());
             }
-        } else {
+        }  catch (Exception ex) {
             LOGGER.error("Unexpected error from the bridge", result.cause());
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             response.end(result.cause().getMessage());

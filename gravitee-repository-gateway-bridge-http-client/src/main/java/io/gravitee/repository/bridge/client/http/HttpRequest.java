@@ -81,12 +81,12 @@ public class HttpRequest<T> {
         return this;
     }
 
-    public Future<T> send() {
+    public Future<io.gravitee.repository.bridge.client.http.HttpResponse<T>> send() {
         return send(null);
     }
 
-    public Future<T> send(Object payload) {
-        Future<T> future = Future.future();
+    public Future<io.gravitee.repository.bridge.client.http.HttpResponse<T>> send(Object payload) {
+        Future<io.gravitee.repository.bridge.client.http.HttpResponse<T>> future = Future.future();
 
         io.vertx.ext.web.client.HttpRequest<T> request = client
                 .request(method, url)
@@ -99,10 +99,9 @@ public class HttpRequest<T> {
         Handler<AsyncResult<HttpResponse<T>>> handler = event -> {
             if (event.succeeded()) {
                 HttpResponse<T> response = event.result();
-                // A 200 status response is always expected from the remote bridge. If it's not the case, we have to
-                // consider that something wrong occurs.
-                if (response.statusCode() == HttpStatusCode.OK_200) {
-                    future.complete(response.body());
+                if (response.statusCode() < HttpStatusCode.INTERNAL_SERVER_ERROR_500) {
+                    future.complete(new io.gravitee.repository.bridge.client.http.HttpResponse<>(
+                            response.statusCode(), response.headers(), response.body()));
                 } else {
                     future.fail(new TechnicalException("Unexpected response from the bridge server while calling " +
                             "url[" +  url + "] status [" + response.statusCode()+ "]"));

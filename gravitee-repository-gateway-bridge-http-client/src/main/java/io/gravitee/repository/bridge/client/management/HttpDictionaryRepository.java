@@ -34,7 +34,7 @@ public class HttpDictionaryRepository extends AbstractRepository implements Dict
     @Override
     public Set<Dictionary> findAll() throws TechnicalException {
         return blockingGet(get("/dictionaries", BodyCodecs.set(Dictionary.class))
-                .send());
+                .send()).payload();
     }
 
     @Override

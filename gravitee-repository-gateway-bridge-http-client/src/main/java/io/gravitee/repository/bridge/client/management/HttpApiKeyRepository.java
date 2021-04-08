@@ -36,7 +36,7 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     @Override
     public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
         return blockingGet(get("/keys/" + apiKey, BodyCodecs.optional(ApiKey.class))
-                .send());
+                .send()).payload();
     }
 
     @Override
@@ -62,6 +62,6 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     @Override
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
         return blockingGet(post("/keys/_search", BodyCodecs.list(ApiKey.class))
-                .send(filter));
+                .send(filter)).payload();
     }
 }

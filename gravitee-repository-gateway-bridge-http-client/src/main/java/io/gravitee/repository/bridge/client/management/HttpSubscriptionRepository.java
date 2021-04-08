@@ -59,12 +59,12 @@ public class HttpSubscriptionRepository extends AbstractRepository implements Su
         return blockingGet(post("/subscriptions/_search", BodyCodecs.page(Subscription.class))
                 .addQueryParam("page", Integer.toString(pageable.pageNumber()))
                 .addQueryParam("size", Integer.toString(pageable.pageSize()))
-                .send(criteria));
+                .send(criteria)).payload();
     }
 
     @Override
     public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
         return blockingGet(post("/subscriptions/_search", BodyCodecs.list(Subscription.class))
-                .send(criteria));
+                .send(criteria)).payload();
     }
 }
