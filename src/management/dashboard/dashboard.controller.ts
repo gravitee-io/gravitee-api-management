@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
+import UserService from '../../services/user.service';
 
 class DashboardController {
   private selectedIndex;
@@ -21,11 +22,12 @@ class DashboardController {
 
   constructor(
     private $state: StateService,
+    private UserService: UserService,
     private Constants
   ) {
     'ngInject';
 
-    this.alertsEnabled = Constants.org.settings.alert.enabled;
+    this.alertsEnabled = Constants.org.settings.alert.enabled && UserService.isUserHasPermissions(['environment-alert-r']);
     if (this.$state.is('management.dashboard.alerts')) {
       this.selectedIndex = 3;
     } else if (this.$state.is('management.dashboard.analytics')) {
