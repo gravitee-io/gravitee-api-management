@@ -114,10 +114,22 @@ export class AuthService {
       tokenEndpoint: this.configurationService.get('baseURL') + '/auth/oauth2/' + provider.id,
       requireHttps: false,
       issuer: provider.tokenIntrospectionEndpoint,
-      logoutUrl: provider.userLogoutEndpoint + redirectUri,
+      logoutUrl: provider.userLogoutEndpoint,
+      postLogoutRedirectUri: redirectUri,
       scope: provider.scopes.join(' '),
       responseType: 'code',
       redirectUri,
+      /*
+       added because with our current OIDC configuration, we don't know the real issuer.
+       For example, with keycloak, the issuer is "https://[host]:[port]/auth/realms/[realm_id].
+       But in our configuration, we only have these endpoints:
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/token
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/token/introspect
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/auth
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/userinfo
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/logout
+       */
+      skipIssuerCheck: true,
     });
   }
 
