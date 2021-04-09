@@ -16,5 +16,6 @@ export interface ThemeLinks {
     backgroundImage?: string;
     logo?: string;
     optionalLogo?: string;
+    favicon?: string;
 }
 
