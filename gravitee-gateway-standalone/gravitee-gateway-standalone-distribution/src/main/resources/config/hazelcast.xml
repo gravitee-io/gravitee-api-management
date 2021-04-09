@@ -7,7 +7,8 @@
 
     <network>
         <join>
-            <!-- Multicast is disabled by default to avoid latency when starting gateway -->
+            <!-- Auto-detection and multicast are disabled by default to avoid latency when starting gateway -->
+            <auto-detection enabled="false"/>
             <multicast enabled="false" />
         </join>
     </network>
