@@ -70,6 +70,8 @@ public class MembershipRepositoryMock extends AbstractRepositoryMock<MembershipR
                 .thenReturn(singleton(m1));
         when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceType("user1", MembershipMemberType.USER, MembershipReferenceType.API))
                 .thenReturn(singleton(m1));
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndSource("user1", MembershipMemberType.USER, MembershipReferenceType.API, "myIdp"))
+                .thenReturn(singleton(m1));
         when(membershipRepository.findByMemberIdsAndMemberTypeAndReferenceType(asList("user2", "user3"), MembershipMemberType.USER, MembershipReferenceType.API))
                 .thenReturn(new HashSet<>(asList(m2, m3)));
         when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId("user1", MembershipMemberType.USER, MembershipReferenceType.API, API_OWNER_ROLE))

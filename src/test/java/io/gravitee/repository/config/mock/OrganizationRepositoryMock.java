@@ -21,12 +21,10 @@ import io.gravitee.repository.management.model.Organization;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.util.collections.Sets.newSet;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -77,5 +75,6 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         when(organizationRepository.findById("DEFAULT-ORG-findById")).thenReturn(of(orgFindById));
 
         when(organizationRepository.count()).thenReturn(3L);
+        when(organizationRepository.findAll()).thenReturn(Arrays.asList(orgCreate, orgUpdated, orgFindById));
     }
 }
