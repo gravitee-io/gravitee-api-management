@@ -50,6 +50,8 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
     public Document transform(UserEntity user) {
         Document doc = new Document();
 
+        doc.add(new StringField(FIELD_REFERENCE_TYPE, user.getReferenceType(), Field.Store.NO));
+        doc.add(new StringField(FIELD_REFERENCE_ID, user.getReferenceId(), Field.Store.NO));
         doc.add(new StringField(FIELD_ID, user.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
         if (user.getSource() != null) {

@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -56,9 +57,15 @@ public class PermissionServiceImpl extends AbstractService implements Permission
                 break;
             case ENVIRONMENT:
                 membershipReferenceType = MembershipReferenceType.ENVIRONMENT;
+                if (referenceId == null) {
+                    referenceId = GraviteeContext.getCurrentEnvironment();
+                }
                 break;
             case ORGANIZATION:
                 membershipReferenceType = MembershipReferenceType.ORGANIZATION;
+                if (referenceId == null) {
+                    referenceId = GraviteeContext.getCurrentOrganization();
+                }
                 break;
             default:
                 membershipReferenceType = null;

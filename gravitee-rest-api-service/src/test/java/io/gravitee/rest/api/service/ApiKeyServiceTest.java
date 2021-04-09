@@ -291,7 +291,7 @@ public class ApiKeyServiceTest {
 
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setApi(api.getId());
-        subscription.setStatus(SubscriptionStatus.ACCEPTED);
+        subscription.setStatus(SubscriptionStatus.PAUSED);
 
         // Stub
         when(apiKeyRepository.findById(API_KEY)).thenReturn(Optional.of(apiKey));

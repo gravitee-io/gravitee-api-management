@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -35,4 +37,11 @@ public interface OrganizationService {
     void delete(String organizationId);
     
     void initialize();
+
+    /**
+     * Find all existing organizations.
+     *
+     * @return the list of all organizations.
+     */
+    Collection<Organization> findAll();
 }

@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ROLE;
@@ -66,8 +67,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     @Autowired
     private AuditService auditService;
 
-    private Map<String, RoleEntity> apiPrimaryOwnersByOrganization = new HashMap<>();
-    private Map<String, RoleEntity> applicationPrimaryOwnersByOrganization = new HashMap<>();
+    private Map<String, RoleEntity> apiPrimaryOwnersByOrganization = new ConcurrentHashMap<>();
+    private Map<String, RoleEntity> applicationPrimaryOwnersByOrganization = new ConcurrentHashMap<>();
 
     @Override
     public RoleEntity findById(final String roleId) {

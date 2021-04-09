@@ -218,21 +218,6 @@ public class CurrentUserResource extends AbstractResource {
         return ok(userService.update(userEntity.getId(), user)).build();
     }
 
-    @POST
-    @Path("/subscribeNewsletter")
-    @ApiOperation(value = "Subscribe to the newsletter the authenticated user")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Updated user", response = UserEntity.class),
-            @ApiResponse(code = 400, message = "Invalid user profile"),
-            @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Response subscribeNewsletterToCurrentUser(@Valid @NotNull final String email) {
-        UserEntity userEntity = userService.findById(getAuthenticatedUser());
-        UpdateUserEntity user = new UpdateUserEntity(userEntity);
-        user.setNewsletter(true);
-        return ok(userService.update(userEntity.getId(), user, email)).build();
-    }
-
     @GET
     @Path("avatar")
     @ApiOperation(value = "Get user's avatar")
@@ -382,5 +367,10 @@ public class CurrentUserResource extends AbstractResource {
     @Path("/tokens")
     public TokensResource getTokensResource() {
         return resourceContext.getResource(TokensResource.class);
+    }
+
+    @Path("/newsletter")
+    public NewsletterResource getNewsletterResource() {
+        return resourceContext.getResource(NewsletterResource.class);
     }
 }

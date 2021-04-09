@@ -3842,6 +3842,10 @@ components:
               type: array
               items:
                 type: string
+            USER:
+              type: array
+              items:
+                type: string
         customFields:
           type: object
           description: Values for CustomUserFields
@@ -3864,6 +3868,10 @@ components:
         token:
           type: string
         state:
+          type: string
+        access_token:
+          type: string
+        id_token:
           type: string
     Category:
       properties:

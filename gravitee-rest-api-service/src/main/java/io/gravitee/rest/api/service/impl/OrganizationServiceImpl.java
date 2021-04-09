@@ -30,9 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -143,6 +142,16 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create default organization", ex);
             throw new TechnicalManagementException("An error occurs while trying to create default organization", ex);
+        }
+    }
+
+    @Override
+    public Collection<Organization> findAll() {
+        try {
+            return organizationRepository.findAll();
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to list all organizations", ex);
+            throw new TechnicalManagementException("An error occurs while trying to list all organizations", ex);
         }
     }
 }

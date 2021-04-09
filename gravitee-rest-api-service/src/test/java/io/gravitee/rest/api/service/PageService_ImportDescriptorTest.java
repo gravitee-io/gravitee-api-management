@@ -20,6 +20,7 @@ import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.ImportPageEntity;
@@ -117,6 +118,8 @@ public class PageService_ImportDescriptorTest {
         when(newPage.getId()).thenReturn(RandomString.generate());
         when(newPage.getSource()).thenReturn(ps);
         when(newPage.getType()).thenReturn("MARKDOWN");
+        when(newPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(newPage.getReferenceId()).thenReturn("envId");
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
         when(graviteeDescriptorService.read(anyString())).thenCallRealMethod();

@@ -136,8 +136,11 @@ public class PageService_AutoFetchTest {
     @Test
     public void shouldFetch_SourcePage_AutoFetch() throws Exception{
         PageSource pageSource = new PageSource();
+
         pageSource.setType("type");
         pageSource.setConfiguration("{\"autoFetch\": true, \"fetchCron\" : \"* * * * * *\"}");
+        when(mockPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(mockPage.getReferenceId()).thenReturn("envId");
         when(mockPage.getSource()).thenReturn(pageSource);
         when(mockPage.getUpdatedAt()).thenReturn(new Date(Instant
                 .now()

@@ -64,7 +64,7 @@ public class CategoryService_CreateTest {
     public void shouldCreateCategory() throws TechnicalException {
         NewCategoryEntity v1 = new NewCategoryEntity();
         v1.setName("v1");
-        when(mockCategoryRepository.create(any())).thenReturn(new Category());
+        when(mockCategoryRepository.create(argThat(cat -> cat.getCreatedAt() != null))).thenReturn(new Category());
         when(mockEnvironmentService.findById("DEFAULT")).thenReturn(new EnvironmentEntity());
         CategoryEntity category = categoryService.create(v1);
 

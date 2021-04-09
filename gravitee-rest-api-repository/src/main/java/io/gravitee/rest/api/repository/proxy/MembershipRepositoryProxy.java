@@ -73,6 +73,11 @@ public class MembershipRepositoryProxy extends AbstractProxy<MembershipRepositor
     }
 
     @Override
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String sourceId) throws TechnicalException {
+        return target.findByMemberIdAndMemberTypeAndReferenceTypeAndSource(memberId, memberType, referenceType, sourceId);
+    }
+
+    @Override
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String roleId) throws TechnicalException {
         return target.findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(memberId, memberType, referenceType, roleId);
     }

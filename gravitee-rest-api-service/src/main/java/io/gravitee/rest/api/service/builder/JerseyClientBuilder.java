@@ -129,17 +129,15 @@ public class JerseyClientBuilder {
     }
 
     private static Proxy buildProxy(Environment environment, String type) {
-
-        final String proxyHost = environment.getProperty("httpClient.proxy." + type + ".host", String.class, environment.getProperty("http.proxyHost"));
-        final Integer proxyPort = environment.getProperty("httpClient.proxy." + type + ".port", Integer.class, environment.getProperty("http.proxyPort", Integer.class, 3124));
-
-        Proxy.Type pType = Proxy.Type.HTTP;
-
-        if (useSockProxy(environment, type)) {
-            pType = Proxy.Type.SOCKS;
-        }
+        final String proxyHost = environment.getProperty("httpClient.proxy." + type + ".host", String.class);
+        final Integer proxyPort = environment.getProperty("httpClient.proxy." + type + ".port", Integer.class, 3124);
 
         if (proxyHost != null) {
+            Proxy.Type pType = Proxy.Type.HTTP;
+
+            if (useSockProxy(environment, type)) {
+                pType = Proxy.Type.SOCKS;
+            }
             return new Proxy(pType, new InetSocketAddress(proxyHost, proxyPort));
         }
 
