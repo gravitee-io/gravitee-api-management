@@ -32,8 +32,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
-import java.util.*;
 import java.util.Date;
+import java.util.*;
 import java.util.Map.Entry;
 
 import static io.gravitee.repository.jdbc.management.JdbcHelper.*;

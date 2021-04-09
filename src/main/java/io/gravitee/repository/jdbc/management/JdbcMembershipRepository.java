@@ -315,6 +315,25 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     }
 
     @Override
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String sourceId) throws TechnicalException {
+        LOGGER.debug("JdbcMembershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndSource({}, {}, {}, {})", memberId, memberType, referenceType, sourceId);
+        try {
+            final String query = "select * from " + this.tableName + " where member_id = ? and member_type = ? and reference_type = ? and source = ? ";
+            final List<Membership> memberships = jdbcTemplate.query(query
+                    , getOrm().getRowMapper()
+                    , memberId
+                    , memberType.name()
+                    , referenceType.name()
+                    , sourceId
+            );
+            return new HashSet<>(memberships);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find membership by user, source and membership type", ex);
+            throw new TechnicalException("Failed to find membership by user, source and membership type", ex);
+        }
+    }
+
+    @Override
     public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(String memberId,
             MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId)
             throws TechnicalException {
