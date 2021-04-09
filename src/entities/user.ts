@@ -55,10 +55,10 @@ export class User {
     if (!permissions || !this.userPermissions) {
       return false;
     }
-    return _.difference(permissions, this.userPermissions).length === 0 ||
-      _.difference(permissions, this.userEnvironmentPermissions).length === 0 ||
-      _.difference(permissions, this.userApiPermissions).length === 0 ||
-      _.difference(permissions, this.userApplicationPermissions).length === 0;
+
+    let allPermissions = _.concat(this.userPermissions, this.userEnvironmentPermissions, this.userApiPermissions, this.userApplicationPermissions);
+
+    return _.difference(permissions, allPermissions).length === 0 ;
   }
 
   isAdmin(): boolean {
