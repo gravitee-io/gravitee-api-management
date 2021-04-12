@@ -38,7 +38,7 @@ const MessagesComponent: ng.IComponentOptions = {
       const roles = _.sortBy(this.resolvedRoles, ['name']);
       this.recipients = [];
       if (this.resolvedApiId != null) {
-        this.recipients.push({name: 'API_SUBSCRIBERS', displayName: 'Api subscribers'});
+        this.recipients.push({name: 'API_SUBSCRIBERS', displayName: 'API subscribers'});
       }
 
       roles.forEach((role) => {
