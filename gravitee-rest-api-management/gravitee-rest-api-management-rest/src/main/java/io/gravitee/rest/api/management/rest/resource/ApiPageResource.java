@@ -23,18 +23,14 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
+import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
 
@@ -45,8 +41,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -106,10 +103,13 @@ public class ApiPageResource extends AbstractResource {
             }
             if (isDisplayable(apiEntity, pageEntity.isPublished(), pageEntity.getExcludedGroups())) {
                 if (pageEntity.getContentType() != null) {
+                    String content = pageEntity.getContent();
                     try {
-                        pageEntity.setMessages(pageService.validateSafeContent(pageEntity, api));
-                    } catch (SwaggerDescriptorException swaggerDescriptorException) {
-                        pageEntity.setMessages(Arrays.asList(swaggerDescriptorException.getMessage()));
+                        pageService.validateSafeContent(pageEntity, api);
+                    } catch (SwaggerDescriptorException contentException) {
+                        pageEntity.setMessages(singletonList(contentException.getMessage()));
+                    } finally {
+                        pageEntity.setContent(content);
                     }
                 }
                 return pageEntity;

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import freemarker.template.TemplateException;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.fetcher.api.*;
 import io.gravitee.plugin.core.api.PluginManager;
@@ -66,10 +67,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -79,6 +82,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE
 import static io.gravitee.repository.management.model.Page.AuditEvent.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -626,9 +630,17 @@ public class PageServiceImpl extends TransactionalService implements PageService
                 model.put("api", apiEntity);
             }
 
-            final String content = this.notificationTemplateService.resolveInlineTemplateWithParam(pageEntity.getId(), pageEntity.getContent(), model);
+            try {
+                String content = this.notificationTemplateService.resolveInlineTemplateWithParam(pageEntity.getId(), pageEntity.getContent(), model, false);
+                pageEntity.setContent(content);
+            } catch (TemplateProcessingException e) {
+                if (pageEntity.getMessages() == null) {
+                    pageEntity.setMessages(new ArrayList<>());
+                }
+               pageEntity.getMessages().add("Invalid expression or value is missing for " + e.getBlamedExpressionString());
+            }
 
-            pageEntity.setContent(content);
+
         }
     }
 
@@ -2083,8 +2095,10 @@ public class PageServiceImpl extends TransactionalService implements PageService
         if (pageEntity != null) {
             if (markdownSanitize && PageType.MARKDOWN.name().equals(pageEntity.getType())) {
                 this.transformWithTemplate(pageEntity, apiId);
+                if (!CollectionUtils.isEmpty(pageEntity.getMessages())) {
+                    return Arrays.asList(pageEntity.getMessages().toString());
+                }
                 HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(pageEntity.getContent());
-
                 if (!sanitizeInfos.isSafe()) {
                     throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
                 }

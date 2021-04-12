@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
+import freemarker.template.TemplateException;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
@@ -27,10 +28,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.*;
 
-import static io.gravitee.rest.api.service.notification.ApiHook.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

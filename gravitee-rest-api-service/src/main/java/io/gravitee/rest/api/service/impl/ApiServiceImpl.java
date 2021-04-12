@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import freemarker.template.TemplateException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpMethod;
@@ -2300,9 +2301,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         entities.forEach(entity -> {
             if (entity.getValue().contains("${")) {
                 String entityValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
-                    entity.getId() + entity.getUpdatedAt().toString(),
-                    entity.getValue(),
-                    model);
+                        entity.getId() + entity.getUpdatedAt().toString(),
+                        entity.getValue(),
+                        model);
                 entity.setValue(entityValue);
             }
         });

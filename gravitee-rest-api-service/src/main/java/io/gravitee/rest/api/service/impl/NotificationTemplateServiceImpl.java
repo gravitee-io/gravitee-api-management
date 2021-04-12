@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
 import io.gravitee.rest.api.service.notification.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -114,12 +115,12 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     }
 
     @Override
-    public String resolveInlineTemplateWithParam(String name, String inlineTemplate, Object params) {
-        return resolveInlineTemplateWithParam(name, new StringReader(inlineTemplate), params);
+    public String resolveInlineTemplateWithParam(String name, String inlineTemplate, Object params, boolean ignoreTplException) {
+        return resolveInlineTemplateWithParam(name, new StringReader(inlineTemplate), params, ignoreTplException);
     }
 
     @Override
-    public String resolveInlineTemplateWithParam(String name, Reader inlineTemplateReader, Object params) {
+    public String resolveInlineTemplateWithParam(String name, Reader inlineTemplateReader, Object params, boolean ignoreTplException) {
         Configuration orgFreemarkerConfiguration = getCurrentOrgConfiguration();
         try {
             Template template = new Template(name, inlineTemplateReader, orgFreemarkerConfiguration);
@@ -128,8 +129,12 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             LOGGER.warn("Error while creating template from reader:\n{}", e.getMessage());
             return "";
         } catch (TemplateException e) {
-            LOGGER.warn("Error while processing the inline reader:\n{}", e.getMessage());
-            return "";
+            if (ignoreTplException) {
+                LOGGER.warn("Error while processing the inline reader:\n{}", e.getMessage());
+                return "";
+            } else {
+                throw new TemplateProcessingException(e);
+            }
         }
     }
 

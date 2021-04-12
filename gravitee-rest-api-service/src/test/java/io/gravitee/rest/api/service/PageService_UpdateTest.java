@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import freemarker.template.TemplateException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
@@ -447,7 +448,7 @@ public class PageService_UpdateTest {
     }
 
     @Test(expected = PageContentUnsafeException.class)
-    public void shouldNotUpdateBecausePageContentUnsafeException() throws TechnicalException {
+    public void shouldNotUpdateBecausePageContentUnsafeException() throws TechnicalException, TemplateException {
 
         setField(pageService, "markdownSanitize", true);
 
@@ -457,11 +458,32 @@ public class PageService_UpdateTest {
         when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
         when(page1.getReferenceId()).thenReturn(API_ID);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any())).thenReturn(content);
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean())).thenReturn(content);
 
         pageService.update(PAGE_ID, existingPage);
 
         verify(pageRepository, never()).update(any());
+    }
+
+    @Test
+    public void shouldNotUpdateBecausePageContentTemplatingException() throws TechnicalException, TemplateException {
+
+        setField(pageService, "markdownSanitize", true);
+
+        String content = "<script />";
+        when(existingPage.getContent()).thenReturn(content);
+        when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
+        when(page1.getReferenceId()).thenReturn(API_ID);
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+
+        when(pageRepository.update(any())).thenReturn(page1);
+
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean())).thenThrow(new TemplateProcessingException(new TemplateException(null)));
+
+        pageService.update(PAGE_ID, existingPage);
+
+        verify(pageRepository).update(any());
     }
 
     @Test
