@@ -166,24 +166,21 @@
     gv-switch {
       display: block;
     }
-
-    .api-analytics-logging-configuration_form-details {
-      visibility: hidden;
-      max-height: 0;
-      opacity: 0;
-      transition: all 50ms ease-in-out;
-    }
-
   }
+}
 
-  .api-analytics-logging-configuration_enabled {
-    .api-analytics-logging-configuration_form-details {
-      visibility: visible;
-      opacity: 1;
-      max-height: none;
-      transition: all 350ms ease-in-out;
-    }
+.api-analytics-logging-configuration_form-details {
+  visibility: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: all 50ms ease-in-out;
+}
+
+.api-analytics-logging-configuration_enabled {
+  .api-analytics-logging-configuration_form-details {
+    visibility: visible;
+    opacity: 1;
+    max-height: none;
+    transition: all 350ms ease-in-out;
   }
-
-
 }
