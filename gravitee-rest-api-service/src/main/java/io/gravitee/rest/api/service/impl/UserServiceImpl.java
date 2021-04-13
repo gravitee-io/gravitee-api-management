@@ -1598,7 +1598,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
                                             MembershipReferenceType.ENVIRONMENT
                                             : MembershipReferenceType.ORGANIZATION,
                                     RoleScope.ENVIRONMENT == roleEntity.getScope() ?
-                                            GraviteeContext.getCurrentEnvironment()
+                                            GraviteeContext.getCurrentEnvironmentOrDefault()
                                             : GraviteeContext.getCurrentOrganization()),
                             new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
                             new MembershipService.MembershipRole(
