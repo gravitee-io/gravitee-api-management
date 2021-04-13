@@ -68,14 +68,15 @@ public class HttpApplicationRepository extends AbstractRepository implements App
     }
 
     @Override
-    public Set<Application> findByName(String partialName) throws TechnicalException {
+    public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses)
+            throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses)
+    public Set<Application> findByNameAndStatuses(String partialName, ApplicationStatus ...statuses)
             throws TechnicalException {
-        throw new IllegalStateException();
+        throw new TechnicalException();
     }
 
 }
