@@ -164,7 +164,7 @@ function apisProxyRouterConfig($stateProvider) {
       template: require('./backend/healthcheck/healthcheck.html')
     })
     .state('management.apis.detail.proxy.healthcheck.visualize', {
-      url: '?from&to',
+      url: '?from&to&page&size',
       template: require('./backend/healthcheck/healthcheck-visualize.html'),
       controller: 'ApiHealthCheckController',
       controllerAs: 'healthCheckCtrl',
@@ -182,6 +182,14 @@ function apisProxyRouterConfig($stateProvider) {
           dynamic: true
         },
         to: {
+          type: 'int',
+          dynamic: true
+        },
+        page: {
+          type: 'int',
+          dynamic: true
+        },
+        size: {
           type: 'int',
           dynamic: true
         }
