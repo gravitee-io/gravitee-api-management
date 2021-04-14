@@ -153,6 +153,7 @@
     "node-sass": "^4.14.1",
     "phantomjs-prebuilt": "^2.1.16",
     "postcss-loader": "^2.1.6",
+    "prettier": "^2.2.1",
     "protractor": "^5.4.3",
     "require-dir": "^1.2.0",
     "sass-loader": "^7.3.1",
@@ -183,16 +184,19 @@
     ]
   },
   "scripts": {
-    "test": "gulp test",
+    "build:prod": "gulp buildNoReg",
+    "compile": "gulp compile",
+    "lint": "gulp lint && npm run prettier",
+    "lint:fix": "gulp lint:fix && npm run prettier:fix",
+    "postinstall": "rm -rf node_modules/codemirror/mode/rpm/changes",
+    "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
+    "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
+    "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
     "serve": "gulp serve",
     "serve:demo": "gulp serve:demo",
     "serve:nightly": "gulp serve:nightly",
     "serve:prod": "node scripts/serve.js",
-    "test:auto": "gulp test:auto",
-    "build:prod": "gulp buildNoReg",
-    "lint": "gulp lint",
-    "lint:fix": "gulp lint:fix",
-    "compile": "gulp compile",
-    "postinstall": "rm -rf node_modules/codemirror/mode/rpm/changes"
+    "test": "gulp test",
+    "test:auto": "gulp test:auto"
   }
 }
