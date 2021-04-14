@@ -28,8 +28,8 @@ function DialogAddGroupMemberController(
   apiRoles: Role[],
   applicationRoles: Role[],
   canChangeDefaultApiRole,
-  canChangeDefaultApplicationRole
-  ) {
+  canChangeDefaultApplicationRole,
+) {
   'ngInject';
 
   this.group = group;
@@ -39,8 +39,8 @@ function DialogAddGroupMemberController(
   this.defaultApiRole = defaultApiRole;
   this.defaultApplicationRole = defaultApplicationRole;
   this.usersSelected = [];
-  this.defaultApiRole = (defaultApiRole) ? defaultApiRole : _.find(apiRoles, {default: true}).name;
-  this.defaultApplicationRole = (defaultApplicationRole) ? defaultApplicationRole : _.find(applicationRoles, {default: true}).name;
+  this.defaultApiRole = defaultApiRole ? defaultApiRole : _.find(apiRoles, { default: true }).name;
+  this.defaultApplicationRole = defaultApplicationRole ? defaultApplicationRole : _.find(applicationRoles, { default: true }).name;
 
   this.canChangeDefaultApiRole = canChangeDefaultApiRole;
   this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;
@@ -56,11 +56,11 @@ function DialogAddGroupMemberController(
       let membership = {
         id: member.id,
         reference: member.reference,
-        displayName: (!member.firstname || !member.lastname) ? member.username : (member.firstname + ' ' + member.lastname),
+        displayName: !member.firstname || !member.lastname ? member.username : member.firstname + ' ' + member.lastname,
         roles: {
           API: this.defaultApiRole,
-          APPLICATION: this.defaultApplicationRole
-        }
+          APPLICATION: this.defaultApplicationRole,
+        },
       };
 
       members.push(membership);
@@ -69,7 +69,7 @@ function DialogAddGroupMemberController(
   };
 
   this.invalid = () => {
-    return (!this.defaultApiRole && !this.defaultApplicationRole) || (this.usersSelected.length === 0);
+    return (!this.defaultApiRole && !this.defaultApplicationRole) || this.usersSelected.length === 0;
   };
 }
 

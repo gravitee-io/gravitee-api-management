@@ -22,39 +22,26 @@ module.exports = function (config) {
     autoWatch: true,
     logLevel: 'INFO',
     junitReporter: {
-      outputDir: 'test-reports'
+      outputDir: 'test-reports',
     },
-    browsers: [
-      'PhantomJS'
-    ],
-    frameworks: [
-      'jasmine',
-      'es6-shim'
-    ],
-    files: [
-      'node_modules/es6-shim/es6-shim.js',
-      conf.path.src('index.spec.js'),
-      conf.path.src('**/*.html')
-    ],
+    browsers: ['PhantomJS'],
+    frameworks: ['jasmine', 'es6-shim'],
+    files: ['node_modules/es6-shim/es6-shim.js', conf.path.src('index.spec.js'), conf.path.src('**/*.html')],
     preprocessors: {
-      [conf.path.src('index.spec.js')]: [
-        'webpack'
-      ],
-      [conf.path.src('**/*.html')]: [
-        'ng-html2js'
-      ]
+      [conf.path.src('index.spec.js')]: ['webpack'],
+      [conf.path.src('**/*.html')]: ['ng-html2js'],
     },
     ngHtml2JsPreprocessor: {
-      stripPrefix: `${conf.paths.src}/`
+      stripPrefix: `${conf.paths.src}/`,
     },
     reporters: ['progress', 'coverage'],
     coverageReporter: {
       type: 'html',
-      dir: 'coverage/'
+      dir: 'coverage/',
     },
     webpack: require('./webpack-test.conf'),
     webpackMiddleware: {
-      noInfo: true
+      noInfo: true,
     },
     plugins: [
       require('karma-jasmine'),
@@ -64,8 +51,8 @@ module.exports = function (config) {
       require('karma-phantomjs-shim'),
       require('karma-ng-html2js-preprocessor'),
       require('karma-webpack'),
-      require('karma-es6-shim')
-    ]
+      require('karma-es6-shim'),
+    ],
   };
 
   config.set(configuration);

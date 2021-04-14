@@ -19,7 +19,7 @@ import { StateService } from '@uirouter/core';
 
 const TasksComponent: ng.IComponentOptions = {
   template: require('./tasks.html'),
-  controller: function($state: StateService, UserService: UserService) {
+  controller: function ($state: StateService, UserService: UserService) {
     'ngInject';
 
     this.tasks = UserService.currentUser.tasks;
@@ -52,15 +52,14 @@ const TasksComponent: ng.IComponentOptions = {
     this.go = (task) => {
       switch (task.type) {
         case 'subscription_approval':
-          $state.go('management.apis.detail.portal.subscriptions.subscription',
-            {
-              apiId: task.data.api,
-              subscriptionId: task.data.id
-            });
+          $state.go('management.apis.detail.portal.subscriptions.subscription', {
+            apiId: task.data.api,
+            subscriptionId: task.data.id,
+          });
           break;
         case 'in_review':
         case 'request_for_changes':
-          $state.go('management.apis.detail.portal.general', {apiId: task.data.referenceId});
+          $state.go('management.apis.detail.portal.general', { apiId: task.data.referenceId });
           break;
       }
     };
@@ -76,7 +75,7 @@ const TasksComponent: ng.IComponentOptions = {
           return '';
       }
     };
-  }
+  },
 };
 
 export default TasksComponent;

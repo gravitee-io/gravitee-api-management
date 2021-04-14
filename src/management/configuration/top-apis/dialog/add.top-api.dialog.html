@@ -16,17 +16,18 @@
 
 -->
 <md-dialog aria-label="Add top API" flex="50">
-	<md-dialog-content layout-padding>
-		<h4>Add top API</h4>
-		<form>
-			<md-autocomplete
-					md-selected-item="$ctrl.selectedApi"
-					md-search-text="$ctrl.searchText"
-					md-items="api in $ctrl.apis | filter:$ctrl.searchText"
-					md-item-text="api.name"
-					placeholder="Search APIs ..."
-					md-autofocus="true">
-				<md-item-template>
+  <md-dialog-content layout-padding>
+    <h4>Add top API</h4>
+    <form>
+      <md-autocomplete
+        md-selected-item="$ctrl.selectedApi"
+        md-search-text="$ctrl.searchText"
+        md-items="api in $ctrl.apis | filter:$ctrl.searchText"
+        md-item-text="api.name"
+        placeholder="Search APIs ..."
+        md-autofocus="true"
+      >
+        <md-item-template>
           <md-list-item class="md-2-line" style="height: 50px; min-height: 50px">
             <gravitee-identity-picture
               image-id="api.id"
@@ -40,20 +41,14 @@
               <p>{{item.description}}</p>
             </div>
           </md-list-item>
-				</md-item-template>
-				<md-not-found>
-					No APIs matching "{{$ctrl.searchText}}" were found.
-				</md-not-found>
-			</md-autocomplete>
-		</form>
-	</md-dialog-content>
+        </md-item-template>
+        <md-not-found> No APIs matching "{{$ctrl.searchText}}" were found. </md-not-found>
+      </md-autocomplete>
+    </form>
+  </md-dialog-content>
 
-	<md-dialog-actions layout="row">
-		<md-button ng-click="$ctrl.hide()">
-			Cancel
-		</md-button>
-		<md-button type="submit" class="md-raised md-primary" ng-click="$ctrl.addApi()">
-			Add
-		</md-button>
-	</md-dialog-actions>
+  <md-dialog-actions layout="row">
+    <md-button ng-click="$ctrl.hide()"> Cancel </md-button>
+    <md-button type="submit" class="md-raised md-primary" ng-click="$ctrl.addApi()"> Add </md-button>
+  </md-dialog-actions>
 </md-dialog>

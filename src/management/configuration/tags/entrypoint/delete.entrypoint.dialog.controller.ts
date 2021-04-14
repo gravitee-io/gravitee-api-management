@@ -18,11 +18,11 @@ function DeleteEntrypointDialogController($scope, $mdDialog: angular.material.ID
 
   $scope.entrypoint = entrypoint.value;
 
-  $scope.cancel = function() {
+  $scope.cancel = function () {
     $mdDialog.cancel();
   };
 
-  $scope.ok = function() {
+  $scope.ok = function () {
     $mdDialog.hide(entrypoint);
   };
 }

@@ -13,28 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 
-import ApplicationService, {LogsQuery} from '../../../../services/application.service';
-import {IScope} from 'angular';
+import ApplicationService, { LogsQuery } from '../../../../services/application.service';
+import { IScope } from 'angular';
 import _ = require('lodash');
 
 class ApplicationLogsController {
-
-  private logs: {total: string; logs: any[], metadata: any};
+  private logs: { total: string; logs: any[]; metadata: any };
   private query: LogsQuery;
   private metadata: {
-    apis?: any[]
+    apis?: any[];
   };
   private apis;
   private application: any;
   private init: boolean;
 
-  constructor(
-    private ApplicationService: ApplicationService,
-    private $state: StateService,
-    private $scope: IScope
-  ) {
+  constructor(private ApplicationService: ApplicationService, private $state: StateService, private $scope: IScope) {
     'ngInject';
     this.ApplicationService = ApplicationService;
 
@@ -58,7 +53,7 @@ class ApplicationLogsController {
     });
 
     this.metadata = {
-      apis: this.apis.data
+      apis: this.apis.data,
     };
   }
 
@@ -84,9 +79,10 @@ class ApplicationLogsController {
         size: this.query.size,
         from: this.query.from,
         to: this.query.to,
-        q: this.query.query
+        q: this.query.query,
       },
-      {notify: false});
+      { notify: false },
+    );
     this.ApplicationService.findLogs(this.application.id, this.query).then((logs) => {
       this.logs = logs.data;
     });

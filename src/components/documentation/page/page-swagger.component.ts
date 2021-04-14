@@ -24,10 +24,10 @@ const DisableTryItOutPlugin = function () {
     statePlugins: {
       spec: {
         wrapSelectors: {
-          allowTryItOutFor: () => () => false
-        }
-      }
-    }
+          allowTryItOutFor: () => () => false,
+        },
+      },
+    },
   };
 };
 
@@ -35,13 +35,13 @@ const PageSwaggerComponent: ng.IComponentOptions = {
   template: require('./page-swagger.html'),
   bindings: {
     page: '<',
-    edit: '<'
+    edit: '<',
   },
   controller: function (Constants, UserService: UserService, $state: StateService) {
     'ngInject';
 
     this.$onChanges = () => {
-      this.pageId = (this.page === undefined) ? $state.params.pageId : this.page.id;
+      this.pageId = this.page === undefined ? $state.params.pageId : this.page.id;
       if ($state.params.apiId) {
         this.url = Constants.baseURL + '/apis/' + $state.params.apiId + '/pages/' + this.pageId + '/content';
       } else {
@@ -49,8 +49,11 @@ const PageSwaggerComponent: ng.IComponentOptions = {
       }
 
       this.tryItEnabled = () => {
-        return !_.isNil(this.page.configuration) && this.page.configuration.tryIt === 'true' &&
-          (UserService.isAuthenticated() || this.page.configuration.tryItAnonymous === 'true');
+        return (
+          !_.isNil(this.page.configuration) &&
+          this.page.configuration.tryIt === 'true' &&
+          (UserService.isAuthenticated() || this.page.configuration.tryItAnonymous === 'true')
+        );
       };
 
       const plugins = [];
@@ -67,9 +70,7 @@ const PageSwaggerComponent: ng.IComponentOptions = {
 
       let cfg: any = {
         dom_id: '#swagger-container',
-        presets: [
-          SwaggerUIBundle.presets.apis,
-        ],
+        presets: [SwaggerUIBundle.presets.apis],
         layout: 'BaseLayout',
         plugins: plugins,
         requestInterceptor: (req) => {
@@ -79,7 +80,11 @@ const PageSwaggerComponent: ng.IComponentOptions = {
           return req;
         },
         spec: contentAsJson,
-        oauth2RedirectUrl: window.location.origin + window.location.pathname + (window.location.pathname.substr(-1) !== '/' ? '/' : '') + 'swagger-oauth2-redirect.html',
+        oauth2RedirectUrl:
+          window.location.origin +
+          window.location.pathname +
+          (window.location.pathname.substr(-1) !== '/' ? '/' : '') +
+          'swagger-oauth2-redirect.html',
       };
 
       if (!_.isNil(this.page.configuration)) {
@@ -87,24 +92,19 @@ const PageSwaggerComponent: ng.IComponentOptions = {
           cfg.url = this.url;
           cfg.spec = undefined;
         }
-        cfg.docExpansion =
-          _.isNil(this.page.configuration.docExpansion)
-            ? 'none' : this.page.configuration.docExpansion;
-        cfg.displayOperationId =
-          _.isNil(this.page.configuration.displayOperationId)
-            ? false : this.page.configuration.displayOperationId === 'true';
-        cfg.filter =
-          _.isNil(this.page.configuration.enableFiltering)
-            ? false : this.page.configuration.enableFiltering === 'true';
-        cfg.showExtensions =
-          _.isNil(this.page.configuration.showExtensions)
-            ? false : this.page.configuration.showExtensions === 'true';
-        cfg.showCommonExtensions =
-          _.isNil(this.page.configuration.showCommonExtensions)
-            ? false : this.page.configuration.showCommonExtensions === 'true';
+        cfg.docExpansion = _.isNil(this.page.configuration.docExpansion) ? 'none' : this.page.configuration.docExpansion;
+        cfg.displayOperationId = _.isNil(this.page.configuration.displayOperationId)
+          ? false
+          : this.page.configuration.displayOperationId === 'true';
+        cfg.filter = _.isNil(this.page.configuration.enableFiltering) ? false : this.page.configuration.enableFiltering === 'true';
+        cfg.showExtensions = _.isNil(this.page.configuration.showExtensions) ? false : this.page.configuration.showExtensions === 'true';
+        cfg.showCommonExtensions = _.isNil(this.page.configuration.showCommonExtensions)
+          ? false
+          : this.page.configuration.showCommonExtensions === 'true';
         cfg.maxDisplayedTags =
           _.isNaN(Number(this.page.configuration.maxDisplayedTags)) || this.page.configuration.maxDisplayedTags === '-1'
-            ? undefined : Number(this.page.configuration.maxDisplayedTags);
+            ? undefined
+            : Number(this.page.configuration.maxDisplayedTags);
       }
 
       const ui = SwaggerUIBundle(
@@ -113,16 +113,16 @@ const PageSwaggerComponent: ng.IComponentOptions = {
             // May be used in a short future, so keeping this part of the code to not forget about it.
             ui.initOAuth({
               clientId: '',
-//              appName: "Swagger UI",
+              //              appName: "Swagger UI",
               scopeSeparator: ' ',
-//              additionalQueryStringParams: {some_parm: "val"}
+              //              additionalQueryStringParams: {some_parm: "val"}
             });
-//            ui.preauthorizeApiKey('api_key', 'my_api_key')
-          }
-        }));
+            //            ui.preauthorizeApiKey('api_key', 'my_api_key')
+          },
+        }),
+      );
     };
-
-  }
+  },
 };
 
 export default PageSwaggerComponent;

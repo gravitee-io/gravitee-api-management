@@ -19,7 +19,7 @@ import * as _ from 'lodash';
 const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-chart-line-configuration.html'),
   bindings: {
-    chart: '<'
+    chart: '<',
   },
   controller: function (DashboardService: DashboardService) {
     'ngInject';
@@ -35,9 +35,9 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
         _.merge(this.chart, {
           request: {
             type: 'date_histo',
-            aggs: ''
+            aggs: '',
           },
-          labels: []
+          labels: [],
         });
       }
     };
@@ -48,10 +48,10 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
       let last = _.last(this.data);
       _.forEach(this.data, (data) => {
         this.chart.request.aggs += data + (last === data ? '' : '%3B');
-        this.chart.labels.push(_.find(this.fields, f => f.aggValue === data).label);
+        this.chart.labels.push(_.find(this.fields, (f) => f.aggValue === data).label);
       });
     };
-  }
+  },
 };
 
 export default WidgetChartLineConfigurationComponent;

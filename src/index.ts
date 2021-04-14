@@ -25,7 +25,7 @@ Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
 let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
 let $http: ng.IHttpService = initInjector.get('$http');
 let $q: ng.IQService = initInjector.get('$q');
-let configNoCache = { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } };
+let configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
 let ConstantsJSON: any;
 
 fetchData()
@@ -34,10 +34,8 @@ fetchData()
   .then(bootstrapApplication);
 
 function fetchData() {
-
-  return $q.all(
-    [$http.get('constants.json', configNoCache),
-      $http.get('build.json', configNoCache)])
+  return $q
+    .all([$http.get('constants.json', configNoCache), $http.get('build.json', configNoCache)])
     .then((responses: any) => {
       ConstantsJSON = responses[0].data;
       let build = responses[1].data;
@@ -79,10 +77,12 @@ function initLoader(constants: any) {
 }
 
 function initTheme(constants: any) {
-  return $http.get(`./themes/${constants.theme.name}-theme.json`, configNoCache)
+  return $http
+    .get(`./themes/${constants.theme.name}-theme.json`, configNoCache)
     .then((response: any) => {
       angular.module('gravitee-management').constant('Theme', response.data);
-    }).catch(() => {
+    })
+    .catch(() => {
       return $http.get('./themes/default-theme.json', configNoCache).then((response: any) => {
         angular.module('gravitee-management').constant('Theme', response.data);
       });

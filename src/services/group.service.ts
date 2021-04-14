@@ -16,7 +16,6 @@
 import * as _ from 'lodash';
 
 class GroupService {
-
   private groupsURL: string;
 
   static _mapToEntity(grp) {
@@ -93,13 +92,13 @@ class GroupService {
         _.forEach(roleScopes, (roleScope) => {
           groupRole.push({
             scope: roleScope,
-            name: member.roles[roleScope]
+            name: member.roles[roleScope],
           });
         });
         body.push({
-          'id': member.id,
-          'reference': member.reference,
-          'roles': groupRole
+          id: member.id,
+          reference: member.reference,
+          roles: groupRole,
         });
       }
     });
@@ -135,7 +134,7 @@ class GroupService {
       reference_id: group.id,
       email: email,
       api_role: group.api_role,
-      application_role: group.application_role
+      application_role: group.application_role,
     });
   }
 

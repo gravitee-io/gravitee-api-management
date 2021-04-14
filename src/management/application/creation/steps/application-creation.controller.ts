@@ -15,7 +15,7 @@
  */
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
-import {ApplicationType} from '../../../../entities/application';
+import { ApplicationType } from '../../../../entities/application';
 import _ = require('lodash');
 
 class ApplicationCreationController {
@@ -28,28 +28,38 @@ class ApplicationCreationController {
   private messageByPlan: any = {};
   private applicationType: string;
 
-  constructor(private Constants, private $state, private $mdDialog, private ApplicationService: ApplicationService,
-              private NotificationService: NotificationService, private $q) {
+  constructor(
+    private Constants,
+    private $state,
+    private $mdDialog,
+    private ApplicationService: ApplicationService,
+    private NotificationService: NotificationService,
+    private $q,
+  ) {
     'ngInject';
-    this.steps = [{
-      badgeClass: 'disable',
-      badgeIconClass: 'glyphicon-refresh',
-      title: 'General',
-      content: 'Name and description',
-      completed: false
-    }, {
-      badgeClass: 'disable',
-      badgeIconClass: 'glyphicon-refresh',
-      title: 'Security',
-      content: this.clientRegistrationEnabled() ? 'OIDC configuration' : 'Type and client id',
-      completed: false
-    }, {
-      badgeClass: 'disable',
-      badgeIconClass: 'glyphicon-refresh',
-      title: 'Subscriptions',
-      content: 'Subscribe to APIs',
-      completed: false
-    }];
+    this.steps = [
+      {
+        badgeClass: 'disable',
+        badgeIconClass: 'glyphicon-refresh',
+        title: 'General',
+        content: 'Name and description',
+        completed: false,
+      },
+      {
+        badgeClass: 'disable',
+        badgeIconClass: 'glyphicon-refresh',
+        title: 'Security',
+        content: this.clientRegistrationEnabled() ? 'OIDC configuration' : 'Type and client id',
+        completed: false,
+      },
+      {
+        badgeClass: 'disable',
+        badgeIconClass: 'glyphicon-refresh',
+        title: 'Subscriptions',
+        content: 'Subscribe to APIs',
+        completed: false,
+      },
+    ];
   }
 
   next() {
@@ -80,23 +90,24 @@ class ApplicationCreationController {
   create() {
     let alert = this.$mdDialog.confirm({
       title: 'Create application?',
-      content: 'The application ' + this.application.name + ((this.applicationType) ? ' of type ' + this.applicationType : '') + ' will be created.',
+      content:
+        'The application ' + this.application.name + (this.applicationType ? ' of type ' + this.applicationType : '') + ' will be created.',
       ok: 'CREATE',
-      cancel: 'CANCEL'
+      cancel: 'CANCEL',
     });
 
-    this.$mdDialog
-      .show(alert)
-      .then(() => {
-        this.ApplicationService.create(this.application).then((response) => {
-          let application = response.data;
-          let promises = _.map(this.selectedPlans, (plan) => this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]));
-          this.$q.all(promises).then(() => {
-            this.NotificationService.show('Application ' + this.application.name + ' has been created');
-            this.$state.go('management.applications.application.general', {applicationId: application.id}, {reload: true});
-          });
+    this.$mdDialog.show(alert).then(() => {
+      this.ApplicationService.create(this.application).then((response) => {
+        let application = response.data;
+        let promises = _.map(this.selectedPlans, (plan) =>
+          this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]),
+        );
+        this.$q.all(promises).then(() => {
+          this.NotificationService.show('Application ' + this.application.name + ' has been created');
+          this.$state.go('management.applications.application.general', { applicationId: application.id }, { reload: true });
         });
       });
+    });
   }
 
   clientRegistrationEnabled() {
@@ -109,7 +120,8 @@ class ApplicationCreationController {
 
   onSubscribe(api, plan) {
     if (plan.comment_required) {
-      let confirm = this.$mdDialog.prompt()
+      let confirm = this.$mdDialog
+        .prompt()
         .title('Subscription message')
         .placeholder(plan.comment_message ? plan.comment_message : 'Fill a message to the API owner')
         .ariaLabel('Subscription message')
@@ -117,11 +129,13 @@ class ApplicationCreationController {
         .ok('Confirm')
         .cancel('Cancel');
 
-      this.$mdDialog.show(confirm).then((message) => {
-        this.messageByPlan[plan.id] = message;
-        this.confirmSubscription(api, plan);
-      }, () => {
-      });
+      this.$mdDialog.show(confirm).then(
+        (message) => {
+          this.messageByPlan[plan.id] = message;
+          this.confirmSubscription(api, plan);
+        },
+        () => {},
+      );
     } else {
       this.confirmSubscription(api, plan);
     }
@@ -136,8 +150,8 @@ class ApplicationCreationController {
 
   onUnsubscribe(api, plan) {
     plan.alreadySubscribed = false;
-    _.remove(this.selectedPlans, {id: plan.id});
-    let index = _.findIndex(this.selectedAPIs, {id: api.id});
+    _.remove(this.selectedPlans, { id: plan.id });
+    let index = _.findIndex(this.selectedAPIs, { id: api.id });
     this.selectedAPIs.splice(index, 1);
     this.steps[2].title = this.getReadableApiSubscriptions();
   }
@@ -145,9 +159,19 @@ class ApplicationCreationController {
   getReadableApiSubscriptions(): string {
     let plansByApi = _.groupBy(this.selectedPlans, 'apis');
     let multipleApis = _.keys(plansByApi).length > 1;
-    return `Subscribed to API${multipleApis ? 's:' : ''} ` + _.map(plansByApi, (plans, api) => {
-      return `${multipleApis ? '</br>- <code>' : '<code>'} ` + _.find(this.selectedAPIs, a => a.id === api).name + '</code> with plan <code>' + _.join(_.map(plans, 'name'), '</code>, ') + '</code>';
-    }) + '.';
+    return (
+      `Subscribed to API${multipleApis ? 's:' : ''} ` +
+      _.map(plansByApi, (plans, api) => {
+        return (
+          `${multipleApis ? '</br>- <code>' : '<code>'} ` +
+          _.find(this.selectedAPIs, (a) => a.id === api).name +
+          '</code> with plan <code>' +
+          _.join(_.map(plans, 'name'), '</code>, ') +
+          '</code>'
+        );
+      }) +
+      '.'
+    );
   }
 }
 

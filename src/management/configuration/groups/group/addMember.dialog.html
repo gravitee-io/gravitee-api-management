@@ -20,31 +20,28 @@
     <h4>Add members to {{$ctrl.group.name}}</h4>
     <div layout="row" layout-align="space-between center">
       <span>Choose an API role</span>
-      <md-select ng-model="$ctrl.defaultApiRole"
-                 aria-label="API Role"
-                 class="md-no-underline" ng-disabled="!$ctrl.canChangeDefaultApiRole()">
-        <md-option ng-repeat="role in $ctrl.apiRoles"
-                   ng-value="role.name"
-                   ng-disabled="role.system">
-          {{role.name}}
-        </md-option>
+      <md-select
+        ng-model="$ctrl.defaultApiRole"
+        aria-label="API Role"
+        class="md-no-underline"
+        ng-disabled="!$ctrl.canChangeDefaultApiRole()"
+      >
+        <md-option ng-repeat="role in $ctrl.apiRoles" ng-value="role.name" ng-disabled="role.system"> {{role.name}} </md-option>
       </md-select>
     </div>
     <div layout="row" layout-align="space-between center">
       <span>Choose an Application role</span>
-      <md-select ng-model="$ctrl.defaultApplicationRole"
-                 aria-label="Application Role"
-                 class="md-no-underline" ng-disabled="!$ctrl.canChangeDefaultApplicationRole()">
-        <md-option ng-repeat="role in $ctrl.applicationRoles"
-                   ng-value="role.name"
-                   ng-disabled="role.system">
-          {{role.name}}
-        </md-option>
+      <md-select
+        ng-model="$ctrl.defaultApplicationRole"
+        aria-label="Application Role"
+        class="md-no-underline"
+        ng-disabled="!$ctrl.canChangeDefaultApplicationRole()"
+      >
+        <md-option ng-repeat="role in $ctrl.applicationRoles" ng-value="role.name" ng-disabled="role.system"> {{role.name}} </md-option>
       </md-select>
     </div>
-    <div ng-if="!$ctrl.defaultApiRole && !$ctrl.defaultApplicationRole"
-         style="margin: 0 0 8px 0; text-align: right;">
-      <em style="color: red;">Select at least one role</em>
+    <div ng-if="!$ctrl.defaultApiRole && !$ctrl.defaultApplicationRole" style="margin: 0 0 8px 0; text-align: right">
+      <em style="color: red">Select at least one role</em>
     </div>
     <form name="formMember" ng-submit="$event.preventDefault()">
       <gv-user-autocomplete users-selected="$ctrl.usersSelected"></gv-user-autocomplete>
@@ -52,10 +49,13 @@
   </md-dialog-content>
 
   <md-dialog-actions layout="row">
-    <md-button ng-click="$ctrl.hide()">
-      Cancel
-    </md-button>
-    <md-button type="submit" class="md-raised md-primary" ng-click="$ctrl.addMembers()" ng-disabled="formMember.$invalid || $ctrl.invalid()">
+    <md-button ng-click="$ctrl.hide()"> Cancel </md-button>
+    <md-button
+      type="submit"
+      class="md-raised md-primary"
+      ng-click="$ctrl.addMembers()"
+      ng-disabled="formMember.$invalid || $ctrl.invalid()"
+    >
       Add
     </md-button>
   </md-dialog-actions>

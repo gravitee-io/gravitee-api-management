@@ -51,7 +51,6 @@ class AnalyticsService {
       }
     });
 
-
     return this.$http.get(url, { timeout: this.analyticsHttpTimeout });
   }
 
@@ -67,14 +66,14 @@ class AnalyticsService {
   }
 
   getLog(logId, timestamp) {
-    return this.$http.get(this.platformUrl + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
+    return this.$http.get(this.platformUrl + '/logs/' + logId + (timestamp ? '?timestamp=' + timestamp : ''));
   }
 
   getQueryFilters() {
     let q = this.$stateParams.q;
     if (q) {
       const queryFilters = {};
-      q.split(/\s(OR|AND)\s/).forEach(q => {
+      q.split(/\s(OR|AND)\s/).forEach((q) => {
         if (q.includes(':')) {
           let keyParam = this.cleanParam(q.substring(0, q.indexOf(':')));
           let valueParam = this.cleanParam(q.substring(q.indexOf(':') + 1));
@@ -91,8 +90,8 @@ class AnalyticsService {
   }
 
   buildQueryParam(queryParam, q: string) {
-    queryParam = (q === 'body') ? ('*' + queryParam + '*') : queryParam;
-    queryParam = (q === 'uri') ? (queryParam + '*') : queryParam;
+    queryParam = q === 'body' ? '*' + queryParam + '*' : queryParam;
+    queryParam = q === 'uri' ? queryParam + '*' : queryParam;
     if (queryParam !== '?') {
       queryParam = '\\"' + queryParam + '\\"';
       queryParam = queryParam.replace(/\//g, '\\\\/');
@@ -126,7 +125,10 @@ class AnalyticsService {
   }
 
   private cleanParam(param) {
-    return param.replace('%20', ' ').replace(/[()]/g, '').replace(/[\\\"]/g, '');
+    return param
+      .replace('%20', ' ')
+      .replace(/[()]/g, '')
+      .replace(/[\\\"]/g, '');
   }
 }
 

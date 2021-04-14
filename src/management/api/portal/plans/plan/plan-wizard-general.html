@@ -25,8 +25,7 @@
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-sm>
               <label>Name</label>
-              <input ng-model="$ctrl.parent.plan.name" type="text" required name="name"
-                     md-maxlength="50">
+              <input ng-model="$ctrl.parent.plan.name" type="text" required name="name" md-maxlength="50" />
               <div class="hint" ng-if="$ctrl.planGeneralForm.name.$valid || $ctrl.planGeneralForm.name.$pristine">Plan name</div>
               <div ng-messages="$ctrl.planGeneralForm.name.$error">
                 <div ng-message="required">Name is required.</div>
@@ -38,7 +37,7 @@
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex-gt-sm>
               <label>Description</label>
-              <input ng-model="$ctrl.parent.plan.description" type="text" required name="description">
+              <input ng-model="$ctrl.parent.plan.description" type="text" required name="description" />
               <div class="hint" ng-if="$ctrl.planGeneralForm.description.$valid || $ctrl.planGeneralForm.description.$pristine">
                 Provide a description of your plan, what it does, ...
               </div>
@@ -51,14 +50,15 @@
           <div layout-gt-sm="row">
             <div class="md-block" flex-gt-sm>
               <label>Characteristics</label>
-              <md-chips ng-model="$ctrl.parent.plan.characteristics"
-                        placeholder="Enter a characteristic"
-                        md-add-on-blur="true"
-                        secondary-placeholder="+Characteristic"
-                        ng-click="$ctrl.planGeneralForm.$setDirty()"></md-chips>
+              <md-chips
+                ng-model="$ctrl.parent.plan.characteristics"
+                placeholder="Enter a characteristic"
+                md-add-on-blur="true"
+                secondary-placeholder="+Characteristic"
+                ng-click="$ctrl.planGeneralForm.$setDirty()"
+              ></md-chips>
             </div>
           </div>
-
         </section>
 
         <br />
@@ -68,8 +68,13 @@
 
           <div layout-gt-md="row">
             <md-input-container class="md-block" flex-gt-md>
-              <md-switch aria-label="Auto validate subscriptions"
-                         ng-model="$ctrl.parent.plan.validation" ng-true-value="'auto'" ng-disabled="plan.security == 'key_less'" ng-false-value="'manual'">
+              <md-switch
+                aria-label="Auto validate subscriptions"
+                ng-model="$ctrl.parent.plan.validation"
+                ng-true-value="'auto'"
+                ng-disabled="plan.security == 'key_less'"
+                ng-false-value="'manual'"
+              >
                 Auto validate subscription.
               </md-switch>
             </md-input-container>
@@ -77,14 +82,17 @@
 
           <div layout-gt-md="row">
             <md-input-container class="md-block" flex-gt-md>
-              <md-switch aria-label="Consumer comment"
-                         ng-model="$ctrl.parent.plan.comment_required" ng-disabled="plan.security == 'key_less'">
+              <md-switch
+                aria-label="Consumer comment"
+                ng-model="$ctrl.parent.plan.comment_required"
+                ng-disabled="plan.security == 'key_less'"
+              >
                 Consumer must provide a comment when subscribing to the plan.
               </md-switch>
             </md-input-container>
             <md-input-container class="md-block" flex-gt-md>
               <label>Custom message to display to consumer</label>
-              <input ng-model="$ctrl.parent.plan.comment_message" type="text" name="comment_message" md-maxlength="64">
+              <input ng-model="$ctrl.parent.plan.comment_message" type="text" name="comment_message" md-maxlength="64" />
               <div ng-messages="$ctrl.planGeneralForm.comment_message.$error">
                 <div ng-message="md-maxlength">The comment message has to be less than 64 characters long.</div>
               </div>
@@ -116,10 +124,12 @@
           <div layout-gt-sm="row">
             <md-input-container class="md-block" flex="100">
               <label>Groups excluded</label>
-              <md-select ng-model="$ctrl.parent.plan.excluded_groups" multiple ng-disabled="!($ctrl.parent.groups && $ctrl.parent.groups.length > 0)">
-                <md-option ng-repeat="group in $ctrl.parent.groups | orderBy:'name'" ng-value="group.id">
-                  {{group.name}}
-                </md-option>
+              <md-select
+                ng-model="$ctrl.parent.plan.excluded_groups"
+                multiple
+                ng-disabled="!($ctrl.parent.groups && $ctrl.parent.groups.length > 0)"
+              >
+                <md-option ng-repeat="group in $ctrl.parent.groups | orderBy:'name'" ng-value="group.id"> {{group.name}} </md-option>
               </md-select>
             </md-input-container>
           </div>
@@ -133,7 +143,6 @@
           <md-button ng-disabled="$ctrl.planGeneralForm.$invalid" ng-click="$ctrl.gotoNextStep()">NEXT</md-button>
         </div>
       </md-step-actions>
-
     </md-content>
   </md-step-body>
 </md-step>

@@ -16,205 +16,222 @@
 
 -->
 <div class="gv-forms" layout="column">
-    <div layout="row" layout-align="start end" class="gv-forms-header" style="display: flex; align-items: center; margin-top: 16px;">
-        <gravitee-identity-picture
-          image-id="$ctrl.selectedUser.id"
-          image-url="$ctrl.getUserPicture()"
-          image-name="$ctrl.selectedUser.displayName"
-          image-width="50"
-          image-border-radius="true"
-        ></gravitee-identity-picture>
+  <div layout="row" layout-align="start end" class="gv-forms-header" style="display: flex; align-items: center; margin-top: 16px">
+    <gravitee-identity-picture
+      image-id="$ctrl.selectedUser.id"
+      image-url="$ctrl.getUserPicture()"
+      image-name="$ctrl.selectedUser.displayName"
+      image-width="50"
+      image-border-radius="true"
+    ></gravitee-identity-picture>
 
-        <h1 class="user">
-          {{$ctrl.selectedUser.displayName}}
-        </h1>
-        <a ng-click="$ctrl.backToUsers()" style="font-size: 12px; font-weight: normal;">Back to users</a>
-    </div>
+    <h1 class="user">{{$ctrl.selectedUser.displayName}}</h1>
+    <a ng-click="$ctrl.backToUsers()" style="font-size: 12px; font-weight: normal">Back to users</a>
+  </div>
 
-    <div class="gv-form">
-        <h2></h2>
-        <div class="gv-form-content" layout="column">
-<md-table-container layout="row" layout-align="center center">
-    <table md-table>
-        <tbody md-body>
-        <tr md-row style="height: 30px;">
-            <td md-cell width="15%"><span style="font-weight: bold">Email</span></td>
-            <td md-cell width="35%">{{$ctrl.selectedUser.email}}</td>
-            <td md-cell><span style="font-weight: bold">Source</span></td>
-            <td md-cell>{{$ctrl.selectedUser.source}}</td>
-        </tr>
-        <tr md-row style="background-color: white; height: 30px;">
-            <td md-cell><span style="font-weight: bold">Created at</span></td>
-            <td md-cell>{{$ctrl.selectedUser.created_at | date:'MMM d, y h:mm:ss a'}}</td>
-            <td md-cell nowrap width="15%"><span style="font-weight: bold">Last connection at</span></td>
-            <td md-cell width="35%">{{$ctrl.selectedUser.lastConnectionAt | date:'MMM d, y h:mm:ss a'}}</td>
-        </tr>
-        <tr md-row style="background-color: white; height: 30px;">
-            <td md-cell nowrap><span style="font-weight: bold">Organization Role</span></td>
-            <td md-cell>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
+      <md-table-container layout="row" layout-align="center center">
+        <table md-table>
+          <tbody md-body>
+            <tr md-row style="height: 30px">
+              <td md-cell width="15%"><span style="font-weight: bold">Email</span></td>
+              <td md-cell width="35%">{{$ctrl.selectedUser.email}}</td>
+              <td md-cell><span style="font-weight: bold">Source</span></td>
+              <td md-cell>{{$ctrl.selectedUser.source}}</td>
+            </tr>
+            <tr md-row style="background-color: white; height: 30px">
+              <td md-cell><span style="font-weight: bold">Created at</span></td>
+              <td md-cell>{{$ctrl.selectedUser.created_at | date:'MMM d, y h:mm:ss a'}}</td>
+              <td md-cell nowrap width="15%"><span style="font-weight: bold">Last connection at</span></td>
+              <td md-cell width="35%">{{$ctrl.selectedUser.lastConnectionAt | date:'MMM d, y h:mm:ss a'}}</td>
+            </tr>
+            <tr md-row style="background-color: white; height: 30px">
+              <td md-cell nowrap><span style="font-weight: bold">Organization Role</span></td>
+              <td md-cell>
                 <md-select
-                    class="inline-multiple-select"
-                    ng-model="selectedOrganizationRole"
-                    aria-label="organization Role"
-                    md-on-open="selectOpened = true"
-                    md-on-close="selectOpened = false"
-                    ng-change="$ctrl.updateOrganizationsRole(selectOpened, selectedOrganizationRole)"
-                    multiple>
-                    <md-option ng-value="role.id" ng-repeat="role in $ctrl.organizationRoles">{{role.name}}</md-option>
+                  class="inline-multiple-select"
+                  ng-model="selectedOrganizationRole"
+                  aria-label="organization Role"
+                  md-on-open="selectOpened = true"
+                  md-on-close="selectOpened = false"
+                  ng-change="$ctrl.updateOrganizationsRole(selectOpened, selectedOrganizationRole)"
+                  multiple
+                >
+                  <md-option ng-value="role.id" ng-repeat="role in $ctrl.organizationRoles">{{role.name}}</md-option>
                 </md-select>
-            </td>
-            <td md-cell><span style="font-weight: bold">Environment Role</span></td>
-            <td md-cell>
+              </td>
+              <td md-cell><span style="font-weight: bold">Environment Role</span></td>
+              <td md-cell>
                 <md-select
-                    class="inline-multiple-select"
-                    ng-model="selectedEnvironmentRole"
-                    aria-label="Environment Role"
-                    md-on-open="selectOpened = true"
-                    md-on-close="selectOpened = false"
-                    ng-change="$ctrl.updateEnvironmentsRole(selectOpened, selectedEnvironmentRole)"
-                    multiple>
-                    <md-option ng-value="role.id" ng-repeat="role in $ctrl.environmentRoles">{{role.name}}</md-option>
+                  class="inline-multiple-select"
+                  ng-model="selectedEnvironmentRole"
+                  aria-label="Environment Role"
+                  md-on-open="selectOpened = true"
+                  md-on-close="selectOpened = false"
+                  ng-change="$ctrl.updateEnvironmentsRole(selectOpened, selectedEnvironmentRole)"
+                  multiple
+                >
+                  <md-option ng-value="role.id" ng-repeat="role in $ctrl.environmentRoles">{{role.name}}</md-option>
                 </md-select>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-</md-table-container>
-<div layout="row" layout-align="center center">
-    <md-button type="button" class="md-raised md-warn" permission permission-only="'organization-user-u'"
-               aria-label="User reset password" style="fill: white"
-               ng-if="$ctrl.selectedUser.source === 'gravitee'" ng-click="$ctrl.resetPasswordDialog()">
-        <ng-md-icon icon="autorenew"></ng-md-icon>Reset user password
-    </md-button>
-</div>
-</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+      <div layout="row" layout-align="center center">
+        <md-button
+          type="button"
+          class="md-raised md-warn"
+          permission
+          permission-only="'organization-user-u'"
+          aria-label="User reset password"
+          style="fill: white"
+          ng-if="$ctrl.selectedUser.source === 'gravitee'"
+          ng-click="$ctrl.resetPasswordDialog()"
+        >
+          <ng-md-icon icon="autorenew"></ng-md-icon>Reset user password
+        </md-button>
+      </div>
     </div>
+  </div>
 
-
-    <div class="gv-form">
-        <h2></h2>
-        <div class="gv-form-content" layout="column">
-
-
-<md-tabs md-dynamic-height>
-    <md-tab md-on-select="currentTab='groups'">
-        <md-tab-label>Groups</md-tab-label>
-        <md-tab-body>
-            <div style="margin: 16px 0 8px;">You can manage all groups of this user.</div>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
+      <md-tabs md-dynamic-height>
+        <md-tab md-on-select="currentTab='groups'">
+          <md-tab-label>Groups</md-tab-label>
+          <md-tab-body>
+            <div style="margin: 16px 0 8px">You can manage all groups of this user.</div>
             <md-table-container>
-                <table md-table class="gv-table-dense">
-                    <thead md-head>
-                    <tr md-row>
-                        <th md-column>Name</th>
-                        <th md-column>Group Admin</th>
-                        <th md-column>API Role</th>
-                        <th md-column>Application Role</th>
-                        <th md-column></th>
-                    </tr>
-                    </thead>
-                    <tbody md-body>
-                    <tr style="height: 30px;" ng-if="$ctrl.groups.length === 0">
-                        <td md-cell style="text-align: center;" colspan="4">None.</td>
-                    </tr>
-                    <tr md-row ng-repeat="group in $ctrl.groups">
-                        <td md-cell>{{group.name}}</td>
-                        <td md-cell>
-                            <md-checkbox ng-model="group.roles['GROUP']"
-                                         ng-true-value="'ADMIN'"
-                                         ng-false-value="''"
-                                         ng-change="$ctrl.updateGroupRole(group)"
-                                         aria-label="Administrator of this group">
-                            </md-checkbox>
-                        </td>
-                        <td md-cell>
-                            <md-select ng-model="group.roles['API']" aria-label="membership-api-role" ng-change="$ctrl.updateGroupRole(group)">
-                                <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="role.system">{{role.name}}</md-option>
-                            </md-select>
-                        </td>
-                        <td md-cell>
-                            <md-select ng-model="group.roles['APPLICATION']" aria-label="membership-application-role" ng-change="$ctrl.updateGroupRole(group)">
-                                <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system">{{role.name}}</md-option>
-                            </md-select>
-                        </td>
-                        <td md-cell ng-click="$event.stopPropagation()">
-                            <div layout="row" layout-align="end center">
-                    <span permission permission-only="['organization-user-d']">
-                        <md-tooltip md-direction="top">delete</md-tooltip>
-                        <ng-md-icon icon="delete" ng-click="$ctrl.remove($event, group)" aria-label="delete-user"></ng-md-icon>
-                    </span>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+              <table md-table class="gv-table-dense">
+                <thead md-head>
+                  <tr md-row>
+                    <th md-column>Name</th>
+                    <th md-column>Group Admin</th>
+                    <th md-column>API Role</th>
+                    <th md-column>Application Role</th>
+                    <th md-column></th>
+                  </tr>
+                </thead>
+                <tbody md-body>
+                  <tr style="height: 30px" ng-if="$ctrl.groups.length === 0">
+                    <td md-cell style="text-align: center" colspan="4">None.</td>
+                  </tr>
+                  <tr md-row ng-repeat="group in $ctrl.groups">
+                    <td md-cell>{{group.name}}</td>
+                    <td md-cell>
+                      <md-checkbox
+                        ng-model="group.roles['GROUP']"
+                        ng-true-value="'ADMIN'"
+                        ng-false-value="''"
+                        ng-change="$ctrl.updateGroupRole(group)"
+                        aria-label="Administrator of this group"
+                      >
+                      </md-checkbox>
+                    </td>
+                    <td md-cell>
+                      <md-select ng-model="group.roles['API']" aria-label="membership-api-role" ng-change="$ctrl.updateGroupRole(group)">
+                        <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="role.system"
+                          >{{role.name}}</md-option
+                        >
+                      </md-select>
+                    </td>
+                    <td md-cell>
+                      <md-select
+                        ng-model="group.roles['APPLICATION']"
+                        aria-label="membership-application-role"
+                        ng-change="$ctrl.updateGroupRole(group)"
+                      >
+                        <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
+                          >{{role.name}}</md-option
+                        >
+                      </md-select>
+                    </td>
+                    <td md-cell ng-click="$event.stopPropagation()">
+                      <div layout="row" layout-align="end center">
+                        <span permission permission-only="['organization-user-d']">
+                          <md-tooltip md-direction="top">delete</md-tooltip>
+                          <ng-md-icon icon="delete" ng-click="$ctrl.remove($event, group)" aria-label="delete-user"></ng-md-icon>
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </md-table-container>
-        </md-tab-body>
-    </md-tab>
-    <md-tab md-on-select="currentTab='apis'; $ctrl.loadUserApis();">
-        <md-tab-label>APIs</md-tab-label>
-        <md-tab-body>
-            <div style="margin: 16px 0 8px;">Here is the list of all APIs of this user.</div>
+          </md-tab-body>
+        </md-tab>
+        <md-tab md-on-select="currentTab='apis'; $ctrl.loadUserApis();">
+          <md-tab-label>APIs</md-tab-label>
+          <md-tab-body>
+            <div style="margin: 16px 0 8px">Here is the list of all APIs of this user.</div>
             <md-table-container>
-                <table md-table class="gv-table-dense">
-                    <thead md-head>
-                    <tr md-row>
-                        <th md-column>Name</th>
-                        <th md-column>Version</th>
-                        <th md-column>Visibility</th>
-                    </tr>
-                    </thead>
-                    <tbody md-body>
-                    <tr style="height: 30px;" ng-if="userApis.length === 0">
-                        <td md-cell style="text-align: center;" colspan="3">None.</td>
-                    </tr>
-                    <tr ng-repeat="api in userApis" md-row >
-                        <td md-cell>{{api.name}}</td>
-                        <td md-cell>{{api.version}}</td>
-                        <td md-cell>
-                            <ng-md-icon icon="{{api.visibility==='public' ? 'public' : 'lock'}}" size="20" style="fill: #cdcdcd;">
-                                <md-tooltip>{{api.visibility}}</md-tooltip>
-                            </ng-md-icon>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+              <table md-table class="gv-table-dense">
+                <thead md-head>
+                  <tr md-row>
+                    <th md-column>Name</th>
+                    <th md-column>Version</th>
+                    <th md-column>Visibility</th>
+                  </tr>
+                </thead>
+                <tbody md-body>
+                  <tr style="height: 30px" ng-if="userApis.length === 0">
+                    <td md-cell style="text-align: center" colspan="3">None.</td>
+                  </tr>
+                  <tr ng-repeat="api in userApis" md-row>
+                    <td md-cell>{{api.name}}</td>
+                    <td md-cell>{{api.version}}</td>
+                    <td md-cell>
+                      <ng-md-icon icon="{{api.visibility==='public' ? 'public' : 'lock'}}" size="20" style="fill: #cdcdcd">
+                        <md-tooltip>{{api.visibility}}</md-tooltip>
+                      </ng-md-icon>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </md-table-container>
-        </md-tab-body>
-    </md-tab>
-    <md-tab md-on-select="currentTab='applications'; $ctrl.loadUserApplications();">
-        <md-tab-label>Applications</md-tab-label>
-        <md-tab-body>
-            <div style="margin: 16px 0 8px;">Here is the list of all applications of this user.</div>
+          </md-tab-body>
+        </md-tab>
+        <md-tab md-on-select="currentTab='applications'; $ctrl.loadUserApplications();">
+          <md-tab-label>Applications</md-tab-label>
+          <md-tab-body>
+            <div style="margin: 16px 0 8px">Here is the list of all applications of this user.</div>
             <md-table-container>
-                <table md-table class="gv-table-dense">
-                    <thead md-head>
-                    <tr md-row>
-                        <th md-column>Name</th>
-                        <th md-column>Type</th>
-                    </tr>
-                    </thead>
-                    <tbody md-body>
-                    <tr style="height: 30px;" ng-if="userApplications.length === 0">
-                        <td md-cell style="text-align: center;" colspan="2">None.</td>
-                    </tr>
-                    <tr ng-repeat="application in userApplications" md-row >
-                        <td md-cell>{{application.name}}</td>
-                        <td md-cell>{{application.type}}</td>
-                    </tr>
-                    </tbody>
-                </table>
+              <table md-table class="gv-table-dense">
+                <thead md-head>
+                  <tr md-row>
+                    <th md-column>Name</th>
+                    <th md-column>Type</th>
+                  </tr>
+                </thead>
+                <tbody md-body>
+                  <tr style="height: 30px" ng-if="userApplications.length === 0">
+                    <td md-cell style="text-align: center" colspan="2">None.</td>
+                  </tr>
+                  <tr ng-repeat="application in userApplications" md-row>
+                    <td md-cell>{{application.name}}</td>
+                    <td md-cell>{{application.type}}</td>
+                  </tr>
+                </tbody>
+              </table>
             </md-table-container>
-        </md-tab-body>
-    </md-tab>
-</md-tabs>
-        </div>
+          </md-tab-body>
+        </md-tab>
+      </md-tabs>
     </div>
+  </div>
 </div>
 
-<md-button permission permission-only="['organization-user-c']"
-           class="md-fab md-fab-bottom-right md-fab-scrollable"
-           ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-           aria-label="Add"
-           ng-click="$ctrl.addGroupDialog()">
-    <ng-md-icon icon="add"></ng-md-icon>
+<md-button
+  permission
+  permission-only="['organization-user-c']"
+  class="md-fab md-fab-bottom-right md-fab-scrollable"
+  ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+  aria-label="Add"
+  ng-click="$ctrl.addGroupDialog()"
+>
+  <ng-md-icon icon="add"></ng-md-icon>
 </md-button>

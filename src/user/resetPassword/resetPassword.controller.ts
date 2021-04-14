@@ -28,23 +28,25 @@ class ResetPasswordController {
       if (jwtHelper.isTokenExpired($state.params.token)) {
         $scope.error = 'Your token is expired!';
       } else {
-          $scope.user = jwtHelper.decodeToken($state.params.token);
+        $scope.user = jwtHelper.decodeToken($state.params.token);
       }
     } catch (e) {
       $scope.error = e.toString();
     }
 
     $scope.changePassword = function () {
-       ReCaptchaService.execute('finalizeResetPassword').then(() => {
-         UserService.finalizeResetPassword($scope.user.sub, {
-           token: $state.params.token, password: $scope.confirmPassword,
-           firstname: $scope.user.firstname, lastname: $scope.user.lastname
-         }).then(function () {
-           $scope.formConfirm.$setPristine();
-           NotificationService.show('Your password has been initialized successfully, you can now login...');
-           $state.go('login');
-         });
-       });
+      ReCaptchaService.execute('finalizeResetPassword').then(() => {
+        UserService.finalizeResetPassword($scope.user.sub, {
+          token: $state.params.token,
+          password: $scope.confirmPassword,
+          firstname: $scope.user.firstname,
+          lastname: $scope.user.lastname,
+        }).then(function () {
+          $scope.formConfirm.$setPristine();
+          NotificationService.show('Your password has been initialized successfully, you can now login...');
+          $state.go('login');
+        });
+      });
     };
 
     $scope.isInvalidPassword = function () {

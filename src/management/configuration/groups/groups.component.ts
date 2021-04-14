@@ -18,11 +18,11 @@ import GroupService from '../../../services/group.service';
 import NotificationService from '../../../services/notification.service';
 import UserService from '../../../services/user.service';
 import { StateService } from '@uirouter/core';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 
 const GroupsComponent: ng.IComponentOptions = {
   bindings: {
-    groups: '<'
+    groups: '<',
   },
   template: require('./groups.html'),
   controller: function (
@@ -31,7 +31,7 @@ const GroupsComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
     $state: StateService,
-    $rootScope: IScope
+    $rootScope: IScope,
   ) {
     'ngInject';
     this.$rootScope = $rootScope;
@@ -42,27 +42,28 @@ const GroupsComponent: ng.IComponentOptions = {
 
     this.removeGroup = (ev, groupId, groupName) => {
       ev.stopPropagation();
-      $mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Would you like to remove the group "' + groupName + '"?',
-          confirmButton: 'Remove'
-        }
-      }).then( (response) => {
-        if (response) {
-          GroupService.remove(groupId).then( () => {
-            NotificationService.show('Group ' + groupName + ' has been deleted.');
-            GroupService.list().then( (response) => {
+      $mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Would you like to remove the group "' + groupName + '"?',
+            confirmButton: 'Remove',
+          },
+        })
+        .then((response) => {
+          if (response) {
+            GroupService.remove(groupId).then(() => {
+              NotificationService.show('Group ' + groupName + ' has been deleted.');
+              GroupService.list().then((response) => {
                 this.groups = _.filter(response.data, 'manageable');
                 this.initEventRules();
-              }
-            );
-          });
-        }
-      });
+              });
+            });
+          }
+        });
     };
 
     this.saveEventRules = (group: any) => {
@@ -76,15 +77,15 @@ const GroupsComponent: ng.IComponentOptions = {
 
     this.selectGroupUrl = (group: any) => {
       if (group.manageable) {
-        return $state.go('management.settings.groups.group', {groupId: group.id});
+        return $state.go('management.settings.groups.group', { groupId: group.id });
       }
       return null;
     };
 
     this.hasEvent = (group: any, event: string) => {
-      return group.event_rules && group.event_rules.findIndex(rule => rule.event === event) !== -1;
+      return group.event_rules && group.event_rules.findIndex((rule) => rule.event === event) !== -1;
     };
-  }
+  },
 };
 
 export default GroupsComponent;

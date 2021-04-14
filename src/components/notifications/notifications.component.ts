@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 
 const NotificationsComponent: ng.IComponentOptions = {
   bindings: {
@@ -26,9 +26,9 @@ const NotificationsComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$onInit = () => {
-      $state.go('^.notifications.notification', {notificationId: 'portal'});
+      $state.go('^.notifications.notification', { notificationId: 'portal' });
     };
-  }
+  },
 };
 
 export default NotificationsComponent;

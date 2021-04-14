@@ -46,16 +46,75 @@ class ApiService {
 
   defaultHttpHeaders(): string[] {
     return [
-      'Accept', 'Accept-Charset', 'Accept-Encoding', 'Accept-Language', 'Accept-Ranges', 'Access-Control-Allow-Credentials',
-      'Access-Control-Allow-Headers', 'Access-Control-Allow-Methods', 'Access-Control-Allow-Origin',
-      'Access-Control-Expose-Headers', 'Access-Control-Max-Age', 'Access-Control-Request-Headers',
-      'Access-Control-Request-Method', 'Age', 'Allow', 'Authorization', 'Cache-Control', 'Connection', 'Content-Disposition',
-      'Content-Encoding', 'Content-ID', 'Content-Language', 'Content-Length', 'Content-Location', 'Content-MD5', 'Content-Range',
-      'Content-Type', 'Cookie', 'Date', 'ETag', 'Expires', 'Expect', 'Forwarded', 'From', 'Host', 'If-Match', 'If-Modified-Since',
-      'If-None-Match', 'If-Unmodified-Since', 'Keep-Alive', 'Last-Modified', 'Location', 'Link', 'Max-Forwards', 'MIME-Version',
-      'Origin', 'Pragma', 'Proxy-Authenticate', 'Proxy-Authorization', 'Proxy-Connection', 'Range', 'Referer', 'Retry-After',
-      'Server', 'Set-Cookie', 'Set-Cookie2', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'User-Agent', 'Vary', 'Via',
-      'Warning', 'WWW-Authenticate', 'X-Forwarded-For', 'X-Forwarded-Proto', 'X-Forwarded-Server', 'X-Forwarded-Host'
+      'Accept',
+      'Accept-Charset',
+      'Accept-Encoding',
+      'Accept-Language',
+      'Accept-Ranges',
+      'Access-Control-Allow-Credentials',
+      'Access-Control-Allow-Headers',
+      'Access-Control-Allow-Methods',
+      'Access-Control-Allow-Origin',
+      'Access-Control-Expose-Headers',
+      'Access-Control-Max-Age',
+      'Access-Control-Request-Headers',
+      'Access-Control-Request-Method',
+      'Age',
+      'Allow',
+      'Authorization',
+      'Cache-Control',
+      'Connection',
+      'Content-Disposition',
+      'Content-Encoding',
+      'Content-ID',
+      'Content-Language',
+      'Content-Length',
+      'Content-Location',
+      'Content-MD5',
+      'Content-Range',
+      'Content-Type',
+      'Cookie',
+      'Date',
+      'ETag',
+      'Expires',
+      'Expect',
+      'Forwarded',
+      'From',
+      'Host',
+      'If-Match',
+      'If-Modified-Since',
+      'If-None-Match',
+      'If-Unmodified-Since',
+      'Keep-Alive',
+      'Last-Modified',
+      'Location',
+      'Link',
+      'Max-Forwards',
+      'MIME-Version',
+      'Origin',
+      'Pragma',
+      'Proxy-Authenticate',
+      'Proxy-Authorization',
+      'Proxy-Connection',
+      'Range',
+      'Referer',
+      'Retry-After',
+      'Server',
+      'Set-Cookie',
+      'Set-Cookie2',
+      'TE',
+      'Trailer',
+      'Transfer-Encoding',
+      'Upgrade',
+      'User-Agent',
+      'Vary',
+      'Via',
+      'Warning',
+      'WWW-Authenticate',
+      'X-Forwarded-For',
+      'X-Forwarded-Proto',
+      'X-Forwarded-Server',
+      'X-Forwarded-Host',
     ];
   }
 
@@ -116,29 +175,31 @@ class ApiService {
         }
       });
     }
-    return this.$http.put(this.apisURL + api.id,
+    return this.$http.put(
+      this.apisURL + api.id,
       {
-        'version': api.version,
-        'description': api.description,
-        'proxy': api.proxy,
-        'paths': api.paths,
-        'private': api.private,
-        'visibility': api.visibility,
-        'name': api.name,
-        'services': api.services,
-        'properties': api.properties,
-        'tags': api.tags,
-        'picture': api.picture,
-        'picture_url': api.picture_url,
-        'resources': api.resources,
-        'categories': api.categories,
-        'groups': api.groups,
-        'labels': api.labels,
-        'path_mappings': api.path_mappings,
-        'response_templates': api.response_templates,
-        'lifecycle_state': api.lifecycle_state,
-        'disable_membership_notifications': api.disable_membership_notifications
-      }, { headers: { 'If-Match': api.etag } }
+        version: api.version,
+        description: api.description,
+        proxy: api.proxy,
+        paths: api.paths,
+        private: api.private,
+        visibility: api.visibility,
+        name: api.name,
+        services: api.services,
+        properties: api.properties,
+        tags: api.tags,
+        picture: api.picture,
+        picture_url: api.picture_url,
+        resources: api.resources,
+        categories: api.categories,
+        groups: api.groups,
+        labels: api.labels,
+        path_mappings: api.path_mappings,
+        response_templates: api.response_templates,
+        lifecycle_state: api.lifecycle_state,
+        disable_membership_notifications: api.disable_membership_notifications,
+      },
+      { headers: { 'If-Match': api.etag } },
     );
   }
 
@@ -174,7 +235,9 @@ class ApiService {
   }
 
   export(apiId, exclude, exportVersion): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/export?exclude=' + exclude.join(',') + (exportVersion ? '&version=' + exportVersion : ''));
+    return this.$http.get(
+      this.apisURL + apiId + '/export?exclude=' + exclude.join(',') + (exportVersion ? '&version=' + exportVersion : ''),
+    );
   }
 
   verify(criteria, config?): ng.IPromise<any> {
@@ -218,7 +281,7 @@ class ApiService {
   }
 
   getLog(api, logId, timestamp): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
+    return this.$http.get(this.apisURL + api + '/logs/' + logId + (timestamp ? '?timestamp=' + timestamp : ''));
   }
 
   /*
@@ -230,7 +293,6 @@ class ApiService {
 
   addOrUpdateMember(api: string, membership: IMembership): ng.IHttpPromise<any> {
     return this.$http.post(`${this.apisURL}${api}/members`, membership);
-
   }
 
   deleteMember(api: string, userId: string): ng.IHttpPromise<any> {
@@ -260,7 +322,13 @@ class ApiService {
    * API plans
    */
   getApiPlans(apiId, status?, security?): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/plans?status=' + (status ? status : 'staging,published,closed,deprecated') + (security ? '&security=' + security : ''));
+    return this.$http.get(
+      this.apisURL +
+        apiId +
+        '/plans?status=' +
+        (status ? status : 'staging,published,closed,deprecated') +
+        (security ? '&security=' + security : ''),
+    );
   }
 
   getApiPlan(apiId, planId): ng.IPromise<any> {
@@ -273,30 +341,40 @@ class ApiService {
 
   savePlan(apiId, plan): ng.IPromise<any> {
     if (plan.id) {
-      return this.$http.put(this.apisURL + apiId + '/plans/' + plan.id,
-        {
-          id: plan.id, name: plan.name, description: plan.description,
-          validation: plan.validation, policies: plan.policies,
-          securityDefinition: plan.securityDefinition,
-          characteristics: plan.characteristics, order: plan.order, paths: plan.paths,
-          excluded_groups: plan.excluded_groups,
-          comment_required: plan.comment_required,
-          comment_message: plan.comment_message,
-          tags: plan.tags,
-          selection_rule: plan.selection_rule
-        });
+      return this.$http.put(this.apisURL + apiId + '/plans/' + plan.id, {
+        id: plan.id,
+        name: plan.name,
+        description: plan.description,
+        validation: plan.validation,
+        policies: plan.policies,
+        securityDefinition: plan.securityDefinition,
+        characteristics: plan.characteristics,
+        order: plan.order,
+        paths: plan.paths,
+        excluded_groups: plan.excluded_groups,
+        comment_required: plan.comment_required,
+        comment_message: plan.comment_message,
+        tags: plan.tags,
+        selection_rule: plan.selection_rule,
+      });
     } else {
-      return this.$http.post(this.apisURL + apiId + '/plans',
-        {
-          name: plan.name, description: plan.description, api: plan.api,
-          validation: plan.validation, policies: plan.policies,
-          characteristics: plan.characteristics, type: plan.type, paths: plan.paths,
-          security: plan.security, securityDefinition: plan.securityDefinition, excluded_groups: plan.excluded_groups,
-          comment_required: plan.comment_required,
-          comment_message: plan.comment_message,
-          tags: plan.tags,
-          selection_rule: plan.selection_rule
-        });
+      return this.$http.post(this.apisURL + apiId + '/plans', {
+        name: plan.name,
+        description: plan.description,
+        api: plan.api,
+        validation: plan.validation,
+        policies: plan.policies,
+        characteristics: plan.characteristics,
+        type: plan.type,
+        paths: plan.paths,
+        security: plan.security,
+        securityDefinition: plan.securityDefinition,
+        excluded_groups: plan.excluded_groups,
+        comment_required: plan.comment_required,
+        comment_message: plan.comment_message,
+        tags: plan.tags,
+        selection_rule: plan.selection_rule,
+      });
     }
   }
 
@@ -354,12 +432,11 @@ class ApiService {
   }
 
   updateSubscription(apiId, subscription) {
-    return this.$http.put(this.apisURL + apiId + '/subscriptions/' + subscription.id,
-      {
-        id: subscription.id,
-        starting_at: subscription.starting_at,
-        ending_at: subscription.ending_at
-      });
+    return this.$http.put(this.apisURL + apiId + '/subscriptions/' + subscription.id, {
+      id: subscription.id,
+      starting_at: subscription.starting_at,
+      ending_at: subscription.ending_at,
+    });
   }
 
   resumeSubscription(apiId, subscriptionId) {
@@ -373,7 +450,7 @@ class ApiService {
   transferSubscription(apiId, subscriptionId, transferSubscription): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/_transfer', {
       id: transferSubscription.id,
-      plan: transferSubscription.plan
+      plan: transferSubscription.plan,
     });
   }
 
@@ -505,8 +582,11 @@ class ApiService {
   }
 
   updateRating(api, rating): ng.IPromise<any> {
-    return this.$http.put(this.apisURL + api + '/ratings/' + rating.id,
-      { 'rate': rating.rate, 'title': rating.title, 'comment': rating.comment });
+    return this.$http.put(this.apisURL + api + '/ratings/' + rating.id, {
+      rate: rating.rate,
+      title: rating.title,
+      comment: rating.comment,
+    });
   }
 
   deleteRating(api, ratingId): ng.IPromise<any> {

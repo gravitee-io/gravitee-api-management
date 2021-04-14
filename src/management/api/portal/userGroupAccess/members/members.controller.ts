@@ -38,7 +38,7 @@ class ApiMembersController {
     private $scope,
     private UserService: UserService,
     private GroupService,
-    private RoleService
+    private RoleService,
   ) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
@@ -101,44 +101,51 @@ class ApiMembersController {
   }
 
   showAddMemberModal(ev) {
-    this.$mdDialog.show({
-      controller: 'DialogAddMemberApiController',
-      template: require('./addMember.dialog.html'),
-      parent: angular.element(document.body),
-      targetEvent: ev,
-      clickOutsideToClose: true,
-      locals: {
-        api: this.api,
-        members: this.members
-      }
-    }).then((api) => {
-      if (api) {
-        this.ApiService.getMembers(api.id).then((response) => {
-          this.members = response.data;
-        });
-      }
-    }, function () {
-      // You cancelled the dialog
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogAddMemberApiController',
+        template: require('./addMember.dialog.html'),
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose: true,
+        locals: {
+          api: this.api,
+          members: this.members,
+        },
+      })
+      .then(
+        (api) => {
+          if (api) {
+            this.ApiService.getMembers(api.id).then((response) => {
+              this.members = response.data;
+            });
+          }
+        },
+        function () {
+          // You cancelled the dialog
+        },
+      );
   }
 
   showDeleteMemberConfirm(ev, member) {
     ev.stopPropagation();
     let self = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../../components/dialog/confirm.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Would you like to remove the member?',
-        confirmButton: 'Remove'
-      }
-    }).then(function (response) {
-      if (response) {
-        self.deleteMember(member);
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../../components/dialog/confirm.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Would you like to remove the member?',
+          confirmButton: 'Remove',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          self.deleteMember(member);
+        }
+      });
   }
 
   getMembershipDisplay(member): string {
@@ -146,17 +153,15 @@ class ApiMembersController {
       return member.username;
     }
 
-    return (member.username)
-      ? member.displayName + ' (' + member.username + ')'
-      : member.displayName;
+    return member.username ? member.displayName + ' (' + member.username + ')' : member.displayName;
   }
 
   getMembershipAvatar(member): string {
-    return (member.id) ? this.UserService.getUserAvatar(member.id) : 'assets/default_photo.png';
+    return member.id ? this.UserService.getUserAvatar(member.id) : 'assets/default_photo.png';
   }
 
   toggleDisableMembershipNotifications() {
-    this.ApiService.update(this.api).then(updatedApi => {
+    this.ApiService.update(this.api).then((updatedApi) => {
       this.api = updatedApi.data;
       this.NotificationService.show('API ' + this.api.name + ' has been updated');
     });

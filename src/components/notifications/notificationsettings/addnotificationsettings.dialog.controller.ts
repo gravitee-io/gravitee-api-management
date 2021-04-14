@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Notifier} from '../../../entities/notifier';
+import { Notifier } from '../../../entities/notifier';
 
-function DialogAddNotificationSettingsController(
-  $scope,
-  $mdDialog: angular.material.IDialogService,
-  notifiers: Notifier[]) {
-
+function DialogAddNotificationSettingsController($scope, $mdDialog: angular.material.IDialogService, notifiers: Notifier[]) {
   'ngInject';
   this.notifiers = notifiers;
   this.selectedNotifier = notifiers[0];
@@ -32,7 +28,7 @@ function DialogAddNotificationSettingsController(
   this.save = function () {
     let cfg = {
       name: this.name,
-      notifierId: this.selectedNotifier.id
+      notifierId: this.selectedNotifier.id,
     };
 
     $mdDialog.hide(cfg);

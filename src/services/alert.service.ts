@@ -44,24 +44,23 @@ class AlertService {
   }
 
   create(alert: Alert): IHttpPromise<any> {
-    return this.$http.post(
-      this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts', {
-        name: alert.name,
-        severity: alert.severity,
-        source: alert.source,
-        description: alert.description,
-        type: alert.type,
-        enabled: alert.enabled,
-        reference_type: Scope[alert.reference_type],
-        reference_id: alert.reference_id,
-        conditions: alert.conditions,
-        notifications: alert.notifications,
-        filters: alert.filters,
-        projections: alert.projections,
-        dampening: alert.dampening,
-        template: alert.template,
-        event_rules: alert.event_rules
-      });
+    return this.$http.post(this.getReferenceURL(alert.reference_type, alert.reference_id) + 'alerts', {
+      name: alert.name,
+      severity: alert.severity,
+      source: alert.source,
+      description: alert.description,
+      type: alert.type,
+      enabled: alert.enabled,
+      reference_type: Scope[alert.reference_type],
+      reference_id: alert.reference_id,
+      conditions: alert.conditions,
+      notifications: alert.notifications,
+      filters: alert.filters,
+      projections: alert.projections,
+      dampening: alert.dampening,
+      template: alert.template,
+      event_rules: alert.event_rules,
+    });
   }
 
   update(alert: Alert): IHttpPromise<any> {
@@ -81,7 +80,7 @@ class AlertService {
       projections: alert.projections,
       dampening: alert.dampening,
       template: alert.template,
-      event_rules: alert.event_rules
+      event_rules: alert.event_rules,
     });
   }
 

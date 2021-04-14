@@ -16,10 +16,10 @@
 const ApiHeaderComponent: ng.IComponentOptions = {
   bindings: {
     api: '<',
-    readOnly: '<'
+    readOnly: '<',
   },
   template: require('./api-header.html'),
-  controller: 'ApiHeaderController'
+  controller: 'ApiHeaderController',
 };
 
 export default ApiHeaderComponent;

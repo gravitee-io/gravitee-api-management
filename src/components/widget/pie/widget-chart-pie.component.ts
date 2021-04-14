@@ -18,13 +18,13 @@ import * as _ from 'lodash';
 const WidgetChartPieComponent: ng.IComponentOptions = {
   template: require('./widget-chart-pie.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
-  controller: function() {
-    this.$onChanges = function(changes) {
+  controller: function () {
+    this.$onChanges = function (changes) {
       if (changes.data) {
         let data = changes.data.currentValue;
         let values = [];
@@ -40,19 +40,23 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
         }
         // hack
 
-        let total = _.reduce(data.values, function(sum: number, val: number) {
-          return sum + val;
-        }, 0);
+        let total = _.reduce(
+          data.values,
+          function (sum: number, val: number) {
+            return sum + val;
+          },
+          0,
+        );
 
         let idx = 0;
         let that = this;
-        _.forEach(data.values, function(value: number) {
-          let percentage = _.round(value / total * 100, 2);
+        _.forEach(data.values, function (value: number) {
+          let percentage = _.round((value / total) * 100, 2);
           values.push({
             name: that.parent.widget.chart.labels[idx],
             y: percentage,
             color: that.parent.widget.chart.colors[idx],
-            hits: value
+            hits: value,
           });
           idx++;
         });
@@ -61,7 +65,7 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
           chart: {
             plotBackgroundColor: null,
             plotBorderWidth: 0,
-            plotShadow: false
+            plotShadow: false,
           },
           plotOptions: {
             pie: {
@@ -70,35 +74,35 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
                 distance: -50,
                 style: {
                   fontWeight: 'bold',
-                  color: 'white'
-                }
+                  color: 'white',
+                },
               },
               startAngle: -90,
               endAngle: 90,
-              center: ['50%', '75%']
-            }
+              center: ['50%', '75%'],
+            },
           },
           tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.2f}%</b>'
-                       + '<br>'
-                       + 'Nb hits: <b>{point.hits}</b>'
+            pointFormat: '{series.name}: <b>{point.percentage:.2f}%</b>' + '<br>' + 'Nb hits: <b>{point.hits}</b>',
           },
           title: {
             text: 'Total: ' + total + extraTitle,
             align: 'center',
             useHTML: true,
             verticalAlign: 'middle',
-            y: 60
+            y: 60,
           },
-          series: [{
-            name: 'Percent hits',
-            innerSize: '50%',
-            data: values
-          }]
+          series: [
+            {
+              name: 'Percent hits',
+              innerSize: '50%',
+              data: values,
+            },
+          ],
         };
       }
     };
-  }
+  },
 };
 
 export default WidgetChartPieComponent;

@@ -19,7 +19,6 @@ import hljs from 'highlight.js';
 import NotificationService from '../../../services/notification.service';
 
 class ComponentCtrl implements ng.IComponentController {
-
   public page: any;
   public options: any;
 
@@ -59,9 +58,8 @@ class ComponentCtrl implements ng.IComponentController {
       'link',
       'divider',
       'code',
-      'codeblock'
+      'codeblock',
     ];
-
 
     let $http = this.$http;
     let Constants = this.Constants;
@@ -78,42 +76,47 @@ class ComponentCtrl implements ng.IComponentController {
     }
 
     let that = this;
-    this.tuiEditor = new Editor(Object.assign({
-      el: document.querySelector('#editSection'),
-      initialEditType: 'markdown',
-      previewStyle: 'vertical',
-      initialValue: initialValue,
-      useDefaultHTMLSanitizer: false,
-      height: '500px',
-      usageStatistics: false,
-      exts: ['table', 'scrollSync'],
-      toolbarItems: toolbarItems,
-      events: {
-        change: (change) => {
-          this.page.content = this.tuiEditor.getMarkdown();
-        }
-      },
-      hooks: {
-        addImageBlobHook: function (blob, callback) {
+    this.tuiEditor = new Editor(
+      Object.assign(
+        {
+          el: document.querySelector('#editSection'),
+          initialEditType: 'markdown',
+          previewStyle: 'vertical',
+          initialValue: initialValue,
+          useDefaultHTMLSanitizer: false,
+          height: '500px',
+          usageStatistics: false,
+          exts: ['table', 'scrollSync'],
+          toolbarItems: toolbarItems,
+          events: {
+            change: (change) => {
+              this.page.content = this.tuiEditor.getMarkdown();
+            },
+          },
+          hooks: {
+            addImageBlobHook: function (blob, callback) {
+              let fd = new FormData();
+              fd.append('file', blob);
 
-          let fd = new FormData();
-          fd.append('file', blob);
+              if (blob.size > Constants.portal.uploadMedia.maxSizeInOctet) {
+                that.NotificationService.showError(
+                  `File uploaded is too big, you're limited at ${Constants.portal.uploadMedia.maxSizeInOctet} bytes`,
+                );
+                return false;
+              }
 
-          if (blob.size > Constants.portal.uploadMedia.maxSizeInOctet) {
-            that.NotificationService.showError(`File uploaded is too big, you're limited at ${Constants.portal.uploadMedia.maxSizeInOctet} bytes`);
-            return false;
-          }
+              $http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } }).then((response) => {
+                callback(mediaURL + response.data, blob.name);
+              });
 
-          $http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } })
-            .then((response) => {
-              callback(mediaURL + response.data, blob.name);
-            });
-
-          return false;
-        }
-      },
-      plugins: [[codeSyntaxHighlight, { hljs }]]
-    }, this.options));
+              return false;
+            },
+          },
+          plugins: [[codeSyntaxHighlight, { hljs }]],
+        },
+        this.options,
+      ),
+    );
   }
 }
 
@@ -121,9 +124,9 @@ const PageEditorMarkdownComponent: ng.IComponentOptions = {
   template: require('./page-editormarkdown.html'),
   bindings: {
     page: '<',
-    options: '<'
+    options: '<',
   },
-  controller: ComponentCtrl
+  controller: ComponentCtrl,
 };
 
 export default PageEditorMarkdownComponent;

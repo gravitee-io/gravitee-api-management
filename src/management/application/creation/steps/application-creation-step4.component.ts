@@ -15,17 +15,17 @@
  */
 const ApplicationCreationStep4Component: ng.IComponentOptions = {
   require: {
-    parent: '^createApplication'
+    parent: '^createApplication',
   },
   template: require('./application-creation-step4.html'),
-  controller: function(Constants) {
+  controller: function (Constants) {
     'ngInject';
     if (Constants.documentation && Constants.documentation.url) {
       this.url = Constants.documentation.url;
     } else {
       this.url = 'https://docs.gravitee.io';
     }
-  }
+  },
 };
 
 export default ApplicationCreationStep4Component;

@@ -19,7 +19,7 @@ class ApiEventsController {
   private events: any;
   private eventsTimeline: any;
 
-  constructor (resolvedEvents) {
+  constructor(resolvedEvents) {
     'ngInject';
     this.events = resolvedEvents.data;
     this.eventsTimeline = [];
@@ -27,7 +27,7 @@ class ApiEventsController {
   }
 
   initTimeline(events) {
-    _.forEach(events, event => {
+    _.forEach(events, (event) => {
       var eventTimelineType = this.getEventTypeTimeline(event.type);
       var eventTimeline = {
         event: event,
@@ -35,7 +35,7 @@ class ApiEventsController {
         badgeIconClass: eventTimelineType.icon,
         title: event.type,
         when: event.created_at,
-        user: event.user
+        user: event.user,
       };
       this.eventsTimeline.push(eventTimeline);
     });

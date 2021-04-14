@@ -18,7 +18,7 @@ import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 
 class CategoryController {
   public searchText: string = '';
@@ -41,16 +41,17 @@ class CategoryController {
     private $state: StateService,
     private $location: ng.ILocationService,
     private $mdDialog: angular.material.IDialogService,
-    private $scope: IScope) {
+    private $scope: IScope,
+  ) {
     'ngInject';
     this.createMode = $location.path().endsWith('new');
   }
 
   $onInit() {
     this.addedAPIs = [];
-    this.selectedAPIs = (this.categoryApis) ? this.categoryApis.slice(0) : [];
+    this.selectedAPIs = this.categoryApis ? this.categoryApis.slice(0) : [];
     let self = this;
-    this.$scope.$on('apiPictureChangeSuccess', function(event, args) {
+    this.$scope.$on('apiPictureChangeSuccess', function (event, args) {
       if (!self.category) {
         self.category = {};
       }
@@ -71,44 +72,42 @@ class CategoryController {
 
   save() {
     let that = this;
-    let categoryFunction = (this.createMode) ? this.CategoryService.create(this.category) : this.CategoryService.update(this.category);
-    categoryFunction
-      .then(response => {
-        let category = response.data;
-        // update category's apis
-        let apiFunctions = this.addedAPIs.map(api => {
-          let apiCategories = api.categories || [];
-          apiCategories.push(category.id);
-          api.categories = apiCategories;
-          return that.ApiService.update(api);
-        });
-        that.$q.all(apiFunctions).then(() => {
-          that.NotificationService.show('Category ' + category.name + ' has been saved.');
-          that.$state.go('management.settings.category', {categoryId: category.key}, {reload: true});
-        });
+    let categoryFunction = this.createMode ? this.CategoryService.create(this.category) : this.CategoryService.update(this.category);
+    categoryFunction.then((response) => {
+      let category = response.data;
+      // update category's apis
+      let apiFunctions = this.addedAPIs.map((api) => {
+        let apiCategories = api.categories || [];
+        apiCategories.push(category.id);
+        api.categories = apiCategories;
+        return that.ApiService.update(api);
       });
+      that.$q.all(apiFunctions).then(() => {
+        that.NotificationService.show('Category ' + category.name + ' has been saved.');
+        that.$state.go('management.settings.category', { categoryId: category.key }, { reload: true });
+      });
+    });
   }
 
   searchAPI(searchText) {
     let that = this;
     if (that.allApis) {
-      let apisFound = _.filter(that.allApis, api => !that.selectedAPIs.some(a => a.id === api.id));
+      let apisFound = _.filter(that.allApis, (api) => !that.selectedAPIs.some((a) => a.id === api.id));
       return that.$filter('filter')(apisFound, searchText);
     } else {
-      return this.ApiService.list()
-        .then(function (response) {
-          // Map the response object to the data object.
-          let apis = response.data;
-          that.allApis = apis;
-          let apisFound = _.filter(apis, api => !that.selectedAPIs.some(a => a.id === api.id));
-          return that.$filter('filter')(apisFound, searchText);
-        });
+      return this.ApiService.list().then(function (response) {
+        // Map the response object to the data object.
+        let apis = response.data;
+        that.allApis = apis;
+        let apisFound = _.filter(apis, (api) => !that.selectedAPIs.some((a) => a.id === api.id));
+        return that.$filter('filter')(apisFound, searchText);
+      });
     }
   }
 
   selectedApiChange(api) {
     if (api) {
-      this.ApiService.get(api.id).then(response => {
+      this.ApiService.get(api.id).then((response) => {
         this.addedAPIs.push(response.data);
         this.selectedAPIs.push(response.data);
       });
@@ -121,30 +120,32 @@ class CategoryController {
   }
 
   removeApi(api) {
-    this.$mdDialog.show({
-      controller: 'DeleteAPICategoryDialogController',
-      template: require('./delete-api-category.dialog.html'),
-      locals: {
-        api: api
-      }
-    }).then((deleteApi) => {
-      if (deleteApi) {
-        if (this.categoryApis && this.categoryApis.some(a => a.id === api.id)) {
-          // we need to retrieve the API to get the all information required for the update
-          this.ApiService.get(api.id).then(response => {
-            let apiFound = response.data;
-            _.remove(apiFound.categories, (c) => c === this.category.key);
-            this.ApiService.update(apiFound).then(() => {
-              this.NotificationService.show('API \'' + api.name + '\' detached with success');
-              _.remove(this.selectedAPIs, api);
-              _.remove(this.categoryApis, api);
+    this.$mdDialog
+      .show({
+        controller: 'DeleteAPICategoryDialogController',
+        template: require('./delete-api-category.dialog.html'),
+        locals: {
+          api: api,
+        },
+      })
+      .then((deleteApi) => {
+        if (deleteApi) {
+          if (this.categoryApis && this.categoryApis.some((a) => a.id === api.id)) {
+            // we need to retrieve the API to get the all information required for the update
+            this.ApiService.get(api.id).then((response) => {
+              let apiFound = response.data;
+              _.remove(apiFound.categories, (c) => c === this.category.key);
+              this.ApiService.update(apiFound).then(() => {
+                this.NotificationService.show("API '" + api.name + "' detached with success");
+                _.remove(this.selectedAPIs, api);
+                _.remove(this.categoryApis, api);
+              });
             });
-          });
-        } else {
-          _.remove(this.selectedAPIs, api);
+          } else {
+            _.remove(this.selectedAPIs, api);
+          }
         }
-      }
-    });
+      });
   }
 
   toggleHighlightAPI(api) {

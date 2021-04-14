@@ -19,7 +19,7 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     httpConfiguration: '=',
     inheritHttpConfiguration: '<',
-    form: '<'
+    form: '<',
   },
   controller: class {
     private httpConfiguration: any;
@@ -33,45 +33,55 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
       this.proxies = [
         {
           name: 'HTTP CONNECT proxy',
-          value: 'HTTP'
-        }, {
+          value: 'HTTP',
+        },
+        {
           name: 'SOCKS4/4a tcp proxy',
-          value: 'SOCKS4'
-        }, {
+          value: 'SOCKS4',
+        },
+        {
           name: 'SOCKS5 tcp proxy',
-          value: 'SOCKS5'
-        }];
+          value: 'SOCKS5',
+        },
+      ];
 
       this.trustStoreTypes = [
         {
           name: 'None',
-          value: ''
-        }, {
+          value: '',
+        },
+        {
           name: 'Java Trust Store (.jks)',
-          value: 'JKS'
-        }, {
+          value: 'JKS',
+        },
+        {
           name: 'PKCS#12 (.p12) / PFX (.pfx)',
-          value: 'PKCS12'
-        }, {
+          value: 'PKCS12',
+        },
+        {
           name: 'PEM (.pem)',
-          value: 'PEM'
-        }];
+          value: 'PEM',
+        },
+      ];
 
       this.keyStoreTypes = [
         {
           name: 'None',
-          value: ''
+          value: '',
         },
         {
           name: 'Java Trust Store (.jks)',
-          value: 'JKS'
-        }, {
+          value: 'JKS',
+        },
+        {
           name: 'PKCS#12 (.p12) / PFX (.pfx)',
-          value: 'PKCS12'
-        }, {
+          value: 'PKCS12',
+        },
+        {
           name: 'PEM (.pem)',
-          value: 'PEM'
-        }];
+          value: 'PEM',
+        },
+      ];
 
       this.initModel();
     }
@@ -80,7 +90,7 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
       // init to the correct model structure (useful when the user do not save)
       if (Array.isArray(this.httpConfiguration.headers)) {
         const headers = {};
-        this.httpConfiguration.headers.forEach(header => headers[header.name] = header.value);
+        this.httpConfiguration.headers.forEach((header) => (headers[header.name] = header.value));
         this.httpConfiguration.headers = headers;
       }
     }
@@ -101,14 +111,13 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
     }
 
     initModel() {
-      this.httpConfiguration.ssl = this.httpConfiguration.ssl || {trustAll: false};
-      this.httpConfiguration.ssl.trustStore = this.httpConfiguration.ssl.trustStore || {type: ''};
-      this.httpConfiguration.ssl.keyStore = this.httpConfiguration.ssl.keyStore || {type: ''};
+      this.httpConfiguration.ssl = this.httpConfiguration.ssl || { trustAll: false };
+      this.httpConfiguration.ssl.trustStore = this.httpConfiguration.ssl.trustStore || { type: '' };
+      this.httpConfiguration.ssl.keyStore = this.httpConfiguration.ssl.keyStore || { type: '' };
 
-      this.httpConfiguration.headers = (this.httpConfiguration.headers) ?
-        Object
-          .keys(this.httpConfiguration.headers)
-          .map(name => ({name, value: this.httpConfiguration.headers[name]})) : [];
+      this.httpConfiguration.headers = this.httpConfiguration.headers
+        ? Object.keys(this.httpConfiguration.headers).map((name) => ({ name, value: this.httpConfiguration.headers[name] }))
+        : [];
 
       if (!this.httpConfiguration.http) {
         this.httpConfiguration.http = {
@@ -119,15 +128,15 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
           pipelining: false,
           maxConcurrentConnections: 100,
           useCompression: true,
-          followRedirects: false
+          followRedirects: false,
         };
       }
       if (!this.httpConfiguration.ssl) {
         this.httpConfiguration.ssl = {
           trustAll: false,
           trustStore: {
-            type: ''
-          }
+            type: '',
+          },
         };
       }
       if (!this.httpConfiguration.proxy) {
@@ -140,7 +149,7 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
     }
 
     addHTTPHeader() {
-      this.httpConfiguration.headers.push({name: '', value: ''});
+      this.httpConfiguration.headers.push({ name: '', value: '' });
     }
 
     removeHTTPHeader(idx) {
@@ -154,8 +163,7 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
       return this.httpConfiguration.proxy.enabled && this.httpConfiguration.proxy.useSystemProxy === false;
     }
   },
-  template: require('./httpConfiguration.html')
+  template: require('./httpConfiguration.html'),
 };
 
 export default HttpConfigurationComponent;
-

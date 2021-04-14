@@ -16,7 +16,7 @@
 const gulp = require('gulp');
 const HubRegistry = require('gulp-hub');
 const browserSync = require('browser-sync');
-const tslint = require("gulp-tslint");
+const tslint = require('gulp-tslint');
 const ts = require('gulp-typescript');
 const conf = require('./conf/gulp.conf');
 
@@ -42,8 +42,7 @@ gulp.task('compile', compile);
 
 function compile() {
   var tsProject = ts.createProject('tsconfig.json');
-  return gulp.src('src/**/*.ts')
-    .pipe(tsProject())
+  return gulp.src('src/**/*.ts').pipe(tsProject());
 }
 
 function reloadBrowserSync(cb) {
@@ -57,19 +56,27 @@ function watch(done) {
 }
 
 function lint() {
-  return gulp.src('src/**/*.ts')
+  return gulp
+    .src('src/**/*.ts')
     .pipe(tslint())
-    .pipe(tslint.report({
-      summarizeFailureOutput: true
-    }));
+    .pipe(
+      tslint.report({
+        summarizeFailureOutput: true,
+      }),
+    );
 }
 
 function lintFix() {
-  return gulp.src('src/**/*.ts')
-    .pipe(tslint({
-      fix: true
-    }))
-    .pipe(tslint.report({
-      summarizeFailureOutput: true
-    }));
+  return gulp
+    .src('src/**/*.ts')
+    .pipe(
+      tslint({
+        fix: true,
+      }),
+    )
+    .pipe(
+      tslint.report({
+        summarizeFailureOutput: true,
+      }),
+    );
 }

@@ -24,11 +24,11 @@ function DialogConfirmAndValidateController($scope, $mdDialog, locals) {
   $scope.validationValue = locals.validationValue;
   $scope.confirmValue = '';
 
-  this.cancel = function() {
+  this.cancel = function () {
     $mdDialog.hide(false);
   };
 
-  this.confirm = function() {
+  this.confirm = function () {
     $mdDialog.hide(true);
   };
 }

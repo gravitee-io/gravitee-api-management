@@ -15,10 +15,10 @@
  */
 const EntrypointComponent: ng.IComponentOptions = {
   bindings: {
-    tags: '<'
+    tags: '<',
   },
   controller: 'EntrypointController',
-  template: require('./entrypoint.html')
+  template: require('./entrypoint.html'),
 };
 
 export default EntrypointComponent;

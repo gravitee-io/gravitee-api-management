@@ -40,7 +40,7 @@ class ApiListPlansController {
     private dragularService,
     private NotificationService: NotificationService,
     private UserService: UserService,
-    private ApiService: ApiService
+    private ApiService: ApiService,
   ) {
     'ngInject';
     this.dndEnabled = UserService.isUserHasPermissions(['api-plan-u']);
@@ -60,10 +60,10 @@ class ApiListPlansController {
       },
       scope: this.$scope,
       containersModel: this.plans,
-      nameSpace: 'plan'
+      nameSpace: 'plan',
     });
 
-    this.$scope.$on('dragulardrop', function(e, el, target, source, dragularList, index, targetModel, dropIndex) {
+    this.$scope.$on('dragulardrop', function (e, el, target, source, dragularList, index, targetModel, dropIndex) {
       let movedPlan = that.filteredPlans[index];
       movedPlan.order = dropIndex + 1;
 
@@ -89,7 +89,7 @@ class ApiListPlansController {
   }
 
   list() {
-    this.ApiService.getApiPlans(this.$stateParams.apiId).then(response => {
+    this.ApiService.getApiPlans(this.$stateParams.apiId).then((response) => {
       let that = this;
       this.$scope.$applyAsync(() => {
         that.plans.length = 0;
@@ -102,7 +102,7 @@ class ApiListPlansController {
 
   changeFilter(statusFilter) {
     this.selectedStatus = statusFilter;
-    this.dndEnabled = (statusFilter === 'published') && this.UserService.isUserHasPermissions(['api-plan-u']);
+    this.dndEnabled = statusFilter === 'published' && this.UserService.isUserHasPermissions(['api-plan-u']);
 
     if (_.includes(this.selectedStatus, statusFilter)) {
       _.pull(this.selectedStatus, statusFilter);
@@ -112,8 +112,9 @@ class ApiListPlansController {
     this.$state.transitionTo(
       this.$state.current,
       _.merge(this.$state.params, {
-        state: statusFilter
-      }));
+        state: statusFilter,
+      }),
+    );
     this.applyFilters();
   }
 
@@ -122,8 +123,10 @@ class ApiListPlansController {
     var that = this;
     this.filteredPlans = _.sortBy(
       _.filter(this.plans, function (plan: any) {
-      return _.includes(that.selectedStatus, plan.status);
-    }), 'order');
+        return _.includes(that.selectedStatus, plan.status);
+      }),
+      'order',
+    );
   }
 
   addPlan() {
@@ -131,105 +134,114 @@ class ApiListPlansController {
   }
 
   editPlan(plan: any) {
-    this.$state.go('management.apis.detail.portal.plans.plan', {planId: plan.id});
+    this.$state.go('management.apis.detail.portal.plans.plan', { planId: plan.id });
   }
 
   close(plan, ev) {
-    this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then( (response) => {
+    this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then((response) => {
       const subscriptions = response.data.page.size;
       let msg = '';
       if (plan.security === 'key_less') {
-        msg = 'A keyless plan may have consumers. <br/>'
-          + 'By closing this plan you will remove free access to this API.';
+        msg = 'A keyless plan may have consumers. <br/>' + 'By closing this plan you will remove free access to this API.';
       } else {
         if (subscriptions === 0) {
           msg = 'No subscription is associated to this plan. You can delete it safely.';
         } else if (subscriptions > 0) {
-          msg = 'There are <code>'
-            + subscriptions
-            + '</code> subscription(s) associated to this plan.<br/>'
-            + 'By closing this plan, all relative active subscriptions will also be closed.';
+          msg =
+            'There are <code>' +
+            subscriptions +
+            '</code> subscription(s) associated to this plan.<br/>' +
+            'By closing this plan, all relative active subscriptions will also be closed.';
         }
       }
       let confirmButton = 'Yes, close this plan.';
       if (subscriptions === 0 && plan.security === 'api_key') {
         confirmButton = 'Yes, delete this plan.';
       }
-      this.$mdDialog.show({
-        controller: 'DialogConfirmAndValidateController',
-        controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmAndValidate.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Would you like to close plan "' + plan.name + '"?',
-          warning: 'This operation is irreversible.',
-          msg: msg,
-          validationMessage: 'Please, type in the name of the plan <code>' + plan.name + '</code> to confirm.',
-          validationValue: plan.name,
-          confirmButton: confirmButton
-        }
-      }).then( (response) => {
-        if (response) {
-          let that = this;
-          this.ApiService.closePlan(this.$stateParams.apiId, plan.id).then(function() {
-            that.NotificationService.show('Plan ' + plan.name + ' has been closed');
-            that.$rootScope.$broadcast('planChangeSuccess', { state: 'closed'});
-            that.$scope.$parent.apiCtrl.checkAPISynchronization({id: that.$stateParams.apiId});
-            that.selectedStatus = ['closed'];
-            that.list();
-          });
-        }
-      });
+      this.$mdDialog
+        .show({
+          controller: 'DialogConfirmAndValidateController',
+          controllerAs: 'ctrl',
+          template: require('../../../../components/dialog/confirmAndValidate.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Would you like to close plan "' + plan.name + '"?',
+            warning: 'This operation is irreversible.',
+            msg: msg,
+            validationMessage: 'Please, type in the name of the plan <code>' + plan.name + '</code> to confirm.',
+            validationValue: plan.name,
+            confirmButton: confirmButton,
+          },
+        })
+        .then((response) => {
+          if (response) {
+            let that = this;
+            this.ApiService.closePlan(this.$stateParams.apiId, plan.id).then(function () {
+              that.NotificationService.show('Plan ' + plan.name + ' has been closed');
+              that.$rootScope.$broadcast('planChangeSuccess', { state: 'closed' });
+              that.$scope.$parent.apiCtrl.checkAPISynchronization({ id: that.$stateParams.apiId });
+              that.selectedStatus = ['closed'];
+              that.list();
+            });
+          }
+        });
     });
   }
 
   depreciate(plan, ev) {
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Would you like to deprecate plan "' + plan.name + '"?',
-        msg: 'By deprecating this plan, users will no more be able to subscribe to it.',
-        confirmButton: 'Deprecate'
-      }
-    }).then( (response) => {
-      if (response) {
-        this.ApiService.depreciatePlan(this.$stateParams.apiId, plan.id).then( () => {
-          this.NotificationService.show('Plan ' + plan.name + ' has been deprecated');
-          this.$rootScope.$broadcast('planChangeSuccess', { state: 'deprecated'});
-          this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
-          this.selectedStatus = ['published'];
-          this.list();
-        });
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Would you like to deprecate plan "' + plan.name + '"?',
+          msg: 'By deprecating this plan, users will no more be able to subscribe to it.',
+          confirmButton: 'Deprecate',
+        },
+      })
+      .then((response) => {
+        if (response) {
+          this.ApiService.depreciatePlan(this.$stateParams.apiId, plan.id).then(() => {
+            this.NotificationService.show('Plan ' + plan.name + ' has been deprecated');
+            this.$rootScope.$broadcast('planChangeSuccess', { state: 'deprecated' });
+            this.$scope.$parent.apiCtrl.checkAPISynchronization({ id: this.$stateParams.apiId });
+            this.selectedStatus = ['published'];
+            this.list();
+          });
+        }
+      });
   }
 
   publish(plan, ev) {
-    this.$mdDialog.show({
+    this.$mdDialog
+      .show({
         controller: 'DialogPublishPlanController',
         template: require('./publishPlan.dialog.html'),
         parent: angular.element(document.body),
         targetEvent: ev,
         clickOutsideToClose: true,
         locals: {
-          plan: plan
-        }
-      }).then( (plan) => {
-        if (plan) {
-          this.ApiService.publishPlan(this.$stateParams.apiId, plan.id).then( () => {
-            this.NotificationService.show('Plan ' + plan.name + ' has been published');
-            this.$rootScope.$broadcast('planChangeSuccess', { state: 'published'});
-            this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
-            this.selectedStatus = ['published'];
-            this.list();
-          });
-        }
-      }, function() {
-        // You cancelled the dialog
-      });
+          plan: plan,
+        },
+      })
+      .then(
+        (plan) => {
+          if (plan) {
+            this.ApiService.publishPlan(this.$stateParams.apiId, plan.id).then(() => {
+              this.NotificationService.show('Plan ' + plan.name + ' has been published');
+              this.$rootScope.$broadcast('planChangeSuccess', { state: 'published' });
+              this.$scope.$parent.apiCtrl.checkAPISynchronization({ id: this.$stateParams.apiId });
+              this.selectedStatus = ['published'];
+              this.list();
+            });
+          }
+        },
+        function () {
+          // You cancelled the dialog
+        },
+      );
   }
 
   countPlansByStatus() {

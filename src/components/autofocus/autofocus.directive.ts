@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 class AutofocusDirective {
-
   constructor() {
-  'ngInject';
+    'ngInject';
 
     let directive = {
       restrict: 'A',
@@ -25,7 +24,7 @@ class AutofocusDirective {
         setTimeout(function () {
           elm[0].focus();
         });
-      }
+      },
     };
 
     return directive;

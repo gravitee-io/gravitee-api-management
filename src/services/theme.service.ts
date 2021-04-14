@@ -43,7 +43,7 @@ class ThemeService {
         definition: theme.definition,
         logo: theme.logo,
         optionalLogo: theme.optionalLogo,
-        backgroundImage: theme.backgroundImage
+        backgroundImage: theme.backgroundImage,
       });
     }
   }
@@ -72,7 +72,6 @@ class ThemeService {
   private getImageUrl(theme, image) {
     return `${this.themeURL}${theme.id}/${image}?${theme.updated_at}`;
   }
-
 }
 
 export default ThemeService;

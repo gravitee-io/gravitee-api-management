@@ -23,7 +23,7 @@ function apisProxyRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.proxy', {
-      template: require('./apis.proxy.route.html')
+      template: require('./apis.proxy.route.html'),
     })
     .state('management.apis.detail.proxy.entrypoints', {
       url: '/proxy',
@@ -31,20 +31,20 @@ function apisProxyRouterConfig($stateProvider) {
       controller: 'ApiProxyController',
       controllerAs: 'apiProxyCtrl',
       resolve: {
-        resolvedTenants: (TenantService: TenantService) => TenantService.list()
+        resolvedTenants: (TenantService: TenantService) => TenantService.list(),
       },
       data: {
         menu: {
           label: 'Proxy',
-          icon: 'device_hub'
+          icon: 'device_hub',
         },
         perms: {
-          only: ['api-definition-r', 'api-health-r']
+          only: ['api-definition-r', 'api-health-r'],
         },
         docs: {
-          page: 'management-api-proxy'
-        }
-      }
+          page: 'management-api-proxy',
+        },
+      },
     })
     .state('management.apis.detail.proxy.cors', {
       url: '/cors',
@@ -53,12 +53,12 @@ function apisProxyRouterConfig($stateProvider) {
       controllerAs: 'apiProxyCtrl',
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-proxy'
-        }
-      }
+          page: 'management-api-proxy',
+        },
+      },
     })
     .state('management.apis.detail.proxy.deployments', {
       url: '/deployments',
@@ -67,12 +67,12 @@ function apisProxyRouterConfig($stateProvider) {
       controllerAs: 'apiProxyCtrl',
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-proxy'
-        }
-      }
+          page: 'management-api-proxy',
+        },
+      },
     })
     .state('management.apis.detail.proxy.failover', {
       url: '/failover',
@@ -81,12 +81,12 @@ function apisProxyRouterConfig($stateProvider) {
       controllerAs: 'apiProxyCtrl',
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-proxy'
-        }
-      }
+          page: 'management-api-proxy',
+        },
+      },
     })
     .state('management.apis.detail.proxy.endpoints', {
       url: '/endpoints',
@@ -94,16 +94,16 @@ function apisProxyRouterConfig($stateProvider) {
       controller: 'ApiProxyController',
       controllerAs: 'apiProxyCtrl',
       resolve: {
-        resolvedTenants: (TenantService: TenantService) => TenantService.list()
+        resolvedTenants: (TenantService: TenantService) => TenantService.list(),
       },
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-proxy-endpoints'
-        }
-      }
+          page: 'management-api-proxy-endpoints',
+        },
+      },
     })
     .state('management.apis.detail.proxy.endpoint', {
       url: '/groups/:groupName/endpoints/:endpointName',
@@ -111,16 +111,16 @@ function apisProxyRouterConfig($stateProvider) {
       controller: 'ApiEndpointController',
       controllerAs: 'endpointCtrl',
       resolve: {
-        resolvedTenants: (TenantService: TenantService) => TenantService.list()
+        resolvedTenants: (TenantService: TenantService) => TenantService.list(),
       },
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-proxy-endpoints'
-        }
-      }
+          page: 'management-api-proxy-endpoints',
+        },
+      },
     })
     .state('management.apis.detail.proxy.group', {
       url: '/groups/:groupName',
@@ -128,16 +128,16 @@ function apisProxyRouterConfig($stateProvider) {
       controller: 'ApiEndpointGroupController',
       controllerAs: 'groupCtrl',
       resolve: {
-        resolvedServicesDiscovery: (ServiceDiscoveryService: ServiceDiscoveryService) => ServiceDiscoveryService.list()
+        resolvedServicesDiscovery: (ServiceDiscoveryService: ServiceDiscoveryService) => ServiceDiscoveryService.list(),
       },
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-proxy-group'
-        }
-      }
+          page: 'management-api-proxy-group',
+        },
+      },
     })
     .state('management.apis.detail.proxy.endpointhc', {
       url: '/groups/:groupName/endpoints/:endpointName/healthcheck',
@@ -147,17 +147,17 @@ function apisProxyRouterConfig($stateProvider) {
       data: {
         menu: null,
         perms: {
-          only: ['api-health-c']
+          only: ['api-health-c'],
         },
         docs: {
-          page: 'management-api-health-check'
-        }
-      }
+          page: 'management-api-health-check',
+        },
+      },
     })
     .state('management.apis.detail.proxy.healthcheck', {
       abstract: true,
       url: '/healthcheck',
-      template: require('./backend/healthcheck/healthcheck.html')
+      template: require('./backend/healthcheck/healthcheck.html'),
     })
     .state('management.apis.detail.proxy.healthcheck.visualize', {
       url: '?from&to',
@@ -166,22 +166,22 @@ function apisProxyRouterConfig($stateProvider) {
       controllerAs: 'healthCheckCtrl',
       data: {
         perms: {
-          only: ['api-health-r']
+          only: ['api-health-r'],
         },
         docs: {
-          page: 'management-api-health-check'
-        }
+          page: 'management-api-health-check',
+        },
       },
       params: {
         from: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         to: {
           type: 'int',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('management.apis.detail.proxy.healthcheck.configure', {
       url: '/configure',
@@ -191,12 +191,12 @@ function apisProxyRouterConfig($stateProvider) {
       data: {
         menu: null,
         perms: {
-          only: ['api-health-c']
+          only: ['api-health-c'],
         },
         docs: {
-          page: 'management-api-health-check-configure'
-        }
-      }
+          page: 'management-api-health-check-configure',
+        },
+      },
     })
     .state('management.apis.detail.proxy.healthcheck.log', {
       url: '/logs/:log',
@@ -204,14 +204,13 @@ function apisProxyRouterConfig($stateProvider) {
       controller: 'ApiHealthCheckLogController',
       controllerAs: 'healthCheckLogCtrl',
       resolve: {
-        resolvedLog: ($stateParams, ApiService: ApiService) =>
-          ApiService.getHealthLog($stateParams.apiId, $stateParams.log)
+        resolvedLog: ($stateParams, ApiService: ApiService) => ApiService.getHealthLog($stateParams.apiId, $stateParams.log),
       },
       data: {
         perms: {
-          only: ['api-health-r']
-        }
-      }
+          only: ['api-health-r'],
+        },
+      },
     })
     .state('management.apis.detail.proxy.discovery', {
       url: '/discovery',
@@ -220,12 +219,12 @@ function apisProxyRouterConfig($stateProvider) {
       controllerAs: 'discoveryCtrl',
       data: {
         perms: {
-          only: ['api-discovery-c']
+          only: ['api-discovery-c'],
         },
         docs: {
-          page: 'management-api-discovery'
-        }
-      }
+          page: 'management-api-discovery',
+        },
+      },
     })
     .state('management.apis.detail.proxy.responsetemplates', {
       url: '/responsetemplates',
@@ -238,35 +237,35 @@ function apisProxyRouterConfig($stateProvider) {
       controllerAs: 'ctrl',
       data: {
         perms: {
-          only: ['api-response_templates-r']
+          only: ['api-response_templates-r'],
         },
         docs: {
-          page: 'management-api-proxy-response-templates'
-        }
-      }
+          page: 'management-api-proxy-response-templates',
+        },
+      },
     })
     .state('management.apis.detail.proxy.responsetemplates.new', {
       url: '/new',
       component: 'gvResponseTemplate',
       data: {
         perms: {
-          only: ['api-response_templates-c']
+          only: ['api-response_templates-c'],
         },
         docs: {
-          page: 'management-api-proxy-response-template'
-        }
-      }
+          page: 'management-api-proxy-response-template',
+        },
+      },
     })
     .state('management.apis.detail.proxy.responsetemplates.edit', {
       url: '/:key',
       component: 'gvResponseTemplate',
       data: {
         perms: {
-          only: ['api-response_templates-r', 'api-response_templates-u']
+          only: ['api-response_templates-r', 'api-response_templates-u'],
         },
         docs: {
-          page: 'management-api-proxy-response-template'
-        }
-      }
+          page: 'management-api-proxy-response-template',
+        },
+      },
     });
 }

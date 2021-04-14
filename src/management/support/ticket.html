@@ -20,14 +20,14 @@
     <div class="gv-forms" layout="column">
       <h1>{{'support.ticket.title' | translate}}</h1>
 
-      <h5 ng-if="!supportTicketCtrl.userHasAnEmail" style="color: red;margin-left: 10px;">
+      <h5 ng-if="!supportTicketCtrl.userHasAnEmail" style="color: red; margin-left: 10px">
         <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
         <span>{{'support.ticket.userWithoutEmail.message' | translate}}</span>
       </h5>
 
       <div class="gv-form">
         <h2></h2>
-        <div class="gv-form-content" layout="column" style="background-color: #FAFAFA;">
+        <div class="gv-form-content" layout="column" style="background-color: #fafafa">
           <md-input-container ng-if="!supportTicketCtrl.stateParams.apiId">
             <label>{{'support.ticket.api' | translate}}</label>
             <md-select ng-model="supportTicketCtrl.ticket.api" ng-disabled="!supportTicketCtrl.userHasAnEmail">
@@ -37,29 +37,44 @@
           <md-input-container>
             <label>{{'support.ticket.application' | translate}}</label>
             <md-select ng-model="supportTicketCtrl.ticket.application" ng-disabled="!supportTicketCtrl.userHasAnEmail">
-              <md-option ng-repeat="application in supportTicketCtrl.applications" ng-value="application.id">{{application.name}} ({{application.owner.displayName}})</md-option>
+              <md-option ng-repeat="application in supportTicketCtrl.applications" ng-value="application.id"
+                >{{application.name}} ({{application.owner.displayName}})</md-option
+              >
             </md-select>
           </md-input-container>
           <md-input-container>
             <label>{{'support.ticket.subject' | translate}}</label>
-            <input ng-model="supportTicketCtrl.ticket.subject" ng-required="true" ng-disabled="!supportTicketCtrl.userHasAnEmail">
+            <input ng-model="supportTicketCtrl.ticket.subject" ng-required="true" ng-disabled="!supportTicketCtrl.userHasAnEmail" />
           </md-input-container>
           <md-input-container>
             <label>{{'support.ticket.content' | translate}}</label>
-            <textarea ng-model="supportTicketCtrl.ticket.content" ng-required="true" rows="10" ng-disabled="!supportTicketCtrl.userHasAnEmail"></textarea>
+            <textarea
+              ng-model="supportTicketCtrl.ticket.content"
+              ng-required="true"
+              rows="10"
+              ng-disabled="!supportTicketCtrl.userHasAnEmail"
+            ></textarea>
           </md-input-container>
           <md-input-container>
-            <md-checkbox ng-model="supportTicketCtrl.ticket.copyToSender" ng-disabled="!supportTicketCtrl.userHasAnEmail" aria-label="cb-copy-to-sender">
+            <md-checkbox
+              ng-model="supportTicketCtrl.ticket.copyToSender"
+              ng-disabled="!supportTicketCtrl.userHasAnEmail"
+              aria-label="cb-copy-to-sender"
+            >
               <span>{{'support.ticket.copyToSender' | translate}}</span>
             </md-checkbox>
           </md-input-container>
-          
+
           <div class="md-actions" layout="row">
-            <md-button type="submit" class="md-raised md-primary" 
-            ng-disabled="supportTicketCtrl.formTicket.$pristine || supportTicketCtrl.formTicket.$invalid || !supportTicketCtrl.userHasAnEmail"
-            aria-label="create-ticket">{{'support.ticket.create' | translate}}</md-button>
+            <md-button
+              type="submit"
+              class="md-raised md-primary"
+              ng-disabled="supportTicketCtrl.formTicket.$pristine || supportTicketCtrl.formTicket.$invalid || !supportTicketCtrl.userHasAnEmail"
+              aria-label="create-ticket"
+              >{{'support.ticket.create' | translate}}</md-button
+            >
           </div>
-        </div>        
+        </div>
       </div>
     </div>
   </form>

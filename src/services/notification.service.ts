@@ -14,44 +14,53 @@
  * limitations under the License.
  */
 class NotificationService {
-  constructor(private $mdToast: ng.material.IToastService,
-              private $translate: any,
-              private $state) {
+  constructor(private $mdToast: ng.material.IToastService, private $translate: any, private $state) {
     'ngInject';
   }
 
   show(message: any, errorStatus?: number, params?: any) {
     const vm = this;
     let msg;
-    vm.$translate(message.statusText || message, params).then(function (translatedMessage) {
-      msg = translatedMessage;
-    }).catch(function (translatedMessage) {
-      msg = translatedMessage;
-    }).finally(function () {
-      let preconditionFailed = errorStatus === 412;
-      vm.$mdToast.show(
-        vm.$mdToast.simple()
-          .action(preconditionFailed ? 'Refresh' : '')
-          .textContent(preconditionFailed ? 'The API version is outdated and must be refreshed (current modifications will be lost)' : msg)
-          .position('bottom right')
-          .hideDelay(preconditionFailed ? 10000 : 3000)
-          .theme(errorStatus ? 'toast-error' : 'toast-success')
-      ).then(function(response) {
-        if (response === 'ok') {
-          vm.$state.go(vm.$state.current, {}, {reload: true});
-        }
-      }).catch(() => {});
-    });
+    vm.$translate(message.statusText || message, params)
+      .then(function (translatedMessage) {
+        msg = translatedMessage;
+      })
+      .catch(function (translatedMessage) {
+        msg = translatedMessage;
+      })
+      .finally(function () {
+        let preconditionFailed = errorStatus === 412;
+        vm.$mdToast
+          .show(
+            vm.$mdToast
+              .simple()
+              .action(preconditionFailed ? 'Refresh' : '')
+              .textContent(
+                preconditionFailed ? 'The API version is outdated and must be refreshed (current modifications will be lost)' : msg,
+              )
+              .position('bottom right')
+              .hideDelay(preconditionFailed ? 10000 : 3000)
+              .theme(errorStatus ? 'toast-error' : 'toast-success'),
+          )
+          .then(function (response) {
+            if (response === 'ok') {
+              vm.$state.go(vm.$state.current, {}, { reload: true });
+            }
+          })
+          .catch(() => {});
+      });
   }
 
   showError(error: any, message?: string) {
-    this.show(message || (
-        error.data ?
-          Array.isArray(error.data) ?
-            error.data[0].message
-            : (error.data.message || (typeof error.data === 'string' ? error.data : error.statusText))
-          : error
-      ), error.status || true);
+    this.show(
+      message ||
+        (error.data
+          ? Array.isArray(error.data)
+            ? error.data[0].message
+            : error.data.message || (typeof error.data === 'string' ? error.data : error.statusText)
+          : error),
+      error.status || true,
+    );
   }
 }
 

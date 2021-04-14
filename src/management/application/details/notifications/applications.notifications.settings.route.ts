@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import NotificationSettingsService from '../../../../services/notificationSettings.service';
-import {Scope} from '../../../../entities/scope';
+import { Scope } from '../../../../entities/scope';
 import AlertService from '../../../../services/alert.service';
 import ApplicationService from '../../../../services/application.service';
 import NotifierService from '../../../../services/notifier.service';
@@ -33,29 +33,22 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           icon: 'notifications',
         },
         perms: {
-          only: ['application-notification-r', 'application-alert-r']
-        }
+          only: ['application-notification-r', 'application-alert-r'],
+        },
       },
       resolve: {
         resolvedHookScope: () => Scope.APPLICATION,
-        resolvedHooks:
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getHooks(Scope.APPLICATION).then((response) =>
-              response.data
-            ),
-        resolvedNotifiers:
-          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
-            NotificationSettingsService.getNotifiers(Scope.APPLICATION, $stateParams.applicationId).then((response) =>
-              response.data
-            ),
-        notificationSettings:
-          (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
-            NotificationSettingsService.getNotificationSettings(Scope.APPLICATION, $stateParams.applicationId).then((response) =>
-              response.data
-        ),
+        resolvedHooks: (NotificationSettingsService: NotificationSettingsService) =>
+          NotificationSettingsService.getHooks(Scope.APPLICATION).then((response) => response.data),
+        resolvedNotifiers: (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
+          NotificationSettingsService.getNotifiers(Scope.APPLICATION, $stateParams.applicationId).then((response) => response.data),
+        notificationSettings: (NotificationSettingsService: NotificationSettingsService, $stateParams) =>
+          NotificationSettingsService.getNotificationSettings(Scope.APPLICATION, $stateParams.applicationId).then(
+            (response) => response.data,
+          ),
         alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts($stateParams.applicationId, 1).then((response) => response.data)
-      }
+          AlertService.listAlerts($stateParams.applicationId, 1).then((response) => response.data),
+      },
     })
     .state('management.applications.application.notifications.notification', {
       url: '/:notificationId',
@@ -63,14 +56,14 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'management-application-notifications'
+          page: 'management-application-notifications',
         },
         perms: {
-          only: ['application-notification-r']
-        }
-      }
-    })
-    /*
+          only: ['application-notification-r'],
+        },
+      },
+    });
+  /*
     .state('management.applications.application.alerts', {
       url: '/alerts',
       component: 'alertsComponent',
@@ -134,5 +127,5 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         notifiers: (NotifierService: NotifierService) =>
           NotifierService.list().then( (response) => response.data)
       }
-    })*/;
+    })*/
 }

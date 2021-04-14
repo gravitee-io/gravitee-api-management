@@ -15,24 +15,24 @@
  */
 
 import _ = require('lodash');
-import {Metrics} from '../../../../../entities/alert';
+import { Metrics } from '../../../../../entities/alert';
 
 const AlertTriggerConditionCompareComponent: ng.IComponentOptions = {
   bindings: {
     condition: '<',
-    metrics: '<'
+    metrics: '<',
   },
   template: require('./trigger-condition-compare.html'),
   controller: function () {
     'ngInject';
 
     this.$onInit = () => {
-
-      this.metrics = _.filter(this.metrics as Metrics[],
-          metric => metric.conditions.indexOf('compare') !== -1 && metric.key !== this.condition.property);
+      this.metrics = _.filter(
+        this.metrics as Metrics[],
+        (metric) => metric.conditions.indexOf('compare') !== -1 && metric.key !== this.condition.property,
+      );
     };
-
-  }
+  },
 };
 
 export default AlertTriggerConditionCompareComponent;

@@ -34,7 +34,7 @@ const AlertTriggerFiltersComponent: ng.IComponentOptions = {
       this.alert.filters.splice(idx, 1);
       this.form.$setDirty();
     };
-  }
+  },
 };
 
 export default AlertTriggerFiltersComponent;

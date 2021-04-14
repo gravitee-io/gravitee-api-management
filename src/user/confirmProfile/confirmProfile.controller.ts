@@ -16,7 +16,6 @@
 import UserService from '../../services/user.service';
 
 class ConfirmProfileController {
-
   newsletterEnabled: boolean;
   hasEmail: boolean;
 

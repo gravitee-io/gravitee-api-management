@@ -19,15 +19,12 @@ const proxyMiddleware = require('http-proxy-middleware');
 module.exports = function (env) {
   return {
     server: {
-      baseDir: [
-        conf.paths.tmp,
-        conf.paths.src
-      ]
+      baseDir: [conf.paths.tmp, conf.paths.src],
     },
     open: false,
-    middleware: proxyMiddleware(
-      env ? `https://${env}.gravitee.io/management/**` : 'http://localhost:8083/management/**',
-      {changeOrigin: Boolean(env), secure: false}
-    )
+    middleware: proxyMiddleware(env ? `https://${env}.gravitee.io/management/**` : 'http://localhost:8083/management/**', {
+      changeOrigin: Boolean(env),
+      secure: false,
+    }),
   };
 };

@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService, {LogsQuery} from '../../../../services/api.service';
-import {StateService} from '@uirouter/core';
-import {IScope} from 'angular';
+import ApiService, { LogsQuery } from '../../../../services/api.service';
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import _ = require('lodash');
 
 class ApiLogsController {
-
   private api: any;
-  private logs: {total: string; logs: any[], metadata: any};
+  private logs: { total: string; logs: any[]; metadata: any };
   private query: LogsQuery;
   private metadata: {
-    applications: any[],
+    applications: any[];
     plans: any[];
     tenants?: any[];
   };
@@ -39,20 +38,20 @@ class ApiLogsController {
     private $scope: IScope,
     private Constants,
     private $state: StateService,
-    private $timeout: ng.ITimeoutService
+    private $timeout: ng.ITimeoutService,
   ) {
-  'ngInject';
+    'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
     this.$state = $state;
     this.api = resolvedApi.data;
     this.metadata = {
       applications: applications.data,
-      plans: plans.data
+      plans: plans.data,
     };
 
     let hasTenants = _.chain(this.api.proxy.groups)
-      .map((group) =>  group.endpoints)
+      .map((group) => group.endpoints)
       .find((endpoint) => _.has(endpoint, 'tenants'));
 
     if (hasTenants !== undefined) {
@@ -98,9 +97,10 @@ class ApiLogsController {
         size: this.query.size,
         from: this.query.from,
         to: this.query.to,
-        q: this.query.query
+        q: this.query.query,
       },
-      {notify: false});
+      { notify: false },
+    );
     this.ApiService.findLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
     });

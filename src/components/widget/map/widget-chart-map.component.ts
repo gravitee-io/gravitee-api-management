@@ -19,32 +19,32 @@ import * as Highcharts from 'highcharts';
 const WidgetChartMapComponent: ng.IComponentOptions = {
   template: require('./widget-chart-map.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
   controller: function () {
     this.$onChanges = function (changes) {
       if (changes.data) {
         let data = _.map(changes.data.currentValue.values, (v, k) => {
-          return {key: k, value: v};
+          return { key: k, value: v };
         });
 
         this.results = {
           title: {
-            text: null
+            text: null,
           },
 
           mapNavigation: {
             enabled: true,
-            enableMouseWheelZoom: false
+            enableMouseWheelZoom: false,
           },
 
           legend: {
             layout: 'vertical',
             align: 'left',
-            verticalAlign: 'bottom'
+            verticalAlign: 'bottom',
           },
 
           colorAxis: {
@@ -52,32 +52,34 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
             stops: [
               [0, '#dfe7fb'],
               [0.5, Highcharts.getOptions().colors[0]],
-              [1, new Highcharts.Color(Highcharts.getOptions().colors[0]).brighten(-0.5).get()]
-            ]
+              [1, new Highcharts.Color(Highcharts.getOptions().colors[0]).brighten(-0.5).get()],
+            ],
           },
 
           tooltip: {
             headerFormat: '',
-            pointFormat: '<b>{point.name}:</b> {point.value} hits'
+            pointFormat: '<b>{point.name}:</b> {point.value} hits',
           },
 
-          series: [{
-            data: data,
-            mapData: require('@highcharts/map-collection/custom/world.geo.json'),
-            joinBy: ['hc-a2', 'key'],
-            name: 'Number of API requests',
-            states: {
-              hover: {
-                color: '#a4edba',
-                borderColor: 'gray'
-              }
+          series: [
+            {
+              data: data,
+              mapData: require('@highcharts/map-collection/custom/world.geo.json'),
+              joinBy: ['hc-a2', 'key'],
+              name: 'Number of API requests',
+              states: {
+                hover: {
+                  color: '#a4edba',
+                  borderColor: 'gray',
+                },
+              },
+              nullColor: '#eaecfd',
             },
-            nullColor: '#eaecfd'
-          }]
+          ],
         };
       }
     };
-  }
+  },
 };
 
 export default WidgetChartMapComponent;

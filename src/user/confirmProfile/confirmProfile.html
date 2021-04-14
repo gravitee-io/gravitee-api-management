@@ -23,20 +23,22 @@
       </div>
 
       <form name="formConfirm" ng-submit="save()" layout="column">
-        <gravitee-image image-id="user.id"
-                        image="user.picture" image-border-radius="true"
-                        image-url="$ctrl.UserService.currentUserPicture()"
-                        image-name="user.displayName"
-                        image-form="formConfirm"></gravitee-image>
+        <gravitee-image
+          image-id="user.id"
+          image="user.picture"
+          image-border-radius="true"
+          image-url="$ctrl.UserService.currentUserPicture()"
+          image-name="user.displayName"
+          image-form="formConfirm"
+        ></gravitee-image>
 
         <md-input-container ng-show="!hasEmail" class="md-block" flex-gt-sm flex="20">
           <label>Email</label>
-          <input ng-model="user.email" type="email" ng-required="user.newsletter">
+          <input ng-model="user.email" type="email" ng-required="user.newsletter" />
         </md-input-container>
 
-        <div style="font-size: 9px; padding-bottom: 5px;">
-          <md-checkbox ng-show="$ctrl.newsletterEnabled" ng-model="user.newsletter"
-                       aria-label="Subscribe to newsletter" flex>
+        <div style="font-size: 9px; padding-bottom: 5px">
+          <md-checkbox ng-show="$ctrl.newsletterEnabled" ng-model="user.newsletter" aria-label="Subscribe to newsletter" flex>
             Subscribe to newsletter and receive information about new versions and updates
           </md-checkbox>
           For more information check our <a href="https://gravitee.io/privacy" target="_blank">privacy policy</a>

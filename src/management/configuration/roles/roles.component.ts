@@ -24,14 +24,14 @@ const RolesComponent: ng.IComponentOptions = {
     organizationRoles: '<',
     environmentRoles: '<',
     apiRoles: '<',
-    applicationRoles: '<'
+    applicationRoles: '<',
   },
   template: require('./roles.html'),
-  controller: function(
+  controller: function (
     RoleService: RoleService,
     $mdDialog: angular.material.IDialogService,
     NotificationService: NotificationService,
-    $state: StateService
+    $state: StateService,
   ) {
     'ngInject';
     this.rolesByScope = {};
@@ -44,28 +44,30 @@ const RolesComponent: ng.IComponentOptions = {
     };
 
     this.newRole = (roleScope) => {
-      $state.go('management.settings.rolenew', {roleScope: roleScope});
+      $state.go('management.settings.rolenew', { roleScope: roleScope });
     };
 
     this.deleteRole = (role) => {
       let that = this;
-      $mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Are you sure you want to delete the role "' + role.name + '"?',
-          confirmButton: 'Remove'
-        }
-      }).then( (response) => {
-        if (response) {
-          RoleService.delete(role).then(function () {
-            NotificationService.show('Role \'' + role.name + '\' deleted with success');
-            _.remove(that.rolesByScope[role.scope], role);
-          });
-        }
-      });
+      $mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Are you sure you want to delete the role "' + role.name + '"?',
+            confirmButton: 'Remove',
+          },
+        })
+        .then((response) => {
+          if (response) {
+            RoleService.delete(role).then(function () {
+              NotificationService.show("Role '" + role.name + "' deleted with success");
+              _.remove(that.rolesByScope[role.scope], role);
+            });
+          }
+        });
     };
 
     this.idUserManagementEnabled = (role) => {
@@ -73,9 +75,9 @@ const RolesComponent: ng.IComponentOptions = {
     };
 
     this.manageMembers = (role) => {
-      $state.go('management.settings.rolemembers', {roleScope: role.scope, role: role.name});
+      $state.go('management.settings.rolemembers', { roleScope: role.scope, role: role.name });
     };
-  }
+  },
 };
 
 export default RolesComponent;

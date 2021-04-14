@@ -15,7 +15,8 @@ md-toolbar.topnavbar {
   }
 }
 
-.gv-navbar-link:hover, .gv-navbar-link:focus {
+.gv-navbar-link:hover,
+.gv-navbar-link:focus {
   color: inherit;
 }
 
@@ -48,7 +49,7 @@ md-toolbar.topnavbar {
   .gv-menu-content-main {
     padding: 0 8px;
 
-    img{
+    img {
       width: 42px;
       height: 42px;
       border-radius: 30px;
@@ -69,13 +70,13 @@ md-toolbar.topnavbar {
         background-color: rgb(0, 108, 171);
         //background-color: #2DAAE1;
         //background-color: rgb(84, 163, 255);
-        text-shadow: 0 1px 0 rgba(0,0,0,.1);
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
       }
     }
   }
 
   .gv-menu-content-footer {
-    background-color: #F5F5F5;
+    background-color: #f5f5f5;
   }
 }
 

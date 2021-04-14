@@ -17,15 +17,20 @@
 -->
 <div layout="column">
   <div>
-    <span class="md-headline" style="padding: 24px 16px 16px;">Plan</span>
+    <span class="md-headline" style="padding: 24px 16px 16px">Plan</span>
   </div>
 
   <div layout="row" flex>
     <div class="gv-creation-steppers" flex="{{$ctrl.vm.selectedStep !== 4 ? 65: 100}}">
       <md-stepper-card-content class="md-no-padding">
-        <md-steppers md-dynamic-height md-stretch-steppers="always" md-disable-tabs-behavior="true"
-                     md-selected="$ctrl.vm.selectedStep" md-busy-text="'Processing...'"
-                     md-busy="$ctrl.vm.showBusyText">
+        <md-steppers
+          md-dynamic-height
+          md-stretch-steppers="always"
+          md-disable-tabs-behavior="true"
+          md-selected="$ctrl.vm.selectedStep"
+          md-busy-text="'Processing...'"
+          md-busy="$ctrl.vm.showBusyText"
+        >
           <plan-wizard-general></plan-wizard-general>
           <plan-wizard-security></plan-wizard-security>
           <plan-wizard-restrictions></plan-wizard-restrictions>

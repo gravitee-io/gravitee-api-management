@@ -17,12 +17,12 @@ import * as _ from 'lodash';
 const WidgetDataStatsComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
-  controller: function($scope, $window, $filter) {
+  controller: function ($scope, $window, $filter) {
     'ngInject';
     this.$onInit = () => {
       this.chartData = _.cloneDeep(this.parent.widget.chart.data);
@@ -51,7 +51,7 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
     const checkResolution = () => {
       this.lowResolution = $window.innerWidth < 1400;
     };
-  }
+  },
 };
 
 export default WidgetDataStatsComponent;

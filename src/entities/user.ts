@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import {PagedResult} from './pagedResult';
+import { PagedResult } from './pagedResult';
 export class User {
   public id: string;
   public username: string;
@@ -44,9 +44,11 @@ export class User {
     if (!permissions || !this.userPermissions) {
       return false;
     }
-    return _.intersection(this.userPermissions, permissions).length > 0 ||
+    return (
+      _.intersection(this.userPermissions, permissions).length > 0 ||
       _.intersection(this.userApiPermissions, permissions).length > 0 ||
-      _.intersection(this.userApplicationPermissions, permissions).length > 0;
+      _.intersection(this.userApplicationPermissions, permissions).length > 0
+    );
   }
 
   isAdmin(): boolean {
@@ -54,9 +56,7 @@ export class User {
       return false;
     }
     return _.some(this.userPermissions, (userPermission) => {
-      return _.startsWith(userPermission, 'environment-instance')
-       || _.startsWith(userPermission, 'environment-platform');
+      return _.startsWith(userPermission, 'environment-instance') || _.startsWith(userPermission, 'environment-platform');
     });
   }
-
 }

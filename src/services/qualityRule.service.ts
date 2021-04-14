@@ -41,12 +41,11 @@ class QualityRuleService {
   }
 
   update(qualityRule: QualityRule): IHttpPromise<QualityRule> {
-    return this.$http.put(this.URL + qualityRule.id,
-      {
-        name: qualityRule.name,
-        description: qualityRule.description,
-        weight: qualityRule.weight
-      });
+    return this.$http.put(this.URL + qualityRule.id, {
+      name: qualityRule.name,
+      description: qualityRule.description,
+      weight: qualityRule.weight,
+    });
   }
 
   delete(qualityRule: QualityRule): IHttpPromise<any> {
@@ -61,13 +60,13 @@ class QualityRuleService {
     return this.$http.post(this.URL_API + api + '/quality-rules/', {
       api: api,
       quality_rule: qualityRule,
-      checked: checked
+      checked: checked,
     });
   }
 
   updateApiRule(api: string, qualityRule: string, checked: boolean) {
     return this.$http.put(this.URL_API + api + '/quality-rules/' + qualityRule, {
-      checked: checked
+      checked: checked,
     });
   }
 }

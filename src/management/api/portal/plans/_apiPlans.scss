@@ -43,17 +43,22 @@
   background: none;
 }
 
-.plans a.md-button.md-default-theme.md-fab:not([disabled]):hover, .plans a.md-button.md-fab:not([disabled]):hover, .plans .md-button.md-default-theme.md-fab:not([disabled]):hover, .plans .md-button.md-fab:not([disabled]):hover {
+.plans a.md-button.md-default-theme.md-fab:not([disabled]):hover,
+.plans a.md-button.md-fab:not([disabled]):hover,
+.plans .md-button.md-default-theme.md-fab:not([disabled]):hover,
+.plans .md-button.md-fab:not([disabled]):hover {
   background-color: #ccdae3;
 }
 
 .plans {
-  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button, md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
+  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button,
+  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
     padding: 0 0 0 10px;
   }
-  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button, md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
+  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent > .md-button,
+  md-menu-content.md-menu-bar-menu.md-dense md-menu-item.md-indent .md-menu > .md-button {
     padding: 0 0 0 10px;
-    background-color: #00A000;
+    background-color: #00a000;
   }
 
   md-menu-bar {

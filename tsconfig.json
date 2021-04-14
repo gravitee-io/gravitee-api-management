@@ -7,26 +7,10 @@
     "noImplicitAny": false,
     "skipLibCheck": true,
     "typeRoots": ["node_modules/@types/"],
-    "types": [
-      "@uirouter/angularjs",
-      "angular",
-      "angular-mocks",
-      "angular-material",
-      "jquery",
-      "node",
-      "jasmine",
-      "es6-shim"
-    ],
-    "lib": [
-      "es2017",
-      "dom"
-    ]
+    "types": ["@uirouter/angularjs", "angular", "angular-mocks", "angular-material", "jquery", "node", "jasmine", "es6-shim"],
+    "lib": ["es2017", "dom"]
   },
   "compileOnSave": false,
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

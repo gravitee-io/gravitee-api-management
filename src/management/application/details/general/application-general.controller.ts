@@ -25,7 +25,6 @@ interface IApplicationScope extends ng.IScope {
 }
 
 class ApplicationGeneralController {
-
   private application: any;
   private initialApplication: any;
 
@@ -35,7 +34,7 @@ class ApplicationGeneralController {
     private $state: StateService,
     private $scope: IApplicationScope,
     private $mdDialog: angular.material.IDialogService,
-    private SidenavService: SidenavService
+    private SidenavService: SidenavService,
   ) {
     'ngInject';
   }
@@ -45,7 +44,7 @@ class ApplicationGeneralController {
       this.application.groups = [];
     }
     let self = this;
-    this.$scope.$on('apiPictureChangeSuccess', function(event, args) {
+    this.$scope.$on('apiPictureChangeSuccess', function (event, args) {
       self.application.picture = args.image;
       self.$scope.formApplication.$setDirty();
     });
@@ -54,21 +53,19 @@ class ApplicationGeneralController {
   }
 
   update() {
-    this.ApplicationService.update(this.application)
-      .then(() => {
-        this.initialApplication = _.cloneDeep(this.application);
-        this.$scope.formApplication.$setPristine();
-        this.NotificationService.show(this.application.name + ' has been updated');
-        this.SidenavService.setCurrentResource(this.application.name);
-      });
+    this.ApplicationService.update(this.application).then(() => {
+      this.initialApplication = _.cloneDeep(this.application);
+      this.$scope.formApplication.$setPristine();
+      this.NotificationService.show(this.application.name + ' has been updated');
+      this.SidenavService.setCurrentResource(this.application.name);
+    });
   }
 
   delete() {
-    this.ApplicationService.delete(this.application.id)
-      .then(() => {
-        this.NotificationService.show(this.application.name + ' has been deleted');
-        this.$state.go('management.applications.list', {}, {reload: true});
-      });
+    this.ApplicationService.delete(this.application.id).then(() => {
+      this.NotificationService.show(this.application.name + ' has been deleted');
+      this.$state.go('management.applications.list', {}, { reload: true });
+    });
   }
 
   reset() {
@@ -83,49 +80,52 @@ class ApplicationGeneralController {
   showDeleteApplicationConfirm(ev) {
     ev.stopPropagation();
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmAndValidateController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmAndValidate.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Would you like to delete your application?',
-        warning: 'This operation is irreversible.',
-        msg: 'You will no longer be able to access this application.',
-        validationMessage: 'Please, type in the name of the application <code>' + this.application.name + '</code> to confirm.',
-        validationValue: this.application.name,
-        confirmButton: 'Yes, delete this application.'
-      }
-    }).then(function(response) {
-      if (response) {
-        that.delete();
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmAndValidateController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmAndValidate.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Would you like to delete your application?',
+          warning: 'This operation is irreversible.',
+          msg: 'You will no longer be able to access this application.',
+          validationMessage: 'Please, type in the name of the application <code>' + this.application.name + '</code> to confirm.',
+          validationValue: this.application.name,
+          confirmButton: 'Yes, delete this application.',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          that.delete();
+        }
+      });
   }
 
   renewClientSecret(ev) {
     ev.stopPropagation();
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        msg: 'By renewing the client secret, you will no longer be able to generate new access tokens and call APIs.',
-        title: 'Are you sure to renew the client secret?',
-        confirmButton: 'Renew'
-      }
-    }).then((response) => {
-      if (response) {
-        this.ApplicationService.renewClientSecret(this.application.id)
-          .then((response) => {
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          msg: 'By renewing the client secret, you will no longer be able to generate new access tokens and call APIs.',
+          title: 'Are you sure to renew the client secret?',
+          confirmButton: 'Renew',
+        },
+      })
+      .then((response) => {
+        if (response) {
+          this.ApplicationService.renewClientSecret(this.application.id).then((response) => {
             this.NotificationService.show('Client secret has been renew');
             this.application = response.data;
             this.initialApplication = _.cloneDeep(this.application);
             this.$scope.formApplication.$setPristine();
           });
-      }
-    });
+        }
+      });
   }
 
   onCopyClientIdSuccess(e) {

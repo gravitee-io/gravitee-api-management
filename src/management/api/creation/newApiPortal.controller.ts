@@ -15,11 +15,8 @@
  */
 
 class NewApiController {
-  constructor(
-    private policies
-  ) {
+  constructor(private policies) {
     'ngInject';
-
   }
 }
 

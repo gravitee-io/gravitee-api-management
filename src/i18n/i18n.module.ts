@@ -22,7 +22,4 @@ import 'angular-translate-loader-static-files';
 import i18nCustomLoader from './loader';
 import i18nConfig from './i18n.config';
 
-
-angular.module('gravitee-i18n', ['pascalprecht.translate'])
-  .config(i18nConfig)
-  .factory('i18nCustomLoader', i18nCustomLoader);
+angular.module('gravitee-i18n', ['pascalprecht.translate']).config(i18nConfig).factory('i18nCustomLoader', i18nCustomLoader);

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DurationTimeUnit} from '../../../../entities/alert';
+import { DurationTimeUnit } from '../../../../entities/alert';
 
 const AlertNotificationsComponent: ng.IComponentOptions = {
   bindings: {
-    alert: '<'
+    alert: '<',
   },
   require: {
-    parent: '^alertComponent'
+    parent: '^alertComponent',
   },
   template: require('./alert-notifications.html'),
-  controller: function() {
+  controller: function () {
     'ngInject';
 
     this.addNotification = () => {
@@ -38,7 +38,7 @@ const AlertNotificationsComponent: ng.IComponentOptions = {
       this.alert.notifications.splice(idx, 1);
       this.parent.formAlert.$setDirty();
     };
-  }
+  },
 };
 
 export default AlertNotificationsComponent;

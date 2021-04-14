@@ -31,11 +31,18 @@
     </div>
   </md-input-container>
 
-  <span flex="10" style="display: grid;align-items: center;" align="center"> and </span>
+  <span flex="10" style="display: grid; align-items: center" align="center"> and </span>
 
   <md-input-container>
     <label>High threshold</label>
-    <input ng-model="$ctrl.condition.thresholdHigh" required type="number" min="{{$ctrl.condition.thresholdLow}}" name="thresholdHigh" aria-label="trigger threshold high" />
+    <input
+      ng-model="$ctrl.condition.thresholdHigh"
+      required
+      type="number"
+      min="{{$ctrl.condition.thresholdLow}}"
+      name="thresholdHigh"
+      aria-label="trigger threshold high"
+    />
     <!--
     <div class="hint">
       The high threshold value.

@@ -19,8 +19,8 @@ import * as angular from 'angular';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
-import {PagedResult} from '../../../../entities/pagedResult';
-import {StateService} from '@uirouter/core';
+import { PagedResult } from '../../../../entities/pagedResult';
+import { StateService } from '@uirouter/core';
 
 let defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
 
@@ -35,7 +35,6 @@ export class SubscriptionQuery {
 }
 
 class ApplicationSubscriptionsController {
-
   private subscriptions: PagedResult;
   private subscribers: any[];
   private application: any;
@@ -43,11 +42,11 @@ class ApplicationSubscriptionsController {
   private query: SubscriptionQuery = new SubscriptionQuery();
 
   private status = {
-    'ACCEPTED': 'Accepted',
-    'CLOSED': 'Closed',
-    'PAUSED': 'Paused',
-    'PENDING': 'Pending',
-    'REJECTED': 'Rejected'
+    ACCEPTED: 'Accepted',
+    CLOSED: 'Closed',
+    PAUSED: 'Paused',
+    PENDING: 'Pending',
+    REJECTED: 'Rejected',
   };
 
   private subscriptionsFiltersForm: any;
@@ -57,7 +56,7 @@ class ApplicationSubscriptionsController {
     private NotificationService: NotificationService,
     private $mdDialog: angular.material.IDialogService,
     private ApiService: ApiService,
-    private $state: StateService
+    private $state: StateService,
   ) {
     'ngInject';
 
@@ -115,7 +114,7 @@ class ApplicationSubscriptionsController {
     }
 
     _.mapKeys(parameters, (value, key) => {
-      return query += key + '=' + value + '&';
+      return (query += key + '=' + value + '&');
     });
 
     return query;
@@ -130,9 +129,10 @@ class ApplicationSubscriptionsController {
         api: this.query.apis ? this.query.apis.join(',') : '',
         page: this.query.page,
         size: this.query.size,
-        api_key: this.query.api_key
+        api_key: this.query.api_key,
       }),
-      {notify: false});
+      { notify: false },
+    );
 
     this.ApplicationService.listSubscriptions(this.application.id, query).then((response) => {
       this.subscriptions = response.data as PagedResult;
@@ -147,7 +147,7 @@ class ApplicationSubscriptionsController {
   }
 
   listApiKeys(subscription) {
-    this.ApplicationService.listApiKeys(this.application.id, subscription.id).then(response => {
+    this.ApplicationService.listApiKeys(this.application.id, subscription.id).then((response) => {
       subscription.apiKeys = response.data;
     });
   }
@@ -158,45 +158,49 @@ class ApplicationSubscriptionsController {
 
   generateAPIKey(applicationId, subscription) {
     var _this = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to renew your API Key?',
-        msg: 'Your previous API Key will be no longer valid in 1 hour !',
-        confirmButton: 'Renew'
-      }
-    }).then(function (response) {
-      if (response) {
-        _this.ApplicationService.renewApiKey(applicationId, subscription.id).then(() => {
-          _this.NotificationService.show('A new API Key has been generated');
-          _this.listApiKeys(subscription);
-        });
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to renew your API Key?',
+          msg: 'Your previous API Key will be no longer valid in 1 hour !',
+          confirmButton: 'Renew',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          _this.ApplicationService.renewApiKey(applicationId, subscription.id).then(() => {
+            _this.NotificationService.show('A new API Key has been generated');
+            _this.listApiKeys(subscription);
+          });
+        }
+      });
   }
 
   revoke(subscription, apiKey) {
     var _this = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to revoke API Key \'' + apiKey + '\'?',
-        confirmButton: 'Revoke'
-      }
-    }).then(function (response) {
-      if (response) {
-        _this.ApplicationService.revokeApiKey(_this.application.id, subscription.id, apiKey).then(() => {
-          _this.NotificationService.show('API Key ' + apiKey + ' has been revoked !');
-          _this.listApiKeys(subscription);
-        });
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: "Are you sure you want to revoke API Key '" + apiKey + "'?",
+          confirmButton: 'Revoke',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          _this.ApplicationService.revokeApiKey(_this.application.id, subscription.id, apiKey).then(() => {
+            _this.NotificationService.show('API Key ' + apiKey + ' has been revoked !');
+            _this.listApiKeys(subscription);
+          });
+        }
+      });
   }
 
   onClipboardSuccess(e) {
@@ -226,26 +230,30 @@ class ApplicationSubscriptionsController {
   */
 
   showExpirationModal(apiId, apiKey) {
-    this.$mdDialog.show({
-      controller: 'DialogApiKeyExpirationController',
-      controllerAs: 'dialogApiKeyExpirationController',
-      template: require('../../../api/portal/subscriptions/apikey.expiration.dialog.html'),
-      clickOutsideToClose: true
-    }).then(expirationDate => {
-      apiKey.expire_at = expirationDate;
+    this.$mdDialog
+      .show({
+        controller: 'DialogApiKeyExpirationController',
+        controllerAs: 'dialogApiKeyExpirationController',
+        template: require('../../../api/portal/subscriptions/apikey.expiration.dialog.html'),
+        clickOutsideToClose: true,
+      })
+      .then((expirationDate) => {
+        apiKey.expire_at = expirationDate;
 
-      this.ApiService.updateApiKey(apiId, apiKey).then(() => {
-        this.NotificationService.show('An expiration date has been settled for API Key');
+        this.ApiService.updateApiKey(apiId, apiKey).then(() => {
+          this.NotificationService.show('An expiration date has been settled for API Key');
+        });
       });
-    });
   }
 
   hasFilter() {
-    return _.difference(defaultStatus, this.query.status).length > 0
-      || _.difference(this.query.status, defaultStatus).length > 0
-      || (this.query.applications && this.query.applications.length)
-      || (this.query.plans && this.query.plans.length)
-      || this.query.api_key;
+    return (
+      _.difference(defaultStatus, this.query.status).length > 0 ||
+      _.difference(this.query.status, defaultStatus).length > 0 ||
+      (this.query.applications && this.query.applications.length) ||
+      (this.query.plans && this.query.plans.length) ||
+      this.query.api_key
+    );
   }
 }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import ApiService from '../../../services/api.service';
-import {StateParams} from '@uirouter/core';
+import { StateParams } from '@uirouter/core';
 import TenantService from '../../../services/tenant.service';
 import DashboardService from '../../../services/dashboard.service';
 
@@ -24,7 +24,7 @@ function apisAnalyticsRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.analytics', {
-      template: require('./apis.analytics.route.html')
+      template: require('./apis.analytics.route.html'),
     })
     .state('management.apis.detail.analytics.overview', {
       url: '/analytics?from&to&q&dashboard',
@@ -32,38 +32,38 @@ function apisAnalyticsRouterConfig($stateProvider) {
       controller: 'ApiAnalyticsController',
       controllerAs: 'analyticsCtrl',
       resolve: {
-        dashboards: (DashboardService: DashboardService) => DashboardService.list('API').then(response => response.data)
+        dashboards: (DashboardService: DashboardService) => DashboardService.list('API').then((response) => response.data),
       },
       data: {
         menu: {
           label: 'Analytics',
-          icon: 'insert_chart'
+          icon: 'insert_chart',
         },
         perms: {
-          only: ['api-analytics-r']
+          only: ['api-analytics-r'],
         },
         docs: {
-          page: 'management-api-analytics'
-        }
+          page: 'management-api-analytics',
+        },
       },
       params: {
         from: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         to: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         q: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         dashboard: {
           type: 'string',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('management.apis.detail.analytics.logs', {
       url: '/logs?from&to&q&page&size',
@@ -72,41 +72,39 @@ function apisAnalyticsRouterConfig($stateProvider) {
       controllerAs: 'logsCtrl',
       data: {
         perms: {
-          only: ['api-log-r']
+          only: ['api-log-r'],
         },
         docs: {
-          page: 'management-api-logs'
-        }
+          page: 'management-api-logs',
+        },
       },
       params: {
         from: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         to: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         q: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         page: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         size: {
           type: 'int',
-          dynamic: true
-        }
+          dynamic: true,
+        },
       },
       resolve: {
-        plans: ($stateParams: StateParams, ApiService: ApiService) =>
-          ApiService.getApiPlans($stateParams.apiId),
-        applications: ($stateParams: StateParams, ApiService: ApiService) =>
-          ApiService.getSubscribers($stateParams.apiId),
-        tenants: (TenantService: TenantService) => TenantService.list()
-      }
+        plans: ($stateParams: StateParams, ApiService: ApiService) => ApiService.getApiPlans($stateParams.apiId),
+        applications: ($stateParams: StateParams, ApiService: ApiService) => ApiService.getSubscribers($stateParams.apiId),
+        tenants: (TenantService: TenantService) => TenantService.list(),
+      },
     })
     .state('management.apis.detail.analytics.loggingconfigure', {
       url: '/logs/configure',
@@ -116,28 +114,28 @@ function apisAnalyticsRouterConfig($stateProvider) {
       data: {
         menu: null,
         perms: {
-          only: ['api-log-u']
+          only: ['api-log-u'],
         },
         docs: {
-          page: 'management-api-logging-configuration'
-        }
-      }
+          page: 'management-api-logging-configuration',
+        },
+      },
     })
     .state('management.apis.detail.analytics.log', {
       url: '/logs/:logId?timestamp&from&to&q&page&size',
       component: 'log',
       resolve: {
         log: ($stateParams: StateParams, ApiService: ApiService) =>
-          ApiService.getLog($stateParams.apiId, $stateParams.logId, $stateParams.timestamp).then(response => response.data)
+          ApiService.getLog($stateParams.apiId, $stateParams.logId, $stateParams.timestamp).then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['api-log-r']
+          only: ['api-log-r'],
         },
         docs: {
-          page: 'management-api-log'
-        }
-      }
+          page: 'management-api-log',
+        },
+      },
     })
     .state('management.apis.detail.analytics.pathMappings', {
       url: '/path-mappings',
@@ -146,11 +144,11 @@ function apisAnalyticsRouterConfig($stateProvider) {
       controllerAs: 'apiPathMappingCtrl',
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-pathMappings'
-        }
-      }
+          page: 'management-api-pathMappings',
+        },
+      },
     });
 }

@@ -15,17 +15,17 @@
  */
 const ApiPlanWizardGeneralComponent: ng.IComponentOptions = {
   require: {
-    parent: '^editPlan'
+    parent: '^editPlan',
   },
   template: require('./plan-wizard-general.html'),
-  controller: function() {
+  controller: function () {
     'ngInject';
 
-    this.gotoNextStep = function() {
+    this.gotoNextStep = function () {
       this.parent.vm.stepData[0].data = this.plan;
       this.parent.moveToNextStep(this.parent.vm.stepData[0]);
     };
-  }
+  },
 };
 
 export default ApiPlanWizardGeneralComponent;

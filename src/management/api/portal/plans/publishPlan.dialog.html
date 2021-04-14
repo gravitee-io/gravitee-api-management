@@ -15,20 +15,14 @@
     limitations under the License.
 
 -->
-  <md-dialog aria-label="Publish plan">
-    <md-dialog-content layout-padding>
-      <h4>Would you like to publish plan <code>{{plan.name}}</code> ?</h4>
-      <p>
-        By publishing this plan, users will now be able to subscribe to it.
-      </p>
-    </md-dialog-content>
+<md-dialog aria-label="Publish plan">
+  <md-dialog-content layout-padding>
+    <h4>Would you like to publish plan <code>{{plan.name}}</code> ?</h4>
+    <p>By publishing this plan, users will now be able to subscribe to it.</p>
+  </md-dialog-content>
 
-    <md-dialog-actions layout="row">
-      <md-button ng-click="hide()" md-autofocus>
-        Cancel
-      </md-button>
-      <md-button class="md-raised md-primary" ng-click="publish()">
-        Publish
-      </md-button>
-    </md-dialog-actions>
-  </md-dialog>
+  <md-dialog-actions layout="row">
+    <md-button ng-click="hide()" md-autofocus> Cancel </md-button>
+    <md-button class="md-raised md-primary" ng-click="publish()"> Publish </md-button>
+  </md-dialog-actions>
+</md-dialog>

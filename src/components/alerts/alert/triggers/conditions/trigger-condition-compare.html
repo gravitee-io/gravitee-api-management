@@ -18,7 +18,14 @@
 <div layout="row">
   <md-input-container class="md-block" flex-gt-sm flex="30">
     <label>Multiplier</label>
-    <input ng-model="$ctrl.condition.multiplier" required type="number" min="1" name="condition-compare-multiplier" aria-label="compare multiplier" />
+    <input
+      ng-model="$ctrl.condition.multiplier"
+      required
+      type="number"
+      min="1"
+      name="condition-compare-multiplier"
+      aria-label="compare multiplier"
+    />
     <div ng-messages="$ctrl.formAlert['condition-compare-multiplier'].$error">
       <div ng-message="required">Multiplier is required.</div>
       <div ng-message="min">Multiplier must be higher than 0.</div>
@@ -27,12 +34,8 @@
 
   <md-input-container class="md-block" flex-gt-sm flex="30">
     <label>Property</label>
-    <md-select ng-model="$ctrl.condition.property2" required name="condition-compare-property" aria-label="compare property" />
-      <md-option
-        ng-value="type.key"
-        ng-repeat="type in $ctrl.metrics">
-        {{::type.name}}
-      </md-option>
+    <md-select ng-model="$ctrl.condition.property2" required name="condition-compare-property" aria-label="compare property">
+      <md-option ng-value="type.key" ng-repeat="type in $ctrl.metrics"> {{::type.name}} </md-option>
     </md-select>
     <div ng-messages="$ctrl.formAlert['condition-compare-property'].$error">
       <div ng-message="required">Property is required.</div>

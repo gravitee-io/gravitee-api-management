@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 class AuditController {
-  constructor(
-    private resolvedApis,
-    private resolvedApplications,
-    private resolvedEvents: string[],
-    private $scope
-  ) {
+  constructor(private resolvedApis, private resolvedApplications, private resolvedEvents: string[], private $scope) {
     'ngInject';
     this.$scope.apis = resolvedApis;
     this.$scope.applications = resolvedApplications;

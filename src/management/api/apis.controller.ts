@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 
 import UserService from '../../services/user.service';
-import {StateParams, StateService, TransitionService} from '@uirouter/core';
+import { StateParams, StateService, TransitionService } from '@uirouter/core';
 import ApiService from '../../services/api.service';
 
 interface IApisScope extends ng.IScope {
@@ -25,7 +25,6 @@ interface IApisScope extends ng.IScope {
   searchResult: boolean;
 }
 export class ApisController {
-
   private query: string = '';
   private order: string = '';
   private apisProvider: any;
@@ -42,20 +41,22 @@ export class ApisController {
   private timer: any;
   private canceler: any;
 
-  constructor(private ApiService: ApiService,
-              private $mdDialog: ng.material.IDialogService,
-              private $scope: IApisScope,
-              private $state: StateService,
-              private Constants,
-              private Build,
-              private resolvedApis,
-              private UserService: UserService,
-              private graviteeUser,
-              private $filter: ng.IFilterService,
-              private $transitions: TransitionService,
-              private $stateParams: StateParams,
-              private $timeout: ng.ITimeoutService,
-              private $q: ng.IQService) {
+  constructor(
+    private ApiService: ApiService,
+    private $mdDialog: ng.material.IDialogService,
+    private $scope: IApisScope,
+    private $state: StateService,
+    private Constants,
+    private Build,
+    private resolvedApis,
+    private UserService: UserService,
+    private graviteeUser,
+    private $filter: ng.IFilterService,
+    private $transitions: TransitionService,
+    private $stateParams: StateParams,
+    private $timeout: ng.ITimeoutService,
+    private $q: ng.IQService,
+  ) {
     'ngInject';
 
     this.$q = $q;
@@ -97,11 +98,8 @@ export class ApisController {
     this.canceler = this.$q.defer();
 
     let promise;
-    let promOpts = {timeout: this.canceler.promise};
-    this.$state.transitionTo(
-      this.$state.current,
-      {q: this.query},
-      {notify: false});
+    let promOpts = { timeout: this.canceler.promise };
+    this.$state.transitionTo(this.$state.current, { q: this.query }, { notify: false });
 
     if (this.query) {
       promise = this.ApiService.searchApis(this.query, promOpts);
@@ -109,7 +107,7 @@ export class ApisController {
       promise = this.ApiService.list(null, false, promOpts);
     }
 
-    promise.then( (response) => {
+    promise.then((response) => {
       this.apisProvider = response.data;
       this.loadMore(this.order, false);
       this.$scope.apisLoading = false;
@@ -147,19 +145,21 @@ export class ApisController {
 
   showImportDialog() {
     var that = this;
-    this.$mdDialog.show({
-      controller: 'DialogApiImportController',
-      controllerAs: 'dialogApiImportCtrl',
-      template: require('./portal/general/dialog/apiImport.dialog.html'),
-      locals: {
-        apiId: ''
-      },
-      clickOutsideToClose: true
-    }).then(function (response) {
-      if (response) {
-        that.$state.go('apis.admin.general', {apiId: response.data.id}, {reload: true});
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogApiImportController',
+        controllerAs: 'dialogApiImportCtrl',
+        template: require('./portal/general/dialog/apiImport.dialog.html'),
+        locals: {
+          apiId: '',
+        },
+        clickOutsideToClose: true,
+      })
+      .then(function (response) {
+        if (response) {
+          that.$state.go('apis.admin.general', { apiId: response.data.id }, { reload: true });
+        }
+      });
   }
 
   getSubMessage() {
@@ -174,7 +174,9 @@ export class ApisController {
 
   loadMore = (order, showNext) => {
     // check if data must be refreshed or not when sorting or searching (when user is typing text)
-    const doNotLoad = showNext && (this.apisProvider && this.apisProvider.length) === (this.apis && this.apis.length) &&
+    const doNotLoad =
+      showNext &&
+      (this.apisProvider && this.apisProvider.length) === (this.apis && this.apis.length) &&
       _.difference(_.map(this.apisProvider, 'id'), _.map(this.apis, 'id')).length === 0;
     if (!doNotLoad && this.apisProvider) {
       let apisProvider = _.clone(this.apisProvider);
@@ -186,20 +188,18 @@ export class ApisController {
       this.apis = _.take(apisProvider, 20 + apisLength);
       _.forEach(this.apis, (api: any) => {
         if (_.isUndefined(this.syncStatus[api.id])) {
-          this.ApiService.isAPISynchronized(api.id)
-            .then((sync) => {
-              this.syncStatus[api.id] = sync.data.is_synchronized;
-            });
+          this.ApiService.isAPISynchronized(api.id).then((sync) => {
+            this.syncStatus[api.id] = sync.data.is_synchronized;
+          });
         }
         if (this.isQualityDisplayed && _.isUndefined(this.qualityScores[api.id])) {
-          this.ApiService.getQualityMetrics(api.id)
-            .then((response) => {
-              this.qualityScores[api.id] = _.floor(response.data.score * 100);
-            });
+          this.ApiService.getQualityMetrics(api.id).then((response) => {
+            this.qualityScores[api.id] = _.floor(response.data.score * 100);
+          });
         }
       });
     }
-  }
+  };
 
   getQualityMetricCssClass(score) {
     return this.ApiService.getQualityMetricCssClass(score);

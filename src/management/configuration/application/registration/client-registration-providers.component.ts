@@ -22,59 +22,63 @@ import _ = require('lodash');
 
 const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
   bindings: {
-    clientRegistrationProviders: '<'
+    clientRegistrationProviders: '<',
   },
   template: require('./client-registration-providers.html'),
-  controller: function(
+  controller: function (
     $mdDialog: angular.material.IDialogService,
     ClientRegistrationProviderService: ClientRegistrationProviderService,
     PortalConfigService: PortalConfigService,
     NotificationService: NotificationService,
     $state: StateService,
-    Constants
+    Constants,
   ) {
     'ngInject';
 
     this.settings = _.cloneDeep(Constants);
 
     this.select = (provider: ClientRegistrationProvider) => {
-      $state.go('management.settings.clientregistrationproviders.clientregistrationprovider', {id: provider.id});
+      $state.go('management.settings.clientregistrationproviders.clientregistrationprovider', { id: provider.id });
     };
 
     this.create = (type) => {
-      $state.go('management.settings.clientregistrationproviders.create', {type: type});
+      $state.go('management.settings.clientregistrationproviders.create', { type: type });
     };
 
     this.delete = (provider: ClientRegistrationProvider) => {
-      $mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Are you sure you want to delete this client registration provider?',
-          msg: '',
-          confirmButton: 'Delete'
-        }
-      }).then(function (response) {
-        if (response) {
-          ClientRegistrationProviderService.delete(provider).then(response => {
-            NotificationService.show('Client registration provider \'' + provider.name + '\' has been deleted');
-            $state.go('management.settings.clientregistrationproviders.list', {}, {reload: true});
-          });
-        }
-      });
+      $mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Are you sure you want to delete this client registration provider?',
+            msg: '',
+            confirmButton: 'Delete',
+          },
+        })
+        .then(function (response) {
+          if (response) {
+            ClientRegistrationProviderService.delete(provider).then((response) => {
+              NotificationService.show("Client registration provider '" + provider.name + "' has been deleted");
+              $state.go('management.settings.clientregistrationproviders.list', {}, { reload: true });
+            });
+          }
+        });
     };
 
     this.saveClientRegistration = () => {
       PortalConfigService.save({
         application: {
           registration: {
-            enabled: this.settings.application.registration.enabled
-          }
-        }
-      }).then( response => {
-        NotificationService.show('Client registration is now ' + (this.settings.application.registration.enabled ? 'mandatory' : 'optional') );
+            enabled: this.settings.application.registration.enabled,
+          },
+        },
+      }).then((response) => {
+        NotificationService.show(
+          'Client registration is now ' + (this.settings.application.registration.enabled ? 'mandatory' : 'optional'),
+        );
         _.merge(Constants, response.data);
       });
     };
@@ -84,22 +88,24 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         application: {
           types: {
             [type]: {
-              enabled: this.settings.application.types[type].enabled
-            }
-          }
-        }
+              enabled: this.settings.application.types[type].enabled,
+            },
+          },
+        },
       };
 
       appType.application.types[type] = {
-        enabled: this.settings.application.types[type].enabled
+        enabled: this.settings.application.types[type].enabled,
       };
 
-      PortalConfigService.save(appType).then( response => {
-        NotificationService.show('Application type \'' + type  + '\' is now ' + (this.settings.application.types[type].enabled ? 'allowed' : 'disallowed') );
+      PortalConfigService.save(appType).then((response) => {
+        NotificationService.show(
+          "Application type '" + type + "' is now " + (this.settings.application.types[type].enabled ? 'allowed' : 'disallowed'),
+        );
         _.merge(Constants, response.data);
       });
     };
-  }
+  },
 };
 
 export default ClientRegistrationProvidersComponent;

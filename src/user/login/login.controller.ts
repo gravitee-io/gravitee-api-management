@@ -39,11 +39,11 @@ class LoginController {
     private $window,
     private $stateParams: StateParams,
     private $scope,
-    private ReCaptchaService: ReCaptchaService
+    private ReCaptchaService: ReCaptchaService,
   ) {
     'ngInject';
     this.userCreationEnabled = Constants.portal.userCreation.enabled;
-    this.localLoginDisabled = (!Constants.authentication.localLogin.enabled) || false;
+    this.localLoginDisabled = !Constants.authentication.localLogin.enabled || false;
     this.$state = $state;
     this.$rootScope = $rootScope;
     this.$scope = $scope;
@@ -59,7 +59,6 @@ class LoginController {
     document.removeEventListener('click', this._toDisabledMode);
   }
 
-
   authenticate(identityProvider: string) {
     let nonce = this.AuthenticationService.nonce(32);
 
@@ -67,7 +66,7 @@ class LoginController {
 
     this.$window.localStorage[nonce] = JSON.stringify({ redirectUri });
 
-    let provider = _.find(this.identityProviders, { 'id': identityProvider }) as IdentityProvider;
+    let provider = _.find(this.identityProviders, { id: identityProvider }) as IdentityProvider;
     this.AuthenticationService.authenticate(provider, nonce);
   }
 
@@ -75,28 +74,37 @@ class LoginController {
     this.$scope.canBeDisabled = true;
     this.$scope.$apply();
     document.removeEventListener('click', this._toDisabledMode);
-  }
+  };
 
   login() {
     this.ReCaptchaService.execute('login').then(() =>
-      this.UserService.login(this.user).then(() => {
-        this.UserService.current().then((user) => {
-          this.loginSuccess(user);
-        });
-      }).catch(() => {
-        this.user.username = '';
-        this.user.password = '';
-      }));
+      this.UserService.login(this.user)
+        .then(() => {
+          this.UserService.current().then((user) => {
+            this.loginSuccess(user);
+          });
+        })
+        .catch(() => {
+          this.user.username = '';
+          this.user.password = '';
+        }),
+    );
   }
 
   loginSuccess(user: User) {
-    this.$rootScope.$broadcast('graviteeUserRefresh', { 'user': user });
+    this.$rootScope.$broadcast('graviteeUserRefresh', { user: user });
     const redirectUri = this.getRedirectUri();
     if (redirectUri) {
       this.$window.location.href = redirectUri;
     } else {
       let route = this.RouterService.getLastRoute();
-      if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm' && route.from.name !== 'resetPassword') {
+      if (
+        route.from &&
+        route.from.name !== '' &&
+        route.from.name !== 'logout' &&
+        route.from.name !== 'confirm' &&
+        route.from.name !== 'resetPassword'
+      ) {
         this.$state.go(route.from.name, route.fromParams);
       } else {
         this.$state.go('management');
@@ -127,7 +135,7 @@ class LoginController {
   getProviderStyle(provider: any) {
     return {
       'background-color': this.getProviderBackGroundColor(provider),
-      'color': this.getProviderColor(provider)
+      color: this.getProviderColor(provider),
     };
   }
 
@@ -145,7 +153,6 @@ class LoginController {
     }
     return redirectUri;
   }
-
 }
 
 export default LoginController;

@@ -18,16 +18,17 @@
 <div class="gv-sub-content">
   <div class="gv-forms" layout="column">
     <form name="$ctrl.formTag" ng-submit="$ctrl.save($ctrl.tag)" novalidate>
-      <h1>Tag
-        <md-input-container style="margin: 0;">
-          <input ng-model="$ctrl.tag.name" style="margin-top: 18px;" required aria-label="Tag name" maxlength="64" />
+      <h1>
+        Tag
+        <md-input-container style="margin: 0">
+          <input ng-model="$ctrl.tag.name" style="margin-top: 18px" required aria-label="Tag name" maxlength="64" />
         </md-input-container>
       </h1>
       <div class="gv-form">
         <h2>Settings</h2>
         <div class="gv-form-content" layout="column">
           <h5>
-            <md-input-container style="width: 100%;">
+            <md-input-container style="width: 100%">
               <label>Description</label>
               <input ng-model="$ctrl.tag.description" />
             </md-input-container>
@@ -41,15 +42,16 @@
             </md-select>
           </md-input-container>
           <div class="md-actions gravitee-api-save-button" layout="row">
-            <md-button class="md-raised"
-                       type="submit"
-                       permission permission-only="['environment-tag-c', 'environment-tag-u']"
-                       ng-disabled="$ctrl.formTag.$pristine || $ctrl.formTag.$invalid">
+            <md-button
+              class="md-raised"
+              type="submit"
+              permission
+              permission-only="['environment-tag-c', 'environment-tag-u']"
+              ng-disabled="$ctrl.formTag.$pristine || $ctrl.formTag.$invalid"
+            >
               Save
             </md-button>
-            <md-button class="md-raised md-warn float-right" type="button" ui-sref="management.settings.tags">
-              Cancel
-            </md-button>
+            <md-button class="md-raised md-warn float-right" type="button" ui-sref="management.settings.tags"> Cancel </md-button>
           </div>
         </div>
       </div>

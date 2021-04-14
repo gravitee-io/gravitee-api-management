@@ -17,7 +17,7 @@
 export enum Scope {
   API,
   APPLICATION,
-  PLATFORM
+  PLATFORM,
 }
 
 export enum ConditionType {
@@ -28,7 +28,7 @@ export enum ConditionType {
   FREQUENCY = 'frequency',
   THRESHOLD_ACCUMULATE = 'threshold_accumulate',
   COMPARE = 'compare',
-  STRING_COMPARE = 'string_compare'
+  STRING_COMPARE = 'string_compare',
 }
 
 class Operator {
@@ -60,10 +60,17 @@ export abstract class Metrics {
   supportPropertyProjection: boolean = false;
 
   static filterByScope(metrics: Metrics[], scope: Scope): Metrics[] {
-    return metrics.filter((metric) => (metric.scopes === undefined || metric.scopes.indexOf(scope) !== -1));
+    return metrics.filter((metric) => metric.scopes === undefined || metric.scopes.indexOf(scope) !== -1);
   }
 
-  constructor(key: string, name: string, conditions: string[], supportPropertyProjection?: boolean, scopes?: Scope[], loader?: (type: number, id: string, $injector: any) => Tuple[]) {
+  constructor(
+    key: string,
+    name: string,
+    conditions: string[],
+    supportPropertyProjection?: boolean,
+    scopes?: Scope[],
+    loader?: (type: number, id: string, $injector: any) => Tuple[],
+  ) {
     this.key = key;
     this.name = name;
     this.conditions = conditions;
@@ -91,7 +98,15 @@ export class Alert {
   template: boolean;
   event_rules: any;
 
-  constructor(name: string, severity: string, source: string, description: string, type: string, reference_type: Scope, reference_id: string) {
+  constructor(
+    name: string,
+    severity: string,
+    source: string,
+    description: string,
+    type: string,
+    reference_type: Scope,
+    reference_id: string,
+  ) {
     this.name = name;
     this.severity = severity;
     this.source = source;
@@ -110,13 +125,17 @@ export class Dampening {
 }
 
 export class DampeningMode {
-
   static STRICT_COUNT = new DampeningMode('strict_count', 'N consecutive true evaluations');
   static RELAXED_COUNT = new DampeningMode('relaxed_count', 'N true evaluations out of M total evaluations');
   static RELAXED_TIME = new DampeningMode('relaxed_time', 'N true evaluations in T time');
   static STRICT_TIME = new DampeningMode('strict_time', 'Only true evaluations for at least T time');
 
-  static MODES: DampeningMode[] = [DampeningMode.STRICT_COUNT, DampeningMode.RELAXED_COUNT, DampeningMode.RELAXED_TIME, DampeningMode.STRICT_TIME];
+  static MODES: DampeningMode[] = [
+    DampeningMode.STRICT_COUNT,
+    DampeningMode.RELAXED_COUNT,
+    DampeningMode.RELAXED_TIME,
+    DampeningMode.STRICT_TIME,
+  ];
   public type: string;
   public description: string;
 
@@ -146,12 +165,7 @@ export class ThresholdCondition extends Condition {
   static GTE: Operator = new Operator('gte', 'greater than or equals to');
   static GT: Operator = new Operator('gt', 'greater than');
 
-  static OPERATORS: Operator[] = [
-    ThresholdCondition.LT,
-    ThresholdCondition.LTE,
-    ThresholdCondition.GTE,
-    ThresholdCondition.GT
-  ];
+  static OPERATORS: Operator[] = [ThresholdCondition.LT, ThresholdCondition.LTE, ThresholdCondition.GTE, ThresholdCondition.GT];
 
   constructor() {
     super(ThresholdCondition.TYPE, 'Threshold');
@@ -163,7 +177,6 @@ export class ThresholdCondition extends Condition {
 }
 
 export class RateCondition extends Condition {
-
   static TYPE: string = 'rate';
 
   static LT: Operator = new Operator('lt', 'less than');
@@ -171,12 +184,7 @@ export class RateCondition extends Condition {
   static GTE: Operator = new Operator('gte', 'greater than or equals to');
   static GT: Operator = new Operator('gt', 'greater than');
 
-  static OPERATORS: Operator[] = [
-    RateCondition.LT,
-    RateCondition.LTE,
-    RateCondition.GTE,
-    RateCondition.GT
-  ];
+  static OPERATORS: Operator[] = [RateCondition.LT, RateCondition.LTE, RateCondition.GTE, RateCondition.GT];
 
   constructor() {
     super(RateCondition.TYPE, 'Rate');
@@ -188,7 +196,6 @@ export class RateCondition extends Condition {
 }
 
 export class FrequencyCondition extends Condition {
-
   static TYPE: string = 'frequency';
 
   static LT: Operator = new Operator('lt', 'less than');
@@ -196,12 +203,7 @@ export class FrequencyCondition extends Condition {
   static GTE: Operator = new Operator('gte', 'greater than or equals to');
   static GT: Operator = new Operator('gt', 'greater than');
 
-  static OPERATORS: Operator[] = [
-    FrequencyCondition.LT,
-    FrequencyCondition.LTE,
-    FrequencyCondition.GTE,
-    FrequencyCondition.GT
-  ];
+  static OPERATORS: Operator[] = [FrequencyCondition.LT, FrequencyCondition.LTE, FrequencyCondition.GTE, FrequencyCondition.GT];
 
   constructor() {
     super(FrequencyCondition.TYPE, 'Frequency');
@@ -223,7 +225,6 @@ class Function {
 }
 
 export class AggregationCondition extends Condition {
-
   static TYPE: string = 'aggregation';
 
   static LT: Operator = new Operator('lt', 'less than');
@@ -231,12 +232,7 @@ export class AggregationCondition extends Condition {
   static GTE: Operator = new Operator('gte', 'greater than or equals to');
   static GT: Operator = new Operator('gt', 'greater than');
 
-  static OPERATORS: Operator[] = [
-    AggregationCondition.LT,
-    AggregationCondition.LTE,
-    AggregationCondition.GTE,
-    AggregationCondition.GT
-  ];
+  static OPERATORS: Operator[] = [AggregationCondition.LT, AggregationCondition.LTE, AggregationCondition.GTE, AggregationCondition.GT];
 
   static FUNCTIONS: Function[] = [
     new Function('count', 'count'),
@@ -246,7 +242,7 @@ export class AggregationCondition extends Condition {
     new Function('p50', '50th percentile'),
     new Function('p90', '90th percentile'),
     new Function('p95', '95th percentile'),
-    new Function('p99', '99th percentile')
+    new Function('p99', '99th percentile'),
   ];
 
   constructor() {
@@ -259,14 +255,11 @@ export class AggregationCondition extends Condition {
 }
 
 export class ThresholdRangeCondition extends Condition {
-
   static TYPE: string = 'threshold_range';
 
   static BETWEEN: Operator = new Operator('between', 'between');
 
-  static OPERATORS: Operator[] = [
-    ThresholdRangeCondition.BETWEEN
-  ];
+  static OPERATORS: Operator[] = [ThresholdRangeCondition.BETWEEN];
 
   constructor() {
     super(ThresholdRangeCondition.TYPE, 'Threshold Range');
@@ -278,7 +271,6 @@ export class ThresholdRangeCondition extends Condition {
 }
 
 export class CompareCondition extends Condition {
-
   static TYPE: string = 'compare';
 
   static LT: Operator = new Operator('lt', 'less than');
@@ -286,12 +278,7 @@ export class CompareCondition extends Condition {
   static GTE: Operator = new Operator('gte', 'greater than or equals to');
   static GT: Operator = new Operator('gt', 'greater than');
 
-  static OPERATORS: Operator[] = [
-    CompareCondition.LT,
-    CompareCondition.LTE,
-    CompareCondition.GTE,
-    CompareCondition.GT
-  ];
+  static OPERATORS: Operator[] = [CompareCondition.LT, CompareCondition.LTE, CompareCondition.GTE, CompareCondition.GT];
 
   constructor() {
     super(CompareCondition.TYPE, 'Compare');
@@ -303,7 +290,6 @@ export class CompareCondition extends Condition {
 }
 
 export class StringCondition extends Condition {
-
   static TYPE: string = 'string';
 
   static EQUALS: Operator = new Operator('equals', 'equals to');
@@ -332,7 +318,6 @@ export class StringCondition extends Condition {
 }
 
 export class StringCompareCondition extends Condition {
-
   static TYPE: string = 'string_compare';
 
   static EQUALS: Operator = new Operator('equals', 'equals to');
@@ -361,16 +346,11 @@ export class StringCompareCondition extends Condition {
 }
 
 export class DurationTimeUnit {
-
   static SECONDS: DurationTimeUnit = new DurationTimeUnit('seconds', 'Seconds');
   static MINUTES: DurationTimeUnit = new DurationTimeUnit('minutes', 'Minutes');
   static HOURS: DurationTimeUnit = new DurationTimeUnit('hours', 'Hours');
 
-  static TIME_UNITS: DurationTimeUnit[] = [
-    DurationTimeUnit.SECONDS,
-    DurationTimeUnit.MINUTES,
-    DurationTimeUnit.HOURS
-  ];
+  static TIME_UNITS: DurationTimeUnit[] = [DurationTimeUnit.SECONDS, DurationTimeUnit.MINUTES, DurationTimeUnit.HOURS];
   key: string;
   name: string;
 
@@ -381,7 +361,6 @@ export class DurationTimeUnit {
 }
 
 export class Conditions {
-
   static THRESHOLD: Condition = new ThresholdCondition();
   static THRESHOLD_RANGE: Condition = new ThresholdRangeCondition();
   static STRING: Condition = new StringCondition();
@@ -397,10 +376,10 @@ export class Conditions {
     Conditions.RATE,
     Conditions.FREQUENCY,
     Conditions.COMPARE,
-    Conditions.STRING_COMPARE
+    Conditions.STRING_COMPARE,
   ];
 
   static findByType(type: string): Condition {
-    return Conditions.CONDITIONS.find(condition => condition.type === type);
+    return Conditions.CONDITIONS.find((condition) => condition.type === type);
   }
 }

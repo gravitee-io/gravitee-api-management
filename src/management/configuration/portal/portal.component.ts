@@ -20,24 +20,24 @@ import _ = require('lodash');
 
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
-    tags: '<'
+    tags: '<',
   },
   template: require('./portal.html'),
-  controller: function(
+  controller: function (
     NotificationService: NotificationService,
     PortalConfigService: PortalConfigService,
     $state: StateService,
-    Constants: any
+    Constants: any,
   ) {
     'ngInject';
     this.settings = _.cloneDeep(Constants);
 
     this.$onInit = () => {
-      this.settings.authentication.localLogin.enabled = (this.settings.authentication.localLogin.enabled || !this.hasIdpDefined());
+      this.settings.authentication.localLogin.enabled = this.settings.authentication.localLogin.enabled || !this.hasIdpDefined();
     };
 
     this.save = () => {
-      PortalConfigService.save(this.settings).then( (response) => {
+      PortalConfigService.save(this.settings).then((response) => {
         _.merge(Constants, response.data);
         NotificationService.show('Configuration saved');
         this.formSettings.$setPristine();
@@ -48,15 +48,16 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     this.reset = () => {
       this.settings = _.cloneDeep(Constants);
       this.formSettings.$setPristine();
-
     };
 
     this.hasIdpDefined = () => {
-      return this.settings.authentication.google.clientId ||
-       this.settings.authentication.github.clientId ||
-       this.settings.authentication.oauth2.clientId;
+      return (
+        this.settings.authentication.google.clientId ||
+        this.settings.authentication.github.clientId ||
+        this.settings.authentication.oauth2.clientId
+      );
     };
-  }
+  },
 };
 
 export default PortalSettingsComponent;

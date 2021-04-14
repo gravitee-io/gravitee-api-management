@@ -38,11 +38,11 @@ class ImageDirective {
         changeLabel: '@',
         deleteLabel: '@',
         canDelete: '=',
-        checkeredBackground: '<'
+        checkeredBackground: '<',
       },
       template: require('./image.html'),
       controller: ImageController,
-      controllerAs: 'imgCtrl'
+      controllerAs: 'imgCtrl',
     };
 
     return directive;
@@ -79,7 +79,7 @@ class ImageController {
     if (invalidFiles && invalidFiles.length > 0) {
       const fileError = invalidFiles[0];
       if (fileError.$error === 'maxSize') {
-        this.NotificationService.showError(`Image "${ fileError.name }" exceeds the maximum authorized size (${ this.$scope.maxSize })`);
+        this.NotificationService.showError(`Image "${fileError.name}" exceeds the maximum authorized size (${this.$scope.maxSize})`);
       } else {
         this.NotificationService.showError(`File is not valid (error: ${fileError.$error})`);
       }

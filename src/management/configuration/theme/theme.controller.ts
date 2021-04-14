@@ -16,11 +16,10 @@
 
 import ThemeService from '../../../services/theme.service';
 import NotificationService from '../../../services/notification.service';
-import {Theme} from '../../../entities/theme';
+import { Theme } from '../../../entities/theme';
 import angular = require('angular');
 
 class ThemeController {
-
   detachedWindow: Window;
   connected = false;
   private connectionRequestInterval: any;
@@ -31,13 +30,15 @@ class ThemeController {
   private themeOptionalLogoURL: string;
   private themeBackgroundURL: string;
 
-  constructor(private $http,
-              private $scope,
-              private $mdDialog,
-              private Constants,
-              private ThemeService: ThemeService,
-              private NotificationService: NotificationService,
-              private $sce) {
+  constructor(
+    private $http,
+    private $scope,
+    private $mdDialog,
+    private Constants,
+    private ThemeService: ThemeService,
+    private NotificationService: NotificationService,
+    private $sce,
+  ) {
     'ngInject';
     $scope.themeForm = {};
     $scope.targetURL = Constants.portal.url;
@@ -53,20 +54,20 @@ class ThemeController {
       clickOutsideToClose: true,
       materialPalette: false,
       history: true,
-      clearButton: false
+      clearButton: false,
     };
 
     $scope.fonts = [
-      'Arial, Helvetica, \'Liberation Sans\', FreeSans, sans-serif',
-      '\'Trebuchet MS\', Arial, Helvetica, sans-serif',
-      '\'Lucida Sans\', \'Lucida Grande\', \'Lucida Sans Unicode\', \'Luxi Sans\', sans-serif',
+      "Arial, Helvetica, 'Liberation Sans', FreeSans, sans-serif",
+      "'Trebuchet MS', Arial, Helvetica, sans-serif",
+      "'Lucida Sans', 'Lucida Grande', 'Lucida Sans Unicode', 'Luxi Sans', sans-serif",
       'Tahoma, Geneva, Kalimati, sans-serif',
       'Verdana, DejaVu Sans, Bitstream Vera Sans, Geneva, sans-serif',
       'Impact, Arial Black, sans-serif',
-      'Courier, \'Courier New\', FreeMono, \'Liberation Mono\', monospace',
-      'Monaco, \'DejaVu Sans Mono\', \'Lucida Console\', \'Andale Mono\', monospace',
-      'Times, \'Times New Roman\', \'Liberation Serif\', FreeSerif, serif',
-      'Georgia, \'DejaVu Serif\', Norasi, serif',
+      "Courier, 'Courier New', FreeMono, 'Liberation Mono', monospace",
+      "Monaco, 'DejaVu Sans Mono', 'Lucida Console', 'Andale Mono', monospace",
+      "Times, 'Times New Roman', 'Liberation Serif', FreeSerif, serif",
+      "Georgia, 'DejaVu Serif', Norasi, serif",
     ];
 
     $scope.hasPreview = () => {
@@ -74,7 +75,7 @@ class ThemeController {
     };
 
     $scope.onFullscreen = () => {
-      return !$scope.hasPreview() || $scope.hasPreview() && $scope.isDetached;
+      return !$scope.hasPreview() || ($scope.hasPreview() && $scope.isDetached);
     };
 
     $scope.getThemeVariables = (filter) => {
@@ -182,14 +183,14 @@ class ThemeController {
     }
 
     this.initThemeImagesURL();
-  }
+  };
 
   $onDestroy = () => {
     if (this.$scope.hasPreview()) {
       window.removeEventListener('message', this.handleEventHandlers);
       clearInterval(this.connectionRequestInterval);
     }
-  }
+  };
 
   getDisplayName(name) {
     return name.replace('gv-', '').replace('-', ' ');
@@ -205,13 +206,17 @@ class ThemeController {
       theme.optionalLogo = theme.logo;
     }
 
-    return Object.assign({}, {
-      type: 'gravitee',
-      theme,
-      isDetached: this.$scope.isDetached,
-      date: Date.now()
-    }, data);
-  }
+    return Object.assign(
+      {},
+      {
+        type: 'gravitee',
+        theme,
+        isDetached: this.$scope.isDetached,
+        date: Date.now(),
+      },
+      data,
+    );
+  };
 
   getValue(property) {
     if (property.value.startsWith('var(')) {
@@ -233,7 +238,7 @@ class ThemeController {
   }
 
   hasColors(component) {
-    return component.css.find(p => p.type.toLowerCase() === 'color') != null;
+    return component.css.find((p) => p.type.toLowerCase() === 'color') != null;
   }
 
   getPlaceholder(property) {
@@ -258,7 +263,7 @@ class ThemeController {
       this.$scope.isDetached = false;
     }
     return this.detachedWindow;
-  }
+  };
 
   connectionRequest = () => {
     if (this.connectionRequestInterval) {
@@ -267,14 +272,14 @@ class ThemeController {
     let attempt = 0;
     this.connectionRequestInterval = setInterval(() => {
       if (!this.connected) {
-        if (!this.postMessage(this.getData({requestAnswer: true}), '*') && ++attempt >= 3) {
+        if (!this.postMessage(this.getData({ requestAnswer: true }), '*') && ++attempt >= 3) {
           clearInterval(this.connectionRequestInterval);
           this.$scope.isDetached = false;
           this._reloadIframe();
         }
       }
     }, 500);
-  }
+  };
 
   connect() {
     clearInterval(this.connectionRequestInterval);
@@ -304,7 +309,7 @@ class ThemeController {
         this._reloadIframe();
       }
     }
-  }
+  };
 
   _reloadIframe() {
     this.$scope.$apply(() => {
@@ -325,15 +330,17 @@ class ThemeController {
       }, 0);
       setTimeout(() => {
         // Wait after last currentHref...
-        this.detachedWindow = window.open(this.currentHref + this.getQueryParams(),
+        this.detachedWindow = window.open(
+          this.currentHref + this.getQueryParams(),
           this.$scope.previewName,
-          `width=1024, height=${window.screen.height}, left=${window.screen.width - 1024}`);
+          `width=1024, height=${window.screen.height}, left=${window.screen.width - 1024}`,
+        );
         this.connectionRequest();
       }, 500);
     } else {
       this.detachedWindow.close();
     }
-  }
+  };
 
   setTheme(theme) {
     this.$scope.theme = theme;
@@ -344,14 +351,14 @@ class ThemeController {
   initThemeImagesURL = () => {
     this.themeOptionalLogoURL = this.getOptionalLogoUrl();
     this.themeBackgroundURL = this.getBackgroundImageUrl();
-  }
+  };
 
   loadTheme = () => {
     return this.ThemeService.get().then((response) => {
       const theme: Theme = response.data;
       this.setTheme(theme);
     });
-  }
+  };
 
   postMessage(data, url) {
     const previewWindow = this.getWindow();
@@ -367,29 +374,31 @@ class ThemeController {
       this.NotificationService.show('The theme has been reset.');
       this.postMessage(this.getData(), this.$scope.targetURL);
     });
-  }
+  };
 
   restoreDefaultTheme = () => {
     let confirm = this.$mdDialog.confirm({
       title: 'Restore default theme?',
       content: 'Are you sure you want to restore the default theme? All your changes will be deleted.',
       ok: 'RESTORE',
-      cancel: 'CANCEL'
+      cancel: 'CANCEL',
     });
-    this.$mdDialog.show(confirm).then(() => {
-      this.ThemeService.restoreDefaultTheme(this.$scope.theme).then((response) => {
-        const theme: Theme = response.data;
-        this.setTheme(theme);
-        this.onDataChanged();
-        this.$scope.themeForm.$commitViewValue();
-        this.$scope.themeForm.$setSubmitted();
-        this.$scope.themeForm.$setPristine();
-        this.NotificationService.show('The "Gravitee" default theme has been restore.');
-      });
-      // tslint:disable-next-line:no-empty
-    }, () => {
-    });
-  }
+    this.$mdDialog.show(confirm).then(
+      () => {
+        this.ThemeService.restoreDefaultTheme(this.$scope.theme).then((response) => {
+          const theme: Theme = response.data;
+          this.setTheme(theme);
+          this.onDataChanged();
+          this.$scope.themeForm.$commitViewValue();
+          this.$scope.themeForm.$setSubmitted();
+          this.$scope.themeForm.$setPristine();
+          this.NotificationService.show('The "Gravitee" default theme has been restore.');
+        });
+        // tslint:disable-next-line:no-empty
+      },
+      () => {},
+    );
+  };
 
   getLogoUrl() {
     if (this.$scope.theme) {
@@ -421,11 +430,11 @@ class ThemeController {
       this.$scope.themeForm.$setPristine();
       this.NotificationService.show('The theme has been saved.');
     });
-  }
+  };
 
   onDataChanged = () => {
     this.postMessage(this.getData(), this.$scope.targetURL);
-  }
+  };
 
   exportTheme = () => {
     const theme = this.$scope.theme;
@@ -442,14 +451,14 @@ class ThemeController {
     link.style.display = 'none';
     document.body.appendChild(link);
 
-    const blob = new Blob([angular.toJson(data, 2)], {type: 'application/octet-stream'});
+    const blob = new Blob([angular.toJson(data, 2)], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     link.href = url;
     link.download = `gv-theme-${new Date().getTime()}.json`;
     link.click();
     window.URL.revokeObjectURL(url);
     link.remove();
-  }
+  };
 
   importTheme(file, invalidFiles) {
     if (file) {
@@ -468,7 +477,6 @@ class ThemeController {
         this.$scope.themeForm.$setDirty();
         this.NotificationService.show('The theme has been loaded successfully, save it to validate the import.');
       };
-
     }
     if (invalidFiles && invalidFiles.length > 0) {
       const fileError = invalidFiles[0];
@@ -479,8 +487,6 @@ class ThemeController {
       }
     }
   }
-
-
 }
 
 export default ThemeController;

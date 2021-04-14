@@ -21,4 +21,3 @@ export class QualityMetrics {
     'ngInject';
   }
 }
-

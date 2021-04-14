@@ -19,7 +19,7 @@ import TagService from '../../services/tag.service';
 import GroupService from '../../services/group.service';
 import * as _ from 'lodash';
 import ApiService from '../../services/api.service';
-import {StateProvider} from '../../../node_modules/@uirouter/angularjs';
+import { StateProvider } from '../../../node_modules/@uirouter/angularjs';
 import TenantService from '../../services/tenant.service';
 import UserService from '../../services/user.service';
 import PolicyService from '../../services/policy.service';
@@ -31,7 +31,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
   $stateProvider
     .state('management.apis', {
       abstract: true,
-      url: '/apis'
+      url: '/apis',
     })
     .state('management.apis.detail', {
       abstract: true,
@@ -47,17 +47,17 @@ function apisRouterConfig($stateProvider: StateProvider) {
           return ApiService.get($stateParams.apiId);
         },
         resolvedCategories: (CategoryService: CategoryService) => {
-          return CategoryService.list().then(response => {
+          return CategoryService.list().then((response) => {
             return response.data;
           });
         },
         resolvedGroups: (GroupService: GroupService) => {
-          return GroupService.list().then(response => {
+          return GroupService.list().then((response) => {
             return response.data;
           });
         },
         resolvedTags: (TagService: TagService) => {
-          return TagService.list().then(response => {
+          return TagService.list().then((response) => {
             return response.data;
           });
         },
@@ -73,8 +73,8 @@ function apisRouterConfig($stateProvider: StateProvider) {
           });
           UserService.reloadPermissions();
         },
-        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data)
-      }
+        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then((response) => response.data),
+      },
     })
     .state('management.apis.new', {
       url: '/new',
@@ -82,32 +82,32 @@ function apisRouterConfig($stateProvider: StateProvider) {
       controller: 'NewApiController',
       controllerAs: '$ctrl',
       resolve: {
-        policies: (PolicyService: PolicyService) => PolicyService.listSwaggerPolicies().then(response => response.data)
+        policies: (PolicyService: PolicyService) => PolicyService.listSwaggerPolicies().then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['environment-api-c']
+          only: ['environment-api-c'],
         },
         docs: {
-          page: 'management-apis-create'
-        }
-      }
+          page: 'management-apis-create',
+        },
+      },
     })
     .state('management.apis.create', {
       url: '/new/create',
       component: 'apiCreation',
       resolve: {
-        tenants: (TenantService: TenantService) => TenantService.list().then(response => response.data),
-        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+        tenants: (TenantService: TenantService) => TenantService.list().then((response) => response.data),
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['environment-api-c']
+          only: ['environment-api-c'],
         },
         docs: {
-          page: 'management-apis-create-steps'
-        }
-      }
+          page: 'management-apis-create-steps',
+        },
+      },
     })
     .state('management.apis.list', {
       url: '/?q',
@@ -121,26 +121,26 @@ function apisRouterConfig($stateProvider: StateProvider) {
           }
 
           return ApiService.list();
-        }
+        },
       },
       data: {
         menu: {
           label: 'APIs',
           icon: 'dashboard',
           firstLevel: true,
-          order: 10
+          order: 10,
         },
         docs: {
-          page: 'management-apis'
+          page: 'management-apis',
         },
         ncyBreadcrumb: {
-          label: 'APIs'
-        }
+          label: 'APIs',
+        },
       },
       params: {
         q: {
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     });
 }

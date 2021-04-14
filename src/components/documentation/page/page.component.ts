@@ -15,14 +15,13 @@
  */
 import * as _ from 'lodash';
 const PageComponent: ng.IComponentOptions = {
-
   controller: class {
     public pageType: string;
     public page: any;
 
     private fetchersWithSvg: string[] = ['github', 'gitlab', 'bitbucket'];
 
-    type(): string  {
+    type(): string {
       if (this.pageType) {
         return this.pageType;
       } else {
@@ -40,8 +39,8 @@ const PageComponent: ng.IComponentOptions = {
     pageType: '<',
     edit: '<',
     sidenav: '<',
-    sidenavoffset: '<'
-  }
+    sidenavoffset: '<',
+  },
 };
 
 export default PageComponent;

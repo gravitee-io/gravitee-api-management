@@ -9,15 +9,19 @@
   }
 }
 
-.avatar, .jdenticon {
+.avatar,
+.jdenticon {
   display: none !important;
 }
 
-.avatar.show, .jdenticon.show {
+.avatar.show,
+.jdenticon.show {
   object-fit: contain;
   display: flex !important;
 }
 
-.jdenticon.rounded, .jdenticon.rounded svg, .avatar.rounded {
+.jdenticon.rounded,
+.jdenticon.rounded svg,
+.avatar.rounded {
   border-radius: 50%;
 }

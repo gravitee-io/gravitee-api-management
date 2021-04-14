@@ -16,61 +16,58 @@
 
 -->
 <md-content class="gravitee-no-sidenav-container" flex>
-    <div class="login-page">
-      <div class="form">
+  <div class="login-page">
+    <div class="form">
+      <div class="gravitee-no-sidenav-header" layout="column">
+        <label>Sign In</label>
+        <label class="subtitle">to continue to the Administration Portal</label>
+      </div>
 
-        <div class="gravitee-no-sidenav-header" layout="column">
-          <label>Sign In</label>
-          <label class="subtitle">to continue to the Administration Portal</label>
+      <form
+        name="formUser"
+        class="form-content"
+        ng-submit="$ctrl.login()"
+        layout="column"
+        ng-if="!$ctrl.localLoginDisabled || $ctrl.providers.length == 0"
+      >
+        <div layout="row">
+          <md-input-container class="md-icon-float md-block" flex>
+            <label>Username</label>
+            <input ng-model="$ctrl.user.username" type="text" placeholder="" required autofocus />
+          </md-input-container>
         </div>
 
-        <form name="formUser" class="form-content" ng-submit="$ctrl.login()" layout="column" ng-if="!$ctrl.localLoginDisabled || $ctrl.providers.length == 0">
-
-          <div layout="row">
-            <md-input-container class="md-icon-float md-block" flex>
-              <label>Username</label>
-              <input ng-model="$ctrl.user.username" type="text" placeholder="" required autofocus>
-            </md-input-container>
-          </div>
-
-          <div layout="row">
-            <md-input-container class="md-icon-float md-block" flex>
-              <label>Password</label>
-              <input ng-model="$ctrl.user.password" placeholder="" type="password" required>
-            </md-input-container>
-          </div>
-
-          <button
-            type="submit" 
-            class="btn btn-block btn-signin"
-            ng-disabled="canBeDisabled && (formUser.$invalid || formUser.$pristine)">
-            <md-icon 
-              md-svg-icon="assets/logo_sign-in.svg"
-              style="fill: #fff"
-            ></md-icon>
-            <span>Sign in</span>
-          </button>
-          
-          <p class="text-center text-muted" ng-if="$ctrl.userCreationEnabled" >
-            <small>Don't have an account yet? <a ui-sref="registration">Sign up</a></small>
-          </p>
-
-        </form>
-
-        <div class="form-content">
-          <button 
-            class="btn btn-block btn-{{provider.type}}" 
-            ng-style="{{ $ctrl.getProviderStyle(provider) }}"
-            data-ng-repeat="provider in $ctrl.identityProviders"
-            ng-click="$ctrl.authenticate(provider.id)">
-            <md-icon 
-              md-svg-icon="assets/logo_{{provider.type | lowercase}}-idp.svg"
-              ng-style="{'fill': $ctrl.getProviderColor(provider)}"
-            ></md-icon>
-            <span>{{provider.name}}</span>
-          </button>
+        <div layout="row">
+          <md-input-container class="md-icon-float md-block" flex>
+            <label>Password</label>
+            <input ng-model="$ctrl.user.password" placeholder="" type="password" required />
+          </md-input-container>
         </div>
+
+        <button type="submit" class="btn btn-block btn-signin" ng-disabled="canBeDisabled && (formUser.$invalid || formUser.$pristine)">
+          <md-icon md-svg-icon="assets/logo_sign-in.svg" style="fill: #fff"></md-icon>
+          <span>Sign in</span>
+        </button>
+
+        <p class="text-center text-muted" ng-if="$ctrl.userCreationEnabled">
+          <small>Don't have an account yet? <a ui-sref="registration">Sign up</a></small>
+        </p>
+      </form>
+
+      <div class="form-content">
+        <button
+          class="btn btn-block btn-{{provider.type}}"
+          ng-style="{{ $ctrl.getProviderStyle(provider) }}"
+          data-ng-repeat="provider in $ctrl.identityProviders"
+          ng-click="$ctrl.authenticate(provider.id)"
+        >
+          <md-icon
+            md-svg-icon="assets/logo_{{provider.type | lowercase}}-idp.svg"
+            ng-style="{'fill': $ctrl.getProviderColor(provider)}"
+          ></md-icon>
+          <span>{{provider.name}}</span>
+        </button>
       </div>
     </div>
+  </div>
 </md-content>
-

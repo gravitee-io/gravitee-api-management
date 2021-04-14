@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class TenantService {
-
   private tenantsURL: string;
 
   constructor(private $http, Constants) {

@@ -15,7 +15,7 @@
  */
 import NotificationSettingsService from '../../../services/notificationSettings.service';
 import AlertService from '../../../services/alert.service';
-import {Scope} from '../../../entities/scope';
+import { Scope } from '../../../entities/scope';
 import NotifierService from '../../../services/notifier.service';
 
 export default applicationsNotificationsRouterConfig;
@@ -32,27 +32,18 @@ function applicationsNotificationsRouterConfig($stateProvider) {
           icon: 'notifications',
         },
         perms: {
-          only: ['environment-notification-r']
-        }
+          only: ['environment-notification-r'],
+        },
       },
       resolve: {
         resolvedHookScope: () => Scope.PORTAL,
-        resolvedHooks:
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getHooks(Scope.PORTAL).then( (response) =>
-              response.data
-            ),
-        resolvedNotifiers:
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getNotifiers(Scope.PORTAL, null).then( (response) =>
-              response.data
-            ),
-        notificationSettings:
-          (NotificationSettingsService: NotificationSettingsService) =>
-            NotificationSettingsService.getNotificationSettings(Scope.PORTAL, null).then( (response) =>
-              response.data
-            ),
-      }
+        resolvedHooks: (NotificationSettingsService: NotificationSettingsService) =>
+          NotificationSettingsService.getHooks(Scope.PORTAL).then((response) => response.data),
+        resolvedNotifiers: (NotificationSettingsService: NotificationSettingsService) =>
+          NotificationSettingsService.getNotifiers(Scope.PORTAL, null).then((response) => response.data),
+        notificationSettings: (NotificationSettingsService: NotificationSettingsService) =>
+          NotificationSettingsService.getNotificationSettings(Scope.PORTAL, null).then((response) => response.data),
+      },
     })
     .state('management.settings.notifications.notification', {
       url: '/:notificationId',
@@ -60,16 +51,16 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'management-configuration-notifications'
+          page: 'management-configuration-notifications',
         },
         perms: {
-          only: ['environment-notification-r']
-        }
-      }
+          only: ['environment-notification-r'],
+        },
+      },
     })
     .state('management.settings.alerts', {
       abstract: true,
-      url: '/alerts'
+      url: '/alerts',
     })
     .state('management.settings.alerts.list', {
       url: '/',
@@ -78,20 +69,18 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         menu: {
           label: 'Alerts',
           icon: 'alarm',
-          parameter: 'alert.enabled'
+          parameter: 'alert.enabled',
         },
         perms: {
-          only: ['environment-alert-r']
-        }
+          only: ['environment-alert-r'],
+        },
       },
       resolve: {
-        alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts(undefined, 2).then((response) => response.data),
+        alerts: (AlertService: AlertService, $stateParams) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
-        notifiers: (NotifierService: NotifierService) =>
-          NotifierService.list().then( (response) => response.data)
-      }
+        notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
+      },
     })
     .state('management.settings.alerts.alertnew', {
       url: '/create',
@@ -99,20 +88,18 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'management-alerts'
+          page: 'management-alerts',
         },
         perms: {
-          only: ['environment-alert-c']
-        }
+          only: ['environment-alert-c'],
+        },
       },
       resolve: {
-        alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts(undefined, 2).then((response) => response.data),
+        alerts: (AlertService: AlertService, $stateParams) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
-        notifiers: (NotifierService: NotifierService) =>
-          NotifierService.list().then( (response) => response.data)
-      }
+        notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
+      },
     })
     .state('management.settings.alerts.alert', {
       url: '/:alertId',
@@ -120,19 +107,17 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'management-alerts'
+          page: 'management-alerts',
         },
         perms: {
-          only: ['environment-alert-u']
-        }
+          only: ['environment-alert-u'],
+        },
       },
       resolve: {
-        alerts: (AlertService: AlertService, $stateParams) =>
-          AlertService.listAlerts(undefined, 2).then((response) => response.data),
+        alerts: (AlertService: AlertService, $stateParams) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
-        notifiers: (NotifierService: NotifierService) =>
-          NotifierService.list().then( (response) => response.data)
-      }
+        notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
+      },
     });
 }

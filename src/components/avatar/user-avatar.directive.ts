@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class UserAvatarDirective {
-
   constructor() {
     'ngInject';
 
@@ -41,7 +40,7 @@ class UserAvatarDirective {
             element.attr('src', 'assets/default_photo.png');
           }
         });
-      }
+      },
     };
 
     return directive;

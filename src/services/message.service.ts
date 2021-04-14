@@ -22,21 +22,49 @@ class MessageService {
     this.baseURL = Constants.baseURL;
   }
 
-  sendFromPortal(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
+  sendFromPortal(
+    title: string,
+    text: string,
+    channel: string,
+    roleScope: string,
+    roleValues: string[],
+    url: string,
+    useSystemProxy: boolean,
+    httpHeaders: any[],
+  ) {
     return this.$http.post(
       `${this.baseURL}/messages`,
-      this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
+      this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders),
     );
   }
 
-  sendFromApi(apiId: string, title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
+  sendFromApi(
+    apiId: string,
+    title: string,
+    text: string,
+    channel: string,
+    roleScope: string,
+    roleValues: string[],
+    url: string,
+    useSystemProxy: boolean,
+    httpHeaders: any[],
+  ) {
     return this.$http.post(
       `${this.baseURL}/apis/${apiId}/messages`,
-      this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders)
+      this.getPayload(title, text, channel, roleScope, roleValues, url, useSystemProxy, httpHeaders),
     );
   }
 
-  private getPayload(title: string, text: string, channel: string, roleScope: string, roleValues: string[], url: string, useSystemProxy: boolean, httpHeaders: any[]) {
+  private getPayload(
+    title: string,
+    text: string,
+    channel: string,
+    roleScope: string,
+    roleValues: string[],
+    url: string,
+    useSystemProxy: boolean,
+    httpHeaders: any[],
+  ) {
     if (url) {
       let params = {};
       for (let idx = 0; idx < httpHeaders.length; idx++) {
@@ -45,23 +73,23 @@ class MessageService {
         }
       }
       return {
-        'text': text,
-        'recipient': {
-          'url': url
+        text: text,
+        recipient: {
+          url: url,
         },
-        'channel': channel,
-        'params': params,
-        'useSystemProxy': useSystemProxy
+        channel: channel,
+        params: params,
+        useSystemProxy: useSystemProxy,
       };
     } else {
       return {
-        'title': title,
-        'text': text,
-        'recipient': {
-          'role_scope': roleScope,
-          'role_value': roleValues
+        title: title,
+        text: text,
+        recipient: {
+          role_scope: roleScope,
+          role_value: roleValues,
         },
-        'channel': channel
+        channel: channel,
       };
     }
   }

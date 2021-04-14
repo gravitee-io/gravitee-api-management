@@ -32,11 +32,7 @@
 <md-input-container class="md-block" ng-if="$ctrl.displaySelect()">
   <label>Value</label>
   <md-select ng-model="$ctrl.condition.pattern" required>
-    <md-option
-      ng-value="type.key"
-      ng-repeat="type in $ctrl.values">
-      {{::type.value}}
-    </md-option>
+    <md-option ng-value="type.key" ng-repeat="type in $ctrl.values"> {{::type.value}} </md-option>
   </md-select>
   <!--
   <div class="hint">

@@ -85,7 +85,7 @@ class NotificationSettingsService {
   }
 
   update(cfg: NotificationConfig): IHttpPromise<any> {
-    const urlId = (cfg.id ? cfg.id : '');
+    const urlId = cfg.id ? cfg.id : '';
     if (cfg.referenceType === 'API') {
       return this.$http.put(this.apisURL + cfg.referenceId + '/notificationsettings/' + urlId, cfg);
     } else if (cfg.referenceType === 'APPLICATION') {

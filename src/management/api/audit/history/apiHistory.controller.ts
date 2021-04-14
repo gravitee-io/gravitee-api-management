@@ -33,7 +33,7 @@ class ApiHistoryController {
   private right: any;
   private left: any;
 
-  constructor (
+  constructor(
     private $mdDialog: ng.material.IDialogService,
     private $scope: any,
     private $rootScope: ng.IRootScopeService,
@@ -41,7 +41,7 @@ class ApiHistoryController {
     private ApiService,
     private NotificationService,
     private resolvedEvents,
-    private $timeout
+    private $timeout,
   ) {
     'ngInject';
     this.api = JSON.parse(angular.toJson(_.cloneDeep(this.$scope.$parent.apiCtrl.api)));
@@ -62,33 +62,33 @@ class ApiHistoryController {
   init() {
     var self = this;
     this.$scope.$parent.apiCtrl.checkAPISynchronization(self.api);
-    this.$scope.$on('apiChangeSuccess', function(event, args) {
+    this.$scope.$on('apiChangeSuccess', function (event, args) {
       if (self.$state.current.name.endsWith('history')) {
         // reload API
         self.api = JSON.parse(angular.toJson(_.cloneDeep(_.cloneDeep(args.api))));
         self.cleanAPI(self.api);
         // reload API events
-        self.ApiService.getApiEvents(self.api.id, self.eventTypes).then(response => {
+        self.ApiService.getApiEvents(self.api.id, self.eventTypes).then((response) => {
           self.events = response.data;
           self.reloadEventsTimeline(self.events);
         });
       }
     });
-    this.$scope.$on('checkAPISynchronizationSucceed', function() {
+    this.$scope.$on('checkAPISynchronizationSucceed', function () {
       self.reloadEventsTimeline(self.events);
     });
   }
 
   initTimeline(events) {
     var self = this;
-    _.forEach(events, function(event) {
+    _.forEach(events, function (event) {
       var eventTimeline = {
         event: event,
         badgeClass: 'info',
         badgeIconClass: 'glyphicon-check',
         title: event.type,
         when: event.created_at,
-        user: event.user
+        user: event.user,
       };
       self.eventsTimeline.push(eventTimeline);
     });
@@ -207,11 +207,11 @@ class ApiHistoryController {
 
     const that = this;
 
-    that.ApiService.rollback(this.api.id, _apiDefinition).then( () => {
+    that.ApiService.rollback(this.api.id, _apiDefinition).then(() => {
       that.NotificationService.show('Api rollback !');
 
       that.ApiService.get(that.api.id).then(function (response) {
-        that.$rootScope.$broadcast('apiChangeSuccess', {api: response.data});
+        that.$rootScope.$broadcast('apiChangeSuccess', { api: response.data });
       });
     });
   }
@@ -219,20 +219,22 @@ class ApiHistoryController {
   showRollbackAPIConfirm(ev, api) {
     ev.stopPropagation();
     let self = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirm.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Would you like to rollback your API?',
-        confirmButton: 'Rollback'
-      }
-    }).then(function (response) {
-      if (response) {
-        self.rollback(api);
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirm.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Would you like to rollback your API?',
+          confirmButton: 'Rollback',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          self.rollback(api);
+        }
+      });
   }
 
   reloadEventsTimeline(events) {
@@ -241,12 +243,12 @@ class ApiHistoryController {
     this.initTimeline(events);
     if (!this.$scope.$parent.apiCtrl.apiIsSynchronized && !this.$scope.$parent.apiCtrl.apiJustDeployed) {
       var eventTimeline = {
-          event: this.api,
-          badgeClass: 'warning',
-          badgeIconClass: 'glyphicon-refresh',
-          title: 'TO_DEPLOY',
-          isCurrentAPI: true
-        };
+        event: this.api,
+        badgeClass: 'warning',
+        badgeIconClass: 'glyphicon-refresh',
+        title: 'TO_DEPLOY',
+        isCurrentAPI: true,
+      };
       this.eventsTimeline.unshift(eventTimeline);
     }
   }
@@ -254,18 +256,18 @@ class ApiHistoryController {
   reorganizeEvent(_event) {
     var eventPayloadDefinition = JSON.parse(_event.definition);
     var reorganizedEvent = {
-      'id': eventPayloadDefinition.id,
-      'name': eventPayloadDefinition.name,
-      'version': eventPayloadDefinition.version,
-      'description': _event.description,
-      'tags': eventPayloadDefinition.tags,
-      'proxy': eventPayloadDefinition.proxy,
-      'paths': eventPayloadDefinition.paths,
-      'properties': eventPayloadDefinition.properties,
-      'services': eventPayloadDefinition.services,
-      'resources': eventPayloadDefinition.resources,
-      'path_mappings': eventPayloadDefinition.path_mappings,
-      'response_templates': eventPayloadDefinition.response_templates
+      id: eventPayloadDefinition.id,
+      name: eventPayloadDefinition.name,
+      version: eventPayloadDefinition.version,
+      description: _event.description,
+      tags: eventPayloadDefinition.tags,
+      proxy: eventPayloadDefinition.proxy,
+      paths: eventPayloadDefinition.paths,
+      properties: eventPayloadDefinition.properties,
+      services: eventPayloadDefinition.services,
+      resources: eventPayloadDefinition.resources,
+      path_mappings: eventPayloadDefinition.path_mappings,
+      response_templates: eventPayloadDefinition.response_templates,
     };
     return reorganizedEvent;
   }

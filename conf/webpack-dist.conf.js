@@ -36,25 +36,20 @@ module.exports = {
         test: /\.ts$/,
         exclude: /node_modules/,
         use: 'tslint-loader',
-        enforce: 'pre'
+        enforce: 'pre',
       },
       {
         test: /\.(css|scss)$/,
         loaders: ExtractTextPlugin.extract({
           fallback: 'style-loader',
-          use: 'css-loader!sass-loader!postcss-loader'
+          use: 'css-loader!sass-loader!postcss-loader',
         }),
-        include: [
-          path.resolve(__dirname, '..') + '/src/index.scss'
-        ]
+        include: [path.resolve(__dirname, '..') + '/src/index.scss'],
       },
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        loaders: [
-          'ng-annotate-loader',
-          'ts-loader?transpileOnly=true'
-        ]
+        loaders: ['ng-annotate-loader', 'ts-loader?transpileOnly=true'],
       },
       {
         test: /\.html$/,
@@ -64,24 +59,22 @@ module.exports = {
           minimize: true,
           removeComments: true,
           collapseWhitespace: true,
-          removeAttributeQuotes: true
-        }
+          removeAttributeQuotes: true,
+        },
       },
       {
         test: /\.(jpe?g|png|gif|svg)$/i,
-        loaders: [
-          'file-loader?hash=sha512&digest=hex&name=[hash].[ext]'
-        ]
+        loaders: ['file-loader?hash=sha512&digest=hex&name=[hash].[ext]'],
       },
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use: 'url-loader?limit=10000&minetype=application/font-woff'
+        use: 'url-loader?limit=10000&minetype=application/font-woff',
       },
       {
         test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use: 'file-loader'
-      }
-    ]
+        use: 'file-loader',
+      },
+    ],
   },
   plugins: [
     new webpack.ProvidePlugin({
@@ -89,12 +82,12 @@ module.exports = {
       jQuery: 'jquery',
       moment: 'moment',
       tinycolor: 'tinycolor2',
-      Highcharts: 'highcharts'
+      Highcharts: 'highcharts',
     }),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
-      template: conf.path.src('index.html')
+      template: conf.path.src('index.html'),
     }),
     new ExtractTextPlugin('index-[hash].css'),
     new webpack.LoaderOptionsPlugin({
@@ -102,64 +95,61 @@ module.exports = {
         postcss: () => [autoprefixer],
         resolve: {},
         ts: {
-          configFileName: 'tsconfig.json'
+          configFileName: 'tsconfig.json',
         },
         tslint: {
-          configuration: require('../tslint.json')
-        }
-      }
+          configuration: require('../tslint.json'),
+        },
+      },
     }),
-    new CopyWebpackPlugin([
+    new CopyWebpackPlugin(
+      [
+        {
+          from: './constants.json',
+          to: '',
+        },
+        {
+          from: './build.json',
+          to: '',
+        },
+        {
+          from: './themes',
+          to: './themes',
+        },
+        {
+          from: './docs',
+          to: './docs',
+        },
+        { from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html' },
+      ],
       {
-        from: './constants.json',
-        to: ''
+        copyUnmodified: true,
       },
-      {
-        from: './build.json',
-        to: ''
-      },
-      {
-        from: './themes',
-        to: './themes'
-      },
-      {
-        from: './docs',
-        to: './docs'
-      },
-      {from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html'}
-    ], {
-      copyUnmodified: true
-    })
+    ),
   ],
   output: {
     path: path.join(process.cwd(), conf.paths.dist),
-    filename: '[name]-[hash].js'
+    filename: '[name]-[hash].js',
   },
   resolve: {
     alias: {
-      'read-more': 'read-more/js/directives/readmore.js'
+      'read-more': 'read-more/js/directives/readmore.js',
     },
-    extensions: [
-      '.webpack.js',
-      '.web.js',
-      '.js',
-      '.ts',
-      '.json'
-    ]
+    extensions: ['.webpack.js', '.web.js', '.js', '.ts', '.json'],
   },
   entry: {
     vendor: packages,
-    app: `./${conf.path.src('index')}`
+    app: `./${conf.path.src('index')}`,
   },
   node: {
     fs: 'empty',
-    module: 'empty'
+    module: 'empty',
   },
-  externals: [{'api-console': {}, unicode: {}}],
+  externals: [{ 'api-console': {}, unicode: {} }],
   optimization: {
     minimize: true,
     splitChunks: {
-      chunks: 'all'
-    }
-  }
+      chunks: 'all',
+    },
+  },
 };

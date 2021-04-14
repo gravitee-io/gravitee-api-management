@@ -13,10 +13,10 @@
   }
 
   .gv-forms-header {
-    a, div {
+    a,
+    div {
       padding: 0 0 4px 12px;
       display: inline-block;
-
     }
 
     ng-md-icon {
@@ -86,8 +86,7 @@
       bottom: -18px !important;
     }
   }
-
 }
 .gv-forms.gv-forms-fluid {
-    max-width: 100%;
+  max-width: 100%;
 }

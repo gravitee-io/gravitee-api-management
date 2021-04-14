@@ -15,10 +15,10 @@
  */
 const ThemeComponent: ng.IComponentOptions = {
   bindings: {
-    views: '<'
+    views: '<',
   },
   controller: 'ThemeController',
-  template: require('./theme.html')
+  template: require('./theme.html'),
 };
 
 export default ThemeComponent;

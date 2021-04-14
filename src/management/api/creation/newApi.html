@@ -16,24 +16,31 @@
 
 -->
 <section>
-  <md-toolbar class="md-table-toolbar md-default" style="background-color:#fbfbfc;">
+  <md-toolbar class="md-table-toolbar md-default" style="background-color: #fbfbfc">
     <div class="md-toolbar-tools">
       <span>Create an API</span>
     </div>
   </md-toolbar>
   <div layout="column">
-    <div layout="row" layout-align="center" style="margin-top: 40px;">
+    <div layout="row" layout-align="center" style="margin-top: 40px">
       <div layout="column">
-        <gravitee-empty-state icon="dashboard"
-                              model="API"
-                              message="Create an API from scratch ..."
-                              create-mode="true"></gravitee-empty-state>
-        <md-button ui-sref="management.apis.create" style="margin: 0 auto;" aria-label="create-api" class="md-success md-fab create-api-button">
+        <gravitee-empty-state
+          icon="dashboard"
+          model="API"
+          message="Create an API from scratch ..."
+          create-mode="true"
+        ></gravitee-empty-state>
+        <md-button
+          ui-sref="management.apis.create"
+          style="margin: 0 auto"
+          aria-label="create-api"
+          class="md-success md-fab create-api-button"
+        >
           <ng-md-icon icon="arrow_forward" style="fill: white" size="38"></ng-md-icon>
         </md-button>
       </div>
     </div>
-    <div layout="row" layout-align="center" style="margin-top: 50px;">
+    <div layout="row" layout-align="center" style="margin-top: 50px">
       <div layout="column">
         <h4>... or import API definition or your Swagger descriptor file</h4>
 

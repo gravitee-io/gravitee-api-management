@@ -17,10 +17,10 @@ const TagsComponent: ng.IComponentOptions = {
   bindings: {
     tags: '<',
     entrypoints: '<',
-    groups: '<'
+    groups: '<',
   },
   controller: 'TagsController',
-  template: require('./tags.html')
+  template: require('./tags.html'),
 };
 
 export default TagsComponent;

@@ -22,7 +22,7 @@ function apisDesignRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.design', {
-      template: require('./apis.design.route.html')
+      template: require('./apis.design.route.html'),
     })
     .state('management.apis.detail.design.policies', {
       url: '/policies',
@@ -30,20 +30,20 @@ function apisDesignRouterConfig($stateProvider) {
       controller: 'ApiPoliciesController',
       controllerAs: 'apiPoliciesCtrl',
       resolve: {
-        resolvedTenants: (TenantService: TenantService) => TenantService.list()
+        resolvedTenants: (TenantService: TenantService) => TenantService.list(),
       },
       data: {
         menu: {
           label: 'Design',
-          icon: 'palette'
+          icon: 'palette',
         },
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-policies'
-        }
-      }
+          page: 'management-api-policies',
+        },
+      },
     })
     .state('management.apis.detail.design.resources', {
       url: '/resources',
@@ -51,16 +51,16 @@ function apisDesignRouterConfig($stateProvider) {
       controller: 'ApiResourcesController',
       controllerAs: 'apiResourcesCtrl',
       resolve: {
-        resolvedResources: (ResourceService: ResourceService) => ResourceService.list()
+        resolvedResources: (ResourceService: ResourceService) => ResourceService.list(),
       },
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-resources'
-        }
-      }
+          page: 'management-api-resources',
+        },
+      },
     })
     .state('management.apis.detail.design.properties', {
       url: '/properties',
@@ -69,11 +69,11 @@ function apisDesignRouterConfig($stateProvider) {
       controllerAs: 'apiPropertiesCtrl',
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-properties'
-        }
-      }
+          page: 'management-api-properties',
+        },
+      },
     });
 }

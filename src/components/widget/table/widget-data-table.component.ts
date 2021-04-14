@@ -20,12 +20,12 @@ import AnalyticsService from '../../../services/analytics.service';
 const WidgetDataTableComponent: ng.IComponentOptions = {
   template: require('./widget-data-table.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
-  controller: function($scope, $state: StateService, AnalyticsService: AnalyticsService) {
+  controller: function ($scope, $state: StateService, AnalyticsService: AnalyticsService) {
     'ngInject';
 
     this.AnalyticsService = AnalyticsService;
@@ -33,7 +33,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
     this.$state = $state;
     this.selected = [];
 
-    this.$onInit = function() {
+    this.$onInit = function () {
       this.widget = this.parent.widget;
     };
 
@@ -52,7 +52,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
             key: key,
             value: value,
             percent: percent,
-            metadata: (data && data.metadata) ? {...data.metadata[key], order: +data.metadata[key].order} : undefined
+            metadata: data && data.metadata ? { ...data.metadata[key], order: +data.metadata[key].order } : undefined,
           };
           let widget = this.widget || this.parent.widget;
           if (widget) {
@@ -80,23 +80,26 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
       that.updateQuery(item, false);
     };
 
-    this.updateQuery = function(item, add) {
+    this.updateQuery = function (item, add) {
       that.$scope.$emit('filterItemChange', {
         widget: that.widget.$uid,
         field: that.widget.chart.request.field,
         fieldLabel: that.widget.chart.request.fieldLabel,
         key: item.key,
         name: item.metadata.name,
-        mode: (add) ? 'add' : 'remove'
+        mode: add ? 'add' : 'remove',
       });
     };
 
-    this.isClickable = function(result) {
-      return $state.current.name === 'management.platform' && !result.metadata.unknown
-        && (this.widget.chart.request.field === 'api' || this.widget.chart.request.field === 'application');
+    this.isClickable = function (result) {
+      return (
+        $state.current.name === 'management.platform' &&
+        !result.metadata.unknown &&
+        (this.widget.chart.request.field === 'api' || this.widget.chart.request.field === 'application')
+      );
     };
 
-    this.goto = function(key) {
+    this.goto = function (key) {
       // only on platform analytics
       if ($state.current.name === 'management.platform') {
         if (this.widget.chart.request.field === 'api') {
@@ -104,19 +107,19 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
             apiId: key,
             from: this.widget.chart.request.from,
             to: this.widget.chart.request.to,
-            q: this.widget.chart.request.query
+            q: this.widget.chart.request.query,
           });
         } else if (this.widget.chart.request.field === 'application') {
           this.$state.go('management.applications.application.analytics', {
             applicationId: key,
             from: this.widget.chart.request.from,
             to: this.widget.chart.request.to,
-            q: this.widget.chart.request.query
+            q: this.widget.chart.request.query,
           });
         }
       }
     };
-  }
+  },
 };
 
 export default WidgetDataTableComponent;

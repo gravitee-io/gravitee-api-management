@@ -16,10 +16,9 @@
 import _ = require('lodash');
 import ApiService from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 
 class ApiEditPlanController {
-
   plan: any;
   groups: any[];
   api: any;
@@ -40,8 +39,8 @@ class ApiEditPlanController {
       label?: string;
       completed: boolean;
       optional: boolean;
-      data: any
-    }[]
+      data: any;
+    }[];
   };
 
   constructor(
@@ -50,7 +49,7 @@ class ApiEditPlanController {
     private $stateParams,
     private $timeout: ng.ITimeoutService,
     private ApiService: ApiService,
-    private NotificationService: NotificationService
+    private NotificationService: NotificationService,
   ) {
     'ngInject';
 
@@ -60,32 +59,32 @@ class ApiEditPlanController {
       maxStep: 4,
       showBusyText: false,
       stepData: [
-        {step: 1, completed: false, optional: false, data: {}},
-        {step: 2, completed: false, optional: false, data: {}},
-        {step: 3, completed: false, optional: true, data: {}},
-        {step: 4, completed: false, optional: true, data: {}}
-      ]
+        { step: 1, completed: false, optional: false, data: {} },
+        { step: 2, completed: false, optional: false, data: {} },
+        { step: 3, completed: false, optional: true, data: {} },
+        { step: 4, completed: false, optional: true, data: {} },
+      ],
     };
   }
 
   $onInit() {
     if (!this.plan) {
-      this.plan = {characteristics: []};
+      this.plan = { characteristics: [] };
     }
 
     if (!this.plan.paths || !this.plan.paths['/']) {
-      this.plan.paths = {'/': []};
+      this.plan.paths = { '/': [] };
     }
 
     this.planPolicies = this.plan.paths['/'];
 
     // Add policy metadata
     if (this.planPolicies) {
-      this.planPolicies.forEach(policy => {
+      this.planPolicies.forEach((policy) => {
         _.forEach(policy, (value, property) => {
           if (property !== 'methods' && property !== 'enabled' && property !== 'description' && property !== '$$hashKey') {
             policy.id = property;
-            let policyDef = this.policies.find(policyDef => policyDef.id === policy.id);
+            let policyDef = this.policies.find((policyDef) => policyDef.id === policy.id);
             if (policyDef) {
               policy.name = policyDef.name;
             }
@@ -120,7 +119,7 @@ class ApiEditPlanController {
     this.vm.selectedStep = step;
   }
 
-   submitCurrentStep(stepData) {
+  submitCurrentStep(stepData) {
     this.vm.showBusyText = true;
     if (!stepData.completed) {
       if (this.vm.selectedStep !== 4) {
@@ -145,19 +144,17 @@ class ApiEditPlanController {
       this.vm.stepProgress = this.vm.stepProgress + 1;
     }
 
-    this.$timeout(() => this.vm.selectedStep = this.vm.selectedStep + 1);
+    this.$timeout(() => (this.vm.selectedStep = this.vm.selectedStep + 1));
   }
 
   saveOrUpdate() {
     // Transform security definition to json
     this.plan.securityDefinition = JSON.stringify(this.plan.securityDefinition);
 
-    this.ApiService.savePlan(this.$stateParams.apiId, this.plan).then( () => {
+    this.ApiService.savePlan(this.$stateParams.apiId, this.plan).then(() => {
       this.NotificationService.show(this.plan.name + ' has been saved successfully');
-      this.$state.go(
-        'management.apis.detail.portal.plans.list',
-        this.plan.id === undefined ? {'state': 'staging'} : {});
-      this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
+      this.$state.go('management.apis.detail.portal.plans.list', this.plan.id === undefined ? { state: 'staging' } : {});
+      this.$scope.$parent.apiCtrl.checkAPISynchronization({ id: this.$stateParams.apiId });
     });
   }
 

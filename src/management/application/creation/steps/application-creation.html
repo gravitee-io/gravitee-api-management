@@ -16,11 +16,9 @@
 
 -->
 <section layout="column" flex>
-
   <div layout="row">
     <div class="gv-creation-steppers" flex="{{$ctrl.selectedStep !== $ctrl.steps.length ? 70: 100}}">
-      <md-steppers md-dynamic-height md-disable-tabs-behavior="true" md-stretch-steppers="always"
-                   md-selected="$ctrl.selectedStep">
+      <md-steppers md-dynamic-height md-disable-tabs-behavior="true" md-stretch-steppers="always" md-selected="$ctrl.selectedStep">
         <application-creation-step1></application-creation-step1>
         <application-creation-step2></application-creation-step2>
         <application-creation-step3></application-creation-step3>
@@ -41,7 +39,10 @@
             </timeline-badge>
             <timeline-panel class="{{step.badgeClass}}">
               <timeline-heading>
-                <div style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;" ng-bind-html="step.title"></div>
+                <div
+                  style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden"
+                  ng-bind-html="step.title"
+                ></div>
               </timeline-heading>
               <p>{{step.content}}</p>
             </timeline-panel>

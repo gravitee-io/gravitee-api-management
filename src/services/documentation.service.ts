@@ -40,7 +40,7 @@ export enum SystemFolderName {
   HEADER = 'Header',
   TOPFOOTER = 'TopFooter',
   FOOTER = 'Footer',
-  ASIDE = 'Aside'
+  ASIDE = 'Aside',
 }
 
 export enum FolderSituation {
@@ -48,16 +48,13 @@ export enum FolderSituation {
   SYSTEM_FOLDER_WITH_FOLDERS,
   FOLDER_IN_SYSTEM_FOLDER,
   ROOT,
-  FOLDER_IN_FOLDER
+  FOLDER_IN_FOLDER,
 }
 
 class DocumentationService {
   private folderPromise;
 
-  constructor(
-    private $http: ng.IHttpService,
-    private $q: ng.IQService,
-    private Constants: any) {
+  constructor(private $http: ng.IHttpService, private $q: ng.IQService, private Constants: any) {
     'ngInject';
   }
 
@@ -66,7 +63,7 @@ class DocumentationService {
       return `${this.Constants.baseURL}/apis/${apiId}/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
     }
     return `${this.Constants.baseURL}/portal/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
-  }
+  };
 
   supportedTypes = (folderSituation: FolderSituation): string[] => {
     switch (folderSituation) {
@@ -81,13 +78,13 @@ class DocumentationService {
       case FolderSituation.FOLDER_IN_SYSTEM_FOLDER:
         return ['LINK'];
     }
-  }
+  };
 
   partialUpdate = (propKey: string, propValue: any, pageId: string, apiId?: string): IHttpPromise<any> => {
     let prop = {};
     prop[propKey] = propValue;
     return this.$http.patch(this.url(apiId, pageId), prop);
-  }
+  };
 
   search = (q: DocumentationQuery, apiId?: string, translated?: boolean): IHttpPromise<any> => {
     let url: string = this.url(apiId);
@@ -96,7 +93,7 @@ class DocumentationService {
       let queryParams: string[] = [];
       if (q) {
         const keys = Object.keys(q);
-        _.forEach(keys, key => {
+        _.forEach(keys, (key) => {
           let val = q[key];
           if (val !== undefined && val !== '') {
             queryParams.push(key + '=' + val);
@@ -109,18 +106,19 @@ class DocumentationService {
       url += '?' + queryParams.join('&');
     }
     return this.$http.get(url);
-  }
+  };
 
   remove = (pageId: string, apiId?: string): IHttpPromise<any> => {
     return this.$http.delete(this.url(apiId, pageId));
-  }
+  };
 
   create = (newPage: any, apiId?: string, config?: any): IHttpPromise<any> => {
     return this.$http.post(this.url(apiId), newPage, config);
-  }
+  };
 
   update = (page: any, apiId?: string, config?: any): IHttpPromise<any> => {
-    return this.$http.put(this.url(apiId, page.id),
+    return this.$http.put(
+      this.url(apiId, page.id),
       {
         name: page.name,
         description: page.description,
@@ -131,10 +129,11 @@ class DocumentationService {
         homepage: page.homepage,
         configuration: page.configuration,
         excluded_groups: page.excluded_groups,
-        parentId: page.parentId
-      }, config
+        parentId: page.parentId,
+      },
+      config,
     );
-  }
+  };
 
   get(apiId: string, pageId?: string, portal?: boolean, translated?: boolean) {
     if (pageId) {
@@ -154,17 +153,15 @@ class DocumentationService {
     let deferred = this.$q.defer();
     let that = this;
     this.$http
-      .get(this.url(apiId), { params: { 'homepage': true } })
+      .get(this.url(apiId), { params: { homepage: true } })
       .then(function (response) {
         if ((<any[]>response.data).length > 0) {
-          that
-            .get(apiId, response.data[0].id, true)
-            .then(response => deferred.resolve(response));
+          that.get(apiId, response.data[0].id, true).then((response) => deferred.resolve(response));
         } else {
           deferred.resolve({});
         }
       })
-      .catch(msg => deferred.reject(msg));
+      .catch((msg) => deferred.reject(msg));
 
     return deferred.promise;
   }
@@ -182,11 +179,11 @@ class DocumentationService {
 
   fetch = (pageId: string, apiId?: string): IHttpPromise<any> => {
     return this.$http.post(this.url(apiId, pageId) + '/_fetch', null, { timeout: 30000 });
-  }
+  };
 
   fetchAll = (apiId: string): IHttpPromise<any> => {
     return this.$http.post(this.url(apiId) + '_fetch', null, { timeout: 30000 });
-  }
+  };
 }
 
 export default DocumentationService;

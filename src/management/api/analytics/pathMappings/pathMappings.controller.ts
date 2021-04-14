@@ -19,7 +19,7 @@ import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
 import DialogAddPathMappingController from './modal/add-pathMapping.dialog.controller';
 import DialogImportPathMappingController from './modal/import-pathMapping.dialog.controller';
-import DocumentationService, {DocumentationQuery} from '../../../../services/documentation.service';
+import DocumentationService, { DocumentationQuery } from '../../../../services/documentation.service';
 
 class ApiPathMappingsController {
   private api: any;
@@ -35,7 +35,7 @@ class ApiPathMappingsController {
     private $scope,
     private $rootScope,
     DocumentationService: DocumentationService,
-    private $state
+    private $state,
   ) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
@@ -52,78 +52,93 @@ class ApiPathMappingsController {
   }
 
   update() {
-    this.ApiService.update(this.api).then((updatedApi) => {
-      this.onSave(updatedApi);
-    }, () => {
-      this.$state.reload();
-    });
+    this.ApiService.update(this.api).then(
+      (updatedApi) => {
+        this.onSave(updatedApi);
+      },
+      () => {
+        this.$state.reload();
+      },
+    );
   }
 
   showSavePathMappingDialog(index) {
-    this.$mdDialog.show({
-      controller: DialogAddPathMappingController,
-      controllerAs: '$ctrl',
-      template: require('./modal/add-pathMapping.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        pathMapping: this.api.path_mappings[index]
-      }
-    }).then((pathMapping) => {
-      if (pathMapping && !_.includes(this.api.path_mappings, pathMapping)) {
-        let pathMappingIndex = index === undefined ? this.api.path_mappings.length : index;
-        this.api.path_mappings[pathMappingIndex] = pathMapping;
-        this.update();
-      }
-    }, function () {
-      // Cancel of the dialog
-    });
+    this.$mdDialog
+      .show({
+        controller: DialogAddPathMappingController,
+        controllerAs: '$ctrl',
+        template: require('./modal/add-pathMapping.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          pathMapping: this.api.path_mappings[index],
+        },
+      })
+      .then(
+        (pathMapping) => {
+          if (pathMapping && !_.includes(this.api.path_mappings, pathMapping)) {
+            let pathMappingIndex = index === undefined ? this.api.path_mappings.length : index;
+            this.api.path_mappings[pathMappingIndex] = pathMapping;
+            this.update();
+          }
+        },
+        function () {
+          // Cancel of the dialog
+        },
+      );
   }
 
   showImportPathMappingDialog(index) {
-    this.$mdDialog.show({
-      controller: DialogImportPathMappingController,
-      controllerAs: '$ctrl',
-      template: require('./modal/import-pathMapping.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        docs: this.swaggerDocs
-      }
-    }).then((selectedDoc) => {
-      if (selectedDoc) {
-        this.ApiService.importPathMappings(this.api.id, selectedDoc).then((updatedApi) => {
-          this.onSave(updatedApi);
-        });
-      }
-    }, function () {
-      // Cancel of the dialog
-    });
+    this.$mdDialog
+      .show({
+        controller: DialogImportPathMappingController,
+        controllerAs: '$ctrl',
+        template: require('./modal/import-pathMapping.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          docs: this.swaggerDocs,
+        },
+      })
+      .then(
+        (selectedDoc) => {
+          if (selectedDoc) {
+            this.ApiService.importPathMappings(this.api.id, selectedDoc).then((updatedApi) => {
+              this.onSave(updatedApi);
+            });
+          }
+        },
+        function () {
+          // Cancel of the dialog
+        },
+      );
   }
 
   delete(index) {
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to remove mapping path [' + this.api.path_mappings[index] + ']?',
-        msg: '',
-        confirmButton: 'Remove'
-      }
-    }).then((response) => {
-      if (response) {
-        this.api.path_mappings.splice(index, 1);
-        this.update();
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to remove mapping path [' + this.api.path_mappings[index] + ']?',
+          msg: '',
+          confirmButton: 'Remove',
+        },
+      })
+      .then((response) => {
+        if (response) {
+          this.api.path_mappings.splice(index, 1);
+          this.update();
+        }
+      });
   }
 
   private onSave(updatedApi) {
     this.api = updatedApi.data;
     this.api.path_mappings = _.sortBy(this.api.path_mappings);
     this.api.etag = updatedApi.headers('etag');
-    this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
-    this.NotificationService.show('API \'' + this.$scope.$parent.apiCtrl.api.name + '\' saved');
+    this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
+    this.NotificationService.show("API '" + this.$scope.$parent.apiCtrl.api.name + "' saved");
   }
 }
 

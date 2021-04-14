@@ -16,8 +16,8 @@
 import ApiService from '../../../services/api.service';
 import MetadataService from '../../../services/metadata.service';
 import GroupService from '../../../services/group.service';
-import DocumentationService, {DocumentationQuery} from '../../../services/documentation.service';
-import {StateParams} from '@uirouter/core';
+import DocumentationService, { DocumentationQuery } from '../../../services/documentation.service';
+import { StateParams } from '@uirouter/core';
 import FetcherService from '../../../services/fetcher.service';
 import PolicyService from '../../../services/policy.service';
 import TagService from '../../../services/tag.service';
@@ -33,9 +33,8 @@ function apisPortalRouterConfig($stateProvider) {
     .state('management.apis.detail.portal', {
       template: require('./apis.portal.route.html'),
       resolve: {
-        qualityRules: (QualityRuleService: QualityRuleService) =>
-          QualityRuleService.list().then(response => response.data)
-      }
+        qualityRules: (QualityRuleService: QualityRuleService) => QualityRuleService.list().then((response) => response.data),
+      },
     })
     .state('management.apis.detail.portal.general', {
       url: '/portal',
@@ -45,98 +44,94 @@ function apisPortalRouterConfig($stateProvider) {
       data: {
         menu: {
           label: 'Portal',
-          icon: 'important_devices'
+          icon: 'important_devices',
         },
         docs: {
-          page: 'management-api'
-        }
-      }
+          page: 'management-api',
+        },
+      },
     })
     .state('management.apis.detail.portal.plans', {
       abstract: true,
       url: '/plans',
       template: '<div layout="column"><div ui-view></div></div>',
       resolve: {
-        api: ($stateParams, ApiService: ApiService) =>
-          ApiService.get($stateParams.apiId).then(response => response.data)
-      }
+        api: ($stateParams, ApiService: ApiService) => ApiService.get($stateParams.apiId).then((response) => response.data),
+      },
     })
     .state('management.apis.detail.portal.plans.list', {
       url: '?state',
       component: 'listPlans',
       resolve: {
-        plans: ($stateParams, ApiService: ApiService) =>
-          ApiService.getApiPlans($stateParams.apiId).then(response => response.data)
+        plans: ($stateParams, ApiService: ApiService) => ApiService.getApiPlans($stateParams.apiId).then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['api-plan-r']
+          only: ['api-plan-r'],
         },
         docs: {
-          page: 'management-api-plans'
-        }
+          page: 'management-api-plans',
+        },
       },
       params: {
         state: {
           type: 'string',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('management.apis.detail.portal.plans.new', {
       url: '/new',
       component: 'editPlan',
       resolve: {
-        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
-        policies: (PolicyService: PolicyService) => PolicyService.list().then(response => response.data),
-        tags: (TagService: TagService) => TagService.list().then(response => response.data),
-        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data)
+        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
+        policies: (PolicyService: PolicyService) => PolicyService.list().then((response) => response.data),
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['api-plan-c']
+          only: ['api-plan-c'],
         },
         docs: {
-          page: 'management-api-plans-wizard'
-        }
-      }
+          page: 'management-api-plans-wizard',
+        },
+      },
     })
     .state('management.apis.detail.portal.plans.plan', {
       url: '/:planId/edit',
       component: 'editPlan',
       resolve: {
         plan: ($stateParams, ApiService: ApiService) =>
-          ApiService.getApiPlan($stateParams.apiId, $stateParams.planId).then(response => response.data),
-        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
-        policies: (PolicyService: PolicyService) => PolicyService.list().then(response => response.data),
-        tags: (TagService: TagService) => TagService.list().then(response => response.data),
-        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data)
+          ApiService.getApiPlan($stateParams.apiId, $stateParams.planId).then((response) => response.data),
+        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
+        policies: (PolicyService: PolicyService) => PolicyService.list().then((response) => response.data),
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['api-plan-u']
+          only: ['api-plan-u'],
         },
         docs: {
-          page: 'management-api-plans-wizard'
-        }
-      }
+          page: 'management-api-plans-wizard',
+        },
+      },
     })
     .state('management.apis.detail.portal.subscriptions', {
       abstract: true,
       url: '/subscriptions',
       template: '<div layout="column"><div ui-view></div></div>',
       resolve: {
-        api: ($stateParams, ApiService: ApiService) =>
-          ApiService.get($stateParams.apiId).then(response => response.data)
-      }
+        api: ($stateParams, ApiService: ApiService) => ApiService.get($stateParams.apiId).then((response) => response.data),
+      },
     })
     .state('management.apis.detail.portal.subscriptions.list', {
       url: '?page&size&:application&:status&:plan&:api_key',
       component: 'apiSubscriptions',
       resolve: {
         subscriptions: ($stateParams, ApiService: ApiService) => {
-          let query = '?page=' + $stateParams.page
-            + '&size=' + $stateParams.size;
+          let query = '?page=' + $stateParams.page + '&size=' + $stateParams.size;
 
           if ($stateParams.status) {
             query += '&status=' + $stateParams.status;
@@ -154,95 +149,94 @@ function apisPortalRouterConfig($stateProvider) {
             query += '&api_key=' + $stateParams.api_key;
           }
 
-          return ApiService.getSubscriptions($stateParams.apiId, query).then(response => response.data);
+          return ApiService.getSubscriptions($stateParams.apiId, query).then((response) => response.data);
         },
 
         subscribers: ($stateParams, ApiService: ApiService) =>
-          ApiService.getSubscribers($stateParams.apiId).then(response => response.data),
+          ApiService.getSubscribers($stateParams.apiId).then((response) => response.data),
 
-        plans: ($stateParams, ApiService: ApiService) =>
-          ApiService.getApiPlans($stateParams.apiId).then(response => response.data)
+        plans: ($stateParams, ApiService: ApiService) => ApiService.getApiPlans($stateParams.apiId).then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['api-subscription-r']
+          only: ['api-subscription-r'],
         },
         docs: {
-          page: 'management-api-subscriptions'
-        }
+          page: 'management-api-subscriptions',
+        },
       },
       params: {
         status: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         application: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         plan: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         page: {
           type: 'int',
           value: 1,
-          dynamic: true
+          dynamic: true,
         },
         size: {
           type: 'int',
           value: 10,
-          dynamic: true
+          dynamic: true,
         },
         api_key: {
           type: 'string',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('management.apis.detail.portal.subscriptions.subscription', {
       url: '/:subscriptionId?:page&:size&:application&:status&:plan&:api_key',
       component: 'apiSubscription',
       resolve: {
         subscription: ($stateParams, ApiService: ApiService) =>
-          ApiService.getSubscription($stateParams.apiId, $stateParams.subscriptionId).then(response => response.data)
+          ApiService.getSubscription($stateParams.apiId, $stateParams.subscriptionId).then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['api-subscription-r']
+          only: ['api-subscription-r'],
         },
         docs: {
-          page: 'management-api-subscriptions'
-        }
+          page: 'management-api-subscriptions',
+        },
       },
       params: {
         status: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         application: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         plan: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         page: {
           type: 'int',
           value: 1,
-          dynamic: true
+          dynamic: true,
         },
         size: {
           type: 'int',
           value: 10,
-          dynamic: true
+          dynamic: true,
         },
         api_key: {
           type: 'string',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('management.apis.detail.portal.members', {
       url: '/members',
@@ -252,16 +246,16 @@ function apisPortalRouterConfig($stateProvider) {
       resolve: {
         resolvedMembers: function ($stateParams, ApiService) {
           return ApiService.getMembers($stateParams.apiId);
-        }
+        },
       },
       data: {
         perms: {
-          only: ['api-member-r']
+          only: ['api-member-r'],
         },
         docs: {
-          page: 'management-api-members'
-        }
-      }
+          page: 'management-api-members',
+        },
+      },
     })
     .state('management.apis.detail.portal.groups', {
       url: '/groups',
@@ -270,12 +264,12 @@ function apisPortalRouterConfig($stateProvider) {
       controllerAs: 'portalCtrl',
       data: {
         perms: {
-          only: ['api-member-r']
+          only: ['api-member-r'],
         },
         docs: {
-          page: 'management-api-members'
-        }
-      }
+          page: 'management-api-members',
+        },
+      },
     })
     .state('management.apis.detail.portal.transferownership', {
       url: '/transferownership',
@@ -285,16 +279,16 @@ function apisPortalRouterConfig($stateProvider) {
       resolve: {
         resolvedMembers: function ($stateParams, ApiService) {
           return ApiService.getMembers($stateParams.apiId);
-        }
+        },
       },
       data: {
         perms: {
-          only: ['api-member-r']
+          only: ['api-member-r'],
         },
         docs: {
-          page: 'management-api-members'
-        }
-      }
+          page: 'management-api-members',
+        },
+      },
     })
     .state('management.apis.detail.portal.metadata', {
       url: '/metadata',
@@ -305,16 +299,16 @@ function apisPortalRouterConfig($stateProvider) {
           return ApiService.listApiMetadata($stateParams.apiId).then(function (response) {
             return response.data;
           });
-        }
+        },
       },
       data: {
         perms: {
-          only: ['api-metadata-r']
+          only: ['api-metadata-r'],
         },
         docs: {
-          page: 'management-api-metadata'
-        }
-      }
+          page: 'management-api-metadata',
+        },
+      },
     })
     .state('management.apis.detail.portal.documentation', {
       url: '/documentation?:parent',
@@ -327,175 +321,169 @@ function apisPortalRouterConfig($stateProvider) {
           } else {
             q.root = true;
           }
-          return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data);
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
         },
         folders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
           q.type = 'FOLDER';
-          return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data);
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
         },
         systemFolders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
           q.type = 'SYSTEM_FOLDER';
-          return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data);
-        }
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-api-documentation'
+          page: 'management-api-documentation',
         },
         perms: {
-          only: ['api-documentation-r']
-        }
+          only: ['api-documentation-r'],
+        },
       },
       params: {
         parent: {
           type: 'string',
           value: '',
-          squash: false
-        }
-      }
+          squash: false,
+        },
+      },
     })
     .state('management.apis.detail.portal.newdocumentation', {
       url: '/documentation/new?:type&:parent',
       component: 'newPage',
       resolve: {
         resolvedFetchers: (FetcherService: FetcherService) => {
-          return FetcherService.list().then(response => {
+          return FetcherService.list().then((response) => {
             return response.data;
           });
         },
         folders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
           q.type = 'FOLDER';
-          return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data);
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
         },
         systemFolders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
           q.type = 'SYSTEM_FOLDER';
-          return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data);
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
         },
         pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
             const q = new DocumentationQuery();
-            return DocumentationService.search(q, $stateParams.apiId).then(response => response.data);
+            return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
           }
         },
         categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return CategoryService.list().then(response => response.data);
+            return CategoryService.list().then((response) => response.data);
           }
-        }
+        },
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-api-documentation'
+          page: 'management-api-documentation',
         },
         perms: {
-          only: ['api-documentation-c']
-        }
+          only: ['api-documentation-c'],
+        },
       },
       params: {
         type: {
           type: 'string',
           value: '',
-          squash: false
+          squash: false,
         },
         parent: {
           type: 'string',
           value: '',
-          squash: false
-        }
-      }
+          squash: false,
+        },
+      },
     })
     .state('management.apis.detail.portal.importdocumentation', {
       url: '/documentation/import',
       component: 'importPages',
       resolve: {
         resolvedFetchers: (FetcherService: FetcherService) => {
-          return FetcherService.list(true).then(response => {
+          return FetcherService.list(true).then((response) => {
             return response.data;
           });
         },
         resolvedRootPage: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
           q.type = 'ROOT';
-          return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data && response.data.length > 0 ? response.data[0] : null);
-        }
+          return DocumentationService.search(q, $stateParams.apiId).then((response) =>
+            response.data && response.data.length > 0 ? response.data[0] : null,
+          );
+        },
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-api-documentation'
+          page: 'management-api-documentation',
         },
         perms: {
-          only: ['api-documentation-c']
-        }
-      }
+          only: ['api-documentation-c'],
+        },
+      },
     })
     .state('management.apis.detail.portal.editdocumentation', {
       url: '/documentation/:pageId?:tab&type',
       component: 'editPage',
       resolve: {
         resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
-          DocumentationService.get($stateParams.apiId, $stateParams.pageId).then(response => response.data),
+          DocumentationService.get($stateParams.apiId, $stateParams.pageId).then((response) => response.data),
         resolvedGroups: (GroupService: GroupService) => {
-          return GroupService.list().then(response => {
+          return GroupService.list().then((response) => {
             return response.data;
           });
         },
         resolvedFetchers: (FetcherService: FetcherService) => {
-          return FetcherService.list().then(response => {
+          return FetcherService.list().then((response) => {
             return response.data;
           });
         },
         folders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
           q.type = 'FOLDER';
-          return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data);
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
         },
         systemFolders: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
           q.type = 'SYSTEM_FOLDER';
-          return DocumentationService.search(q, $stateParams.apiId)
-            .then(response => response.data);
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
         },
         pageResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
             const q = new DocumentationQuery();
-            return DocumentationService.search(q, $stateParams.apiId).then(response => response.data);
+            return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
           }
         },
         categoryResources: (CategoryService: CategoryService, $stateParams: StateParams) => {
           if ($stateParams.type === 'LINK') {
-            return CategoryService.list().then(response => response.data);
+            return CategoryService.list().then((response) => response.data);
           }
-        }
+        },
       },
       data: {
         menu: null,
         docs: {
-          page: 'management-api-documentation'
+          page: 'management-api-documentation',
         },
         perms: {
-          only: ['api-documentation-r']
-        }
+          only: ['api-documentation-r'],
+        },
       },
       params: {
         pageId: {
           type: 'string',
           value: '',
-          squash: false
-        }
-      }
+          squash: false,
+        },
+      },
     });
 }

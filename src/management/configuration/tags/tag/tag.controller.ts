@@ -15,14 +15,12 @@
  */
 import NotificationService from '../../../../services/notification.service';
 import GroupService from '../../../../services/group.service';
-import {Alert} from '../../../../entities/alert';
+import { Alert } from '../../../../entities/alert';
 import TagService from '../../../../services/tag.service';
 class TagController {
   private tag: any;
 
-  constructor(private TagService: TagService,
-              private $state,
-              private NotificationService: NotificationService) {
+  constructor(private TagService: TagService, private $state, private NotificationService: NotificationService) {
     'ngInject';
   }
 
@@ -34,7 +32,7 @@ class TagController {
         this.tag = response.data;
       });
     }
-  }
+  };
 
   save(tag) {
     if (tag.id) {

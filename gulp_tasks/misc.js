@@ -29,12 +29,10 @@ function clean() {
 }
 
 function other() {
-  const fileFilter = filter(file => file.stat.isFile());
+  const fileFilter = filter((file) => file.stat.isFile());
 
-  return gulp.src([
-    path.join(conf.paths.src, '/**/*'),
-    path.join(`!${conf.paths.src}`, '/**/*.{scss,ts,html}')
-  ])
+  return gulp
+    .src([path.join(conf.paths.src, '/**/*'), path.join(`!${conf.paths.src}`, '/**/*.{scss,ts,html}')])
     .pipe(fileFilter)
     .pipe(gulp.dest(conf.paths.dist));
 }

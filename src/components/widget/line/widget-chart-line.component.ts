@@ -19,12 +19,12 @@ import AnalyticsService from '../../../services/analytics.service';
 const WidgetChartLineComponent: ng.IComponentOptions = {
   template: require('./widget-chart-line.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
-  controller: function($scope, $rootScope, ChartService, AnalyticsService: AnalyticsService) {
+  controller: function ($scope, $rootScope, ChartService, AnalyticsService: AnalyticsService) {
     'ngInject';
 
     this.AnalyticsService = AnalyticsService;
@@ -37,17 +37,19 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
     this.$onChanges = (changes) => {
       if (changes.data) {
         let data = changes.data.currentValue;
-        let values = [], i;
+        let values = [],
+          i;
 
         // Prepare chart
         this.result = {
-          title: {text: this.parent.widget.chart.title},
+          title: { text: this.parent.widget.chart.title },
           xAxis: {
             type: 'datetime',
-            dateTimeLabelFormats: { // don't display the dummy year
+            dateTimeLabelFormats: {
+              // don't display the dummy year
               month: '%e. %b',
-              year: '%b'
-            }
+              year: '%b',
+            },
           },
           chart: {
             events: {
@@ -55,12 +57,12 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
                 if (!event.resetSelection) {
                   $rootScope.$broadcast('timeframeZoom', {
                     from: Math.floor(event.xAxis[0].min),
-                    to: Math.round(event.xAxis[0].max)
+                    to: Math.round(event.xAxis[0].max),
                   });
                 }
-              }
-            }
-          }
+              },
+            },
+          },
         };
 
         if (data.values && data.values.length > 0) {
@@ -71,7 +73,10 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
                 let lineColor = ChartService.colorByBucket[i % ChartService.colorByBucket.length];
                 let bgColor = ChartService.bgColorByBucket[i % ChartService.bgColorByBucket.length];
                 let isFieldRequest = _.includes(this.parent.widget.chart.request.aggs.split('%3B')[idx], 'field:');
-                if (bucket.name === '1' || bucket.name.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')) {
+                if (
+                  bucket.name === '1' ||
+                  bucket.name.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+                ) {
                   isFieldRequest = false;
                 }
                 let label = this.parent.widget.chart.labels ? this.parent.widget.chart.labels[idx] : '';
@@ -81,9 +86,11 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
 
                 values.push({
                   name: isFieldRequest ? bucket.name : label,
-                  data: bucket.data, color: lineColor, fillColor: bgColor,
+                  data: bucket.data,
+                  color: lineColor,
+                  fillColor: bgColor,
                   labelPrefix: isFieldRequest ? label : '',
-                  id: bucket.name
+                  id: bucket.name,
                 });
               }
             });
@@ -95,8 +102,8 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
             series: {
               pointStart: timestamp.from,
               pointInterval: timestamp.interval,
-              stacking: this.parent.widget.chart.stacked ? 'normal' : null
-            }
+              stacking: this.parent.widget.chart.stacked ? 'normal' : null,
+            },
           } as any;
 
           if (this.parent.widget.chart.selectable) {
@@ -104,14 +111,16 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
               legendItemClick: (event) => {
                 // If all series are visible, keep only the one selected
                 let selected = event.target.chart.series[event.target.index];
-                let visibles = _.filter(event.target.chart.series, { 'visible': true });
+                let visibles = _.filter(event.target.chart.series, { visible: true });
 
                 if (visibles.length === this.result.series.length) {
                   // Do not disable selected item but disable others
                   event.preventDefault();
 
                   _(visibles)
-                    .filter((serie: any) => { return serie.name !== event.target.name; })
+                    .filter((serie: any) => {
+                      return serie.name !== event.target.name;
+                    })
                     .forEach((serie: any) => serie.hide());
                   this.updateQuery(selected, selected.visible);
                 } else {
@@ -119,23 +128,22 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
                 }
               },
               hide: (event) => {
-                let hidden = _.filter(event.target.chart.series, { 'visible': false });
+                let hidden = _.filter(event.target.chart.series, { visible: false });
                 if (hidden.length === this.result.series.length) {
                   // Do not disable selected item but disable others
                   event.preventDefault();
 
                   // All series are hidden: display all !
-                  _(hidden)
-                    .forEach((serie: any) => serie.show());
+                  _(hidden).forEach((serie: any) => serie.show());
                 }
-              }
+              },
             };
           }
           this.result = _.assign(this.result, {
             series: values,
-            plotOptions: plotOptions
+            plotOptions: plotOptions,
           });
-          this.result.series.forEach(serie => {
+          this.result.series.forEach((serie) => {
             let widget = this.widget || this.parent.widget;
             if (widget) {
               let queryFilters = this.AnalyticsService.getQueryFilters();
@@ -146,7 +154,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
             }
           });
           let hidden = _.filter(this.result.series, { visible: false });
-          hidden.forEach(h => {
+          hidden.forEach((h) => {
             this.updateQuery(h, false);
           });
         } else {
@@ -157,7 +165,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
 
     this.updateQuery = (item, add) => {
       let removeFn = () => {
-          // Filter has been removed, so let's hide the serie
+        // Filter has been removed, so let's hide the serie
         if (this.visible) {
           this.hide();
         }
@@ -170,14 +178,14 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           // fieldLabel: this.widget.chart.request.fieldLabel,
           key: item.userOptions.id,
           name: item.name,
-          mode: (add) ? 'add' : 'remove',
+          mode: add ? 'add' : 'remove',
           events: {
-            remove: removeFn.bind(item)
-          }
+            remove: removeFn.bind(item),
+          },
         });
       }
     };
-  }
+  },
 };
 
 export default WidgetChartLineComponent;

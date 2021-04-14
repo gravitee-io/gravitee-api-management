@@ -25,7 +25,7 @@ function DialogAddMemberController(
   members,
   ApplicationService: ApplicationService,
   NotificationService: NotificationService,
-  RoleService: RoleService
+  RoleService: RoleService,
 ) {
   'ngInject';
 
@@ -51,13 +51,15 @@ function DialogAddMemberController(
       let membership = {
         id: member.id,
         reference: member.reference,
-        role: $scope.role.name
+        role: $scope.role.name,
       };
-      ApplicationService.addOrUpdateMember($scope.application.id, membership).then(function () {
-        NotificationService.show('User ' + member.displayName + ' has been added as a member.');
-      }).catch(function (error) {
-        $scope.error = error;
-      });
+      ApplicationService.addOrUpdateMember($scope.application.id, membership)
+        .then(function () {
+          NotificationService.show('User ' + member.displayName + ' has been added as a member.');
+        })
+        .catch(function (error) {
+          $scope.error = error;
+        });
     }
     $mdDialog.hide($scope.application);
   };

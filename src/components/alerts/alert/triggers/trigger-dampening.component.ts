@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {DampeningMode, DurationTimeUnit} from '../../../../entities/alert';
+import { DampeningMode, DurationTimeUnit } from '../../../../entities/alert';
 
 const AlertTriggerDampeningComponent: ng.IComponentOptions = {
   bindings: {
-    dampening: '<'
+    dampening: '<',
   },
   require: {
-    parent: '^alertComponent'
+    parent: '^alertComponent',
   },
   template: require('./trigger-dampening.html'),
   controller: function () {
@@ -37,7 +37,7 @@ const AlertTriggerDampeningComponent: ng.IComponentOptions = {
       delete this.dampening.trueEvaluations;
       delete this.dampening.totalEvaluations;
     };
-  }
+  },
 };
 
 export default AlertTriggerDampeningComponent;

@@ -20,15 +20,17 @@
     <md-dialog-content layout-padding>
       <h4>Expire API Key</h4>
       <div ng-cloak class="md-inline-form">
-        <md-input-container style="margin-bottom: 0;">
+        <md-input-container style="margin-bottom: 0">
           <label>New Expiration Date</label>
-          <input moment-picker="$ctrl.endDateFormated"
-                 locale="en-gb"
-                 format="YYYY-MM-DD HH:mm"
-                 min-date="minDate"
-                 max-date="maxDate"
-                 ng-model="expiration"
-                 ng-model-options="{ updateOn: 'blur' }">
+          <input
+            moment-picker="$ctrl.endDateFormated"
+            locale="en-gb"
+            format="YYYY-MM-DD HH:mm"
+            min-date="minDate"
+            max-date="maxDate"
+            ng-model="expiration"
+            ng-model-options="{ updateOn: 'blur' }"
+          />
         </md-input-container>
 
         <md-subheader class="md-warn" ng-bind="error"></md-subheader>

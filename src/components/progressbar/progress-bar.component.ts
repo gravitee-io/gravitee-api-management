@@ -18,8 +18,8 @@ import * as _ from 'lodash';
 const ProgressBarComponent: ng.IComponentOptions = {
   template: require('./progress-bar.html'),
   bindings: {
-    value: '<'
-  }
+    value: '<',
+  },
 };
 
 export default ProgressBarComponent;

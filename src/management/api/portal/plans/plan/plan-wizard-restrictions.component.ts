@@ -29,7 +29,7 @@ class Policy {
 
 const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
   require: {
-    parent: '^editPlan'
+    parent: '^editPlan',
   },
   template: require('./plan-wizard-restrictions.html'),
   controller: class {
@@ -37,31 +37,35 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
     private methods: string[] = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE', 'CONNECT'];
     private parent: ApiEditPlanController;
 
-    constructor(
-      private PolicyService: PolicyService) {
+    constructor(private PolicyService: PolicyService) {
       'ngInject';
 
       this.policies = [
         {
-          id: 'rate-limit', title: 'Rate-Limiting',
-          description: 'Rate limit how many HTTP requests an application can make in a given period of seconds or minutes'
-        }, {
-          id: 'quota', title: 'Quota',
-          description: 'Rate limit how many HTTP requests an application can make in a given period of hours, days or months'
-        }, {
-          id: 'resource-filtering', title: 'Path Authorization',
-          description: 'Restrict paths according to whitelist and / or blacklist rules'
-        }
+          id: 'rate-limit',
+          title: 'Rate-Limiting',
+          description: 'Rate limit how many HTTP requests an application can make in a given period of seconds or minutes',
+        },
+        {
+          id: 'quota',
+          title: 'Quota',
+          description: 'Rate limit how many HTTP requests an application can make in a given period of hours, days or months',
+        },
+        {
+          id: 'resource-filtering',
+          title: 'Path Authorization',
+          description: 'Restrict paths according to whitelist and / or blacklist rules',
+        },
       ];
     }
 
     $onInit() {
       // Extract plan "restriction" policies
-      _.each(this.policies, policy => {
-        this.PolicyService.getSchema(policy.id).then(schema => {
+      _.each(this.policies, (policy) => {
+        this.PolicyService.getSchema(policy.id).then((schema) => {
           policy.schema = schema.data;
 
-          let idx = this.parent.planPolicies.findIndex(pathPolicy => pathPolicy[policy.id] != null);
+          let idx = this.parent.planPolicies.findIndex((pathPolicy) => pathPolicy[policy.id] != null);
           if (idx !== -1) {
             let restrictionPolicy = this.parent.planPolicies.splice(idx, 1)[0];
             policy.enabled = true;
@@ -74,7 +78,7 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
     }
 
     validate() {
-      return ! _.find(this.policies, policy => {
+      return !_.find(this.policies, (policy) => {
         return policy.enabled && policy.form && policy.form.$invalid;
       });
     }
@@ -83,22 +87,22 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
       this.parent.restrictionsPolicies = [];
 
       _(this.policies)
-        .filter(policy => policy.enabled)
-        .map(policy => {
+        .filter((policy) => policy.enabled)
+        .map((policy) => {
           let restrictPolicy = {
             methods: this.methods,
-            enabled: true
+            enabled: true,
           };
           restrictPolicy[policy.id] = policy.model;
 
           return restrictPolicy;
         })
-        .each(policy => this.parent.restrictionsPolicies.push(policy));
+        .each((policy) => this.parent.restrictionsPolicies.push(policy));
 
       this.parent.vm.stepData[2].data = this.parent.plan;
       this.parent.moveToNextStep(this.parent.vm.stepData[2]);
     }
-  }
+  },
 };
 
 export default ApiPlanWizardRestrictionsComponent;

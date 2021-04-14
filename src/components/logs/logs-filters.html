@@ -19,11 +19,11 @@
   <div layout-gt-sm="row">
     <md-input-container class="md-block" flex-gt-sm flex="20">
       <label>Request ID</label>
-      <input ng-model="$ctrl.filters.id">
+      <input ng-model="$ctrl.filters.id" />
     </md-input-container>
     <md-input-container class="md-block" flex-gt-sm flex="20">
       <label>Transaction ID</label>
-      <input ng-model="$ctrl.filters.transaction">
+      <input ng-model="$ctrl.filters.transaction" />
     </md-input-container>
     <md-input-container class="md-block" flex-gt-sm flex="20">
       <label>Methods</label>
@@ -33,7 +33,7 @@
     </md-input-container>
     <md-input-container class="md-block" flex-gt-sm flex="20">
       <label>Path</label>
-      <input ng-model="$ctrl.filters.uri">
+      <input ng-model="$ctrl.filters.uri" />
     </md-input-container>
     <md-input-container class="md-block" flex-gt-sm flex="20">
       <label>Response times</label>
@@ -75,30 +75,24 @@
     </md-input-container>
     <md-input-container ng-if="$ctrl.$state.params['apiId']">
       <md-select ng-model="$ctrl.displayMode" ng-change="$ctrl.updateDisplayMode()" placeholder="Display mode">
-        <md-option ng-repeat="displayMode in $ctrl.displayModes" ng-value="displayMode">
-          {{displayMode.label}}
-        </md-option>
+        <md-option ng-repeat="displayMode in $ctrl.displayModes" ng-value="displayMode"> {{displayMode.label}} </md-option>
       </md-select>
     </md-input-container>
     <md-input-container class="md-block" flex-gt-sm>
       <label>Search in payloads</label>
-      <input ng-model="$ctrl.filters.body">
+      <input ng-model="$ctrl.filters.body" />
     </md-input-container>
     <md-input-container class="md-block" flex-gt-sm ng-if="$ctrl.context != 'platform'">
       <label>Endpoint</label>
-      <input ng-model="$ctrl.filters.endpoint">
+      <input ng-model="$ctrl.filters.endpoint" />
     </md-input-container>
     <md-input-container class="md-block" flex-gt-sm ng-if="$ctrl.context === 'api'">
       <label>Remote Address</label>
-      <input ng-model="$ctrl.filters['remote-address']">
+      <input ng-model="$ctrl.filters['remote-address']" />
     </md-input-container>
     <div>
-      <md-button type="submit" class="md-raised md-primary">
-        Search
-      </md-button>
-      <md-button type="button" class="md-flat" ng-click="$ctrl.clearFilters()" ng-disabled="!$ctrl.hasFilters()">
-        Clear filters
-      </md-button>
+      <md-button type="submit" class="md-raised md-primary"> Search </md-button>
+      <md-button type="button" class="md-flat" ng-click="$ctrl.clearFilters()" ng-disabled="!$ctrl.hasFilters()"> Clear filters </md-button>
     </div>
   </div>
 </form>

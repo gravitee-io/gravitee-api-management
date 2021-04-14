@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {UserNotification} from '../../entities/userNotification';
+import { UserNotification } from '../../entities/userNotification';
 import UserNotificationService from '../../services/userNotification.service';
-import {PagedResult} from '../../entities/pagedResult';
-import {IIntervalService, IScope} from 'angular';
+import { PagedResult } from '../../entities/pagedResult';
+import { IIntervalService, IScope } from 'angular';
 
 const PortalNotificationsComponent: ng.IComponentOptions = {
   bindings: {
-    user: '<'
+    user: '<',
   },
   template: require('./portalnotifications.html'),
-  controller: function(
-      UserNotificationService: UserNotificationService,
-      $scope: IScope,
-      $interval: IIntervalService) {
+  controller: function (UserNotificationService: UserNotificationService, $scope: IScope, $interval: IIntervalService) {
     'ngInject';
     const vm = this;
     vm.notificationsScheduler = null;
@@ -43,7 +40,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
     };
 
     vm.delete = (notification: UserNotification) => {
-      this.lastNbNotification --;
+      this.lastNbNotification--;
       UserNotificationService.delete(notification).then((response) => {
         vm.refreshUserNotifications();
       });
@@ -61,7 +58,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
       vm.cancelRefreshUserNotifications();
     });
 
-    vm.cancelRefreshUserNotifications = function() {
+    vm.cancelRefreshUserNotifications = function () {
       if (vm.notificationsScheduler) {
         $interval.cancel(vm.notificationsScheduler);
         vm.notificationsScheduler = undefined;
@@ -86,10 +83,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
         } else {
           if (vm.user.notifications.data.length > 0 && this.lastNbNotification < vm.user.notifications.data.length) {
             for (var i = this.lastNbNotification; i < vm.user.notifications.data.length; i++) {
-              this.windowNotification(
-                vm.user.notifications.data[i].title,
-                vm.user.notifications.data[i].message
-              );
+              this.windowNotification(vm.user.notifications.data[i].title, vm.user.notifications.data[i].message);
             }
             this.lastNbNotification = vm.user.notifications.data.length;
           }
@@ -98,16 +92,14 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
     };
 
     vm.windowNotification = (title: string, message: string) => {
-
-      if (('Notification' in window)) {
+      if ('Notification' in window) {
         Notification.requestPermission().then(() => {
           // tslint:disable-next-line:no-unused-expression
-          new Notification(title, {body: message, icon: '/favicon.ico'});
+          new Notification(title, { body: message, icon: '/favicon.ico' });
         });
       }
     };
-
-  }
+  },
 };
 
 export default PortalNotificationsComponent;

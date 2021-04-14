@@ -28,7 +28,7 @@ function DialogSubscriptionAcceptController($scope, $mdDialog) {
     $mdDialog.hide({
       starting_at: $scope.starting_at,
       ending_at: $scope.ending_at,
-      reason: $scope.reason
+      reason: $scope.reason,
     });
   };
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {IScope, IWindowService} from 'angular';
+import { IScope, IWindowService } from 'angular';
 import { StateService } from '@uirouter/core';
 
 export const SidenavComponent: ng.IComponentOptions = {
@@ -21,13 +21,9 @@ export const SidenavComponent: ng.IComponentOptions = {
   bindings: {
     graviteeUser: '<',
     menuItems: '<',
-    allMenuItems: '<'
+    allMenuItems: '<',
   },
-  controller: function(
-    $window: IWindowService,
-    $scope: IScope,
-    $state: StateService,
-    $rootScope: IScope) {
+  controller: function ($window: IWindowService, $scope: IScope, $state: StateService, $rootScope: IScope) {
     'ngInject';
     const reduceModeKey = 'gv-sidenav-reduce-mode';
     this.$window = $window;
@@ -48,8 +44,7 @@ export const SidenavComponent: ng.IComponentOptions = {
     this.isActive = function (menuItem) {
       let menuItemSplitted = menuItem.name.split('.');
       let currentStateSplitted = $state.current.name.split('.');
-      return menuItemSplitted[0] === currentStateSplitted[0] &&
-        menuItemSplitted[1] === currentStateSplitted[1];
+      return menuItemSplitted[0] === currentStateSplitted[0] && menuItemSplitted[1] === currentStateSplitted[1];
     };
 
     $scope.$on('reduceSideNav', () => {
@@ -57,5 +52,5 @@ export const SidenavComponent: ng.IComponentOptions = {
         this.toggleReducedMode();
       }
     });
-  }
+  },
 };

@@ -21,11 +21,11 @@ function i18nConfig($translateProvider, $windowProvider) {
 
   $translateProvider.useLoader('i18nCustomLoader', {
     prefix: 'assets/i18n/',
-    suffix: '.json'
+    suffix: '.json',
   });
 
   $translateProvider
-    .registerAvailableLanguageKeys( ['en', 'fr', 'pt-BR', 'zh', 'ru', 'nl', 'es', 'cs'], {
+    .registerAvailableLanguageKeys(['en', 'fr', 'pt-BR', 'zh', 'ru', 'nl', 'es', 'cs'], {
       'en*': 'en',
       'fr*': 'fr',
       'pt*': 'pt-BR',
@@ -34,15 +34,14 @@ function i18nConfig($translateProvider, $windowProvider) {
       'nl*': 'nl',
       'es*': 'es',
       'cs*': 'cs',
-      '*': 'en'
-      })
+      '*': 'en',
+    })
     .determinePreferredLanguage();
   $translateProvider.fallbackLanguage('en');
   $translateProvider.useSanitizeValueStrategy('escape');
 
   const locale = (window.navigator as any).userLanguage || window.navigator.language;
   moment.locale(locale);
-
 }
 
 export default i18nConfig;

@@ -54,7 +54,7 @@ class ApiProxyController {
     private resolvedGroups,
     private resolvedTags,
     private resolvedTenants,
-    private userTags
+    private userTags,
   ) {
     'ngInject';
 
@@ -69,7 +69,7 @@ class ApiProxyController {
     this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.discovery = this.api.services && this.api.services.discovery;
-    this.discovery = this.discovery || {enabled: false, configuration: {}};
+    this.discovery = this.discovery || { enabled: false, configuration: {} };
     this.initialDiscovery = _.cloneDeep(this.discovery);
     this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
@@ -83,17 +83,21 @@ class ApiProxyController {
     this.$scope.lbs = [
       {
         name: 'Round-Robin',
-        value: 'ROUND_ROBIN'
-      }, {
+        value: 'ROUND_ROBIN',
+      },
+      {
         name: 'Random',
-        value: 'RANDOM'
-      }, {
+        value: 'RANDOM',
+      },
+      {
         name: 'Weighted Round-Robin',
-        value: 'WEIGHTED_ROUND_ROBIN'
-      }, {
+        value: 'WEIGHTED_ROUND_ROBIN',
+      },
+      {
         name: 'Weighted Random',
-        value: 'WEIGHTED_RANDOM'
-      }];
+        value: 'WEIGHTED_RANDOM',
+      },
+    ];
 
     this.$scope.methods = ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];
 
@@ -121,11 +125,11 @@ class ApiProxyController {
   }
 
   initState() {
-    this.$scope.apiEnabled = (this.$scope.$parent.apiCtrl.api.state === 'started');
-    this.$scope.apiPublic = (this.$scope.$parent.apiCtrl.api.visibility === 'public');
+    this.$scope.apiEnabled = this.$scope.$parent.apiCtrl.api.state === 'started';
+    this.$scope.apiPublic = this.$scope.$parent.apiCtrl.api.visibility === 'public';
 
     // Failover
-    this.failoverEnabled = (this.api.proxy.failover !== undefined);
+    this.failoverEnabled = this.api.proxy.failover !== undefined;
 
     // Context-path editable
     this.contextPathEditable = this.UserService.currentUser.id === this.api.owner.id;
@@ -136,39 +140,41 @@ class ApiProxyController {
       allowMethods: [],
       exposeHeaders: [],
       maxAge: -1,
-      allowCredentials: false
+      allowCredentials: false,
     };
   }
 
   removeEndpoints() {
     var _that = this;
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to delete endpoint(s)?',
-        msg: '',
-        confirmButton: 'Delete'
-      }
-    }).then(function (response) {
-      if (response) {
-        _(_that.$scope.selected).forEach(function (endpoint) {
-          _(_that.api.proxy.groups).forEach(function (group) {
-            _(group.endpoints).forEach(function (endpoint2, index, object) {
-              if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
-                // @ts-ignore
-                object.splice(index, 1);
-              }
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to delete endpoint(s)?',
+          msg: '',
+          confirmButton: 'Delete',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          _(_that.$scope.selected).forEach(function (endpoint) {
+            _(_that.api.proxy.groups).forEach(function (group) {
+              _(group.endpoints).forEach(function (endpoint2, index, object) {
+                if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
+                  // @ts-ignore
+                  object.splice(index, 1);
+                }
+              });
             });
           });
-        });
 
-        that.update(that.api);
-      }
-    });
+          that.update(that.api);
+        }
+      });
   }
 
   reset() {
@@ -185,24 +191,26 @@ class ApiProxyController {
 
   delete(id) {
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to delete \'' + this.api.name + '\' API?',
-        msg: '',
-        confirmButton: 'Delete'
-      }
-    }).then(function (response) {
-      if (response) {
-        that.ApiService.delete(id).then(() => {
-          that.NotificationService.show('API \'' + that.initialApi.name + '\' has been removed');
-          that.$state.go('management.apis.list', {}, {reload: true});
-        });
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: "Are you sure you want to delete '" + this.api.name + "' API?",
+          msg: '',
+          confirmButton: 'Delete',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          that.ApiService.delete(id).then(() => {
+            that.NotificationService.show("API '" + that.initialApi.name + "' has been removed");
+            that.$state.go('management.apis.list', {}, { reload: true });
+          });
+        }
+      });
   }
 
   onApiUpdate(updatedApi) {
@@ -210,8 +218,8 @@ class ApiProxyController {
     this.initialApi = _.cloneDeep(updatedApi);
     this.initState();
     this.formApi.$setPristine();
-    this.$rootScope.$broadcast('apiChangeSuccess', {api: _.cloneDeep(updatedApi)});
-    this.NotificationService.show('API \'' + this.initialApi.name + '\' saved');
+    this.$rootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(updatedApi) });
+    this.NotificationService.show("API '" + this.initialApi.name + "' saved");
     this.SidenavService.setCurrentResource(this.api.name);
   }
 
@@ -219,7 +227,7 @@ class ApiProxyController {
     if (!this.failoverEnabled) {
       delete api.proxy.failover;
     }
-    this.ApiService.update(api).then(updatedApi => {
+    this.ApiService.update(api).then((updatedApi) => {
       updatedApi.data.etag = updatedApi.headers('etag');
       this.onApiUpdate(updatedApi.data);
     });
@@ -228,7 +236,7 @@ class ApiProxyController {
   getTenants(tenants) {
     if (tenants !== undefined) {
       return _(tenants)
-        .map((tenant) => _.find(this.tenants, {'id': tenant}))
+        .map((tenant) => _.find(this.tenants, { id: tenant }))
         .map((tenant: any) => tenant.name)
         .join(', ');
     }
@@ -241,7 +249,7 @@ class ApiProxyController {
   }
 
   getGroup(groupId) {
-    return _.find(this.groups, {'id': groupId});
+    return _.find(this.groups, { id: groupId });
   }
 
   /**
@@ -263,32 +271,34 @@ class ApiProxyController {
   }
 
   createGroup() {
-    this.$state.go('management.apis.detail.proxy.group', {groupName: ''});
+    this.$state.go('management.apis.detail.proxy.group', { groupName: '' });
   }
 
   deleteGroup(groupname) {
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to delete group ' + groupname + '?',
-        msg: '',
-        confirmButton: 'Delete group'
-      }
-    }).then(function (response) {
-      if (response) {
-        _(that.api.proxy.groups).forEach(function (group, index, object) {
-          if (group.name !== undefined && group.name === groupname) {
-            // @ts-ignore
-            object.splice(index, 1);
-            that.update(that.api);
-          }
-        });
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to delete group ' + groupname + '?',
+          msg: '',
+          confirmButton: 'Delete group',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          _(that.api.proxy.groups).forEach(function (group, index, object) {
+            if (group.name !== undefined && group.name === groupname) {
+              // @ts-ignore
+              object.splice(index, 1);
+              that.update(that.api);
+            }
+          });
+        }
+      });
   }
 
   hasHealthCheck(endpoint: any) {
@@ -299,9 +309,7 @@ class ApiProxyController {
     if (endpoint.healthcheck !== undefined) {
       return endpoint.healthcheck.enabled;
     } else {
-      return (this.api.services &&
-        this.api.services['health-check'] &&
-        this.api.services['health-check'].enabled);
+      return this.api.services && this.api.services['health-check'] && this.api.services['health-check'].enabled;
     }
   }
 
@@ -311,33 +319,37 @@ class ApiProxyController {
 
   controlAllowOrigin(chip, index) {
     if ('*' === chip) {
-      this.$mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Are you sure you want to remove all cross-origin restrictions?',
-          confirmButton: 'Yes, I want to allow all origins.'
-        }
-      }).then((response) => {
-        if (!response) {
-          this.api.proxy.cors.allowOrigin.splice(index, 1);
-        }
-      });
+      this.$mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Are you sure you want to remove all cross-origin restrictions?',
+            confirmButton: 'Yes, I want to allow all origins.',
+          },
+        })
+        .then((response) => {
+          if (!response) {
+            this.api.proxy.cors.allowOrigin.splice(index, 1);
+          }
+        });
     } else {
       let validator = new RegExp(this.allowOriginPattern, 'ig');
 
       if (!validator.test(chip)) {
-        this.$mdDialog.show(
-          this.$mdDialog.alert({
-            title: 'Invalid regex',
-            textContent: `${chip} is not a valid origin`,
-            ok: 'Close'
-          })
-        ).then((response) => {
-          this.api.proxy.cors.allowOrigin.splice(index, 1);
-        });
+        this.$mdDialog
+          .show(
+            this.$mdDialog.alert({
+              title: 'Invalid regex',
+              textContent: `${chip} is not a valid origin`,
+              ok: 'Close',
+            }),
+          )
+          .then((response) => {
+            this.api.proxy.cors.allowOrigin.splice(index, 1);
+          });
       }
     }
   }
@@ -345,9 +357,8 @@ class ApiProxyController {
   isRegexValid() {
     let isValid = true;
     if (this.api.proxy.cors.allowOrigin) {
-      this.api.proxy.cors.allowOrigin.forEach(allowOrigin => {
-        if ('*' !== allowOrigin &&
-          (allowOrigin.includes('(') || allowOrigin.includes('[') || allowOrigin.includes('*'))) {
+      this.api.proxy.cors.allowOrigin.forEach((allowOrigin) => {
+        if ('*' !== allowOrigin && (allowOrigin.includes('(') || allowOrigin.includes('[') || allowOrigin.includes('*'))) {
           try {
             // tslint:disable-next-line:no-unused-expression
             new RegExp(allowOrigin);
@@ -363,27 +374,29 @@ class ApiProxyController {
   switchVirtualHostMode() {
     if (this.virtualHostModeEnabled) {
       let that = this;
-      this.$mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Switch to context-path mode',
-          msg: 'By moving back to context-path you will loose all virtual-hosts. Are you sure to continue?',
-          confirmButton: 'Switch'
-        }
-      }).then(function (response) {
-        if (response) {
-          // Keep only the first virtual_host and remove the host
-          that.api.proxy.virtual_hosts.splice(1);
-          that.api.proxy.virtual_hosts[0].host = undefined;
+      this.$mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Switch to context-path mode',
+            msg: 'By moving back to context-path you will loose all virtual-hosts. Are you sure to continue?',
+            confirmButton: 'Switch',
+          },
+        })
+        .then(function (response) {
+          if (response) {
+            // Keep only the first virtual_host and remove the host
+            that.api.proxy.virtual_hosts.splice(1);
+            that.api.proxy.virtual_hosts[0].host = undefined;
 
-          that.virtualHostModeEnabled = !that.virtualHostModeEnabled;
+            that.virtualHostModeEnabled = !that.virtualHostModeEnabled;
 
-          that.update(that.api);
-        }
-      });
+            that.update(that.api);
+          }
+        });
     } else if (this.formApi.$dirty) {
       this.virtualHostModeEnabled = !this.virtualHostModeEnabled;
       this.update(this.api);
@@ -397,7 +410,7 @@ class ApiProxyController {
       this.api.proxy.virtual_hosts = [];
     }
 
-    this.api.proxy.virtual_hosts.push({host: undefined, path: undefined});
+    this.api.proxy.virtual_hosts.push({ host: undefined, path: undefined });
   }
 
   removeVirtualHost(idx) {

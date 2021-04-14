@@ -18,7 +18,7 @@ import TagService from '../../../services/tag.service';
 import NotificationService from '../../../services/notification.service';
 import EntrypointService from '../../../services/entrypoint.service';
 import PortalConfigService from '../../../services/portalConfig.service';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 
 class TagsController {
   private tags: any;
@@ -35,33 +35,36 @@ class TagsController {
     private EntrypointService: EntrypointService,
     private Constants,
     private PortalConfigService: PortalConfigService,
-    private $rootScope: IScope) {
+    private $rootScope: IScope,
+  ) {
     'ngInject';
     this.$rootScope = $rootScope;
   }
 
   deleteTag(tag) {
     var that = this;
-    this.$mdDialog.show({
-      controller: 'DeleteTagDialogController',
-      template: require('./delete.tag.dialog.html'),
-      locals: {
-        tag: tag
-      }
-    }).then((deleteTag) => {
-      if (deleteTag) {
-        if (tag.id) {
-          that.TagService.delete(tag).then(() => {
-            this.deleteEntrypointsByTag(tag).then(() => {
-              that.NotificationService.show('Tag \'' + tag.name + '\' deleted with success');
+    this.$mdDialog
+      .show({
+        controller: 'DeleteTagDialogController',
+        template: require('./delete.tag.dialog.html'),
+        locals: {
+          tag: tag,
+        },
+      })
+      .then((deleteTag) => {
+        if (deleteTag) {
+          if (tag.id) {
+            that.TagService.delete(tag).then(() => {
+              this.deleteEntrypointsByTag(tag).then(() => {
+                that.NotificationService.show("Tag '" + tag.name + "' deleted with success");
                 _.remove(that.tags, tag);
               });
             });
-        } else {
-          _.remove(that.tags, tag);
+          } else {
+            _.remove(that.tags, tag);
+          }
         }
-      }
-    });
+      });
   }
 
   onClipboardSuccess(e) {
@@ -70,56 +73,63 @@ class TagsController {
   }
 
   deleteEntrypoint(entrypoint) {
-    this.$mdDialog.show({
-      controller: 'DeleteEntrypointDialogController',
-      template: require('./entrypoint/delete.entrypoint.dialog.html'),
-      locals: {
-        entrypoint: entrypoint
-      }
-    }).then((entrypointToDelete) => {
-      if (entrypointToDelete) {
-        if (entrypointToDelete.id) {
-          this.EntrypointService.delete(entrypointToDelete).then(() => {
-            this.NotificationService.show('Entrypoint \'' + entrypointToDelete.value + '\' deleted with success');
-            _.remove(this.entrypoints, entrypointToDelete);
-          });
+    this.$mdDialog
+      .show({
+        controller: 'DeleteEntrypointDialogController',
+        template: require('./entrypoint/delete.entrypoint.dialog.html'),
+        locals: {
+          entrypoint: entrypoint,
+        },
+      })
+      .then((entrypointToDelete) => {
+        if (entrypointToDelete) {
+          if (entrypointToDelete.id) {
+            this.EntrypointService.delete(entrypointToDelete).then(() => {
+              this.NotificationService.show("Entrypoint '" + entrypointToDelete.value + "' deleted with success");
+              _.remove(this.entrypoints, entrypointToDelete);
+            });
+          }
         }
-      }
-    });
+      });
   }
 
   deleteEntrypointsByTag(tag) {
     let promises = [];
     _.forEach(this.entrypoints, (entrypoint) => {
       if (_.includes(entrypoint.tags, tag.id)) {
-        promises.push(this.EntrypointService.delete(entrypoint).then(() => {
-          _.remove(this.entrypoints, entrypoint);
-        }));
+        promises.push(
+          this.EntrypointService.delete(entrypoint).then(() => {
+            _.remove(this.entrypoints, entrypoint);
+          }),
+        );
       }
     });
     return this.$q.all(promises);
   }
 
   saveSettings = () => {
-    this.PortalConfigService.save().then( () => {
+    this.PortalConfigService.save().then(() => {
       this.NotificationService.show('Configuration saved!');
       this.formSettings.$setPristine();
     });
-  }
+  };
 
   resetSettings = () => {
     this.PortalConfigService.get().then((response) => {
       this.Constants = response.data;
       this.formSettings.$setPristine();
     });
-  }
+  };
 
   groupNames = (groups) => {
     // _.join(array, [separator=','])
-    return _.join(_.map(groups, (groupId) => {
-      return _.find(this.groups, {id: groupId}).name;
-    }), ', ');
-  }
+    return _.join(
+      _.map(groups, (groupId) => {
+        return _.find(this.groups, { id: groupId }).name;
+      }),
+      ', ',
+    );
+  };
 }
 
 export default TagsController;

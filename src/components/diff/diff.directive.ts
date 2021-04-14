@@ -17,25 +17,24 @@
 // tslint:disable-next-line:no-var-requires
 var JsDiff = require('diff/dist/diff.min.js');
 
-const DiffDirective: ng.IDirective = ({
+const DiffDirective: ng.IDirective = {
   restrict: 'AE',
   scope: {
     oldValue: '=',
-    newValue: '='
+    newValue: '=',
   },
   link: (scope: any, elem) => {
-    scope.$watch('oldValue', function() {
+    scope.$watch('oldValue', function () {
       var oldValue = scope.oldValue;
       var newValue = scope.newValue;
 
       if (oldValue && newValue) {
         elem.html('');
         var diff = JsDiff.diffJson(oldValue, newValue);
-        diff.forEach(function(part) {
+        diff.forEach(function (part) {
           // green for additions, red for deletions
           // grey for common parts
-          var color = part.added ? 'green' :
-            part.removed ? 'red' : 'grey';
+          var color = part.added ? 'green' : part.removed ? 'red' : 'grey';
           var span = document.createElement('span');
           span.style.color = color;
           span.appendChild(document.createTextNode(part.value));
@@ -43,7 +42,7 @@ const DiffDirective: ng.IDirective = ({
         });
       }
     });
-  }
-});
+  },
+};
 
 export default DiffDirective;

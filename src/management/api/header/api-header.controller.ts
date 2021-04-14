@@ -22,10 +22,12 @@ class ApiHeaderController {
   public api: any;
   public apiEnabled: boolean;
 
-  constructor(private ApiService: ApiService,
-              private NotificationService: NotificationService,
-              private $mdDialog: angular.material.IDialogService,
-              private $rootScope) {
+  constructor(
+    private ApiService: ApiService,
+    private NotificationService: NotificationService,
+    private $mdDialog: angular.material.IDialogService,
+    private $rootScope,
+  ) {
     'ngInject';
   }
 
@@ -36,39 +38,40 @@ class ApiHeaderController {
   changeLifecycle() {
     let started = this.api.state === 'started';
     this.apiEnabled = !this.apiEnabled;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: `Are you sure you want to ${started ? 'stop' : 'start'} the API ?`,
-        msg: '',
-        confirmButton: (started ? 'stop' : 'start')
-      }
-    }).then((response: boolean) => {
-      if (response) {
-        if (started) {
-          this.ApiService.stop(this.api).then((response) => {
-            this.api.state = 'stopped';
-            this.api.etag = response.headers('etag');
-            this.apiEnabled = false;
-            this.NotificationService.show(`API ${this.api.name} has been stopped!`);
-            this.$rootScope.$broadcast('apiChangeSuccess', {api: _.cloneDeep(this.api)});
-          });
-        } else {
-          this.ApiService.start(this.api).then((response) => {
-            this.api.state = 'started';
-            this.api.etag = response.headers('etag');
-            this.apiEnabled = true;
-            this.NotificationService.show(`API ${this.api.name} has been started!`);
-            this.$rootScope.$broadcast('apiChangeSuccess', {api: _.cloneDeep(this.api)});
-          });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: `Are you sure you want to ${started ? 'stop' : 'start'} the API ?`,
+          msg: '',
+          confirmButton: started ? 'stop' : 'start',
+        },
+      })
+      .then((response: boolean) => {
+        if (response) {
+          if (started) {
+            this.ApiService.stop(this.api).then((response) => {
+              this.api.state = 'stopped';
+              this.api.etag = response.headers('etag');
+              this.apiEnabled = false;
+              this.NotificationService.show(`API ${this.api.name} has been stopped!`);
+              this.$rootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(this.api) });
+            });
+          } else {
+            this.ApiService.start(this.api).then((response) => {
+              this.api.state = 'started';
+              this.api.etag = response.headers('etag');
+              this.apiEnabled = true;
+              this.NotificationService.show(`API ${this.api.name} has been started!`);
+              this.$rootScope.$broadcast('apiChangeSuccess', { api: _.cloneDeep(this.api) });
+            });
+          }
         }
-      }
-    });
+      });
   }
-
 }
 
 export default ApiHeaderController;

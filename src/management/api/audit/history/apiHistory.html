@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div layout="row" flex class="api-events" style="margin-top: 20px;">
+<div layout="row" flex class="api-events" style="margin-top: 20px">
   <div class="api-history-timeline" flex="20">
     <timeline>
       <div ng-repeat="eventTimeline in apiHistoryCtrl.eventsTimeline">
@@ -26,12 +26,25 @@
           <a class="timeline-link" ng-click="apiHistoryCtrl.selectEvent(eventTimeline)">
             <timeline-panel ng-class="{active : apiHistoryCtrl.isEventSelected(eventTimeline)}" class="{{eventTimeline.badgeClass}}">
               <timeline-heading>
-                <h5>{{eventTimeline.title | uppercase}}
-                  <ng-md-icon class="api-history-icon" ng-show="apiHistoryCtrl.eventToCompareRequired && !apiHistoryCtrl.isEventSelected(eventTimeline)" icon="crop_din"></ng-md-icon>
-                  <ng-md-icon class="api-history-icon" ng-show="apiHistoryCtrl.isEventSelectedForComparaison(eventTimeline)" icon="compare" style="fill: green;"></ng-md-icon>
+                <h5>
+                  {{eventTimeline.title | uppercase}}
+                  <ng-md-icon
+                    class="api-history-icon"
+                    ng-show="apiHistoryCtrl.eventToCompareRequired && !apiHistoryCtrl.isEventSelected(eventTimeline)"
+                    icon="crop_din"
+                  ></ng-md-icon>
+                  <ng-md-icon
+                    class="api-history-icon"
+                    ng-show="apiHistoryCtrl.isEventSelectedForComparaison(eventTimeline)"
+                    icon="compare"
+                    style="fill: green"
+                  ></ng-md-icon>
                 </h5>
                 <p ng-if="eventTimeline.when">
-                  <small class="text-muted ng-binding"><i class="glyphicon glyphicon-time"></i>{{eventTimeline.when | date : 'medium'}} by {{eventTimeline.user.displayName}}</small>
+                  <small class="text-muted ng-binding"
+                    ><i class="glyphicon glyphicon-time"></i>{{eventTimeline.when | date : 'medium'}} by
+                    {{eventTimeline.user.displayName}}</small
+                  >
                 </p>
                 <p ng-if="eventTimeline.isCurrentAPI">
                   <small class="text-muted ng-binding"><i class="glyphicon glyphicon-info-sign"></i>In progress API definition</small>
@@ -46,24 +59,52 @@
 
   <div class="api-events-content" flex="80">
     <div ng-show="apiHistoryCtrl.eventsSelected.length == 1" class="api-events-content-descriptor">
-      <md-card style="box-shadow:none;">
-        <div ng-show="apiHistoryCtrl.eventsTimeline.length > 1" style="border: 1px solid #e7eaec; border-bottom: 0;" layout-padding>
-          <md-button ng-show="apiHistoryCtrl.eventsSelected[0].isCurrentAPI" class="md-raised" ng-click="apiHistoryCtrl.$scope.$parent.apiCtrl.showDeployAPIConfirm($event, apiHistoryCtrl.api)">Deploy</md-button>
-          <md-button permission permission-only="'api-definition-u'" ng-show="(!apiHistoryCtrl.eventsSelected[0].isCurrentAPI && apiHistoryCtrl.eventsSelected[0].event.id != apiHistoryCtrl.events[0].id) || (!apiHistoryCtrl.eventsSelected[0].isCurrentAPI && apiHistoryCtrl.eventsTimeline[0].isCurrentAPI)" class="md-raised" ng-click="apiHistoryCtrl.showRollbackAPIConfirm($event, apiHistoryCtrl.eventSelectedPayload)">Rollback</md-button>
-          <md-button ng-show="apiHistoryCtrl.events.length > 0 && apiHistoryCtrl.eventsSelected[0].event.id != apiHistoryCtrl.events[0].id" class="md-raised" ng-click="apiHistoryCtrl.diffWithMaster()">Diff with published API</md-button>
-          <md-button ng-show="apiHistoryCtrl.eventsTimeline.length > 1" class="md-raised" ng-click="apiHistoryCtrl.enableDiff()">Diff</md-button>
+      <md-card style="box-shadow: none">
+        <div ng-show="apiHistoryCtrl.eventsTimeline.length > 1" style="border: 1px solid #e7eaec; border-bottom: 0" layout-padding>
+          <md-button
+            ng-show="apiHistoryCtrl.eventsSelected[0].isCurrentAPI"
+            class="md-raised"
+            ng-click="apiHistoryCtrl.$scope.$parent.apiCtrl.showDeployAPIConfirm($event, apiHistoryCtrl.api)"
+            >Deploy</md-button
+          >
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            ng-show="(!apiHistoryCtrl.eventsSelected[0].isCurrentAPI && apiHistoryCtrl.eventsSelected[0].event.id != apiHistoryCtrl.events[0].id) || (!apiHistoryCtrl.eventsSelected[0].isCurrentAPI && apiHistoryCtrl.eventsTimeline[0].isCurrentAPI)"
+            class="md-raised"
+            ng-click="apiHistoryCtrl.showRollbackAPIConfirm($event, apiHistoryCtrl.eventSelectedPayload)"
+            >Rollback</md-button
+          >
+          <md-button
+            ng-show="apiHistoryCtrl.events.length > 0 && apiHistoryCtrl.eventsSelected[0].event.id != apiHistoryCtrl.events[0].id"
+            class="md-raised"
+            ng-click="apiHistoryCtrl.diffWithMaster()"
+            >Diff with published API</md-button
+          >
+          <md-button ng-show="apiHistoryCtrl.eventsTimeline.length > 1" class="md-raised" ng-click="apiHistoryCtrl.enableDiff()"
+            >Diff</md-button
+          >
         </div>
         <md-card-content style="background-color: #fff; border: 1px solid #e7eaec; padding-top: 0px">
-          <pre ng-show="!apiHistoryCtrl.diffMode" class="api-history-definition">{{apiHistoryCtrl.eventSelectedPayloadDefinition | json }}</pre>
-          <pre ng-show="apiHistoryCtrl.diffMode" class="api-history-definition" gravitee-diff old-value="apiHistoryCtrl.left" new-value="apiHistoryCtrl.right"></pre>
+          <pre ng-show="!apiHistoryCtrl.diffMode" class="api-history-definition">
+{{apiHistoryCtrl.eventSelectedPayloadDefinition | json }}</pre
+          >
+          <pre
+            ng-show="apiHistoryCtrl.diffMode"
+            class="api-history-definition"
+            gravitee-diff
+            old-value="apiHistoryCtrl.left"
+            new-value="apiHistoryCtrl.right"
+          ></pre>
         </md-card-content>
       </md-card>
     </div>
   </div>
-
 </div>
-<gravitee-empty-state ng-if="apiHistoryCtrl.eventsTimeline.length == 0"
-                      icon="history"
-                      model="History"
-                      message="Your API History will appear here"
-                      sub-message="We will Keep you informed of API changes"></gravitee-empty-state>
+<gravitee-empty-state
+  ng-if="apiHistoryCtrl.eventsTimeline.length == 0"
+  icon="history"
+  model="History"
+  message="Your API History will appear here"
+  sub-message="We will Keep you informed of API changes"
+></gravitee-empty-state>

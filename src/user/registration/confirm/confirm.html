@@ -22,42 +22,44 @@
         <label>Confirm your registration</label>
       </div>
 
-      <label style="color: red;" ng-show="error">{{error}}</label>
+      <label style="color: red" ng-show="error">{{error}}</label>
       <form name="formConfirm" ng-show="!error" ng-submit="confirmRegistration()" layout="column">
-
         <md-input-container class="md-icon-float">
           <label>First name</label>
           <!-- duplicate line with ng-if condition in order to enable focus according regitrationMode -->
-          <input ng-model="user.firstname" ng-disabled="registrationMode" type="text" required ng-if="registrationMode">
-          <input ng-model="user.firstname" ng-disabled="registrationMode" type="text" required autofocus ng-if="!registrationMode">
+          <input ng-model="user.firstname" ng-disabled="registrationMode" type="text" required ng-if="registrationMode" />
+          <input ng-model="user.firstname" ng-disabled="registrationMode" type="text" required autofocus ng-if="!registrationMode" />
         </md-input-container>
 
         <md-input-container class="md-icon-float">
           <label>Last name</label>
-          <input ng-model="user.lastname" ng-disabled="registrationMode" type="text" required>
+          <input ng-model="user.lastname" ng-disabled="registrationMode" type="text" required />
         </md-input-container>
 
         <md-input-container class="md-icon-float">
           <label>Email</label>
-          <input ng-model="user.email" type="email" disabled required>
+          <input ng-model="user.email" type="email" disabled required />
         </md-input-container>
 
         <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">
           <label>Password</label>
           <!-- duplicate line with ng-if condition in order to enable focus according regitrationMode -->
-          <input ng-if="registrationMode" ng-model="user.password" type="password" required autofocus>
-          <input ng-if="!registrationMode" ng-model="user.password" type="password" required>
+          <input ng-if="registrationMode" ng-model="user.password" type="password" required autofocus />
+          <input ng-if="!registrationMode" ng-model="user.password" type="password" required />
         </md-input-container>
 
         <md-input-container class="md-icon-float" ng-class="{'md-input-invalid': isInvalidPassword()}">
           <label>Confirm password</label>
-          <input ng-model="confirmPassword" type="password" required>
+          <input ng-model="confirmPassword" type="password" required />
         </md-input-container>
 
-        <label style="color: red !important;" ng-if="isInvalidPassword()">The confirm password is different!</label>
+        <label style="color: red !important" ng-if="isInvalidPassword()">The confirm password is different!</label>
 
-        <md-button type="submit" class="md-raised md-primary"
-                   ng-disabled="formConfirm.$invalid || formConfirm.$pristine || isLoading || isInvalidPassword() || error">
+        <md-button
+          type="submit"
+          class="md-raised md-primary"
+          ng-disabled="formConfirm.$invalid || formConfirm.$pristine || isLoading || isInvalidPassword() || error"
+        >
           Confirm registration
         </md-button>
 

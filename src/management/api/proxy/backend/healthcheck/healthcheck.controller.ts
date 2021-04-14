@@ -23,24 +23,24 @@ class ApiHealthCheckController {
   private api: any;
   private gateway: any;
   private endpoint: any;
-  private logs: {total: string; logs: any[], metadata: any};
-  private transitionLogs: {total: string; logs: any[], metadata: any};
+  private logs: { total: string; logs: any[]; metadata: any };
+  private transitionLogs: { total: string; logs: any[]; metadata: any };
   private query: LogsQuery;
   private chartData: any;
 
-  constructor (
+  constructor(
     private ApiService: ApiService,
     private $scope,
     private $rootScope,
     private $state: StateService,
     private ChartService,
     private $q,
-    private UserService: UserService
+    private UserService: UserService,
   ) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
-    this.gateway = {availabilities: {}, responsetimes: {}};
-    this.endpoint = {availabilities: {}, responsetimes: {}};
+    this.gateway = { availabilities: {}, responsetimes: {} };
+    this.endpoint = { availabilities: {}, responsetimes: {} };
 
     this.onPaginate = this.onPaginate.bind(this);
 
@@ -60,18 +60,22 @@ class ApiHealthCheckController {
   }
 
   updateChart() {
-    this.ApiService.apiHealth(this.api.id, 'availability')
-      .then(response => {this.endpoint.availabilities.data = response.data; });
+    this.ApiService.apiHealth(this.api.id, 'availability').then((response) => {
+      this.endpoint.availabilities.data = response.data;
+    });
 
-    this.ApiService.apiHealth(this.api.id, 'response_time')
-      .then(response => {this.endpoint.responsetimes.data = response.data; });
+    this.ApiService.apiHealth(this.api.id, 'response_time').then((response) => {
+      this.endpoint.responsetimes.data = response.data;
+    });
 
     if (this.displayGatewayHC()) {
-      this.ApiService.apiHealth(this.api.id, 'availability', 'gateway')
-        .then(response => {this.gateway.availabilities.data = response.data; });
+      this.ApiService.apiHealth(this.api.id, 'availability', 'gateway').then((response) => {
+        this.gateway.availabilities.data = response.data;
+      });
 
-      this.ApiService.apiHealth(this.api.id, 'response_time', 'gateway')
-        .then(response => {this.gateway.responsetimes.data = response.data; });
+      this.ApiService.apiHealth(this.api.id, 'response_time', 'gateway').then((response) => {
+        this.gateway.responsetimes.data = response.data;
+      });
     }
 
     this.refresh();
@@ -90,14 +94,15 @@ class ApiHealthCheckController {
         page: this.query.page,
         size: this.query.size,
         from: this.query.from,
-        to: this.query.to
+        to: this.query.to,
       },
-      {notify: false});
+      { notify: false },
+    );
 
     this.ApiService.apiHealthLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
     });
-    this.ApiService.apiHealthLogs(this.api.id, _.assign({transition: true}, this.query)).then((logs) => {
+    this.ApiService.apiHealthLogs(this.api.id, _.assign({ transition: true }, this.query)).then((logs) => {
       this.transitionLogs = logs.data;
     });
 
@@ -107,37 +112,44 @@ class ApiHealthCheckController {
     to = this.query.to || moment();
     let interval = Math.floor((to - from) / 24);
     let promises = [
-      this.ApiService.apiHealthAverage(this.api.id, {from: from, to: to,
-        interval: interval, type: 'RESPONSE_TIME'}),
-      this.ApiService.apiHealthAverage(this.api.id, {from: from, to: to,
-        interval: interval, type: 'AVAILABILITY'})
+      this.ApiService.apiHealthAverage(this.api.id, { from: from, to: to, interval: interval, type: 'RESPONSE_TIME' }),
+      this.ApiService.apiHealthAverage(this.api.id, { from: from, to: to, interval: interval, type: 'AVAILABILITY' }),
     ];
 
-    this.$q.all(promises).then(responses => {
-      let i = 0, series = [];
-      _.forEach(responses, response => {
+    this.$q.all(promises).then((responses) => {
+      let i = 0,
+        series = [];
+      _.forEach(responses, (response) => {
         let values = response.data.values;
         if (values && values.length > 0) {
-          _.forEach(values, value => {
-            _.forEach(value.buckets, bucket => {
+          _.forEach(values, (value) => {
+            _.forEach(value.buckets, (bucket) => {
               if (bucket) {
                 // tslint:disable-next-line:triple-equals
                 let responseTimeLine = i == 0;
                 series.push({
-                  name: 'Average of ' + (responseTimeLine ? 'response time' : 'availability'), data: bucket.data, color: responseTimeLine ? '#337AB7' : '#5CB85C',
+                  name: 'Average of ' + (responseTimeLine ? 'response time' : 'availability'),
+                  data: bucket.data,
+                  color: responseTimeLine ? '#337AB7' : '#5CB85C',
                   type: responseTimeLine ? 'area' : 'column',
                   labelSuffix: responseTimeLine ? 'ms' : '%',
                   decimalFormat: !responseTimeLine,
                   yAxis: i,
-                  zones: responseTimeLine ? [] : [{
-                    value: 80,
-                    color: '#D9534F'
-                  }, {
-                    value: 95,
-                    color: '#F0AD4E'
-                  }, {
-                    color: '#5CB85C'
-                  }]
+                  zones: responseTimeLine
+                    ? []
+                    : [
+                        {
+                          value: 80,
+                          color: '#D9534F',
+                        },
+                        {
+                          value: 95,
+                          color: '#F0AD4E',
+                        },
+                        {
+                          color: '#5CB85C',
+                        },
+                      ],
                 });
               }
             });
@@ -150,34 +162,37 @@ class ApiHealthCheckController {
         plotOptions: {
           series: {
             pointStart: timestamp && timestamp.from,
-            pointInterval: timestamp && timestamp.interval
-          }
+            pointInterval: timestamp && timestamp.interval,
+          },
         },
         series: series,
         xAxis: {
           type: 'datetime',
           dateTimeLabelFormats: {
             month: '%e. %b',
-            year: '%b'
-          }
+            year: '%b',
+          },
         },
-        yAxis: [{
-          labels: {
-            format: '{value}ms'
+        yAxis: [
+          {
+            labels: {
+              format: '{value}ms',
+            },
+            title: {
+              text: 'Response time',
+            },
           },
-          title: {
-            text: 'Response time'
-          }
-        }, {
-          title: {
-            text: 'Availability'
+          {
+            title: {
+              text: 'Availability',
+            },
+            labels: {
+              format: '{value}%',
+            },
+            max: 100,
+            opposite: true,
           },
-          labels: {
-            format: '{value}%'
-          },
-          max: 100,
-          opposite: true
-        }],
+        ],
         chart: {
           events: {
             selection: (event) => {
@@ -186,24 +201,29 @@ class ApiHealthCheckController {
                 this.query.to = Math.floor(event.xAxis[0].max);
                 this.$rootScope.$broadcast('timeframeZoom', {
                   from: this.query.from,
-                  to: this.query.to
+                  to: this.query.to,
                 });
                 this.refresh();
               }
-            }
-          }
-        }
+            },
+          },
+        },
       };
     });
   }
 
   getEndpointStatus(state) {
     switch (state) {
-      case 3: return 'UP';
-      case 2: return 'TRANSITIONALLY_UP';
-      case 1: return 'TRANSITIONALLY_DOWN';
-      case 0: return 'DOWN';
-      default: return '-';
+      case 3:
+        return 'UP';
+      case 2:
+        return 'TRANSITIONALLY_UP';
+      case 1:
+        return 'TRANSITIONALLY_DOWN';
+      case 0:
+        return 'DOWN';
+      default:
+        return '-';
     }
   }
 

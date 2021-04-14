@@ -20,7 +20,7 @@ import ApiEditPlanController from './edit-plan.controller';
 
 const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
   require: {
-    parent: '^editPlan'
+    parent: '^editPlan',
   },
   template: require('./plan-wizard-security.html'),
   controller: class {
@@ -32,37 +32,44 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
     constructor(private PolicyService: PolicyService, Constants: any) {
       'ngInject';
 
-      this.securityTypes = _.filter([
-        {
-          'id': 'oauth2',
-          'name': 'OAuth2',
-          'policy': 'oauth2'
-        }, {
-          'id': 'jwt',
-          'name': 'JWT',
-          'policy': 'jwt'
-        }, {
-          'id': 'api_key',
-          'name': 'API Key',
-          'policy': 'api-key'
-        }, {
-          'id': 'key_less',
-          'name': 'Keyless (public)'
-        }], (security) => {
+      this.securityTypes = _.filter(
+        [
+          {
+            id: 'oauth2',
+            name: 'OAuth2',
+            policy: 'oauth2',
+          },
+          {
+            id: 'jwt',
+            name: 'JWT',
+            policy: 'jwt',
+          },
+          {
+            id: 'api_key',
+            name: 'API Key',
+            policy: 'api-key',
+          },
+          {
+            id: 'key_less',
+            name: 'Keyless (public)',
+          },
+        ],
+        (security) => {
           return Constants.plan.security[_.replace(security.id, '_', '')].enabled;
-      });
+        },
+      );
     }
 
     $onInit() {
-        if (this.parent.plan.security) {
-          this.onSecurityTypeChange();
-        }
+      if (this.parent.plan.security) {
+        this.onSecurityTypeChange();
+      }
     }
 
     onSecurityTypeChange() {
-      let securityType: any = _.find(this.securityTypes, {'id': this.parent.plan.security});
+      let securityType: any = _.find(this.securityTypes, { id: this.parent.plan.security });
       if (securityType && securityType.policy) {
-        this.PolicyService.getSchema(securityType.policy).then(schema => {
+        this.PolicyService.getSchema(securityType.policy).then((schema) => {
           this.securitySchema = schema.data;
 
           if (this.parent.plan.securityDefinition) {
@@ -71,9 +78,7 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
 
               // Try a double parsing (it appears that sometimes the json of security definition is double-encoded
               this.parent.plan.securityDefinition = JSON.parse(this.parent.plan.securityDefinition);
-            } catch (e) {
-
-            }
+            } catch (e) {}
           } else {
             this.parent.plan.securityDefinition = {};
           }
@@ -92,7 +97,7 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
       this.parent.vm.stepData[1].data = this.parent.plan;
       this.parent.moveToNextStep(this.parent.vm.stepData[1]);
     }
-  }
+  },
 };
 
 export default ApiPlanWizardSecurityComponent;

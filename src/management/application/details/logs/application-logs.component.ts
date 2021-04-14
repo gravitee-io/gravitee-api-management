@@ -16,10 +16,10 @@
 const ApplicationLogsComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
-    apis: '<'
+    apis: '<',
   },
   controller: 'ApplicationLogsController',
-  template: require('./application-logs.html')
+  template: require('./application-logs.html'),
 };
 
 export default ApplicationLogsComponent;
