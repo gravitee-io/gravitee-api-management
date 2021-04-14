@@ -77,10 +77,11 @@ public class ApplicationsResource extends AbstractResource {
             @QueryParam("status") @DefaultValue("ACTIVE") final String status) {
         Set<ApplicationListItem> applications;
 
+        if (!isAdmin() && ApplicationStatus.ARCHIVED.name().equalsIgnoreCase(status)) {
+            throw new ForbiddenAccessException();
+        }
+
         if (query != null && !query.trim().isEmpty()) {
-            if (!isAdmin() && ApplicationStatus.ARCHIVED.name().equalsIgnoreCase(status)) {
-                throw new ForbiddenAccessException();
-            }
             applications = applicationService.findByNameAndStatus(query, status);
         } else if (isAdmin()) {
             applications = group != null
@@ -98,7 +99,9 @@ public class ApplicationsResource extends AbstractResource {
         applications.forEach(application -> this.addPictureUrl(application));
         
         return applications.stream()
-                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                .sorted((o1, o2) -> ApplicationStatus.ACTIVE.name().equalsIgnoreCase(status) ?
+                        String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName())
+                        : o2.getUpdatedAt().compareTo(o1.getUpdatedAt()))
                 .collect(Collectors.toList());
     }
 
