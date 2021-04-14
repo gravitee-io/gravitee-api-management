@@ -16,12 +16,10 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ScrollService {
-
-  constructor() {
-  }
+  constructor() {}
 
   static pxToInt(size: string) {
     const intValue = parseInt(size.replace('px', ''), 10);
@@ -62,7 +60,6 @@ export class ScrollService {
         }
       }, 0);
     });
-
   }
 
   scrollToStickyMenu() {
@@ -70,5 +67,4 @@ export class ScrollService {
       window.scrollBy({ top: 100, left: 0 });
     }
   }
-
 }

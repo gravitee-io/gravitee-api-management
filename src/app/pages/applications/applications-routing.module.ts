@@ -47,8 +47,8 @@ const routes: Routes = [
       title: i18n('route.myApplications'),
       icon: 'devices:server',
       animation: { type: 'slide', group: 'apps', index: 1 },
-      menu: { slots: { right: GvButtonCreateApplicationComponent, expectedFeature: FeatureEnum.applicationCreation } }
-    }
+      menu: { slots: { right: GvButtonCreateApplicationComponent, expectedFeature: FeatureEnum.applicationCreation } },
+    },
   },
   {
     path: 'subscriptions',
@@ -57,8 +57,8 @@ const routes: Routes = [
       title: i18n('route.mySubscriptions'),
       icon: 'finance:share',
       animation: { type: 'slide', group: 'apps', index: 2 },
-      menu: { slots: { right: GvButtonCreateApplicationComponent, expectedFeature: FeatureEnum.applicationCreation } }
-    }
+      menu: { slots: { right: GvButtonCreateApplicationComponent, expectedFeature: FeatureEnum.applicationCreation } },
+    },
   },
   {
     path: 'creation',
@@ -71,7 +71,7 @@ const routes: Routes = [
     },
     resolve: {
       enabledApplicationTypes: EnabledApplicationTypesResolver,
-    }
+    },
   },
   {
     path: ':applicationId',
@@ -89,11 +89,11 @@ const routes: Routes = [
         data: {
           icon: 'general:clipboard',
           title: i18n('route.catalogApi'),
-          animation: { type: 'slide', group: 'app', index: 1 }
+          animation: { type: 'slide', group: 'app', index: 1 },
         },
         resolve: {
           applicationType: ApplicationTypeResolver,
-        }
+        },
       },
       {
         path: 'metadata',
@@ -102,7 +102,7 @@ const routes: Routes = [
           icon: 'home:book-open',
           title: i18n('route.metadata'),
           animation: { type: 'slide', group: 'app', index: 2 },
-        }
+        },
       },
       {
         path: 'subscriptions',
@@ -110,8 +110,8 @@ const routes: Routes = [
         data: {
           icon: 'home:key',
           title: i18n('route.subscriptions'),
-          animation: { type: 'slide', group: 'app', index: 3 }
-        }
+          animation: { type: 'slide', group: 'app', index: 3 },
+        },
       },
       {
         path: 'members',
@@ -119,8 +119,8 @@ const routes: Routes = [
         data: {
           icon: 'communication:group',
           title: i18n('route.members'),
-          animation: { type: 'slide', group: 'app', index: 4 }
-        }
+          animation: { type: 'slide', group: 'app', index: 4 },
+        },
       },
       {
         path: 'analytics',
@@ -129,11 +129,11 @@ const routes: Routes = [
           icon: 'shopping:chart-line#1',
           menu: { slots: { right: GvSelectDashboardComponent } },
           title: i18n('route.analyticsApplication'),
-          animation: { type: 'slide', group: 'app', index: 5 }
+          animation: { type: 'slide', group: 'app', index: 5 },
         },
         resolve: {
-          dashboards: DashboardsResolver
-        }
+          dashboards: DashboardsResolver,
+        },
       },
       {
         path: 'logs',
@@ -141,8 +141,8 @@ const routes: Routes = [
         data: {
           icon: 'communication:clipboard-list',
           title: i18n('route.logsApplication'),
-          animation: { type: 'slide', group: 'app', index: 6 }
-        }
+          animation: { type: 'slide', group: 'app', index: 6 },
+        },
       },
       {
         path: 'notifications',
@@ -153,15 +153,14 @@ const routes: Routes = [
           title: i18n('route.notifications'),
           animation: { type: 'slide', group: 'app', index: 7 },
           expectedPermissions: ['NOTIFICATION-R'],
-        }
+        },
       },
-    ]
-  }
+    ],
+  },
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class ApplicationsRoutingModule {
-}
+export class ApplicationsRoutingModule {}

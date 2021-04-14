@@ -35,7 +35,8 @@
   width: 100%;
 }
 
-.step, .form {
+.step,
+.form {
   height: 100%;
 }
 
@@ -71,7 +72,9 @@ app-application-creation-step4 {
   animation: fade-in 0.2s ease-in;
 }
 
-.one .application-creation__form, .two .application-creation__form, .three .application-creation__subscription-form {
+.one .application-creation__form,
+.two .application-creation__form,
+.three .application-creation__subscription-form {
   display: flex;
   opacity: 1;
   flex-direction: column;
@@ -173,7 +176,12 @@ app-application-creation-step3 gv-option.has-disabled-plans {
   flex: 1;
 }
 
-gv-input, gv-text, gv-option, gv-select, .form-control-grants, gv-switch {
+gv-input,
+gv-text,
+gv-option,
+gv-select,
+.form-control-grants,
+gv-switch {
   width: 100%;
 }
 
@@ -214,7 +222,9 @@ gv-input, gv-text, gv-option, gv-select, .form-control-grants, gv-switch {
   height: 100%;
 }
 
-.message-confirm, .message-pending, .message-error {
+.message-confirm,
+.message-pending,
+.message-error {
   --gv-icon--s: 128px;
   display: flex;
   flex-direction: column;

@@ -19,10 +19,7 @@ import { Dashboard, PortalService } from '../../../projects/portal-webclient-sdk
 
 @Injectable({ providedIn: 'root' })
 export class DashboardsResolver implements Resolve<Array<Dashboard>> {
-
-  constructor(
-    private portalService: PortalService,
-  ) {}
+  constructor(private portalService: PortalService) {}
 
   resolve(route: ActivatedRouteSnapshot) {
     return this.portalService.getDashboards();

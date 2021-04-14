@@ -22,5 +22,4 @@ import '@gravitee/ui-components/wc/gv-checkbox';
   selector: 'app-user-contact',
   templateUrl: './user-contact.component.html',
 })
-export class UserContactComponent {
-}
+export class UserContactComponent {}

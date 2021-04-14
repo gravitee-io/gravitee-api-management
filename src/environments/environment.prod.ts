@@ -15,5 +15,5 @@
  */
 export const environment = {
   locales: ['en', 'fr', 'cs'],
-  production: true
+  production: true,
 };

@@ -23,18 +23,14 @@ import { Page, PortalService } from '../../../../projects/portal-webclient-sdk/s
   styleUrls: ['./single-page.component.css'],
 })
 export class SinglePageComponent implements OnInit {
-
   singlePage: Page;
 
-  constructor(
-    private route: ActivatedRoute,
-    private portalService: PortalService
-  ) { }
+  constructor(private route: ActivatedRoute, private portalService: PortalService) {}
 
   ngOnInit() {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params) => {
       if (params.pageId) {
-        this.portalService.getPageByPageId({ pageId: params.pageId }).subscribe(response => this.singlePage = response );
+        this.portalService.getPageByPageId({ pageId: params.pageId }).subscribe((response) => (this.singlePage = response));
       }
     });
   }

@@ -24,11 +24,7 @@ describe('DashboardComponent', () => {
   const createComponent = createComponentFactory({
     component: DashboardComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      HttpClientTestingModule,
-      RouterTestingModule,
-      UserTestingModule,
-    ],
+    imports: [HttpClientTestingModule, RouterTestingModule, UserTestingModule],
   });
 
   let spectator: Spectator<DashboardComponent>;
@@ -40,7 +36,6 @@ describe('DashboardComponent', () => {
   });
 
   it('should create', () => {
-      expect(component).toBeTruthy();
+    expect(component).toBeTruthy();
   });
-
 });

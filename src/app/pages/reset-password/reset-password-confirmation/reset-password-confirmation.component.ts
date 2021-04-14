@@ -24,10 +24,9 @@ import { ReCaptchaService } from '../../../services/recaptcha.service';
 @Component({
   selector: 'app-reset-password-confirmation',
   templateUrl: './reset-password-confirmation.component.html',
-  styleUrls: ['./reset-password-confirmation.component.css']
+  styleUrls: ['./reset-password-confirmation.component.css'],
 })
 export class ResetPasswordConfirmationComponent implements OnInit {
-
   resetPasswordConfirmationForm: FormGroup;
   isSubmitted: boolean;
   token: string;
@@ -40,43 +39,43 @@ export class ResetPasswordConfirmationComponent implements OnInit {
     private route: ActivatedRoute,
     private tokenService: TokenService,
     private reCaptchaService: ReCaptchaService,
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     this.isSubmitted = false;
     this.token = this.route.snapshot.paramMap.get('token');
     this.userFromToken = this.tokenService.parseToken(this.token);
-    this.isTokenExpired = this.tokenService.isParsedTokenExpired(this.userFromToken)
+    this.isTokenExpired = this.tokenService.isParsedTokenExpired(this.userFromToken);
 
     this.resetPasswordConfirmationForm = this.formBuilder.group({
       firstname: new FormControl({ value: this.userFromToken.firstname, disabled: true }),
       lastname: new FormControl({ value: this.userFromToken.lastname, disabled: true }),
       email: new FormControl({ value: this.userFromToken.email, disabled: true }),
       password: new FormControl('', Validators.required),
-      confirmedPassword: new FormControl('', Validators.required)
+      confirmedPassword: new FormControl('', Validators.required),
     });
 
-    this.resetPasswordConfirmationForm.get('confirmedPassword')
+    this.resetPasswordConfirmationForm
+      .get('confirmedPassword')
       .setValidators([Validators.required, GvValidators.sameValueValidator(this.resetPasswordConfirmationForm.get('password'))]);
     this.reCaptchaService.displayBadge();
   }
 
   onSubmitResetPasswordConfirmationForm() {
     if (this.resetPasswordConfirmationForm.valid && !this.isSubmitted) {
-
       const input: ChangeUserPasswordInput = {
         token: this.token,
         password: this.resetPasswordConfirmationForm.value.password,
         firstname: this.userFromToken.firstname,
-        lastname: this.userFromToken.lastname
+        lastname: this.userFromToken.lastname,
       };
       this.reCaptchaService.execute('reset_password_confirmation').then(() => {
-        this.usersService.changeUserPassword({ ChangeUserPasswordInput: input })
+        this.usersService
+          .changeUserPassword({ ChangeUserPasswordInput: input })
           .toPromise()
-          .then(() => this.isSubmitted = true)
+          .then(() => (this.isSubmitted = true))
           .catch(() => {
-            this.resetPasswordConfirmationForm.patchValue({ password : '', confirmedPassword: '' });
+            this.resetPasswordConfirmationForm.patchValue({ password: '', confirmedPassword: '' });
           });
       });
     }

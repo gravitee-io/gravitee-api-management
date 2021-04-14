@@ -26,7 +26,6 @@ import { ApplicationTypeOption } from '../application-creation.component';
   styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep4Component implements OnInit {
-
   @Input() canValidate: boolean;
   @Input() creationError: boolean;
   @Input() creationSuccess: boolean;
@@ -38,8 +37,7 @@ export class ApplicationCreationStep4Component implements OnInit {
 
   validationListOptions: any;
 
-  constructor(private translateService: TranslateService) {
-  }
+  constructor(private translateService: TranslateService) {}
 
   get grantTypeNames() {
     if (!this.isSimpleApp && this.applicationForm.contains('settings')) {
@@ -89,29 +87,31 @@ export class ApplicationCreationStep4Component implements OnInit {
   }
 
   ngOnInit(): void {
-    this.translateService.get([
-      i18n('applicationCreation.subscription.comment'),
-      i18n('applicationCreation.subscription.validation.type'),
-      i18n('applicationCreation.subscription.validation.auto'),
-      i18n('applicationCreation.subscription.validation.manual'),
-    ]).toPromise().then(translations => {
-      const values = Object.values(translations);
+    this.translateService
+      .get([
+        i18n('applicationCreation.subscription.comment'),
+        i18n('applicationCreation.subscription.validation.type'),
+        i18n('applicationCreation.subscription.validation.auto'),
+        i18n('applicationCreation.subscription.validation.manual'),
+      ])
+      .toPromise()
+      .then((translations) => {
+        const values = Object.values(translations);
 
-      this.validationListOptions = {
-        data: [
-          { field: 'api.name', label: 'Api' },
-          { field: 'plan.name', label: 'Plan' },
-          {
-            field: 'request',
-            label: values[0],
-          },
-          {
-            field: (item) => item.plan.validation.toUpperCase() === Plan.ValidationEnum.AUTO ? values[2] : values[3],
-            label: values[1],
-          }
-        ]
-      };
-    });
+        this.validationListOptions = {
+          data: [
+            { field: 'api.name', label: 'Api' },
+            { field: 'plan.name', label: 'Plan' },
+            {
+              field: 'request',
+              label: values[0],
+            },
+            {
+              field: (item) => (item.plan.validation.toUpperCase() === Plan.ValidationEnum.AUTO ? values[2] : values[3]),
+              label: values[1],
+            },
+          ],
+        };
+      });
   }
-
 }

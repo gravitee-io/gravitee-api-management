@@ -25,7 +25,7 @@ import {
   ApplicationService,
   ApplicationType,
   PermissionsResponse,
-  Subscription
+  Subscription,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -39,7 +39,7 @@ import StatusEnum = Subscription.StatusEnum;
 @Component({
   selector: 'app-application-general',
   templateUrl: './application-general.component.html',
-  styleUrls: ['./application-general.component.css']
+  styleUrls: ['./application-general.component.css'],
 })
 export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   applicationForm: FormGroup;
@@ -63,8 +63,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
     private eventService: EventService,
-  ) {
-  }
+  ) {}
 
   ngOnDestroy() {
     this.initForm();
@@ -84,10 +83,11 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
         this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.UPDATE_PICTURE, { data: picture }));
       });
 
-      this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
-        applicationId: this.application.id,
-        statuses: [StatusEnum.ACCEPTED],
-      })
+      this.connectedApis = this.applicationService
+        .getSubscriberApisByApplicationId({
+          applicationId: this.application.id,
+          statuses: [StatusEnum.ACCEPTED],
+        })
         .toPromise()
         .then((response) => response.data.map((api) => ({ item: api, type: 'api' })));
     }
@@ -111,14 +111,14 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
           client_id: new FormControl(this.application.settings.oauth.client_id, null),
           redirect_uris: new FormArray([]),
           grant_types: new FormArray([]),
-        })
+        }),
       });
     } else {
       settings = this.formBuilder.group({
         app: this.formBuilder.group({
           type: new FormControl(this.application.settings.app.type, null),
           client_id: new FormControl(this.application.settings.app.client_id, null),
-        })
+        }),
       });
     }
 
@@ -127,7 +127,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
       name: new FormControl(this.application.name, [Validators.required]),
       description: new FormControl(this.application.description, [Validators.required]),
       picture: new FormControl(this.application.picture),
-      settings
+      settings,
     });
   }
 
@@ -151,11 +151,9 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
     if (this.isOAuth()) {
       this.grantTypes.clear();
       this.allGrantTypes = this.applicationTypeEntity.allowed_grant_types.map((allowedGrantType) => {
-
         const value = this.application.settings.oauth.grant_types.find((grant) => allowedGrantType.type === grant) != null;
 
-        const disabled = this.applicationTypeEntity.mandatory_grant_types
-          .find((grant) => allowedGrantType.type === grant.type) != null;
+        const disabled = this.applicationTypeEntity.mandatory_grant_types.find((grant) => allowedGrantType.type === grant.type) != null;
 
         if (value === true) {
           this.grantTypes.push(new FormControl(allowedGrantType.type));
@@ -203,18 +201,21 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
   }
 
   get validRedirectUris() {
-    return this.requiresRedirectUris && this.redirectURIs.length > 0 || !this.requiresRedirectUris;
+    return (this.requiresRedirectUris && this.redirectURIs.length > 0) || !this.requiresRedirectUris;
   }
 
   submit() {
     this.isSaving = true;
-    this.applicationService.updateApplicationByApplicationId(
-      { applicationId: this.application.id, Application: this.applicationForm.getRawValue() }).toPromise().then((application) => {
-      this.application = application;
-      this.reset();
-      this.notificationService.success(i18n('application.success.save'));
-      this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.RELOAD_EVENT));
-    }).finally(() => this.isSaving = false);
+    this.applicationService
+      .updateApplicationByApplicationId({ applicationId: this.application.id, Application: this.applicationForm.getRawValue() })
+      .toPromise()
+      .then((application) => {
+        this.application = application;
+        this.reset();
+        this.notificationService.success(i18n('application.success.save'));
+        this.eventService.dispatch(new GvEvent(GvHeaderItemComponent.RELOAD_EVENT));
+      })
+      .finally(() => (this.isSaving = false));
   }
 
   get displayName() {
@@ -223,20 +224,27 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
 
   delete() {
     this.isDeleting = true;
-    this.applicationService.deleteApplicationByApplicationId({ applicationId: this.application.id }).toPromise().then(() => {
-      this.router.navigate(['applications']);
-      this.notificationService.success(i18n('application.success.delete'));
-    })
-      .finally(() => this.isDeleting = false);
+    this.applicationService
+      .deleteApplicationByApplicationId({ applicationId: this.application.id })
+      .toPromise()
+      .then(() => {
+        this.router.navigate(['applications']);
+        this.notificationService.success(i18n('application.success.delete'));
+      })
+      .finally(() => (this.isDeleting = false));
   }
 
   renewSecret() {
     this.isRenewing = true;
-    this.applicationService.renewApplicationSecret({ applicationId: this.application.id }).toPromise().then((application) => {
-      this.application = application;
-      this.reset();
-      this.notificationService.success(i18n('application.success.renewSecret'));
-    }).finally(() => this.isRenewing = false);
+    this.applicationService
+      .renewApplicationSecret({ applicationId: this.application.id })
+      .toPromise()
+      .then((application) => {
+        this.application = application;
+        this.reset();
+        this.notificationService.success(i18n('application.success.renewSecret'));
+      })
+      .finally(() => (this.isRenewing = false));
   }
 
   toLocaleDateString(date: string) {

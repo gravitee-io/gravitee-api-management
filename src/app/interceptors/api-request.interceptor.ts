@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse,
-  HttpResponse, HttpResponseBase } from '@angular/common/http';
+import {
+  HttpInterceptor,
+  HttpRequest,
+  HttpHandler,
+  HttpEvent,
+  HttpErrorResponse,
+  HttpResponse,
+  HttpResponseBase,
+} from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -31,7 +38,6 @@ export const SILENT_URLS = ['/user/notifications'];
 
 @Injectable()
 export class ApiRequestInterceptor implements HttpInterceptor {
-
   private xsrfToken: string;
 
   constructor(
@@ -39,15 +45,13 @@ export class ApiRequestInterceptor implements HttpInterceptor {
     private currentUserService: CurrentUserService,
     private notificationService: NotificationService,
     private configService: ConfigurationService,
-    private reCaptchaService: ReCaptchaService
-  ) {
-  }
+    private reCaptchaService: ReCaptchaService,
+  ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-
     const headers = {
-      'X-Requested-With': 'XMLHttpRequest'
-    }
+      'X-Requested-With': 'XMLHttpRequest',
+    };
 
     if (this.xsrfToken) {
       headers['X-Xsrf-Token'] = this.xsrfToken;
@@ -60,61 +64,62 @@ export class ApiRequestInterceptor implements HttpInterceptor {
 
     request = request.clone({
       setHeaders: headers,
-      withCredentials: true
+      withCredentials: true,
     });
 
-    return next.handle(request).pipe(tap(
-      (event: HttpEvent<any>) => {
-        if (request.url.endsWith('_export')) {
-          /* tslint:disable:no-string-literal */
-          // @ts-ignore hack because of the sdk client limitations
-          request['responseType'] = 'text';
-          /* tslint:enable:no-string-literal */
-        }
-
-        if (event instanceof HttpResponse) {
-          this.saveXsrfToken(event);
-        }
-      },
-      (err: any) => {
-        const silentCall = SILENT_URLS.find(silentUrl => err.url.includes(silentUrl));
-        if (err instanceof HttpErrorResponse) {
-          this.saveXsrfToken(err);
-
-          if (err.status === 0) {
-            if (!silentCall) {
-              this.notificationService.error(i18n('errors.server.unavailable'));
-            }
-          } else if (err.status === 401) {
-            this.currentUserService.revokeUser();
-          } else if (err.status === 404) {
-            const error = err.error.errors[0];
-            if (!SILENT_CODES.includes(error.code) && !silentCall) {
-              this.router.navigate(['/404']);
-            }
+    return next.handle(request).pipe(
+      tap(
+        (event: HttpEvent<any>) => {
+          if (request.url.endsWith('_export')) {
+            /* tslint:disable:no-string-literal */
+            // @ts-ignore hack because of the sdk client limitations
+            request['responseType'] = 'text';
+            /* tslint:enable:no-string-literal */
           }
 
-          if (err.error && err.error.errors) {
-            const error = err.error.errors[0];
-            if (!SILENT_CODES.includes(error.code) && !silentCall) {
-              this.notificationService.error(error.code, error.parameters, error.message);
+          if (event instanceof HttpResponse) {
+            this.saveXsrfToken(event);
+          }
+        },
+        (err: any) => {
+          const silentCall = SILENT_URLS.find((silentUrl) => err.url.includes(silentUrl));
+          if (err instanceof HttpErrorResponse) {
+            this.saveXsrfToken(err);
+
+            if (err.status === 0) {
+              if (!silentCall) {
+                this.notificationService.error(i18n('errors.server.unavailable'));
+              }
+            } else if (err.status === 401) {
+              this.currentUserService.revokeUser();
+            } else if (err.status === 404) {
+              const error = err.error.errors[0];
+              if (!SILENT_CODES.includes(error.code) && !silentCall) {
+                this.router.navigate(['/404']);
+              }
             }
 
-            if (error.status === '503') {
-              // configuration has been updated, we have to reload the configuration
-              this.configService.load();
+            if (err.error && err.error.errors) {
+              const error = err.error.errors[0];
+              if (!SILENT_CODES.includes(error.code) && !silentCall) {
+                this.notificationService.error(error.code, error.parameters, error.message);
+              }
+
+              if (error.status === '503') {
+                // configuration has been updated, we have to reload the configuration
+                this.configService.load();
+              }
             }
           }
-        }
-      }
-    ));
+        },
+      ),
+    );
   }
 
   private saveXsrfToken(response: HttpResponseBase) {
-
     const xsrfTokenHeader = response.headers.get('X-Xsrf-Token');
 
-    if(xsrfTokenHeader !== null) {
+    if (xsrfTokenHeader !== null) {
       this.xsrfToken = xsrfTokenHeader;
     }
   }

@@ -16,116 +16,150 @@
 
 -->
 <div class="page__content">
-
   <div class="api-subscribe__content">
-
     <div class="api-subscribe__stepper" *ngIf="hasStepper()">
-      <gv-stepper [steps]="steps" [current]="currentStep" (:gv-stepper:change)="onChangeStep($event)"
-                  [disabled]="isKeyLess() || hasSubscription()"></gv-stepper>
+      <gv-stepper
+        [steps]="steps"
+        [current]="currentStep"
+        (:gv-stepper:change)="onChangeStep($event)"
+        [disabled]="isKeyLess() || hasSubscription()"
+      ></gv-stepper>
     </div>
 
-    <div
-      [ngClass]="{'step-content': true, 'one': currentStep === 1, 'two': currentStep === 2,'three': currentStep === 3}">
-
+    <div [ngClass]="{ 'step-content': true, one: currentStep === 1, two: currentStep === 2, three: currentStep === 3 }">
       <form [formGroup]="subscribeForm">
-
         <div class="step step-1">
           <h2>{{ 'apiSubscribe.plans.title' | translate }}</h2>
           <p>{{ 'apiSubscribe.plans.description' | translate }}</p>
 
-          <gv-plans [plans]="plans"
-                    formControlName="plan"
-                    name="plan"
-                    ngDefaultControl></gv-plans>
+          <gv-plans [plans]="plans" formControlName="plan" name="plan" ngDefaultControl></gv-plans>
 
           <div *ngIf="isKeyLess() && apiSample">
             <h3>{{ 'apiSubscribe.plans.sample' | translate }}</h3>
-            <gv-code [options]="{mode:'shell', lineNumbers: true, lineWrapping: true}" [value]="apiSample" readonly clipboard></gv-code>
+            <gv-code [options]="{ mode: 'shell', lineNumbers: true, lineWrapping: true }" [value]="apiSample" readonly clipboard></gv-code>
           </div>
-
         </div>
 
         <div class="step step-2">
           <div class="message">
             <p>{{ 'apiSubscribe.apps.description' | translate }}</p>
-            <p *ngIf="hasConnectedApps()"
-               [innerHTML]="'apiSubscribe.apps.connectedApps' | translate:{ count: getConnectedAppsCount(), apiName: apiName }"></p>
-            <p *ngIf="!hasAvailableApplications()"> <b>{{ 'apiSubscribe.apps.noAvailableApplications' | translate }}</b> </p>
-            <a *ngIf="!hasAvailableApplications() && canCreateApp()" [routerLink]="['/applications/creation']" [queryParams]="{api: apiId}">{{ 'apiSubscribe.apps.createApp' | translate }}</a>
+            <p
+              *ngIf="hasConnectedApps()"
+              [innerHTML]="'apiSubscribe.apps.connectedApps' | translate: { count: getConnectedAppsCount(), apiName: apiName }"
+            ></p>
+            <p *ngIf="!hasAvailableApplications()">
+              <b>{{ 'apiSubscribe.apps.noAvailableApplications' | translate }}</b>
+            </p>
+            <a
+              *ngIf="!hasAvailableApplications() && canCreateApp()"
+              [routerLink]="['/applications/creation']"
+              [queryParams]="{ api: apiId }"
+              >{{ 'apiSubscribe.apps.createApp' | translate }}</a
+            >
           </div>
 
-          <gv-select *ngIf="hasAvailableApplications()" label="{{ 'apiSubscribe.apps.chooseApp' | translate }}"
-                     [options]="availableApplications"
-                     required
-                     formControlName="application"
-                     name="application"
-                     ngDefaultControl></gv-select>
+          <gv-select
+            *ngIf="hasAvailableApplications()"
+            label="{{ 'apiSubscribe.apps.chooseApp' | translate }}"
+            [options]="availableApplications"
+            required
+            formControlName="application"
+            name="application"
+            ngDefaultControl
+          ></gv-select>
 
-          <gv-text *ngIf="hasAvailableApplications()"
-                   [attr.label]="getCommentLabel()"
-                   [required]="hasRequiredComment()"
-                   formControlName="request"
-                   name="request"
-                   ngDefaultControl></gv-text>
+          <gv-text
+            *ngIf="hasAvailableApplications()"
+            [attr.label]="getCommentLabel()"
+            [required]="hasRequiredComment()"
+            formControlName="request"
+            name="request"
+            ngDefaultControl
+          ></gv-text>
         </div>
 
         <div class="step step-3">
-
           <div class="message" *ngIf="!subscribeForm.valid">
-            <p
-              [innerHTML]="'apiSubscribe.validate.notCompleted' | translate: {apiName: apiName}"></p>
+            <p [innerHTML]="'apiSubscribe.validate.notCompleted' | translate: { apiName: apiName }"></p>
           </div>
 
           <div class="message" *ngIf="!hasSubscription() && subscribeForm.valid && !hasSubscriptionError">
             <p
-              [innerHTML]="'apiSubscribe.validate.askConfirmation' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
-            <p
-              [innerHTML]="'apiSubscribe.validate.information' | translate: {hasAutoValidation: hasAutoValidation()}"></p>
+              [innerHTML]="
+                'apiSubscribe.validate.askConfirmation'
+                  | translate: { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
+              "
+            ></p>
+            <p [innerHTML]="'apiSubscribe.validate.information' | translate: { hasAutoValidation: hasAutoValidation() }"></p>
           </div>
 
           <div class="message" *ngIf="hasSubscriptionError">
             <gv-icon shape="appliances:highvoltage"></gv-icon>
-            <h2>{{'apiSubscribe.errors.sorry' | translate}} </h2>
+            <h2>{{ 'apiSubscribe.errors.sorry' | translate }}</h2>
             <p [innerHTML]="'apiSubscribe.errors.information' | translate"></p>
             <p *ngIf="subscriptionError">{{ subscriptionError }}</p>
           </div>
 
           <div *ngIf="hasSubscriptionAccepted()">
             <div class="message subscription-accepted">
-
               <gv-icon class="success-icon" shape="general:thunder"></gv-icon>
-              <h2>{{'apiSubscribe.success.congratulations' | translate}} </h2>
+              <h2>{{ 'apiSubscribe.success.congratulations' | translate }}</h2>
               <p
-                [innerHTML]="'apiSubscribe.success.subscriptionAccepted' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
+                [innerHTML]="
+                  'apiSubscribe.success.subscriptionAccepted'
+                    | translate: { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
+                "
+              ></p>
               <p>
-                <span>{{'apiSubscribe.success.subscriptionKey' | translate}}</span>
+                <span>{{ 'apiSubscribe.success.subscriptionKey' | translate }}</span>
                 <gv-input clipboard [value]="getSubscriptionKey()" small></gv-input>
               </p>
               <div class="success-links">
-                <a [routerLink]="['/' ]">{{ 'apiSubscribe.success.goToHome' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>
-                <a [routerLink]="['/catalog/api', apiId ]">{{ 'apiSubscribe.success.discoverApi' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>
+                <a [routerLink]="['/']"
+                  >{{ 'apiSubscribe.success.goToHome' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon
+                ></a>
+                <a [routerLink]="['/catalog/api', apiId]"
+                  >{{ 'apiSubscribe.success.discoverApi' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon
+                ></a>
               </div>
             </div>
             <div>
-              <h3>{{'apiSubscribe.plans.sample' | translate}}</h3>
-              <gv-code [options]="{mode:'shell', lineNumbers: true, lineWrapping: true}" [value]="apiSample" readonly clipboard></gv-code>
+              <h3>{{ 'apiSubscribe.plans.sample' | translate }}</h3>
+              <gv-code
+                [options]="{ mode: 'shell', lineNumbers: true, lineWrapping: true }"
+                [value]="apiSample"
+                readonly
+                clipboard
+              ></gv-code>
             </div>
           </div>
 
           <div class="message" *ngIf="hasSubscriptionPending()">
             <gv-icon class="success-icon" shape="home:timer"></gv-icon>
-            <h2>{{'apiSubscribe.success.congratulations' | translate}} </h2>
+            <h2>{{ 'apiSubscribe.success.congratulations' | translate }}</h2>
             <p
-              [innerHTML]="'apiSubscribe.success.subscriptionPending' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
+              [innerHTML]="
+                'apiSubscribe.success.subscriptionPending'
+                  | translate: { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
+              "
+            ></p>
             <div class="success-links">
-              <a [routerLink]="['/' ]">{{ 'apiSubscribe.success.goToHome' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>
-              <a [routerLink]="['/catalog/api', apiId ]">{{ 'apiSubscribe.success.discoverApi' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon></a>
+              <a [routerLink]="['/']"
+                >{{ 'apiSubscribe.success.goToHome' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon
+              ></a>
+              <a [routerLink]="['/catalog/api', apiId]"
+                >{{ 'apiSubscribe.success.discoverApi' | translate }}<gv-icon shape="navigation:angle-right"></gv-icon
+              ></a>
             </div>
           </div>
 
           <div class="message" *ngIf="hasSubscriptionRejected()">
             <p
-              [innerHTML]="'apiSubscribe.success.subscriptionRejected' | translate: {planName: getPlanName(), appName: getApplicationName(), apiName: apiName}"></p>
+              [innerHTML]="
+                'apiSubscribe.success.subscriptionRejected'
+                  | translate: { planName: getPlanName(), appName: getApplicationName(), apiName: apiName }
+              "
+            ></p>
           </div>
         </div>
       </form>
@@ -133,32 +167,42 @@
 
     <div class="actions" *ngIf="hasStepper()">
       <div>
-        <gv-button (:gv-button:click)="onExit()" outlined
-                   *ngIf="!hasSubscription()"
-                   icon="code:stop">{{ 'apiSubscribe.exit' | translate }}</gv-button>
-        <gv-button *ngIf="hasPreviousAction()"
-                   (:gv-button:click)="onPrevious()" primary outlined
-                   [disabled]="!canPrevious()"
-                   icon="navigation:angle-left">{{ 'apiSubscribe.previousStep' | translate }}</gv-button>
+        <gv-button (:gv-button:click)="onExit()" outlined *ngIf="!hasSubscription()" icon="code:stop">{{
+          'apiSubscribe.exit' | translate
+        }}</gv-button>
+        <gv-button
+          *ngIf="hasPreviousAction()"
+          (:gv-button:click)="onPrevious()"
+          primary
+          outlined
+          [disabled]="!canPrevious()"
+          icon="navigation:angle-left"
+          >{{ 'apiSubscribe.previousStep' | translate }}</gv-button
+        >
       </div>
 
-      <gv-button *ngIf="hasNextAction()"
-                 (:gv-button:click)="onNext()"
-                 primary
-                 icon-right="navigation:angle-right">{{'apiSubscribe.nextStep' | translate }}</gv-button>
-      <gv-button *ngIf="hasValidateAction()"
-                 (:gv-button:click)="onValidate()" primary
-                 [disabled]="!subscribeForm.valid"
-                 [loading]="showValidateLoader"
-                 icon="code:check">{{'apiSubscribe.validate.subscription' | translate}}</gv-button>
+      <gv-button *ngIf="hasNextAction()" (:gv-button:click)="onNext()" primary icon-right="navigation:angle-right">{{
+        'apiSubscribe.nextStep' | translate
+      }}</gv-button>
+      <gv-button
+        *ngIf="hasValidateAction()"
+        (:gv-button:click)="onValidate()"
+        primary
+        [disabled]="!subscribeForm.valid"
+        [loading]="showValidateLoader"
+        icon="code:check"
+        >{{ 'apiSubscribe.validate.subscription' | translate }}</gv-button
+      >
     </div>
   </div>
 
   <aside class="aside">
     <div class="page__box" *ngIf="api">
       <div class="page__box-title">
-        <gv-identity-picture [display_name]="displayName" [picture]="picture" ></gv-identity-picture>
-        <h4 class="title">{{api.name}}<span>{{api.version}}</span></h4>
+        <gv-identity-picture [display_name]="displayName" [picture]="picture"></gv-identity-picture>
+        <h4 class="title">
+          {{ api.name }}<span>{{ api.version }}</span>
+        </h4>
       </div>
       <div class="page__box-content">
         <div class="info info__description">
@@ -169,27 +213,34 @@
         <div class="info" *ngIf="api.entrypoints && api.entrypoints.length > 0">
           <h4 class="title">{{ 'api.information.entrypoints' | translate }}</h4>
           <div *ngFor="let e of api.entrypoints" class="info__resources">
-            <gv-button link [href]="e" (:gv-button:click)="goToExtern(e)"><span>{{e}}</span></gv-button>
+            <gv-button link [href]="e" (:gv-button:click)="goToExtern(e)"
+              ><span>{{ e }}</span></gv-button
+            >
           </div>
         </div>
 
         <div class="info" *ngIf="api.categories && api.categories.length > 0">
           <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
           <span>
-            <gv-tag *ngFor="let category of api.categories" (:gv-tag:click)="goToCategory(category)" [clickable]="true">{{category}}</gv-tag>
+            <gv-tag *ngFor="let category of api.categories" (:gv-tag:click)="goToCategory(category)" [clickable]="true">{{
+              category
+            }}</gv-tag>
           </span>
         </div>
 
         <div class="info" *ngIf="api.labels && api.labels.length > 0">
           <h4 class="title">{{ 'api.information.labels' | translate }}</h4>
           <span>
-            <gv-tag *ngFor="let tag of api.labels" (:gv-tag:click)="goToSearch(tag)" [clickable]="true" major>{{tag}}</gv-tag>
+            <gv-tag *ngFor="let tag of api.labels" (:gv-tag:click)="goToSearch(tag)" [clickable]="true" major>{{ tag }}</gv-tag>
           </span>
         </div>
       </div>
     </div>
 
-    <gv-list [items]="connectedApps" title="{{ 'apiSubscribe.connectedApps' | translate: { planName: getPlanName(), count: connectedApps ? connectedApps.length : 0 } }}" clickable></gv-list>
+    <gv-list
+      [items]="connectedApps"
+      title="{{ 'apiSubscribe.connectedApps' | translate: { planName: getPlanName(), count: connectedApps ? connectedApps.length : 0 } }}"
+      clickable
+    ></gv-list>
   </aside>
-
 </div>

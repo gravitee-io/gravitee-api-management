@@ -21,12 +21,11 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('AnalyticsService', () => {
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [
-      TranslateTestingModule,
-      RouterTestingModule,
-    ]
-  }));
+  beforeEach(() =>
+    TestBed.configureTestingModule({
+      imports: [TranslateTestingModule, RouterTestingModule],
+    }),
+  );
 
   it('should be created', () => {
     const service: AnalyticsService = TestBed.inject(AnalyticsService);

@@ -26,11 +26,9 @@ import { NotificationService } from '../../../services/notification.service';
 @Component({
   selector: 'app-user-account',
   templateUrl: './user-account.component.html',
-  styleUrls: ['./user-account.component.css']
+  styleUrls: ['./user-account.component.css'],
 })
-
 export class UserAccountComponent implements OnInit, OnDestroy {
-
   private subscription: any;
   public currentUser: User;
   public userForm: FormGroup;
@@ -41,18 +39,17 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
-    private eventService: EventService
-  ) {
-  }
+    private eventService: EventService,
+  ) {}
 
   ngOnInit() {
     this.subscription = this.currentUserService.get().subscribe((user) => {
       this.currentUser = user;
       this.userForm = this.formBuilder.group({
-        last_name: new FormControl( { value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
-        first_name: new FormControl( { value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
+        last_name: new FormControl({ value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
+        first_name: new FormControl({ value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
         email: new FormControl({ value: this.email, disabled: !this.isProfileEditable }, Validators.email),
-        avatar: new FormControl(this.avatar)
+        avatar: new FormControl(this.avatar),
       });
 
       this.userForm.get('avatar').valueChanges.subscribe((avatar) => {
@@ -111,19 +108,20 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     // if avatar start with "http", the avatar doesn't changed, do not
     // send it to the REST API to avoid reset user avatar
     const UserInput = {
-      id:  this.currentUser.id,
+      id: this.currentUser.id,
       avatar: avatarValue && avatarValue.startsWith('http') ? null : avatarValue,
       first_name: this.userForm.get('first_name').value,
       last_name: this.userForm.get('last_name').value,
-      email: this.userForm.get('email').value
+      email: this.userForm.get('email').value,
     };
     this.isSaving = true;
-    this.userService.updateCurrentUser({ UserInput })
+    this.userService
+      .updateCurrentUser({ UserInput })
       .toPromise()
       .then((user) => {
         this.currentUserService.set(user);
         this.notificationService.success(i18n('user.account.success'));
       })
-      .finally(() => this.isSaving = false);
+      .finally(() => (this.isSaving = false));
   }
 }

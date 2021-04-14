@@ -23,20 +23,19 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 @Component({
   selector: 'app-gv-contact',
   templateUrl: './gv-contact.component.html',
-  styleUrls: ['./gv-contact.component.css']
+  styleUrls: ['./gv-contact.component.css'],
 })
 export class GvContactComponent implements OnInit {
-
   @Input() apiId: string;
 
   contactForm: FormGroup;
   applications: {
-    label: string,
-    value: string,
+    label: string;
+    value: string;
   }[];
   apis: {
-    label: string,
-    value: string,
+    label: string;
+    value: string;
   }[];
   isSending: boolean;
 
@@ -47,8 +46,7 @@ export class GvContactComponent implements OnInit {
     private formBuilder: FormBuilder,
     private notificationService: NotificationService,
     private currentUserService: CurrentUserService,
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.contactForm = this.formBuilder.group({
@@ -56,21 +54,19 @@ export class GvContactComponent implements OnInit {
       application: null,
       subject: new FormControl(null, Validators.required),
       content: new FormControl(null, Validators.required),
-      copy_to_sender: false
+      copy_to_sender: false,
     });
 
-    this.applicationService.getApplications({ size: -1 })
-      .subscribe((response) => {
-        this.applications = response.data.map(application => {
-          return { label: `${application.name} (${application.owner.display_name})`, value: application.id };
-        });
+    this.applicationService.getApplications({ size: -1 }).subscribe((response) => {
+      this.applications = response.data.map((application) => {
+        return { label: `${application.name} (${application.owner.display_name})`, value: application.id };
       });
-    this.apiService.getApis({ size: -1 })
-      .subscribe((response) => {
-        this.apis = response.data.map(api => {
-          return { label: `${api.name} (${api.version})`, value: api.id };
-        });
+    });
+    this.apiService.getApis({ size: -1 }).subscribe((response) => {
+      this.apis = response.data.map((api) => {
+        return { label: `${api.name} (${api.version})`, value: api.id };
       });
+    });
 
     const user = this.currentUserService.get().getValue();
     if (user && !user.email) {
@@ -88,12 +84,15 @@ export class GvContactComponent implements OnInit {
     });
   }
 
-
   submit() {
     this.isSending = true;
-    this.portalService.createTicket({ TicketInput: this.contactForm.value }).toPromise().then(() => {
-      this.notificationService.success(i18n('gv-contact.success'));
-      this.reset();
-    }).finally(() => this.isSending = false);
+    this.portalService
+      .createTicket({ TicketInput: this.contactForm.value })
+      .toPromise()
+      .then(() => {
+        this.notificationService.success(i18n('gv-contact.success'));
+        this.reset();
+      })
+      .finally(() => (this.isSending = false));
   }
 }

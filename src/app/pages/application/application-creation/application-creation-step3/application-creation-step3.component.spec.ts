@@ -22,16 +22,10 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { ApplicationCreationStep3Component } from './application-creation-step3.component';
 
 describe('ApplicationCreationStep3Component', () => {
-
   const createComponent = createComponentFactory({
     component: ApplicationCreationStep3Component,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      HttpClientTestingModule,
-      RouterTestingModule,
-      FormsModule,
-      ReactiveFormsModule
-    ],
+    imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
   });
 
   let spectator: Spectator<ApplicationCreationStep3Component>;
@@ -45,5 +39,4 @@ describe('ApplicationCreationStep3Component', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

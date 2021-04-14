@@ -26,7 +26,6 @@ import { CurrentUserService } from './current-user.service';
 import { PermissionGuardService } from './permission-guard.service';
 
 describe('NavRouteService', () => {
-
   let service: SpectatorService<NavRouteService>;
   const createService = createServiceFactory({
     service: NavRouteService,
@@ -41,15 +40,12 @@ describe('NavRouteService', () => {
           data: { menu: true },
           children: [
             { path: 'catalogChild', data: { title: 'Hey' }, redirectTo: '' },
-            { path: 'otherChild', data: {}, redirectTo: '' }
-          ]
-        }
+            { path: 'otherChild', data: {}, redirectTo: '' },
+          ],
+        },
       ]),
     ],
-    providers: [
-      mockProvider(FeatureGuardService),
-      mockProvider(ActivatedRoute),
-    ]
+    providers: [mockProvider(FeatureGuardService), mockProvider(ActivatedRoute)],
   });
   let routeService: NavRouteService;
   let permissionGuardService: PermissionGuardService;
@@ -92,5 +88,4 @@ describe('NavRouteService', () => {
     const routes = await routeService.getChildrenNav(catalog);
     expect(routes.length).toEqual(1);
   });
-
 });

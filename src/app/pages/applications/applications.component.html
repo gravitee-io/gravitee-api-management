@@ -16,7 +16,9 @@
 
 -->
 <div class="page__content">
-  <h1 class="title" *ngIf="!empty">{{'applications.title' | translate}} <span>({{ nbApplications }})</span></h1>
+  <h1 class="title" *ngIf="!empty">
+    {{ 'applications.title' | translate }} <span>({{ nbApplications }})</span>
+  </h1>
 
   <section *ngIf="empty">
     <gv-message class="message-empty">
@@ -29,4 +31,3 @@
     <gv-card-list [items]="applications"></gv-card-list>
   </section>
 </div>
-

@@ -20,7 +20,7 @@ import {
   Application,
   ApplicationService,
   Subscription,
-  SubscriptionService
+  SubscriptionService,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-table';
 import { TranslateService } from '@ngx-translate/core';
@@ -34,7 +34,7 @@ import StatusEnum = Subscription.StatusEnum;
 @Component({
   selector: 'app-subscriptions',
   templateUrl: './subscriptions.component.html',
-  styleUrls: ['./subscriptions.component.css']
+  styleUrls: ['./subscriptions.component.css'],
 })
 export class SubscriptionsComponent implements OnInit {
   applications: Array<Application>;
@@ -63,8 +63,7 @@ export class SubscriptionsComponent implements OnInit {
     private configurationService: ConfigurationService,
     private ngZone: NgZone,
     private ref: ChangeDetectorRef,
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     this.subsByApplication = {};
@@ -99,9 +98,9 @@ export class SubscriptionsComponent implements OnInit {
             title: i18n('subscriptions.applications.navigate'),
             icon: 'communication:share',
             onClick: (item, e) => this.goToApplication(item.id),
-          }
+          },
         },
-      ]
+      ],
     };
     this.optionsSubscriptions = {
       selectable: true,
@@ -109,13 +108,13 @@ export class SubscriptionsComponent implements OnInit {
         {
           field: (item) => this.subscriptionsMetadata[item.subscription.api].pictureUrl,
           type: 'image',
-          alt: (item) => this.subscriptionsMetadata[item.subscription.api]
-            && getPictureDisplayName(this.subscriptionsMetadata[item.subscription.api]),
+          alt: (item) =>
+            this.subscriptionsMetadata[item.subscription.api] && getPictureDisplayName(this.subscriptionsMetadata[item.subscription.api]),
         },
         {
           field: (item) => this.subscriptionsMetadata[item.subscription.api].name,
           tag: (item) => this.subscriptionsMetadata[item.subscription.api] && this.subscriptionsMetadata[item.subscription.api].version,
-          label: i18n('subscriptions.subscriptions.api')
+          label: i18n('subscriptions.subscriptions.api'),
         },
         { field: 'plan.name', label: i18n('subscriptions.subscriptions.plan') },
         { field: 'subscription.start_at', type: 'date', label: i18n('subscriptions.subscriptions.start_date') },
@@ -129,23 +128,32 @@ export class SubscriptionsComponent implements OnInit {
             title: i18n('subscriptions.subscriptions.navigate'),
             icon: 'communication:share',
             onClick: (item) => this.goToSubscription(item.subscription.id),
-          }
+          },
         },
-      ]
+      ],
     };
     this.format = (key) => this.translateService.get(key).toPromise();
 
-    this.applicationService.getApplications({ size: -1 }).toPromise().then((response) => {
-      this.applications = response.data;
-      this.subscriptionService.getSubscriptions({ size: -1, statuses: [StatusEnum.ACCEPTED] }).toPromise().then((responseSubscriptions) => {
-        this.subscriptions = responseSubscriptions.data;
-        this.subscriptionsMetadata = responseSubscriptions.metadata;
-        this.apiService.getApis({ size: -1 }).toPromise().then((responseApis) => {
-          this.apis = responseApis.data;
-          this.skeleton = false;
-        });
+    this.applicationService
+      .getApplications({ size: -1 })
+      .toPromise()
+      .then((response) => {
+        this.applications = response.data;
+        this.subscriptionService
+          .getSubscriptions({ size: -1, statuses: [StatusEnum.ACCEPTED] })
+          .toPromise()
+          .then((responseSubscriptions) => {
+            this.subscriptions = responseSubscriptions.data;
+            this.subscriptionsMetadata = responseSubscriptions.metadata;
+            this.apiService
+              .getApis({ size: -1 })
+              .toPromise()
+              .then((responseApis) => {
+                this.apis = responseApis.data;
+                this.skeleton = false;
+              });
+          });
       });
-    });
   }
 
   async displayCurlExample(sub: any) {
@@ -154,10 +162,12 @@ export class SubscriptionsComponent implements OnInit {
 
     let keys;
     if (!sub.subscription.keys || !sub.subscription.keys[0]) {
-      const subscriptionDetail = await this.subscriptionService.getSubscriptionById({
-        subscriptionId: sub.subscription.id,
-        include: ['keys']
-      }).toPromise();
+      const subscriptionDetail = await this.subscriptionService
+        .getSubscriptionById({
+          subscriptionId: sub.subscription.id,
+          include: ['keys'],
+        })
+        .toPromise();
       keys = subscriptionDetail.keys;
       this.subscriptions.find((subscription) => sub.subscription.id === subscription.id).keys = subscriptionDetail.keys;
     } else {
@@ -177,7 +187,7 @@ export class SubscriptionsComponent implements OnInit {
 
   goToSubscription(subId: string) {
     this.ngZone.run(() =>
-      this.router.navigate(['/applications', this.selectedApplicationId, 'subscriptions'], { queryParams: { subscription: subId } } )
+      this.router.navigate(['/applications', this.selectedApplicationId, 'subscriptions'], { queryParams: { subscription: subId } }),
     );
   }
 
@@ -212,9 +222,10 @@ export class SubscriptionsComponent implements OnInit {
     this.selectedSubscriptions = [];
     if (this.apis && this.selectedApplicationId) {
       if (this.subsByApplication[this.selectedApplicationId] == null) {
-        const applicationSubscriptions = this.selectedApplicationId ?
-          this.subscriptions.filter((subscription) => this.selectedApplicationId === subscription.application) : this.subscriptions;
-        this.subsByApplication[this.selectedApplicationId] = applicationSubscriptions.map(applicationSubscription => {
+        const applicationSubscriptions = this.selectedApplicationId
+          ? this.subscriptions.filter((subscription) => this.selectedApplicationId === subscription.application)
+          : this.subscriptions;
+        this.subsByApplication[this.selectedApplicationId] = applicationSubscriptions.map((applicationSubscription) => {
           return {
             subscription: applicationSubscription,
             api: this.apis.find((api) => applicationSubscription.api === api.id),
@@ -224,7 +235,6 @@ export class SubscriptionsComponent implements OnInit {
       }
 
       this.subs = this.subsByApplication[this.selectedApplicationId];
-
     } else {
       this.subs = [];
     }

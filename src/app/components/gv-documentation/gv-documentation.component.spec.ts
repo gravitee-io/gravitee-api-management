@@ -22,7 +22,7 @@ describe('GvDocumentationComponent', () => {
   const createComponent = createComponentFactory({
     component: GvDocumentationComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [RouterTestingModule]
+    imports: [RouterTestingModule],
   });
 
   let spectator: Spectator<GvDocumentationComponent>;
@@ -33,9 +33,7 @@ describe('GvDocumentationComponent', () => {
     component = spectator.component;
   });
 
-
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

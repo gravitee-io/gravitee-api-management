@@ -27,10 +27,9 @@ import { SearchRequestParams } from '../../../../utils/search-query-param.enum';
   styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep3Component implements OnInit {
-
   @Output() updated = new EventEmitter<any[]>();
   @Input() subscribeList: any[];
-  @Output() changeStep = new EventEmitter<{step: number, fragment: string}>();
+  @Output() changeStep = new EventEmitter<{ step: number; fragment: string }>();
   // tslint:disable-next-line:ban-types
   @Input() hasValidClientId: Function;
 
@@ -45,11 +44,12 @@ export class ApplicationCreationStep3Component implements OnInit {
 
   private updateStepsTimer: any;
 
-  constructor(private formBuilder: FormBuilder,
-              private apiService: ApiService,
-              private activatedRoute: ActivatedRoute,
-              private translateService: TranslateService,
-              private ref: ChangeDetectorRef
+  constructor(
+    private formBuilder: FormBuilder,
+    private apiService: ApiService,
+    private activatedRoute: ActivatedRoute,
+    private translateService: TranslateService,
+    private ref: ChangeDetectorRef,
   ) {
     this.apiList = [];
     this.subscribeList = [];
@@ -65,50 +65,55 @@ export class ApplicationCreationStep3Component implements OnInit {
 
     if (this.activatedRoute.snapshot.queryParamMap.has('api')) {
       const apiId = this.activatedRoute.snapshot.queryParamMap.get('api');
-      this.apiService.getApiByApiId({ apiId })
+      this.apiService
+        .getApiByApiId({ apiId })
         .toPromise()
         .then((api) => this.loadPlans(api));
     }
 
-    this.translateService.get([
-      i18n('apiSubscribe.apps.comment'),
-      i18n('applicationCreation.subscription.comment'),
-      i18n('applicationCreation.subscription.remove'),
-    ]).toPromise().then(translations => {
-      const values = Object.values(translations);
-      this.subscriptionListOptions = {
-        data: [
-          { field: 'api.name', label: 'Api' },
-          { field: 'plan.name', label: 'Plan' },
-          {
-            field: 'request',
-            label: values[1],
-            type: 'gv-text',
-            attributes: {
-              rows: 2,
-              required: (item) => item.requiredComment,
-              placeholder: (item) => item.plan.comment_question || values[0],
+    this.translateService
+      .get([
+        i18n('apiSubscribe.apps.comment'),
+        i18n('applicationCreation.subscription.comment'),
+        i18n('applicationCreation.subscription.remove'),
+      ])
+      .toPromise()
+      .then((translations) => {
+        const values = Object.values(translations);
+        this.subscriptionListOptions = {
+          data: [
+            { field: 'api.name', label: 'Api' },
+            { field: 'plan.name', label: 'Plan' },
+            {
+              field: 'request',
+              label: values[1],
+              type: 'gv-text',
+              attributes: {
+                rows: 2,
+                required: (item) => item.requiredComment,
+                placeholder: (item) => item.plan.comment_question || values[0],
+              },
+              width: '300px',
             },
-            width: '300px'
-          },
-          {
-            type: 'gv-icon',
-            width: '25px',
-            attributes: {
-              shape: 'general:trash',
-              clickable: true,
-              onClick: (item) => this.removePlan(item.plan),
-              title: values[2]
+            {
+              type: 'gv-icon',
+              width: '25px',
+              attributes: {
+                shape: 'general:trash',
+                clickable: true,
+                onClick: (item) => this.removePlan(item.plan),
+                title: values[2],
+              },
             },
-          },
-        ]
-      };
-    });
+          ],
+        };
+      });
   }
 
   onSearchApi({ detail }) {
     this.plans = [];
-    return this.apiService.searchApis(new SearchRequestParams(detail, 5))
+    return this.apiService
+      .searchApis(new SearchRequestParams(detail, 5))
       .toPromise()
       .then((apisResponse: ApisResponse) => {
         if (apisResponse.data.length) {
@@ -124,13 +129,12 @@ export class ApplicationCreationStep3Component implements OnInit {
       });
   }
 
-
   get selectedApiName() {
     return this.selectedApi ? this.selectedApi.name : '';
   }
 
   goToStep2() {
-    this.changeStep.emit({ step: 2 , fragment: 'appClientId' })
+    this.changeStep.emit({ step: 2, fragment: 'appClientId' });
   }
 
   onRequestChange($event: any) {
@@ -160,7 +164,7 @@ export class ApplicationCreationStep3Component implements OnInit {
   private async loadPlans(api) {
     if (api) {
       const plans = await this.apiService.getApiPlansByApiId({ apiId: api.id, size: -1 }).toPromise();
-      this.plans = plans.data.filter((plan) => (plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS));
+      this.plans = plans.data.filter((plan) => plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS);
       if (this.selectedPlan == null && this.plans.length > 0) {
         this.planForm.get('planId').setValue(this.plans[0].id);
       }
@@ -179,12 +183,15 @@ export class ApplicationCreationStep3Component implements OnInit {
 
   addPlan() {
     if (this.planForm.valid && this.selectedApi && this.selectedPlan) {
-      this.subscribeList = [...this.subscribeList, {
-        api: this.selectedApi,
-        plan: this.selectedPlan,
-        requiredComment: this.requireComment(),
-        request: ''
-      }];
+      this.subscribeList = [
+        ...this.subscribeList,
+        {
+          api: this.selectedApi,
+          plan: this.selectedPlan,
+          requiredComment: this.requireComment(),
+          request: '',
+        },
+      ];
       this.updated.emit(this.subscribeList);
     }
   }
@@ -194,5 +201,4 @@ export class ApplicationCreationStep3Component implements OnInit {
     this.updated.emit(this.subscribeList);
     this.ref.detectChanges();
   }
-
 }

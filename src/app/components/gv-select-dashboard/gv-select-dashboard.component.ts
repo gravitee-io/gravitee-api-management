@@ -25,15 +25,10 @@ import { AnalyticsService } from '../../services/analytics.service';
   templateUrl: './gv-select-dashboard.component.html',
 })
 export class GvSelectDashboardComponent implements OnInit {
-
   dashboardsSelect: Array<any>;
   dashboard: Dashboard;
 
-  constructor(
-    public route: ActivatedRoute,
-    public router: Router,
-    public analyticsService: AnalyticsService,
-  ) {}
+  constructor(public route: ActivatedRoute, public router: Router, public analyticsService: AnalyticsService) {}
 
   ngOnInit() {
     const dashboards = this.route.firstChild.firstChild.firstChild.snapshot.data.dashboards;
@@ -55,8 +50,7 @@ export class GvSelectDashboardComponent implements OnInit {
     this.router.navigate([], {
       queryParams: { dashboard: id },
       queryParamsHandling: 'merge',
-      fragment: this.analyticsService.fragment
+      fragment: this.analyticsService.fragment,
     });
   }
-
 }

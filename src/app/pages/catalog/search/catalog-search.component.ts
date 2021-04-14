@@ -29,10 +29,9 @@ import { createPromiseList } from '../../../utils/utils';
 @Component({
   selector: 'app-search',
   templateUrl: './catalog-search.component.html',
-  styleUrls: ['./catalog-search.component.css']
+  styleUrls: ['./catalog-search.component.css'],
 })
 export class CatalogSearchComponent implements OnInit {
-
   searchForm: FormGroup;
   pageSizes: Array<any>;
   paginationData: any;
@@ -49,23 +48,22 @@ export class CatalogSearchComponent implements OnInit {
   ) {
     this.totalElements = 0;
     this.searchForm = this.formBuilder.group({ query: '', size: '' });
-    this.searchForm.value.size =
-      this.pageSizes = config.get('pagination.size.values');
+    this.searchForm.value.size = this.pageSizes = config.get('pagination.size.values');
   }
 
   ngOnInit() {
-    this.activatedRoute.queryParamMap.subscribe(params => {
+    this.activatedRoute.queryParamMap.subscribe((params) => {
       if (params.has(SearchQueryParam.QUERY)) {
         const query = params.get(SearchQueryParam.QUERY);
         this.searchForm.value.query = query;
       }
 
-      const size = params.has(SearchQueryParam.SIZE) ?
-        parseInt(params.get(SearchQueryParam.SIZE), 10) :
-        this.config.get('pagination.size.default');
+      const size = params.has(SearchQueryParam.SIZE)
+        ? parseInt(params.get(SearchQueryParam.SIZE), 10)
+        : this.config.get('pagination.size.default');
 
       const closestPageSize = this.pageSizes.reduce((prev, curr) => {
-        return (Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev);
+        return Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev;
       });
       this.searchForm.value.size = closestPageSize;
 
@@ -82,11 +80,12 @@ export class CatalogSearchComponent implements OnInit {
     const params = new SearchRequestParams(this.searchForm.value.query || '*', size, this.currentPage);
     const { list, deferredList } = createPromiseList(size);
     this.apiResults = list;
-    this.apiService.searchApis(params)
+    this.apiService
+      .searchApis(params)
       .toPromise()
       .then((apisResponse: ApisResponse) => {
         this.paginationData = apisResponse.metadata.pagination;
-        this.totalElements = (this.paginationData ? this.paginationData.total : 0);
+        this.totalElements = this.paginationData ? this.paginationData.total : 0;
 
         apisResponse.data.forEach((api) => {
           deferredList.shift().resolve(api);
@@ -105,7 +104,9 @@ export class CatalogSearchComponent implements OnInit {
     if (this.paginationData.current_page !== page) {
       const queryParams = new SearchRequestParams(
         this.activatedRoute.snapshot.queryParamMap.get(SearchQueryParam.QUERY),
-        this.searchForm.value.size, page);
+        this.searchForm.value.size,
+        page,
+      );
       this.router.navigate([], { queryParams });
     }
   }

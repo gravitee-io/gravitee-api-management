@@ -27,14 +27,13 @@ import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-application-analytics',
   templateUrl: './application-analytics.component.html',
-  styleUrls: ['./application-analytics.component.css']
+  styleUrls: ['./application-analytics.component.css'],
 })
 export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
-
   private subscription: any;
   application: Application;
   dashboard: Dashboard;
-  link: { label: string, relativePath: string, icon: string };
+  link: { label: string; relativePath: string; icon: string };
   isSearching: boolean;
 
   @ViewChild(GvAnalyticsFiltersComponent)
@@ -42,10 +41,7 @@ export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
   @ViewChild(GvAnalyticsDashboardComponent)
   dashboardComponent: GvAnalyticsDashboardComponent;
 
-  constructor(
-    private route: ActivatedRoute,
-    private translateService: TranslateService,
-  ) {}
+  constructor(private route: ActivatedRoute, private translateService: TranslateService) {}
 
   ngOnInit() {
     this.application = this.route.snapshot.data.application;
@@ -57,13 +53,13 @@ export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
       } else {
         this.dashboard = dashboards[0];
       }
-      this.subscription = this.route.queryParams.subscribe(param => {
+      this.subscription = this.route.queryParams.subscribe((param) => {
         if (param.dashboard && this.filtersComponent && this.dashboardComponent && param.dashboard !== this.dashboard.id) {
           this.dashboardComponent.dashboard = this.dashboard = dashboards.find((dashboard) => dashboard.id === param.dashboard);
           this.filtersComponent.reset();
         }
       });
-      this.translateService.get('application.analytics.displayLogs').subscribe(displayAnalytics => {
+      this.translateService.get('application.analytics.displayLogs').subscribe((displayAnalytics) => {
         this.link = { label: displayAnalytics, relativePath: '../logs', icon: 'communication:clipboard-list' };
       });
     }

@@ -17,10 +17,9 @@ import { Directive, ViewContainerRef } from '@angular/core';
 import { GvSlot } from './gv-slot';
 
 @Directive({
-  selector: '[gvMenuRightTransitionSlot]'
+  selector: '[gvMenuRightTransitionSlot]',
 })
 export class GvMenuRightTransitionSlotDirective extends GvSlot {
-
   constructor(viewContainerRef: ViewContainerRef) {
     super(viewContainerRef);
   }
@@ -28,5 +27,4 @@ export class GvMenuRightTransitionSlotDirective extends GvSlot {
   getName() {
     return 'right-transition';
   }
-
 }

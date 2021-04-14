@@ -39,5 +39,4 @@ describe('ApplicationGeneralComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

@@ -19,10 +19,7 @@ import { Api, ApiService } from '../../../projects/portal-webclient-sdk/src/lib'
 
 @Injectable({ providedIn: 'root' })
 export class ApiResolver implements Resolve<Api> {
-
-  constructor(
-    private apiService: ApiService,
-  ) {}
+  constructor(private apiService: ApiService) {}
 
   resolve(route: ActivatedRouteSnapshot) {
     const apiId = route.params.apiId;

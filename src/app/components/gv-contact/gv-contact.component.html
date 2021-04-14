@@ -16,88 +16,90 @@
 
 -->
 <form class="page__content page__content-with-aside form" [formGroup]="contactForm" (ngSubmit)="submit()">
-
   <div class="main">
     <div class="page__box">
       <div class="page__box-title">
         <h3 class="title">{{ 'gv-contact.title' | translate }}</h3>
       </div>
       <div class="page__box-content">
-
         <gv-select
-            *ngIf="!apiId"
-            label="{{ 'gv-contact.apis.title' | translate }}"
-            placeholder="{{ 'gv-contact.apis.label' | translate }}"
-            [options]="apis"
-            formControlName="api"
-            name="api"
-            class="form__control"
-            ngDefaultControl>
+          *ngIf="!apiId"
+          label="{{ 'gv-contact.apis.title' | translate }}"
+          placeholder="{{ 'gv-contact.apis.label' | translate }}"
+          [options]="apis"
+          formControlName="api"
+          name="api"
+          class="form__control"
+          ngDefaultControl
+        >
         </gv-select>
 
         <gv-select
-            label="{{ 'gv-contact.applications.title' | translate }}"
-            placeholder="{{ 'gv-contact.applications.label' | translate }}"
-            [options]="applications"
-            formControlName="application"
-            name="application"
-            class="form__control"
-            ngDefaultControl>
+          label="{{ 'gv-contact.applications.title' | translate }}"
+          placeholder="{{ 'gv-contact.applications.label' | translate }}"
+          [options]="applications"
+          formControlName="application"
+          name="application"
+          class="form__control"
+          ngDefaultControl
+        >
         </gv-select>
 
         <gv-input
-            required
-            label="{{ 'gv-contact.subject.title' | translate }}"
-            placeholder="{{ 'gv-contact.subject.label' | translate }}"
-            formControlName="subject"
-            name="subject"
-            class="form__control"
-            ngDefaultControl>
+          required
+          label="{{ 'gv-contact.subject.title' | translate }}"
+          placeholder="{{ 'gv-contact.subject.label' | translate }}"
+          formControlName="subject"
+          name="subject"
+          class="form__control"
+          ngDefaultControl
+        >
         </gv-input>
 
         <gv-text
-            required
-            label="{{ 'gv-contact.content.title' | translate }}"
-            placeholder="{{ 'gv-contact.content.label' | translate }}"
-            formControlName="content"
-            name="content"
-            class="form__control"
-            ngDefaultControl>
+          required
+          label="{{ 'gv-contact.content.title' | translate }}"
+          placeholder="{{ 'gv-contact.content.label' | translate }}"
+          formControlName="content"
+          name="content"
+          class="form__control"
+          ngDefaultControl
+        >
         </gv-text>
 
         <gv-checkbox
-            label="{{ 'gv-contact.receiveCopy' | translate }}"
-            formControlName="copy_to_sender"
-            name="copy_to_sender"
-            class="form__control"
-            ngDefaultControl>
+          label="{{ 'gv-contact.receiveCopy' | translate }}"
+          formControlName="copy_to_sender"
+          name="copy_to_sender"
+          class="form__control"
+          ngDefaultControl
+        >
         </gv-checkbox>
-
       </div>
     </div>
-
   </div>
 
   <aside class="aside">
     <div class="page__box">
-
       <div class="page__box-title">
         <h4 class="title">{{ 'common.options' | translate }}</h4>
       </div>
 
       <div class="page__box-content form__actions">
-
-        <gv-button type="submit" [disabled]="contactForm.invalid || contactForm.disabled" primary
-                   icon="communication:send" [loading]="isSending">
+        <gv-button
+          type="submit"
+          [disabled]="contactForm.invalid || contactForm.disabled"
+          primary
+          icon="communication:send"
+          [loading]="isSending"
+        >
           {{ 'gv-contact.button' | translate }}
         </gv-button>
 
-        <gv-button outlined  (:gv-button:click)="reset()" [disabled]="contactForm.pristine">
+        <gv-button outlined (:gv-button:click)="reset()" [disabled]="contactForm.pristine">
           {{ 'common.reset' | translate }}
         </gv-button>
-
       </div>
     </div>
   </aside>
-
 </form>

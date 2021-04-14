@@ -1,5 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
-@import "~@gravitee/ui-components/assets/css/gravitee-theme.generated.css";
+@import '~@gravitee/ui-components/assets/css/gravitee-theme.generated.css';
 
 :root {
   font-family: var(--gv-theme-font-family);
@@ -101,7 +101,8 @@
   margin-right: 1rem;
 }
 
-.aside, .main {
+.aside,
+.main {
   display: flex;
   flex-direction: column;
 }
@@ -133,7 +134,9 @@
   height: 32px;
 }
 
-.page__box-title, .page__box-content, .page__box-footer {
+.page__box-title,
+.page__box-content,
+.page__box-footer {
   padding: 2rem 4rem;
 }
 
@@ -201,7 +204,8 @@ h4.title span {
   color: var(--gv-theme-neutral-color-darker);
 }
 
-.skeleton, .skeleton a {
+.skeleton,
+.skeleton a {
   animation-direction: alternate;
   animation-duration: 500ms;
   animation-iteration-count: infinite;
@@ -237,7 +241,8 @@ body {
   display: flex;
 }
 
-.empty, .error {
+.empty,
+.error {
   align-items: center;
   box-sizing: border-box;
   color: var(--gv-theme-font-color-dark);
@@ -254,7 +259,7 @@ body {
 
 .message-empty {
   --gv-icon--s: 128px;
-  --gv-icon--c: var(--gv-theme-color)
+  --gv-icon--c: var(--gv-theme-color);
 }
 
 .message-empty > * {
@@ -268,7 +273,7 @@ body {
 }
 
 .invalid {
-  color: var(--gv-theme-color-danger)
+  color: var(--gv-theme-color-danger);
 }
 
 .invalid::after {

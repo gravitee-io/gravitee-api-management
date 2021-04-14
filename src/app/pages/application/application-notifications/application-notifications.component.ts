@@ -15,7 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-switch';
-import { ApplicationService, } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import { ApplicationService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute } from '@angular/router';
 import { NotificationService } from '../../../services/notification.service';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -23,10 +23,9 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 @Component({
   selector: 'app-application-notifications',
   templateUrl: './application-notifications.component.html',
-  styleUrls: ['./application-notifications.component.css']
+  styleUrls: ['./application-notifications.component.css'],
 })
 export class ApplicationNotificationsComponent implements OnInit {
-
   hooks: Array<string>;
   categories: Array<string>;
   hooksByCategory: any;
@@ -40,20 +39,26 @@ export class ApplicationNotificationsComponent implements OnInit {
   ngOnInit() {
     const applicationId = this.route.snapshot.params.applicationId;
     if (applicationId) {
-      this.applicationService.getHooks().toPromise().then((hooks) => {
-        this.applicationService.getNotificationsByApplicationId({ applicationId }).toPromise().then(applicationHooks => {
-          this.hooks = applicationHooks;
-          this.hooksByCategory = {};
-          hooks.forEach(hook => {
-            if (this.hooksByCategory[hook.category]) {
-              this.hooksByCategory[hook.category].push(hook);
-            } else {
-              this.hooksByCategory[hook.category] = [hook];
-            }
-          });
-          this.categories = Object.keys(this.hooksByCategory);
+      this.applicationService
+        .getHooks()
+        .toPromise()
+        .then((hooks) => {
+          this.applicationService
+            .getNotificationsByApplicationId({ applicationId })
+            .toPromise()
+            .then((applicationHooks) => {
+              this.hooks = applicationHooks;
+              this.hooksByCategory = {};
+              hooks.forEach((hook) => {
+                if (this.hooksByCategory[hook.category]) {
+                  this.hooksByCategory[hook.category].push(hook);
+                } else {
+                  this.hooksByCategory[hook.category] = [hook];
+                }
+              });
+              this.categories = Object.keys(this.hooksByCategory);
+            });
         });
-      });
     }
   }
 
@@ -64,9 +69,11 @@ export class ApplicationNotificationsComponent implements OnInit {
     } else {
       this.hooks.splice(this.hooks.indexOf(hook.id), 1);
     }
-    this.applicationService.updateApplicationNotifications(
-      { applicationId, NotificationInput: { hooks: this.hooks } }).toPromise().then(_ => {
-      this.notificationService.success(i18n('application.notifications.saveSuccess'));
-    });
+    this.applicationService
+      .updateApplicationNotifications({ applicationId, NotificationInput: { hooks: this.hooks } })
+      .toPromise()
+      .then((_) => {
+        this.notificationService.success(i18n('application.notifications.saveSuccess'));
+      });
   }
 }

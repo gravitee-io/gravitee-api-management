@@ -28,9 +28,7 @@ import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
   templateUrl: './gv-page-markdown.component.html',
   styleUrls: ['./gv-page-markdown.component.css'],
 })
-
 export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
-
   @Input() withToc: boolean;
 
   pageContent: string;
@@ -45,8 +43,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     private pageService: PageService,
     private router: Router,
     private scrollService: ScrollService,
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     this.baseURL = this.configurationService.get('baseURL');
@@ -71,13 +68,13 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     return {
       image(href, title, text) {
         // is it a portal media ?
-        let parsedURL = /.*\/environments\/[A-Za-z0-9-]*\/portal\/media\/([A-Za-z0-9]*).*/g.exec(href)
+        let parsedURL = /.*\/environments\/[A-Za-z0-9-]*\/portal\/media\/([A-Za-z0-9]*).*/g.exec(href);
         if (parsedURL) {
           const portalHref = `${that.baseURL}/media/${parsedURL[1]}`;
           return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
         } else {
           // is it a API media ?
-          parsedURL = /.*\/environments\/[A-Za-z0-9-]*\/apis\/([A-Za-z0-9-]*)\/media\/([A-Za-z0-9-]*).*/g.exec(href)
+          parsedURL = /.*\/environments\/[A-Za-z0-9-]*\/apis\/([A-Za-z0-9-]*)\/media\/([A-Za-z0-9-]*).*/g.exec(href);
           if (parsedURL) {
             const portalHref = `${that.baseURL}/apis/${parsedURL[1]}/media/${parsedURL[2]}`;
             return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
@@ -104,7 +101,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         }
 
         return defaultRenderer.link(href, title, text);
-      }
+      },
     };
   }
 
@@ -127,7 +124,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         if (element && element.id && ['H2', 'H3', 'H4', 'H5', 'H6'].includes(element.tagName)) {
           this.pageElementsPosition.push({
             id: element.id,
-            offsetTop: document.getElementById(element.id).offsetTop - ScrollService.getHeaderHeight()
+            offsetTop: document.getElementById(element.id).offsetTop - ScrollService.getHeaderHeight(),
           });
         }
       });

@@ -21,17 +21,13 @@ import { ReCaptchaService } from '../../services/recaptcha.service';
 @Component({
   selector: 'app-registration',
   templateUrl: './registration.component.html',
-  styleUrls: ['./registration.component.css']
+  styleUrls: ['./registration.component.css'],
 })
 export class RegistrationComponent implements OnInit {
   isSubmitted: boolean;
   registrationForm: FormGroup;
 
-  constructor(
-    private usersService: UsersService,
-    private formBuilder: FormBuilder,
-    private reCaptchaService: ReCaptchaService,
-  ) {
+  constructor(private usersService: UsersService, private formBuilder: FormBuilder, private reCaptchaService: ReCaptchaService) {
     this.isSubmitted = false;
   }
 
@@ -50,12 +46,13 @@ export class RegistrationComponent implements OnInit {
         email: this.registrationForm.value.email,
         firstname: this.registrationForm.value.firstname,
         lastname: this.registrationForm.value.lastname,
-        confirmation_page_url: window.location.href + '/confirm'
+        confirmation_page_url: window.location.href + '/confirm',
       };
       this.reCaptchaService.execute('registration').then(() => {
-        this.usersService.registerNewUser({ RegisterUserInput: input })
+        this.usersService
+          .registerNewUser({ RegisterUserInput: input })
           .toPromise()
-          .then(() => this.isSubmitted = true)
+          .then(() => (this.isSubmitted = true))
           .catch(() => {});
       });
     }

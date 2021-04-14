@@ -19,15 +19,12 @@ import { ApplicationType, PortalService } from '../../../projects/portal-webclie
 
 @Injectable({ providedIn: 'root' })
 export class EnabledApplicationTypesResolver implements Resolve<Array<ApplicationType>> {
-
-  constructor(
-    private portalService: PortalService,
-  ) {}
+  constructor(private portalService: PortalService) {}
 
   resolve(route: ActivatedRouteSnapshot) {
-    return this.portalService.getEnabledApplicationTypes()
+    return this.portalService
+      .getEnabledApplicationTypes()
       .toPromise()
       .then((response) => response.data);
   }
-
 }

@@ -75,7 +75,6 @@ gv-row {
 }
 
 @media only screen and (max-device-width: 1280px) {
-
   .catalog__section__top {
     display: flex;
     flex-direction: column;
@@ -106,5 +105,4 @@ gv-row {
   .categories__section > gv {
     flex: 0 1 auto;
   }
-
 }

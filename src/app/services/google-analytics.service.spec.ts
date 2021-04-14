@@ -19,16 +19,11 @@ import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/sp
 import { GoogleAnalyticsService } from './google-analytics.service';
 
 describe('GoogleAnalyticsService', () => {
-
   let service: SpectatorService<GoogleAnalyticsService>;
   const createService = createServiceFactory({
     service: GoogleAnalyticsService,
-    imports: [
-      RouterTestingModule,
-    ],
-    providers: [
-      mockProvider(HttpClient),
-    ]
+    imports: [RouterTestingModule],
+    providers: [mockProvider(HttpClient)],
   });
 
   beforeEach(() => {

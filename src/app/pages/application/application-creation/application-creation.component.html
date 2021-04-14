@@ -16,67 +16,77 @@
 
 -->
 <div class="page__content">
-
   <div class="application-creation__content">
-
     <div class="application-creation__stepper">
-      <gv-stepper [steps]="steps" [current]="currentStep"
-                  (:gv-stepper:change)="onChangeStep($event)"></gv-stepper>
+      <gv-stepper [steps]="steps" [current]="currentStep" (:gv-stepper:change)="onChangeStep($event)"></gv-stepper>
     </div>
 
     <div
-        [ngClass]="{'step-content': true, 'one': currentStep === 1, 'two': currentStep === 2,'three': currentStep === 3, 'four': currentStep === 4}">
-
-
+      [ngClass]="{
+        'step-content': true,
+        one: currentStep === 1,
+        two: currentStep === 2,
+        three: currentStep === 3,
+        four: currentStep === 4
+      }"
+    >
       <app-application-creation-step1 (updated)="onStepOneUpdated($event)"></app-application-creation-step1>
-      <app-application-creation-step2 *ngIf="this.allowedTypes"
-                                      (updated)="onStepTwoUpdated($event)"
-                                      [allowedTypes]="allowedTypes"
-                                      [requireClientId]="requireClientId"
-                                      (applicationTypeSelected)="onApplicationTypeSelected($event)">
+      <app-application-creation-step2
+        *ngIf="this.allowedTypes"
+        (updated)="onStepTwoUpdated($event)"
+        [allowedTypes]="allowedTypes"
+        [requireClientId]="requireClientId"
+        (applicationTypeSelected)="onApplicationTypeSelected($event)"
+      >
       </app-application-creation-step2>
 
-      <app-application-creation-step3 (updated)="onStepThreeUpdated($event)"
-                                      [hasValidClientId]="hasValidClientId.bind(this)"
-                                      [subscribeList]="subscribeList"
-                                      (changeStep)="onRequireChangeStep($event)">
+      <app-application-creation-step3
+        (updated)="onStepThreeUpdated($event)"
+        [hasValidClientId]="hasValidClientId.bind(this)"
+        [subscribeList]="subscribeList"
+        (changeStep)="onRequireChangeStep($event)"
+      >
       </app-application-creation-step3>
 
-      <app-application-creation-step4 [canValidate]="canValidate()"
-                                      [applicationType]="applicationType"
-                                      [subscribeList]="subscribeList"
-                                      [creationError]="creationError"
-                                      [creationSuccess]="creationSuccess"
-                                      [applicationForm]="applicationForm"
-                                      [createdApplication]="createdApplication"
-                                      [currentStep]="currentStep">
+      <app-application-creation-step4
+        [canValidate]="canValidate()"
+        [applicationType]="applicationType"
+        [subscribeList]="subscribeList"
+        [creationError]="creationError"
+        [creationSuccess]="creationSuccess"
+        [applicationForm]="applicationForm"
+        [createdApplication]="createdApplication"
+        [currentStep]="currentStep"
+      >
       </app-application-creation-step4>
     </div>
 
     <div class="actions">
       <div>
-        <gv-button outlined
-                   (:gv-button:click)="onExit()"
-                   icon="code:stop">{{ 'applicationCreation.exit' | translate }}</gv-button>
-        <gv-button primary outlined
-                   (:gv-button:click)="onPrevious()"
-                   *ngIf="!this.creationSuccess"
-                   [disabled]="!canPrevious()"
-                   icon="navigation:angle-left">{{ 'applicationCreation.step.previous' | translate }}
+        <gv-button outlined (:gv-button:click)="onExit()" icon="code:stop">{{ 'applicationCreation.exit' | translate }}</gv-button>
+        <gv-button
+          primary
+          outlined
+          (:gv-button:click)="onPrevious()"
+          *ngIf="!this.creationSuccess"
+          [disabled]="!canPrevious()"
+          icon="navigation:angle-left"
+          >{{ 'applicationCreation.step.previous' | translate }}
         </gv-button>
       </div>
 
-      <gv-button primary (:gv-button:click)="onNext()"
-                 *ngIf="hasNext()"
-                 icon-right="navigation:angle-right">{{'applicationCreation.step.next' | translate }}</gv-button>
-      <gv-button *ngIf="hasCreate()"
-                 [disabled]="!canValidate()"
-                 [loading]="creationInProgress"
-                 (:gv-button:click)="createApp()"
-                 primary
-                 icon="code:check">{{'applicationCreation.step.createApp' | translate}}</gv-button>
+      <gv-button primary (:gv-button:click)="onNext()" *ngIf="hasNext()" icon-right="navigation:angle-right">{{
+        'applicationCreation.step.next' | translate
+      }}</gv-button>
+      <gv-button
+        *ngIf="hasCreate()"
+        [disabled]="!canValidate()"
+        [loading]="creationInProgress"
+        (:gv-button:click)="createApp()"
+        primary
+        icon="code:check"
+        >{{ 'applicationCreation.step.createApp' | translate }}</gv-button
+      >
     </div>
   </div>
-
 </div>
-

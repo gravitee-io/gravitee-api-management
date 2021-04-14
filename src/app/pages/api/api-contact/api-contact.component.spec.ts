@@ -25,16 +25,11 @@ import { ResetPasswordComponent } from '../../reset-password/reset-password.comp
 import { ApiContactComponent } from './api-contact.component';
 
 describe('ApiContactComponent', () => {
-
   const createComponent = createComponentFactory({
     component: ResetPasswordComponent,
-    imports: [
-      RouterTestingModule, HttpClientTestingModule, FormsModule, ReactiveFormsModule
-    ],
+    imports: [RouterTestingModule, HttpClientTestingModule, FormsModule, ReactiveFormsModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [
-      mockProvider(PortalService),
-    ]
+    providers: [mockProvider(PortalService)],
   });
 
   let spectator: Spectator<ResetPasswordComponent>;
@@ -49,5 +44,4 @@ describe('ApiContactComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

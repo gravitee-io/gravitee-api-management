@@ -24,10 +24,9 @@ import { ReCaptchaService } from '../../../services/recaptcha.service';
 @Component({
   selector: 'app-registration-confirmation',
   templateUrl: './registration-confirmation.component.html',
-  styleUrls: ['./registration-confirmation.component.css']
+  styleUrls: ['./registration-confirmation.component.css'],
 })
 export class RegistrationConfirmationComponent implements OnInit {
-
   registrationConfirmationForm: FormGroup;
   isSubmitted: boolean;
   token: string;
@@ -40,8 +39,7 @@ export class RegistrationConfirmationComponent implements OnInit {
     private route: ActivatedRoute,
     private tokenService: TokenService,
     private reCaptchaService: ReCaptchaService,
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     this.isSubmitted = false;
@@ -54,10 +52,11 @@ export class RegistrationConfirmationComponent implements OnInit {
       lastname: new FormControl({ value: this.userFromToken.lastname, disabled: true }),
       email: new FormControl({ value: this.userFromToken.email, disabled: true }),
       password: new FormControl('', Validators.required),
-      confirmedPassword: new FormControl('', Validators.required)
+      confirmedPassword: new FormControl('', Validators.required),
     });
 
-    this.registrationConfirmationForm.get('confirmedPassword')
+    this.registrationConfirmationForm
+      .get('confirmedPassword')
       .setValidators([Validators.required, GvValidators.sameValueValidator(this.registrationConfirmationForm.get('password'))]);
     this.reCaptchaService.displayBadge();
   }
@@ -67,15 +66,16 @@ export class RegistrationConfirmationComponent implements OnInit {
       const input: FinalizeRegistrationInput = {
         token: this.token,
         password: this.registrationConfirmationForm.value.password,
-        firstname:this.userFromToken.firstname,
-        lastname: this.userFromToken.lastname
+        firstname: this.userFromToken.firstname,
+        lastname: this.userFromToken.lastname,
       };
       this.reCaptchaService.execute('registration_confirmation').then(() => {
-        this.usersService.finalizeUserRegistration({ FinalizeRegistrationInput: input })
+        this.usersService
+          .finalizeUserRegistration({ FinalizeRegistrationInput: input })
           .toPromise()
-          .then(() => this.isSubmitted = true)
+          .then(() => (this.isSubmitted = true))
           .catch(() => {
-            this.registrationConfirmationForm.patchValue({ password : '', confirmedPassword: '' });
+            this.registrationConfirmationForm.patchValue({ password: '', confirmedPassword: '' });
           });
       });
     }

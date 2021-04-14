@@ -16,10 +16,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'localizedDate'
+  name: 'localizedDate',
 })
 export class LocalizedDatePipe implements PipeTransform {
-
   transform(value: any, format: string = 'shortDate'): any {
     if (format === 'longDate') {
       return new Date(value).toLocaleString();
@@ -28,5 +27,4 @@ export class LocalizedDatePipe implements PipeTransform {
     }
     return new Date(value).toLocaleDateString();
   }
-
 }

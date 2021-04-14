@@ -16,17 +16,23 @@
 
 -->
 <div class="page__box" *ngIf="tocList && tocList.length > 0">
-  <div class="page__box-title"><h3 class="title">{{ 'gv-markdown-toc.title' | translate }}</h3></div>
+  <div class="page__box-title">
+    <h3 class="title">{{ 'gv-markdown-toc.title' | translate }}</h3>
+  </div>
   <div class="page__box-content markdown-toc">
     <ul class="toc-list">
-      <ng-container *ngTemplateOutlet="recursiveListTmpl; context:{ $implicit: tocList }"></ng-container>
+      <ng-container *ngTemplateOutlet="recursiveListTmpl; context: { $implicit: tocList }"></ng-container>
     </ul>
-    
+
     <ng-template #recursiveListTmpl let-list>
       <li *ngFor="let item of list">
-        <a [ngClass]="{'is-active-link': currentAnchor === item.anchor, 'toc-link': true}" [innerHTML]="item.text" (click)="goTo(item.anchor)"></a>
+        <a
+          [ngClass]="{ 'is-active-link': currentAnchor === item.anchor, 'toc-link': true }"
+          [innerHTML]="item.text"
+          (click)="goTo(item.anchor)"
+        ></a>
         <ul *ngIf="item.children.length > 0" class="toc-list">
-          <ng-container *ngTemplateOutlet="recursiveListTmpl; context:{ $implicit: item.children }"></ng-container>
+          <ng-container *ngTemplateOutlet="recursiveListTmpl; context: { $implicit: item.children }"></ng-container>
         </ul>
       </li>
     </ng-template>

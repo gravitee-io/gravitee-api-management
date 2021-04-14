@@ -23,22 +23,17 @@ import { CookieService } from 'ngx-cookie-service';
 @Component({
   selector: 'app-gv-cookie-consent',
   templateUrl: './gv-cookie-consent.component.html',
-  styleUrls: ['./gv-cookie-consent.component.css']
+  styleUrls: ['./gv-cookie-consent.component.css'],
 })
 export class GvCookieConsentComponent implements OnInit {
+  constructor(private googleAnalyticsService: GoogleAnalyticsService, private cookieService: CookieService) {}
 
-  constructor(
-    private googleAnalyticsService: GoogleAnalyticsService,
-    private cookieService: CookieService,
-  ) { }
-
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   _disableGA() {
     this.googleAnalyticsService.disableGA();
     this.cookieService.set(CookieEnum.googleAnalytics, '0', 365, '/');
-}
+  }
 
   _dispose() {
     document.querySelector('.cookie__consent').remove();

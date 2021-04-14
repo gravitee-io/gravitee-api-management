@@ -19,16 +19,11 @@ import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/sp
 import { FeatureGuardService } from './feature-guard.service';
 
 describe('FeatureGuardService', () => {
-
   let service: SpectatorService<FeatureGuardService>;
   const createService = createServiceFactory({
     service: FeatureGuardService,
-    imports: [
-      RouterTestingModule
-    ],
-    providers: [
-      mockProvider(HttpClient),
-    ]
+    imports: [RouterTestingModule],
+    providers: [mockProvider(HttpClient)],
   });
 
   beforeEach(() => {
@@ -38,5 +33,4 @@ describe('FeatureGuardService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
 });

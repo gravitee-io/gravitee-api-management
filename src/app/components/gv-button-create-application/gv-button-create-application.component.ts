@@ -19,18 +19,15 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-gv-button-create-application',
   templateUrl: './gv-button-create-application.component.html',
-  styleUrls: ['./gv-button-create-application.component.css']
+  styleUrls: ['./gv-button-create-application.component.css'],
 })
 export class GvButtonCreateApplicationComponent implements OnInit {
+  constructor(private router: Router) {}
 
-  constructor(private router: Router) { }
-
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   @HostListener(':gv-button:click')
   onClick() {
     this.router.navigate(['/applications/creation'], {});
   }
-
 }

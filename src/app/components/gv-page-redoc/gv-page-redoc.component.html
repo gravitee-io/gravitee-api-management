@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div [ngClass]="{show: isLoaded}" class="gv-page-container">
+<div [ngClass]="{ show: isLoaded }" class="gv-page-container">
   <div #redoc></div>
 </div>
 <div class="gv-documentation__loading" *ngIf="!isLoaded">

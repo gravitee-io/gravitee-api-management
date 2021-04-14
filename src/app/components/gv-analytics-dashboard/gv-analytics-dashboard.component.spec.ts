@@ -27,9 +27,7 @@ describe('GvAnalyticsDashboardComponent', () => {
     component: GvAnalyticsDashboardComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
-    providers: [
-      mockProvider(AnalyticsService)
-    ]
+    providers: [mockProvider(AnalyticsService)],
   });
 
   let spectator: Spectator<GvAnalyticsDashboardComponent>;

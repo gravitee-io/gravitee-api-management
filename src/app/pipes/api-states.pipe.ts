@@ -17,10 +17,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { Api } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Pipe({
-  name: 'apiStates'
+  name: 'apiStates',
 })
 export class ApiStatesPipe implements PipeTransform {
-
   transform(api: Api, ...args: any[]): any {
     const states = [];
     if (api.draft) {

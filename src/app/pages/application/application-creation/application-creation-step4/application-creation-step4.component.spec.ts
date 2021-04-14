@@ -20,7 +20,7 @@ import { ApplicationCreationStep4Component } from './application-creation-step4.
 describe('ApplicationCreationStep4Component', () => {
   const createComponent = createComponentFactory({
     component: ApplicationCreationStep4Component,
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 
   let spectator: Spectator<ApplicationCreationStep4Component>;
@@ -34,5 +34,4 @@ describe('ApplicationCreationStep4Component', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

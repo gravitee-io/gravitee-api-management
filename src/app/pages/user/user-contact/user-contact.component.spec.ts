@@ -30,17 +30,11 @@ import { CurrentUserService } from '../../../services/current-user.service';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('UserContactComponent', () => {
-
   const createComponent = createComponentFactory({
     component: UserContactComponent,
-    imports: [
-      FormsModule, ReactiveFormsModule, HttpClientTestingModule, RouterTestingModule
-    ],
+    imports: [FormsModule, ReactiveFormsModule, HttpClientTestingModule, RouterTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [
-      mockProvider(NotificationService),
-      mockProvider(CurrentUserService),
-    ]
+    providers: [mockProvider(NotificationService), mockProvider(CurrentUserService)],
   });
 
   let spectator: Spectator<UserContactComponent>;
@@ -55,5 +49,4 @@ describe('UserContactComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

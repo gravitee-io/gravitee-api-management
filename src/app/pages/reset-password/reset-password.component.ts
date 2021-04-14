@@ -21,23 +21,19 @@ import { ReCaptchaService } from '../../services/recaptcha.service';
 @Component({
   selector: 'app-reset-password',
   templateUrl: './reset-password.component.html',
-  styleUrls: ['./reset-password.component.css']
+  styleUrls: ['./reset-password.component.css'],
 })
 export class ResetPasswordComponent implements OnInit {
   isSubmitted: boolean;
   resetPasswordForm: FormGroup;
 
-  constructor(
-    private usersService: UsersService,
-    private formBuilder: FormBuilder,
-    private reCaptchaService: ReCaptchaService,
-  ) {
+  constructor(private usersService: UsersService, private formBuilder: FormBuilder, private reCaptchaService: ReCaptchaService) {
     this.isSubmitted = false;
   }
 
   ngOnInit() {
     this.resetPasswordForm = this.formBuilder.group({
-      username: ''
+      username: '',
     });
     this.reCaptchaService.displayBadge();
   }
@@ -46,12 +42,13 @@ export class ResetPasswordComponent implements OnInit {
     if (this.resetPasswordForm.valid && !this.isSubmitted) {
       const input: ResetUserPasswordInput = {
         username: this.resetPasswordForm.value.username,
-        reset_page_url: window.location.href + '/confirm'
+        reset_page_url: window.location.href + '/confirm',
       };
       this.reCaptchaService.execute('reset_password').then(() => {
-        this.usersService.resetUserPassword({ ResetUserPasswordInput: input })
+        this.usersService
+          .resetUserPassword({ ResetUserPasswordInput: input })
           .toPromise()
-          .then(() => this.isSubmitted = true)
+          .then(() => (this.isSubmitted = true))
           .catch(() => {});
       });
     }

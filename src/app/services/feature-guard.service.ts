@@ -19,9 +19,7 @@ import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/r
 
 @Injectable({ providedIn: 'root' })
 export class FeatureGuardService implements CanActivate {
-
-  constructor(private config: ConfigurationService, private router: Router) {
-  }
+  constructor(private config: ConfigurationService, private router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
     if (route.data && route.data.expectedFeature) {

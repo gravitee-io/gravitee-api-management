@@ -19,18 +19,15 @@ import { ApiService, Page } from '../../../projects/portal-webclient-sdk/src/lib
 
 @Injectable({ providedIn: 'root' })
 export class ApiHomepageResolver implements Resolve<Page> {
-
-  constructor(
-    private apiService: ApiService,
-  ) {}
+  constructor(private apiService: ApiService) {}
 
   resolve(route: ActivatedRouteSnapshot) {
     const apiId = route.params.apiId;
-    return this.apiService.getPagesByApiId({ apiId, homepage: true })
+    return this.apiService
+      .getPagesByApiId({ apiId, homepage: true })
       .toPromise()
-      .then((response)=>{
-      return response.data[0]
-    })
+      .then((response) => {
+        return response.data[0];
+      });
   }
-
 }

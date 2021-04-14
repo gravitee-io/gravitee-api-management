@@ -22,7 +22,7 @@ import {
   OnDestroy,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { ApiService, Page, PageConfiguration, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { GvPageContentSlotDirective } from 'src/app/directives/gv-page-content-slot.directive';
@@ -32,10 +32,9 @@ import { PageService } from 'src/app/services/page.service';
 @Component({
   selector: 'app-gv-page',
   templateUrl: './gv-page.component.html',
-  styleUrls: ['./gv-page.component.css']
+  styleUrls: ['./gv-page.component.css'],
 })
 export class GvPageComponent implements OnChanges, OnDestroy {
-
   @ViewChild(GvPageContentSlotDirective, { static: true }) appGvPageContentSlot: GvPageContentSlotDirective;
 
   @Output() loaded = new EventEmitter<boolean>();
@@ -52,8 +51,7 @@ export class GvPageComponent implements OnChanges, OnDestroy {
     private apiService: ApiService,
     private route: ActivatedRoute,
     private pageService: PageService,
-  ) {
-  }
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.page) {
@@ -72,7 +70,7 @@ export class GvPageComponent implements OnChanges, OnDestroy {
         const { GvPageMarkdownComponent } = await import('../gv-page-markdown/gv-page-markdown.component');
         componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageMarkdownComponent);
       } else if (this.page.type.toUpperCase() === Page.TypeEnum.SWAGGER) {
-        const documentationViewer = (this.page.configuration ? this.page.configuration.viewer : '');
+        const documentationViewer = this.page.configuration ? this.page.configuration.viewer : '';
         if (documentationViewer && documentationViewer.toUpperCase() === PageConfiguration.ViewerEnum.Redoc.toUpperCase()) {
           const { GvPageRedocComponent } = await import('../gv-page-redoc/gv-page-redoc.component');
           componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageRedocComponent);
@@ -83,15 +81,14 @@ export class GvPageComponent implements OnChanges, OnDestroy {
       }
       this.appGvPageContentSlot.viewContainerRef.clear();
       if (componentFactory) {
-        this._loadPageWithContent(this.page)
-          .then(page => {
-            this.pageService.disposePage();
-            const viewerPage: any = this.appGvPageContentSlot.viewContainerRef.createComponent(componentFactory);
-            this.pageService.set(page);
-            viewerPage.instance.fragment = this.fragment;
-            viewerPage.instance.withToc = this.withToc;
-            this.loaded.emit(true);
-          });
+        this._loadPageWithContent(this.page).then((page) => {
+          this.pageService.disposePage();
+          const viewerPage: any = this.appGvPageContentSlot.viewContainerRef.createComponent(componentFactory);
+          this.pageService.set(page);
+          viewerPage.instance.fragment = this.fragment;
+          viewerPage.instance.withToc = this.withToc;
+          this.loaded.emit(true);
+        });
       }
     }
   }
@@ -104,5 +101,4 @@ export class GvPageComponent implements OnChanges, OnDestroy {
       return this.portalService.getPageByPageId({ pageId: page.id, include: ['content'] }).toPromise();
     }
   }
-
 }

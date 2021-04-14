@@ -17,100 +17,105 @@
 -->
 
 <form class="page__content page__content-with-aside form" [formGroup]="applicationForm" (ngSubmit)="submit()" *ngIf="application">
-
   <div class="main">
     <div class="page__box">
       <div class="page__box-title">
-        <h3 class="title">{{ "application.general" | translate}}</h3>
+        <h3 class="title">{{ 'application.general' | translate }}</h3>
       </div>
 
       <div class="page__box-content grid">
         <div>
           <gv-input
-              [attr.readonly]="!canUpdate ? 'readonly' : null"
-              class="form__control"
-              required
-              label="{{ 'application.name.title' | translate }}"
-              placeholder="{{ 'application.name.label' | translate }}"
-              formControlName="name"
-              name="application.name"
-              ngDefaultControl>
+            [attr.readonly]="!canUpdate ? 'readonly' : null"
+            class="form__control"
+            required
+            label="{{ 'application.name.title' | translate }}"
+            placeholder="{{ 'application.name.label' | translate }}"
+            formControlName="name"
+            name="application.name"
+            ngDefaultControl
+          >
           </gv-input>
 
           <gv-text
-              [attr.readonly]="!canUpdate ? 'readonly' : null"
-              class="form__control"
-              required
-              rows="7"
-              label="{{ 'application.description.title' | translate }}"
-              placeholder="{{ 'application.description.label' | translate }}"
-              formControlName="description"
-              name="application.description"
-              ngDefaultControl>
+            [attr.readonly]="!canUpdate ? 'readonly' : null"
+            class="form__control"
+            required
+            rows="7"
+            label="{{ 'application.description.title' | translate }}"
+            placeholder="{{ 'application.description.label' | translate }}"
+            formControlName="description"
+            name="application.description"
+            ngDefaultControl
+          >
           </gv-text>
           <div formGroupName="settings" *ngIf="application.settings.app">
             <div formGroupName="app">
               <gv-input
-                  [attr.readonly]="!canUpdate ? 'readonly' : null"
-                  class="form__control"
-                  label="{{ 'application.type.title' | translate }}"
-                  placeholder="{{ 'application.type.label' | translate }}"
-                  formControlName="type"
-                  name="application.type"
-                  ngDefaultControl>
+                [attr.readonly]="!canUpdate ? 'readonly' : null"
+                class="form__control"
+                label="{{ 'application.type.title' | translate }}"
+                placeholder="{{ 'application.type.label' | translate }}"
+                formControlName="type"
+                name="application.type"
+                ngDefaultControl
+              >
               </gv-input>
             </div>
           </div>
-
         </div>
 
         <div>
-          <gv-file-upload *ngIf="canUpdate"
-                          name="picture"
-                          formControlName="picture"
-                          ngDefaultControl
-                          accept="image/*"
-                          except=".svg"
-                          limit="500000"
-                          [label]="'application.change_picture' | translate"></gv-file-upload>
+          <gv-file-upload
+            *ngIf="canUpdate"
+            name="picture"
+            formControlName="picture"
+            ngDefaultControl
+            accept="image/*"
+            except=".svg"
+            limit="500000"
+            [label]="'application.change_picture' | translate"
+          ></gv-file-upload>
 
-          <gv-identity-picture *ngIf="!canUpdate" [picture]="application.picture" [display_name]="displayName">
-          </gv-identity-picture>
+          <gv-identity-picture *ngIf="!canUpdate" [picture]="application.picture" [display_name]="displayName"> </gv-identity-picture>
         </div>
-
       </div>
     </div>
 
     <div class="page__box" *ngIf="isOAuth()">
       <div class="page__box-title">
-        <h3 class="title">{{ "application.oauth2" | translate}}</h3>
+        <h3 class="title">{{ 'application.oauth2' | translate }}</h3>
       </div>
       <div class="page__box-content">
         <div formGroupName="settings">
           <div formGroupName="oauth">
-
             <gv-input
-                clipboard
-                class="form__control"
-                label="{{ 'application.client_id.title' | translate }}"
-                placeholder="{{ 'application.client_id.label' | translate }}"
-                formControlName="client_id"
-                name="application.client_id"
-                ngDefaultControl>
+              clipboard
+              class="form__control"
+              label="{{ 'application.client_id.title' | translate }}"
+              placeholder="{{ 'application.client_id.label' | translate }}"
+              formControlName="client_id"
+              name="application.client_id"
+              ngDefaultControl
+            >
             </gv-input>
 
             <div class="form__control form__control_inline">
               <gv-input
-                  clipboard
-                  type="password"
-                  label="{{ 'application.client_secret.title' | translate }}"
-                  placeholder="{{ 'application.client_secret.label' | translate }}"
-                  formControlName="client_secret"
-                  name="application.client_secret"
-                  ngDefaultControl>
+                clipboard
+                type="password"
+                label="{{ 'application.client_secret.title' | translate }}"
+                placeholder="{{ 'application.client_secret.label' | translate }}"
+                formControlName="client_secret"
+                name="application.client_secret"
+                ngDefaultControl
+              >
               </gv-input>
-              <gv-confirm *ngIf="canUpdate && application.settings.oauth.renew_client_secret_supported"
-                          [message]="'application.renewSecret.message' | translate" (:gv-confirm:ok)="renewSecret()">
+              <gv-confirm
+                *ngIf="canUpdate && application.settings.oauth.renew_client_secret_supported"
+                [message]="'application.renewSecret.message' | translate"
+                (:gv-confirm:ok)="renewSecret()"
+              >
                 <gv-button secondary [loading]="isRenewing" icon="code:lock-overturning">
                   {{ 'application.renewSecret.label' | translate }}
                 </gv-button>
@@ -118,75 +123,83 @@
             </div>
 
             <div class="grid-content">
-
               <div class="grid-column">
                 <div class="form__control" formArrayName="grant_types">
+                  <div>{{ 'applicationCreation.security.label' | translate }}</div>
+                  <div style="opacity: 0.7">{{ 'applicationCreation.security.description' | translate }}</div>
 
-                  <div>{{'applicationCreation.security.label' | translate }}</div>
-                  <div style="opacity: 0.7">{{'applicationCreation.security.description' | translate }}</div>
-
-                  <gv-switch *ngFor="let grantType of allGrantTypes"
-                             [label]="grantType.name"
-                             [value]="grantType.value"
-                             [disabled]="grantType.disabled"
-                             (input)="onSwitchGrant($event, grantType)">
+                  <gv-switch
+                    *ngFor="let grantType of allGrantTypes"
+                    [label]="grantType.name"
+                    [value]="grantType.value"
+                    [disabled]="grantType.disabled"
+                    (input)="onSwitchGrant($event, grantType)"
+                  >
                   </gv-switch>
-
                 </div>
               </div>
               <div class="grid-column" *ngIf="requiresRedirectUris">
                 <div class="form__control">
                   <gv-input
-                      autofocus
-                      clickable
-                      no-submit
-                      (:gv-input:submit)="addRedirectUri($event)"
-                      (blur)="addRedirectUri($event)"
-                      [label]="('applicationType.security.redirectUris.label' | translate)"
-                      [valid]="validRedirectUris"
-                      [invalid]="!validRedirectUris"
-                      type="url"
-                      placeholder="https://example.com"
-                      icon="code:plus"></gv-input>
+                    autofocus
+                    clickable
+                    no-submit
+                    (:gv-input:submit)="addRedirectUri($event)"
+                    (blur)="addRedirectUri($event)"
+                    [label]="'applicationType.security.redirectUris.label' | translate"
+                    [valid]="validRedirectUris"
+                    [invalid]="!validRedirectUris"
+                    type="url"
+                    placeholder="https://example.com"
+                    icon="code:plus"
+                  ></gv-input>
                 </div>
                 <div *ngIf="redirectURIs.controls.length > 0">
                   <div class="label">{{ 'applicationType.security.redirectUris.description' | translate }}</div>
-                  <gv-tag *ngFor="let control of redirectURIs.controls; index as i"
-                          icon-right="general:close" minor clickable
-                          (:gv-tag:click)="removeRedirectUri(i)">{{control.value}}</gv-tag>
+                  <gv-tag
+                    *ngFor="let control of redirectURIs.controls; index as i"
+                    icon-right="general:close"
+                    minor
+                    clickable
+                    (:gv-tag:click)="removeRedirectUri(i)"
+                    >{{ control.value }}</gv-tag
+                  >
                 </div>
               </div>
-
             </div>
-
           </div>
         </div>
-
       </div>
     </div>
   </div>
 
   <aside class="aside">
-
     <div class="page__box" *ngIf="canUpdate || canDelete">
       <div class="page__box-title">
-        <h4 class="title">{{ "common.options" | translate}}</h4>
+        <h4 class="title">{{ 'common.options' | translate }}</h4>
       </div>
       <div class="page__box-footer form__actions">
-        <gv-button *ngIf="canUpdate"
-                   type="submit" [disabled]="applicationForm.invalid || applicationForm.pristine" primary
-                   [loading]="isSaving" icon="general:save">
+        <gv-button
+          *ngIf="canUpdate"
+          type="submit"
+          [disabled]="applicationForm.invalid || applicationForm.pristine"
+          primary
+          [loading]="isSaving"
+          icon="general:save"
+        >
           {{ 'common.save' | translate }}
         </gv-button>
-        <gv-button *ngIf="canUpdate" (:gv-button:click)="reset()" outlined
-                   [disabled]="applicationForm.pristine">
+        <gv-button *ngIf="canUpdate" (:gv-button:click)="reset()" outlined [disabled]="applicationForm.pristine">
           {{ 'common.reset' | translate }}
         </gv-button>
-        <gv-confirm *ngIf="canDelete" [message]="'application.delete.message' | translate"
-                    danger
-                    (:gv-confirm:ok)="delete()"
-                    [cancelLabel]="'application.delete.cancel' | translate"
-                    [okLabel]="'application.delete.ok' | translate">
+        <gv-confirm
+          *ngIf="canDelete"
+          [message]="'application.delete.message' | translate"
+          danger
+          (:gv-confirm:ok)="delete()"
+          [cancelLabel]="'application.delete.cancel' | translate"
+          [okLabel]="'application.delete.ok' | translate"
+        >
           <gv-button link [loading]="isDeleting">
             {{ 'common.delete' | translate }}
           </gv-button>
@@ -196,28 +209,28 @@
 
     <div class="page__box">
       <div class="page__box-title">
-        <h4 class="title">{{ 'application.information.title' | translate}}</h4>
+        <h4 class="title">{{ 'application.information.title' | translate }}</h4>
       </div>
       <div class="page__box-content">
         <ul class="info__miscellaneous">
-            <li class="info__miscellaneous_item">
-              <span>{{'application.information.owner' | translate}}</span> {{ application.owner.display_name }}
-            </li>
-            <li class="info__miscellaneous_item">
-              <span>{{'application.information.type' | translate}}</span> {{ 'application.types' | translate: {type: application.applicationType} }}
-            </li>
-            <li class="info__miscellaneous_item">
-              <span>{{'application.information.createdDate' | translate}}</span> {{ toLocaleDateString(application.created_at.toString()) }}
-            </li>
-            <li class="info__miscellaneous_item">
-              <span>{{'application.information.lastUpdate' | translate}}</span> <gv-relative-time [datetime]="application.updated_at" noFuture></gv-relative-time>
-            </li>
+          <li class="info__miscellaneous_item">
+            <span>{{ 'application.information.owner' | translate }}</span> {{ application.owner.display_name }}
+          </li>
+          <li class="info__miscellaneous_item">
+            <span>{{ 'application.information.type' | translate }}</span>
+            {{ 'application.types' | translate: { type: application.applicationType } }}
+          </li>
+          <li class="info__miscellaneous_item">
+            <span>{{ 'application.information.createdDate' | translate }}</span> {{ toLocaleDateString(application.created_at.toString()) }}
+          </li>
+          <li class="info__miscellaneous_item">
+            <span>{{ 'application.information.lastUpdate' | translate }}</span>
+            <gv-relative-time [datetime]="application.updated_at" noFuture></gv-relative-time>
+          </li>
         </ul>
       </div>
     </div>
 
     <gv-list class="page__box" [items]="connectedApis" title="{{ 'application.list.connectedApis' | translate }}" clickable></gv-list>
   </aside>
-
 </form>
-

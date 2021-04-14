@@ -19,14 +19,10 @@ import { ApiInformation, PortalService } from '../../../projects/portal-webclien
 
 @Injectable({ providedIn: 'root' })
 export class ApiInformationsResolver implements Resolve<Array<ApiInformation>> {
-
-  constructor(
-    private portalService: PortalService,
-  ) {}
+  constructor(private portalService: PortalService) {}
 
   resolve(route: ActivatedRouteSnapshot) {
     const apiId = route.params.apiId;
-    return this.portalService.getApiInformations({ apiId })
+    return this.portalService.getApiInformations({ apiId });
   }
-
 }

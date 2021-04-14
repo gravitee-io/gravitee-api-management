@@ -20,9 +20,7 @@ import { CurrentUserService } from './current-user.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuardService implements CanActivate {
-
-  constructor(private currentUserService: CurrentUserService, private router: Router) {
-  }
+  constructor(private currentUserService: CurrentUserService, private router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot): Promise<boolean | UrlTree> {
     if (route && route.data) {
@@ -30,7 +28,7 @@ export class AuthGuardService implements CanActivate {
       if (expectedRole) {
         return new Promise((resolve) => {
           const user = this.currentUserService.get().getValue();
-          if (expectedRole === Role.AUTH_USER && user == null || expectedRole === Role.GUEST && user) {
+          if ((expectedRole === Role.AUTH_USER && user == null) || (expectedRole === Role.GUEST && user)) {
             resolve(this.router.parseUrl('/'));
           } else {
             resolve(true);

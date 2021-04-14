@@ -26,21 +26,19 @@ import { PlatformLocation } from '@angular/common';
 @Component({
   selector: 'app-gv-page-swaggerui',
   templateUrl: './gv-page-swaggerui.component.html',
-  styleUrls: ['./gv-page-swaggerui.component.css']
+  styleUrls: ['./gv-page-swaggerui.component.css'],
 })
 export class GvPageSwaggerUIComponent implements OnInit {
-
   constructor(
     private currentUserService: CurrentUserService,
     private pageService: PageService,
-    private platformLocation: PlatformLocation
-  ) {
-  }
+    private platformLocation: PlatformLocation,
+  ) {}
 
   currentUser: User;
 
   ngOnInit() {
-    this.currentUserService.get().subscribe(newCurrentUser => {
+    this.currentUserService.get().subscribe((newCurrentUser) => {
       this.currentUser = newCurrentUser;
     });
     const page = this.pageService.getCurrentPage();
@@ -65,10 +63,10 @@ export class GvPageSwaggerUIComponent implements OnInit {
       statePlugins: {
         spec: {
           wrapSelectors: {
-            allowTryItOutFor: () => () => false
-          }
-        }
-      }
+            allowTryItOutFor: () => () => false,
+          },
+        },
+      },
     };
   }
 
@@ -80,9 +78,8 @@ export class GvPageSwaggerUIComponent implements OnInit {
   }
 
   _tryItEnabled(page: Page) {
-    return page.configuration && page.configuration.try_it &&
-      (this.currentUser || page.configuration.try_it_anonymous);
-  };
+    return page.configuration && page.configuration.try_it && (this.currentUser || page.configuration.try_it_anonymous);
+  }
 
   _prepareConfig(page: Page) {
     const customPlugins = [];
@@ -100,9 +97,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
     const cfg: any = {
       dom_id: '#swagger',
       defaultModelsExpandDepth: 0,
-      presets: [
-        SwaggerUIBundle.presets.apis,
-      ],
+      presets: [SwaggerUIBundle.presets.apis],
       layout: 'BaseLayout',
       plugins: customPlugins,
       requestInterceptor: (req) => {
@@ -125,8 +120,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
       cfg.filter = page.configuration.enable_filtering || false;
       cfg.showExtensions = page.configuration.show_extensions || false;
       cfg.showCommonExtensions = page.configuration.show_common_extensions || false;
-      cfg.maxDisplayedTags = page.configuration.max_displayed_tags < 0
-        ? undefined : page.configuration.max_displayed_tags;
+      cfg.maxDisplayedTags = page.configuration.max_displayed_tags < 0 ? undefined : page.configuration.max_displayed_tags;
     }
 
     return cfg;

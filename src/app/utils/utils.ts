@@ -16,8 +16,6 @@
 
 export function createPromiseList(size) {
   const deferredList = [];
-  const list = new Array(size)
-    .fill(null)
-    .map(() => new Promise((resolve, reject) => (deferredList.push({ resolve, reject }))));
+  const list = new Array(size).fill(null).map(() => new Promise((resolve, reject) => deferredList.push({ resolve, reject })));
   return { list, deferredList };
 }

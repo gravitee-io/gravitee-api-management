@@ -24,20 +24,11 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApiSubscribeComponent', () => {
-
   const createComponent = createComponentFactory({
     component: ApiSubscribeComponent,
-    imports: [
-      HttpClientTestingModule,
-      RouterTestingModule,
-      TranslateTestingModule,
-      FormsModule,
-      ReactiveFormsModule
-    ],
-    schemas: [
-      CUSTOM_ELEMENTS_SCHEMA,
-    ],
-    providers: [ApiStatesPipe, ApiLabelsPipe]
+    imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [ApiStatesPipe, ApiLabelsPipe],
   });
 
   let spectator: Spectator<ApiSubscribeComponent>;
@@ -51,5 +42,4 @@ describe('ApiSubscribeComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });
