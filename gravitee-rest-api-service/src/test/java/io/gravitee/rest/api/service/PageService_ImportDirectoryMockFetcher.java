@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.fetcher.api.FetcherConfiguration;
+import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.fetcher.api.FilesFetcher;
 import io.gravitee.fetcher.api.Resource;
-
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -29,6 +28,7 @@ import java.util.Collections;
  * @author GraviteeSource Team
  */
 public class PageService_ImportDirectoryMockFetcher implements FilesFetcher {
+
     public PageService_ImportDirectoryMockFetcher(PageService_MockFilesFetcherConfiguration cfg) {
         super();
     }
@@ -43,16 +43,15 @@ public class PageService_ImportDirectoryMockFetcher implements FilesFetcher {
 
     @Override
     public String[] files() throws FetcherException {
-
-        return new String[]{
-                "/src/doc/m1.md",
-                "/swagger.json",
-                "/src/doc/sub.m11.md",
-                "/src/doc/m2.yaml",
-                "/src/folder.with.dot/m2.MD",
-                "/src/noFolder",
-                "/src/noFolder2/",
-                "/src/unsupported.extension"
+        return new String[] {
+            "/src/doc/m1.md",
+            "/swagger.json",
+            "/src/doc/sub.m11.md",
+            "/src/doc/m2.yaml",
+            "/src/folder.with.dot/m2.MD",
+            "/src/noFolder",
+            "/src/noFolder2/",
+            "/src/unsupported.extension",
         };
     }
 

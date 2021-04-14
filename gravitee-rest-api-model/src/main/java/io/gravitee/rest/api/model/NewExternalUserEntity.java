@@ -39,10 +39,10 @@ public class NewExternalUserEntity {
     @NotNull
     private String email;
 
-	/**
-	 * The user source
-	 */
-	private String source;
+    /**
+     * The user source
+     */
+    private String source;
 
     /**
      * The user picture
@@ -114,14 +114,29 @@ public class NewExternalUserEntity {
 
     @Override
     public String toString() {
-        return "NewExternalUserEntity{" +
-                "firstname='" + firstname + '\'' +
-                ", lastname='" + lastname + '\'' +
-                ", email='" + email + '\'' +
-                ", source='" + source + '\'' +
-                ", picture='" + picture + '\'' +
-                ", sourceId='" + sourceId + '\'' +
-                ", newsletter=" + newsletter +
-                '}';
+        return (
+            "NewExternalUserEntity{" +
+            "firstname='" +
+            firstname +
+            '\'' +
+            ", lastname='" +
+            lastname +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", source='" +
+            source +
+            '\'' +
+            ", picture='" +
+            picture +
+            '\'' +
+            ", sourceId='" +
+            sourceId +
+            '\'' +
+            ", newsletter=" +
+            newsletter +
+            '}'
+        );
     }
 }

@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.Permission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,16 +32,16 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface RoleService {
-    RoleEntity              create                      (NewRoleEntity role);
-    void                    createOrUpdateSystemRoles   (String organizationId);
-    void                    delete                      (String roleId);
-    List<RoleEntity>        findAll                     ();
-    RoleEntity              findById                    (String roleId);
-    List<RoleEntity>        findByScope                 (RoleScope scope);
-    Optional<RoleEntity>    findByScopeAndName          (RoleScope scope, String name);
-    List<RoleEntity>        findDefaultRoleByScopes     (RoleScope... scopes);
-    boolean                 hasPermission               (Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls);
-    void                    initialize                  (String organizationId);
-    RoleEntity              update                      (UpdateRoleEntity role);
-    RoleScope               findScopeByMembershipReferenceType (MembershipReferenceType type);
+    RoleEntity create(NewRoleEntity role);
+    void createOrUpdateSystemRoles(String organizationId);
+    void delete(String roleId);
+    List<RoleEntity> findAll();
+    RoleEntity findById(String roleId);
+    List<RoleEntity> findByScope(RoleScope scope);
+    Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name);
+    List<RoleEntity> findDefaultRoleByScopes(RoleScope... scopes);
+    boolean hasPermission(Map<String, char[]> userPermissions, Permission permission, RolePermissionAction[] acls);
+    void initialize(String organizationId);
+    RoleEntity update(UpdateRoleEntity role);
+    RoleScope findScopeByMembershipReferenceType(MembershipReferenceType type);
 }

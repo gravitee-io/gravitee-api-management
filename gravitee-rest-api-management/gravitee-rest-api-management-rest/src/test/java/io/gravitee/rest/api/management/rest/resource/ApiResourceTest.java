@@ -15,6 +15,15 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.*;
+import static java.util.Base64.getEncoder;
+import static javax.ws.rs.client.Entity.entity;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -25,29 +34,19 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.media.multipart.MultiPart;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
-
-import static io.gravitee.common.http.HttpStatusCode.*;
-import static java.util.Base64.getEncoder;
-import static javax.ws.rs.client.Entity.entity;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.media.multipart.MultiPart;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -163,7 +162,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotUpdateApiBecauseTooLargePicture() {
-        updateApiEntity.setPicture("data:image/png;base64,"+ randomAlphanumeric(1_000_000));
+        updateApiEntity.setPicture("data:image/png;base64," + randomAlphanumeric(1_000_000));
         final Response response = target(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -183,7 +182,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldAccessToApiState_asAdmin() {
-        final Response response = target(API+"/state").request().get();
+        final Response response = target(API + "/state").request().get();
 
         assertEquals(OK_200, response.getStatus());
         ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
@@ -193,7 +192,9 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotUpdateApiBecauseSVGImage() {
-        updateApiEntity.setPicture("data:image/svg+xml;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
+        updateApiEntity.setPicture(
+            "data:image/svg+xml;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg=="
+        );
         final Response response = target(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -203,7 +204,9 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotUpdateApiBecauseNotAnImage() {
-        updateApiEntity.setPicture("data:text/plain;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg==");
+        updateApiEntity.setPicture(
+            "data:text/plain;base64,PGh0bWw+CjxoZWFkPjwvaGVhZD4KPGJvZHk+Cjxzb21ldGhpbmc6c2NyaXB0IHhtbG5zOnNvbWV0aGluZz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCI+YWxlcnQoMSk8L3NvbWV0aGluZzpzY3JpcHQ+CjwvYm9keT4KPC9odG1sPg=="
+        );
         final Response response = target(API).request().put(Entity.json(updateApiEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -212,8 +215,12 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     public void shouldUploadApiMedia() {
-        StreamDataBodyPart filePart = new StreamDataBodyPart("file",
-                this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.valueOf("image/svg+xml"));
+        StreamDataBodyPart filePart = new StreamDataBodyPart(
+            "file",
+            this.getClass().getResourceAsStream("/media/logo.svg"),
+            "logo.svg",
+            MediaType.valueOf("image/svg+xml")
+        );
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
@@ -221,8 +228,12 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     public void shouldNotUploadApiMediaBecauseWrongMediaType() {
-        StreamDataBodyPart filePart = new StreamDataBodyPart("file",
-                this.getClass().getResourceAsStream("/media/logo.svg"), "logo.svg", MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        StreamDataBodyPart filePart = new StreamDataBodyPart(
+            "file",
+            this.getClass().getResourceAsStream("/media/logo.svg"),
+            "logo.svg",
+            MediaType.APPLICATION_OCTET_STREAM_TYPE
+        );
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
@@ -254,8 +265,12 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     private void shouldNotUpdateApiMediaBecauseXSS(final String fileName) {
-        final StreamDataBodyPart filePart = new StreamDataBodyPart("file",
-                this.getClass().getResourceAsStream("/media/" + fileName), fileName, IMAGE_SVG_XML_TYPE);
+        final StreamDataBodyPart filePart = new StreamDataBodyPart(
+            "file",
+            this.getClass().getResourceAsStream("/media/" + fileName),
+            fileName,
+            IMAGE_SVG_XML_TYPE
+        );
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
         final Response response = target(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));

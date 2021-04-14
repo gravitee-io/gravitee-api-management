@@ -15,10 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.NewTicketEntity;
 import io.gravitee.rest.api.portal.rest.model.TicketInput;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -26,7 +25,7 @@ import io.gravitee.rest.api.portal.rest.model.TicketInput;
  */
 @Component
 public class TicketMapper {
-    
+
     public NewTicketEntity convert(TicketInput ticketInput) {
         final NewTicketEntity ticketEntity = new NewTicketEntity();
 
@@ -39,5 +38,4 @@ public class TicketMapper {
         ticketEntity.setSubject(ticketInput.getSubject());
         return ticketEntity;
     }
-
 }

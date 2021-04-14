@@ -15,11 +15,17 @@
  */
 package io.gravitee.rest.api.portal.rest.spring;
 
+import freemarker.cache.ConditionalTemplateConfigurationFactory;
+import freemarker.cache.FileExtensionMatcher;
+import freemarker.cache.FileTemplateLoader;
+import freemarker.core.HTMLOutputFormat;
+import freemarker.core.TemplateClassResolver;
+import freemarker.core.TemplateConfiguration;
+import io.gravitee.common.util.EnvironmentUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +35,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-
-import freemarker.cache.ConditionalTemplateConfigurationFactory;
-import freemarker.cache.FileExtensionMatcher;
-import freemarker.cache.FileTemplateLoader;
-import freemarker.core.HTMLOutputFormat;
-import freemarker.core.TemplateClassResolver;
-import freemarker.core.TemplateConfiguration;
-import io.gravitee.common.util.EnvironmentUtils;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -92,23 +90,26 @@ public class EmailConfiguration {
         Map<String, Object> envProperties = EnvironmentUtils.getPropertiesStartingWith(environment, EMAIL_PROPERTIES_PREFIX);
 
         Properties properties = new Properties();
-        envProperties.forEach((key, value) -> properties.setProperty(
-                MAILAPI_PROPERTIES_PREFIX + key.substring(EMAIL_PROPERTIES_PREFIX.length() + 1),
-                value.toString()));
+        envProperties.forEach(
+            (key, value) ->
+                properties.setProperty(MAILAPI_PROPERTIES_PREFIX + key.substring(EMAIL_PROPERTIES_PREFIX.length() + 1), value.toString())
+        );
 
         return properties;
     }
 
     @Bean
     public freemarker.template.Configuration getConfiguration() {
-        final freemarker.template.Configuration configuration =
-                new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22);
+        final freemarker.template.Configuration configuration = new freemarker.template.Configuration(
+            freemarker.template.Configuration.VERSION_2_3_22
+        );
 
         TemplateConfiguration tcHTML = new TemplateConfiguration();
         tcHTML.setOutputFormat(HTMLOutputFormat.INSTANCE);
 
         configuration.setTemplateConfigurations(
-                new ConditionalTemplateConfigurationFactory(new FileExtensionMatcher(HTML_TEMPLATE_EXTENSION), tcHTML));
+            new ConditionalTemplateConfigurationFactory(new FileExtensionMatcher(HTML_TEMPLATE_EXTENSION), tcHTML)
+        );
 
         try {
             configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
@@ -118,5 +119,4 @@ public class EmailConfiguration {
         }
         return configuration;
     }
-
 }

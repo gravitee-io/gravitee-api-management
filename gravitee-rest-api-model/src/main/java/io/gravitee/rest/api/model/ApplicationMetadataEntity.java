@@ -49,8 +49,6 @@ public class ApplicationMetadataEntity extends ReferenceMetadataEntity {
 
     @Override
     public String toString() {
-        return "ApplicationMetadataEntity{" +
-                "applicationId='" + applicationId + '\'' +
-                "} " + super.toString();
+        return "ApplicationMetadataEntity{" + "applicationId='" + applicationId + '\'' + "} " + super.toString();
     }
 }

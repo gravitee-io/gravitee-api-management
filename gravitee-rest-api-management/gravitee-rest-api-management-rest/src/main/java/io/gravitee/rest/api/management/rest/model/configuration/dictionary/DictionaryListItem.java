@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.rest.model.configuration.dictionary;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
-
 import java.util.Date;
 
 /**

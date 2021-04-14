@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static java.util.Collections.singletonList;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.param.AnalyticsAverageParam;
 import io.gravitee.rest.api.management.rest.resource.param.healthcheck.HealthcheckFieldParam;
@@ -32,12 +34,9 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.swagger.annotations.*;
-
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-
-import static java.util.Collections.singletonList;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,7 +44,7 @@ import static java.util.Collections.singletonList;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Health"})
+@Api(tags = { "API Health" })
 public class ApiHealthResource extends AbstractResource {
 
     @Inject
@@ -59,13 +58,11 @@ public class ApiHealthResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation("Health-check statistics for API")
-    @Permissions({
-            @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
     public Response getApiHealth(
-            @QueryParam("type") @DefaultValue("availability") HealthcheckTypeParam healthcheckTypeParam,
-            @QueryParam("field") @DefaultValue("endpoint") HealthcheckFieldParam healthcheckFieldParam) {
-
+        @QueryParam("type") @DefaultValue("availability") HealthcheckTypeParam healthcheckTypeParam,
+        @QueryParam("field") @DefaultValue("endpoint") HealthcheckFieldParam healthcheckFieldParam
+    ) {
         switch (healthcheckTypeParam.getValue()) {
             case RESPONSE_TIME:
                 return Response.ok(healthCheckService.getResponseTime(api, healthcheckFieldParam.getValue().name())).build();
@@ -77,12 +74,9 @@ public class ApiHealthResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation("Health-check average statistics for API")
-    @Permissions({
-            @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
     @Path("/average")
-    public Response getApiHealthAverage(
-            @BeanParam AnalyticsAverageParam analyticsAverageParam) {
+    public Response getApiHealthAverage(@BeanParam AnalyticsAverageParam analyticsAverageParam) {
         return Response.ok(executeDateHisto(api, analyticsAverageParam)).build();
     }
 
@@ -93,27 +87,31 @@ public class ApiHealthResource extends AbstractResource {
         query.setInterval(analyticsAverageParam.getInterval());
         query.setRootField("api");
         query.setRootIdentifier(api);
-        query.setAggregations(singletonList(new io.gravitee.rest.api.model.analytics.query.Aggregation() {
-            @Override
-            public AggregationType type() {
-                switch (analyticsAverageParam.getType()) {
-                    case AVAILABILITY:
-                        return AggregationType.FIELD;
-                    default:
-                        return AggregationType.AVG;
-                }
-            }
+        query.setAggregations(
+            singletonList(
+                new io.gravitee.rest.api.model.analytics.query.Aggregation() {
+                    @Override
+                    public AggregationType type() {
+                        switch (analyticsAverageParam.getType()) {
+                            case AVAILABILITY:
+                                return AggregationType.FIELD;
+                            default:
+                                return AggregationType.AVG;
+                        }
+                    }
 
-            @Override
-            public String field() {
-                switch (analyticsAverageParam.getType()) {
-                    case AVAILABILITY:
-                        return "available";
-                    default:
-                        return "response-time";
+                    @Override
+                    public String field() {
+                        switch (analyticsAverageParam.getType()) {
+                            case AVAILABILITY:
+                                return "available";
+                            default:
+                                return "response-time";
+                        }
+                    }
                 }
-            }
-        }));
+            )
+        );
         return healthCheckService.query(query);
     }
 
@@ -121,13 +119,9 @@ public class ApiHealthResource extends AbstractResource {
     @Path("logs")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Health-check logs")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "API logs"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({@Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)})
-    public SearchLogResponse getApiHealthCheckLogs(
-            @BeanParam LogsParam param) {
-
+    @ApiResponses({ @ApiResponse(code = 200, message = "API logs"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
+    public SearchLogResponse getApiHealthCheckLogs(@BeanParam LogsParam param) {
         param.validate();
 
         LogQuery logQuery = new LogQuery();
@@ -144,13 +138,11 @@ public class ApiHealthResource extends AbstractResource {
     @Path("logs/{log}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Health-check log")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Single health-check log"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({@Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ)})
-    public Log getApiHealthCheckLog(
-            @PathParam("log") String logId) {
-
+    @ApiResponses(
+        { @ApiResponse(code = 200, message = "Single health-check log"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
+    public Log getApiHealthCheckLog(@PathParam("log") String logId) {
         return healthCheckService.findLog(logId);
     }
 }

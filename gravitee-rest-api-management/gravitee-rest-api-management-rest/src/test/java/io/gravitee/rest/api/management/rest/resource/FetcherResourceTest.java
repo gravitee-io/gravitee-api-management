@@ -15,21 +15,19 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.FetcherEntity;
-
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import javax.ws.rs.core.Response;
-import java.util.LinkedHashMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.FetcherEntity;
+import java.util.LinkedHashMap;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
+import org.mockito.Mockito;
+
 /**
- * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com) 
+ * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
  * @author GraviteeSource Team
  */
 public class FetcherResourceTest extends AbstractResourceTest {
@@ -69,7 +67,7 @@ public class FetcherResourceTest extends AbstractResourceTest {
         Object o = response.readEntity(Object.class);
         assertThat(o).isNotNull();
         assertThat(o).isInstanceOf(LinkedHashMap.class);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertThat(elt).hasSize(1);
         assertThat(elt.get("id")).isEqualTo("my-id");
 

@@ -40,5 +40,4 @@ public enum GroupPermission implements Permission {
     public int getMask() {
         return mask;
     }
-
 }

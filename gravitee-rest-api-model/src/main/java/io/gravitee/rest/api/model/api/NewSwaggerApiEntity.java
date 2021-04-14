@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.api;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -27,14 +27,19 @@ public class NewSwaggerApiEntity {
 
     @NotNull
     private String name;
+
     @NotNull
     private String version;
+
     @NotNull
     private String description;
+
     @NotNull
     private String contextPath;
+
     @NotNull
     private List<String> endpoint;
+
     private Set<String> groups;
     private List<SwaggerPath> paths;
 
@@ -96,14 +101,28 @@ public class NewSwaggerApiEntity {
 
     @Override
     public String toString() {
-        return "NewSwaggerApiEntity{" +
-                "name='" + name + '\'' +
-                ", version='" + version + '\'' +
-                ", description='" + description + '\'' +
-                ", contextPath='" + contextPath + '\'' +
-                ", endpoint='" + endpoint + '\'' +
-                ", groups=" + groups +
-                ", paths=" + paths +
-                '}';
+        return (
+            "NewSwaggerApiEntity{" +
+            "name='" +
+            name +
+            '\'' +
+            ", version='" +
+            version +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", contextPath='" +
+            contextPath +
+            '\'' +
+            ", endpoint='" +
+            endpoint +
+            '\'' +
+            ", groups=" +
+            groups +
+            ", paths=" +
+            paths +
+            '}'
+        );
     }
 }

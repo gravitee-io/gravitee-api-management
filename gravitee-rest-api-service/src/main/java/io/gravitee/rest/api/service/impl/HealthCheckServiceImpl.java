@@ -47,14 +47,13 @@ import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -81,19 +80,19 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     @Override
     public Analytics query(final DateHistogramQuery query) {
         try {
-            final DateHistogramQueryBuilder queryBuilder = QueryBuilders.dateHistogram()
-                    .query(query.getQuery())
-                    .timeRange(
-                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
-                            IntervalBuilder.interval(query.getInterval())
-                    )
-                    .root(query.getRootField(), query.getRootIdentifier());
+            final DateHistogramQueryBuilder queryBuilder = QueryBuilders
+                .dateHistogram()
+                .query(query.getQuery())
+                .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
+                .root(query.getRootField(), query.getRootIdentifier());
 
             if (query.getAggregations() != null) {
-                query.getAggregations().stream()
-                        .forEach(aggregation ->
-                                queryBuilder.aggregation(
-                                        AggregationType.valueOf(aggregation.type().name()), aggregation.field()));
+                query
+                    .getAggregations()
+                    .stream()
+                    .forEach(
+                        aggregation -> queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
+                    );
             }
 
             return convert(healthCheckRepository.query(queryBuilder.build()));
@@ -115,16 +114,25 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
             List<io.gravitee.rest.api.model.analytics.Bucket> buckets = new ArrayList<>(histogramResponse.values().size());
             for (io.gravitee.repository.analytics.query.response.histogram.Bucket bucket : histogramResponse.values()) {
-                io.gravitee.rest.api.model.analytics.Bucket analyticsBucket = convertBucket(histogramResponse.timestamps(), from, interval, bucket);
+                io.gravitee.rest.api.model.analytics.Bucket analyticsBucket = convertBucket(
+                    histogramResponse.timestamps(),
+                    from,
+                    interval,
+                    bucket
+                );
                 buckets.add(analyticsBucket);
             }
             analytics.setValues(buckets);
-
         }
         return analytics;
     }
 
-    private io.gravitee.rest.api.model.analytics.Bucket convertBucket(List<Long> timestamps, long from, long interval, io.gravitee.repository.analytics.query.response.histogram.Bucket bucket) {
+    private io.gravitee.rest.api.model.analytics.Bucket convertBucket(
+        List<Long> timestamps,
+        long from,
+        long interval,
+        io.gravitee.repository.analytics.query.response.histogram.Bucket bucket
+    ) {
         io.gravitee.rest.api.model.analytics.Bucket analyticsBucket = new io.gravitee.rest.api.model.analytics.Bucket();
         analyticsBucket.setName(bucket.name());
         analyticsBucket.setField(bucket.field());
@@ -139,8 +147,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             io.gravitee.rest.api.model.analytics.Bucket analyticsDataBucket = new io.gravitee.rest.api.model.analytics.Bucket();
             analyticsDataBucket.setName(dataBucket.getKey());
 
-            final Number [] values = new Number [timestamps.size()];
-            for (int i = 0; i <timestamps.size(); i++) {
+            final Number[] values = new Number[timestamps.size()];
+            for (int i = 0; i < timestamps.size(); i++) {
                 values[i] = 0;
             }
             for (Data data : dataBucket.getValue()) {
@@ -163,10 +171,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             ApiEntity apiEntity = apiService.findById(api);
 
             AvailabilityResponse response = healthCheckRepository.query(
-                    QueryBuilders.availability()
-                            .api(api)
-                            .field(AvailabilityQuery.Field.valueOf(field))
-                            .build());
+                QueryBuilders.availability().api(api).field(AvailabilityQuery.Field.valueOf(field)).build()
+            );
 
             return convert(apiEntity, response.getEndpointAvailabilities(), field);
         } catch (Exception ex) {
@@ -183,10 +189,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             ApiEntity apiEntity = apiService.findById(api);
 
             AverageResponseTimeResponse response = healthCheckRepository.query(
-                    QueryBuilders.responseTime()
-                            .api(api)
-                            .field(AverageResponseTimeQuery.Field.valueOf(field))
-                            .build());
+                QueryBuilders.responseTime().api(api).field(AverageResponseTimeQuery.Field.valueOf(field)).build()
+            );
 
             return convert(apiEntity, response.getEndpointResponseTimes(), field);
         } catch (Exception ex) {
@@ -201,15 +205,17 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
         try {
             LogsResponse response = healthCheckRepository.query(
-                    QueryBuilders.logs()
-                            .api(api)
-                            .page(query.getPage())
-                            .size(query.getSize())
-                            .query(query.getQuery())
-                            .transition(transition)
-                            .from(query.getFrom())
-                            .to(query.getTo())
-                            .build());
+                QueryBuilders
+                    .logs()
+                    .api(api)
+                    .page(query.getPage())
+                    .size(query.getSize())
+                    .query(query.getQuery())
+                    .transition(transition)
+                    .from(query.getFrom())
+                    .to(query.getTo())
+                    .build()
+            );
 
             return convert(response);
         } catch (Exception ex) {
@@ -233,20 +239,22 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         SearchLogResponse searchLogResponseResponse = new SearchLogResponse(response.getSize());
 
         // Transform repository logs
-        searchLogResponseResponse.setLogs(response.getLogs().stream()
-                .map(this::toLog)
-                .collect(Collectors.toList()));
+        searchLogResponseResponse.setLogs(response.getLogs().stream().map(this::toLog).collect(Collectors.toList()));
 
         // Add metadata (only if they are results)
         if (response.getSize() > 0) {
             Map<String, Map<String, String>> metadata = new HashMap<>();
 
-            searchLogResponseResponse.getLogs().forEach(logItem -> {
-                String gateway = logItem.getGateway();
-                if (gateway != null) {
-                    metadata.computeIfAbsent(gateway, this::getGatewayMetadata);
-                }
-            });
+            searchLogResponseResponse
+                .getLogs()
+                .forEach(
+                    logItem -> {
+                        String gateway = logItem.getGateway();
+                        if (gateway != null) {
+                            metadata.computeIfAbsent(gateway, this::getGatewayMetadata);
+                        }
+                    }
+                );
 
             searchLogResponseResponse.setMetadata(metadata);
         }
@@ -260,43 +268,55 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // Set endpoint availability (unknown endpoints are removed)
         Map<String, Map<String, T>> buckets = new HashMap<>();
 
-        response
-                .forEach(new Consumer<FieldBucket<T>>() {
-                            @Override
-                            public void accept(FieldBucket<T> bucket) {
-                                Map<String, T> bucketMetrics = bucket.getValues()
-                                        .stream()
-                                        .collect(Collectors.toMap(Bucket::getKey, Bucket::getValue));
+        response.forEach(
+            new Consumer<FieldBucket<T>>() {
+                @Override
+                public void accept(FieldBucket<T> bucket) {
+                    Map<String, T> bucketMetrics = bucket.getValues().stream().collect(Collectors.toMap(Bucket::getKey, Bucket::getValue));
 
-                                buckets.put(bucket.getName(), bucketMetrics);
-                            }
-                        });
+                    buckets.put(bucket.getName(), bucketMetrics);
+                }
+            }
+        );
         apiMetrics.setBuckets(buckets);
 
         if (!apiMetrics.getBuckets().isEmpty()) {
             Map<String, Double> values = new HashMap<>();
 
-            apiMetrics.getBuckets().values().forEach(new Consumer<Map<String, T>>() {
-                @Override
-                public void accept(Map<String, T> stringTMap) {
-                    stringTMap.entrySet().forEach(new Consumer<Map.Entry<String, T>>() {
+            apiMetrics
+                .getBuckets()
+                .values()
+                .forEach(
+                    new Consumer<Map<String, T>>() {
                         @Override
-                        public void accept(Map.Entry<String, T> stringTEntry) {
-                            Number value = stringTEntry.getValue();
-                            Double total = values.getOrDefault(stringTEntry.getKey(), 0d);
-                            total += value.doubleValue();
-                            values.put(stringTEntry.getKey(), total);
+                        public void accept(Map<String, T> stringTMap) {
+                            stringTMap
+                                .entrySet()
+                                .forEach(
+                                    new Consumer<Map.Entry<String, T>>() {
+                                        @Override
+                                        public void accept(Map.Entry<String, T> stringTEntry) {
+                                            Number value = stringTEntry.getValue();
+                                            Double total = values.getOrDefault(stringTEntry.getKey(), 0d);
+                                            total += value.doubleValue();
+                                            values.put(stringTEntry.getKey(), total);
+                                        }
+                                    }
+                                );
                         }
-                    });
-                }
-            });
+                    }
+                );
 
-            values.entrySet().forEach(new Consumer<Map.Entry<String, Double>>() {
-                @Override
-                public void accept(Map.Entry<String, Double> stringDoubleEntry) {
-                    values.put(stringDoubleEntry.getKey(), stringDoubleEntry.getValue() / apiMetrics.getBuckets().size());
-                }
-            });
+            values
+                .entrySet()
+                .forEach(
+                    new Consumer<Map.Entry<String, Double>>() {
+                        @Override
+                        public void accept(Map.Entry<String, Double> stringDoubleEntry) {
+                            values.put(stringDoubleEntry.getKey(), stringDoubleEntry.getValue() / apiMetrics.getBuckets().size());
+                        }
+                    }
+                );
 
             apiMetrics.setGlobal(values);
         }
@@ -304,16 +324,21 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         // Prepare metadata
         Map<String, Map<String, String>> metadata = new HashMap<>();
 
-        apiMetrics.getBuckets().keySet().forEach(new Consumer<String>() {
-            @Override
-            public void accept(String name) {
-                if (field.equalsIgnoreCase("endpoint")) {
-                    metadata.put(name, getEndpointMetadata(api, name));
-                } else if (field.equalsIgnoreCase("gateway")) {
-                    metadata.put(name, getGatewayMetadata(name));
+        apiMetrics
+            .getBuckets()
+            .keySet()
+            .forEach(
+                new Consumer<String>() {
+                    @Override
+                    public void accept(String name) {
+                        if (field.equalsIgnoreCase("endpoint")) {
+                            metadata.put(name, getEndpointMetadata(api, name));
+                        } else if (field.equalsIgnoreCase("gateway")) {
+                            metadata.put(name, getGatewayMetadata(name));
+                        }
+                    }
                 }
-            }
-        });
+            );
 
         apiMetrics.setMetadata(metadata);
 
@@ -390,13 +415,14 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private Map<String, String> getEndpointMetadata(ApiEntity api, String endpointName) {
         Map<String, String> metadata = new HashMap<>();
 
-        Optional<Endpoint> endpointOpt = api.getProxy()
-                .getGroups()
-                .stream()
-                .filter(group -> group.getEndpoints() != null)
-                .flatMap(group -> group.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
-                .findFirst();
+        Optional<Endpoint> endpointOpt = api
+            .getProxy()
+            .getGroups()
+            .stream()
+            .filter(group -> group.getEndpoints() != null)
+            .flatMap(group -> group.getEndpoints().stream())
+            .filter(endpoint -> endpoint.getName().equalsIgnoreCase(endpointName))
+            .findFirst();
 
         if (endpointOpt.isPresent()) {
             metadata.put("target", endpointOpt.get().getTarget());
@@ -417,7 +443,6 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             if (instance.getTenant() != null) {
                 metadata.put("tenant", instance.getTenant());
             }
-
         } catch (InstanceNotFoundException infe) {
             metadata.put("deleted", "true");
         }

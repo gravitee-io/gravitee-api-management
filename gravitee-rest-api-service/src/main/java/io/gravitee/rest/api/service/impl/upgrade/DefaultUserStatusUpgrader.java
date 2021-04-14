@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.UserService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,16 +47,16 @@ public class DefaultUserStatusUpgrader implements Upgrader, Ordered {
         // Initialize default user status
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
         updateUserEntity.setStatus(UserStatus.ACTIVE.name());
-        userService.search(new UserCriteria.Builder()
-                        .noStatus()
-                        .build(),
-                new PageableImpl(1, Integer.MAX_VALUE))
-                .getContent()
-                .forEach(userEntity -> {
+        userService
+            .search(new UserCriteria.Builder().noStatus().build(), new PageableImpl(1, Integer.MAX_VALUE))
+            .getContent()
+            .forEach(
+                userEntity -> {
                     if (userEntity.getStatus() == null) {
                         userService.update(userEntity.getId(), updateUserEntity);
                     }
-                });
+                }
+            );
 
         return true;
     }

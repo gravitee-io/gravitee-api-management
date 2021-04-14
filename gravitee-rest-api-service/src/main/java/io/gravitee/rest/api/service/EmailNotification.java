@@ -103,6 +103,7 @@ public class EmailNotification {
     public String getReplyTo() {
         return replyTo;
     }
+
     public void setReplyTo(String replyTo) {
         this.replyTo = replyTo;
     }
@@ -112,15 +113,17 @@ public class EmailNotification {
         if (this == o) return true;
         if (!(o instanceof EmailNotification)) return false;
         EmailNotification that = (EmailNotification) o;
-        return Objects.equals(from, that.from) &&
-                Objects.equals(fromName, that.fromName) &&
-                Arrays.equals(to, that.to) &&
-                Objects.equals(subject, that.subject) &&
-                Objects.equals(template, that.template) &&
-                Objects.equals(params, that.params) &&
-                Objects.equals(bcc, that.bcc) &&
-                Objects.equals(copyToSender, that.copyToSender) &&
-                Objects.equals(replyTo, that.replyTo);
+        return (
+            Objects.equals(from, that.from) &&
+            Objects.equals(fromName, that.fromName) &&
+            Arrays.equals(to, that.to) &&
+            Objects.equals(subject, that.subject) &&
+            Objects.equals(template, that.template) &&
+            Objects.equals(params, that.params) &&
+            Objects.equals(bcc, that.bcc) &&
+            Objects.equals(copyToSender, that.copyToSender) &&
+            Objects.equals(replyTo, that.replyTo)
+        );
     }
 
     @Override
@@ -130,16 +133,32 @@ public class EmailNotification {
 
     @Override
     public String toString() {
-        return "EmailNotification{" +
-                "from='" + from + '\'' +
-                ", reply-to='" + replyTo + '\'' +
-                ", fromName='" + fromName + '\'' +
-                ", to=" + Arrays.toString(to) +
-                ", subject='" + subject + '\'' +
-                ", template='" + template + '\'' +
-                ", params=" + params +
-                ", copyToSender=" + copyToSender +
-                ", bcc=" + Arrays.toString(bcc) +
-                '}';
+        return (
+            "EmailNotification{" +
+            "from='" +
+            from +
+            '\'' +
+            ", reply-to='" +
+            replyTo +
+            '\'' +
+            ", fromName='" +
+            fromName +
+            '\'' +
+            ", to=" +
+            Arrays.toString(to) +
+            ", subject='" +
+            subject +
+            '\'' +
+            ", template='" +
+            template +
+            '\'' +
+            ", params=" +
+            params +
+            ", copyToSender=" +
+            copyToSender +
+            ", bcc=" +
+            Arrays.toString(bcc) +
+            '}'
+        );
     }
 }

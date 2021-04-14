@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -24,19 +29,12 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
 import io.gravitee.rest.api.service.impl.MessageServiceImpl;
-
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.fail;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -90,7 +88,7 @@ public class MessageService_GetRecipientIdsTest {
             api.setId(apiId);
             messageService.getRecipientsId(api, message);
             fail("should throw MessageRecipientFormatException");
-        } catch(MessageRecipientFormatException ex) {
+        } catch (MessageRecipientFormatException ex) {
             // ok
         }
     }
@@ -103,7 +101,6 @@ public class MessageService_GetRecipientIdsTest {
     }
 
     private void shouldNotGetGlobal(String scope) throws Exception {
-
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setChannel(MessageChannel.MAIL);
         MessageRecipientEntity messageRecipientEntity = new MessageRecipientEntity();
@@ -126,10 +123,9 @@ public class MessageService_GetRecipientIdsTest {
         membership.setMemberId("user-id");
         membership.setMemberType(MembershipMemberType.USER);
         when(mockMembershipService.getMembershipsByReferenceAndRole(eq(MembershipReferenceType.ENVIRONMENT), eq("DEFAULT"), any()))
-                .thenReturn(Collections.singleton(membership));
+            .thenReturn(Collections.singleton(membership));
 
-        when(mockRoleService.findByScopeAndName(RoleScope.ENVIRONMENT, "API_PUBLISHER"))
-                .thenReturn(Optional.of(mock(RoleEntity .class)));
+        when(mockRoleService.findByScopeAndName(RoleScope.ENVIRONMENT, "API_PUBLISHER")).thenReturn(Optional.of(mock(RoleEntity.class)));
 
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setChannel(MessageChannel.MAIL);
@@ -180,29 +176,33 @@ public class MessageService_GetRecipientIdsTest {
         // given
         Subscription subscription = new Subscription();
         subscription.setApplication("app-id");
-        when(mockSubscriptionRepository.search(any()))
-                .thenReturn(Collections.singletonList(subscription));
-        when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER"))
-                .thenReturn(Optional.of(mock(RoleEntity.class)));
-        
+        when(mockSubscriptionRepository.search(any())).thenReturn(Collections.singletonList(subscription));
+        when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER")).thenReturn(Optional.of(mock(RoleEntity.class)));
+
         MembershipEntity membership = new MembershipEntity();
         membership.setMemberId("user-id");
         membership.setMemberType(MembershipMemberType.USER);
-        when(mockMembershipService.getMembershipsByReferencesAndRole(eq(MembershipReferenceType.APPLICATION), eq(Arrays.asList("app-id")), any()))
-                .thenReturn(Collections.singleton(membership));
+        when(
+            mockMembershipService.getMembershipsByReferencesAndRole(
+                eq(MembershipReferenceType.APPLICATION),
+                eq(Arrays.asList("app-id")),
+                any()
+            )
+        )
+            .thenReturn(Collections.singleton(membership));
 
         // when
         Api api = new Api();
         api.setId("api-id");
         api.setGroups(Collections.emptySet());
-        
+
         MessageEntity messageEntity = new MessageEntity();
         messageEntity.setChannel(MessageChannel.MAIL);
         MessageRecipientEntity messageRecipientEntity = new MessageRecipientEntity();
         messageRecipientEntity.setRoleScope("APPLICATION");
         messageRecipientEntity.setRoleValues(Collections.singletonList("OWNER"));
         messageEntity.setRecipient(messageRecipientEntity);
-        
+
         Set<String> recipientIds = messageService.getRecipientsId(api, messageEntity);
 
         // then
@@ -221,24 +221,30 @@ public class MessageService_GetRecipientIdsTest {
         // given
         Subscription subscription = new Subscription();
         subscription.setApplication("app-id");
-        when(mockSubscriptionRepository.search(any()))
-                .thenReturn(Collections.singletonList(subscription));
-        when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER"))
-                .thenReturn(Optional.of(mock(RoleEntity .class)));
+        when(mockSubscriptionRepository.search(any())).thenReturn(Collections.singletonList(subscription));
+        when(mockRoleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER")).thenReturn(Optional.of(mock(RoleEntity.class)));
 
         MembershipEntity membershipGroup = new MembershipEntity();
         membershipGroup.setId("membership-group-id");
         membershipGroup.setMemberId("user-group-id");
         membershipGroup.setMemberType(MembershipMemberType.USER);
-        
+
         MembershipEntity membership = new MembershipEntity();
         membershipGroup.setId("membership-user-id");
         membership.setMemberId("user-id");
         membership.setMemberType(MembershipMemberType.USER);
-        when(mockMembershipService.getMembershipsByReferencesAndRole(eq(MembershipReferenceType.APPLICATION), eq(Arrays.asList("app-id")), any()))
-                .thenReturn(new HashSet(Arrays.asList(membership)));
-        when(mockMembershipService.getMembershipsByReferencesAndRole(eq(MembershipReferenceType.GROUP), eq(Arrays.asList("group-id")), any()))
-                .thenReturn(new HashSet(Arrays.asList(membershipGroup)));
+        when(
+            mockMembershipService.getMembershipsByReferencesAndRole(
+                eq(MembershipReferenceType.APPLICATION),
+                eq(Arrays.asList("app-id")),
+                any()
+            )
+        )
+            .thenReturn(new HashSet(Arrays.asList(membership)));
+        when(
+            mockMembershipService.getMembershipsByReferencesAndRole(eq(MembershipReferenceType.GROUP), eq(Arrays.asList("group-id")), any())
+        )
+            .thenReturn(new HashSet(Arrays.asList(membershipGroup)));
 
         // when
         Api api = new Api();
@@ -250,7 +256,7 @@ public class MessageService_GetRecipientIdsTest {
         messageRecipientEntity.setRoleScope("APPLICATION");
         messageRecipientEntity.setRoleValues(Collections.singletonList("OWNER"));
         messageEntity.setRecipient(messageRecipientEntity);
-        
+
         Set<String> recipientIds = messageService.getRecipientsId(api, messageEntity);
 
         // then

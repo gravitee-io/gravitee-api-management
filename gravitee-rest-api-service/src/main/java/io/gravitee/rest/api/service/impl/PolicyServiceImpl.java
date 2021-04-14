@@ -24,16 +24,14 @@ import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.exceptions.PolicyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,9 +54,7 @@ public class PolicyServiceImpl extends TransactionalService implements PolicySer
             LOGGER.debug("List all policies");
             final Collection<PolicyPlugin> policyDefinitions = policyManager.findAll();
 
-            return policyDefinitions.stream()
-                    .map(policyDefinition -> convert(policyDefinition, false))
-                    .collect(Collectors.toSet());
+            return policyDefinitions.stream().map(policyDefinition -> convert(policyDefinition, false)).collect(Collectors.toSet());
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to list all policies", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all policies", ex);

@@ -25,15 +25,11 @@ import javax.ws.rs.ext.Provider;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
 @Provider
-public class NotAllowedExceptionMapper extends AbstractExceptionMapper<NotAllowedException>  {
+public class NotAllowedExceptionMapper extends AbstractExceptionMapper<NotAllowedException> {
 
     @Override
     public Response toResponse(final NotAllowedException e) {
         final Response.Status error = Response.Status.METHOD_NOT_ALLOWED;
-        return Response
-            .status(error)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(convert(e, error.getStatusCode()))
-            .build();
+        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, error.getStatusCode())).build();
     }
 }

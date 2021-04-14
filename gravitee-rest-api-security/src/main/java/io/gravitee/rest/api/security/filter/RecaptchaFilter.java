@@ -15,27 +15,26 @@
  */
 package io.gravitee.rest.api.security.filter;
 
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.service.ReCaptchaService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
-import org.springframework.web.filter.GenericFilterBean;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.web.filter.GenericFilterBean;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -46,7 +45,16 @@ public class RecaptchaFilter extends GenericFilterBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecaptchaFilter.class);
     public static final String DEFAULT_RECAPTCHA_HEADER_NAME = "X-Recaptcha-Token";
     public static final Pattern MNG_CHANGE_PASSWORD = Pattern.compile("/users/([^/]+)/changePassword");
-    private static final Set<String> RESTRICTED_PATHS = new HashSet<>(Arrays.asList("/user/login", "/users/registration", "/users/registration/finalize", "/auth/login", "/users/_reset_password", "/users/_change_password"));
+    private static final Set<String> RESTRICTED_PATHS = new HashSet<>(
+        Arrays.asList(
+            "/user/login",
+            "/users/registration",
+            "/users/registration/finalize",
+            "/auth/login",
+            "/users/_reset_password",
+            "/users/_change_password"
+        )
+    );
 
     private ReCaptchaService reCaptchaService;
     private ObjectMapper objectMapper;
@@ -58,18 +66,21 @@ public class RecaptchaFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        if(RESTRICTED_PATHS.stream().anyMatch(path -> httpRequest.getPathInfo().contains(path) || MNG_CHANGE_PASSWORD.matcher(httpRequest.getPathInfo()).matches())) {
-
+        if (
+            RESTRICTED_PATHS
+                .stream()
+                .anyMatch(
+                    path -> httpRequest.getPathInfo().contains(path) || MNG_CHANGE_PASSWORD.matcher(httpRequest.getPathInfo()).matches()
+                )
+        ) {
             LOGGER.debug("Checking captcha");
 
             String reCaptchaToken = httpRequest.getHeader(DEFAULT_RECAPTCHA_HEADER_NAME);
 
-            if(!reCaptchaService.isValid(reCaptchaToken)) {
-
+            if (!reCaptchaService.isValid(reCaptchaToken)) {
                 HashMap<String, Object> error = new HashMap<>();
 
                 error.put("message", "Something goes wrong. Please try again.");
@@ -79,7 +90,7 @@ public class RecaptchaFilter extends GenericFilterBean {
                 httpResponse.setContentType(MediaType.APPLICATION_JSON.toString());
                 httpResponse.getWriter().write(objectMapper.writeValueAsString(error));
                 httpResponse.getWriter().close();
-            }else {
+            } else {
                 chain.doFilter(request, response);
             }
         } else {

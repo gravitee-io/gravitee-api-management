@@ -15,20 +15,19 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.NewTicketEntity;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.NewTicketEntity;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -40,7 +39,7 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "tickets";
     }
-    
+
     @Test
     public void shouldCreate() {
         reset(ticketService);

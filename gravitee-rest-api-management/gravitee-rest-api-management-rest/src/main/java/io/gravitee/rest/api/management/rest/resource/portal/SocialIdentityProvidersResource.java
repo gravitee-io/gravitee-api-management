@@ -23,13 +23,12 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Defines the service to retrieve the social authentication providers from the portal.
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Portal", "Authentication", "Identity Providers"})
+@Api(tags = { "Portal", "Authentication", "Identity Providers" })
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class SocialIdentityProvidersResource extends AbstractResource {
@@ -47,13 +46,22 @@ public class SocialIdentityProvidersResource extends AbstractResource {
 
     @GET
     @ApiOperation(value = "Get the list of social identity providers")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "List social identity providers", response = SocialIdentityProviderEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "List social identity providers",
+                response = SocialIdentityProviderEntity.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public List<SocialIdentityProviderEntity> getSocialIdentityProvider() {
-        return socialIdentityProviderService.findAll()
-                .stream()
-                .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
-                .collect(Collectors.toList());
+        return socialIdentityProviderService
+            .findAll()
+            .stream()
+            .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
+            .collect(Collectors.toList());
     }
 }

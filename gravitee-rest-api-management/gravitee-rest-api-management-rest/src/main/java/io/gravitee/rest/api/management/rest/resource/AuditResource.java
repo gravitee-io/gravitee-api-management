@@ -29,21 +29,20 @@ import io.gravitee.rest.api.service.AuditService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.reflections.Reflections;
-
+import java.util.*;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import org.reflections.Reflections;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Path("/audit")
-public class AuditResource extends AbstractResource  {
+public class AuditResource extends AbstractResource {
 
     private static final List<Audit.AuditEvent> events = new ArrayList<>();
 
@@ -54,18 +53,15 @@ public class AuditResource extends AbstractResource  {
     private AuditService auditService;
 
     @GET
-    @ApiOperation(value = "Retrieve audit logs for the platform",
-            notes = "User must have the MANAGEMENT_AUDIT[READ] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "List of audits"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(
+        value = "Retrieve audit logs for the platform",
+        notes = "User must have the MANAGEMENT_AUDIT[READ] permission to use this service"
+    )
+    @ApiResponses({ @ApiResponse(code = 200, message = "List of audits"), @ApiResponse(code = 500, message = "Internal server error") })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ)
-    })
-    public MetadataPage<AuditEntity> getAudits(@BeanParam AuditParam param){
-
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ) })
+    public MetadataPage<AuditEntity> getAudits(@BeanParam AuditParam param) {
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());
         query.setTo(param.getTo());
@@ -92,19 +88,21 @@ public class AuditResource extends AbstractResource  {
     @Path("/events")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List available audit event type for platform",
-            notes = "User must have the MANAGEMENT_AUDIT[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "List available audit event type for platform",
+        notes = "User must have the MANAGEMENT_AUDIT[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List of audits", response = Audit.AuditEvent.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ) })
     public Response getAuditEvents() {
         if (events.isEmpty()) {
-            Set<Class<? extends Audit.AuditEvent>> subTypesOf =
-                    new Reflections("io.gravitee.repository.management.model")
-                            .getSubTypesOf(Audit.AuditEvent.class);
+            Set<Class<? extends Audit.AuditEvent>> subTypesOf = new Reflections("io.gravitee.repository.management.model")
+            .getSubTypesOf(Audit.AuditEvent.class);
             for (Class<? extends Audit.AuditEvent> clazz : subTypesOf) {
                 if (clazz.isEnum()) {
                     events.addAll(Arrays.asList(clazz.getEnumConstants()));

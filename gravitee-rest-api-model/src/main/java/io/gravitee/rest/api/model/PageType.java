@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.model;
 
-import java.util.List;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
+
+import java.util.List;
 
 /**
  * @author Ludovic Dussart (ludovic.dussart at gmail.com)
@@ -29,28 +29,27 @@ import static java.util.Collections.unmodifiableList;
  *
  */
 public enum PageType {
-
-	MARKDOWN(unmodifiableList(asList("md", "markdown")), 200),
-	SWAGGER(unmodifiableList(asList("json", "yaml", "yml")), 200),
-	FOLDER(emptyList(), 300),
+    MARKDOWN(unmodifiableList(asList("md", "markdown")), 200),
+    SWAGGER(unmodifiableList(asList("json", "yaml", "yml")), 200),
+    FOLDER(emptyList(), 300),
     LINK(emptyList(), 100),
     ROOT(emptyList(), 500),
     SYSTEM_FOLDER(emptyList(), 400),
     TRANSLATION(emptyList(), 0);
 
-	List<String> extensions;
-	Integer removeOrder;
+    List<String> extensions;
+    Integer removeOrder;
 
-	PageType(List<String> extensions, Integer removeOrder) {
-		this.extensions = extensions;
-		this.removeOrder = removeOrder;
-	}
+    PageType(List<String> extensions, Integer removeOrder) {
+        this.extensions = extensions;
+        this.removeOrder = removeOrder;
+    }
 
-	public List<String> extensions() {
-		return extensions;
-	}
+    public List<String> extensions() {
+        return extensions;
+    }
 
-	public Integer getRemoveOrder() {
-		return removeOrder;
-	}
+    public Integer getRemoveOrder() {
+        return removeOrder;
+    }
 }

@@ -22,16 +22,14 @@ import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
 import io.gravitee.rest.api.service.ResourceService;
 import io.gravitee.rest.api.service.exceptions.ResourceNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,9 +52,7 @@ public class ResourceServiceImpl extends TransactionalService implements Resourc
             LOGGER.debug("List all resources");
             final Collection<ResourcePlugin> resourceDefinitions = resourcePluginManager.findAll();
 
-            return resourceDefinitions.stream()
-                    .map(resourceDefinition -> convert(resourceDefinition))
-                    .collect(Collectors.toSet());
+            return resourceDefinitions.stream().map(resourceDefinition -> convert(resourceDefinition)).collect(Collectors.toSet());
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to list all resources", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all resources", ex);

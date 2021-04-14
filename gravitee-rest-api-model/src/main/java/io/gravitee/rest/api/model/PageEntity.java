@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -42,9 +41,11 @@ public class PageEntity implements Indexable {
     private Map<String, String> configuration;
     private boolean homepage;
     private String parentId;
+
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
-    private List<String> messages ;
+
+    private List<String> messages;
     private Map<String, String> metadata;
     private List<PageEntity> translations;
 
@@ -199,25 +200,52 @@ public class PageEntity implements Indexable {
         return Objects.hash(id);
     }
 
-	@Override
-	public String toString() {
-		return "PageEntity{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				", type='" + type + '\'' +
-				", content='" + content + '\'' +
-				", order=" + order +
-				", lastContributor='" + lastContributor + '\'' +
-				", published=" + published +
-				", lastModificationDate=" + lastModificationDate +
-				", contentType='" + contentType + '\'' +
-				", source=" + source +
-				", configuration=" + configuration +
-				", homepage=" + homepage +
-				", parentId='" + parentId + '\'' +
-				", excludedGroups=" + excludedGroups +
-				", metadata='" + metadata + '\'' +
-				", translations='" + translations + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "PageEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", type='" +
+            type +
+            '\'' +
+            ", content='" +
+            content +
+            '\'' +
+            ", order=" +
+            order +
+            ", lastContributor='" +
+            lastContributor +
+            '\'' +
+            ", published=" +
+            published +
+            ", lastModificationDate=" +
+            lastModificationDate +
+            ", contentType='" +
+            contentType +
+            '\'' +
+            ", source=" +
+            source +
+            ", configuration=" +
+            configuration +
+            ", homepage=" +
+            homepage +
+            ", parentId='" +
+            parentId +
+            '\'' +
+            ", excludedGroups=" +
+            excludedGroups +
+            ", metadata='" +
+            metadata +
+            '\'' +
+            ", translations='" +
+            translations +
+            '\'' +
+            '}'
+        );
+    }
 }

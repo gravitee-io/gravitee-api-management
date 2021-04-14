@@ -19,7 +19,6 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
-
 import java.util.Collection;
 
 /**
@@ -27,7 +26,6 @@ import java.util.Collection;
  * @author GraviteeSource Team
  */
 public interface SwaggerService {
-
     /**
      * Create an API from a Swagger descriptor. This method does not create an API but
      * extract data from Swagger to prepare an API to then create.

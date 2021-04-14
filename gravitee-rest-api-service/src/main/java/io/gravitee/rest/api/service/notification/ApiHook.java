@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.service.notification;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum ApiHook implements Hook {
-
     APIKEY_EXPIRED("API key Expired", "Triggered when an API key is expired.", "API KEY"),
     APIKEY_RENEWED("API key Renewed", "Triggered when an API key is renewed.", "API KEY"),
     APIKEY_REVOKED("API key Revoked", "Triggered when an API key is revoked.", "API KEY"),
@@ -64,7 +63,6 @@ public enum ApiHook implements Hook {
     }
 
     @Override
-
     public String getDescription() {
         return description;
     }

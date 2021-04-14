@@ -19,17 +19,16 @@ import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class OAIParser extends AbstractSwaggerParser<OAIDescriptor> {
-
     static {
         System.setProperty(String.format("%s.trustAll", io.swagger.v3.parser.util.RemoteUrl.class.getName()), Boolean.TRUE.toString());
     }
@@ -73,17 +72,14 @@ public class OAIParser extends AbstractSwaggerParser<OAIDescriptor> {
             if (bw != null) {
                 try {
                     bw.close();
-                } catch (IOException e) {
-                }
+                } catch (IOException e) {}
             }
             if (out != null) {
                 try {
                     out.close();
-                } catch (IOException e) {
-                }
+                } catch (IOException e) {}
             }
         }
         return temp;
     }
-
 }

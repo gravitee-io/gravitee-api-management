@@ -22,21 +22,20 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
+import java.net.URI;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = "Platform Tickets")
-public class PlatformTicketsResource extends AbstractResource  {
+public class PlatformTicketsResource extends AbstractResource {
 
     @Inject
     private TicketService ticketService;
@@ -44,10 +43,9 @@ public class PlatformTicketsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create a platform ticket")
-    @ApiResponses({
-            @ApiResponse(code = 201, message = "Ticket succesfully created"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-
+    @ApiResponses(
+        { @ApiResponse(code = 201, message = "Ticket succesfully created"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
     public Response createPlatformTicket(@Valid @NotNull final NewTicketEntity ticketEntity) {
         ticketService.create(getAuthenticatedUser(), ticketEntity);
         return Response.status(Response.Status.CREATED).build();

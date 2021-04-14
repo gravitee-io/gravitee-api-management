@@ -20,34 +20,31 @@ import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGO
 import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_DELETED;
 import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_UPDATED;
 
+import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.NewCategoryEntity;
+import io.gravitee.rest.api.model.UpdateCategoryEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
+import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import javax.xml.bind.DatatypeConverter;
-
-import io.gravitee.common.utils.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.CategoryRepository;
-import io.gravitee.repository.management.model.Category;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.NewCategoryEntity;
-import io.gravitee.rest.api.model.UpdateCategoryEntity;
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
-import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -75,9 +72,11 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     public List<CategoryEntity> findAll() {
         try {
             LOGGER.debug("Find all categories");
-            return categoryRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
+            return categoryRepository
+                .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all categories", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all categories", ex);
@@ -111,13 +110,11 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         }
         throw new CategoryNotFoundException(id);
     }
-    
+
     @Override
     public CategoryEntity create(NewCategoryEntity Entity) {
         // First we prevent the duplicate category name
-        final Optional<CategoryEntity> optionalCategory = findAll().stream()
-                .filter(v -> v.getName().equals((Entity.getName())))
-                .findAny();
+        final Optional<CategoryEntity> optionalCategory = findAll().stream().filter(v -> v.getName().equals((Entity.getName()))).findAny();
 
         if (optionalCategory.isPresent()) {
             throw new DuplicateCategoryNameException(optionalCategory.get().getName());
@@ -127,16 +124,17 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             // check if environment exists
             String environment = GraviteeContext.getCurrentEnvironment();
             this.environmentService.findById(environment);
-            
+
             Category category = convert(Entity);
             category.setEnvironmentId(environment);
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(CATEGORY, category.getId()),
-                    CATEGORY_CREATED,
-                    new Date(),
-                    null,
-                    category);
+                Collections.singletonMap(CATEGORY, category.getId()),
+                CATEGORY_CREATED,
+                new Date(),
+                null,
+                category
+            );
 
             return createdCategory;
         } catch (TechnicalException ex) {
@@ -159,17 +157,22 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
             // check if picture has been set
             // If no new picture and the current picture url is not the default one, keep the current picture
-            if (categoryEntity.getPicture() == null && categoryEntity.getPictureUrl() != null && categoryEntity.getPictureUrl().indexOf("?hash") > 0) {
+            if (
+                categoryEntity.getPicture() == null &&
+                categoryEntity.getPictureUrl() != null &&
+                categoryEntity.getPictureUrl().indexOf("?hash") > 0
+            ) {
                 category.setPicture(optCategoryToUpdate.get().getPicture());
             }
 
             CategoryEntity updatedCategory = convert(categoryRepository.update(category));
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(CATEGORY, category.getId()),
-                    CATEGORY_UPDATED,
-                    new Date(),
-                    optCategoryToUpdate.get(),
-                    category);
+                Collections.singletonMap(CATEGORY, category.getId()),
+                CATEGORY_UPDATED,
+                new Date(),
+                optCategoryToUpdate.get(),
+                category
+            );
 
             return updatedCategory;
         } catch (TechnicalException ex) {
@@ -181,30 +184,33 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     @Override
     public List<CategoryEntity> update(final List<UpdateCategoryEntity> Entities) {
         final List<CategoryEntity> savedCategories = new ArrayList<>(Entities.size());
-        Entities.forEach(Entity -> {
-            try {
-                Optional<Category> Optional = categoryRepository.findById(Entity.getId());
-                if (Optional.isPresent()) {
-                    Category category = convert(Entity, Optional.get().getEnvironmentId());
-                    // check if picture has been set
-                    if (category.getPicture() == null) {
-                        // Picture can not be updated when re-ordering categories
-                        category.setPicture(Optional.get().getPicture());
-                    }
+        Entities.forEach(
+            Entity -> {
+                try {
+                    Optional<Category> Optional = categoryRepository.findById(Entity.getId());
+                    if (Optional.isPresent()) {
+                        Category category = convert(Entity, Optional.get().getEnvironmentId());
+                        // check if picture has been set
+                        if (category.getPicture() == null) {
+                            // Picture can not be updated when re-ordering categories
+                            category.setPicture(Optional.get().getPicture());
+                        }
 
-                    savedCategories.add(convert(categoryRepository.update(category)));
-                    auditService.createPortalAuditLog(
+                        savedCategories.add(convert(categoryRepository.update(category)));
+                        auditService.createPortalAuditLog(
                             Collections.singletonMap(CATEGORY, category.getId()),
                             CATEGORY_UPDATED,
                             new Date(),
                             Optional.get(),
-                            category);
+                            category
+                        );
+                    }
+                } catch (TechnicalException ex) {
+                    LOGGER.error("An error occurs while trying to update category {}", Entity.getName(), ex);
+                    throw new TechnicalManagementException("An error occurs while trying to update category " + Entity.getName(), ex);
                 }
-            } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to update category {}", Entity.getName(), ex);
-                throw new TechnicalManagementException("An error occurs while trying to update category " + Entity.getName(), ex);
             }
-        });
+        );
         return savedCategories;
     }
 
@@ -215,11 +221,12 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             if (categoryOptional.isPresent()) {
                 categoryRepository.delete(categoryId);
                 auditService.createPortalAuditLog(
-                        Collections.singletonMap(CATEGORY, categoryId),
-                        CATEGORY_DELETED,
-                        new Date(),
-                        null,
-                        categoryOptional.get());
+                    Collections.singletonMap(CATEGORY, categoryId),
+                    CATEGORY_DELETED,
+                    new Date(),
+                    null,
+                    categoryOptional.get()
+                );
 
                 // delete all reference on APIs
                 apiService.deleteCategoryFromAPIs(categoryId);
@@ -288,8 +295,6 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
     @Override
     public long getTotalApisByCategory(Set<ApiEntity> apis, CategoryEntity category) {
-        return apis.stream()
-                .filter(api -> api.getCategories() != null && api.getCategories().contains(category.getKey()))
-                .count();
+        return apis.stream().filter(api -> api.getCategories() != null && api.getCategories().contains(category.getKey())).count();
     }
 }

@@ -15,20 +15,19 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.ApiMetadataEntity;
-import io.gravitee.rest.api.model.NewApiMetadataEntity;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.rest.api.model.ApiMetadataEntity;
+import io.gravitee.rest.api.model.NewApiMetadataEntity;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -59,6 +58,9 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
 
         final Response response = target().path(API).path("metadata").request().post(Entity.json(newMetadata));
         assertEquals(CREATED_201, response.getStatus());
-        assertEquals(target().path(API).path("metadata").path("my-metadata-id").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+            target().path(API).path("metadata").path("my-metadata-id").getUri().toString(),
+            response.getHeaders().getFirst(HttpHeaders.LOCATION)
+        );
     }
 }

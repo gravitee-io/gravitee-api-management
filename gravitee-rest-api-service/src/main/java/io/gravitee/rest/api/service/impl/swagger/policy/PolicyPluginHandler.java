@@ -32,20 +32,21 @@ public class PolicyPluginHandler extends io.gravitee.plugin.policy.internal.Poli
     @Override
     protected void register(PolicyPlugin policyPlugin) {
         Class<? extends OAIOperationVisitor> oaiVisitor = new OAIOperationVisitorClassFinder().lookupFirst(policyPlugin.policy());
-        Class<? extends SwaggerOperationVisitor> swaggerVisitor = new SwaggerOperationVisitorClassFinder().lookupFirst(policyPlugin.policy());
+        Class<? extends SwaggerOperationVisitor> swaggerVisitor = new SwaggerOperationVisitorClassFinder()
+        .lookupFirst(policyPlugin.policy());
 
         try {
-            addVisitor(
-                    policyPlugin,
-                    createInstance(swaggerVisitor),
-                    createInstance(oaiVisitor));
+            addVisitor(policyPlugin, createInstance(swaggerVisitor), createInstance(oaiVisitor));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void addVisitor(PolicyPlugin policyPlugin, SwaggerOperationVisitor swaggerOperationVisitor,
-                            OAIOperationVisitor oaiOperationVisitor)  {
+    private void addVisitor(
+        PolicyPlugin policyPlugin,
+        SwaggerOperationVisitor swaggerOperationVisitor,
+        OAIOperationVisitor oaiOperationVisitor
+    ) {
         if (swaggerOperationVisitor != null && oaiOperationVisitor != null) {
             logger.info("Add a Swagger visitor for policy: id{}", policyPlugin.id());
 

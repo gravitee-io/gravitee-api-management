@@ -28,8 +28,7 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.Collection;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -37,7 +36,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.util.Collection;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -57,40 +56,34 @@ public class ApiRatingAnswersResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.CREATE)
-    })
-    public Response createApiRatingAnswer(@PathParam("apiId") String apiId, @PathParam("ratingId") String ratingId, @Valid RatingAnswerInput ratingAnswerInput) {
+    @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.CREATE) })
+    public Response createApiRatingAnswer(
+        @PathParam("apiId") String apiId,
+        @PathParam("ratingId") String ratingId,
+        @Valid RatingAnswerInput ratingAnswerInput
+    ) {
         if (ratingAnswerInput == null) {
             throw new BadRequestException("Input must not be null.");
         }
 
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-
             RatingEntity ratingEntity = ratingService.findById(ratingId);
-            if (ratingEntity!= null && ratingEntity.getApi().equals(apiId)) {
-
+            if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
                 NewRatingAnswerEntity ratingAnswerEntity = new NewRatingAnswerEntity();
                 ratingAnswerEntity.setComment(ratingAnswerInput.getComment());
                 ratingAnswerEntity.setRatingId(ratingId);
                 RatingEntity updatedRating = ratingService.createAnswer(ratingAnswerEntity);
-                return Response
-                        .status(Status.CREATED)
-                        .entity(ratingMapper.convert(updatedRating, uriInfo))
-                        .build();
-
+                return Response.status(Status.CREATED).entity(ratingMapper.convert(updatedRating, uriInfo)).build();
             }
             throw new RatingNotFoundException(ratingId, apiId);
         }
 
         throw new ApiNotFoundException(apiId);
-
     }
 
     @Path("{answerId}")
     public ApiRatingAnswerResource getApiRatingAnswerResource() {
         return resourceContext.getResource(ApiRatingAnswerResource.class);
     }
-
 }

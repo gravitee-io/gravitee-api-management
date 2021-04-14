@@ -15,23 +15,21 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.Ordered;
-import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -50,7 +48,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
 
     @Autowired
     private ApiService apiService;
-    
+
     @Override
     public boolean upgrade() {
         PageQuery query = new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build();
@@ -60,25 +58,33 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
 
             // Portal documentation
             Map<SystemFolderType, String> systemFolderIds = pageService.initialize(GraviteeContext.getDefaultEnvironment());
-            
+
             String headerSystemFolderId = systemFolderIds.get(SystemFolderType.HEADER);
             String topFooterSystemFolderId = systemFolderIds.get(SystemFolderType.TOPFOOTER);
-      
+
             // Create link to existing documentation in footer
-            List<PageEntity> pagesToLink = pageService.search(new PageQuery.Builder().homepage(false).rootParent(true).build()).stream()
-            .filter(p -> PageType.SWAGGER.name().equals(p.getType()) || PageType.MARKDOWN.name().equals(p.getType()))
-            .collect(Collectors.toList());
-            
-            if(!pagesToLink.isEmpty()) {
+            List<PageEntity> pagesToLink = pageService
+                .search(new PageQuery.Builder().homepage(false).rootParent(true).build())
+                .stream()
+                .filter(p -> PageType.SWAGGER.name().equals(p.getType()) || PageType.MARKDOWN.name().equals(p.getType()))
+                .collect(Collectors.toList());
+
+            if (!pagesToLink.isEmpty()) {
                 PageEntity docFolder = createFolder(topFooterSystemFolderId, "Documentation");
-                pagesToLink.forEach(page -> createLink(docFolder.getId(), page.getName(), page.getId(), "page", Boolean.FALSE, Boolean.TRUE));                
+                pagesToLink.forEach(
+                    page -> createLink(docFolder.getId(), page.getName(), page.getId(), "page", Boolean.FALSE, Boolean.TRUE)
+                );
             }
 
             // Create link to root documentation folder in header
             createLink(headerSystemFolderId, "Documentation", "root", "page", Boolean.TRUE, Boolean.FALSE);
-            
+
             // Apis documentation
-            apiService.findAllLight().forEach(api -> pageService.createSystemFolder(api.getId(), SystemFolderType.ASIDE, 0, GraviteeContext.getDefaultEnvironment()));
+            apiService
+                .findAllLight()
+                .forEach(
+                    api -> pageService.createSystemFolder(api.getId(), SystemFolderType.ASIDE, 0, GraviteeContext.getDefaultEnvironment())
+                );
         }
         return true;
     }
@@ -89,7 +95,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
         newFolder.setPublished(true);
         newFolder.setType(PageType.FOLDER);
         newFolder.setParentId(parentId);
-        
+
         return pageService.createPage(newFolder);
     }
 
@@ -100,18 +106,18 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
         newLink.setPublished(true);
         newLink.setType(PageType.LINK);
         newLink.setParentId(parentId);
-        
+
         Map<String, String> configuration = new HashMap<>();
         configuration.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, resourceType);
-        if(isFolder != null) {
+        if (isFolder != null) {
             configuration.put(PageConfigurationKeys.LINK_IS_FOLDER, String.valueOf(isFolder));
         }
-        if(inherit != null) {
+        if (inherit != null) {
             configuration.put(PageConfigurationKeys.LINK_INHERIT, String.valueOf(inherit));
         }
 
         newLink.setConfiguration(configuration);
-        
+
         pageService.createPage(newLink);
     }
 

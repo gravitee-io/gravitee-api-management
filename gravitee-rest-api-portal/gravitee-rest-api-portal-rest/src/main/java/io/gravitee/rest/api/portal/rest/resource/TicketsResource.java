@@ -19,28 +19,27 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.model.TicketInput;
 import io.gravitee.rest.api.service.TicketService;
-
+import java.net.URI;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TicketsResource extends AbstractResource  {
+public class TicketsResource extends AbstractResource {
 
     @Inject
     private TicketService ticketService;
 
     @Inject
     private TicketMapper ticketMapper;
-    
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid @NotNull(message = "Input must not be null.") final TicketInput ticketInput) {

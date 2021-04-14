@@ -56,8 +56,7 @@ public class TokenEntity {
         if (this == o) return true;
         if (!(o instanceof TokenEntity)) return false;
         TokenEntity that = (TokenEntity) o;
-        return Objects.equals(type, that.type) &&
-                Objects.equals(token, that.token);
+        return Objects.equals(type, that.type) && Objects.equals(token, that.token);
     }
 
     @Override
@@ -67,9 +66,6 @@ public class TokenEntity {
 
     @Override
     public String toString() {
-        return "TokenEntity{" +
-                "type='" + type + '\'' +
-                ", token='" + token + '\'' +
-                '}';
+        return "TokenEntity{" + "type='" + type + '\'' + ", token='" + token + '\'' + '}';
     }
 }

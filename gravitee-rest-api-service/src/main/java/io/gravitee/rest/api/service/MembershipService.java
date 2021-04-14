@@ -19,7 +19,6 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,43 +28,86 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface MembershipService {
-
     MemberEntity addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role);
-    MemberEntity addRoleToMemberOnReference(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId, String role);
-    MemberEntity addRoleToMemberOnReference(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId, String role, String source);
-    void                    deleteMembership                            (String membershipId);
-    void                    deleteReference                             (MembershipReferenceType referenceType, String referenceId);
-    void                    deleteReferenceMember                       (MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
-    List<UserMembership>    findUserMembership                          (MembershipReferenceType referenceType, String userId);
-    List<UserMembership>    findUserMembershipBySource                  (MembershipReferenceType referenceType, String userId, String sourceId);
-    Metadata                findUserMembershipMetadata                  (List<UserMembership> memberships, MembershipReferenceType type);
-    Set<MemberEntity>       getMembersByReference                       (MembershipReferenceType referenceType, String referenceId);
-    Set<MemberEntity>       getMembersByReferenceAndRole                (MembershipReferenceType referenceType, String referenceId, String role);
-    Set<MemberEntity>       getMembersByReferencesAndRole               (MembershipReferenceType referenceType, List<String> referenceIds, String role);
-    Set<MembershipEntity>   getMembershipsByMember                      (MembershipMemberType memberType, String memberId);
-    Set<MembershipEntity>   getMembershipsByMemberAndReference          (MembershipMemberType memberType, String memberId, MembershipReferenceType referenceType);
-    Set<MembershipEntity>   getMembershipsByMemberAndReferenceAndRole   (MembershipMemberType memberType, String memberId, MembershipReferenceType referenceType, String role);
-    Set<MembershipEntity>   getMembershipsByMembersAndReference         (MembershipMemberType memberType, List<String> membersId, MembershipReferenceType referenceType);
-    Set<MembershipEntity>   getMembershipsByReference                   (MembershipReferenceType referenceType, String referenceId);
-    Set<MembershipEntity>   getMembershipsByReferenceAndRole            (MembershipReferenceType referenceType, String referenceId, String role);
-    Set<MembershipEntity>   getMembershipsByReferencesAndRole           (MembershipReferenceType referenceType, List<String> referenceIds, String role);
-    MembershipEntity        getPrimaryOwner                             (MembershipReferenceType referenceType, String referenceId);
-    Set<RoleEntity>         getRoles                                    (MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
-    MemberEntity            getUserMember                               (MembershipReferenceType referenceType, String referenceId, String userId);
-    Map<String, char[]>     getUserMemberPermissions                    (MembershipReferenceType referenceType, String referenceId, String userId);
-    Map<String, char[]>     getUserMemberPermissions                    (ApiEntity api, String userId);
-    Map<String, char[]>     getUserMemberPermissions                    (ApplicationEntity application, String userId);
-    Map<String, char[]>     getUserMemberPermissions                    (GroupEntity group, String userId);
-    void                    removeRole                                  (MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId, String roleId);
-    void                    removeRoleUsage                             (String oldRoleId, String newRoleId);
-    void                    removeMemberMemberships                     (MembershipMemberType memberType, String memberId);
-    void                    transferApiOwnership                        (String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
-    void                    transferApplicationOwnership                (String applicationId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
-    MemberEntity            updateRoleToMemberOnReference               (MembershipReference reference, MembershipMember member, MembershipRole role, String source, boolean notify);
-    MemberEntity            updateRoleToMemberOnReferenceBySource       (MembershipReference reference, MembershipMember member, MembershipRole role, String source);
-    MemberEntity            updateRoleToMemberOnReference               (MembershipReference reference, MembershipMember member, MembershipRole role);
+    MemberEntity addRoleToMemberOnReference(
+        MembershipReferenceType referenceType,
+        String referenceId,
+        MembershipMemberType memberType,
+        String memberId,
+        String role
+    );
+    MemberEntity addRoleToMemberOnReference(
+        MembershipReferenceType referenceType,
+        String referenceId,
+        MembershipMemberType memberType,
+        String memberId,
+        String role,
+        String source
+    );
+    void deleteMembership(String membershipId);
+    void deleteReference(MembershipReferenceType referenceType, String referenceId);
+    void deleteReferenceMember(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
+    List<UserMembership> findUserMembership(MembershipReferenceType referenceType, String userId);
+    List<UserMembership> findUserMembershipBySource(MembershipReferenceType referenceType, String userId, String sourceId);
+    Metadata findUserMembershipMetadata(List<UserMembership> memberships, MembershipReferenceType type);
+    Set<MemberEntity> getMembersByReference(MembershipReferenceType referenceType, String referenceId);
+    Set<MemberEntity> getMembersByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, String role);
+    Set<MemberEntity> getMembersByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role);
+    Set<MembershipEntity> getMembershipsByMember(MembershipMemberType memberType, String memberId);
+    Set<MembershipEntity> getMembershipsByMemberAndReference(
+        MembershipMemberType memberType,
+        String memberId,
+        MembershipReferenceType referenceType
+    );
+    Set<MembershipEntity> getMembershipsByMemberAndReferenceAndRole(
+        MembershipMemberType memberType,
+        String memberId,
+        MembershipReferenceType referenceType,
+        String role
+    );
+    Set<MembershipEntity> getMembershipsByMembersAndReference(
+        MembershipMemberType memberType,
+        List<String> membersId,
+        MembershipReferenceType referenceType
+    );
+    Set<MembershipEntity> getMembershipsByReference(MembershipReferenceType referenceType, String referenceId);
+    Set<MembershipEntity> getMembershipsByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, String role);
+    Set<MembershipEntity> getMembershipsByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role);
+    MembershipEntity getPrimaryOwner(MembershipReferenceType referenceType, String referenceId);
+    Set<RoleEntity> getRoles(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
+    MemberEntity getUserMember(MembershipReferenceType referenceType, String referenceId, String userId);
+    Map<String, char[]> getUserMemberPermissions(MembershipReferenceType referenceType, String referenceId, String userId);
+    Map<String, char[]> getUserMemberPermissions(ApiEntity api, String userId);
+    Map<String, char[]> getUserMemberPermissions(ApplicationEntity application, String userId);
+    Map<String, char[]> getUserMemberPermissions(GroupEntity group, String userId);
+    void removeRole(
+        MembershipReferenceType referenceType,
+        String referenceId,
+        MembershipMemberType memberType,
+        String memberId,
+        String roleId
+    );
+    void removeRoleUsage(String oldRoleId, String newRoleId);
+    void removeMemberMemberships(MembershipMemberType memberType, String memberId);
+    void transferApiOwnership(String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
+    void transferApplicationOwnership(String applicationId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
+    MemberEntity updateRoleToMemberOnReference(
+        MembershipReference reference,
+        MembershipMember member,
+        MembershipRole role,
+        String source,
+        boolean notify
+    );
+    MemberEntity updateRoleToMemberOnReferenceBySource(
+        MembershipReference reference,
+        MembershipMember member,
+        MembershipRole role,
+        String source
+    );
+    MemberEntity updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role);
 
     class MembershipReference {
+
         private final MembershipReferenceType type;
         private final String id;
 
@@ -102,6 +144,7 @@ public interface MembershipService {
     }
 
     class MembershipMember {
+
         private final String memberId;
         private final String reference;
         private final MembershipMemberType memberType;
@@ -144,6 +187,7 @@ public interface MembershipService {
     }
 
     class MembershipRole {
+
         private final RoleScope scope;
         private final String name;
 
@@ -180,6 +224,7 @@ public interface MembershipService {
     }
 
     class Membership {
+
         final MembershipReference reference;
         final MembershipMember member;
         final MembershipRole role;

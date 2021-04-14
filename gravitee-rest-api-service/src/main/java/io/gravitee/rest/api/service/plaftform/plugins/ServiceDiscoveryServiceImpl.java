@@ -23,16 +23,14 @@ import io.gravitee.rest.api.service.ServiceDiscoveryService;
 import io.gravitee.rest.api.service.exceptions.ServiceDiscoveryNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -55,9 +53,7 @@ public class ServiceDiscoveryServiceImpl extends TransactionalService implements
             LOGGER.debug("List all service discovery plugins");
             final Collection<ServiceDiscoveryPlugin> plugins = serviceDiscoveryPluginManager.findAll();
 
-            return plugins.stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet());
+            return plugins.stream().map(this::convert).collect(Collectors.toSet());
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to list all service discovery plugins", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all service discovery plugins", ex);
@@ -83,7 +79,10 @@ public class ServiceDiscoveryServiceImpl extends TransactionalService implements
             return serviceDiscoveryPluginManager.getSchema(pluginId);
         } catch (IOException ioex) {
             LOGGER.error("An error occurs while trying to get service discovery plugin's schema for plugin {}", pluginId, ioex);
-            throw new TechnicalManagementException("An error occurs while trying to get service discovery plugin's schema for plugin " + pluginId, ioex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to get service discovery plugin's schema for plugin " + pluginId,
+                ioex
+            );
         }
     }
 

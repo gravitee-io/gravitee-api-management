@@ -19,7 +19,6 @@ package io.gravitee.rest.api.service;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 public interface EmailService {
-
     void sendEmailNotification(EmailNotification emailNotification);
 
     void sendAsyncEmailNotification(EmailNotification emailNotification);

@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.PortalConfigEntity;
 import io.gravitee.rest.api.model.configuration.identity.am.AMIdentityProviderEntity;
@@ -22,19 +26,12 @@ import io.gravitee.rest.api.model.configuration.identity.github.GitHubIdentityPr
 import io.gravitee.rest.api.model.configuration.identity.google.GoogleIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.oidc.OIDCIdentityProviderEntity;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationIdentitiesResponse;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
+import javax.ws.rs.core.Response;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,7 +43,7 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "configuration/identities";
     }
-    
+
     private static final String IDP_AUTHORIZATION_ENDPOINT = "my-idp-authorization-endpoint";
     private static final String IDP_CLIENT_ID = "my-idp-client-id";
     private static final String IDP_CLIENT_SECRET = "my-idp-client-secret";
@@ -63,30 +60,36 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
     private static final String IDP_USER_LOGOUT_ENDPOINT = "my-idp-user-logout-endpoint";
 
     private String serverUrl = "SERVER_URL";
-    
-    
+
     @Test
     public void shouldGetConfigurationIdentities() {
         resetAllMocks();
-        
-        doReturn(new HashSet<>(Arrays.asList(mockAMIdentityProviderEntity(), mockGoogleIdentityProviderEntity(), mockGitHubIdentityProviderEntity(), mockOIDCIdentityProviderEntity())))
-        .when(socialIdentityProviderService)
-        .findAll();
-        
+
+        doReturn(
+            new HashSet<>(
+                Arrays.asList(
+                    mockAMIdentityProviderEntity(),
+                    mockGoogleIdentityProviderEntity(),
+                    mockGitHubIdentityProviderEntity(),
+                    mockOIDCIdentityProviderEntity()
+                )
+            )
+        )
+            .when(socialIdentityProviderService)
+            .findAll();
+
         PortalConfigEntity configEntity = new PortalConfigEntity();
         doReturn(configEntity).when(configService).getPortalConfig();
-        
+
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         verify(identityProviderMapper, times(4)).convert(any());
         verify(socialIdentityProviderService).findAll();
-        
+
         ConfigurationIdentitiesResponse configurationIdentitiesResponse = response.readEntity(ConfigurationIdentitiesResponse.class);
         assertEquals(4, configurationIdentitiesResponse.getData().size());
-        
     }
-
 
     private Object mockGitHubIdentityProviderEntity() {
         GitHubIdentityProviderEntity providerEntity = new GitHubIdentityProviderEntity();
@@ -101,7 +104,6 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         return providerEntity;
     }
 
-
     private Object mockGoogleIdentityProviderEntity() {
         GoogleIdentityProviderEntity providerEntity = new GoogleIdentityProviderEntity();
         providerEntity.setClientId(IDP_CLIENT_ID);
@@ -114,7 +116,6 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         providerEntity.setRoleMappings(new ArrayList<>());
         return providerEntity;
     }
-
 
     private Object mockAMIdentityProviderEntity() {
         AMIdentityProviderEntity providerEntity = new AMIdentityProviderEntity(serverUrl);
@@ -132,7 +133,6 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         providerEntity.setUserProfileMapping(new HashMap<>());
         return providerEntity;
     }
-
 
     private Object mockOIDCIdentityProviderEntity() {
         OIDCIdentityProviderEntity providerEntity = new OIDCIdentityProviderEntity();
@@ -156,5 +156,3 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         return providerEntity;
     }
 }
-
-

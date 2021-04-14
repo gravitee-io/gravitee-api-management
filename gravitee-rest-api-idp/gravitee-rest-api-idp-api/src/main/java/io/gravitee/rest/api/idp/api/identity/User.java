@@ -23,10 +23,13 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface User {
+    default String getId() {
+        return null;
+    }
 
-    default String getId() { return null; }
-
-    default String getReference() { return null; }
+    default String getReference() {
+        return null;
+    }
 
     String getFirstname();
 
@@ -37,8 +40,10 @@ public interface User {
     String getDisplayName();
 
     String getSource();
-    
+
     String getPicture();
 
-    default Map<String, String> getRoles() {return Collections.emptyMap(); };
+    default Map<String, String> getRoles() {
+        return Collections.emptyMap();
+    }
 }

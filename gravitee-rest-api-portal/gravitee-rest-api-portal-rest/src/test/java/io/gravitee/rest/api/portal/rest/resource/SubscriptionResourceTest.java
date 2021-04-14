@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -25,17 +29,12 @@ import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import java.util.Arrays;
+import java.util.List;
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,6 +46,7 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "subscriptions/";
     }
+
     private static final String SUBSCRIPTION = "my-subscription";
     private static final String UNKNOWN_SUBSCRIPTION = "unknown-subscription";
     private static final String API = "my-api";
@@ -67,16 +67,13 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
 
         doReturn(Arrays.asList(new ApiKeyEntity())).when(apiKeyService).findBySubscription(SUBSCRIPTION);
 
-
         doReturn(new Subscription()).when(subscriptionMapper).convert(any());
         doReturn(new Key()).when(keyMapper).convert(any());
         doReturn(true).when(permissionService).hasPermission(any(), any(), any());
-
     }
 
     @Test
     public void shouldGetSubscription() {
-
         Response response = target(SUBSCRIPTION).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -85,7 +82,6 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
         Subscription subscription = response.readEntity(Subscription.class);
         assertNotNull(subscription);
         assertNull(subscription.getKeys());
-
     }
 
     @Test
@@ -93,26 +89,36 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
         reset(permissionService);
 
         doReturn(true).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.READ);
-        doReturn(true).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
         assertEquals(HttpStatusCode.OK_200, target(SUBSCRIPTION).request().get().getStatus());
 
         doReturn(true).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.READ);
-        doReturn(false).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
         assertEquals(HttpStatusCode.OK_200, target(SUBSCRIPTION).request().get().getStatus());
 
         doReturn(false).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.READ);
-        doReturn(true).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
         assertEquals(HttpStatusCode.OK_200, target(SUBSCRIPTION).request().get().getStatus());
 
         doReturn(false).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.READ);
-        doReturn(false).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
         assertEquals(HttpStatusCode.FORBIDDEN_403, target(SUBSCRIPTION).request().get().getStatus());
     }
 
     @Test
     public void shouldGetSubscriptionWithKeys() {
         doReturn(true).when(permissionService).hasPermission(RolePermission.API_SUBSCRIPTION, API, RolePermissionAction.READ);
-        doReturn(true).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.READ);
 
         final Response response = target(SUBSCRIPTION).queryParam("include", "keys").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -146,10 +152,14 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
     @Test
     public void testPermissionsForClosingASubscription() {
         reset(permissionService);
-        doReturn(true).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.DELETE);
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.DELETE);
         assertEquals(HttpStatusCode.NO_CONTENT_204, target(SUBSCRIPTION).path("_close").request().post(null).getStatus());
 
-        doReturn(false).when(permissionService).hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.DELETE);
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, APPLICATION, RolePermissionAction.DELETE);
         assertEquals(HttpStatusCode.FORBIDDEN_403, target(SUBSCRIPTION).path("_close").request().post(null).getStatus());
     }
 }

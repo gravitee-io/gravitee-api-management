@@ -27,7 +27,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -37,7 +36,7 @@ import javax.ws.rs.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Configuration"})
+@Api(tags = { "Configuration" })
 public class ApiHeaderResource extends AbstractResource {
 
     @Inject
@@ -46,15 +45,15 @@ public class ApiHeaderResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update an API header",
-            notes = "User must have the PORTAL_API_HEADER[UPDATE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Update an API header", notes = "User must have the PORTAL_API_HEADER[UPDATE] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "API header successfully updated", response = ApiHeaderEntity.class),
             @ApiResponse(code = 404, message = "API header not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.UPDATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.UPDATE) })
     public ApiHeaderEntity updateApiHeader(@PathParam("id") String id, @Valid @NotNull final UpdateApiHeaderEntity updateApiHeaderEntity) {
         updateApiHeaderEntity.setId(id);
         return apiHeaderService.update(updateApiHeaderEntity);
@@ -62,17 +61,16 @@ public class ApiHeaderResource extends AbstractResource {
 
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete an API header",
-            notes = "User must have the PORTAL_API_HEADER[DELETE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Delete an API header", notes = "User must have the PORTAL_API_HEADER[DELETE] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "API header successfully deleted"),
             @ApiResponse(code = 404, message = "API header not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.DELETE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_HEADER, acls = RolePermissionAction.DELETE) })
     public void deleteApiHeader(@PathParam("id") String id) {
         apiHeaderService.delete(id);
     }
-
 }

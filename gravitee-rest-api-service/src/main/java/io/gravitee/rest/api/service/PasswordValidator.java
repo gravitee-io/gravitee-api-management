@@ -20,6 +20,5 @@ package io.gravitee.rest.api.service;
  * @author GraviteeSource Team
  */
 public interface PasswordValidator {
-
     boolean validate(final String password);
 }

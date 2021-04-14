@@ -15,6 +15,14 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
@@ -23,26 +31,15 @@ import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingInput;
 import io.gravitee.rest.api.portal.rest.model.RatingsResponse;
 import io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static io.gravitee.common.http.HttpStatusCode.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -86,7 +83,6 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         doReturn(createdRating).when(ratingService).create(any());
     }
 
-
     @Test
     public void shouldNotFoundWhileGettingApiRatings() {
         //init
@@ -115,9 +111,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
     public void shouldGetServiceUnavailable() {
         doThrow(ApiRatingUnavailableException.class).when(ratingService).create(any());
 
-        RatingInput ratingInput = new RatingInput()
-                .comment(RATING)
-                .value(1);
+        RatingInput ratingInput = new RatingInput().comment(RATING).value(1);
 
         final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
         assertEquals(SERVICE_UNAVAILABLE_503, response.getStatus());
@@ -160,9 +154,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCreateApiRating() {
-        RatingInput ratingInput = new RatingInput()
-                .comment(RATING)
-                .value(1);
+        RatingInput ratingInput = new RatingInput().comment(RATING).value(1);
 
         final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
         assertEquals(CREATED_201, response.getStatus());
@@ -183,9 +175,7 @@ public class ApiRatingsResourceTest extends AbstractResourceTest {
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
 
         //test
-        RatingInput ratingInput = new RatingInput()
-                .comment(RATING)
-                .value(1);
+        RatingInput ratingInput = new RatingInput().comment(RATING).value(1);
 
         final Response response = target(API).path("ratings").request().post(Entity.json(ratingInput));
         assertEquals(NOT_FOUND_404, response.getStatus());

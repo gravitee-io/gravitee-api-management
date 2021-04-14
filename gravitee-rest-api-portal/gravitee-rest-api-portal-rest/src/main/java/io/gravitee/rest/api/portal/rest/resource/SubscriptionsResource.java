@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.*;
@@ -35,7 +38,8 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -43,11 +47,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -60,18 +59,25 @@ public class SubscriptionsResource extends AbstractResource {
 
     @Inject
     private SubscriptionService subscriptionService;
+
     @Inject
     private SubscriptionMapper subscriptionMapper;
+
     @Inject
     private ApplicationService applicationService;
+
     @Inject
     private PlanService planService;
+
     @Inject
     private UserService userService;
+
     @Inject
     private ApiKeyService apiKeyService;
+
     @Inject
     private ApiMapper apiMapper;
+
     @Inject
     private KeyMapper keyMapper;
 
@@ -88,26 +94,29 @@ public class SubscriptionsResource extends AbstractResource {
             SubscriptionEntity createdSubscription = subscriptionService.create(newSubscriptionEntity);
 
             // For consumer convenience, fetch the keys just after the subscription has been created.
-            List<Key> keys = apiKeyService.findBySubscription(createdSubscription.getId()).stream()
-                    .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
-                    .map(keyMapper::convert)
-                    .collect(Collectors.toList());
+            List<Key> keys = apiKeyService
+                .findBySubscription(createdSubscription.getId())
+                .stream()
+                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                .map(keyMapper::convert)
+                .collect(Collectors.toList());
 
             final Subscription subscription = subscriptionMapper.convert(createdSubscription);
             subscription.setKeys(keys);
 
-            return Response
-                    .ok(subscription)
-                    .build();
+            return Response.ok(subscription).build();
         }
         throw new ForbiddenAccessException();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getSubscriptions(@QueryParam("apiId") String apiId, @QueryParam("applicationId") String applicationId,
-                                     @QueryParam("statuses") List<SubscriptionStatus> statuses, @BeanParam PaginationParam paginationParam) {
-
+    public Response getSubscriptions(
+        @QueryParam("apiId") String apiId,
+        @QueryParam("applicationId") String applicationId,
+        @QueryParam("statuses") List<SubscriptionStatus> statuses,
+        @BeanParam PaginationParam paginationParam
+    ) {
         final boolean withoutPagination = paginationParam.getSize() != null && paginationParam.getSize().equals(-1);
         final SubscriptionQuery query = new SubscriptionQuery();
         query.setApi(apiId);
@@ -120,11 +129,13 @@ public class SubscriptionsResource extends AbstractResource {
                 return createListResponse(emptyList(), paginationParam, !withoutPagination);
             }
             query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toSet()));
-            applications.forEach(application -> {
-                final Map<String, Object> m = new HashMap<>();
-                m.put("name", application.getName());
-                metadata.put(application.getId(), m);
-            });
+            applications.forEach(
+                application -> {
+                    final Map<String, Object> m = new HashMap<>();
+                    m.put("name", application.getName());
+                    metadata.put(application.getId(), m);
+                }
+            );
         } else if (!hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.READ)) {
             throw new ForbiddenAccessException();
         }
@@ -137,7 +148,10 @@ public class SubscriptionsResource extends AbstractResource {
         if (withoutPagination) {
             subscriptions = subscriptionService.search(query);
         } else {
-            final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(query, new PageableImpl(paginationParam.getPage(), paginationParam.getSize()));
+            final Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(
+                query,
+                new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
+            );
             if (pagedSubscriptions == null) {
                 subscriptions = emptyList();
             } else {
@@ -145,35 +159,37 @@ public class SubscriptionsResource extends AbstractResource {
             }
         }
 
-        final List<Subscription> subscriptionList = subscriptions
-                .stream()
-                .map(subscriptionMapper::convert)
-                .collect(Collectors.toList());
+        final List<Subscription> subscriptionList = subscriptions.stream().map(subscriptionMapper::convert).collect(Collectors.toList());
 
-        subscriptionList.forEach(subscription -> {
-            final ApiEntity api = apiService.findById(subscription.getApi());
-            if (api != null) {
-                final Map<String, Object> m = new HashMap<>();
-                m.put("name", api.getName());
-                m.put("pictureUrl", apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())).getPicture());
-                m.put("state", api.getLifecycleState());
-                m.put("version", api.getVersion());
-                m.put("entrypoints", api.getEntrypoints());
-                metadata.put(api.getId(), m);
+        subscriptionList.forEach(
+            subscription -> {
+                final ApiEntity api = apiService.findById(subscription.getApi());
+                if (api != null) {
+                    final Map<String, Object> m = new HashMap<>();
+                    m.put("name", api.getName());
+                    m.put(
+                        "pictureUrl",
+                        apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())).getPicture()
+                    );
+                    m.put("state", api.getLifecycleState());
+                    m.put("version", api.getVersion());
+                    m.put("entrypoints", api.getEntrypoints());
+                    metadata.put(api.getId(), m);
+                }
+                final PlanEntity plan = planService.findById(subscription.getPlan());
+                if (plan != null) {
+                    final Map<String, Object> m = new HashMap<>();
+                    m.put("name", plan.getName());
+                    metadata.put(plan.getId(), m);
+                }
+                final UserEntity user = userService.findById(subscription.getSubscribedBy());
+                if (user != null) {
+                    final Map<String, Object> m = new HashMap<>();
+                    m.put("name", user.getDisplayName());
+                    metadata.put(user.getId(), m);
+                }
             }
-            final PlanEntity plan = planService.findById(subscription.getPlan());
-            if (plan != null) {
-                final Map<String, Object> m = new HashMap<>();
-                m.put("name", plan.getName());
-                metadata.put(plan.getId(), m);
-            }
-            final UserEntity user = userService.findById(subscription.getSubscribedBy());
-            if (user != null) {
-                final Map<String, Object> m = new HashMap<>();
-                m.put("name", user.getDisplayName());
-                metadata.put(user.getId(), m);
-            }
-        });
+        );
 
         return createListResponse(subscriptionList, paginationParam, metadata, !withoutPagination);
     }
@@ -182,5 +198,4 @@ public class SubscriptionsResource extends AbstractResource {
     public SubscriptionResource getSubscriptionResource() {
         return resourceContext.getResource(SubscriptionResource.class);
     }
-
 }

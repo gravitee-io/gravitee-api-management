@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -28,6 +27,7 @@ import java.util.Objects;
 public class UpdateEnvironmentEntity {
 
     private String id;
+
     @NotNull
     @Size(min = 1)
     private String name;
@@ -38,7 +38,7 @@ public class UpdateEnvironmentEntity {
     private String organizationId;
 
     private List<String> domainRestrictions;
-    
+
     public String getId() {
         return id;
     }
@@ -84,8 +84,7 @@ public class UpdateEnvironmentEntity {
         if (this == o) return true;
         if (!(o instanceof UpdateEnvironmentEntity)) return false;
         UpdateEnvironmentEntity that = (UpdateEnvironmentEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name);
     }
 
     @Override
@@ -95,12 +94,24 @@ public class UpdateEnvironmentEntity {
 
     @Override
     public String toString() {
-        return "UpdateEnvironmentEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", organizationId='" + organizationId + '\'' +
-                ", domain restrictions='" + domainRestrictions + '\'' +
-                '}';
+        return (
+            "UpdateEnvironmentEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", organizationId='" +
+            organizationId +
+            '\'' +
+            ", domain restrictions='" +
+            domainRestrictions +
+            '\'' +
+            '}'
+        );
     }
 }

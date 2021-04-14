@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.model.configuration.application.registration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

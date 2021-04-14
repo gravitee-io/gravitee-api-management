@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -22,19 +26,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.impl.PolicyServiceImpl;
-
+import java.util.Collections;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -53,8 +51,8 @@ public class PolicyServiceTest {
     @Mock
     private PolicyPlugin policyDefinition;
 
-//    @Mock
-//    private Plugin plugin;
+    //    @Mock
+    //    private Plugin plugin;
 
     @Mock
     private PluginManifest manifest;
@@ -64,7 +62,7 @@ public class PolicyServiceTest {
         when(policyDefinition.id()).thenReturn(POLICY_ID);
         when(policyManager.findAll()).thenReturn(Collections.singletonList(policyDefinition));
         when(policyDefinition.manifest()).thenReturn(manifest);
-//        when(plugin.manifest()).thenReturn(manifest);
+        //        when(plugin.manifest()).thenReturn(manifest);
 
         final Set<PolicyEntity> policies = policyService.findAll();
 

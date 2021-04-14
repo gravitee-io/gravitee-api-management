@@ -19,14 +19,12 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.event.ApiEvent;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,18 +42,18 @@ public class ApiManager {
     public void deploy(ApiEntity api) {
         logger.info("Deployment of {}", api);
 
-            apis.put(api.getId(), api);
+        apis.put(api.getId(), api);
 
-            if (api.getState() == Lifecycle.State.STARTED) {
-                eventManager.publishEvent(ApiEvent.DEPLOY, api);
-            } else {
-                logger.debug("{} is not enabled. Skip deployment.", api);
-            }
+        if (api.getState() == Lifecycle.State.STARTED) {
+            eventManager.publishEvent(ApiEvent.DEPLOY, api);
+        } else {
+            logger.debug("{} is not enabled. Skip deployment.", api);
+        }
     }
 
     public void update(ApiEntity api) {
         apis.put(api.getId(), api);
-            eventManager.publishEvent(ApiEvent.UPDATE, api);
+        eventManager.publishEvent(ApiEvent.UPDATE, api);
     }
 
     public void undeploy(String apiId) {

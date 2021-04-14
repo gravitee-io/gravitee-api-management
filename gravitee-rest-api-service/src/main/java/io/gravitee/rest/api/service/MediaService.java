@@ -16,14 +16,12 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.MediaEntity;
-
 import java.util.List;
 
 /**
  * @author Guillaume Gillon
  */
 public interface MediaService {
-
     String savePortalMedia(MediaEntity imageEntity);
 
     String saveApiMedia(String api, MediaEntity imageEntity);
@@ -39,5 +37,4 @@ public interface MediaService {
     String createWithDefinition(String api, String definition);
 
     void deleteAllByApi(String apiId);
-
 }

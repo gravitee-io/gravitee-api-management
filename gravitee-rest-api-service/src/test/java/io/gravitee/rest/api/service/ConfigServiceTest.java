@@ -15,29 +15,27 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.management.model.Parameter;
-import io.gravitee.rest.api.model.PortalConfigEntity;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.service.impl.ConfigServiceImpl;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.core.env.ConfigurableEnvironment;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static io.gravitee.rest.api.model.parameters.Key.COMPANY_NAME;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.rest.api.model.PortalConfigEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.impl.ConfigServiceImpl;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -51,17 +49,18 @@ public class ConfigServiceTest {
 
     @Mock
     private ParameterService mockParameterService;
+
     @Mock
     private ReCaptchaService reCaptchaService;
 
     @Mock
     private ConfigurableEnvironment environment;
+
     @Mock
     private NewsletterService newsletterService;
 
     @Test
     public void shouldGetPortalConfig() {
-
         Map<String, List<String>> params = new HashMap<>();
         params.put(COMPANY_NAME.key(), singletonList("ACME"));
         params.put(Key.AUTHENTICATION_FORCELOGIN_ENABLED.key(), singletonList("true"));

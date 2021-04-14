@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
+
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.*;
@@ -26,15 +28,12 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import java.util.HashMap;
+import java.util.Map;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
-
-import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -47,16 +46,22 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
 
     @Inject
     private UserService userService;
+
     @Inject
     private MetadataService metadataService;
+
     @Inject
     private ApiService apiService;
+
     @Inject
     private ApplicationService applicationService;
+
     @Inject
     private EmailService emailService;
+
     @Inject
     private ParameterService parameterService;
+
     @Inject
     private NotifierService notifierService;
 
@@ -113,39 +118,39 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         parameters.put("content", ticketEntity.getContent().replaceAll("(\r\n|\n)", "<br />"));
         final String fromName = user.getFirstname() == null ? user.getEmail() : user.getFirstname() + ' ' + user.getLastname();
         emailService.sendEmailNotification(
-                new EmailNotificationBuilder()
-                        .replyTo(user.getEmail())
-                        .fromName(fromName)
-                        .to(emailTo)
-                        .subject(ticketEntity.getSubject())
-                        .copyToSender(ticketEntity.isCopyToSender())
-                        .template(SUPPORT_TICKET)
-                        .params(parameters)
-                        .build());
+            new EmailNotificationBuilder()
+                .replyTo(user.getEmail())
+                .fromName(fromName)
+                .to(emailTo)
+                .subject(ticketEntity.getSubject())
+                .copyToSender(ticketEntity.isCopyToSender())
+                .template(SUPPORT_TICKET)
+                .params(parameters)
+                .build()
+        );
         sendUserNotification(user, api, applicationEntity);
     }
 
     private void sendUserNotification(final UserEntity user, final ApiModelEntity api, final ApplicationEntity application) {
-        notifierService.trigger(PortalHook.NEW_SUPPORT_TICKET, new NotificationParamsBuilder()
-                .user(user)
-                .api(api)
-                .application(application)
-                .build());
+        notifierService.trigger(
+            PortalHook.NEW_SUPPORT_TICKET,
+            new NotificationParamsBuilder().user(user).api(api).application(application).build()
+        );
 
         if (api != null) {
-            notifierService.trigger(ApiHook.NEW_SUPPORT_TICKET, api.getId(), new NotificationParamsBuilder()
-                    .user(user)
-                    .api(api)
-                    .application(application)
-                    .build());
+            notifierService.trigger(
+                ApiHook.NEW_SUPPORT_TICKET,
+                api.getId(),
+                new NotificationParamsBuilder().user(user).api(api).application(application).build()
+            );
         }
 
         if (application != null) {
-            notifierService.trigger(ApplicationHook.NEW_SUPPORT_TICKET, application.getId(), new NotificationParamsBuilder()
-                    .user(user)
-                    .api(api)
-                    .application(application)
-                    .build());
+            notifierService.trigger(
+                ApplicationHook.NEW_SUPPORT_TICKET,
+                application.getId(),
+                new NotificationParamsBuilder().user(user).api(api).application(application).build()
+            );
         }
     }
 }

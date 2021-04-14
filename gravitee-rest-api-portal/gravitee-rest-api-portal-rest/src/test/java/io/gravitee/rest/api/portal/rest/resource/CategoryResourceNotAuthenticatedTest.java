@@ -21,26 +21,23 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Category;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Category;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -53,48 +50,56 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
     protected String contextPath() {
         return "categories/";
     }
-    
+
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
     }
-    
+
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return null;
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return null;
+                    }
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return false;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
-                @Override
-                public boolean isSecure() { return false; }
-                
-                @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
-            });
+            );
         }
     }
 
     @Before
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
-        
+
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setId(CATEGORY_ID);
         categoryEntity.setHidden(false);
         doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID);
-        
+
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
-        Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
 
+        Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
     }
 
     @Test
@@ -109,6 +114,5 @@ public class CategoryResourceNotAuthenticatedTest extends AbstractResourceTest {
 
         final Category responseCategory = response.readEntity(Category.class);
         assertNotNull(responseCategory);
-        
     }
 }

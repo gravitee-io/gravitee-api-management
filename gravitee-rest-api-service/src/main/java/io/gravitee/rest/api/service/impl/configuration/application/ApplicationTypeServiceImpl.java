@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.application;
 
+import static java.nio.charset.Charset.defaultCharset;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -26,18 +28,15 @@ import io.gravitee.rest.api.service.configuration.application.ApplicationTypeSer
 import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.nio.charset.Charset.defaultCharset;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -63,10 +62,11 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
     @Override
     public ApplicationTypeEntity getApplicationType(String typeId) {
         return this.getApplicationTypesEntity()
-                .getData()
-                .stream()
-                .filter(typeEntity -> typeEntity.getId().equals(typeId.toLowerCase())).findFirst()
-                .orElseThrow(() -> new ApplicationTypeNotFoundException(typeId));
+            .getData()
+            .stream()
+            .filter(typeEntity -> typeEntity.getId().equals(typeId.toLowerCase()))
+            .findFirst()
+            .orElseThrow(() -> new ApplicationTypeNotFoundException(typeId));
     }
 
     private ApplicationTypesEntity getApplicationTypesEntity() {
@@ -83,10 +83,10 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
         ApplicationTypesEntity applicationTypesEntity = this.getApplicationTypesEntity();
 
         List<ApplicationTypeEntity> filteredData = applicationTypesEntity
-                .getData()
-                .stream()
-                .filter(typeEntity -> jsonTypes.get(typeEntity.getId()).get("enabled").asBoolean(false))
-                .collect(Collectors.toList());
+            .getData()
+            .stream()
+            .filter(typeEntity -> jsonTypes.get(typeEntity.getId()).get("enabled").asBoolean(false))
+            .collect(Collectors.toList());
 
         applicationTypesEntity.setData(filteredData);
         return applicationTypesEntity;
@@ -103,5 +103,4 @@ public class ApplicationTypeServiceImpl implements ApplicationTypeService {
         }
         return objectMapper.convertValue(types, JsonNode.class);
     }
-
 }

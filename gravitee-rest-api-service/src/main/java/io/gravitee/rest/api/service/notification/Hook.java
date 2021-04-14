@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.service.notification;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import io.gravitee.rest.api.service.jackson.ser.HookSerializer;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @JsonSerialize(using = HookSerializer.class)
@@ -30,6 +29,7 @@ public interface Hook {
     String getDescription();
     String getCategory();
     HookScope getScope();
+
     default boolean isHidden() {
         return false;
     }

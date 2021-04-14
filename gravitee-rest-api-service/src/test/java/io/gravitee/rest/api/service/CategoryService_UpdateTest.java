@@ -15,30 +15,28 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.CategoryRepository;
-import io.gravitee.repository.management.model.Category;
-import io.gravitee.rest.api.model.UpdateCategoryEntity;
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
-import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
 import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_UPDATED;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.model.Category;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.UpdateCategoryEntity;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
+import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -148,4 +146,3 @@ public class CategoryService_UpdateTest {
         verify(mockAuditService, times(1)).createPortalAuditLog(any(), eq(CATEGORY_UPDATED), any(), any(), any());
     }
 }
-

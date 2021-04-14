@@ -28,17 +28,16 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.CategoryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -46,8 +45,8 @@ import java.util.stream.Collectors;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Categories"})
-public class CategoriesResource extends AbstractCategoryResource  {
+@Api(tags = { "Categories" })
+public class CategoriesResource extends AbstractCategoryResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -58,7 +57,7 @@ public class CategoriesResource extends AbstractCategoryResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Retrieve list of categories")
-    public List<CategoryEntity> getCategories()  {
+    public List<CategoryEntity> getCategories() {
         Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = apiService.findAll();
@@ -68,30 +67,34 @@ public class CategoriesResource extends AbstractCategoryResource  {
             apis = apiService.findByVisibility(Visibility.PUBLIC);
         }
 
-        boolean All = hasPermission(RolePermission.ENVIRONMENT_CATEGORY, RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE);
+        boolean All = hasPermission(
+            RolePermission.ENVIRONMENT_CATEGORY,
+            RolePermissionAction.UPDATE,
+            RolePermissionAction.CREATE,
+            RolePermissionAction.DELETE
+        );
 
-        return categoryService.findAll()
-                .stream()
-                .filter(c -> All || !c.isHidden())
-                .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
-                // set picture
-                .map(c -> setPicture(c, true))
-                .map(c -> {
+        return categoryService
+            .findAll()
+            .stream()
+            .filter(c -> All || !c.isHidden())
+            .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
+            // set picture
+            .map(c -> setPicture(c, true))
+            .map(
+                c -> {
                     c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
                     return c;
-                })
-                .collect(Collectors.toList());
+                }
+            )
+            .collect(Collectors.toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-            value = "Create a category",
-            notes = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE)
-    })
+    @ApiOperation(value = "Create a category", notes = "User must have the PORTAL_CATEGORY[CREATE] permission to use this service")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.CREATE) })
     public CategoryEntity createCategory(@Valid @NotNull final NewCategoryEntity category) {
         return categoryService.create(category);
     }
@@ -100,11 +103,10 @@ public class CategoriesResource extends AbstractCategoryResource  {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "Update an existing category",
-            notes = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE)
-    })
+        value = "Update an existing category",
+        notes = "User must have the PORTAL_CATEGORY[UPDATE] permission to use this service"
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CATEGORY, acls = RolePermissionAction.UPDATE) })
     public List<CategoryEntity> updateCategories(@Valid @NotNull final List<UpdateCategoryEntity> categories) {
         return categoryService.update(categories);
     }

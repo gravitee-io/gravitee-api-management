@@ -15,27 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
-import com.google.common.collect.ImmutableMap;
-import io.gravitee.rest.api.model.DashboardEntity;
-import io.gravitee.rest.api.model.NewDashboardEntity;
-import io.gravitee.rest.api.model.UpdateDashboardEntity;
-import io.gravitee.rest.api.service.exceptions.DashboardNotFoundException;
-import io.gravitee.rest.api.service.impl.DashboardServiceImpl;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.DashboardRepository;
-import io.gravitee.repository.management.model.Dashboard;
-import io.gravitee.repository.management.model.DashboardReferenceType;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Date;
-import java.util.List;
-
-import static io.gravitee.rest.api.model.DashboardReferenceType.PLATFORM;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DASHBOARD;
+import static io.gravitee.rest.api.model.DashboardReferenceType.PLATFORM;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
@@ -45,12 +26,31 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import com.google.common.collect.ImmutableMap;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.DashboardRepository;
+import io.gravitee.repository.management.model.Dashboard;
+import io.gravitee.repository.management.model.DashboardReferenceType;
+import io.gravitee.rest.api.model.DashboardEntity;
+import io.gravitee.rest.api.model.NewDashboardEntity;
+import io.gravitee.rest.api.model.UpdateDashboardEntity;
+import io.gravitee.rest.api.service.exceptions.DashboardNotFoundException;
+import io.gravitee.rest.api.service.impl.DashboardServiceImpl;
+import java.util.Date;
+import java.util.List;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class DashboardServiceTest {
+
     private static final String DASHBOARD_ID = "id-dashboard";
 
     @InjectMocks
@@ -58,6 +58,7 @@ public class DashboardServiceTest {
 
     @Mock
     private DashboardRepository dashboardRepository;
+
     @Mock
     private AuditService auditService;
 
@@ -192,8 +193,11 @@ public class DashboardServiceTest {
         dashboard.setReferenceType(PLATFORM.name());
         dashboard.setQueryFilter("QUERY FILTER");
 
-        verify(dashboardRepository, times(1)).create(argThat(argument ->
-                "NAME".equals(argument.getName()) &&
+        verify(dashboardRepository, times(1))
+            .create(
+                argThat(
+                    argument ->
+                        "NAME".equals(argument.getName()) &&
                         "DEFINITION".equals(argument.getDefinition()) &&
                         "REF_ID".equals(argument.getReferenceId()) &&
                         PLATFORM.name().equals(argument.getReferenceType()) &&
@@ -201,13 +205,17 @@ public class DashboardServiceTest {
                         Integer.valueOf(1).equals(argument.getOrder()) &&
                         !argument.getId().isEmpty() &&
                         argument.getCreatedAt() != null &&
-                        argument.getUpdatedAt() != null));
-        verify(auditService, times(1)).createPortalAuditLog(
+                        argument.getUpdatedAt() != null
+                )
+            );
+        verify(auditService, times(1))
+            .createPortalAuditLog(
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_CREATED),
                 any(Date.class),
                 isNull(),
-                any());
+                any()
+            );
     }
 
     @Test
@@ -246,7 +254,6 @@ public class DashboardServiceTest {
         assertNotNull(dashboardEntity.getCreatedAt());
         assertNotNull(dashboardEntity.getUpdatedAt());
 
-
         final Dashboard dashboard = new Dashboard();
         dashboard.setName("NAME");
         dashboard.setDefinition("DEFINITION");
@@ -255,8 +262,11 @@ public class DashboardServiceTest {
         dashboard.setReferenceType(PLATFORM.name());
         dashboard.setQueryFilter("QUERY FILTER");
 
-        verify(dashboardRepository, times(1)).update(argThat(argument ->
-                "NAME".equals(argument.getName()) &&
+        verify(dashboardRepository, times(1))
+            .update(
+                argThat(
+                    argument ->
+                        "NAME".equals(argument.getName()) &&
                         "DEFINITION".equals(argument.getDefinition()) &&
                         "REF_ID".equals(argument.getReferenceId()) &&
                         PLATFORM.name().equals(argument.getReferenceType()) &&
@@ -264,13 +274,17 @@ public class DashboardServiceTest {
                         Integer.valueOf(1).equals(argument.getOrder()) &&
                         DASHBOARD_ID.equals(argument.getId()) &&
                         argument.getCreatedAt() == null &&
-                        argument.getUpdatedAt() != null));
-        verify(auditService, times(1)).createPortalAuditLog(
+                        argument.getUpdatedAt() != null
+                )
+            );
+        verify(auditService, times(1))
+            .createPortalAuditLog(
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_UPDATED),
                 any(Date.class),
                 any(),
-                any());
+                any()
+            );
     }
 
     @Test(expected = DashboardNotFoundException.class)
@@ -291,11 +305,13 @@ public class DashboardServiceTest {
         dashboardService.delete(DASHBOARD_ID);
 
         verify(dashboardRepository, times(1)).delete(DASHBOARD_ID);
-        verify(auditService, times(1)).createPortalAuditLog(
+        verify(auditService, times(1))
+            .createPortalAuditLog(
                 eq(ImmutableMap.of(DASHBOARD, DASHBOARD_ID)),
                 eq(Dashboard.AuditEvent.DASHBOARD_DELETED),
                 any(Date.class),
                 isNull(),
-                eq(dashboard));
+                eq(dashboard)
+            );
     }
 }

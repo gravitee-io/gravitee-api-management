@@ -16,9 +16,8 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
 import java.util.Date;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -87,7 +86,6 @@ public class ProcessSubscriptionEntity {
         ProcessSubscriptionEntity that = (ProcessSubscriptionEntity) o;
 
         return id != null ? id.equals(that.id) : that.id == null;
-
     }
 
     @Override

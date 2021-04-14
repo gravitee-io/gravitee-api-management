@@ -15,25 +15,23 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_DELETED;
+import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_UPDATED;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
-
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Optional;
-
-import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_DELETED;
-import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_UPDATED;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -78,4 +76,3 @@ public class CategoryService_DeleteTest {
         verify(mockApiService, times(1)).deleteCategoryFromAPIs(eq("known"));
     }
 }
-

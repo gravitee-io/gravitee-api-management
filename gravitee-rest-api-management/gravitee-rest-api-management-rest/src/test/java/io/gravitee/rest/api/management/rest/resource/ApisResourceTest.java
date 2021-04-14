@@ -15,20 +15,19 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -54,8 +53,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
-        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
-                Mockito.eq(USER_NAME));
+        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
         final Response response = target().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -70,8 +68,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
-        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
-                Mockito.eq(USER_NAME));
+        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
         final Response response = target().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -88,8 +85,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
-        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
-                Mockito.eq(USER_NAME));
+        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
         final Response response = target().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());

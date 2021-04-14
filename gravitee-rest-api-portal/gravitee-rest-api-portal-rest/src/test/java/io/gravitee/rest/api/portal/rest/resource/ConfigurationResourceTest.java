@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
@@ -25,20 +30,13 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import java.util.*;
+import javax.validation.Valid;
+import javax.ws.rs.core.Response;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
-import javax.validation.Valid;
-import javax.ws.rs.core.Response;
-
-import java.util.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -107,21 +105,23 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         markdownFolderSysFolder.setName("MARKDOWN");
         markdownFolderSysFolder.setPublished(true);
 
-        when(pageService.search(any(PageQuery.class), isNull())).thenAnswer(new Answer<List<PageEntity>>() {
-
-            @Override
-            public List<PageEntity> answer(InvocationOnMock invocation) throws Throwable {
-                PageQuery pq = invocation.getArgument(0);
-                if(PageType.SYSTEM_FOLDER.equals(pq.getType())) {
-                    return Arrays.asList(sysFolder);
-                } else if ("SYS_FOLDER".equals(pq.getParent())) {
-                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder);
-                } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent())) {
-                    return Arrays.asList(markdownFolderSysFolder);
+        when(pageService.search(any(PageQuery.class), isNull()))
+            .thenAnswer(
+                new Answer<List<PageEntity>>() {
+                    @Override
+                    public List<PageEntity> answer(InvocationOnMock invocation) throws Throwable {
+                        PageQuery pq = invocation.getArgument(0);
+                        if (PageType.SYSTEM_FOLDER.equals(pq.getType())) {
+                            return Arrays.asList(sysFolder);
+                        } else if ("SYS_FOLDER".equals(pq.getParent())) {
+                            return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder);
+                        } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent())) {
+                            return Arrays.asList(markdownFolderSysFolder);
+                        }
+                        return null;
+                    }
                 }
-                return null;
-            }
-        });
+            );
 
         final Response response = target("/links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -209,13 +209,14 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final ConfigurationApplicationTypesResponse appTypes = response.readEntity(ConfigurationApplicationTypesResponse.class);
         assertNotNull(appTypes);
-        @Valid List<ApplicationType> types = appTypes.getData();
+        @Valid
+        List<ApplicationType> types = appTypes.getData();
         assertNotNull(types);
         assertEquals(2, types.size());
 
         assertEquals("web", types.get(1).getId());
         assertEquals(1, types.get(1).getAllowedGrantTypes().size());
-    };
+    }
 
     @Test
     public void shouldGetApplicationRoles() throws TechnicalException {
@@ -231,7 +232,8 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final ConfigurationApplicationRolesResponse appRoles = response.readEntity(ConfigurationApplicationRolesResponse.class);
         assertNotNull(appRoles);
-        @Valid List<ApplicationRole> roles = appRoles.getData();
+        @Valid
+        List<ApplicationRole> roles = appRoles.getData();
         assertNotNull(roles);
         assertEquals(1, roles.size());
 
@@ -239,5 +241,5 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         assertEquals(true, roles.get(0).getDefault());
         assertEquals("appRole", roles.get(0).getName());
         assertEquals(false, roles.get(0).getSystem());
-    };
+    }
 }

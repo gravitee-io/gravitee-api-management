@@ -18,10 +18,11 @@ package io.gravitee.rest.api.model.descriptor;
 import java.util.List;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GraviteeDescriptorDocumentationEntity {
+
     private List<GraviteeDescriptorPageEntity> pages;
 
     public List<GraviteeDescriptorPageEntity> getPages() {

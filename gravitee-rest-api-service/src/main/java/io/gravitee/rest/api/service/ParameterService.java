@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -29,7 +28,6 @@ import java.util.function.Predicate;
  * @author GraviteeSource Team
  */
 public interface ParameterService {
-
     String find(Key key);
     boolean findAsBoolean(Key key);
     List<String> findAll(Key key);

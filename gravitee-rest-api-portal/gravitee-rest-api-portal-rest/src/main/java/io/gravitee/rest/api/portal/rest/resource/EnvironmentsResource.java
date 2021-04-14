@@ -89,7 +89,6 @@ public class EnvironmentsResource extends AbstractResource {
         return resourceContext.getResource(TicketsResource.class);
     }
 
-
     @Path("users")
     public UsersResource getUsersResource() {
         return resourceContext.getResource(UsersResource.class);

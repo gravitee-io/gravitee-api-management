@@ -16,114 +16,117 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Titouan COMPIEGNE
- * @author Guillaume GILLON 
+ * @author Guillaume GILLON
  */
 public class UpdatePageEntity {
 
-	@NotNull
-	@Size(min = 1)
-	private String name;
+    @NotNull
+    @Size(min = 1)
+    private String name;
 
-	private String content;
+    private String content;
 
-	private String lastContributor;
+    private String lastContributor;
 
-	private Integer order;
+    private Integer order;
 
-	private Boolean published;
+    private Boolean published;
 
-	private PageSourceEntity source;
+    private PageSourceEntity source;
 
-	private Map<String, String> configuration;
+    private Map<String, String> configuration;
 
-	private Boolean homepage;
+    private Boolean homepage;
 
-	@JsonProperty("excluded_groups")
-	private List<String> excludedGroups;
+    @JsonProperty("excluded_groups")
+    private List<String> excludedGroups;
 
     private String parentId;
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    public String getContent() {
+        return content;
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-	public String getLastContributor() {
-		return lastContributor;
-	}
+    public String getLastContributor() {
+        return lastContributor;
+    }
 
-	public void setLastContributor(String lastContributor) {
-		this.lastContributor = lastContributor;
-	}
+    public void setLastContributor(String lastContributor) {
+        this.lastContributor = lastContributor;
+    }
 
-	public Integer getOrder() {
-		return order;
-	}
+    public Integer getOrder() {
+        return order;
+    }
 
-	public void setOrder(Integer order) {
-		this.order = order;
-	}
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
 
-	public Boolean isPublished() {
-		return published;
-	}
+    public Boolean isPublished() {
+        return published;
+    }
 
-	public void setPublished(Boolean published) {
-		this.published = published;
-	}
+    public void setPublished(Boolean published) {
+        this.published = published;
+    }
 
-	public PageSourceEntity getSource() {
-		return source;
-	}
+    public PageSourceEntity getSource() {
+        return source;
+    }
 
-	public void setSource(PageSourceEntity source) {
-		this.source = source;
-	}
+    public void setSource(PageSourceEntity source) {
+        this.source = source;
+    }
 
-	public Map<String, String> getConfiguration() {
-		return configuration;
-	}
+    public Map<String, String> getConfiguration() {
+        return configuration;
+    }
 
-	public void setConfiguration(Map<String, String> configuration) {
-		this.configuration = configuration;
-	}
+    public void setConfiguration(Map<String, String> configuration) {
+        this.configuration = configuration;
+    }
 
-	public Boolean isHomepage() {
-		return homepage;
-	}
+    public Boolean isHomepage() {
+        return homepage;
+    }
 
-	public void setHomepage(Boolean homepage) {
-		this.homepage = homepage;
-	}
+    public void setHomepage(Boolean homepage) {
+        this.homepage = homepage;
+    }
 
-	public List<String> getExcludedGroups() {
-		return excludedGroups;
-	}
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
 
-	public void setExcludedGroups(List<String> excludedGroups) {
-		this.excludedGroups = excludedGroups;
-	}
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
+    }
 
-    public String getParentId() { return parentId; }
+    public String getParentId() {
+        return parentId;
+    }
 
-    public void setParentId(String parentId) { this.parentId = parentId; }
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
 }

@@ -18,10 +18,9 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume GILLON
@@ -54,5 +53,4 @@ public class MediaRepositoryProxy extends AbstractProxy<MediaRepository> impleme
     public List<Media> findAllByApi(String api) {
         return target.findAllByApi(api);
     }
-
 }

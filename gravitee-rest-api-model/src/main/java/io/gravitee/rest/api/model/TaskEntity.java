@@ -16,21 +16,20 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.gravitee.rest.api.model.permissions.RoleScope;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class TaskEntity {
 
     private TaskType type;
     private Object data;
+
     @JsonProperty(value = "created_at")
     private Date createdAt;
 

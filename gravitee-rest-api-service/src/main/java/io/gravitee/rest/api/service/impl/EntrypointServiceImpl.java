@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENTRYPOINT;
+import static io.gravitee.repository.management.model.Entrypoint.AuditEvent.*;
+import static java.util.Arrays.sort;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
@@ -28,18 +32,12 @@ import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
 import io.gravitee.rest.api.service.exceptions.EntrypointTagsAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.ENTRYPOINT;
-import static io.gravitee.repository.management.model.Entrypoint.AuditEvent.*;
-import static java.util.Arrays.sort;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -49,10 +47,11 @@ import static java.util.Arrays.sort;
 public class EntrypointServiceImpl extends TransactionalService implements EntrypointService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(EntrypointServiceImpl.class);
-    private final static String SEPARATOR = ";";
+    private static final String SEPARATOR = ";";
 
     @Autowired
     private AuditService auditService;
+
     @Autowired
     private EntrypointRepository entrypointRepository;
 
@@ -75,9 +74,11 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     public List<EntrypointEntity> findAll() {
         try {
             LOGGER.debug("Find all APIs");
-            return entrypointRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
+            return entrypointRepository
+                .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all entrypoints", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all entrypoints", ex);
@@ -91,11 +92,12 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
             entrypoint.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
-                    ENTRYPOINT_CREATED,
-                    new Date(),
-                    null,
-                    entrypoint);
+                Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
+                ENTRYPOINT_CREATED,
+                new Date(),
+                null,
+                entrypoint
+            );
             return savedEntryPoint;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create entrypoint {}", entrypointEntity.getValue(), ex);
@@ -112,11 +114,12 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
                 entrypoint.setEnvironmentId(entrypointOptional.get().getEnvironmentId());
                 final EntrypointEntity savedEntryPoint = convert(entrypointRepository.update(entrypoint));
                 auditService.createPortalAuditLog(
-                        Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
-                        ENTRYPOINT_UPDATED,
-                        new Date(),
-                        entrypointOptional.get(),
-                        entrypoint);
+                    Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
+                    ENTRYPOINT_UPDATED,
+                    new Date(),
+                    entrypointOptional.get(),
+                    entrypoint
+                );
                 return savedEntryPoint;
             } else {
                 throw new EntrypointNotFoundException(entrypointEntity.getId());
@@ -129,14 +132,18 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
 
     private void checkTagsOnExistingEntryPoints(final String[] tags, final String entrypointIdToIgnore) throws TechnicalException {
         // first check for existing entry point with same tags
-        final boolean tagsAlreadyDefined = entrypointRepository.findAllByEnvironment(GraviteeContext.getCurrentEnvironment()).stream()
-                .filter(entrypoint -> entrypointIdToIgnore == null || !entrypoint.getId().equals(entrypointIdToIgnore))
-                .anyMatch(entrypoint -> {
+        final boolean tagsAlreadyDefined = entrypointRepository
+            .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
+            .stream()
+            .filter(entrypoint -> entrypointIdToIgnore == null || !entrypoint.getId().equals(entrypointIdToIgnore))
+            .anyMatch(
+                entrypoint -> {
                     final String[] entrypointTags = entrypoint.getTags().split(SEPARATOR);
                     sort(entrypointTags);
                     sort(tags);
                     return Arrays.equals(entrypointTags, tags);
-                });
+                }
+            );
         if (tagsAlreadyDefined) {
             throw new EntrypointTagsAlreadyExistsException();
         }
@@ -149,11 +156,12 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
             if (entrypointOptional.isPresent()) {
                 entrypointRepository.delete(entrypointId);
                 auditService.createPortalAuditLog(
-                        Collections.singletonMap(ENTRYPOINT, entrypointId),
-                        ENTRYPOINT_DELETED,
-                        new Date(),
-                        null,
-                        entrypointOptional.get());
+                    Collections.singletonMap(ENTRYPOINT, entrypointId),
+                    ENTRYPOINT_DELETED,
+                    new Date(),
+                    null,
+                    entrypointOptional.get()
+                );
             } else {
                 throw new EntrypointNotFoundException(entrypointId);
             }

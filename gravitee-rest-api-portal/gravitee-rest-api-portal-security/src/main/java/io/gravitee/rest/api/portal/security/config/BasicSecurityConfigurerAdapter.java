@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.portal.security.config;
 
+import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
+import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
+import static java.util.Arrays.asList;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
@@ -31,6 +35,12 @@ import io.gravitee.rest.api.security.listener.AuthenticationFailureListener;
 import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.ReCaptchaService;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,18 +63,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
-import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
-import static java.util.Arrays.asList;
-
-
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -79,16 +77,22 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     @Autowired
     private ConfigurableEnvironment environment;
+
     @Autowired
     private IdentityProviderManager identityProviderManager;
+
     @Autowired
     private AuthenticationProviderManager authenticationProviderManager;
+
     @Autowired
     private CookieGenerator cookieGenerator;
+
     @Autowired
     private ReCaptchaService reCaptchaService;
+
     @Autowired
     private ObjectMapper objectMapper;
+
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
 
@@ -98,39 +102,39 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         LOGGER.info("Portal API BasicSecurity Config");
         LOGGER.info("Loading authentication identity providers for Basic authentication");
 
-        List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers =
-                authenticationProviderManager.getIdentityProviders()
-                        .stream()
-                        .filter(authenticationProvider -> !authenticationProvider.external())
-                        .collect(Collectors.toList());
+        List<io.gravitee.rest.api.security.authentication.AuthenticationProvider> providers = authenticationProviderManager
+            .getIdentityProviders()
+            .stream()
+            .filter(authenticationProvider -> !authenticationProvider.external())
+            .collect(Collectors.toList());
 
         for (AuthenticationProvider provider : providers) {
             String providerType = provider.type();
             LOGGER.info("Loading authentication provider of type {} at position {}", providerType, provider.index());
 
             Collection<IdentityProvider> identityProviders = identityProviderManager.getAll();
-            if(identityProviders != null) {
-                Optional<io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider> authenticationProviderPlugin =
-                        identityProviders.stream()
-                        .filter(ip-> ip.type().equalsIgnoreCase(providerType))
-                        .map(ip -> identityProviderManager.loadIdentityProvider(ip.type(), provider.configuration()))
-                        .filter(Objects::nonNull)
-                        .findFirst();
+            if (identityProviders != null) {
+                Optional<io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider> authenticationProviderPlugin = identityProviders
+                    .stream()
+                    .filter(ip -> ip.type().equalsIgnoreCase(providerType))
+                    .map(ip -> identityProviderManager.loadIdentityProvider(ip.type(), provider.configuration()))
+                    .filter(Objects::nonNull)
+                    .findFirst();
 
-                if (authenticationProviderPlugin.isPresent() ) {
+                if (authenticationProviderPlugin.isPresent()) {
                     Object authenticationProvider = authenticationProviderPlugin.get().configure();
 
                     if (authenticationProvider instanceof org.springframework.security.authentication.AuthenticationProvider) {
-                        auth.authenticationProvider((org.springframework.security.authentication.AuthenticationProvider) authenticationProvider);
+                        auth.authenticationProvider(
+                            (org.springframework.security.authentication.AuthenticationProvider) authenticationProvider
+                        );
                     } else if (authenticationProvider instanceof SecurityConfigurer) {
                         auth.apply((SecurityConfigurer) authenticationProvider);
                     }
                 } else {
                     LOGGER.error("No authentication provider found for type: {}", providerType);
                 }
-
             }
-
         }
         LOGGER.info("--------------------------------------------------------------");
     }
@@ -155,7 +159,15 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(getPropertiesAsList("http.cors.allow-origin", "*"));
-        config.setAllowedHeaders(getPropertiesAsList("http.cors.allow-headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, " + DEFAULT_CSRF_HEADER_NAME + ", " + DEFAULT_RECAPTCHA_HEADER_NAME));
+        config.setAllowedHeaders(
+            getPropertiesAsList(
+                "http.cors.allow-headers",
+                "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, " +
+                DEFAULT_CSRF_HEADER_NAME +
+                ", " +
+                DEFAULT_RECAPTCHA_HEADER_NAME
+            )
+        );
         config.setAllowedMethods(getPropertiesAsList("http.cors.allow-methods", "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
         config.setExposedHeaders(getPropertiesAsList("http.cors.exposed-headers", DEFAULT_CSRF_HEADER_NAME));
         config.setMaxAge(environment.getProperty("http.cors.max-age", Long.class, 1728000L));
@@ -170,7 +182,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         if (property == null) {
             property = defaultValue;
         }
-        return asList(property.replaceAll("\\s+","").split(","));
+        return asList(property.replaceAll("\\s+", "").split(","));
     }
 
     @Override
@@ -202,66 +214,75 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         csrf(http);
         cors(http);
 
-        http.addFilterBefore(new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider), BasicAuthenticationFilter.class);
+        http.addFilterBefore(
+            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider),
+            BasicAuthenticationFilter.class
+        );
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
     }
 
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
-        return security.httpBasic().authenticationDetailsSource(authenticationDetailsSource())
-                .realmName("Gravitee.io Portal API").and();
+        return security.httpBasic().authenticationDetailsSource(authenticationDetailsSource()).realmName("Gravitee.io Portal API").and();
     }
 
     private HttpSecurity session(HttpSecurity security) throws Exception {
-        return security.sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
+        return security.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and();
     }
 
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
         String uriPrefix = "/environments/**";
-        return security.authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS, "**").permitAll()
-
-                // OpenApi
-                .antMatchers(HttpMethod.GET, "/openapi").permitAll()
-
-                //  Auth request
-                .antMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**").permitAll()
-
-                // API requests
-                .antMatchers(HttpMethod.GET, uriPrefix + "/apis/*/subscribers").authenticated()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**").permitAll()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/apis/_search").permitAll()
-
-                // Pages
-                .antMatchers(HttpMethod.GET, uriPrefix + "/pages/**").permitAll()
-
-                // Portal
-                .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/**").permitAll()
-                .antMatchers(HttpMethod.GET, uriPrefix + "/info/**").permitAll()
-
-                // Theme
-                .antMatchers(HttpMethod.GET, uriPrefix + "/theme/**").permitAll()
-
-                // Users
-                .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**").permitAll()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/users/_reset_password/**").permitAll()
-                .antMatchers(HttpMethod.POST, uriPrefix + "/users/_change_password/**").permitAll()
-
-                // Categories
-                .antMatchers(HttpMethod.GET, uriPrefix + "/categories/**").permitAll()
-
-                /* Others requests
-                 * i.e. :
-                 *   - /auth/login
-                 *   - /auth/logout
-                 *   - POST /apis/ratings
-                 *   - /applications/**
-                 *   - /subscriptions/**
-                 *   - /tickets
-                 *   - /users
-                 *   - /user/**
-                 */
-                .anyRequest().authenticated().and();
+        return security
+            .authorizeRequests()
+            .antMatchers(HttpMethod.OPTIONS, "**")
+            .permitAll()
+            // OpenApi
+            .antMatchers(HttpMethod.GET, "/openapi")
+            .permitAll()
+            //  Auth request
+            .antMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**")
+            .permitAll()
+            // API requests
+            .antMatchers(HttpMethod.GET, uriPrefix + "/apis/*/subscribers")
+            .authenticated()
+            .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**")
+            .permitAll()
+            .antMatchers(HttpMethod.POST, uriPrefix + "/apis/_search")
+            .permitAll()
+            // Pages
+            .antMatchers(HttpMethod.GET, uriPrefix + "/pages/**")
+            .permitAll()
+            // Portal
+            .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/**")
+            .permitAll()
+            .antMatchers(HttpMethod.GET, uriPrefix + "/info/**")
+            .permitAll()
+            // Theme
+            .antMatchers(HttpMethod.GET, uriPrefix + "/theme/**")
+            .permitAll()
+            // Users
+            .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**")
+            .permitAll()
+            .antMatchers(HttpMethod.POST, uriPrefix + "/users/_reset_password/**")
+            .permitAll()
+            .antMatchers(HttpMethod.POST, uriPrefix + "/users/_change_password/**")
+            .permitAll()
+            // Categories
+            .antMatchers(HttpMethod.GET, uriPrefix + "/categories/**")
+            .permitAll()
+            /* Others requests
+             * i.e. :
+             *   - /auth/login
+             *   - /auth/logout
+             *   - POST /apis/ratings
+             *   - /applications/**
+             *   - /subscriptions/**
+             *   - /tickets
+             *   - /users
+             *   - /user/**
+             */
+            .anyRequest()
+            .authenticated()
+            .and();
     }
 
     private AuthenticationDetailsSource<HttpServletRequest, GraviteeAuthenticationDetails> authenticationDetailsSource() {
@@ -274,24 +295,24 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         Boolean hstsEnabled = environment.getProperty("http.hsts.enabled", Boolean.class, true);
         if (hstsEnabled) {
             return hstsConfig
-                    .includeSubDomains(environment.getProperty("http.hsts.include-sub-domains", Boolean.class, true))
-                    .maxAgeInSeconds(environment.getProperty("http.hsts.max-age", Long.class, 31536000L))
-                    .and().and();
+                .includeSubDomains(environment.getProperty("http.hsts.include-sub-domains", Boolean.class, true))
+                .maxAgeInSeconds(environment.getProperty("http.hsts.max-age", Long.class, 31536000L))
+                .and()
+                .and();
         }
 
         return hstsConfig.disable().and();
-
     }
 
     private HttpSecurity csrf(HttpSecurity security) throws Exception {
-
-        if(environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
-            return security.csrf()
-                    .csrfTokenRepository(cookieCsrfSignedTokenRepository())
-                    .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
-                    .and()
-                    .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
-        }else {
+        if (environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
+            return security
+                .csrf()
+                .csrfTokenRepository(cookieCsrfSignedTokenRepository())
+                .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
+                .and()
+                .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
+        } else {
             return security.csrf().disable();
         }
     }

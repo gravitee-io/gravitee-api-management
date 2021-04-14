@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
@@ -30,6 +35,8 @@ import io.gravitee.rest.api.service.impl.GraviteeDescriptorServiceImpl;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -39,14 +46,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -55,7 +54,7 @@ import static org.mockito.Mockito.*;
 public class PageService_ImportDescriptorTest {
 
     @InjectMocks
-    private PageServiceImpl pageService = Mockito.mock( PageServiceImpl.class, CALLS_REAL_METHODS );
+    private PageServiceImpl pageService = Mockito.mock(PageServiceImpl.class, CALLS_REAL_METHODS);
 
     @Mock
     private PageRepository pageRepository;
@@ -104,7 +103,8 @@ public class PageService_ImportDescriptorTest {
         Class<PageService_ImportDescriptorMockFetcher> mockFetcherClass = PageService_ImportDescriptorMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
         PageService_MockDescriptorFetcherConfiguration fetcherConfiguration = new PageService_MockDescriptorFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockDescriptorFetcherConfiguration.class), anyString())).thenReturn(fetcherConfiguration);
+        when(fetcherConfigurationFactory.create(eq(PageService_MockDescriptorFetcherConfiguration.class), anyString()))
+            .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         Page newPage = mock(Page.class);
@@ -118,7 +118,6 @@ public class PageService_ImportDescriptorTest {
         when(graviteeDescriptorService.read(anyString())).thenCallRealMethod();
 
         List<PageEntity> pageEntities = pageService.importFiles(pageEntity);
-
 
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());

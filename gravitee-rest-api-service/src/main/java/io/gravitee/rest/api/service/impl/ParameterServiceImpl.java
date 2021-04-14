@@ -15,6 +15,15 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
+import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
+import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
+import static java.lang.String.join;
+import static java.util.Arrays.stream;
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
@@ -24,25 +33,14 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
-import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
-import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
-import static java.lang.String.join;
-import static java.util.Arrays.stream;
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -59,6 +57,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Inject
     private ParameterRepository parameterRepository;
+
     @Inject
     private AuditService auditService;
 
@@ -118,14 +117,15 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     public <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter) {
         try {
             List<Parameter> parameters = parameterRepository.findAllByReferenceIdAndReferenceType(
-                    keys.stream().map(Key::key).collect(toList()), 
-                    GraviteeContext.getCurrentEnvironment(), 
-                    ParameterReferenceType.ENVIRONMENT);
+                keys.stream().map(Key::key).collect(toList()),
+                GraviteeContext.getCurrentEnvironment(),
+                ParameterReferenceType.ENVIRONMENT
+            );
             if (parameters.isEmpty()) {
                 return emptyMap();
             }
             Map<String, List<T>> result = new HashMap<>();
-            parameters.forEach( p -> result.put(p.getKey(), splitValue(p.getValue(), mapper, filter)) );
+            parameters.forEach(p -> result.put(p.getKey(), splitValue(p.getValue(), mapper, filter)));
             return result;
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to find parameter values with keys: " + keys;
@@ -147,7 +147,6 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Override
     public Parameter save(final Key key, final String value) {
-
         try {
             Optional<Parameter> optionalParameter = parameterRepository.findById(key.key());
             final boolean updateMode = optionalParameter.isPresent();
@@ -165,11 +164,12 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 } else if (!value.equals(optionalParameter.get().getValue())) {
                     final Parameter updatedParameter = parameterRepository.update(parameter);
                     auditService.createPortalAuditLog(
-                            singletonMap(PARAMETER, updatedParameter.getKey()),
-                            PARAMETER_UPDATED,
-                            new Date(),
-                            optionalParameter.get(),
-                            updatedParameter);
+                        singletonMap(PARAMETER, updatedParameter.getKey()),
+                        PARAMETER_UPDATED,
+                        new Date(),
+                        optionalParameter.get(),
+                        updatedParameter
+                    );
                     return updatedParameter;
                 } else {
                     return optionalParameter.get();
@@ -180,14 +180,14 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 }
                 final Parameter savedParameter = parameterRepository.create(parameter);
                 auditService.createPortalAuditLog(
-                        singletonMap(PARAMETER, savedParameter.getKey()),
-                        PARAMETER_CREATED,
-                        new Date(),
-                        null,
-                        savedParameter);
+                    singletonMap(PARAMETER, savedParameter.getKey()),
+                    PARAMETER_CREATED,
+                    new Date(),
+                    null,
+                    savedParameter
+                );
                 return savedParameter;
             }
-
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to create parameter for key/value: " + key + '/' + value;
             LOGGER.error(message, ex);
@@ -197,14 +197,16 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Override
     public Parameter save(final Key key, final List<String> values) {
-        return save(key, values==null ? null : join(SEPARATOR, values));
+        return save(key, values == null ? null : join(SEPARATOR, values));
     }
 
     @Override
     public Parameter save(final Key key, final Map<String, String> values) {
-        return save(key, values==null ? null : values.entrySet()
-                .stream()
-                .map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue())
-                .collect(joining(SEPARATOR)));
+        return save(
+            key,
+            values == null
+                ? null
+                : values.entrySet().stream().map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue()).collect(joining(SEPARATOR))
+        );
     }
 }

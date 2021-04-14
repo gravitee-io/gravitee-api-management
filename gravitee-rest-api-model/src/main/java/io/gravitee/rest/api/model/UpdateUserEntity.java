@@ -22,85 +22,98 @@ package io.gravitee.rest.api.model;
  */
 public class UpdateUserEntity {
 
-	private String firstname;
+    private String firstname;
 
-	private String lastname;
+    private String lastname;
 
-	private String email;
+    private String email;
 
-	private String picture;
+    private String picture;
 
-	private String status;
+    private String status;
 
-	private boolean newsletter;
+    private boolean newsletter;
 
-	public String getStatus() {
-		return status;
-	}
+    public String getStatus() {
+        return status;
+    }
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-	public UpdateUserEntity() {
-	}
+    public UpdateUserEntity() {}
 
-	public UpdateUserEntity(UserEntity userEntity) {
-		this.firstname = userEntity.getFirstname();
-		this.lastname = userEntity.getLastname();
-		this.email = userEntity.getEmail();
-		this.picture = userEntity.getPicture();
-	}
+    public UpdateUserEntity(UserEntity userEntity) {
+        this.firstname = userEntity.getFirstname();
+        this.lastname = userEntity.getLastname();
+        this.email = userEntity.getEmail();
+        this.picture = userEntity.getPicture();
+    }
 
-	public String getFirstname() {
-		return firstname;
-	}
+    public String getFirstname() {
+        return firstname;
+    }
 
-	public void setFirstname(String firstname) {
-		this.firstname = firstname;
-	}
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
 
-	public String getLastname() {
-		return lastname;
-	}
+    public String getLastname() {
+        return lastname;
+    }
 
-	public void setLastname(String lastname) {
-		this.lastname = lastname;
-	}
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public String getPicture() {
-		return picture;
-	}
+    public String getPicture() {
+        return picture;
+    }
 
-	public void setPicture(String picture) {
-		this.picture = picture;
-	}
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
 
-	public boolean isNewsletter() {
-		return newsletter;
-	}
+    public boolean isNewsletter() {
+        return newsletter;
+    }
 
-	public void setNewsletter(boolean newsletter) {
-		this.newsletter = newsletter;
-	}
+    public void setNewsletter(boolean newsletter) {
+        this.newsletter = newsletter;
+    }
 
-	@Override
-	public String toString() {
-		return "UpdateUserEntity{" +
-				"firstname='" + firstname + '\'' +
-				", lastname='" + lastname + '\'' +
-				", email='" + email + '\'' +
-				", picture='" + picture + '\'' +
-				", status='" + status + '\'' +
-				", newsletter='" + newsletter + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "UpdateUserEntity{" +
+            "firstname='" +
+            firstname +
+            '\'' +
+            ", lastname='" +
+            lastname +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", picture='" +
+            picture +
+            '\'' +
+            ", status='" +
+            status +
+            '\'' +
+            ", newsletter='" +
+            newsletter +
+            '\'' +
+            '}'
+        );
+    }
 }

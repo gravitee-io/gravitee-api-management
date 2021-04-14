@@ -26,7 +26,9 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
-
+import java.net.URI;
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -34,16 +36,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Roles"})
-public class RoleUsersResource extends AbstractResource  {
+@Api(tags = { "Roles" })
+public class RoleUsersResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -53,40 +52,48 @@ public class RoleUsersResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List users with the given role",
-            notes = "User must have the MANAGEMENT_ROLE[READ] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "List of user's memberships", response = MembershipListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ)
-    })
-    public List<MembershipListItem> getUsersPerRole(
-            @PathParam("scope")RoleScope scope,
-            @PathParam("role") String role) {
+    @ApiOperation(
+        value = "List users with the given role",
+        notes = "User must have the MANAGEMENT_ROLE[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 204,
+                message = "List of user's memberships",
+                response = MembershipListItem.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.READ) })
+    public List<MembershipListItem> getUsersPerRole(@PathParam("scope") RoleScope scope, @PathParam("role") String role) {
         if (RoleScope.ORGANIZATION.equals(scope) || RoleScope.ENVIRONMENT.equals(scope)) {
             Optional<RoleEntity> optRole = roleService.findByScopeAndName(scope, role);
-            if(optRole.isPresent()) {
+            if (optRole.isPresent()) {
                 MembershipReferenceType referenceType = null;
                 String referenceId = null;
-                
-                if(RoleScope.ORGANIZATION.equals(scope)) {
+
+                if (RoleScope.ORGANIZATION.equals(scope)) {
                     referenceType = MembershipReferenceType.ORGANIZATION;
                     referenceId = GraviteeContext.getCurrentOrganization();
-                } else if(RoleScope.ENVIRONMENT.equals(scope)) {
+                } else if (RoleScope.ENVIRONMENT.equals(scope)) {
                     referenceType = MembershipReferenceType.ENVIRONMENT;
                     referenceId = GraviteeContext.getCurrentEnvironment();
                 }
                 Set<MemberEntity> members = membershipService.getMembersByReferenceAndRole(
-                        referenceType,
-                        referenceId,
-                        optRole.get().getId());
-    
+                    referenceType,
+                    referenceId,
+                    optRole.get().getId()
+                );
+
                 return members
-                        .stream()
-                        .filter(Objects::nonNull)
-                        .map(MembershipListItem::new)
-                        .sorted((a,b) -> {
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(MembershipListItem::new)
+                    .sorted(
+                        (a, b) -> {
                             if (a.getDisplayName() == null && b.getDisplayName() == null) {
                                 return a.getId().compareToIgnoreCase(b.getId());
                             }
@@ -97,8 +104,9 @@ public class RoleUsersResource extends AbstractResource  {
                                 return 1;
                             }
                             return a.getDisplayName().compareToIgnoreCase(b.getDisplayName());
-                        })
-                        .collect(Collectors.toList());
+                        }
+                    )
+                    .collect(Collectors.toList());
             }
         }
 
@@ -108,42 +116,49 @@ public class RoleUsersResource extends AbstractResource  {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Add or update a role for a user",
-            notes = "User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Add or update a role for a user",
+        notes = "User must have the MANAGEMENT_ROLE[CREATE] and MANAGEMENT_ROLE[UPDATE] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Membership successfully created / updated"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions(
+        {
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE),
             @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.UPDATE),
-    })
+        }
+    )
     public Response addRoleToUser(
-            @ApiParam(name = "scope", required = true, allowableValues = "ORGANIZATION,ENVIRONMENT")
-            @PathParam("scope")RoleScope roleScope,
-            @PathParam("role") String roleName,
-            @Valid @NotNull final RoleMembership roleMembership) {
-
+        @ApiParam(name = "scope", required = true, allowableValues = "ORGANIZATION,ENVIRONMENT") @PathParam("scope") RoleScope roleScope,
+        @PathParam("role") String roleName,
+        @Valid @NotNull final RoleMembership roleMembership
+    ) {
         if (roleScope == null || roleName == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Role must be set").build();
         }
         MembershipReferenceType referenceType = null;
         String referenceId = null;
-        
-        if(RoleScope.ORGANIZATION.equals(roleScope)) {
+
+        if (RoleScope.ORGANIZATION.equals(roleScope)) {
             referenceType = MembershipReferenceType.ORGANIZATION;
             referenceId = GraviteeContext.getCurrentOrganization();
-        } else if(RoleScope.ENVIRONMENT.equals(roleScope)) {
+        } else if (RoleScope.ENVIRONMENT.equals(roleScope)) {
             referenceType = MembershipReferenceType.ENVIRONMENT;
             referenceId = GraviteeContext.getCurrentEnvironment();
         }
-        if( referenceType == null || referenceId == null) {
+        if (referenceType == null || referenceId == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Can't determine context").build();
         }
-        
+
         membershipService.addRoleToMemberOnReference(
-                new MembershipService.MembershipReference(referenceType, referenceId),
-                new MembershipService.MembershipMember(roleMembership.getId(), roleMembership.getReference(), MembershipMemberType.USER),
-                new MembershipService.MembershipRole(roleScope, roleName));
+            new MembershipService.MembershipReference(referenceType, referenceId),
+            new MembershipService.MembershipMember(roleMembership.getId(), roleMembership.getReference(), MembershipMemberType.USER),
+            new MembershipService.MembershipRole(roleScope, roleName)
+        );
 
         return Response.status(Response.Status.CREATED).build();
     }

@@ -15,23 +15,21 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-
-import java.util.*;
-
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import java.util.*;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -89,7 +87,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldHavePermissionsWithApiId(){
+    public void shouldHavePermissionsWithApiId() {
         final Response response = target().queryParam("apiId", API).request().get();
         assertEquals(OK_200, response.getStatus());
         final Map permissionsResponse = response.readEntity(Map.class);
@@ -108,11 +106,10 @@ public class PermissionsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldHavePermissionsWithApplicationId(){
+    public void shouldHavePermissionsWithApplicationId() {
         final Response response = target().queryParam("applicationId", APPLICATION).request().get();
         assertEquals(OK_200, response.getStatus());
         final Map permissionsResponse = response.readEntity(Map.class);
         assertNotNull(permissionsResponse);
     }
-
 }

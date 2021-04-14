@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -27,17 +30,12 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TaskService;
 import io.gravitee.rest.api.service.impl.TaskServiceImpl;
-
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -52,16 +50,22 @@ public class TaskServiceTest {
 
     @Mock
     private ApiService apiService;
+
     @Mock
     private SubscriptionService subscriptionService;
+
     @Mock
     private ApplicationService applicationService;
+
     @Mock
     private MembershipService membershipService;
+
     @Mock
     private GroupService groupService;
+
     @Mock
     private RoleService roleService;
+
     @Mock
     private PlanService planService;
 
@@ -80,9 +84,9 @@ public class TaskServiceTest {
         m2.setRoleId("API_USER");
 
         Map<String, char[]> withPerm = new HashMap<>();
-        withPerm.put("SUBSCRIPTION", new char[]{'C', 'R', 'U', 'D'});
+        withPerm.put("SUBSCRIPTION", new char[] { 'C', 'R', 'U', 'D' });
         Map<String, char[]> withoutPerm = new HashMap<>();
-        withoutPerm.put("SUBSCRIPTION", new char[]{'C', 'R', 'D'});
+        withoutPerm.put("SUBSCRIPTION", new char[] { 'C', 'R', 'D' });
 
         RoleEntity roleEntityWithPerm = new RoleEntity();
         roleEntityWithPerm.setName("PO");
@@ -94,20 +98,16 @@ public class TaskServiceTest {
         roleEntityWithoutPerm.setPermissions(withoutPerm);
         roleEntityWithoutPerm.setScope(io.gravitee.rest.api.model.permissions.RoleScope.API);
 
-        when(roleService.findById("API_PO"))
-                .thenReturn(roleEntityWithPerm);
+        when(roleService.findById("API_PO")).thenReturn(roleEntityWithPerm);
 
-        when(roleService.findById("API_USER"))
-                .thenReturn(roleEntityWithoutPerm);
+        when(roleService.findById("API_USER")).thenReturn(roleEntityWithoutPerm);
 
         Set<MembershipEntity> memberships = new HashSet<>();
         memberships.add(m1);
         memberships.add(m2);
-        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any()))
-                .thenReturn(memberships);
+        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(memberships);
         taskService.findAll("user");
 
         verify(subscriptionService, times(1)).search(any());
-
     }
 }

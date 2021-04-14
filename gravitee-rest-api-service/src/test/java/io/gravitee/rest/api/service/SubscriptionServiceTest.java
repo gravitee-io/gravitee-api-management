@@ -15,6 +15,16 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.rest.api.service.impl.AbstractService.ENVIRONMENT_ADMIN;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -28,6 +38,10 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.SubscriptionServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,21 +57,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
-
-import static io.gravitee.rest.api.service.impl.AbstractService.ENVIRONMENT_ADMIN;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,51 +77,69 @@ public class SubscriptionServiceTest {
 
     @Mock
     private PlanService planService;
+
     @Mock
     private ApplicationService applicationService;
+
     @Mock
     private ApiService apiService;
+
     @Mock
     private ApiKeyService apiKeyService;
+
     @Mock
     private SubscriptionRepository subscriptionRepository;
+
     @Mock
     private Subscription subscription;
+
     @Mock
     private PlanEntity plan;
+
     @Mock
     private ApplicationEntity application;
+
     @Mock
     private ApiEntity apiEntity;
+
     @Mock
     private ApiModelEntity apiModelEntity;
+
     @Mock
     private ApiKeyEntity apiKeyEntity;
+
     @Mock
     private AuditService auditService;
+
     @Mock
     private ConfigurableEnvironment environment;
+
     @Mock
     private NotifierService notifierService;
+
     @Mock
     private GroupService groupService;
+
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private UserService userService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return null;
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-            @Override
-            public void setAuthentication(Authentication authentication) {
-            }
-        });
+        );
     }
 
     @Test
@@ -160,15 +177,13 @@ public class SubscriptionServiceTest {
         sub2.setStatus(Subscription.Status.REJECTED);
         sub2.setApplication(APPLICATION_ID);
 
-        when(subscriptionRepository.search(new SubscriptionCriteria.Builder()
-                .applications(singleton(APPLICATION_ID)).build())).thenReturn(
-                asList(sub1, sub2));
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().applications(singleton(APPLICATION_ID)).build()))
+            .thenReturn(asList(sub1, sub2));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(APPLICATION_ID, null);
 
         assertEquals(2, subscriptions.size());
     }
-
 
     @Test
     public void shouldFindByApi() throws TechnicalException {
@@ -182,9 +197,8 @@ public class SubscriptionServiceTest {
         sub2.setStatus(Subscription.Status.REJECTED);
         sub2.setApi(API_ID);
 
-        when(subscriptionRepository.search(new SubscriptionCriteria.Builder()
-                .apis(singleton(API_ID)).applications(null).build())).thenReturn(
-                asList(sub1, sub2));
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().apis(singleton(API_ID)).applications(null).build()))
+            .thenReturn(asList(sub1, sub2));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApi(API_ID);
 
@@ -208,9 +222,8 @@ public class SubscriptionServiceTest {
         sub2.setId("subscription-2");
         sub2.setStatus(Subscription.Status.REJECTED);
 
-        when(subscriptionRepository.search(new SubscriptionCriteria.Builder()
-                .plans(singleton(PLAN_ID)).build())).thenReturn(
-                asList(sub1, sub2));
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().plans(singleton(PLAN_ID)).build()))
+            .thenReturn(asList(sub1, sub2));
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.findByPlan(PLAN_ID);
 
@@ -276,52 +289,50 @@ public class SubscriptionServiceTest {
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
 
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return new Authentication() {
-                    @Override
-                    public Collection<? extends GrantedAuthority> getAuthorities() {
-                        return null;
-                    }
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return new Authentication() {
+                        @Override
+                        public Collection<? extends GrantedAuthority> getAuthorities() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getCredentials() {
-                        return null;
-                    }
+                        @Override
+                        public Object getCredentials() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getDetails() {
-                        return null;
-                    }
+                        @Override
+                        public Object getDetails() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getPrincipal() {
-                        return new UserDetails("tester", "password", Collections.emptyList());
-                    }
+                        @Override
+                        public Object getPrincipal() {
+                            return new UserDetails("tester", "password", Collections.emptyList());
+                        }
 
-                    @Override
-                    public boolean isAuthenticated() {
-                        return false;
-                    }
+                        @Override
+                        public boolean isAuthenticated() {
+                            return false;
+                        }
 
-                    @Override
-                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                        @Override
+                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
 
-                    }
+                        @Override
+                        public String getName() {
+                            return null;
+                        }
+                    };
+                }
 
-                    @Override
-                    public String getName() {
-                        return null;
-                    }
-                };
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-
-            @Override
-            public void setAuthentication(Authentication authentication) {
-
-            }
-        });
+        );
 
         // Run
         final SubscriptionEntity subscriptionEntity = subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
@@ -351,78 +362,81 @@ public class SubscriptionServiceTest {
         subscription.setSubscribedBy(SUBSCRIBER_ID);
 
         final UserEntity subscriberUser = new UserEntity();
-        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
         when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return new Authentication() {
-                    @Override
-                    public Collection<? extends GrantedAuthority> getAuthorities() {
-                        return null;
-                    }
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return new Authentication() {
+                        @Override
+                        public Collection<? extends GrantedAuthority> getAuthorities() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getCredentials() {
-                        return null;
-                    }
+                        @Override
+                        public Object getCredentials() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getDetails() {
-                        return null;
-                    }
+                        @Override
+                        public Object getDetails() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getPrincipal() {
-                        return new UserDetails("tester", "password", Collections.emptyList());
-                    }
+                        @Override
+                        public Object getPrincipal() {
+                            return new UserDetails("tester", "password", Collections.emptyList());
+                        }
 
-                    @Override
-                    public boolean isAuthenticated() {
-                        return false;
-                    }
+                        @Override
+                        public boolean isAuthenticated() {
+                            return false;
+                        }
 
-                    @Override
-                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                        @Override
+                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
 
-                    }
+                        @Override
+                        public String getName() {
+                            return null;
+                        }
+                    };
+                }
 
-                    @Override
-                    public String getName() {
-                        return null;
-                    }
-                };
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-
-            @Override
-            public void setAuthentication(Authentication authentication) {
-
-            }
-        });
+        );
 
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
-        when(subscriptionRepository.create(any())).thenAnswer(new Answer<Subscription>() {
-            @Override
-            public Subscription answer(InvocationOnMock invocation) throws Throwable {
-                Subscription subscription = (Subscription) invocation.getArguments()[0];
-                subscription.setId(SUBSCRIPTION_ID);
-                return subscription;
-            }
-        });
+        when(subscriptionRepository.create(any()))
+            .thenAnswer(
+                new Answer<Subscription>() {
+                    @Override
+                    public Subscription answer(InvocationOnMock invocation) throws Throwable {
+                        Subscription subscription = (Subscription) invocation.getArguments()[0];
+                        subscription.setId(SUBSCRIPTION_ID);
+                        return subscription;
+                    }
+                }
+            );
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID))
-                .thenAnswer(new Answer<Optional<Subscription>>() {
+            .thenAnswer(
+                new Answer<Optional<Subscription>>() {
                     @Override
                     public Optional<Subscription> answer(InvocationOnMock invocation) throws Throwable {
                         subscription.setCreatedAt(new Date());
                         return Optional.of(subscription);
                     }
-                });
+                }
+            );
 
         // Run
         final SubscriptionEntity subscriptionEntity = subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
@@ -458,78 +472,81 @@ public class SubscriptionServiceTest {
         subscription.setSubscribedBy(SUBSCRIBER_ID);
 
         final UserEntity subscriberUser = new UserEntity();
-        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
         when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return new Authentication() {
-                    @Override
-                    public Collection<? extends GrantedAuthority> getAuthorities() {
-                        return null;
-                    }
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return new Authentication() {
+                        @Override
+                        public Collection<? extends GrantedAuthority> getAuthorities() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getCredentials() {
-                        return null;
-                    }
+                        @Override
+                        public Object getCredentials() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getDetails() {
-                        return null;
-                    }
+                        @Override
+                        public Object getDetails() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getPrincipal() {
-                        return new UserDetails("tester", "password", Collections.emptyList());
-                    }
+                        @Override
+                        public Object getPrincipal() {
+                            return new UserDetails("tester", "password", Collections.emptyList());
+                        }
 
-                    @Override
-                    public boolean isAuthenticated() {
-                        return false;
-                    }
+                        @Override
+                        public boolean isAuthenticated() {
+                            return false;
+                        }
 
-                    @Override
-                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                        @Override
+                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
 
-                    }
+                        @Override
+                        public String getName() {
+                            return null;
+                        }
+                    };
+                }
 
-                    @Override
-                    public String getName() {
-                        return null;
-                    }
-                };
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-
-            @Override
-            public void setAuthentication(Authentication authentication) {
-
-            }
-        });
+        );
 
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
         when(apiService.findByIdForTemplates(API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
-        when(subscriptionRepository.create(any())).thenAnswer(new Answer<Subscription>() {
-            @Override
-            public Subscription answer(InvocationOnMock invocation) throws Throwable {
-                Subscription subscription = (Subscription) invocation.getArguments()[0];
-                subscription.setId(SUBSCRIPTION_ID);
-                return subscription;
-            }
-        });
+        when(subscriptionRepository.create(any()))
+            .thenAnswer(
+                new Answer<Subscription>() {
+                    @Override
+                    public Subscription answer(InvocationOnMock invocation) throws Throwable {
+                        Subscription subscription = (Subscription) invocation.getArguments()[0];
+                        subscription.setId(SUBSCRIPTION_ID);
+                        return subscription;
+                    }
+                }
+            );
 
         when(subscriptionRepository.findById(SUBSCRIPTION_ID))
-                .thenAnswer(new Answer<Optional<Subscription>>() {
+            .thenAnswer(
+                new Answer<Optional<Subscription>>() {
                     @Override
                     public Optional<Subscription> answer(InvocationOnMock invocation) throws Throwable {
                         subscription.setCreatedAt(new Date());
                         return Optional.of(subscription);
                     }
-                });
+                }
+            );
 
         // Run
         final SubscriptionEntity subscriptionEntity = subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
@@ -556,52 +573,50 @@ public class SubscriptionServiceTest {
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
 
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return new Authentication() {
-                    @Override
-                    public Collection<? extends GrantedAuthority> getAuthorities() {
-                        return null;
-                    }
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return new Authentication() {
+                        @Override
+                        public Collection<? extends GrantedAuthority> getAuthorities() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getCredentials() {
-                        return null;
-                    }
+                        @Override
+                        public Object getCredentials() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getDetails() {
-                        return null;
-                    }
+                        @Override
+                        public Object getDetails() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getPrincipal() {
-                        return new UserDetails("tester", "password", Collections.emptyList());
-                    }
+                        @Override
+                        public Object getPrincipal() {
+                            return new UserDetails("tester", "password", Collections.emptyList());
+                        }
 
-                    @Override
-                    public boolean isAuthenticated() {
-                        return false;
-                    }
+                        @Override
+                        public boolean isAuthenticated() {
+                            return false;
+                        }
 
-                    @Override
-                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                        @Override
+                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
 
-                    }
+                        @Override
+                        public String getName() {
+                            return null;
+                        }
+                    };
+                }
 
-                    @Override
-                    public String getName() {
-                        return null;
-                    }
-                };
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-
-            @Override
-            public void setAuthentication(Authentication authentication) {
-
-            }
-        });
+        );
 
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -858,7 +873,7 @@ public class SubscriptionServiceTest {
         subscription.setSubscribedBy(SUBSCRIBER_ID);
 
         final UserEntity subscriberUser = new UserEntity();
-        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
         when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         when(plan.getApi()).thenReturn(API_ID);
@@ -897,7 +912,7 @@ public class SubscriptionServiceTest {
         subscription.setSubscribedBy(SUBSCRIBER_ID);
 
         final UserEntity subscriberUser = new UserEntity();
-        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
         when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
         when(plan.getApi()).thenReturn(API_ID);
 
@@ -1034,7 +1049,7 @@ public class SubscriptionServiceTest {
         subscription.setSubscribedBy(SUBSCRIBER_ID);
 
         final UserEntity subscriberUser = new UserEntity();
-        subscriberUser.setEmail(SUBSCRIBER_ID+"@acme.net");
+        subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
         when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         // Stub
@@ -1042,14 +1057,17 @@ public class SubscriptionServiceTest {
         when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
         when(apiService.findByIdForTemplates("api1")).thenReturn(apiModelEntity);
 
-        when(subscriptionRepository.create(any())).thenAnswer(new Answer<Subscription>() {
-            @Override
-            public Subscription answer(InvocationOnMock invocation) throws Throwable {
-                Subscription subscription = (Subscription) invocation.getArguments()[0];
-                subscription.setId(SUBSCRIPTION_ID);
-                return subscription;
-            }
-        });
+        when(subscriptionRepository.create(any()))
+            .thenAnswer(
+                new Answer<Subscription>() {
+                    @Override
+                    public Subscription answer(InvocationOnMock invocation) throws Throwable {
+                        Subscription subscription = (Subscription) invocation.getArguments()[0];
+                        subscription.setId(SUBSCRIPTION_ID);
+                        return subscription;
+                    }
+                }
+            );
 
         final SecurityContext securityContext = mock(SecurityContext.class);
         UserDetails principal = new UserDetails("toto", "pwdtoto", asList(new SimpleGrantedAuthority(ENVIRONMENT_ADMIN)));

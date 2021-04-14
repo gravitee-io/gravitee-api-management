@@ -29,14 +29,6 @@ import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -45,6 +37,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -54,8 +53,10 @@ public class ApiMetricsResource extends AbstractResource {
 
     @Inject
     private SubscriptionService subscriptionService;
+
     @Inject
     private AnalyticsService analyticsService;
+
     @Inject
     private HealthCheckService healthCheckService;
 
@@ -80,14 +81,15 @@ public class ApiMetricsResource extends AbstractResource {
     }
 
     private Number getHealthRatio(String apiId) {
-        io.gravitee.rest.api.model.healthcheck.ApiMetrics<?> apiAvailability = healthCheckService.getAvailability(apiId,
-                Field.ENDPOINT.name());
+        io.gravitee.rest.api.model.healthcheck.ApiMetrics<?> apiAvailability = healthCheckService.getAvailability(
+            apiId,
+            Field.ENDPOINT.name()
+        );
         if (apiAvailability != null) {
             Map<String, Double> globalAvailability = apiAvailability.getGlobal();
             if (globalAvailability != null) {
                 try {
-                    return BigDecimal.valueOf(globalAvailability.get("1w")).divide(BigDecimal.valueOf(100), 4,
-                            RoundingMode.DOWN);
+                    return BigDecimal.valueOf(globalAvailability.get("1w")).divide(BigDecimal.valueOf(100), 4, RoundingMode.DOWN);
                 } catch (NumberFormatException nfe) {
                     return null;
                 }
@@ -126,8 +128,7 @@ public class ApiMetricsResource extends AbstractResource {
         // group by apis
         Collection<SubscriptionEntity> searchResult = subscriptionService.search(subscriptionQuery);
         if (searchResult != null) {
-            return searchResult.stream()
-                    .collect(Collectors.groupingBy(SubscriptionEntity::getApi, Collectors.counting())).get(apiId);
+            return searchResult.stream().collect(Collectors.groupingBy(SubscriptionEntity::getApi, Collectors.counting())).get(apiId);
         }
         return null;
     }

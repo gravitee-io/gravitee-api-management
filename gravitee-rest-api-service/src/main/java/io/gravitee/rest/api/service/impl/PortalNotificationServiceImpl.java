@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processTemplateIntoString;
+
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -27,16 +29,13 @@ import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.Hook;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processTemplateIntoString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -46,7 +45,7 @@ import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processT
 public class PortalNotificationServiceImpl extends AbstractService implements PortalNotificationService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(PortalNotificationServiceImpl.class);
-    private final static String RELATIVE_TPL_PATH = "notifications/portal/";
+    private static final String RELATIVE_TPL_PATH = "notifications/portal/";
 
     @Autowired
     private PortalNotificationRepository portalNotificationRepository;
@@ -57,11 +56,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
     @Override
     public List<PortalNotificationEntity> findByUser(String user) {
         try {
-            return portalNotificationRepository.
-                    findByUser(user).
-                    stream().
-                    map(this::convert).
-                    collect(Collectors.toList());
+            return portalNotificationRepository.findByUser(user).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find notifications by user {}", user, ex);
             throw new TechnicalManagementException("An error occurs while trying to find notifications by username " + user, ex);
@@ -71,10 +66,9 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
     @Override
     public PortalNotificationEntity findById(String notificationId) {
         try {
-            
             Optional<PortalNotification> portalNotification = portalNotificationRepository.findById(notificationId);
-            if(portalNotification.isPresent()) {
-                return this.convert(portalNotification.get());    
+            if (portalNotification.isPresent()) {
+                return this.convert(portalNotification.get());
             }
             throw new PortalNotificationNotFoundException(notificationId);
         } catch (TechnicalException ex) {
@@ -82,7 +76,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
             throw new TechnicalManagementException("An error occurs while trying to find notification with id " + notificationId, ex);
         }
     }
-    
+
     @Override
     public void create(Hook hook, List<String> users, Object params) {
         try {
@@ -94,13 +88,15 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
             Map<String, String> load = yaml.loadAs(yamlContent, HashMap.class);
 
             List<NewPortalNotificationEntity> notifications = new ArrayList<>(users.size());
-            users.forEach(user -> {
-                NewPortalNotificationEntity notification = new NewPortalNotificationEntity();
-                notification.setUser(user);
-                notification.setTitle(load.get("title"));
-                notification.setMessage(load.get("message"));
-                notifications.add(notification);
-            });
+            users.forEach(
+                user -> {
+                    NewPortalNotificationEntity notification = new NewPortalNotificationEntity();
+                    notification.setUser(user);
+                    notification.setTitle(load.get("title"));
+                    notification.setMessage(load.get("message"));
+                    notifications.add(notification);
+                }
+            );
 
             create(notifications);
         } catch (final Exception ex) {
@@ -131,14 +127,13 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
 
     private void create(List<NewPortalNotificationEntity> notificationEntities) {
         final Date now = new Date();
-        List<PortalNotification> notifications = notificationEntities.
-                stream().
-                map(this::convert).
-                collect(Collectors.toList());
-        notifications.forEach( n -> {
-            n.setId(RandomString.generate());
-            n.setCreatedAt(now);
-        });
+        List<PortalNotification> notifications = notificationEntities.stream().map(this::convert).collect(Collectors.toList());
+        notifications.forEach(
+            n -> {
+                n.setId(RandomString.generate());
+                n.setCreatedAt(now);
+            }
+        );
         try {
             portalNotificationRepository.create(notifications);
         } catch (TechnicalException ex) {

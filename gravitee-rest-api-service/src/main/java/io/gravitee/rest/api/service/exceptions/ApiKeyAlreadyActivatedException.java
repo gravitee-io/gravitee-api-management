@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Map;
 
 /**
@@ -25,8 +24,7 @@ import java.util.Map;
  */
 public class ApiKeyAlreadyActivatedException extends AbstractManagementException {
 
-    public ApiKeyAlreadyActivatedException() {
-    }
+    public ApiKeyAlreadyActivatedException() {}
 
     public ApiKeyAlreadyActivatedException(Throwable cause) {
         super(cause);

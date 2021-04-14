@@ -18,7 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.PortalConfigEntity;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ConfigService {

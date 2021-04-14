@@ -15,21 +15,18 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.PolicyEntity;
-
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Set;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
 
 /**
  * @author Nicolas Geraud (nicolas.geraud at gmail.com)
@@ -68,7 +65,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         assertEquals("one element", 1, entity.size());
         Object o = entity.iterator().next();
         assertTrue(o instanceof LinkedHashMap);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertEquals("id", "my-api", elt.get("id"));
         assertEquals("name", "My Api", elt.get("name"));
     }
@@ -91,11 +88,10 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         assertEquals("one element", 1, entity.size());
         Object o = entity.iterator().next();
         assertTrue(o instanceof LinkedHashMap);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertEquals("id", "my-api", elt.get("id"));
         assertEquals("schema", "policy schema", elt.get("schema"));
     }
-
 
     @Test
     public void shouldGetPoliciesListWithUnknownExpand() {
@@ -114,7 +110,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         assertEquals("one element", 1, entity.size());
         Object o = entity.iterator().next();
         assertTrue(o instanceof LinkedHashMap);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>)o;
+        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
         assertEquals("id", "my-api", elt.get("id"));
         assertFalse("unknown expand", elt.containsKey("schema"));
         assertFalse("unknown expand", elt.containsKey("unknown"));

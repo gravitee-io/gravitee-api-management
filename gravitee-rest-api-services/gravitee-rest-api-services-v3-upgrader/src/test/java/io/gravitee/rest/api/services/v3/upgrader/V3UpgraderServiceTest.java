@@ -15,10 +15,15 @@
  */
 package io.gravitee.rest.api.services.v3.upgrader;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.*;
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -26,14 +31,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -58,10 +57,18 @@ public class V3UpgraderServiceTest {
         idp.setRoleMappings(roleMappings);
         idp.setReferenceId("DEFAULT");
         idp.setReferenceType(IdentityProviderReferenceType.ORGANIZATION);
-        
+
         when(identityProviderRepository.findAll()).thenReturn(Collections.singleton(idp));
-        when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.ORGANIZATION, "ADMIN", "DEFAULT", RoleReferenceType.ORGANIZATION)).thenReturn(Optional.of(new Role()));
-        
+        when(
+            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                RoleScope.ORGANIZATION,
+                "ADMIN",
+                "DEFAULT",
+                RoleReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(Optional.of(new Role()));
+
         service.convertIDPRoleMapping();
 
         ArgumentCaptor<IdentityProvider> idpCaptor = ArgumentCaptor.forClass(IdentityProvider.class);
@@ -70,11 +77,17 @@ public class V3UpgraderServiceTest {
         IdentityProvider updatedIdp = idpCaptor.getValue();
         String[] newRoles = updatedIdp.getRoleMappings().get("KEY");
         assertEquals(3, newRoles.length);
-        assertTrue(newRoles[0].equals("ORGANIZATION:ADMIN") || newRoles[0].equals("ENVIRONMENT:ADMIN") || newRoles[0].equals("ENVIRONMENT:USER"));
-        assertTrue(newRoles[1].equals("ORGANIZATION:ADMIN") || newRoles[1].equals("ENVIRONMENT:ADMIN") || newRoles[1].equals("ENVIRONMENT:USER"));
-        assertTrue(newRoles[2].equals("ORGANIZATION:ADMIN") || newRoles[2].equals("ENVIRONMENT:ADMIN") || newRoles[2].equals("ENVIRONMENT:USER"));
+        assertTrue(
+            newRoles[0].equals("ORGANIZATION:ADMIN") || newRoles[0].equals("ENVIRONMENT:ADMIN") || newRoles[0].equals("ENVIRONMENT:USER")
+        );
+        assertTrue(
+            newRoles[1].equals("ORGANIZATION:ADMIN") || newRoles[1].equals("ENVIRONMENT:ADMIN") || newRoles[1].equals("ENVIRONMENT:USER")
+        );
+        assertTrue(
+            newRoles[2].equals("ORGANIZATION:ADMIN") || newRoles[2].equals("ENVIRONMENT:ADMIN") || newRoles[2].equals("ENVIRONMENT:USER")
+        );
     }
-    
+
     @Test
     public void shouldUpdateIdentityProvidersWithoutOrganizationRole() throws TechnicalException {
         String[] roles = { "1:ADMIN", "2:USER" };
@@ -85,10 +98,18 @@ public class V3UpgraderServiceTest {
         idp.setRoleMappings(roleMappings);
         idp.setReferenceId("DEFAULT");
         idp.setReferenceType(IdentityProviderReferenceType.ORGANIZATION);
-        
+
         when(identityProviderRepository.findAll()).thenReturn(Collections.singleton(idp));
-        when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.ORGANIZATION, "ADMIN", "DEFAULT", RoleReferenceType.ORGANIZATION)).thenReturn(Optional.empty());
-        
+        when(
+            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                RoleScope.ORGANIZATION,
+                "ADMIN",
+                "DEFAULT",
+                RoleReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(Optional.empty());
+
         service.convertIDPRoleMapping();
 
         ArgumentCaptor<IdentityProvider> idpCaptor = ArgumentCaptor.forClass(IdentityProvider.class);
@@ -100,7 +121,7 @@ public class V3UpgraderServiceTest {
         assertTrue(newRoles[0].equals("ENVIRONMENT:ADMIN") || newRoles[0].equals("ENVIRONMENT:USER"));
         assertTrue(newRoles[1].equals("ENVIRONMENT:ADMIN") || newRoles[1].equals("ENVIRONMENT:USER"));
     }
-    
+
     @Test
     public void shouldDoNothing() throws TechnicalException {
         String[] roles = { "ORGANIZATION:ADMIN", "ENVIRONMENT:USER" };
@@ -111,24 +132,24 @@ public class V3UpgraderServiceTest {
         idp.setRoleMappings(roleMappings);
         idp.setReferenceId("DEFAULT");
         idp.setReferenceType(IdentityProviderReferenceType.ORGANIZATION);
-        
+
         when(identityProviderRepository.findAll()).thenReturn(Collections.singleton(idp));
-        
+
         service.convertIDPRoleMapping();
 
         verify(roleRepository, never()).findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any());
         verify(identityProviderRepository, never()).update(any());
     }
-    
+
     @Test
     public void shouldDoNothingWithNoRoleMapping() throws TechnicalException {
         IdentityProvider idp = new IdentityProvider();
         idp.setId("my-idp");
         idp.setReferenceId("DEFAULT");
         idp.setReferenceType(IdentityProviderReferenceType.ORGANIZATION);
-        
+
         when(identityProviderRepository.findAll()).thenReturn(Collections.singleton(idp));
-        
+
         service.convertIDPRoleMapping();
 
         verify(roleRepository, never()).findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any());

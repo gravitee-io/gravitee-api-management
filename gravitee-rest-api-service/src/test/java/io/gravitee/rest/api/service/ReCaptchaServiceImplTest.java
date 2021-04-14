@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.service.impl.ReCaptchaServiceImpl;
 import io.vertx.core.buffer.Buffer;
@@ -26,10 +30,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reflections.ReflectionUtils;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -48,14 +48,12 @@ public class ReCaptchaServiceImplTest {
 
     @Before
     public void before() {
-
         ReflectionTestUtils.setField(reCaptchaService, "objectMapper", objectMapper);
         ReflectionTestUtils.setField(reCaptchaService, "serviceUrl", "https://verif");
     }
 
     @Test
     public void isValidWhenDisabled() {
-
         ReflectionTestUtils.setField(reCaptchaService, "enabled", false);
 
         assertTrue(reCaptchaService.isValid(null));
@@ -65,7 +63,6 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isNotValidIfNoToken() {
-
         ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
 
         assertFalse(reCaptchaService.isValid(null));
@@ -74,41 +71,39 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isValid() {
-
         ReflectionTestUtils.setField(reCaptchaService, "minScore", 0.5d);
         ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
 
-        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
+        when(httpClientService.request(any(), any(), any(), any(), any()))
+            .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
 
         assertTrue(reCaptchaService.isValid("any"));
     }
 
     @Test
     public void isValidAboveMinScore() {
-
         ReflectionTestUtils.setField(reCaptchaService, "minScore", 0.5d);
         ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
 
-        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
+        when(httpClientService.request(any(), any(), any(), any(), any()))
+            .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 1.0 }"));
 
         assertTrue(reCaptchaService.isValid("any"));
     }
 
     @Test
     public void isNotValidBelowMinScore() {
-
         ReflectionTestUtils.setField(reCaptchaService, "minScore", 0.5d);
         ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
 
-        when(httpClientService.request(any(), any(), any(), any(), any())).thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 0.4 }"));
+        when(httpClientService.request(any(), any(), any(), any(), any()))
+            .thenReturn(Buffer.buffer("{ \"success\": true, \"score\": 0.4 }"));
 
         assertFalse(reCaptchaService.isValid("any"));
     }
 
-
     @Test
     public void isNotValidNoSuccess() {
-
         ReflectionTestUtils.setField(reCaptchaService, "minScore", 0.5d);
         ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
 
@@ -119,7 +114,6 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isEnabled() {
-
         ReflectionTestUtils.setField(reCaptchaService, "enabled", true);
 
         assertTrue(reCaptchaService.isEnabled());
@@ -127,24 +121,19 @@ public class ReCaptchaServiceImplTest {
 
     @Test
     public void isNotEnabled() {
-
         ReflectionTestUtils.setField(reCaptchaService, "enabled", false);
         assertFalse(reCaptchaService.isEnabled());
     }
 
-
     @Test
     public void getSiteKeyNullByDefault() {
-
         assertNull(reCaptchaService.getSiteKey());
     }
 
     @Test
     public void getSiteKey() {
-
         ReflectionTestUtils.setField(reCaptchaService, "siteKey", "test");
 
         assertEquals("test", reCaptchaService.getSiteKey());
     }
-
 }

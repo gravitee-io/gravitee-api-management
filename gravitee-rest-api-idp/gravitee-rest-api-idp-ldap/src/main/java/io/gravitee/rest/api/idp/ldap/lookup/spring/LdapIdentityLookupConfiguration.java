@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.idp.ldap.lookup.spring;
 
+import io.gravitee.rest.api.idp.ldap.lookup.LdapContextSourceFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
-
-import io.gravitee.rest.api.idp.ldap.lookup.LdapContextSourceFactory;
 
 /**
  * @author David BRASSELY (david at gravitee.io)

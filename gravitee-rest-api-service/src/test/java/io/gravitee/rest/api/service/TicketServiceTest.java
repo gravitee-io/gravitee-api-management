@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.rest.api.model.ApiModelEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -27,19 +32,13 @@ import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
 import io.gravitee.rest.api.service.impl.TicketServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.SUPPORT_TICKET;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -64,25 +63,34 @@ public class TicketServiceTest {
 
     @Mock
     private UserService userService;
+
     @Mock
     private MetadataService metadataService;
+
     @Mock
     private ApiService apiService;
+
     @Mock
     private ApplicationService applicationService;
+
     @Mock
     private EmailService emailService;
 
     @Mock
     private NewTicketEntity newTicketEntity;
+
     @Mock
     private UserEntity user;
+
     @Mock
     private ApiModelEntity api;
+
     @Mock
     private ApplicationEntity application;
+
     @Mock
     private ParameterService mockParameterService;
+
     @Mock
     private NotifierService mockNotifierService;
 
@@ -153,16 +161,18 @@ public class TicketServiceTest {
 
         ticketService.create(USERNAME, newTicketEntity);
 
-        verify(emailService).sendEmailNotification(
+        verify(emailService)
+            .sendEmailNotification(
                 new EmailNotificationBuilder()
-                        .replyTo(USER_EMAIL)
-                        .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
-                        .to(EMAIL_SUPPORT)
-                        .subject(EMAIL_SUBJECT)
-                        .copyToSender(EMAIL_COPY_TO_SENDER)
-                        .template(SUPPORT_TICKET)
-                        .params(ImmutableMap.of("user", user, "api", api, "content", "Email<br />Content", "application", application))
-                        .build());
+                    .replyTo(USER_EMAIL)
+                    .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
+                    .to(EMAIL_SUPPORT)
+                    .subject(EMAIL_SUBJECT)
+                    .copyToSender(EMAIL_COPY_TO_SENDER)
+                    .template(SUPPORT_TICKET)
+                    .params(ImmutableMap.of("user", user, "api", api, "content", "Email<br />Content", "application", application))
+                    .build()
+            );
         verify(mockNotifierService, times(1)).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
 }

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.UserReferenceType;
-
 import java.util.HashMap;
 import java.util.Map;
 

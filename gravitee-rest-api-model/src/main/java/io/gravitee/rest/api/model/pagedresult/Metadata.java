@@ -19,10 +19,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class Metadata {
+
     private Map<String, Map<String, Object>> metadata = new HashMap<>();
 
     public Map<String, Map<String, Object>> getMetadata() {

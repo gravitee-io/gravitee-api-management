@@ -15,18 +15,17 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -64,9 +63,17 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         foundApi.setPrimaryOwner(mock(PrimaryOwnerEntity.class));
         when(apiService.findById(any())).thenReturn(foundApi);
 
-        final Response response = target().path(APPLICATION).path("subscriptions").queryParam("plan", PLAN).request().post(Entity.json(newSubscriptionEntity));
+        final Response response = target()
+            .path(APPLICATION)
+            .path("subscriptions")
+            .queryParam("plan", PLAN)
+            .request()
+            .post(Entity.json(newSubscriptionEntity));
         assertEquals(CREATED_201, response.getStatus());
-        assertEquals(target().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+            target().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).getUri().toString(),
+            response.getHeaders().getFirst(HttpHeaders.LOCATION)
+        );
     }
 
     @Test
@@ -79,6 +86,9 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
 
         final Response response = target().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).request().post(null);
         assertEquals(CREATED_201, response.getStatus());
-        assertEquals(target().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).path("keys").path(NEW_APIKEY).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+            target().path(APPLICATION).path("subscriptions").path(SUBSCRIPTION).path("keys").path(NEW_APIKEY).getUri().toString(),
+            response.getHeaders().getFirst(HttpHeaders.LOCATION)
+        );
     }
 }

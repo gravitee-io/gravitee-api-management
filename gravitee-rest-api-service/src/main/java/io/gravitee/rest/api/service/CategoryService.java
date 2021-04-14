@@ -15,14 +15,13 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-import java.util.Set;
-
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewCategoryEntity;
 import io.gravitee.rest.api.model.UpdateCategoryEntity;
-import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)

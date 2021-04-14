@@ -33,13 +33,12 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.URI;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -74,55 +73,55 @@ public class HttpProvider implements Provider {
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
 
         final HttpClientOptions options = new HttpClientOptions()
-                .setSsl(ssl)
-                .setTrustAll(true)
-                .setMaxPoolSize(1)
-                .setKeepAlive(false)
-                .setTcpKeepAlive(false)
-                .setConnectTimeout(2000);
+            .setSsl(ssl)
+            .setTrustAll(true)
+            .setMaxPoolSize(1)
+            .setKeepAlive(false)
+            .setTcpKeepAlive(false)
+            .setConnectTimeout(2000);
 
         final HttpClient httpClient = vertx.createHttpClient(options);
 
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
-                (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
         try {
-            HttpClientRequest request = httpClient.request(
-                    HttpMethod.GET,
-                    port,
-                    requestUri.getHost(),
-                    requestUri.toString()
-            );
+            HttpClientRequest request = httpClient.request(HttpMethod.GET, port, requestUri.getHost(), requestUri.toString());
 
             request.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
             request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
 
-            request.handler(response -> {
-                if (response.statusCode() == HttpStatusCode.OK_200) {
-                    response.bodyHandler(buffer -> {
-                        future.complete(buffer);
+            request.handler(
+                response -> {
+                    if (response.statusCode() == HttpStatusCode.OK_200) {
+                        response.bodyHandler(
+                            buffer -> {
+                                future.complete(buffer);
+
+                                // Close client
+                                httpClient.close();
+                            }
+                        );
+                    } else {
+                        future.complete(null);
 
                         // Close client
                         httpClient.close();
-                    });
-                } else {
-                    future.complete(null);
-
-                    // Close client
-                    httpClient.close();
+                    }
                 }
-            });
+            );
 
-            request.exceptionHandler(event -> {
-                try {
-                    future.completeExceptionally(event);
+            request.exceptionHandler(
+                event -> {
+                    try {
+                        future.completeExceptionally(event);
 
-                    // Close client
-                    httpClient.close();
-                } catch (IllegalStateException ise) {
-                    // Do not take care about exception when closing client
+                        // Close client
+                        httpClient.close();
+                    } catch (IllegalStateException ise) {
+                        // Do not take care about exception when closing client
+                    }
                 }
-            });
+            );
 
             request.end();
         } catch (Exception ex) {
@@ -133,12 +132,14 @@ public class HttpProvider implements Provider {
             httpClient.close();
         }
 
-        return future.thenApply(buffer -> {
-            if (buffer == null) {
-                return null;
+        return future.thenApply(
+            buffer -> {
+                if (buffer == null) {
+                    return null;
+                }
+                return mapper.map(buffer.toString());
             }
-            return mapper.map(buffer.toString());
-        });
+        );
     }
 
     @Override
@@ -149,7 +150,6 @@ public class HttpProvider implements Provider {
     public void setMapper(JoltMapper mapper) {
         this.mapper = mapper;
     }
-
 
     public void setVertx(Vertx vertx) {
         this.vertx = vertx;

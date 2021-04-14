@@ -15,23 +15,22 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import javax.ws.rs.core.Response;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
-
-import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for <code>CurrentUserResource</code> class.
@@ -69,9 +68,7 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-        assertThat(response.readEntity(HashMap.class))
-                .isNotNull()
-                .containsKeys("created_at", "updated_at", "last_connection_at");
+        assertThat(response.readEntity(HashMap.class)).isNotNull().containsKeys("created_at", "updated_at", "last_connection_at");
     }
 
     @Test
@@ -122,5 +119,4 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_GLOBAL);
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
     }
-
 }

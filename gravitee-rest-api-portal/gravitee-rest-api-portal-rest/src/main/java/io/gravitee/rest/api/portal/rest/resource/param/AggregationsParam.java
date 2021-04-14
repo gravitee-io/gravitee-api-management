@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
+import io.gravitee.rest.api.model.analytics.query.AggregationType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import io.gravitee.rest.api.model.analytics.query.AggregationType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,13 +33,11 @@ public class AggregationsParam extends AbstractParam<List<Aggregation>> {
     @Override
     protected List<Aggregation> parse(String param) {
         if (param != null) {
-            String [] inputAggs = param.split(";");
+            String[] inputAggs = param.split(";");
             List<Aggregation> aggregations = new ArrayList<>(inputAggs.length);
-            for(String inputAgg : inputAggs) {
-                String [] inputRangeValues = inputAgg.trim().split(":");
-                aggregations.add(new Aggregation(
-                        AggregationType.valueOf(inputRangeValues[0].toUpperCase()),
-                        inputRangeValues[1]));
+            for (String inputAgg : inputAggs) {
+                String[] inputRangeValues = inputAgg.trim().split(":");
+                aggregations.add(new Aggregation(AggregationType.valueOf(inputRangeValues[0].toUpperCase()), inputRangeValues[1]));
             }
 
             return aggregations;

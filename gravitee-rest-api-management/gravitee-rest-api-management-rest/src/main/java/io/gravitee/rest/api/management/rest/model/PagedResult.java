@@ -16,12 +16,11 @@
 package io.gravitee.rest.api.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Collection;
 import java.util.Map;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PagedResult<T> {
@@ -60,6 +59,7 @@ public class PagedResult<T> {
     }
 
     public class Page {
+
         /**
          * the current page number. Start to 1
          */
@@ -92,22 +92,26 @@ public class PagedResult<T> {
             this.current = current;
             this.perPage = perPage;
             this.size = size;
-            this.totalPages = (int) Math.ceil((double)totalElements / (double)perPage);
+            this.totalPages = (int) Math.ceil((double) totalElements / (double) perPage);
             this.totalElements = totalElements;
         }
 
         public int getCurrent() {
             return current;
         }
+
         public int getPerPage() {
             return perPage;
         }
+
         public int getSize() {
             return size;
         }
+
         public int getTotalPages() {
             return totalPages;
         }
+
         public int getTotalElements() {
             return totalElements;
         }

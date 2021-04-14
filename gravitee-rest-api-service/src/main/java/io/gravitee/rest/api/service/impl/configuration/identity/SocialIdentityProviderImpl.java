@@ -26,16 +26,14 @@ import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -52,8 +50,8 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
 
     private static final String URI_PATH_SEPARATOR = "/";
 
-    private final static String CLIENT_ID = "clientId";
-    private final static String CLIENT_SECRET = "clientSecret";
+    private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_SECRET = "clientSecret";
 
     @Autowired
     private IdentityProviderService identityProviderService;
@@ -62,15 +60,14 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
     public Set<SocialIdentityProviderEntity> findAll() {
         try {
             return identityProviderService
-                    .findAll()
-                    .stream()
-                    .filter(IdentityProviderEntity::isEnabled)
-                    .map(this::convert)
-                    .collect(Collectors.toSet());
+                .findAll()
+                .stream()
+                .filter(IdentityProviderEntity::isEnabled)
+                .map(this::convert)
+                .collect(Collectors.toSet());
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to retrieve identity providers", ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to retrieve identity providers", ex);
+            throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }
 
@@ -90,8 +87,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             throw ex;
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to find an identity provider using its ID {}", id, ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to delete an identity provider using its ID " + id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete an identity provider using its ID " + id, ex);
         }
     }
 
@@ -105,18 +101,28 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
         } else if (identityProvider.getType() == IdentityProviderType.OIDC) {
             provider = new OIDCIdentityProviderEntity();
 
-            ((OIDCIdentityProviderEntity)provider).setColor((String)identityProvider.getConfiguration().get("color"));
-            ((OIDCIdentityProviderEntity)provider).setDiscoveryEndpoint((String)identityProvider.getConfiguration().get("discoveryEndpoint"));
-            ((OIDCIdentityProviderEntity)provider).setTokenEndpoint((String)identityProvider.getConfiguration().get("tokenEndpoint"));
-            ((OIDCIdentityProviderEntity)provider).setAuthorizationEndpoint((String)identityProvider.getConfiguration().get("authorizeEndpoint"));
-            ((OIDCIdentityProviderEntity)provider).setTokenIntrospectionEndpoint((String)identityProvider.getConfiguration().get("tokenIntrospectionEndpoint"));
-            ((OIDCIdentityProviderEntity)provider).setUserInfoEndpoint((String)identityProvider.getConfiguration().get("userInfoEndpoint"));
-            ((OIDCIdentityProviderEntity) provider).setUserLogoutEndpoint((String)identityProvider.getConfiguration().get("userLogoutEndpoint"));
-            ((OIDCIdentityProviderEntity)provider).setScopes((List<String>) identityProvider.getConfiguration().get("scopes"));
+            ((OIDCIdentityProviderEntity) provider).setColor((String) identityProvider.getConfiguration().get("color"));
+            ((OIDCIdentityProviderEntity) provider).setDiscoveryEndpoint(
+                    (String) identityProvider.getConfiguration().get("discoveryEndpoint")
+                );
+            ((OIDCIdentityProviderEntity) provider).setTokenEndpoint((String) identityProvider.getConfiguration().get("tokenEndpoint"));
+            ((OIDCIdentityProviderEntity) provider).setAuthorizationEndpoint(
+                    (String) identityProvider.getConfiguration().get("authorizeEndpoint")
+                );
+            ((OIDCIdentityProviderEntity) provider).setTokenIntrospectionEndpoint(
+                    (String) identityProvider.getConfiguration().get("tokenIntrospectionEndpoint")
+                );
+            ((OIDCIdentityProviderEntity) provider).setUserInfoEndpoint(
+                    (String) identityProvider.getConfiguration().get("userInfoEndpoint")
+                );
+            ((OIDCIdentityProviderEntity) provider).setUserLogoutEndpoint(
+                    (String) identityProvider.getConfiguration().get("userLogoutEndpoint")
+                );
+            ((OIDCIdentityProviderEntity) provider).setScopes((List<String>) identityProvider.getConfiguration().get("scopes"));
             ((OIDCIdentityProviderEntity) provider).setUserProfileMapping(identityProvider.getUserProfileMapping());
         } else if (identityProvider.getType() == IdentityProviderType.GRAVITEEIO_AM) {
-            String serverBaseUrl = (String)identityProvider.getConfiguration().get("serverURL");
-            String domain = (String)identityProvider.getConfiguration().get("domain");
+            String serverBaseUrl = (String) identityProvider.getConfiguration().get("serverURL");
+            String domain = (String) identityProvider.getConfiguration().get("domain");
 
             // Remove duplicate slash
             String serverUrl = DUPLICATE_SLASH_REMOVER.matcher(serverBaseUrl + '/' + domain).replaceAll(URI_PATH_SEPARATOR);
@@ -125,9 +131,11 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             }
 
             provider = new AMIdentityProviderEntity(serverUrl);
-            ((AMIdentityProviderEntity)provider).setColor((String)identityProvider.getConfiguration().get("color"));
-            ((AMIdentityProviderEntity)provider).setDiscoveryEndpoint((String)identityProvider.getConfiguration().get("discoveryEndpoint"));
-            ((AMIdentityProviderEntity)provider).setScopes((List<String>) identityProvider.getConfiguration().get("scopes"));
+            ((AMIdentityProviderEntity) provider).setColor((String) identityProvider.getConfiguration().get("color"));
+            ((AMIdentityProviderEntity) provider).setDiscoveryEndpoint(
+                    (String) identityProvider.getConfiguration().get("discoveryEndpoint")
+                );
+            ((AMIdentityProviderEntity) provider).setScopes((List<String>) identityProvider.getConfiguration().get("scopes"));
             ((AMIdentityProviderEntity) provider).setUserProfileMapping(identityProvider.getUserProfileMapping());
         }
 

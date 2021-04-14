@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +35,9 @@ public class MemberEntity {
     private String email;
 
     private MembershipReferenceType referenceType;
-    
+
     private String referenceId;
-    
+
     private List<RoleEntity> roles;
 
     private Map<String, char[]> permissions;

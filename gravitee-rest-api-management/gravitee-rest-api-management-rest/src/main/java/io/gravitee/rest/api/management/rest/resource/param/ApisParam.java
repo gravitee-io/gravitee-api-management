@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.swagger.annotations.ApiParam;
-
 import javax.ws.rs.QueryParam;
 
 /**
@@ -64,6 +63,7 @@ public class ApisParam {
     @ApiParam(value = "filter by tag")
     @QueryParam("tag")
     private String tag;
+
     @QueryParam("portal")
     private boolean portal;
 

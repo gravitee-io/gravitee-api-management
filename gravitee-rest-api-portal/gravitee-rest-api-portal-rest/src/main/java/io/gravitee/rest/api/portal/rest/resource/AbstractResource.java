@@ -28,12 +28,13 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
-import org.glassfish.jersey.message.internal.HttpHeaderReader;
-import org.glassfish.jersey.message.internal.MatchingEntityTag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.context.SecurityContextHolder;
-
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.util.*;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
@@ -41,13 +42,11 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
-import java.util.*;
+import org.glassfish.jersey.message.internal.HttpHeaderReader;
+import org.glassfish.jersey.message.internal.MatchingEntityTag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -80,10 +79,13 @@ public abstract class AbstractResource {
 
     @Inject
     MembershipService membershipService;
+
     @Inject
     PermissionService permissionService;
+
     @Inject
     RoleService roleService;
+
     @Inject
     ApiService apiService;
 
@@ -126,8 +128,8 @@ public abstract class AbstractResource {
             EntityTag eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
 
             return matchingTags != MatchingEntityTag.ANY_MATCH && !matchingTags.contains(eTag)
-                    ? Response.status(Status.PRECONDITION_FAILED)
-                    : null;
+                ? Response.status(Status.PRECONDITION_FAILED)
+                : null;
         } catch (java.text.ParseException e) {
             return null;
         }
@@ -213,20 +215,25 @@ public abstract class AbstractResource {
 
                 if (queryParameters.isEmpty()) {
                     linkTemplate += "?" + PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken;
-
                 } else {
                     final String queryPage = queryParameters.getFirst(PaginationParam.PAGE_QUERY_PARAM_NAME);
                     final String querySize = queryParameters.getFirst(PaginationParam.SIZE_QUERY_PARAM_NAME);
 
                     if (queryPage != null) {
-                        linkTemplate = linkTemplate.replaceFirst(PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
-                                PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken);
+                        linkTemplate =
+                            linkTemplate.replaceFirst(
+                                PaginationParam.PAGE_QUERY_PARAM_NAME + "=(\\w*)",
+                                PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken
+                            );
                     } else {
                         linkTemplate += "&" + PaginationParam.PAGE_QUERY_PARAM_NAME + "=" + pageToken;
                     }
                     if (querySize != null) {
-                        linkTemplate = linkTemplate.replaceFirst(PaginationParam.SIZE_QUERY_PARAM_NAME + "=(\\w*)",
-                                PaginationParam.SIZE_QUERY_PARAM_NAME + "=" + sizeToken);
+                        linkTemplate =
+                            linkTemplate.replaceFirst(
+                                PaginationParam.SIZE_QUERY_PARAM_NAME + "=(\\w*)",
+                                PaginationParam.SIZE_QUERY_PARAM_NAME + "=" + sizeToken
+                            );
                     }
                 }
 
@@ -235,7 +242,8 @@ public abstract class AbstractResource {
                 Integer nextPage = Math.min(page + 1, lastPage);
                 Integer prevPage = Math.max(firstPage, page - 1);
 
-                paginatedLinks = new Links()
+                paginatedLinks =
+                    new Links()
                         .first(linkTemplate.replace(pageToken, String.valueOf(firstPage)).replace(sizeToken, String.valueOf(size)))
                         .last(linkTemplate.replace(pageToken, String.valueOf(lastPage)).replace(sizeToken, String.valueOf(size)))
                         .next(linkTemplate.replace(pageToken, String.valueOf(nextPage)).replace(sizeToken, String.valueOf(size)))
@@ -252,8 +260,7 @@ public abstract class AbstractResource {
         return paginatedLinks;
     }
 
-    protected List paginateResultList(List list, Integer totalItems, Integer page, Integer size,
-            Map<String, Object> paginationMetadata) {
+    protected List paginateResultList(List list, Integer totalItems, Integer page, Integer size, Map<String, Object> paginationMetadata) {
         Integer startIndex = (page - 1) * size;
         Integer lastIndex = Math.min(startIndex + size, totalItems);
         Integer totalPages = (int) Math.ceil((double) totalItems / size);
@@ -261,7 +268,6 @@ public abstract class AbstractResource {
         if (startIndex >= totalItems || page < 1) {
             throw new PaginationInvalidException();
         } else {
-
             paginationMetadata.put(METADATA_PAGINATION_CURRENT_PAGE_KEY, page);
             paginationMetadata.put(METADATA_PAGINATION_SIZE_KEY, size);
 
@@ -273,11 +279,14 @@ public abstract class AbstractResource {
 
             return list.subList(startIndex, lastIndex);
         }
-
     }
 
-    protected DataResponse createDataResponse(List dataList, PaginationParam paginationParam,
-            Map<String, Map<String, Object>> metadata, boolean withPagination) {
+    protected DataResponse createDataResponse(
+        List dataList,
+        PaginationParam paginationParam,
+        Map<String, Map<String, Object>> metadata,
+        boolean withPagination
+    ) {
         Map<String, Object> dataMetadata = new HashMap<>();
         Map<String, Object> paginationMetadata = new HashMap<>();
 
@@ -285,8 +294,8 @@ public abstract class AbstractResource {
 
         List paginatedList;
         if (withPagination && totalItems > 0 && paginationParam.getSize() > 0) {
-            paginatedList = this.paginateResultList(dataList, totalItems, paginationParam.getPage(),
-                    paginationParam.getSize(), paginationMetadata);
+            paginatedList =
+                this.paginateResultList(dataList, totalItems, paginationParam.getPage(), paginationParam.getSize(), paginationMetadata);
         } else {
             if (paginationParam.getSize() < -1) {
                 throw new BadRequestException("Pagination size is not valid");
@@ -304,13 +313,17 @@ public abstract class AbstractResource {
             paginatedList = new ArrayList();
         }
 
-        return new DataResponse().data(paginatedList)
-                .metadata(this.computeMetadata(metadata, dataMetadata, paginationMetadata))
-                .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
+        return new DataResponse()
+            .data(paginatedList)
+            .metadata(this.computeMetadata(metadata, dataMetadata, paginationMetadata))
+            .links(this.computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), totalItems));
     }
 
-    protected Map<String, Map<String, Object>> computeMetadata(Map<String, Map<String, Object>> metadata,
-            Map<String, Object> dataMetadata, Map<String, Object> paginationMetadata) {
+    protected Map<String, Map<String, Object>> computeMetadata(
+        Map<String, Map<String, Object>> metadata,
+        Map<String, Object> dataMetadata,
+        Map<String, Object> paginationMetadata
+    ) {
         if (metadata == null) {
             metadata = new HashMap<>();
         }
@@ -329,13 +342,16 @@ public abstract class AbstractResource {
         return createListResponse(dataList, paginationParam, null, withPagination);
     }
 
-    protected Response createListResponse(List dataList, PaginationParam paginationParam,
-            Map<String, Map<String, Object>> metadata) {
+    protected Response createListResponse(List dataList, PaginationParam paginationParam, Map<String, Map<String, Object>> metadata) {
         return createListResponse(dataList, paginationParam, metadata, true);
     }
 
-    protected Response createListResponse(List dataList, PaginationParam paginationParam,
-            Map<String, Map<String, Object>> metadata, boolean withPagination) {
+    protected Response createListResponse(
+        List dataList,
+        PaginationParam paginationParam,
+        Map<String, Map<String, Object>> metadata,
+        boolean withPagination
+    ) {
         return Response.ok(createDataResponse(dataList, paginationParam, metadata, withPagination)).build();
     }
 
@@ -381,10 +397,11 @@ public abstract class AbstractResource {
             return builder.cacheControl(cc).build();
         }
 
-        return Response.ok(media.getData()).cacheControl(cc).tag(etag).type(media.getType()+"/"+media.getSubType()).build();
+        return Response.ok(media.getData()).cacheControl(cc).tag(etag).type(media.getType() + "/" + media.getSubType()).build();
     }
 
     private class DataResponse {
+
         private List data = null;
         private Map<String, Map<String, Object>> metadata = null;
         private Links links;
@@ -431,20 +448,22 @@ public abstract class AbstractResource {
                 return false;
             }
             DataResponse dataResponse = (DataResponse) o;
-            return Objects.equals(this.data, dataResponse.data) && Objects.equals(this.metadata, dataResponse.metadata)
-                    && Objects.equals(this.links, dataResponse.links);
+            return (
+                Objects.equals(this.data, dataResponse.data) &&
+                Objects.equals(this.metadata, dataResponse.metadata) &&
+                Objects.equals(this.links, dataResponse.links)
+            );
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(data, metadata, links);
         }
-
     }
 
-    protected URI getLocationHeader(String...paths) {
+    protected URI getLocationHeader(String... paths) {
         final UriBuilder requestUriBuilder = this.uriInfo.getRequestUriBuilder();
-        for(String path: paths) {
+        for (String path : paths) {
             requestUriBuilder.path(path);
         }
         return requestUriBuilder.build();

@@ -71,12 +71,23 @@ public class RatingAnswerEntity {
 
     @Override
     public String toString() {
-        return "RatingAnswerEntity{" +
-                "id='" + id + '\'' +
-                ", user='" + user + '\'' +
-                ", userDisplayName='" + userDisplayName + '\'' +
-                ", comment='" + comment + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
+        return (
+            "RatingAnswerEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            ", userDisplayName='" +
+            userDisplayName +
+            '\'' +
+            ", comment='" +
+            comment +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            '}'
+        );
     }
 }

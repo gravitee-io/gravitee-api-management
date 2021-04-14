@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.builder;
 
 import io.gravitee.rest.api.service.EmailNotification;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -86,7 +85,6 @@ public class EmailNotificationBuilder {
     }
 
     public enum EmailTemplate {
-
         REVOKE_API_KEY("apiKeyRevoked.html"),
         RENEWED_API_KEY("apiKeyRenewed.html"),
         EXPIRE_API_KEY("apiKeyExpired.html"),

@@ -23,9 +23,10 @@ import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -33,11 +34,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,34 +44,37 @@ public class CategoriesResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-    
+
     @Autowired
     private CategoryService categoryService;
 
     @Autowired
     private CategoryMapper categoryMapper;
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getCategories(@BeanParam PaginationParam paginationParam) {
         Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
-        
-        List<Category> categoriesList = categoryService.findAll()
-                .stream()
-                .filter(c -> !c.isHidden())
-                .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
-                .map(c -> {
+
+        List<Category> categoriesList = categoryService
+            .findAll()
+            .stream()
+            .filter(c -> !c.isHidden())
+            .sorted(Comparator.comparingInt(CategoryEntity::getOrder))
+            .map(
+                c -> {
                     c.setTotalApis(categoryService.getTotalApisByCategory(apis, c));
                     return c;
-                })
-                .filter(c -> c.getTotalApis() > 0)
-                .map(c-> categoryMapper.convert(c, uriInfo.getBaseUriBuilder()))
-                .collect(Collectors.toList());
-        
+                }
+            )
+            .filter(c -> c.getTotalApis() > 0)
+            .map(c -> categoryMapper.convert(c, uriInfo.getBaseUriBuilder()))
+            .collect(Collectors.toList());
+
         return createListResponse(categoriesList, paginationParam);
     }
-    
+
     @Path("{categoryId}")
     public CategoryResource getCategoryResource() {
         return resourceContext.getResource(CategoryResource.class);

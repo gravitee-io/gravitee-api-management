@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.healthcheck;
 
 import io.gravitee.common.http.HttpMethod;
-
 import java.util.List;
 import java.util.Map;
 

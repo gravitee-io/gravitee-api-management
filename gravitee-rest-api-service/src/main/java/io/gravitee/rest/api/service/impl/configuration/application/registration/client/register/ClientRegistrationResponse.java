@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.List;
 
@@ -120,7 +119,6 @@ public class ClientRegistrationResponse {
     @JsonProperty("request_uris")
     private List<String> requestUris;
 
-
     /*******************************************************************************
      * Oauth2 metadata in addition to RFC specification
      * https://tools.ietf.org/html/rfc7591#section-2
@@ -139,7 +137,6 @@ public class ClientRegistrationResponse {
 
     @JsonProperty("software_statement")
     private String softwareStatement; //Should be JWT
-
 
     /*******************************************************************************
      * Additional metadata for the response

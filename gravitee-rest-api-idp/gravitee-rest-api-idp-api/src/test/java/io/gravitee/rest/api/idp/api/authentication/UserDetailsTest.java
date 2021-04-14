@@ -15,10 +15,9 @@
  */
 package io.gravitee.rest.api.idp.api.authentication;
 
+import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Collections;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)

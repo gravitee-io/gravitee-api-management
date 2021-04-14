@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.rest.api.model.CategoryEntity;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
-import io.gravitee.rest.api.model.CategoryEntity;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -34,13 +33,12 @@ public abstract class AbstractCategoryResource extends AbstractResource {
         if (categoryEntity.getPicture() != null) {
             final UriBuilder ub = uriInfo.getAbsolutePathBuilder();
             final UriBuilder uriBuilder = ub.path(fromRoot ? categoryEntity.getId() + "/picture" : "picture");
-                // force browser to get if updated
-                uriBuilder.queryParam("hash", categoryEntity.getPicture().hashCode());
+            // force browser to get if updated
+            uriBuilder.queryParam("hash", categoryEntity.getPicture().hashCode());
 
             categoryEntity.setPictureUrl(uriBuilder.build().toString());
             categoryEntity.setPicture(null);
         }
         return categoryEntity;
     }
-
 }

@@ -15,60 +15,59 @@
  */
 package io.gravitee.rest.api.security.authentication;
 
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
-
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 public class GraviteeAuthenticationDetails extends WebAuthenticationDetails {
 
-  private final String remoteAddress;
+    private final String remoteAddress;
 
-  public GraviteeAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    final String xfHeader = request.getHeader("X-Forwarded-For");
-    if (xfHeader == null) {
-      this.remoteAddress = request.getRemoteAddr();
-    } else {
-      this.remoteAddress = xfHeader.split(",")[0];
-    }
-  }
-
-  public boolean equals(Object obj) {
-    if (obj instanceof GraviteeAuthenticationDetails) {
-      GraviteeAuthenticationDetails rhs = (GraviteeAuthenticationDetails)obj;
-      if (this.getRemoteAddress() == null && rhs.getRemoteAddress() != null) {
-        return false;
-      } else if (this.getRemoteAddress() != null && rhs.getRemoteAddress() == null) {
-        return false;
-      } else if (this.getRemoteAddress() != null && !this.getRemoteAddress().equals(rhs.getRemoteAddress())) {
-        return false;
-      } else if (this.getSessionId() == null && rhs.getSessionId() != null) {
-        return false;
-      } else if (this.getSessionId() != null && rhs.getSessionId() == null) {
-        return false;
-      } else {
-        return this.getSessionId() == null || this.getSessionId().equals(rhs.getSessionId());
-      }
-    } else {
-      return false;
-    }
-  }
-
-  public int hashCode() {
-    int code = 7654;
-    if (this.getRemoteAddress() != null) {
-      code *= this.getRemoteAddress().hashCode() % 7;
+    public GraviteeAuthenticationDetails(HttpServletRequest request) {
+        super(request);
+        final String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null) {
+            this.remoteAddress = request.getRemoteAddr();
+        } else {
+            this.remoteAddress = xfHeader.split(",")[0];
+        }
     }
 
-    if (this.getSessionId() != null) {
-      code *= this.getSessionId().hashCode() % 7;
+    public boolean equals(Object obj) {
+        if (obj instanceof GraviteeAuthenticationDetails) {
+            GraviteeAuthenticationDetails rhs = (GraviteeAuthenticationDetails) obj;
+            if (this.getRemoteAddress() == null && rhs.getRemoteAddress() != null) {
+                return false;
+            } else if (this.getRemoteAddress() != null && rhs.getRemoteAddress() == null) {
+                return false;
+            } else if (this.getRemoteAddress() != null && !this.getRemoteAddress().equals(rhs.getRemoteAddress())) {
+                return false;
+            } else if (this.getSessionId() == null && rhs.getSessionId() != null) {
+                return false;
+            } else if (this.getSessionId() != null && rhs.getSessionId() == null) {
+                return false;
+            } else {
+                return this.getSessionId() == null || this.getSessionId().equals(rhs.getSessionId());
+            }
+        } else {
+            return false;
+        }
     }
 
-    return code;
-  }
+    public int hashCode() {
+        int code = 7654;
+        if (this.getRemoteAddress() != null) {
+            code *= this.getRemoteAddress().hashCode() % 7;
+        }
 
-  @Override
-  public String getRemoteAddress() {
-    return this.remoteAddress;
-  }
+        if (this.getSessionId() != null) {
+            code *= this.getSessionId().hashCode() % 7;
+        }
+
+        return code;
+    }
+
+    @Override
+    public String getRemoteAddress() {
+        return this.remoteAddress;
+    }
 }

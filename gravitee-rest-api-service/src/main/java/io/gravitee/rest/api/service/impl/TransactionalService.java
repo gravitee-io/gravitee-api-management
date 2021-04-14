@@ -15,14 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import org.springframework.transaction.annotation.Transactional;
-
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Transactional(value = "graviteeTransactionManager", noRollbackFor = AbstractManagementException.class)
-public class TransactionalService {
-}
+public class TransactionalService {}

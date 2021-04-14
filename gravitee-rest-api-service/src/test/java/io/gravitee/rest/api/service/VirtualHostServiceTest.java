@@ -15,24 +15,23 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
-import io.gravitee.rest.api.service.impl.VirtualHostServiceImpl;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
+import io.gravitee.rest.api.service.impl.VirtualHostServiceImpl;
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -145,9 +144,17 @@ public class VirtualHostServiceTest {
         Api api1 = mock(Api.class);
         when(api1.getId()).thenReturn(api);
         if (host == null) {
-            when(api1.getDefinition()).thenReturn("{\"id\": \"" + api + "\",\"name\": \"API 1\",\"proxy\": {\"context_path\": \"" + path + "\"}}");
+            when(api1.getDefinition())
+                .thenReturn("{\"id\": \"" + api + "\",\"name\": \"API 1\",\"proxy\": {\"context_path\": \"" + path + "\"}}");
         } else {
-            when(api1.getDefinition()).thenReturn("{\"id\": \"" + api + "\",\"name\": \"API 1\",\"proxy\": {\"virtual_hosts\": [{\"host\": \"api.gravitee.io\", \"path\": \"" + path + "\"}]}}");
+            when(api1.getDefinition())
+                .thenReturn(
+                    "{\"id\": \"" +
+                    api +
+                    "\",\"name\": \"API 1\",\"proxy\": {\"virtual_hosts\": [{\"host\": \"api.gravitee.io\", \"path\": \"" +
+                    path +
+                    "\"}]}}"
+                );
         }
 
         return api1;

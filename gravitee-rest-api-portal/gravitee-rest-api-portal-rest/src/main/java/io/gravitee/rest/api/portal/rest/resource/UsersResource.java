@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
@@ -31,7 +33,10 @@ import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
-
+import java.net.URI;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -39,12 +44,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -60,7 +59,7 @@ public class UsersResource extends AbstractResource {
 
     @Inject
     private IdentityService identityService;
-    
+
     /**
      * Register a new user. Generate a token and send it in an email to allow a user
      * to create an account.
@@ -82,7 +81,9 @@ public class UsersResource extends AbstractResource {
     @Path("/registration/_finalize")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response finalizeRegistration(@Valid @NotNull(message = "Input must not be null.") FinalizeRegistrationInput finalizeRegistrationInput) {
+    public Response finalizeRegistration(
+        @Valid @NotNull(message = "Input must not be null.") FinalizeRegistrationInput finalizeRegistrationInput
+    ) {
         UserEntity newUser = userService.finalizeRegistration(userMapper.convert(finalizeRegistrationInput));
         if (newUser != null) {
             return Response.ok().entity(userMapper.convert(newUser)).build();
@@ -108,7 +109,9 @@ public class UsersResource extends AbstractResource {
     @POST
     @Path("_change_password")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response changeUserPassword(@NotNull(message = "Input must not be null.") @Valid ChangeUserPasswordInput changeUserPasswordInput) {
+    public Response changeUserPassword(
+        @NotNull(message = "Input must not be null.") @Valid ChangeUserPasswordInput changeUserPasswordInput
+    ) {
         UserEntity newUser = userService.finalizeResetPassword(userMapper.convert(changeUserPasswordInput));
         if (newUser != null) {
             return Response.ok().entity(userMapper.convert(newUser)).build();
@@ -126,12 +129,22 @@ public class UsersResource extends AbstractResource {
         if (q == null) {
             q = "*";
         }
-        List<User> users = identityService.search(q).stream()
-                .map(searchableUser -> userMapper.convert(searchableUser)
-                        .links(userMapper.computeUserLinks(PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchableUser.getId()), null))
-                )
-                .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastName(), o2.getLastName()))
-                .collect(Collectors.toList());
+        List<User> users = identityService
+            .search(q)
+            .stream()
+            .map(
+                searchableUser ->
+                    userMapper
+                        .convert(searchableUser)
+                        .links(
+                            userMapper.computeUserLinks(
+                                PortalApiLinkHelper.usersURL(uriInfo.getBaseUriBuilder(), searchableUser.getId()),
+                                null
+                            )
+                        )
+            )
+            .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastName(), o2.getLastName()))
+            .collect(Collectors.toList());
 
         // No pagination, because userService did it already
         return createListResponse(users, paginationParam, false);
@@ -152,11 +165,11 @@ public class UsersResource extends AbstractResource {
 
         return createPictureResponse(request, (InlinePictureEntity) picture);
     }
-    
+
     private static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
 
-    private static class CaseInsensitiveComparator
-            implements Comparator<String>, java.io.Serializable {
+    private static class CaseInsensitiveComparator implements Comparator<String>, java.io.Serializable {
+
         // use serialVersionUID from JDK 1.2.2 for interoperability
         private static final long serialVersionUID = 8575799808933029326L;
 
@@ -187,6 +200,8 @@ public class UsersResource extends AbstractResource {
         }
 
         /** Replaces the de-serialized object. */
-        private Object readResolve() { return CASE_INSENSITIVE_ORDER; }
+        private Object readResolve() {
+            return CASE_INSENSITIVE_ORDER;
+        }
     }
 }

@@ -20,7 +20,6 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public enum EventType {
-
     PUBLISH_API,
     PUBLISH_API_RESULT,
     UNPUBLISH_API,
@@ -33,5 +32,5 @@ public enum EventType {
     UNPUBLISH_DICTIONARY,
     START_DICTIONARY,
     STOP_DICTIONARY,
-    ALERT_NOTIFICATION
+    ALERT_NOTIFICATION,
 }

@@ -19,6 +19,4 @@ package io.gravitee.rest.api.service.impl.swagger.visitor;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Visitor {
-
-}
+public interface Visitor {}

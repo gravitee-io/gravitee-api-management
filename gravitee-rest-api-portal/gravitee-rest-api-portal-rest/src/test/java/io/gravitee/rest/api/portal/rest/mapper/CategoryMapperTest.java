@@ -18,19 +18,16 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.portal.rest.model.Category;
+import io.gravitee.rest.api.portal.rest.model.CategoryLinks;
 import java.time.Instant;
 import java.util.Date;
-
 import javax.ws.rs.core.UriBuilder;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.portal.rest.model.Category;
-import io.gravitee.rest.api.portal.rest.model.CategoryLinks;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -51,7 +48,7 @@ public class CategoryMapperTest {
 
     @InjectMocks
     private CategoryMapper categoryMapper;
-    
+
     @Test
     public void testConvert() {
         Instant now = Instant.now();
@@ -70,8 +67,7 @@ public class CategoryMapperTest {
         categoryEntity.setPictureUrl(CATEGORY_PICTURE_URL);
         categoryEntity.setTotalApis(42);
         categoryEntity.setUpdatedAt(nowDate);
-        
-        
+
         //init
         Category category = categoryMapper.convert(categoryEntity, UriBuilder.fromPath(CATEGORY_BASE_URL));
         assertEquals(CATEGORY_DESCRIPTION, category.getDescription());
@@ -81,8 +77,8 @@ public class CategoryMapperTest {
         assertEquals(42, category.getTotalApis().longValue());
         CategoryLinks links = category.getLinks();
         assertNotNull(links);
-        assertEquals(CATEGORY_BASE_URL+"/environments/DEFAULT/apis/"+CATEGORY_HIGHLIGHT_API, links.getHighlightedApi());
-        assertEquals(CATEGORY_BASE_URL+"/environments/DEFAULT/categories/"+CATEGORY_ID+"/picture", links.getPicture());
-        assertEquals(CATEGORY_BASE_URL+"/environments/DEFAULT/categories/"+CATEGORY_ID, links.getSelf());
+        assertEquals(CATEGORY_BASE_URL + "/environments/DEFAULT/apis/" + CATEGORY_HIGHLIGHT_API, links.getHighlightedApi());
+        assertEquals(CATEGORY_BASE_URL + "/environments/DEFAULT/categories/" + CATEGORY_ID + "/picture", links.getPicture());
+        assertEquals(CATEGORY_BASE_URL + "/environments/DEFAULT/categories/" + CATEGORY_ID, links.getSelf());
     }
 }

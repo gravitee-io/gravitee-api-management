@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param.healthcheck;
 
-import javax.ws.rs.WebApplicationException;
-
 import io.gravitee.rest.api.management.rest.resource.param.AbstractParam;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -27,7 +26,7 @@ public class HealthcheckTypeParam extends AbstractParam<HealthcheckTypeParam.Hea
 
     public enum HealthcheckType {
         AVAILABILITY,
-        RESPONSE_TIME
+        RESPONSE_TIME,
     }
 
     public HealthcheckTypeParam(String param) throws WebApplicationException {
@@ -40,10 +39,8 @@ public class HealthcheckTypeParam extends AbstractParam<HealthcheckTypeParam.Hea
             if (param != null) {
                 return HealthcheckType.valueOf(param.toUpperCase());
             }
-        } catch (IllegalArgumentException iae) {
-        }
+        } catch (IllegalArgumentException iae) {}
 
         return null;
     }
-
 }

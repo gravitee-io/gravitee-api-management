@@ -22,5 +22,9 @@ package io.gravitee.rest.api.model.api;
  * @author GraviteeSource Team
  */
 public enum ApiLifecycleState {
-    CREATED, PUBLISHED, UNPUBLISHED, DEPRECATED, ARCHIVED
+    CREATED,
+    PUBLISHED,
+    UNPUBLISHED,
+    DEPRECATED,
+    ARCHIVED,
 }

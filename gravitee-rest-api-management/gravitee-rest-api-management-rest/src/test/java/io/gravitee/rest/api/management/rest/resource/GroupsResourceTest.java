@@ -15,23 +15,22 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
-import org.junit.Test;
-
+import java.util.Collections;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -43,7 +42,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "configuration/groups";
     }
-    
+
     @Test
     public void shouldCreate() {
         reset(groupService);

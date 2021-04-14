@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.rest.api.model.InstanceListItem;
 import io.gravitee.rest.api.model.InstanceState;
 import io.gravitee.rest.api.service.impl.InstanceServiceImpl;
-import org.junit.Test;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -27,8 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -39,7 +38,7 @@ public class InstanceServiceTest {
     @Test
     public void expirePredicateShouldFilterOldUnknownState() {
         InstanceServiceImpl.ExpiredPredicate predicateDays = new InstanceServiceImpl.ExpiredPredicate(Duration.ofDays(7));
-        InstanceServiceImpl.ExpiredPredicate predicateSeconds = new InstanceServiceImpl.ExpiredPredicate(Duration.ofSeconds(7*24*3600));
+        InstanceServiceImpl.ExpiredPredicate predicateSeconds = new InstanceServiceImpl.ExpiredPredicate(Duration.ofSeconds(7 * 24 * 3600));
 
         InstanceListItem itemStarted = new InstanceListItem();
         itemStarted.setId("ok-1");

@@ -21,7 +21,7 @@ package io.gravitee.rest.api.model;
  */
 public class InlinePictureEntity implements PictureEntity {
 
-    private byte [] content;
+    private byte[] content;
     private String type;
 
     public byte[] getContent() {

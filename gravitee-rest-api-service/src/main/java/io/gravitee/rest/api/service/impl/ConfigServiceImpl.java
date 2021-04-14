@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.KV_SEPARATOR;
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.toMap;
+
 import io.gravitee.rest.api.model.PortalConfigEntity;
 import io.gravitee.rest.api.model.PortalConfigEntity.Enabled;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
@@ -23,20 +27,15 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static io.gravitee.rest.api.service.impl.ParameterServiceImpl.KV_SEPARATOR;
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -49,10 +48,13 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Autowired
     private ParameterService parameterService;
+
     @Autowired
     private ConfigurableEnvironment environment;
+
     @Autowired
     private NewsletterService newsletterService;
+
     @Autowired
     private ReCaptchaService reCaptchaService;
 
@@ -60,7 +62,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     public boolean portalLoginForced() {
         boolean result = false;
         final PortalConfigEntity.Authentication auth = getPortalConfig().getAuthentication();
-        if ( auth.getForceLogin() != null) {
+        if (auth.getForceLogin() != null) {
             result = auth.getForceLogin().isEnabled();
         }
         return result;
@@ -94,9 +96,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                         final List<String> values = parameterMap.get(parameterKey.value().key());
                         final String defaultValue = parameterKey.value().defaultValue();
                         if (Enabled.class.isAssignableFrom(f.getType())) {
-                            f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, defaultValue))
-                                    ? new Enabled(true)
-                                    : new Enabled(false)
+                            f.set(
+                                o,
+                                Boolean.valueOf(getFirstValueOrDefault(values, defaultValue)) ? new Enabled(true) : new Enabled(false)
                             );
                         } else if (Boolean.class.isAssignableFrom(f.getType())) {
                             f.set(o, Boolean.valueOf(getFirstValueOrDefault(values, defaultValue)));
@@ -118,13 +120,23 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                                     f.set(o, singletonMap(defaultValue.split(KV_SEPARATOR)[0], defaultValue.split(KV_SEPARATOR)[1]));
                                 }
                             } else {
-                                f.set(o, values.stream().collect(toMap(v -> v.split(KV_SEPARATOR)[0], v -> {
-                                    final String[] split = v.split(KV_SEPARATOR);
-                                    if (split.length < 2) {
-                                        return "";
-                                    }
-                                    return split[1];
-                                })));
+                                f.set(
+                                    o,
+                                    values
+                                        .stream()
+                                        .collect(
+                                            toMap(
+                                                v -> v.split(KV_SEPARATOR)[0],
+                                                v -> {
+                                                    final String[] split = v.split(KV_SEPARATOR);
+                                                    if (split.length < 2) {
+                                                        return "";
+                                                    }
+                                                    return split[1];
+                                                }
+                                            )
+                                        )
+                                );
                             }
                         } else {
                             f.set(o, getFirstValueOrDefault(values, defaultValue));
@@ -219,37 +231,37 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     private Object[] getObjectArray(PortalConfigEntity portalConfigEntity) {
-        return new Object[]{
-                portalConfigEntity,
-                portalConfigEntity.getAuthentication(),
-                portalConfigEntity.getAuthentication().getGithub(),
-                portalConfigEntity.getAuthentication().getGoogle(),
-                portalConfigEntity.getAuthentication().getOauth2(),
-                portalConfigEntity.getCompany(),
-                portalConfigEntity.getDocumentation(),
-                portalConfigEntity.getManagement(),
-                portalConfigEntity.getPortal(),
-                portalConfigEntity.getPortal().getApis(),
-                portalConfigEntity.getPortal().getAnalytics(),
-                portalConfigEntity.getPortal().getRating(),
-                portalConfigEntity.getPortal().getRating().getComment(),
-                portalConfigEntity.getPortal().getUploadMedia(),
-                portalConfigEntity.getScheduler(),
-                portalConfigEntity.getTheme(),
-                portalConfigEntity.getPlan(),
-                portalConfigEntity.getPlan().getSecurity(),
-                portalConfigEntity.getApiQualityMetrics(),
-                portalConfigEntity.getApiReview(),
-                portalConfigEntity.getLogging(),
-                portalConfigEntity.getLogging().getAudit(),
-                portalConfigEntity.getLogging().getUser(),
-                portalConfigEntity.getAnalytics(),
-                portalConfigEntity.getApplication(),
-                portalConfigEntity.getApplication().getRegistration(),
-                portalConfigEntity.getApplication().getTypes(),
-                portalConfigEntity.getLogging().getAudit().getTrail(),
-                portalConfigEntity.getAlert(),
-                portalConfigEntity.getMaintenance()
+        return new Object[] {
+            portalConfigEntity,
+            portalConfigEntity.getAuthentication(),
+            portalConfigEntity.getAuthentication().getGithub(),
+            portalConfigEntity.getAuthentication().getGoogle(),
+            portalConfigEntity.getAuthentication().getOauth2(),
+            portalConfigEntity.getCompany(),
+            portalConfigEntity.getDocumentation(),
+            portalConfigEntity.getManagement(),
+            portalConfigEntity.getPortal(),
+            portalConfigEntity.getPortal().getApis(),
+            portalConfigEntity.getPortal().getAnalytics(),
+            portalConfigEntity.getPortal().getRating(),
+            portalConfigEntity.getPortal().getRating().getComment(),
+            portalConfigEntity.getPortal().getUploadMedia(),
+            portalConfigEntity.getScheduler(),
+            portalConfigEntity.getTheme(),
+            portalConfigEntity.getPlan(),
+            portalConfigEntity.getPlan().getSecurity(),
+            portalConfigEntity.getApiQualityMetrics(),
+            portalConfigEntity.getApiReview(),
+            portalConfigEntity.getLogging(),
+            portalConfigEntity.getLogging().getAudit(),
+            portalConfigEntity.getLogging().getUser(),
+            portalConfigEntity.getAnalytics(),
+            portalConfigEntity.getApplication(),
+            portalConfigEntity.getApplication().getRegistration(),
+            portalConfigEntity.getApplication().getTypes(),
+            portalConfigEntity.getLogging().getAudit().getTrail(),
+            portalConfigEntity.getAlert(),
+            portalConfigEntity.getMaintenance(),
         };
     }
 }

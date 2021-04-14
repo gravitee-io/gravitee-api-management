@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -36,8 +38,9 @@ import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
-
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,11 +48,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -66,49 +64,70 @@ public class ApiService_DeleteTest {
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
+
     @Mock
     private ApiRepository apiRepository;
+
     @Mock
     private Api api;
+
     @Mock
     private PlanService planService;
+
     @Mock
     private MembershipService membershipService;
+
     @Mock
     private PlanEntity planEntity;
+
     @Mock
     private EventService eventService;
+
     @Mock
     private SubscriptionService subscriptionService;
+
     @Mock
     private AuditService auditService;
+
     @Mock
     private TopApiService topApiService;
+
     @Mock
     private AlertService alertService;
+
     @Mock
     private PageService pageService;
+
     @Mock
     private GenericNotificationConfigService genericNotificationConfigService;
+
     @Mock
     private PortalNotificationConfigService portalNotificationConfigService;
+
     @Mock
     private ApiQualityRuleRepository apiQualityRuleRepository;
+
     @Mock
     private SearchEngineService searchEngineService;
+
     @Mock
     private CategoryService categoryService;
+
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private MediaService mediaService;
+
     @Mock
     private ApiMetadataService apiMetadataService;
 
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+        objectMapper.setFilterProvider(
+            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
+        );
     }
 
     @Test(expected = ApiRunningStateException.class)
@@ -172,5 +191,4 @@ public class ApiService_DeleteTest {
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(API_ID);
     }
-
 }

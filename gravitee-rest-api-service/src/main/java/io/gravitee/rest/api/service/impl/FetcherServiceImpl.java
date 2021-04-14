@@ -24,15 +24,13 @@ import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.service.FetcherService;
 import io.gravitee.rest.api.service.exceptions.FetcherNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,7 +48,6 @@ public class FetcherServiceImpl extends TransactionalService implements FetcherS
     @Autowired
     private ConfigurablePluginManager<FetcherPlugin> fetcherPluginManager;
 
-
     @Override
     public Set<FetcherEntity> findAll() {
         return findAll(false);
@@ -63,15 +60,14 @@ public class FetcherServiceImpl extends TransactionalService implements FetcherS
             List<FetcherPlugin> fetcherDefinitions = new ArrayList<>(fetcherPluginManager.findAll());
             if (onlyFilesFetchers) {
                 Class<?> filesFetcherClass = FilesFetcher.class;
-                fetcherDefinitions = fetcherDefinitions.stream()
-                        .filter(fetcherPlugin ->
-                                filesFetcherClass.isAssignableFrom(fetcherPlugin.fetcher()))
+                fetcherDefinitions =
+                    fetcherDefinitions
+                        .stream()
+                        .filter(fetcherPlugin -> filesFetcherClass.isAssignableFrom(fetcherPlugin.fetcher()))
                         .collect(Collectors.toList());
             }
 
-            return fetcherDefinitions.stream()
-                    .map(fetcherDefinition -> convert(fetcherDefinition, false))
-                    .collect(Collectors.toSet());
+            return fetcherDefinitions.stream().map(fetcherDefinition -> convert(fetcherDefinition, false)).collect(Collectors.toSet());
         } catch (Exception ex) {
             LOGGER.error("An error occurs while trying to list all fetchers", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all fetchers", ex);

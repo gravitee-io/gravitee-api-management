@@ -24,7 +24,9 @@ import javax.validation.constraints.NotNull;
 public class ReviewActionParam {
 
     public enum ReviewAction {
-        ASK, ACCEPT, REJECT
+        ASK,
+        ACCEPT,
+        REJECT,
     }
 
     @NotNull

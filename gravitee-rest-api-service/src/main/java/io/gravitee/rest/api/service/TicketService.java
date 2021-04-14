@@ -22,6 +22,5 @@ import io.gravitee.rest.api.model.NewTicketEntity;
  * @author GraviteeSource Team
  */
 public interface TicketService {
-
     void create(String username, NewTicketEntity ticketEntity);
 }

@@ -15,26 +15,6 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ParameterRepository;
-import io.gravitee.repository.management.model.Parameter;
-import io.gravitee.repository.management.model.ParameterReferenceType;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.impl.ParameterServiceImpl;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
@@ -47,9 +27,27 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.never;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ParameterRepository;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.impl.ParameterServiceImpl;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -63,6 +61,7 @@ public class ParameterServiceTest {
 
     @Mock
     private ParameterRepository parameterRepository;
+
     @Mock
     private AuditService auditService;
 
@@ -108,10 +107,20 @@ public class ParameterServiceTest {
         final Parameter parameter3 = new Parameter();
         parameter3.setKey(PORTAL_ANALYTICS_TRACKINGID.key());
 
-        when(parameterRepository.findAllByReferenceIdAndReferenceType(Arrays.asList(PORTAL_TOP_APIS.key(), PORTAL_ANALYTICS_ENABLED.key(), PORTAL_ANALYTICS_TRACKINGID.key()), "DEFAULT", ParameterReferenceType.ENVIRONMENT))
-                .thenReturn(Arrays.asList(parameter1, parameter2, parameter3));
+        when(
+            parameterRepository.findAllByReferenceIdAndReferenceType(
+                Arrays.asList(PORTAL_TOP_APIS.key(), PORTAL_ANALYTICS_ENABLED.key(), PORTAL_ANALYTICS_TRACKINGID.key()),
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Arrays.asList(parameter1, parameter2, parameter3));
 
-        final Map<String, List<String>> values = parameterService.findAll(Arrays.asList(p1key, p2key, p3key), value -> value, value -> !value.isEmpty());
+        final Map<String, List<String>> values = parameterService.findAll(
+            Arrays.asList(p1key, p2key, p3key),
+            value -> value,
+            value -> !value.isEmpty()
+        );
 
         assertEquals(asList("api1", "api2", "api1"), values.get(p1key.key()));
         assertEquals(asList("api3", "api4", "api5"), values.get(p2key.key()));
@@ -132,8 +141,14 @@ public class ParameterServiceTest {
         parameterService.save(PORTAL_TOP_APIS, "api1");
 
         verify(parameterRepository).create(parameter);
-        verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_CREATED),
-                any(), eq(null), eq(parameter));
+        verify(auditService)
+            .createPortalAuditLog(
+                eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
+                eq(PARAMETER_CREATED),
+                any(),
+                eq(null),
+                eq(parameter)
+            );
     }
 
     @Test
@@ -154,8 +169,14 @@ public class ParameterServiceTest {
         parameterService.save(PORTAL_TOP_APIS, "api2");
 
         verify(parameterRepository).update(newParameter);
-        verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_UPDATED),
-                any(), eq(parameter), eq(newParameter));
+        verify(auditService)
+            .createPortalAuditLog(
+                eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
+                eq(PARAMETER_UPDATED),
+                any(),
+                eq(parameter),
+                eq(newParameter)
+            );
     }
 
     @Test
@@ -172,15 +193,21 @@ public class ParameterServiceTest {
         parameterService.save(PORTAL_TOP_APIS, Collections.singletonList("api1"));
 
         verify(parameterRepository).create(parameter);
-        verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_CREATED),
-                any(), eq(null), eq(parameter));
+        verify(auditService)
+            .createPortalAuditLog(
+                eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
+                eq(PARAMETER_CREATED),
+                any(),
+                eq(null),
+                eq(parameter)
+            );
     }
 
     @Test
     public void shouldNotCreateMultipleValueWithExistingParameter() throws TechnicalException {
         final Parameter parameter = new Parameter();
         parameter.setKey(PORTAL_TOP_APIS.key());
-        
+
         parameter.setValue("api1");
 
         final Parameter newParameter = new Parameter();
@@ -217,8 +244,14 @@ public class ParameterServiceTest {
         parameterService.save(PORTAL_TOP_APIS, asList("api1", "api2", "api2"));
 
         verify(parameterRepository).update(newParameter);
-        verify(auditService).createPortalAuditLog(eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())), eq(PARAMETER_UPDATED),
-                any(), eq(parameter), eq(newParameter));
+        verify(auditService)
+            .createPortalAuditLog(
+                eq(singletonMap(PARAMETER, PORTAL_TOP_APIS.key())),
+                eq(PARAMETER_UPDATED),
+                any(),
+                eq(parameter),
+                eq(newParameter)
+            );
     }
 
     @Test

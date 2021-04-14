@@ -15,28 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
-import io.gravitee.rest.api.service.impl.ApiMetadataServiceImpl;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.MetadataRepository;
-import io.gravitee.repository.management.model.Metadata;
-import io.gravitee.repository.management.model.MetadataReferenceType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Date;
-import java.util.List;
-
-import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefaultReferenceId;
 import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
 import static io.gravitee.repository.management.model.MetadataFormat.STRING;
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
 import static io.gravitee.repository.management.model.MetadataReferenceType.DEFAULT;
+import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefaultReferenceId;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.junit.Assert.*;
@@ -44,6 +27,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.MetadataRepository;
+import io.gravitee.repository.management.model.Metadata;
+import io.gravitee.repository.management.model.MetadataReferenceType;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
+import io.gravitee.rest.api.service.impl.ApiMetadataServiceImpl;
+import java.util.Date;
+import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -66,8 +65,10 @@ public class ApiMetadataServiceTest {
 
     @Mock
     private MetadataService metadataService;
+
     @Mock
     private ApiService apiService;
+
     @Mock
     private AuditService auditService;
 
@@ -76,8 +77,10 @@ public class ApiMetadataServiceTest {
 
     @Mock
     private Metadata defaultMetadata;
+
     @Mock
     private Metadata apiMetadata;
+
     @Mock
     private Metadata apiMetadataWithoutValue;
 

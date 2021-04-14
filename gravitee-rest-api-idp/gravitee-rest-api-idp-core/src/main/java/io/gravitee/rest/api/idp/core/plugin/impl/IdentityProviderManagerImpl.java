@@ -25,7 +25,7 @@ import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.core.authentication.impl.CompositeIdentityManager;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderDefinition;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
-
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -36,15 +36,13 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.StandardEnvironment;
 
-import java.util.*;
-
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
 public class IdentityProviderManagerImpl implements IdentityProviderManager {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(IdentityProviderManagerImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderManagerImpl.class);
 
     private final Map<String, IdentityProvider> identityProviders = new HashMap<>();
     private final Map<IdentityProvider, Plugin> identityProviderPlugins = new HashMap<>();
@@ -57,11 +55,15 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
 
     @Override
     public void register(IdentityProviderDefinition identityProviderPluginDefinition) {
-        identityProviders.putIfAbsent(identityProviderPluginDefinition.getIdentityProvider().type(),
-                identityProviderPluginDefinition.getIdentityProvider());
+        identityProviders.putIfAbsent(
+            identityProviderPluginDefinition.getIdentityProvider().type(),
+            identityProviderPluginDefinition.getIdentityProvider()
+        );
 
-        identityProviderPlugins.putIfAbsent(identityProviderPluginDefinition.getIdentityProvider(),
-                identityProviderPluginDefinition.getPlugin());
+        identityProviderPlugins.putIfAbsent(
+            identityProviderPluginDefinition.getIdentityProvider(),
+            identityProviderPluginDefinition.getPlugin()
+        );
     }
 
     @Override
@@ -84,10 +86,7 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         IdentityProvider identityProvider = identityProviders.get(identityProviderType);
 
         if (identityProvider != null) {
-            return create(
-                    identityProviderPlugins.get(identityProvider),
-                    identityProvider.authenticationProvider(),
-                    properties);
+            return create(identityProviderPlugins.get(identityProvider), identityProvider.authenticationProvider(), properties);
         } else {
             LOGGER.error("No identity provider is registered for type {}", identityProviderType);
             throw new IllegalStateException("No identity provider is registered for type " + identityProviderType);
@@ -99,10 +98,7 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         IdentityProvider identityProvider = identityProviders.get(identityProviderType);
 
         if (identityProvider != null) {
-            return create(
-                    identityProviderPlugins.get(identityProvider),
-                    identityProvider.identityLookup(),
-                    properties);
+            return create(identityProviderPlugins.get(identityProvider), identityProvider.identityLookup(), properties);
         } else {
             LOGGER.error("No identity provider is registered for type {}", identityProviderType);
             throw new IllegalStateException("No identity provider is registered for type " + identityProviderType);
@@ -117,26 +113,27 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         try {
             T identityObj = createInstance(identityClass);
             final Import annImport = identityClass.getAnnotation(Import.class);
-            Set<Class<?>> configurations = (annImport != null) ?
-                    new HashSet<>(Arrays.asList(annImport.value())) : Collections.emptySet();
+            Set<Class<?>> configurations = (annImport != null) ? new HashSet<>(Arrays.asList(annImport.value())) : Collections.emptySet();
 
-            ApplicationContext idpApplicationContext = pluginContextFactory.create(new AnnotationBasedPluginContextConfigurer(plugin) {
-                @Override
-                public Set<Class<?>> configurations() {
-                    return configurations;
-                }
+            ApplicationContext idpApplicationContext = pluginContextFactory.create(
+                new AnnotationBasedPluginContextConfigurer(plugin) {
+                    @Override
+                    public Set<Class<?>> configurations() {
+                        return configurations;
+                    }
 
-                @Override
-                public ConfigurableEnvironment environment() {
-                    return new StandardEnvironment() {
-                        @Override
-                        protected void customizePropertySources(MutablePropertySources propertySources) {
-                            propertySources.addFirst(new RelaxedPropertySource(plugin.id(), properties));
-                            super.customizePropertySources(propertySources);
-                        }
-                    };
+                    @Override
+                    public ConfigurableEnvironment environment() {
+                        return new StandardEnvironment() {
+                            @Override
+                            protected void customizePropertySources(MutablePropertySources propertySources) {
+                                propertySources.addFirst(new RelaxedPropertySource(plugin.id(), properties));
+                                super.customizePropertySources(propertySources);
+                            }
+                        };
+                    }
                 }
-            });
+            );
 
             idpApplicationContext.getAutowireCapableBeanFactory().autowireBean(identityObj);
 

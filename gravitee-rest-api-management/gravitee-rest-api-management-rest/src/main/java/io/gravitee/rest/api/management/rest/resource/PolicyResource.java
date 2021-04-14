@@ -16,15 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.PolicyService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -38,7 +37,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugins"})
+@Api(tags = { "Plugins" })
 public class PolicyResource {
 
     @Context
@@ -49,26 +48,18 @@ public class PolicyResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a policy",
-            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
-    })
-    public PolicyEntity getPolicy(
-            @PathParam("policy") String policy) {
+    @ApiOperation(value = "Get a policy", notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    public PolicyEntity getPolicy(@PathParam("policy") String policy) {
         return policyService.findById(policy);
     }
 
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a policy's schema",
-            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
-    })
-    public String getPolicySchema(
-            @PathParam("policy") String policy) {
+    @ApiOperation(value = "Get a policy's schema", notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    public String getPolicySchema(@PathParam("policy") String policy) {
         // Check that the policy exists
         policyService.findById(policy);
 

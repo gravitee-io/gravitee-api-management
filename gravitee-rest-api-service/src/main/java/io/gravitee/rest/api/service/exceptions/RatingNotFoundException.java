@@ -39,7 +39,7 @@ public class RatingNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Rating [" + rating + "] can not be found" + (api == null ? "":" on the api [" + api + "]");
+        return "Rating [" + rating + "] can not be found" + (api == null ? "" : " on the api [" + api + "]");
     }
 
     @Override

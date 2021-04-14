@@ -18,18 +18,16 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.time.Instant;
-import java.util.Date;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import io.gravitee.rest.api.portal.rest.model.Subscription.StatusEnum;
+import java.time.Instant;
+import java.util.Date;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -52,7 +50,7 @@ public class SubscriptionMapperTest {
 
     @InjectMocks
     private SubscriptionMapper subscriptionMapper;
-    
+
     @Test
     public void testConvert() {
         Instant now = Instant.now();
@@ -60,7 +58,7 @@ public class SubscriptionMapperTest {
 
         //init
         subscriptionEntity = new SubscriptionEntity();
-       
+
         subscriptionEntity.setApi(SUBSCRIPTION_API);
         subscriptionEntity.setApplication(SUBSCRIPTION_APPLICATION);
         subscriptionEntity.setClientId(SUBSCRIPTION_CLIENT_ID);
@@ -78,12 +76,11 @@ public class SubscriptionMapperTest {
         subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
         subscriptionEntity.setSubscribedBy(SUBSCRIPTION_SUBSCRIBED_BY);
         subscriptionEntity.setUpdatedAt(nowDate);
-        
-        
+
         //Test
         Subscription subscription = subscriptionMapper.convert(subscriptionEntity);
         assertNotNull(subscription);
-        
+
         assertEquals(SUBSCRIPTION_API, subscription.getApi());
         assertEquals(SUBSCRIPTION_APPLICATION, subscription.getApplication());
         assertEquals(now.toEpochMilli(), subscription.getCreatedAt().toInstant().toEpochMilli());
@@ -94,7 +91,5 @@ public class SubscriptionMapperTest {
         assertEquals(SUBSCRIPTION_REQUEST, subscription.getRequest());
         assertEquals(now.toEpochMilli(), subscription.getStartAt().toInstant().toEpochMilli());
         assertEquals(StatusEnum.ACCEPTED, subscription.getStatus());
-        
     }
-    
 }

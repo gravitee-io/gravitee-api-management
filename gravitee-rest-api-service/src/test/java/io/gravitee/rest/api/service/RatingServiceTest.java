@@ -15,6 +15,14 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
@@ -37,7 +45,7 @@ import io.gravitee.rest.api.service.exceptions.RatingAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import io.gravitee.rest.api.service.impl.RatingServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
-
+import java.util.Date;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,16 +56,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Date;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -80,6 +78,7 @@ public class RatingServiceTest {
 
     @Mock
     private RatingRepository ratingRepository;
+
     @Mock
     private RatingAnswerRepository ratingAnswerRepository;
 
@@ -88,22 +87,31 @@ public class RatingServiceTest {
 
     @Mock
     private NewRatingEntity newRatingEntity;
+
     @Mock
     private UpdateRatingEntity updateRatingEntity;
+
     @Mock
     private NewRatingAnswerEntity newRatingAnswerEntity;
+
     @Mock
     private Rating rating;
+
     @Mock
     private RatingAnswer ratingAnswer;
+
     @Mock
     private UserEntity user;
+
     @Mock
     private AuditService auditService;
+
     @Mock
     private ParameterService mockParameterService;
+
     @Mock
     private ApiService mockApiService;
+
     @Mock
     private NotifierService mockNotifierService;
 
@@ -131,15 +139,17 @@ public class RatingServiceTest {
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return null;
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-            @Override
-            public void setAuthentication(Authentication authentication) {
-            }
-        });
+        );
     }
 
     @Test(expected = RatingAlreadyExistsException.class)
@@ -221,8 +231,14 @@ public class RatingServiceTest {
         when(pageRating.getTotalElements()).thenReturn(100L);
         when(pageRating.getContent()).thenReturn(singletonList(rating));
 
-        when(ratingRepository.findByReferenceIdAndReferenceTypePageable(eq(API_ID), eq(RatingReferenceType.API), eq(new PageableBuilder()
-                .pageNumber(0).pageSize(1).build()))).thenReturn(pageRating);
+        when(
+            ratingRepository.findByReferenceIdAndReferenceTypePageable(
+                eq(API_ID),
+                eq(RatingReferenceType.API),
+                eq(new PageableBuilder().pageNumber(0).pageSize(1).build())
+            )
+        )
+            .thenReturn(pageRating);
 
         final Page<RatingEntity> pageRatingEntity = ratingService.findByApi(API_ID, pageable);
 

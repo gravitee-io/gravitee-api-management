@@ -15,16 +15,14 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.Set;
-
 import io.gravitee.rest.api.model.PolicyEntity;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface PolicyService {
-
     Set<PolicyEntity> findAll();
 
     PolicyEntity findById(String policy);

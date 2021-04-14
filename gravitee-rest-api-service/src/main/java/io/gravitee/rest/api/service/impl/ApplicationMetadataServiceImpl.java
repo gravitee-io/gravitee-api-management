@@ -15,17 +15,16 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.MetadataReferenceType.APPLICATION;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.ReferenceMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
-
-import static io.gravitee.repository.management.model.MetadataReferenceType.APPLICATION;
-import static java.util.stream.Collectors.toList;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -37,9 +36,7 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
     @Override
     public List<ApplicationMetadataEntity> findAllByApplication(final String applicationId) {
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(APPLICATION, applicationId, false);
-        return allMetadata.stream()
-                .map(m -> convert(m, applicationId))
-                .collect(toList());
+        return allMetadata.stream().map(m -> convert(m, applicationId)).collect(toList());
     }
 
     @Override

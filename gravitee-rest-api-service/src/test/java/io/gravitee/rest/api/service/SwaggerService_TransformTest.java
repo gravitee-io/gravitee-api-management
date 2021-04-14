@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
@@ -30,18 +33,14 @@ import io.gravitee.rest.api.service.impl.swagger.transformer.page.PageConfigurat
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -56,7 +55,6 @@ public class SwaggerService_TransformTest {
     public void setUp() {
         swaggerService = new SwaggerServiceImpl();
     }
-
 
     private PageEntity getPage(String resource, String contentType) throws IOException {
         URL url = Resources.getResource(resource);
@@ -77,8 +75,7 @@ public class SwaggerService_TransformTest {
 
         OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
 
-        swaggerService.transform(descriptor,
-                Collections.singleton(new PageConfigurationOAITransformer(pageEntity)));
+        swaggerService.transform(descriptor, Collections.singleton(new PageConfigurationOAITransformer(pageEntity)));
 
         assertNotNull(descriptor.toJson());
         validateV3(Json.mapper().readTree(descriptor.toJson()));
@@ -95,8 +92,10 @@ public class SwaggerService_TransformTest {
 
         final ApiEntity apiEntity = getApiEntity();
 
-        swaggerService.transform(descriptor,
-                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+        swaggerService.transform(
+            descriptor,
+            Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity))
+        );
 
         assertNotNull(descriptor.toJson());
         final JsonNode node = Json.mapper().readTree(descriptor.toJson());
@@ -115,8 +114,10 @@ public class SwaggerService_TransformTest {
 
         final ApiEntity apiEntity = getApiEntity();
 
-        swaggerService.transform(descriptor,
-                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+        swaggerService.transform(
+            descriptor,
+            Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity))
+        );
 
         assertNotNull(descriptor.toJson());
         final JsonNode node = Json.mapper().readTree(descriptor.toJson());
@@ -135,8 +136,10 @@ public class SwaggerService_TransformTest {
 
         final ApiEntity apiEntity = getApiEntity();
 
-        swaggerService.transform(descriptor,
-                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+        swaggerService.transform(
+            descriptor,
+            Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity))
+        );
 
         assertNotNull(descriptor.toJson());
         final JsonNode node = Json.mapper().readTree(descriptor.toJson());
@@ -155,8 +158,10 @@ public class SwaggerService_TransformTest {
 
         final ApiEntity apiEntity = getApiEntity();
 
-        swaggerService.transform(descriptor,
-                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+        swaggerService.transform(
+            descriptor,
+            Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity))
+        );
 
         assertNotNull(descriptor.toJson());
         final JsonNode node = Json.mapper().readTree(descriptor.toJson());
@@ -175,8 +180,10 @@ public class SwaggerService_TransformTest {
 
         final ApiEntity apiEntity = getApiEntity();
 
-        swaggerService.transform(descriptor,
-                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+        swaggerService.transform(
+            descriptor,
+            Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity))
+        );
 
         assertNotNull(descriptor.toJson());
         final JsonNode node = Json.mapper().readTree(descriptor.toJson());
@@ -195,8 +202,10 @@ public class SwaggerService_TransformTest {
 
         final ApiEntity apiEntity = getApiEntity();
 
-        swaggerService.transform(descriptor,
-                Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity)));
+        swaggerService.transform(
+            descriptor,
+            Arrays.asList(new PageConfigurationOAITransformer(pageEntity), new EntrypointsOAITransformer(pageEntity, apiEntity))
+        );
 
         assertNotNull(descriptor.toJson());
         final JsonNode node = Json.mapper().readTree(descriptor.toJson());
@@ -209,8 +218,7 @@ public class SwaggerService_TransformTest {
 
         OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent());
 
-        swaggerService.transform(descriptor,
-                Collections.singleton(new PageConfigurationOAITransformer(pageEntity)));
+        swaggerService.transform(descriptor, Collections.singleton(new PageConfigurationOAITransformer(pageEntity)));
 
         assertNotNull(descriptor.toYaml());
         validateV3(Yaml.mapper().readTree(descriptor.toYaml()));

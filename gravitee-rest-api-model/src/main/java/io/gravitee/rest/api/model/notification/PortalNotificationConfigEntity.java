@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -28,13 +27,14 @@ public class PortalNotificationConfigEntity {
 
     @JsonProperty("config_type")
     private NotificationConfigType configType;
+
     @JsonProperty("name")
     private String name = "Portal Notification";
+
     private String referenceType;
     private String referenceId;
     private String user;
     private List<String> hooks;
-
 
     public NotificationConfigType getConfigType() {
         return configType;
@@ -81,9 +81,11 @@ public class PortalNotificationConfigEntity {
         if (this == o) return true;
         if (!(o instanceof PortalNotificationConfigEntity)) return false;
         PortalNotificationConfigEntity that = (PortalNotificationConfigEntity) o;
-        return Objects.equals(referenceType, that.referenceType)
-                && Objects.equals(referenceId, that.referenceId)
-                && Objects.equals(user, that.user);
+        return (
+            Objects.equals(referenceType, that.referenceType) &&
+            Objects.equals(referenceId, that.referenceId) &&
+            Objects.equals(user, that.user)
+        );
     }
 
     @Override
@@ -93,12 +95,24 @@ public class PortalNotificationConfigEntity {
 
     @Override
     public String toString() {
-        return "PortalNotificationConfigEntity{" +
-                "user='" + user + '\'' +
-                ", configType='" + configType + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", hooks='" + hooks + '\'' +
-                '}';
+        return (
+            "PortalNotificationConfigEntity{" +
+            "user='" +
+            user +
+            '\'' +
+            ", configType='" +
+            configType +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", hooks='" +
+            hooks +
+            '\'' +
+            '}'
+        );
     }
 }

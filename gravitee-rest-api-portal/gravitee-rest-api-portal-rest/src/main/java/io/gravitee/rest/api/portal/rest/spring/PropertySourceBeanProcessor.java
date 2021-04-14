@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.spring;
 
 import java.util.Properties;
-
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.Ordered;
@@ -46,7 +45,7 @@ public class PropertySourceBeanProcessor implements BeanFactoryPostProcessor, Or
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-        ((ConfigurableEnvironment) environment).getPropertySources().addLast(
-                new PropertiesPropertySource("graviteeConfiguration", properties));
+        ((ConfigurableEnvironment) environment).getPropertySources()
+            .addLast(new PropertiesPropertySource("graviteeConfiguration", properties));
     }
 }

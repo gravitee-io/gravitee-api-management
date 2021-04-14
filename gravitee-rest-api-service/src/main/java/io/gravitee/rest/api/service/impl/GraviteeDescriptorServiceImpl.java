@@ -16,17 +16,14 @@
 package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.service.GraviteeDescriptorService;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorReadException;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorVersionException;
-
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -35,31 +32,31 @@ import java.io.IOException;
 @Component
 public class GraviteeDescriptorServiceImpl extends TransactionalService implements GraviteeDescriptorService {
 
-	private static final String DESCRIPTOR_FILENAME = ".gravitee.json";
+    private static final String DESCRIPTOR_FILENAME = ".gravitee.json";
 
-	private static final Logger logger = LoggerFactory.getLogger(GraviteeDescriptorServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(GraviteeDescriptorServiceImpl.class);
 
-	@Override
-	public String descriptorName() {
-		return DESCRIPTOR_FILENAME;
-	}
+    @Override
+    public String descriptorName() {
+        return DESCRIPTOR_FILENAME;
+    }
 
-	@Override
-	public GraviteeDescriptorEntity read(String s) {
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			GraviteeDescriptorEntity descriptorEntity = mapper.readValue(s, GraviteeDescriptorEntity.class);
-			assertVersion(descriptorEntity);
-			return descriptorEntity;
-		} catch (IOException e) {
-			logger.error("An error occurs while trying to read the descriptor", e);
-			throw new GraviteeDescriptorReadException("An error occurs while trying to read the descriptor");
-		}
-	}
+    @Override
+    public GraviteeDescriptorEntity read(String s) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            GraviteeDescriptorEntity descriptorEntity = mapper.readValue(s, GraviteeDescriptorEntity.class);
+            assertVersion(descriptorEntity);
+            return descriptorEntity;
+        } catch (IOException e) {
+            logger.error("An error occurs while trying to read the descriptor", e);
+            throw new GraviteeDescriptorReadException("An error occurs while trying to read the descriptor");
+        }
+    }
 
-	private void assertVersion(GraviteeDescriptorEntity descriptorEntity) {
-		if (1 != descriptorEntity.getVersion()) {
-			throw new GraviteeDescriptorVersionException(descriptorEntity.getVersion());
-		}
-	}
+    private void assertVersion(GraviteeDescriptorEntity descriptorEntity) {
+        if (1 != descriptorEntity.getVersion()) {
+            throw new GraviteeDescriptorVersionException(descriptorEntity.getVersion());
+        }
+    }
 }

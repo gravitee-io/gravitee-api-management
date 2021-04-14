@@ -28,44 +28,39 @@ import io.gravitee.rest.api.model.theme.UpdateThemeEntity;
 import io.gravitee.rest.api.service.ThemeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiParam;
-
+import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.io.ByteArrayOutputStream;
-import java.net.URI;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Themes"})
-public class ThemeResource extends AbstractResource  {
+@Api(tags = { "Themes" })
+public class ThemeResource extends AbstractResource {
 
     @Inject
     private ThemeService themeService;
-    
+
     @PathParam("themeId")
-    @ApiParam(name = "themeId", required=true)
+    @ApiParam(name = "themeId", required = true)
     private String themeId;
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ)
-    })
-    public ThemeEntity getTheme()  {
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.READ) })
+    public ThemeEntity getTheme() {
         return themeService.findEnabled();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE)
-    })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE) })
     public ThemeEntity updateTheme(@Valid @NotNull final UpdateThemeEntity theme) {
         theme.setId(themeId);
         return themeService.update(theme);
@@ -74,18 +69,14 @@ public class ThemeResource extends AbstractResource  {
     @Path("/reset")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE)
-    })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.UPDATE) })
     public ThemeEntity resetTheme() {
         return themeService.resetToDefaultTheme(themeId);
     }
 
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.DELETE)
-    })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.DELETE) })
     public void deleteTheme() {
         themeService.delete(themeId);
     }
@@ -93,7 +84,7 @@ public class ThemeResource extends AbstractResource  {
     @GET
     @Path("/logo")
     public Response getThemeLogo(@Context Request request) {
-       return this.buildPictureResponse(themeService.getLogo(themeId), request);
+        return this.buildPictureResponse(themeService.getLogo(themeId), request);
     }
 
     @GET
@@ -114,7 +105,7 @@ public class ThemeResource extends AbstractResource  {
         }
 
         if (picture instanceof UrlPictureEntity) {
-            return Response.temporaryRedirect(URI.create(((UrlPictureEntity)picture).getUrl())).build();
+            return Response.temporaryRedirect(URI.create(((UrlPictureEntity) picture).getUrl())).build();
         }
 
         CacheControl cc = new CacheControl();
@@ -130,20 +121,12 @@ public class ThemeResource extends AbstractResource  {
 
         if (builder != null) {
             // Preconditions are not met, returning HTTP 304 'not-modified'
-            return builder
-                    .cacheControl(cc)
-                    .build();
+            return builder.cacheControl(cc).build();
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response
-                .ok()
-                .entity(baos)
-                .cacheControl(cc)
-                .tag(etag)
-                .type(image.getType())
-                .build();
+        return Response.ok().entity(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
     }
 }

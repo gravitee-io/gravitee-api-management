@@ -24,7 +24,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,10 +58,16 @@ public class Api1_15VersionSerializer extends ApiSerializer {
             } else {
                 jsonGenerator.writeObjectField("loggingMode", apiEntity.getProxy().getLogging().getMode());
             }
-            jsonGenerator.writeObjectField("endpoints", apiEntity.getProxy().getGroups().stream()
+            jsonGenerator.writeObjectField(
+                "endpoints",
+                apiEntity
+                    .getProxy()
+                    .getGroups()
+                    .stream()
                     .map(endpointGroup -> endpointGroup.getEndpoints())
                     .flatMap(Collection::stream)
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList())
+            );
 
             // load balancing (get load balancing of the first endpoints group)
             jsonGenerator.writeObjectField("load_balancing", apiEntity.getProxy().getGroups().iterator().next().getLoadBalancer());
@@ -83,18 +88,22 @@ public class Api1_15VersionSerializer extends ApiSerializer {
 
         // members
         if (!filteredFieldsList.contains("members")) {
-            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
+            Set<MemberEntity> memberEntities = applicationContext
+                .getBean(MembershipService.class)
+                .getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
             List<Member> members = (memberEntities == null ? Collections.emptyList() : new ArrayList<>(memberEntities.size()));
             if (memberEntities != null && !memberEntities.isEmpty()) {
-                memberEntities.forEach(m -> {
-                    UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
-                    if (userEntity != null) {
-                        Member member = new Member();
-                        member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
-                        member.setRole(m.getRoles().get(0).getName());
-                        members.add(member);
+                memberEntities.forEach(
+                    m -> {
+                        UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
+                        if (userEntity != null) {
+                            Member member = new Member();
+                            member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
+                            member.setRole(m.getRoles().get(0).getName());
+                            members.add(member);
+                        }
                     }
-                });
+                );
             }
             jsonGenerator.writeObjectField("members", members);
         }
@@ -103,8 +112,9 @@ public class Api1_15VersionSerializer extends ApiSerializer {
         if (!filteredFieldsList.contains("plans")) {
             Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
             Set<PlanEntityBefore_3_00> plansToAdd = plans == null
-                    ? Collections.emptySet()
-                    : plans.stream()
+                ? Collections.emptySet()
+                : plans
+                    .stream()
                     .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
                     .map(PlanEntityBefore_3_00::fromNewPlanEntity)
                     .collect(Collectors.toSet());

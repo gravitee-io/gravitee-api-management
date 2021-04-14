@@ -15,15 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
@@ -31,8 +22,15 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.exceptions.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -61,7 +59,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             LOGGER.debug("Find environment by ID: {}", environmentId);
             Optional<Environment> optEnvironment = environmentRepository.findById(environmentId);
 
-            if (! optEnvironment.isPresent()) {
+            if (!optEnvironment.isPresent()) {
                 throw new EnvironmentNotFoundException(environmentId);
             }
 
@@ -76,9 +74,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     public List<EnvironmentEntity> findAll() {
         try {
             LOGGER.debug("Find all environments");
-            return environmentRepository.findAll()
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
+            return environmentRepository.findAll().stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all environments", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
@@ -101,19 +97,17 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 return convert(environmentRepository.update(environment));
             } else {
                 EnvironmentEntity createdEnvironment = convert(environmentRepository.create(environment));
-                
+
                 //create Default items for environment
                 apiHeaderService.initialize(createdEnvironment.getId());
                 pageService.initialize(createdEnvironment.getId());
-                
+
                 return createdEnvironment;
             }
-            
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update environment {}", environmentEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update environment " + environmentEntity.getName(), ex);
         }
-        
     }
 
     @Override
@@ -170,12 +164,13 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     public List<EnvironmentEntity> findByOrganization(String organizationId) {
         try {
             LOGGER.debug("Find all environments by organization");
-            return environmentRepository.findByOrganization(organizationId)
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
+            return environmentRepository.findByOrganization(organizationId).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all environments by organization {}", organizationId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all environments by organization " + organizationId, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to find all environments by organization " + organizationId,
+                ex
+            );
         }
     }
 }

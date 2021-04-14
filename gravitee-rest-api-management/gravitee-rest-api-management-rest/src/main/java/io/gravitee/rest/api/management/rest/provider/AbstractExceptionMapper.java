@@ -15,10 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.provider;
 
-import javax.ws.rs.ext.ExceptionMapper;
-
 import io.gravitee.rest.api.management.rest.model.ErrorEntity;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
+import javax.ws.rs.ext.ExceptionMapper;
 
 public abstract class AbstractExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
 

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
@@ -23,16 +25,13 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
 import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
+import java.time.Instant;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.time.Instant;
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -60,7 +59,7 @@ public class PlanMapperTest {
 
     @InjectMocks
     private PlanMapper planMapper;
-    
+
     @Before
     public void init() {
         Instant now = Instant.now();
@@ -68,7 +67,7 @@ public class PlanMapperTest {
 
         //init
         planEntity = new PlanEntity();
-       
+
         planEntity.setApi(PLAN_API);
         planEntity.setCharacteristics(Arrays.asList(PLAN_CHARACTERISTIC));
         planEntity.setClosedAt(nowDate);
@@ -81,7 +80,7 @@ public class PlanMapperTest {
         planEntity.setName(PLAN_NAME);
         planEntity.setNeedRedeployAt(nowDate);
         planEntity.setOrder(1);
-        
+
         Policy policy = new Policy();
         policy.setConfiguration(PLAN_RULE_POLICY_CONFIGURATION);
         policy.setName(PLAN_RULE_POLICY_NAME);
@@ -96,7 +95,7 @@ public class PlanMapperTest {
         Map<String, Path> paths = new HashMap<>();
         paths.put(PLAN_ID, path);
         planEntity.setPaths(paths);
-        
+
         planEntity.setPublishedAt(nowDate);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
         planEntity.setSecurityDefinition(PLAN_SECURITY_DEFINITINON);
@@ -107,12 +106,12 @@ public class PlanMapperTest {
         planEntity.setUpdatedAt(nowDate);
         planEntity.setValidation(PlanValidationType.AUTO);
     }
-    
+
     @Test
     public void testConvertWithSubscriptions() {
         Plan responsePlan = planMapper.convert(planEntity);
         assertNotNull(responsePlan);
-        
+
         List<String> characteristics = responsePlan.getCharacteristics();
         assertNotNull(characteristics);
         assertEquals(1, characteristics.size());

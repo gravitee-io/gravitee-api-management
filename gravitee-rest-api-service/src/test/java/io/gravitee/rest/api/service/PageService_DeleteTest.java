@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
@@ -25,7 +28,10 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -33,14 +39,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -132,14 +130,19 @@ public class PageService_DeleteTest {
         configuration.put(PageConfigurationKeys.TRANSLATION_LANG, "EN");
         when(translation.getConfiguration()).thenReturn(configuration);
         when(translation.getType()).thenReturn(PageType.TRANSLATION.toString());
-        when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build())).thenReturn(Arrays.asList(translation));
+        when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build()))
+            .thenReturn(Arrays.asList(translation));
 
-        when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build())).thenReturn(Arrays.asList(folder, child, childPage, page));
+        when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build()))
+            .thenReturn(Arrays.asList(folder, child, childPage, page));
 
         pageService.deleteAllByApi("apiId");
 
         verify(pageRepository, times(6)).delete(idCaptor.capture());
-        assertEquals("Pages are not deleted in order !", Arrays.asList(childPageId, PAGE_ID, linkId, translationId, childId, folderId), idCaptor.getAllValues());
+        assertEquals(
+            "Pages are not deleted in order !",
+            Arrays.asList(childPageId, PAGE_ID, linkId, translationId, childId, folderId),
+            idCaptor.getAllValues()
+        );
     }
-
 }

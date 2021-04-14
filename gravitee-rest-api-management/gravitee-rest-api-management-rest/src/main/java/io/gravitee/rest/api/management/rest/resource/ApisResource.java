@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.Visibility.PUBLIC;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.VirtualHost;
@@ -35,7 +41,8 @@ import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.swagger.annotations.*;
-
+import java.net.URI;
+import java.util.*;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -45,21 +52,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.util.*;
-
-import static io.gravitee.rest.api.model.Visibility.PUBLIC;
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"APIs"})
+@Api(tags = { "APIs" })
 public class ApisResource extends AbstractResource {
 
     @Context
@@ -67,27 +66,40 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private ApiService apiService;
+
     @Inject
     private SwaggerService swaggerService;
+
     @Inject
     private TopApiService topApiService;
+
     @Inject
     private RatingService ratingService;
+
     @Inject
     private VirtualHostService virtualHostService;
+
     @Inject
     private CategoryService categoryService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "List APIs",
-            notes = "List all the APIs accessible to the current user or only public APIs for non authenticated users.")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+        value = "List APIs",
+        notes = "List all the APIs accessible to the current user or only public APIs for non authenticated users."
+    )
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "List accessible APIs for current user",
+                response = ApiListItem.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public List<ApiListItem> getApis(@BeanParam final ApisParam apisParam) {
-
         final ApiQuery apiQuery = new ApiQuery();
         if (apisParam.getGroup() != null) {
             apiQuery.setGroups(singletonList(apisParam.getGroup()));
@@ -119,17 +131,20 @@ public class ApisResource extends AbstractResource {
 
         if (apisParam.isTop()) {
             final List<String> visibleApis = apis.stream().map(ApiEntity::getId).collect(toList());
-            return topApiService.findAll().stream()
-                    .filter(topApi -> visibleApis.contains(topApi.getApi()))
-                    .map(topApiEntity -> apiService.findById(topApiEntity.getApi()))
-                    .map(this::convert)
-                    .collect(toList());
+            return topApiService
+                .findAll()
+                .stream()
+                .filter(topApi -> visibleApis.contains(topApi.getApi()))
+                .map(topApiEntity -> apiService.findById(topApiEntity.getApi()))
+                .map(this::convert)
+                .collect(toList());
         }
 
-        return apis.stream()
-                .map(this::convert)
-                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-                .collect(toList());
+        return apis
+            .stream()
+            .map(this::convert)
+            .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+            .collect(toList());
     }
 
     /**
@@ -140,25 +155,16 @@ public class ApisResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-            value = "Create an API",
-            notes = "User must have API_PUBLISHER or ADMIN role to create an API.")
-    @ApiResponses({
-            @ApiResponse(code = 201, message = "API successfully created"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
-    })
-    public Response createApi(
-            @ApiParam(name = "api", required = true)
-            @Valid @NotNull final NewApiEntity newApiEntity) throws ApiAlreadyExistsException {
+    @ApiOperation(value = "Create an API", notes = "User must have API_PUBLISHER or ADMIN role to create an API.")
+    @ApiResponses(
+        { @ApiResponse(code = 201, message = "API successfully created"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    public Response createApi(@ApiParam(name = "api", required = true) @Valid @NotNull final NewApiEntity newApiEntity)
+        throws ApiAlreadyExistsException {
         ApiEntity newApi = apiService.create(newApiEntity, getAuthenticatedUser());
         if (newApi != null) {
-
-            return Response
-                    .created(this.getLocationHeader(newApi.getId()))
-                    .entity(newApi)
-                    .build();
+            return Response.created(this.getLocationHeader(newApi.getId())).entity(newApi).build();
         }
 
         return Response.serverError().build();
@@ -168,18 +174,19 @@ public class ApisResource extends AbstractResource {
     @Path("import")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "Create an API by importing an API definition",
-            notes = "Create an API by importing an existing API definition in JSON format")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "API successfully created"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
+        value = "Create an API by importing an API definition",
+        notes = "Create an API by importing an existing API definition in JSON format"
+    )
+    @ApiResponses(
+        { @ApiResponse(code = 200, message = "API successfully created"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    @Permissions(
+        {
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE)
-    })
-    public Response importApiDefinition(
-            @ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition) {
-
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public Response importApiDefinition(@ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition) {
         return Response.ok(apiService.createWithImportedDefinition(null, apiDefinition, getAuthenticatedUser())).build();
     }
 
@@ -187,31 +194,34 @@ public class ApisResource extends AbstractResource {
     @Path("import/swagger")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create an API definition from a Swagger descriptor")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "API definition from Swagger descriptor", response = ApiEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response importSwaggerApi(
-            @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor) {
+        @ApiParam(name = "swagger", required = true) @Valid @NotNull ImportSwaggerDescriptorEntity swaggerDescriptor
+    ) {
         final ApiEntity api = apiService.create(swaggerService.createAPI(swaggerDescriptor), getAuthenticatedUser(), swaggerDescriptor);
         return Response
-                .created(URI.create(this.uriInfo.getRequestUri().getRawPath().replaceAll("import/swagger", "") + api.getId()))
-                .entity(api)
-                .build();
+            .created(URI.create(this.uriInfo.getRequestUri().getRawPath().replaceAll("import/swagger", "") + api.getId()))
+            .entity(api)
+            .build();
     }
 
     @POST
     @Path("verify")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Check if an API match the following criteria")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "No API match the following criteria"),
-            @ApiResponse(code = 400, message = "API already exist with the following criteria")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE)
-    })
+            @ApiResponse(code = 400, message = "API already exist with the following criteria"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
         // TODO : create verify service to query repository with criteria
         virtualHostService.validate(Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())));
@@ -230,23 +240,28 @@ public class ApisResource extends AbstractResource {
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Search for API using the search engine")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "List accessible APIs for current user",
+                response = ApiListItem.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response searchApis(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
             final ApiQuery apiQuery = new ApiQuery();
             Map<String, Object> filters = new HashMap<>();
-            
+
             if (!isAdmin()) {
                 final Collection<ApiEntity> apis = apiService.findByUser(getAuthenticatedUser(), apiQuery, false);
                 filters.put("api", apis.stream().map(ApiEntity::getId).collect(toSet()));
             }
 
-            return Response.ok().entity(apiService.search(query, filters)
-                    .stream()
-                    .map(this::convert)
-                    .collect(toList())).build();
+            return Response.ok().entity(apiService.search(query, filters).stream().map(this::convert).collect(toList())).build();
         } catch (TechnicalException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
         }
@@ -271,9 +286,14 @@ public class ApisResource extends AbstractResource {
         apiItem.setDescription(api.getDescription());
 
         final UriBuilder ub = uriInfo.getBaseUriBuilder();
-        final UriBuilder uriBuilder = ub.path("organizations").path(GraviteeContext.getCurrentOrganization())
-                .path("environments").path(GraviteeContext.getCurrentEnvironment())
-                .path("apis").path(api.getId()).path("picture");
+        final UriBuilder uriBuilder = ub
+            .path("organizations")
+            .path(GraviteeContext.getCurrentOrganization())
+            .path("environments")
+            .path(GraviteeContext.getCurrentEnvironment())
+            .path("apis")
+            .path(api.getId())
+            .path("picture");
         if (api.getPicture() != null) {
             // force browser to get if updated
             uriBuilder.queryParam("hash", api.getPicture().hashCode());
@@ -313,8 +333,7 @@ public class ApisResource extends AbstractResource {
         }
 
         // Issue https://github.com/gravitee-io/issues/issues/3356
-        if (api.getProxy().getVirtualHosts() != null &&
-                !api.getProxy().getVirtualHosts().isEmpty()) {
+        if (api.getProxy().getVirtualHosts() != null && !api.getProxy().getVirtualHosts().isEmpty()) {
             apiItem.setContextPath(api.getProxy().getVirtualHosts().get(0).getPath());
         }
 

@@ -24,7 +24,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -47,13 +46,17 @@ public class Api1_20VersionSerializer extends ApiSerializer {
         // path mappings part
         if (apiEntity.getPathMappings() != null) {
             jsonGenerator.writeArrayFieldStart("path_mappings");
-            apiEntity.getPathMappings().forEach(pathMapping -> {
-                try {
-                    jsonGenerator.writeObject(pathMapping);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            apiEntity
+                .getPathMappings()
+                .forEach(
+                    pathMapping -> {
+                        try {
+                            jsonGenerator.writeObject(pathMapping);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                );
             jsonGenerator.writeEndArray();
         }
 
@@ -61,10 +64,15 @@ public class Api1_20VersionSerializer extends ApiSerializer {
         if (apiEntity.getProxy() != null) {
             //remove the http config from groups
             if (apiEntity.getProxy().getGroups() != null) {
-                apiEntity.getProxy().getGroups().forEach(group -> {
-                    group.setHttpClientOptions(null);
-                    group.setHttpClientSslOptions(null);
-                });
+                apiEntity
+                    .getProxy()
+                    .getGroups()
+                    .forEach(
+                        group -> {
+                            group.setHttpClientOptions(null);
+                            group.setHttpClientSslOptions(null);
+                        }
+                    );
             }
 
             jsonGenerator.writeObjectFieldStart("proxy");
@@ -81,16 +89,21 @@ public class Api1_20VersionSerializer extends ApiSerializer {
             }
 
             jsonGenerator.writeArrayFieldStart("groups");
-            apiEntity.getProxy().getGroups().forEach(new Consumer<EndpointGroup>() {
-                @Override
-                public void accept(EndpointGroup endpointGroup) {
-                    try {
-                        jsonGenerator.writeObject(endpointGroup);
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            apiEntity
+                .getProxy()
+                .getGroups()
+                .forEach(
+                    new Consumer<EndpointGroup>() {
+                        @Override
+                        public void accept(EndpointGroup endpointGroup) {
+                            try {
+                                jsonGenerator.writeObject(endpointGroup);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                }
-            });
+                );
 
             jsonGenerator.writeEndArray();
 
@@ -110,18 +123,22 @@ public class Api1_20VersionSerializer extends ApiSerializer {
 
         // members
         if (!filteredFieldsList.contains("members")) {
-            Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
+            Set<MemberEntity> memberEntities = applicationContext
+                .getBean(MembershipService.class)
+                .getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
             List<Member> members = (memberEntities == null ? Collections.emptyList() : new ArrayList<>(memberEntities.size()));
             if (memberEntities != null && !memberEntities.isEmpty()) {
-                memberEntities.forEach(m -> {
-                    UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
-                    if (userEntity != null) {
-                        Member member = new Member();
-                        member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
-                        member.setRole(m.getRoles().get(0).getName());
-                        members.add(member);
+                memberEntities.forEach(
+                    m -> {
+                        UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
+                        if (userEntity != null) {
+                            Member member = new Member();
+                            member.setUsername(getUsernameFromSourceId(userEntity.getSourceId()));
+                            member.setRole(m.getRoles().get(0).getName());
+                            members.add(member);
+                        }
                     }
-                });
+                );
             }
             jsonGenerator.writeObjectField("members", members);
         }
@@ -130,8 +147,9 @@ public class Api1_20VersionSerializer extends ApiSerializer {
         if (!filteredFieldsList.contains("plans")) {
             Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
             Set<PlanEntityBefore_3_00> plansToAdd = plans == null
-                    ? Collections.emptySet()
-                    : plans.stream()
+                ? Collections.emptySet()
+                : plans
+                    .stream()
                     .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
                     .map(PlanEntityBefore_3_00::fromNewPlanEntity)
                     .collect(Collectors.toSet());

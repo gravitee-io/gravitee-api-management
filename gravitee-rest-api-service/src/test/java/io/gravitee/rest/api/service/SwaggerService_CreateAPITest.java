@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.HttpMethod;
@@ -29,6 +35,10 @@ import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorMa
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.OAIPolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.SwaggerPolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,17 +46,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Optional;
-
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -68,9 +67,12 @@ public class SwaggerService_CreateAPITest {
 
         PolicyOperationVisitor oaiPolicyOperationVisitor = mock(PolicyOperationVisitor.class);
         when(oaiPolicyOperationVisitor.getId()).thenReturn("mock");
-        io.gravitee.policy.api.swagger.v3.OAIOperationVisitor oaiPolicyOperationVisitorImpl = mock(io.gravitee.policy.api.swagger.v3.OAIOperationVisitor.class);
+        io.gravitee.policy.api.swagger.v3.OAIOperationVisitor oaiPolicyOperationVisitorImpl = mock(
+            io.gravitee.policy.api.swagger.v3.OAIOperationVisitor.class
+        );
 
-        when(policyOperationVisitorManager.getPolicyVisitors()).thenReturn(asList(swaggerPolicyOperationVisitor, oaiPolicyOperationVisitor));
+        when(policyOperationVisitorManager.getPolicyVisitors())
+            .thenReturn(asList(swaggerPolicyOperationVisitor, oaiPolicyOperationVisitor));
 
         OAIOperationVisitor op = mock(OAIPolicyOperationVisitor.class);
         when(op.visit(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(Optional.of(new Policy()));
@@ -210,9 +212,18 @@ public class SwaggerService_CreateAPITest {
         final Path repositoriesUsername = api.getPaths().get("/2.0/repositories/:username");
         assertEquals("/2.0/repositories/:username", repositoriesUsername.getPath());
         assertEquals("/2.0/repositories/:username/:slug", api.getPaths().get("/2.0/repositories/:username/:slug").getPath());
-        assertEquals("/2.0/repositories/:username/:slug/pullrequests", api.getPaths().get("/2.0/repositories/:username/:slug/pullrequests").getPath());
-        assertEquals("/2.0/repositories/:username/:slug/pullrequests/:pid", api.getPaths().get("/2.0/repositories/:username/:slug/pullrequests/:pid").getPath());
-        assertEquals("/2.0/repositories/:username/:slug/pullrequests/:pid/merge", api.getPaths().get("/2.0/repositories/:username/:slug/pullrequests/:pid/merge").getPath());
+        assertEquals(
+            "/2.0/repositories/:username/:slug/pullrequests",
+            api.getPaths().get("/2.0/repositories/:username/:slug/pullrequests").getPath()
+        );
+        assertEquals(
+            "/2.0/repositories/:username/:slug/pullrequests/:pid",
+            api.getPaths().get("/2.0/repositories/:username/:slug/pullrequests/:pid").getPath()
+        );
+        assertEquals(
+            "/2.0/repositories/:username/:slug/pullrequests/:pid/merge",
+            api.getPaths().get("/2.0/repositories/:username/:slug/pullrequests/:pid/merge").getPath()
+        );
     }
 
     @Test

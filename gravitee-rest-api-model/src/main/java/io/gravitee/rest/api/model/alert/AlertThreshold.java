@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.alert;
 
 public class AlertThreshold {
+
     private String key;
     private String description;
 

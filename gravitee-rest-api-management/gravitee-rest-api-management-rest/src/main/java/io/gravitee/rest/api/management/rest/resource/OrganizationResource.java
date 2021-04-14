@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -52,15 +51,18 @@ public class OrganizationResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an Organization", tags = {"Organization"})
-    @ApiResponses({ @ApiResponse(code = 201, message = "Organization successfully created"),
-            @ApiResponse(code = 500, message = "Internal server error") })
+    @ApiOperation(value = "Create an Organization", tags = { "Organization" })
+    @ApiResponses(
+        {
+            @ApiResponse(code = 201, message = "Organization successfully created"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response createOrganization(
-            @ApiParam(name = "organizationEntity", required = true) @Valid @NotNull final UpdateOrganizationEntity organizationEntity) {
+        @ApiParam(name = "organizationEntity", required = true) @Valid @NotNull final UpdateOrganizationEntity organizationEntity
+    ) {
         organizationEntity.setId(GraviteeContext.getCurrentOrganization());
-        return Response
-                .ok(organizationService.createOrUpdate(organizationEntity))
-                .build();
+        return Response.ok(organizationService.createOrUpdate(organizationEntity)).build();
     }
 
     /**
@@ -69,16 +71,17 @@ public class OrganizationResource extends AbstractResource {
      */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete an Organization", tags = {"Organization"})
-    @ApiResponses({
+    @ApiOperation(value = "Delete an Organization", tags = { "Organization" })
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Organization successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response deleteOrganization() {
         organizationService.delete(GraviteeContext.getCurrentOrganization());
         //TODO: should delete all items that refers to this organization
-        return Response
-                .status(Status.NO_CONTENT)
-                .build();
+        return Response.status(Status.NO_CONTENT).build();
     }
 
     @Path("users")
@@ -90,7 +93,7 @@ public class OrganizationResource extends AbstractResource {
     public RoleUsersResource getRoleUsersResource() {
         return resourceContext.getResource(RoleUsersResource.class);
     }
-    
+
     @Path("environments")
     public EnvironmentsResource getEnvironmentsResource() {
         return resourceContext.getResource(EnvironmentsResource.class);

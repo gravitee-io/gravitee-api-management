@@ -27,5 +27,4 @@ public class SwaggerOperationVisitorClassFinder extends AbstractSingleSubTypesFi
     protected SwaggerOperationVisitorClassFinder() {
         super(SwaggerOperationVisitor.class);
     }
-
 }

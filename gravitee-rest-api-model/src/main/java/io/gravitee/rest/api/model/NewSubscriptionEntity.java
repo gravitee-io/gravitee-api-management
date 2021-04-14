@@ -25,8 +25,7 @@ public class NewSubscriptionEntity {
     private String plan;
     private String request;
 
-    public NewSubscriptionEntity() {
-    }
+    public NewSubscriptionEntity() {}
 
     public NewSubscriptionEntity(String plan, String application) {
         this.application = application;

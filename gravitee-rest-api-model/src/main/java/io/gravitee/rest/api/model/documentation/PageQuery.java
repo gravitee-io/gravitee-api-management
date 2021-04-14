@@ -18,7 +18,7 @@ package io.gravitee.rest.api.model.documentation;
 import io.gravitee.rest.api.model.PageType;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PageQuery {
@@ -36,12 +36,15 @@ public class PageQuery {
     public String getApi() {
         return api;
     }
+
     public String getName() {
         return name;
     }
+
     public PageType getType() {
         return type;
     }
+
     public Boolean getHomepage() {
         return homepage;
     }
@@ -49,32 +52,39 @@ public class PageQuery {
     public Boolean getPublished() {
         return published;
     }
+
     public String getParent() {
         return parent;
     }
+
     public Boolean getRootParent() {
         return rootParent;
     }
 
-
     private void setApi(String api) {
         this.api = api;
     }
+
     private void setName(String name) {
         this.name = name;
     }
+
     private void setType(PageType type) {
         this.type = type;
     }
+
     private void setHomepage(Boolean homepage) {
         this.homepage = homepage;
     }
+
     private void setPublished(Boolean published) {
         this.published = published;
     }
+
     private void setParent(String parent) {
         this.parent = parent;
     }
+
     public void setRootParent(Boolean rootParent) {
         this.rootParent = rootParent;
     }
@@ -120,6 +130,7 @@ public class PageQuery {
             this.query.setParent(parent);
             return this;
         }
+
         public Builder rootParent(Boolean root) {
             this.query.setRootParent(root);
             return this;

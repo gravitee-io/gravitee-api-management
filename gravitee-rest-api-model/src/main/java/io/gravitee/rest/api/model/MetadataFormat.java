@@ -20,5 +20,10 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public enum MetadataFormat {
-    STRING, NUMERIC, BOOLEAN, DATE, MAIL, URL
+    STRING,
+    NUMERIC,
+    BOOLEAN,
+    DATE,
+    MAIL,
+    URL,
 }

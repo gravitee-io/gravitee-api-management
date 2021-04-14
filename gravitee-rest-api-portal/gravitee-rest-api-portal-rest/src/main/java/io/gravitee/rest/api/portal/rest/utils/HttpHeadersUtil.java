@@ -22,20 +22,20 @@ import java.util.Locale.LanguageRange;
 import java.util.stream.Collectors;
 
 public interface HttpHeadersUtil {
-
     public static List<String> getAcceptedLocaleNameOrderedByPriority(String acceptLanguageHeader) {
-        if(acceptLanguageHeader == null) {
+        if (acceptLanguageHeader == null) {
             return Collections.emptyList();
         }
-        return LanguageRange.parse(acceptLanguageHeader)
-                .stream()
-                .map(l -> Locale.forLanguageTag(l.getRange()).getLanguage())
-                .distinct()
-                .collect(Collectors.toList());
+        return LanguageRange
+            .parse(acceptLanguageHeader)
+            .stream()
+            .map(l -> Locale.forLanguageTag(l.getRange()).getLanguage())
+            .distinct()
+            .collect(Collectors.toList());
     }
 
     public static String getFirstAcceptedLocaleName(String acceptLanguageHeader) {
-        if(acceptLanguageHeader == null) {
+        if (acceptLanguageHeader == null) {
             return null;
         }
         return Locale.forLanguageTag(acceptLanguageHeader.split(",")[0]).getLanguage();

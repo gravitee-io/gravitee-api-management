@@ -27,22 +27,22 @@ import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.*;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
  * @author Guillaume Gillon
  */
-@Api(tags = {"API Media"})
+@Api(tags = { "API Media" })
 public class ApiMediaResource extends AbstractResource {
+
     @Inject
     private MediaService mediaService;
 
@@ -51,21 +51,24 @@ public class ApiMediaResource extends AbstractResource {
     private String api;
 
     @POST
-    @ApiOperation(value = "Create a media for an API",
-            notes = "User must have the API_DOCUMENTATION[CREATE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Create a media for an API",
+        notes = "User must have the API_DOCUMENTATION[CREATE] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Media successfully created", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces("text/plain")
     public Response uploadApiMediaImage(
-            @FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileDetail,
-            @FormDataParam("file") final FormDataBodyPart body
+        @FormDataParam("file") InputStream uploadedInputStream,
+        @FormDataParam("file") FormDataContentDisposition fileDetail,
+        @FormDataParam("file") final FormDataBodyPart body
     ) throws IOException {
         final String mediaId;
 
@@ -94,9 +97,7 @@ public class ApiMediaResource extends AbstractResource {
     @GET
     @Path("/{hash}")
     @ApiOperation(value = "Retrieve a media for an API")
-    public Response getApiMediaImage(
-            @Context Request request,
-            @PathParam("hash") String hash) {
+    public Response getApiMediaImage(@Context Request request, @PathParam("hash") String hash) {
         MediaEntity mediaEntity = mediaService.findByHashAndApiId(hash, api);
 
         if (mediaEntity == null) {
@@ -114,16 +115,9 @@ public class ApiMediaResource extends AbstractResource {
 
         if (builder != null) {
             // Preconditions are not met, returning HTTP 304 'not-modified'
-            return builder
-                    .cacheControl(cc)
-                    .build();
+            return builder.cacheControl(cc).build();
         }
 
-        return Response
-                .ok(mediaEntity.getData())
-                .type(mediaEntity.getMimeType())
-                .cacheControl(cc)
-                .tag(etag)
-                .build();
+        return Response.ok(mediaEntity.getData()).type(mediaEntity.getMimeType()).cacheControl(cc).tag(etag).build();
     }
 }

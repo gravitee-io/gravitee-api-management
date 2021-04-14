@@ -18,13 +18,11 @@ package io.gravitee.rest.api.service.quality;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.ParameterService;
-
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiQualityMetricDescription implements ApiQualityMetric {
@@ -45,7 +43,6 @@ public class ApiQualityMetricDescription implements ApiQualityMetric {
             minLength = Integer.parseInt(minLengthParam.get(0));
         }
 
-        return api.getDescription() != null
-                && api.getDescription().length() >= minLength;
+        return api.getDescription() != null && api.getDescription().length() >= minLength;
     }
 }

@@ -15,15 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.portal.rest.model.Info;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-
-import java.io.IOException;
-
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
+
+import io.gravitee.rest.api.portal.rest.model.Info;
+import java.io.IOException;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -38,13 +36,11 @@ public class InfoResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetInfo() throws IOException {
-
         final Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
 
         Info info = response.readEntity(Info.class);
         assertEquals("API_NAME", info.getName());
         assertEquals("API_VERSION", info.getVersion());
-
     }
 }

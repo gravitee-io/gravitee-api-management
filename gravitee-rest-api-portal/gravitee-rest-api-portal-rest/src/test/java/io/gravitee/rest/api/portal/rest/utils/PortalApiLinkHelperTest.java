@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.utils;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import javax.ws.rs.core.UriBuilder;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

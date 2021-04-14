@@ -15,22 +15,21 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,8 +55,9 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         ApplicationEntity returnedApp = new ApplicationEntity();
         returnedApp.setId("my-beautiful-application");
-        doReturn(returnedApp).when(applicationService).create(Mockito.any(NewApplicationEntity.class),
-                Mockito.eq(JerseySpringTest.USER_NAME));
+        doReturn(returnedApp)
+            .when(applicationService)
+            .create(Mockito.any(NewApplicationEntity.class), Mockito.eq(JerseySpringTest.USER_NAME));
 
         final Response response = target().request().post(Entity.json(appEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -72,8 +72,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         ApplicationEntity createdApplication = new ApplicationEntity();
         createdApplication.setId("my-beautiful-application");
-        doReturn(createdApplication).when(applicationService).create(Mockito.any(NewApplicationEntity.class),
-                Mockito.eq(USER_NAME));
+        doReturn(createdApplication).when(applicationService).create(Mockito.any(NewApplicationEntity.class), Mockito.eq(USER_NAME));
 
         final Response response = target().request().post(Entity.json(newApplicationEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());

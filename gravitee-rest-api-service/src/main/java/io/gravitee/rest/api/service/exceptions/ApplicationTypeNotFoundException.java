@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import java.util.Map;
-
 import static java.util.Collections.singletonMap;
+
+import java.util.Map;
 
 public class ApplicationTypeNotFoundException extends AbstractNotFoundException {
 
@@ -41,5 +41,4 @@ public class ApplicationTypeNotFoundException extends AbstractNotFoundException 
     public Map<String, String> getParameters() {
         return singletonMap("type", typeId);
     }
-
 }

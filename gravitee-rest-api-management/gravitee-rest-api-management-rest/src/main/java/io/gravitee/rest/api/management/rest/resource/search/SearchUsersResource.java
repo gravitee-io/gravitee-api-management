@@ -19,22 +19,21 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.service.IdentityService;
 import io.swagger.annotations.*;
-
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Users"})
+@Api(tags = { "Users" })
 public class SearchUsersResource {
 
     @Inject
@@ -44,22 +43,25 @@ public class SearchUsersResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Search for users")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List of users", response = SearchableUser.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "Bad query parameter"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Collection<SearchableUser> searchUsers(
-            @ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
-        return identityService.search(query)
-                .stream()
-                .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastname(), o2.getLastname()))
-                .collect(Collectors.toList());
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public Collection<SearchableUser> searchUsers(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
+        return identityService
+            .search(query)
+            .stream()
+            .sorted((o1, o2) -> CASE_INSENSITIVE_ORDER.compare(o1.getLastname(), o2.getLastname()))
+            .collect(Collectors.toList());
     }
 
     private static final Comparator<String> CASE_INSENSITIVE_ORDER = new CaseInsensitiveComparator();
 
-    private static class CaseInsensitiveComparator
-            implements Comparator<String>, java.io.Serializable {
+    private static class CaseInsensitiveComparator implements Comparator<String>, java.io.Serializable {
+
         // use serialVersionUID from JDK 1.2.2 for interoperability
         private static final long serialVersionUID = 8575799808933029326L;
 
@@ -90,6 +92,8 @@ public class SearchUsersResource {
         }
 
         /** Replaces the de-serialized object. */
-        private Object readResolve() { return CASE_INSENSITIVE_ORDER; }
+        private Object readResolve() {
+            return CASE_INSENSITIVE_ORDER;
+        }
     }
 }

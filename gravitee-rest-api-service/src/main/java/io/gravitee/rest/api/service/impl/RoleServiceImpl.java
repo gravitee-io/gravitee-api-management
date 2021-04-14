@@ -15,6 +15,15 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ROLE;
+import static io.gravitee.repository.management.model.Role.AuditEvent.*;
+import static io.gravitee.rest.api.model.permissions.ApiPermission.REVIEWS;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.*;
+import static java.util.Arrays.stream;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
@@ -30,23 +39,13 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
+import java.util.*;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Stream;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.ROLE;
-import static io.gravitee.repository.management.model.Role.AuditEvent.*;
-import static io.gravitee.rest.api.model.permissions.ApiPermission.REVIEWS;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
-import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.*;
-import static java.util.Arrays.stream;
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -77,7 +76,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             }
             return convert(role.get());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find a role : {}", roleId,  ex);
+            LOGGER.error("An error occurs while trying to find a role : {}", roleId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find a role : " + roleId, ex);
         }
     }
@@ -86,13 +85,15 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     public List<RoleEntity> findAll() {
         return this.findAllByOrganization(GraviteeContext.getCurrentOrganization());
     }
-    
+
     private List<RoleEntity> findAllByOrganization(String organizationId) {
         try {
             LOGGER.debug("Find all Roles");
-            return roleRepository.findAllByReferenceIdAndReferenceType(organizationId, RoleReferenceType.ORGANIZATION)
-                    .stream()
-                    .map(this::convert).collect(toList());
+            return roleRepository
+                .findAllByReferenceIdAndReferenceType(organizationId, RoleReferenceType.ORGANIZATION)
+                .stream()
+                .map(this::convert)
+                .collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all roles", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all roles", ex);
@@ -103,11 +104,20 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     public RoleEntity create(final NewRoleEntity roleEntity) {
         return this.create(roleEntity, GraviteeContext.getCurrentOrganization());
     }
-    
+
     private RoleEntity create(final NewRoleEntity roleEntity, String organizationId) {
         try {
             Role role = convert(roleEntity);
-            if (roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(role.getScope(), role.getName(), organizationId, RoleReferenceType.ORGANIZATION).isPresent()) {
+            if (
+                roleRepository
+                    .findByScopeAndNameAndReferenceIdAndReferenceType(
+                        role.getScope(),
+                        role.getName(),
+                        organizationId,
+                        RoleReferenceType.ORGANIZATION
+                    )
+                    .isPresent()
+            ) {
                 throw new RoleAlreadyExistsException(role.getScope(), role.getName());
             }
             role.setId(RandomString.generate());
@@ -115,14 +125,15 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             role.setUpdatedAt(role.getCreatedAt());
             role.setReferenceId(organizationId);
             role.setReferenceType(RoleReferenceType.ORGANIZATION);
-            
+
             RoleEntity entity = convert(roleRepository.create(role));
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
-                    ROLE_CREATED,
-                    role.getCreatedAt(),
-                    null,
-                    role);
+                Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
+                ROLE_CREATED,
+                role.getCreatedAt(),
+                null,
+                role
+            );
             if (entity.isDefaultRole()) {
                 toggleDefaultRole(roleEntity.getScope(), entity.getName());
             }
@@ -151,11 +162,12 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             updatedRole.setReferenceType(role.getReferenceType());
             RoleEntity entity = convert(roleRepository.update(updatedRole));
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(ROLE, role.getScope()+":"+role.getName()),
-                    ROLE_UPDATED,
-                    updatedRole.getUpdatedAt(),
-                    role,
-                    updatedRole);
+                Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
+                ROLE_UPDATED,
+                updatedRole.getUpdatedAt(),
+                role,
+                updatedRole
+            );
             if (entity.isDefaultRole()) {
                 toggleDefaultRole(scope, entity.getName());
             }
@@ -188,11 +200,12 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             roleRepository.delete(roleId);
 
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(ROLE, scope+":"+role.getName()),
-                    ROLE_DELETED,
-                    role.getUpdatedAt(),
-                    role,
-                    null);
+                Collections.singletonMap(ROLE, scope + ":" + role.getName()),
+                ROLE_DELETED,
+                role.getUpdatedAt(),
+                role,
+                null
+            );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete role {}", roleId, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete role " + roleId, ex);
@@ -203,10 +216,16 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     public List<RoleEntity> findByScope(RoleScope scope) {
         try {
             LOGGER.debug("Find Roles by scope");
-            return roleRepository.findByScopeAndReferenceIdAndReferenceType(convert(scope), GraviteeContext.getCurrentOrganization(), RoleReferenceType.ORGANIZATION).stream()
-                    .map(this::convert)
-                    .sorted(comparing(RoleEntity::getName))
-                    .collect(toList());
+            return roleRepository
+                .findByScopeAndReferenceIdAndReferenceType(
+                    convert(scope),
+                    GraviteeContext.getCurrentOrganization(),
+                    RoleReferenceType.ORGANIZATION
+                )
+                .stream()
+                .map(this::convert)
+                .sorted(comparing(RoleEntity::getName))
+                .collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find roles by scope", ex);
             throw new TechnicalManagementException("An error occurs while trying to find roles by scope", ex);
@@ -217,8 +236,13 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     public Optional<RoleEntity> findByScopeAndName(RoleScope scope, String name) {
         try {
             LOGGER.debug("Find Roles by scope and name");
-            
-            Optional<Role> optRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(convert(scope), name, GraviteeContext.getCurrentOrganization(), RoleReferenceType.ORGANIZATION);
+
+            Optional<Role> optRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                convert(scope),
+                name,
+                GraviteeContext.getCurrentOrganization(),
+                RoleReferenceType.ORGANIZATION
+            );
             if (optRole.isPresent()) {
                 return Optional.of(this.convert(optRole.get()));
             } else {
@@ -237,11 +261,16 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             List<RoleEntity> roles = new ArrayList<>();
             for (RoleScope scope : scopes) {
                 roles.addAll(
-                        roleRepository.findByScopeAndReferenceIdAndReferenceType(convert(scope), GraviteeContext.getCurrentOrganization(), RoleReferenceType.ORGANIZATION).
-                                stream().
-                                filter(Role::isDefaultRole).
-                                map(this::convert).
-                                collect(toList())
+                    roleRepository
+                        .findByScopeAndReferenceIdAndReferenceType(
+                            convert(scope),
+                            GraviteeContext.getCurrentOrganization(),
+                            RoleReferenceType.ORGANIZATION
+                        )
+                        .stream()
+                        .filter(Role::isDefaultRole)
+                        .map(this::convert)
+                        .collect(toList())
                 );
             }
             return roles;
@@ -272,22 +301,28 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     private void toggleDefaultRole(RoleScope scope, String newDefaultRoleName) throws TechnicalException {
-        List<Role> roles = roleRepository.findByScopeAndReferenceIdAndReferenceType(convert(scope), GraviteeContext.getCurrentOrganization(), RoleReferenceType.ORGANIZATION).
-                stream().
-                filter(Role::isDefaultRole).
-                collect(toList());
+        List<Role> roles = roleRepository
+            .findByScopeAndReferenceIdAndReferenceType(
+                convert(scope),
+                GraviteeContext.getCurrentOrganization(),
+                RoleReferenceType.ORGANIZATION
+            )
+            .stream()
+            .filter(Role::isDefaultRole)
+            .collect(toList());
         for (Role role : roles) {
-            if(!role.getName().equals(newDefaultRoleName)) {
+            if (!role.getName().equals(newDefaultRoleName)) {
                 Role previousRole = new Role(role);
                 role.setDefaultRole(false);
                 role.setUpdatedAt(new Date());
                 roleRepository.update(role);
                 auditService.createPortalAuditLog(
-                        Collections.singletonMap(ROLE, role.getScope()+":"+role.getName()),
-                        ROLE_UPDATED,
-                        role.getUpdatedAt(),
-                        previousRole,
-                        role);
+                    Collections.singletonMap(ROLE, role.getScope() + ":" + role.getName()),
+                    ROLE_UPDATED,
+                    role.getUpdatedAt(),
+                    previousRole,
+                    role
+                );
             }
         }
     }
@@ -339,9 +374,8 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             return new int[0];
         }
         int[] result = new int[perms.size()];
-        int idx=0;
+        int idx = 0;
         for (Map.Entry<String, char[]> entry : perms.entrySet()) {
-
             int perm = 0;
             for (char c : entry.getValue()) {
                 perm += RolePermissionAction.findById(c).getMask();
@@ -356,43 +390,42 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             return Collections.emptyMap();
         }
         Map<String, char[]> result = new HashMap<>();
-        Stream.of(Permission.findByScope(scope)).forEach(perm -> {
-            for (int action : perms) {
-                if (action / 100 == perm.getMask() / 100) {
-                    List<Character> crud = new ArrayList<>();
-                    for (RolePermissionAction rolePermissionAction : RolePermissionAction.values()) {
-                        if (((action - perm.getMask()) & rolePermissionAction.getMask()) != 0) {
-                            crud.add(rolePermissionAction.getId());
+        Stream
+            .of(Permission.findByScope(scope))
+            .forEach(
+                perm -> {
+                    for (int action : perms) {
+                        if (action / 100 == perm.getMask() / 100) {
+                            List<Character> crud = new ArrayList<>();
+                            for (RolePermissionAction rolePermissionAction : RolePermissionAction.values()) {
+                                if (((action - perm.getMask()) & rolePermissionAction.getMask()) != 0) {
+                                    crud.add(rolePermissionAction.getId());
+                                }
+                            }
+                            result.put(perm.getName(), ArrayUtils.toPrimitive(crud.toArray(new Character[crud.size()])));
                         }
                     }
-                    result.put(perm.getName(), ArrayUtils.toPrimitive(crud.toArray(new Character[crud.size()])));
                 }
-            }
-        });
+            );
         return result;
     }
 
     private io.gravitee.repository.management.model.RoleScope convert(RoleScope scope) {
-        if (scope== null) {
+        if (scope == null) {
             return null;
         }
         return io.gravitee.repository.management.model.RoleScope.valueOf(scope.name());
     }
+
     private RoleScope convert(io.gravitee.repository.management.model.RoleScope scope) {
-        if (scope== null) {
+        if (scope == null) {
             return null;
         }
         return RoleScope.valueOf(scope.name());
     }
 
     private String generateId(String name) {
-        String id = name
-                .trim()
-                .toUpperCase()
-                .replaceAll(" +", " ")
-                .replaceAll(" ", "_")
-                .replaceAll("[^\\w\\s]","_")
-                .replaceAll("-+", "_");
+        String id = name.trim().toUpperCase().replaceAll(" +", " ").replaceAll(" ", "_").replaceAll("[^\\w\\s]", "_").replaceAll("-+", "_");
         if (isReserved(id)) {
             throw new RoleReservedNameException(id);
         }
@@ -443,7 +476,12 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             //ENVIRONMENT - ADMIN
             createOrUpdateSystemRole(SystemRole.ADMIN, RoleScope.ENVIRONMENT, EnvironmentPermission.values(), organizationId);
             //API - PRIMARY_OWNER
-            createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.API, stream(ApiPermission.values()).filter(permission -> !REVIEWS.equals(permission)).toArray(Permission[]::new), organizationId);
+            createOrUpdateSystemRole(
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.API,
+                stream(ApiPermission.values()).filter(permission -> !REVIEWS.equals(permission)).toArray(Permission[]::new),
+                organizationId
+            );
             //APPLICATION - PRIMARY_OWNER
             createOrUpdateSystemRole(SystemRole.PRIMARY_OWNER, RoleScope.APPLICATION, ApplicationPermission.values(), organizationId);
             //GROUP - ADMINISTRATOR
@@ -457,46 +495,60 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     @Override
     public RoleScope findScopeByMembershipReferenceType(MembershipReferenceType type) {
         switch (type) {
-            case API: return RoleScope.API;
-            case GROUP: return RoleScope.GROUP;
-            case APPLICATION: return RoleScope.APPLICATION;
-            case ENVIRONMENT: return RoleScope.ENVIRONMENT;
-            case ORGANIZATION: return RoleScope.ORGANIZATION;
-            case PLATFORM: return RoleScope.PLATFORM;
+            case API:
+                return RoleScope.API;
+            case GROUP:
+                return RoleScope.GROUP;
+            case APPLICATION:
+                return RoleScope.APPLICATION;
+            case ENVIRONMENT:
+                return RoleScope.ENVIRONMENT;
+            case ORGANIZATION:
+                return RoleScope.ORGANIZATION;
+            case PLATFORM:
+                return RoleScope.PLATFORM;
         }
         return null;
     }
 
-    private void createOrUpdateSystemRole(SystemRole roleName, RoleScope roleScope, Permission[] permissions, String organizationId) throws TechnicalException {
+    private void createOrUpdateSystemRole(SystemRole roleName, RoleScope roleScope, Permission[] permissions, String organizationId)
+        throws TechnicalException {
         Role systemRole = createSystemRoleWithoutPermissions(roleName.name(), roleScope, new Date());
         Map<String, char[]> perms = new HashMap<>();
         for (Permission perm : permissions) {
-            perms.put(perm.getName(), new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()});
+            perms.put(perm.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() });
         }
-        systemRole.setPermissions(convertPermissions(roleScope , perms));
+        systemRole.setPermissions(convertPermissions(roleScope, perms));
 
         systemRole.setReferenceId(organizationId);
         systemRole.setReferenceType(RoleReferenceType.ORGANIZATION);
-        
-        Optional<Role> existingRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(systemRole.getScope(), systemRole.getName(), GraviteeContext.getCurrentOrganization(), RoleReferenceType.ORGANIZATION);
+
+        Optional<Role> existingRole = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+            systemRole.getScope(),
+            systemRole.getName(),
+            GraviteeContext.getCurrentOrganization(),
+            RoleReferenceType.ORGANIZATION
+        );
         if (existingRole.isPresent() && permissionsAreDifferent(existingRole.get(), systemRole)) {
             systemRole.setId(existingRole.get().getId());
             systemRole.setUpdatedAt(new Date());
             roleRepository.update(systemRole);
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
-                    ROLE_UPDATED,
-                    systemRole.getCreatedAt(),
-                    existingRole,
-                    systemRole);
+                Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
+                ROLE_UPDATED,
+                systemRole.getCreatedAt(),
+                existingRole,
+                systemRole
+            );
         } else if (!existingRole.isPresent()) {
             roleRepository.create(systemRole);
             auditService.createPortalAuditLog(
-                    Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
-                    ROLE_CREATED,
-                    systemRole.getCreatedAt(),
-                    null,
-                    systemRole);
+                Collections.singletonMap(ROLE, systemRole.getScope() + ":" + systemRole.getName()),
+                ROLE_CREATED,
+                systemRole.getCreatedAt(),
+                null,
+                systemRole
+            );
         }
     }
 
@@ -515,7 +567,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     }
 
     private boolean permissionsAreDifferent(Role role1, Role role2) {
-        return stream(role1.getPermissions()).reduce(Math::addExact).orElse(0) !=
-                stream(role2.getPermissions()).reduce(Math::addExact).orElse(0);
+        return (
+            stream(role1.getPermissions()).reduce(Math::addExact).orElse(0) !=
+            stream(role2.getPermissions()).reduce(Math::addExact).orElse(0)
+        );
     }
 }

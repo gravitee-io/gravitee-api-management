@@ -30,19 +30,18 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Dashboards"})
-public class DashboardsResource extends AbstractResource  {
+@Api(tags = { "Dashboards" })
+public class DashboardsResource extends AbstractResource {
 
     @Inject
     private DashboardService dashboardService;
@@ -50,13 +49,18 @@ public class DashboardsResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Retrieve the list of platform dashboards")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List of platform dashboards", response = DashboardEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public List<DashboardEntity> getDashboards(final @QueryParam("reference_type") DashboardReferenceType referenceType)  {
-        if (!hasPermission(RolePermission.ENVIRONMENT_DASHBOARD, RolePermissionAction.READ) &&
-                !hasPermission(RolePermission.ENVIRONMENT_API, RolePermissionAction.READ) &&
-            !canReadAPIConfiguration()) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public List<DashboardEntity> getDashboards(final @QueryParam("reference_type") DashboardReferenceType referenceType) {
+        if (
+            !hasPermission(RolePermission.ENVIRONMENT_DASHBOARD, RolePermissionAction.READ) &&
+            !hasPermission(RolePermission.ENVIRONMENT_API, RolePermissionAction.READ) &&
+            !canReadAPIConfiguration()
+        ) {
             throw new ForbiddenAccessException();
         }
         if (referenceType == null) {
@@ -69,14 +73,17 @@ public class DashboardsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create a platform dashboard",
-            notes = "User must have the MANAGEMENT_DASHBOARD[CREATE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Create a platform dashboard",
+        notes = "User must have the MANAGEMENT_DASHBOARD[CREATE] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Dashboard successfully created", response = DashboardEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.CREATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.CREATE) })
     public DashboardEntity createDashboard(@Valid @NotNull final NewDashboardEntity dashboard) {
         return dashboardService.create(dashboard);
     }
@@ -84,15 +91,18 @@ public class DashboardsResource extends AbstractResource  {
     @GET
     @Path("{dashboardId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Retrieve a platform dashboard",
-            notes = "User must have the MANAGEMENT_DASHBOARD[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Retrieve a platform dashboard",
+        notes = "User must have the MANAGEMENT_DASHBOARD[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Platform dashboard", response = DashboardEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.READ)
-    })
-    public DashboardEntity getDashboard(final @PathParam("dashboardId") String dashboardId)  {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.READ) })
+    public DashboardEntity getDashboard(final @PathParam("dashboardId") String dashboardId) {
         return dashboardService.findById(dashboardId);
     }
 
@@ -100,15 +110,21 @@ public class DashboardsResource extends AbstractResource  {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a platform dashboard",
-            notes = "User must have the MANAGEMENT_DASHBOARD[UPDATE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Update a platform dashboard",
+        notes = "User must have the MANAGEMENT_DASHBOARD[UPDATE] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Updated dashboard", response = DashboardEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.UPDATE)
-    })
-    public DashboardEntity updateDashboard(@PathParam("dashboardId") String dashboardId, @Valid @NotNull final UpdateDashboardEntity dashboard) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.UPDATE) })
+    public DashboardEntity updateDashboard(
+        @PathParam("dashboardId") String dashboardId,
+        @Valid @NotNull final UpdateDashboardEntity dashboard
+    ) {
         dashboard.setId(dashboardId);
         return dashboardService.update(dashboard);
     }
@@ -116,14 +132,17 @@ public class DashboardsResource extends AbstractResource  {
     @Path("{dashboardId}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete a platform dashboard",
-            notes = "User must have the MANAGEMENT_DASHBOARD[DELETE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Delete a platform dashboard",
+        notes = "User must have the MANAGEMENT_DASHBOARD[DELETE] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Dashboard successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.DELETE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.DELETE) })
     public void deleteDashboard(@PathParam("dashboardId") String dashboardId) {
         dashboardService.delete(dashboardId);
     }

@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -28,6 +28,7 @@ public class NewCategoryEntity {
     @NotNull
     @Size(min = 1)
     private String name;
+
     private String description;
     private boolean hidden;
     private int order;
@@ -87,8 +88,7 @@ public class NewCategoryEntity {
         if (this == o) return true;
         if (!(o instanceof NewCategoryEntity)) return false;
         NewCategoryEntity that = (NewCategoryEntity) o;
-        return Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description);
+        return Objects.equals(name, that.name) && Objects.equals(description, that.description);
     }
 
     @Override
@@ -98,11 +98,21 @@ public class NewCategoryEntity {
 
     @Override
     public String toString() {
-        return "NewCategoryEntity{" +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", order='" + order + '\'' +
-                ", hidden='" + hidden + '\'' +
-                '}';
+        return (
+            "NewCategoryEntity{" +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", order='" +
+            order +
+            '\'' +
+            ", hidden='" +
+            hidden +
+            '\'' +
+            '}'
+        );
     }
 }

@@ -15,15 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import javax.ws.rs.core.UriBuilder;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.model.CategoryLinks;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
+import javax.ws.rs.core.UriBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -31,9 +29,10 @@ import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
  */
 @Component
 public class CategoryMapper {
+
     @Autowired
     UserMapper userMapper;
-    
+
     public Category convert(CategoryEntity categoryEntity, UriBuilder baseUriBuilder) {
         final Category category = new Category();
 
@@ -42,17 +41,16 @@ public class CategoryMapper {
         category.setName(categoryEntity.getName());
         category.setOrder(categoryEntity.getOrder());
         category.setTotalApis(categoryEntity.getTotalApis());
-        
+
         CategoryLinks categoryLinks = new CategoryLinks();
         String basePath = PortalApiLinkHelper.categoriesURL(baseUriBuilder.clone(), categoryEntity.getId());
         String highlightApi = categoryEntity.getHighlightApi();
-        if(highlightApi != null) {
+        if (highlightApi != null) {
             categoryLinks.setHighlightedApi(PortalApiLinkHelper.apisURL(baseUriBuilder.clone(), highlightApi));
         }
-        categoryLinks.setPicture(basePath+"/picture");
+        categoryLinks.setPicture(basePath + "/picture");
         categoryLinks.setSelf(basePath);
         category.setLinks(categoryLinks);
         return category;
     }
-
 }

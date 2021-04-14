@@ -84,6 +84,7 @@ public class PlanSubscriptions {
     }
 
     public static class SubscriptionState {
+
         private long accepted = 0;
         private long pending = 0;
         private long closed = 0;

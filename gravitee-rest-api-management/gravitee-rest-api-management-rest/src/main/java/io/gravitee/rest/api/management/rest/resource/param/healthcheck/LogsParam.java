@@ -49,7 +49,6 @@ public class LogsParam {
     @QueryParam("transition")
     private Boolean transition;
 
-    
     public long getFrom() {
         return from;
     }

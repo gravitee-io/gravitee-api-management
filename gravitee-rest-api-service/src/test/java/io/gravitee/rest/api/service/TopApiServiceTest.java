@@ -15,23 +15,6 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.NewTopApiEntity;
-import io.gravitee.rest.api.model.TopApiEntity;
-import io.gravitee.rest.api.model.UpdateTopApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.TopApiService;
-import io.gravitee.rest.api.service.impl.TopApiServiceImpl;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.List;
-
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_TOP_APIS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -40,6 +23,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.rest.api.model.NewTopApiEntity;
+import io.gravitee.rest.api.model.TopApiEntity;
+import io.gravitee.rest.api.model.UpdateTopApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.impl.TopApiServiceImpl;
+import java.util.List;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -53,6 +51,7 @@ public class TopApiServiceTest {
 
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private ApiService apiService;
 

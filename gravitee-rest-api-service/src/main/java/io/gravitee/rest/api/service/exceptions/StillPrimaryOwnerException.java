@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.common.http.HttpStatusCode;
+import static java.lang.String.valueOf;
 
+import io.gravitee.common.http.HttpStatusCode;
 import java.util.HashMap;
 import java.util.Map;
-
-import static java.lang.String.valueOf;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

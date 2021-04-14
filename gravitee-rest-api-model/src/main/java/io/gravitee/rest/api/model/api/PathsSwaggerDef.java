@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.api;
 
 import io.gravitee.definition.model.Rule;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -28,5 +27,4 @@ import java.util.HashMap;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-class PathsSwaggerDef extends HashMap<String, ArrayList<Rule>> {
-}
+class PathsSwaggerDef extends HashMap<String, ArrayList<Rule>> {}

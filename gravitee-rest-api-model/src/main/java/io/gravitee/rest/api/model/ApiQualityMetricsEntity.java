@@ -16,14 +16,14 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Map;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiQualityMetricsEntity {
+
     private double score;
 
     @JsonProperty("metrics_passed")
@@ -47,9 +47,6 @@ public class ApiQualityMetricsEntity {
 
     @Override
     public String toString() {
-        return "ApiQualityMetricsEntity{" +
-                "score='" + score + '\'' +
-                ", metricsPassed='" + metricsPassed + '\'' +
-                '}';
+        return "ApiQualityMetricsEntity{" + "score='" + score + '\'' + ", metricsPassed='" + metricsPassed + '\'' + '}';
     }
 }

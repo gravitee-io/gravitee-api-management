@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.repository.management.model.MetadataReferenceType.API;
+
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -22,8 +24,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.MetadataServiceImpl;
 import org.junit.Test;
-
-import static io.gravitee.repository.management.model.MetadataReferenceType.API;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -50,7 +50,9 @@ public class MetadataServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22));
+        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(
+                new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22)
+            );
         metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${api.primaryOwner.email}", API, apiEntity);
     }
 
@@ -61,7 +63,9 @@ public class MetadataServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22));
+        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(
+                new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22)
+            );
         metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${api.primaryOwner.email}", API, apiEntity);
     }
 
@@ -71,7 +75,9 @@ public class MetadataServiceTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22));
+        ((MetadataServiceImpl) metadataService).setFreemarkerConfiguration(
+                new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22)
+            );
         metadataService.checkMetadataFormat(MetadataFormat.MAIL, "${(api.primaryOwner.email)!''}", API, apiEntity);
     }
 }

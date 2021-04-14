@@ -15,21 +15,21 @@
  */
 package io.gravitee.rest.api.management.rest.filter;
 
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.management.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -38,10 +38,8 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,8 +76,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         if (securityContext.isUserInRole(AbstractResource.ENVIRONMENT_ADMIN)) {
-            logger.debug("User [{}] has full access because of its ADMIN role",
-                    securityContext.getUserPrincipal().getName());
+            logger.debug("User [{}] has full access because of its ADMIN role", securityContext.getUserPrincipal().getName());
             return;
         }
 
@@ -95,13 +92,23 @@ public class PermissionsFilter implements ContainerRequestFilter {
                     Map<String, char[]> memberPermissions;
                     switch (permission.value().getScope()) {
                         case ORGANIZATION:
-                            memberPermissions = membershipService.getUserMemberPermissions(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization(), username);
+                            memberPermissions =
+                                membershipService.getUserMemberPermissions(
+                                    MembershipReferenceType.ORGANIZATION,
+                                    GraviteeContext.getCurrentOrganization(),
+                                    username
+                                );
                             if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
                                 return;
                             }
                             break;
                         case ENVIRONMENT:
-                            memberPermissions = membershipService.getUserMemberPermissions(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), username);
+                            memberPermissions =
+                                membershipService.getUserMemberPermissions(
+                                    MembershipReferenceType.ENVIRONMENT,
+                                    GraviteeContext.getCurrentEnvironment(),
+                                    username
+                                );
                             if (roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls())) {
                                 return;
                             }

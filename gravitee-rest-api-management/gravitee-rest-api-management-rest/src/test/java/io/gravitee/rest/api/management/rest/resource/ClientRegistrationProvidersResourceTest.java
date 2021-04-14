@@ -15,20 +15,19 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
-import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
-import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
+import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
+import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -56,6 +55,9 @@ public class ClientRegistrationProvidersResourceTest extends AbstractResourceTes
 
         final Response response = target().request().post(Entity.json(newClientRegistrationProviderEntity));
         assertEquals(CREATED_201, response.getStatus());
-        assertEquals(target().path("my-client-registration-provider-id").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+            target().path("my-client-registration-provider-id").getUri().toString(),
+            response.getHeaders().getFirst(HttpHeaders.LOCATION)
+        );
     }
 }

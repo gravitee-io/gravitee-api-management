@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.plan.PlanQuery;
-
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +26,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface MessageService {
-
     /**
      * send a message to api consumers according to recipients filters
      * @param apiId api id
@@ -35,7 +33,6 @@ public interface MessageService {
      * @return the number of recipients
      */
     int create(String apiId, MessageEntity message);
-
 
     /**
      * send a message to all users according to recipients filters

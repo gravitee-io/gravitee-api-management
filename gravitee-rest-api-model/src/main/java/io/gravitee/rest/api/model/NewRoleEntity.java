@@ -17,16 +17,14 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.gravitee.rest.api.model.permissions.RoleScope;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Map;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties("system")
@@ -59,6 +57,7 @@ public class NewRoleEntity {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -74,6 +73,7 @@ public class NewRoleEntity {
     public RoleScope getScope() {
         return scope;
     }
+
     public void setScope(RoleScope scope) {
         this.scope = scope;
     }
@@ -81,6 +81,7 @@ public class NewRoleEntity {
     public Map<String, char[]> getPermissions() {
         return permissions;
     }
+
     public void setPermissions(Map<String, char[]> permissions) {
         this.permissions = permissions;
     }
@@ -88,6 +89,7 @@ public class NewRoleEntity {
     public boolean isDefaultRole() {
         return defaultRole;
     }
+
     public void setDefaultRole(boolean defaultRole) {
         this.defaultRole = defaultRole;
     }

@@ -23,8 +23,7 @@ public class DynamicPropertiesEntity {
     private String dynamicPropertiesApiUrl;
     private String joltSpecs;
 
-    public String getDynamicPropertiesApiUrl()
-    {
+    public String getDynamicPropertiesApiUrl() {
         return dynamicPropertiesApiUrl;
     }
 

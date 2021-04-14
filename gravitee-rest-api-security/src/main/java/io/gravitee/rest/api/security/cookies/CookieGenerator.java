@@ -15,13 +15,11 @@
  */
 package io.gravitee.rest.api.security.cookies;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-
-import javax.servlet.http.Cookie;
-
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 
+import javax.servlet.http.Cookie;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -52,7 +50,6 @@ public class CookieGenerator {
     }
 
     public Cookie generate(final String value) {
-
         return generate("Auth-Graviteeio-APIM", value);
     }
 }

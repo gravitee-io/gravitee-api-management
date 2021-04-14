@@ -15,6 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.TAG;
+import static io.gravitee.repository.management.model.Tag.AuditEvent.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TagRepository;
@@ -30,20 +37,11 @@ import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.exceptions.DuplicateTagNameException;
 import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.TAG;
-import static io.gravitee.repository.management.model.Tag.AuditEvent.*;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -56,10 +54,13 @@ public class TagServiceImpl extends AbstractService implements TagService {
 
     @Autowired
     private TagRepository tagRepository;
+
     @Autowired
     private ApiService apiService;
+
     @Autowired
     private AuditService auditService;
+
     @Autowired
     private GroupService groupService;
 
@@ -67,9 +68,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
     public List<TagEntity> findAll() {
         try {
             LOGGER.debug("Find all tags");
-            return tagRepository.findAll()
-                    .stream()
-                    .map(this::convert).collect(toList());
+            return tagRepository.findAll().stream().map(this::convert).collect(toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all tags", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all tags", ex);
@@ -82,7 +81,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
             LOGGER.debug("Find tag by ID: {}", tagId);
             Optional<Tag> optTag = tagRepository.findById(tagId);
 
-            if (! optTag.isPresent()) {
+            if (!optTag.isPresent()) {
                 throw new TagNotFoundException(tagId);
             }
 
@@ -106,58 +105,54 @@ public class TagServiceImpl extends AbstractService implements TagService {
     @Override
     public List<TagEntity> create(final List<NewTagEntity> tagEntities) {
         // First we prevent the duplicate tag name
-        final List<String> tagNames = tagEntities.stream()
-                .map(NewTagEntity::getName)
-                .collect(toList());
+        final List<String> tagNames = tagEntities.stream().map(NewTagEntity::getName).collect(toList());
 
-        final Optional<TagEntity> optionalTag = findAll().stream()
-                .filter(tag -> tagNames.contains(tag.getName()))
-                .findAny();
+        final Optional<TagEntity> optionalTag = findAll().stream().filter(tag -> tagNames.contains(tag.getName())).findAny();
 
         if (optionalTag.isPresent()) {
             throw new DuplicateTagNameException(optionalTag.get().getName());
         }
 
         final List<TagEntity> savedTags = new ArrayList<>(tagEntities.size());
-        tagEntities.forEach(tagEntity -> {
-            try {
-                Tag tag = convert(tagEntity);
-                savedTags.add(convert(tagRepository.create(tag)));
-                auditService.createPortalAuditLog(
-                        Collections.singletonMap(TAG, tag.getId()),
-                        TAG_CREATED,
-                        new Date(),
-                        null,
-                        tag);
-            } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
-                throw new TechnicalManagementException("An error occurs while trying to create tag " + tagEntity.getName(), ex);
+        tagEntities.forEach(
+            tagEntity -> {
+                try {
+                    Tag tag = convert(tagEntity);
+                    savedTags.add(convert(tagRepository.create(tag)));
+                    auditService.createPortalAuditLog(Collections.singletonMap(TAG, tag.getId()), TAG_CREATED, new Date(), null, tag);
+                } catch (TechnicalException ex) {
+                    LOGGER.error("An error occurs while trying to create tag {}", tagEntity.getName(), ex);
+                    throw new TechnicalManagementException("An error occurs while trying to create tag " + tagEntity.getName(), ex);
+                }
             }
-        });
+        );
         return savedTags;
     }
 
     @Override
     public List<TagEntity> update(final List<UpdateTagEntity> tagEntities) {
         final List<TagEntity> savedTags = new ArrayList<>(tagEntities.size());
-        tagEntities.forEach(tagEntity -> {
-            try {
-                Tag tag = convert(tagEntity);
-                Optional<Tag> tagOptional = tagRepository.findById(tag.getId());
-                if (tagOptional.isPresent()) {
-                    savedTags.add(convert(tagRepository.update(tag)));
-                    auditService.createPortalAuditLog(
+        tagEntities.forEach(
+            tagEntity -> {
+                try {
+                    Tag tag = convert(tagEntity);
+                    Optional<Tag> tagOptional = tagRepository.findById(tag.getId());
+                    if (tagOptional.isPresent()) {
+                        savedTags.add(convert(tagRepository.update(tag)));
+                        auditService.createPortalAuditLog(
                             Collections.singletonMap(TAG, tag.getId()),
                             TAG_UPDATED,
                             new Date(),
                             tagOptional.get(),
-                            tag);
+                            tag
+                        );
+                    }
+                } catch (TechnicalException ex) {
+                    LOGGER.error("An error occurs while trying to update tag {}", tagEntity.getName(), ex);
+                    throw new TechnicalManagementException("An error occurs while trying to update tag " + tagEntity.getName(), ex);
                 }
-            } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to update tag {}", tagEntity.getName(), ex);
-                throw new TechnicalManagementException("An error occurs while trying to update tag " + tagEntity.getName(), ex);
             }
-        });
+        );
         return savedTags;
     }
 
@@ -169,12 +164,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
                 tagRepository.delete(tagId);
                 // delete all reference on APIs
                 apiService.deleteTagFromAPIs(tagId);
-                auditService.createPortalAuditLog(
-                        Collections.singletonMap(TAG, tagId),
-                        TAG_DELETED,
-                        new Date(),
-                        null,
-                        tagOptional.get());
+                auditService.createPortalAuditLog(Collections.singletonMap(TAG, tagId), TAG_DELETED, new Date(), null, tagOptional.get());
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete tag {}", tagId, ex);
@@ -186,23 +176,25 @@ public class TagServiceImpl extends AbstractService implements TagService {
     public Set<String> findByUser(final String user) {
         final List<TagEntity> tags = findAll();
         if (isAdmin()) {
-            return tags.stream()
-                    .map(TagEntity::getId)
-                    .collect(toSet());
+            return tags.stream().map(TagEntity::getId).collect(toSet());
         } else {
-            final Set<String> restrictedTags = tags.stream()
-                    .filter(tag -> tag.getRestrictedGroups()!= null && !tag.getRestrictedGroups().isEmpty())
-                    .map(TagEntity::getId)
-                    .collect(toSet());
+            final Set<String> restrictedTags = tags
+                .stream()
+                .filter(tag -> tag.getRestrictedGroups() != null && !tag.getRestrictedGroups().isEmpty())
+                .map(TagEntity::getId)
+                .collect(toSet());
 
-            final Set<String> groups = groupService.findByUser(user).stream()
-                    .map(GroupEntity::getId)
-                    .collect(toSet());
+            final Set<String> groups = groupService.findByUser(user).stream().map(GroupEntity::getId).collect(toSet());
 
-            return tags.stream()
-                    .filter(tag -> !restrictedTags.contains(tag.getId()) || (tag.getRestrictedGroups()!= null && anyMatch(tag.getRestrictedGroups(), groups)))
-                    .map(TagEntity::getId)
-                    .collect(toSet());
+            return tags
+                .stream()
+                .filter(
+                    tag ->
+                        !restrictedTags.contains(tag.getId()) ||
+                        (tag.getRestrictedGroups() != null && anyMatch(tag.getRestrictedGroups(), groups))
+                )
+                .map(TagEntity::getId)
+                .collect(toSet());
         }
     }
 

@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
@@ -32,20 +38,12 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -193,7 +191,8 @@ public class ApplicationService_CreateTest {
         settings.setApp(clientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
 
-        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenReturn(Collections.singleton(application));
+        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE))
+            .thenReturn(Collections.singleton(application));
 
         applicationService.create(newApplication, USER_NAME);
     }
@@ -207,7 +206,7 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
 
         when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenThrow(TechnicalException.class);
-//        when(newApplication.getClientId()).thenReturn(CLIENT_ID);
+        //        when(newApplication.getClientId()).thenReturn(CLIENT_ID);
 
         applicationService.create(newApplication, USER_NAME);
     }

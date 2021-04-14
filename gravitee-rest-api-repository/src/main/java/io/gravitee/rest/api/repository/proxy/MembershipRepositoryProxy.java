@@ -20,18 +20,18 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class MembershipRepositoryProxy extends AbstractProxy<MembershipRepository> implements MembershipRepository {
+
     @Override
     public Membership create(Membership membership) throws TechnicalException {
         return target.create(membership);
@@ -63,27 +63,43 @@ public class MembershipRepositoryProxy extends AbstractProxy<MembershipRepositor
     }
 
     @Override
-    public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException {
+    public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId)
+        throws TechnicalException {
         return target.findByReferenceAndRoleId(referenceType, referenceId, roleId);
     }
 
     @Override
-    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException {
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType
+    ) throws TechnicalException {
         return target.findByMemberIdAndMemberTypeAndReferenceType(memberId, memberType, referenceType);
     }
 
     @Override
-    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String sourceId) throws TechnicalException {
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        String sourceId
+    ) throws TechnicalException {
         return target.findByMemberIdAndMemberTypeAndReferenceTypeAndSource(memberId, memberType, referenceType, sourceId);
     }
 
     @Override
-    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String roleId) throws TechnicalException {
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        String roleId
+    ) throws TechnicalException {
         return target.findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(memberId, memberType, referenceType, roleId);
     }
 
     @Override
-    public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId) throws TechnicalException {
+    public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId)
+        throws TechnicalException {
         return target.findByReferencesAndRoleId(referenceType, referenceIds, roleId);
     }
 
@@ -98,20 +114,38 @@ public class MembershipRepositoryProxy extends AbstractProxy<MembershipRepositor
     }
 
     @Override
-    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException {
-        return target.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(memberId, memberType, referenceType, referenceId, roleId);
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String roleId
+    ) throws TechnicalException {
+        return target.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+            memberId,
+            memberType,
+            referenceType,
+            referenceId,
+            roleId
+        );
     }
 
     @Override
-    public Set<Membership> findByMemberIdsAndMemberTypeAndReferenceType(List<String> memberIds,
-            MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException {
+    public Set<Membership> findByMemberIdsAndMemberTypeAndReferenceType(
+        List<String> memberIds,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType
+    ) throws TechnicalException {
         return target.findByMemberIdsAndMemberTypeAndReferenceType(memberIds, memberType, referenceType);
     }
 
     @Override
-    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(String memberId,
-            MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId)
-            throws TechnicalException {
+    public Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException {
         return target.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(memberId, memberType, referenceType, referenceId);
     }
 }

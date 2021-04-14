@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service.search.query;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.search.Indexable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

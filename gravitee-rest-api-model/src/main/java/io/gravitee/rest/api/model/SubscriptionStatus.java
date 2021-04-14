@@ -25,5 +25,5 @@ public enum SubscriptionStatus {
     ACCEPTED,
     CLOSED,
     PAUSED,
-    RESUMED
+    RESUMED,
 }

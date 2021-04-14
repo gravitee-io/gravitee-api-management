@@ -23,20 +23,19 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"User Notifications"})
-public class UserNotificationsResource extends AbstractResource  {
+@Api(tags = { "User Notifications" })
+public class UserNotificationsResource extends AbstractResource {
 
     @Autowired
     private PortalNotificationService portalNotificationService;
@@ -44,43 +43,49 @@ public class UserNotificationsResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List user's notifications")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "User's notifications"),
             @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public PagedResult<PortalNotificationEntity> getUserNotifications()  {
-        List<PortalNotificationEntity> notifications = portalNotificationService.findByUser(getAuthenticatedUser())
-                .stream()
-                .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt))
-                .collect(Collectors.toList());
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public PagedResult<PortalNotificationEntity> getUserNotifications() {
+        List<PortalNotificationEntity> notifications = portalNotificationService
+            .findByUser(getAuthenticatedUser())
+            .stream()
+            .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt))
+            .collect(Collectors.toList());
 
         return new PagedResult<>(notifications);
     }
 
     @DELETE
     @ApiOperation(value = "Delete all user's notifications")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Notifications successfully deleted"),
             @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response deleteAllUserNotifications() {
         portalNotificationService.deleteAll(getAuthenticatedUser());
-        return Response
-                .status(Response.Status.NO_CONTENT)
-                .build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
     @Path("{notification}")
     @DELETE
     @ApiOperation(value = "Delete a single user's notification")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Notification successfully deleted"),
             @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response deleteUserNotification(@PathParam("notification") String notificationId) {
         portalNotificationService.delete(notificationId);
-        return Response
-                .status(Response.Status.NO_CONTENT)
-                .build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

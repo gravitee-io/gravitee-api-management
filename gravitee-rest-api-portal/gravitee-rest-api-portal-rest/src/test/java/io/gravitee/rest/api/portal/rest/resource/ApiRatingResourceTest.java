@@ -15,26 +15,25 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.RatingEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.*;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+
+import io.gravitee.rest.api.model.RatingEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -69,9 +68,7 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveApiNotFoundWhenUpdateWithFakeApiId() {
-        RatingInput ratingInput = new RatingInput()
-                .comment(RATING)
-                .value(2);
+        RatingInput ratingInput = new RatingInput().comment(RATING).value(2);
         final String fakeId = "fake";
         final Response response = target(fakeId).path("ratings").path(RATING).request().put(Entity.json(ratingInput));
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -90,9 +87,7 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveRatingNotFoundWhenUpdateWithFakeRatingId() {
-        RatingInput ratingInput = new RatingInput()
-                .comment(RATING)
-                .value(2);
+        RatingInput ratingInput = new RatingInput().comment(RATING).value(2);
         final String fakeId = "fake";
         final Response response = target(API).path("ratings").path(fakeId).request().put(Entity.json(ratingInput));
         assertEquals(NOT_FOUND_404, response.getStatus());
@@ -111,9 +106,7 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldUpdateApiRating() {
-        RatingInput ratingInput = new RatingInput()
-                .comment(RATING)
-                .value(2);
+        RatingInput ratingInput = new RatingInput().comment(RATING).value(2);
         Rating rating = new Rating();
         rating.setId(RATING);
         rating.setValue(2);
@@ -166,5 +159,4 @@ public class ApiRatingResourceTest extends AbstractResourceTest {
         final Response deleteResponse = target(API).path("ratings").path(RATING).request().delete();
         assertEquals(NO_CONTENT_204, deleteResponse.getStatus());
     }
-
 }

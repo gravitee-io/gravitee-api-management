@@ -25,7 +25,6 @@ import io.gravitee.rest.api.model.log.SearchLogResponse;
  * @author GraviteeSource Team
  */
 public interface LogsService {
-
     SearchLogResponse findByApi(String api, LogQuery query);
     SearchLogResponse findByApplication(String application, LogQuery query);
     SearchLogResponse findPlatform(LogQuery query);

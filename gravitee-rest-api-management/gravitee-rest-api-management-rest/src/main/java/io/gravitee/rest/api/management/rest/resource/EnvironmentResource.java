@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.*;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -38,7 +37,7 @@ import javax.ws.rs.core.Response.Status;
  */
 @Api
 public class EnvironmentResource extends AbstractResource {
-    
+
     @Context
     private ResourceContext resourceContext;
 
@@ -53,17 +52,18 @@ public class EnvironmentResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an Environment", tags = {"Environment"})
-    @ApiResponses({
+    @ApiOperation(value = "Create an Environment", tags = { "Environment" })
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Environment successfully created"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response createEnvironment(
-            @ApiParam(name = "environmentEntity", required = true) @Valid @NotNull final UpdateEnvironmentEntity environmentEntity) {
+        @ApiParam(name = "environmentEntity", required = true) @Valid @NotNull final UpdateEnvironmentEntity environmentEntity
+    ) {
         environmentEntity.setId(GraviteeContext.getCurrentEnvironment());
-        return Response
-                .status(Status.CREATED)
-                .entity(environmentService.createOrUpdate(environmentEntity))
-                .build();
+        return Response.status(Status.CREATED).entity(environmentService.createOrUpdate(environmentEntity)).build();
     }
 
     /**
@@ -73,109 +73,110 @@ public class EnvironmentResource extends AbstractResource {
      */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete an Environment", tags = {"Environment"})
-    @ApiResponses({
+    @ApiOperation(value = "Delete an Environment", tags = { "Environment" })
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Environment successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response deleteEnvironment() {
         environmentService.delete(GraviteeContext.getCurrentEnvironment());
         //TODO: should delete all items that refers to this environment
-        return Response
-                .status(Status.NO_CONTENT)
-                .build();
+        return Response.status(Status.NO_CONTENT).build();
     }
 
     @Path("alerts")
     public AlertsResource getAlertsResource() {
         return resourceContext.getResource(AlertsResource.class);
     }
-    
+
     @Path("apis")
     public ApisResource getApisResource() {
         return resourceContext.getResource(ApisResource.class);
     }
-    
+
     @Path("applications")
     public ApplicationsResource getApplicationsResource() {
         return resourceContext.getResource(ApplicationsResource.class);
     }
-    
+
     @Path("configuration")
     public ConfigurationResource getConfigurationResource() {
         return resourceContext.getResource(ConfigurationResource.class);
     }
-    
+
     @Path("user")
     public CurrentUserResource getCurrentUserResource() {
         return resourceContext.getResource(CurrentUserResource.class);
     }
-    
+
     @Path("subscriptions")
     public SubscriptionsResource getSubscriptionsResource() {
         return resourceContext.getResource(SubscriptionsResource.class);
     }
-    
+
     @Path("audit")
     public AuditResource getAuditResource() {
         return resourceContext.getResource(AuditResource.class);
     }
-    
+
     @Path("portal")
     public PortalResource getPortalResource() {
         return resourceContext.getResource(PortalResource.class);
     }
-    
+
     // Dynamic authentication provider endpoints
     @Path("auth/oauth2/{identity}")
     public OAuth2AuthenticationResource getOAuth2AuthenticationResource() {
         return resourceContext.getResource(OAuth2AuthenticationResource.class);
     }
-    
+
     @Path("users")
     public UsersResource getUsersResource() {
         return resourceContext.getResource(UsersResource.class);
     }
-    
+
     @Path("search")
     public SearchResource getSearchResource() {
         return resourceContext.getResource(SearchResource.class);
     }
-    
+
     @Path("fetchers")
     public FetchersResource getFetchersResource() {
         return resourceContext.getResource(FetchersResource.class);
     }
-    
+
     @Path("policies")
     public PoliciesResource getPoliciesResource() {
         return resourceContext.getResource(PoliciesResource.class);
     }
-    
+
     @Path("resources")
     public ResourcesResource getResourcesResource() {
         return resourceContext.getResource(ResourcesResource.class);
     }
-    
+
     @Path("services-discovery")
     public ServicesDiscoveryResource getServicesDiscoveryResource() {
         return resourceContext.getResource(ServicesDiscoveryResource.class);
     }
-    
+
     @Path("instances")
     public InstancesResource getInstancesResource() {
         return resourceContext.getResource(InstancesResource.class);
     }
-    
+
     @Path("platform")
     public PlatformResource getPlatformResource() {
         return resourceContext.getResource(PlatformResource.class);
     }
-    
+
     @Path("messages")
     public MessagesResource getMessagesResource() {
         return resourceContext.getResource(MessagesResource.class);
     }
-    
+
     @Path("tickets")
     public PlatformTicketsResource getPlatformTicketsResource() {
         return resourceContext.getResource(PlatformTicketsResource.class);

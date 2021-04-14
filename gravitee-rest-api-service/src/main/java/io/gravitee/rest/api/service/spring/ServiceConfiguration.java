@@ -40,13 +40,12 @@ import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
 import io.gravitee.rest.api.service.validator.RegexPasswordValidator;
+import java.util.Collections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import java.util.Collections;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,50 +55,58 @@ import java.util.Collections;
 @Configuration
 @ComponentScan("io.gravitee.rest.api.service")
 @EnableTransactionManagement
-@Import({
-		PolicyPluginConfiguration.class, ResourcePluginConfiguration.class,
-		FetcherPluginConfiguration.class, FetcherConfigurationConfiguration.class,
-		SearchEngineConfiguration.class, NotifierPluginConfiguration.class,
-		AlertPluginConfiguration.class, ServiceDiscoveryPluginConfiguration.class,
-		})
+@Import(
+    {
+        PolicyPluginConfiguration.class,
+        ResourcePluginConfiguration.class,
+        FetcherPluginConfiguration.class,
+        FetcherConfigurationConfiguration.class,
+        SearchEngineConfiguration.class,
+        NotifierPluginConfiguration.class,
+        AlertPluginConfiguration.class,
+        ServiceDiscoveryPluginConfiguration.class,
+    }
+)
 public class ServiceConfiguration {
 
-	@Bean
-	public EventManager eventManager() {
-		return new EventManagerImpl();
-	}
+    @Bean
+    public EventManager eventManager() {
+        return new EventManagerImpl();
+    }
 
-	@Bean
-	public ObjectMapper objectMapper() {
-		ObjectMapper objectMapper = new GraviteeMapper();
-		PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-		objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
-		objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
-		// register API serializer
-		SimpleModule module = new SimpleModule();
-		module.addSerializer(ApiEntity.class, apiSerializer());
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new GraviteeMapper();
+        PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
+        objectMapper.setFilterProvider(
+            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
+        );
+        objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
+        // register API serializer
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(ApiEntity.class, apiSerializer());
 
-		objectMapper.registerModule(module);
-		return objectMapper;
-	}
+        objectMapper.registerModule(module);
+        return objectMapper;
+    }
 
-	@Bean
-	public ApiQualityMetricLoader apiQualityMetricLoader() {
-		return new ApiQualityMetricLoader();
-	}
+    @Bean
+    public ApiQualityMetricLoader apiQualityMetricLoader() {
+        return new ApiQualityMetricLoader();
+    }
 
-	@Bean
-	public ApiSerializer apiSerializer() {
-		return new ApiCompositeSerializer();
-	}
+    @Bean
+    public ApiSerializer apiSerializer() {
+        return new ApiCompositeSerializer();
+    }
 
-	@Bean
-	public PolicyOperationVisitorManager policyVisitorManager() {
-		return new PolicyOperationVisitorManagerImpl();
-	}
+    @Bean
+    public PolicyOperationVisitorManager policyVisitorManager() {
+        return new PolicyOperationVisitorManagerImpl();
+    }
 
-	@Bean
-	public PasswordValidator passwordValidator() {
-		return new RegexPasswordValidator();
-	}
+    @Bean
+    public PasswordValidator passwordValidator() {
+        return new RegexPasswordValidator();
+    }
 }

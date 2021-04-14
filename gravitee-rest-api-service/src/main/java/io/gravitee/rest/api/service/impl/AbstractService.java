@@ -26,7 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public abstract class AbstractService extends TransactionalService {
 
-    public final static String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
+    public static final String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
 
     String getAuthenticatedUsername() {
         UserDetails authenticatedUser = getAuthenticatedUser();
@@ -41,8 +41,10 @@ public abstract class AbstractService extends TransactionalService {
     }
 
     protected boolean isAuthenticated() {
-        return SecurityContextHolder.getContext().getAuthentication() != null
-                && SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserDetails;
+        return (
+            SecurityContextHolder.getContext().getAuthentication() != null &&
+            SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof UserDetails
+        );
     }
 
     protected boolean isAdmin() {
@@ -50,7 +52,11 @@ public abstract class AbstractService extends TransactionalService {
     }
 
     private boolean isUserInRole(final String role) {
-        return SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .anyMatch(auth -> role.equals(auth.getAuthority()));
+        return SecurityContextHolder
+            .getContext()
+            .getAuthentication()
+            .getAuthorities()
+            .stream()
+            .anyMatch(auth -> role.equals(auth.getAuthority()));
     }
 }

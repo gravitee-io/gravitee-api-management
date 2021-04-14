@@ -20,7 +20,6 @@ package io.gravitee.rest.api.model.configuration.identity;
  * @author GraviteeSource Team
  */
 public enum SocialIdentityProviderType {
-
     GOOGLE,
-    GITHUB
+    GITHUB,
 }

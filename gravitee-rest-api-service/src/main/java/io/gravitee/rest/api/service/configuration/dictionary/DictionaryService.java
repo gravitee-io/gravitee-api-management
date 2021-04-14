@@ -15,18 +15,16 @@
  */
 package io.gravitee.rest.api.service.configuration.dictionary;
 
-import java.util.Set;
-
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface DictionaryService {
-
     DictionaryEntity create(NewDictionaryEntity dictionary);
 
     DictionaryEntity update(String id, UpdateDictionaryEntity dictionary);

@@ -22,6 +22,5 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface InitialAccessTokenProvider {
-
     String get(Map<String, String> attributes);
 }

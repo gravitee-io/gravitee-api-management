@@ -23,18 +23,21 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class GraviteeContext {
+
     private static final String DEFAULT_ENVIRONMENT = "DEFAULT";
     private static final String DEFAULT_ORGANIZATION = "DEFAULT";
 
     private static final String CURRENT_ENVIRONMENT_CONTEXT_KEY = "currentEnvironment";
     private static final String CURRENT_ORGANIZATION_CONTEXT_KEY = "currentOrganization";
 
-    private static final ThreadLocal<Map<String, Object>> contextThread = ThreadLocal.withInitial(() -> {
-        Map<String, Object> propertiesMap = new HashMap<>();
-        propertiesMap.put(CURRENT_ENVIRONMENT_CONTEXT_KEY, DEFAULT_ENVIRONMENT);
-        propertiesMap.put(CURRENT_ORGANIZATION_CONTEXT_KEY, DEFAULT_ORGANIZATION);
-        return propertiesMap;
-    });
+    private static final ThreadLocal<Map<String, Object>> contextThread = ThreadLocal.withInitial(
+        () -> {
+            Map<String, Object> propertiesMap = new HashMap<>();
+            propertiesMap.put(CURRENT_ENVIRONMENT_CONTEXT_KEY, DEFAULT_ENVIRONMENT);
+            propertiesMap.put(CURRENT_ORGANIZATION_CONTEXT_KEY, DEFAULT_ORGANIZATION);
+            return propertiesMap;
+        }
+    );
 
     public static void cleanContext() {
         contextThread.remove();

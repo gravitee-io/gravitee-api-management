@@ -18,17 +18,18 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class ClientRegistrationProviderRepositoryProxy extends AbstractProxy<ClientRegistrationProviderRepository> implements ClientRegistrationProviderRepository {
+public class ClientRegistrationProviderRepositoryProxy
+    extends AbstractProxy<ClientRegistrationProviderRepository>
+    implements ClientRegistrationProviderRepository {
 
     public Set<ClientRegistrationProvider> findAll() throws TechnicalException {
         return target.findAll();

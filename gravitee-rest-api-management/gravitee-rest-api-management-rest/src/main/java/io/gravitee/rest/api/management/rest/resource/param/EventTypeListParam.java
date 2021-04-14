@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
+import io.gravitee.rest.api.model.EventType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import io.gravitee.rest.api.model.EventType;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
@@ -32,9 +31,9 @@ public class EventTypeListParam {
 
     public EventTypeListParam(String param) {
         eventTypes = new ArrayList<EventType>();
-        
+
         if (param != null) {
-            String[] params = param.replaceAll("\\s","").split(SEPARATOR);
+            String[] params = param.replaceAll("\\s", "").split(SEPARATOR);
             for (String _param : params) {
                 try {
                     eventTypes.add(EventType.valueOf(_param));
@@ -43,7 +42,7 @@ public class EventTypeListParam {
                 }
             }
         }
-        
+
         if (eventTypes.isEmpty()) {
             eventTypes = Arrays.asList(EventType.values());
         }

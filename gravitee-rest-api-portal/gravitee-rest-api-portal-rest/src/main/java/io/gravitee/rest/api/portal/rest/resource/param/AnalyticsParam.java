@@ -16,10 +16,9 @@
 package io.gravitee.rest.api.portal.rest.resource.param;
 
 import io.swagger.annotations.ApiParam;
-
+import java.util.List;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.QueryParam;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,16 +35,13 @@ public class AnalyticsParam {
     private long to;
 
     @QueryParam("interval")
-    @ApiParam(
-            value = "The time interval when getting histogram data (in milliseconds)",
-            example = "600000"
-    )
+    @ApiParam(value = "The time interval when getting histogram data (in milliseconds)", example = "600000")
     private long interval;
 
     @QueryParam("query")
     @ApiParam(
-            value = "The Lucene query used to filter data",
-            example = "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy AND host:\"demo.gravitee.io\" AND path:/test"
+        value = "The Lucene query used to filter data",
+        example = "api:xxxx-xxxx-xxxx-xxxx AND plan:yyyy-yyyy-yyyy-yyyy AND host:\"demo.gravitee.io\" AND path:/test"
     )
     private String query;
 
@@ -58,32 +54,25 @@ public class AnalyticsParam {
     private int size;
 
     @QueryParam("type")
-    @ApiParam(
-            value = "The type of data to retrieve",
-            required = true,
-            allowableValues = "group_by,date_histo,count"
-    )
+    @ApiParam(value = "The type of data to retrieve", required = true, allowableValues = "group_by,date_histo,count")
     private AnalyticsTypeParam type;
 
     @QueryParam("ranges")
     @ApiParam(
-            value = "Ranges allows you to group field's data. Mainly used to group HTTP statuses code with `group_by` queries",
-            example = "100:199;200:299;300:399;400:499;500:599"
+        value = "Ranges allows you to group field's data. Mainly used to group HTTP statuses code with `group_by` queries",
+        example = "100:199;200:299;300:399;400:499;500:599"
     )
     private RangesParam ranges;
 
     @QueryParam("aggs")
     @ApiParam(
-            value = "Aggregations are used when doing `date_histo` queries and allows you to group field's data. Mainly used to group HTTP statuses code",
-            example = "field:status or avg:response-time;avg:api-response-time"
+        value = "Aggregations are used when doing `date_histo` queries and allows you to group field's data. Mainly used to group HTTP statuses code",
+        example = "field:status or avg:response-time;avg:api-response-time"
     )
     private AggregationsParam aggs;
 
     @QueryParam("order")
-    @ApiParam(
-            value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
-            example = "order:-response-time"
-    )
+    @ApiParam(value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "order:-response-time")
     private OrderParam order;
 
     public long getFrom() {
@@ -159,7 +148,7 @@ public class AnalyticsParam {
     }
 
     public void validate() {
-        if(type == null) {
+        if (type == null) {
             throw new BadRequestException("Query parameter 'type' must be present and one of : GROUP_BY, DATE_HISTO, COUNT");
         }
 
@@ -187,9 +176,11 @@ public class AnalyticsParam {
             throw new BadRequestException("Query parameter 'interval' is not valid. 'interval' must be >= 1000 and <= 1000000000");
         }
 
-        if ((type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY || type.getValue() == AnalyticsTypeParam.AnalyticsType.STATS)
-                && (field == null || field.trim().isEmpty())) { // we need a field and, optionally, a list of ranges
-                throw new BadRequestException("'field' query parameter is required for '" + type.getValue().name().toLowerCase() + "' request");
+        if (
+            (type.getValue() == AnalyticsTypeParam.AnalyticsType.GROUP_BY || type.getValue() == AnalyticsTypeParam.AnalyticsType.STATS) &&
+            (field == null || field.trim().isEmpty())
+        ) { // we need a field and, optionally, a list of ranges
+            throw new BadRequestException("'field' query parameter is required for '" + type.getValue().name().toLowerCase() + "' request");
         }
     }
 }

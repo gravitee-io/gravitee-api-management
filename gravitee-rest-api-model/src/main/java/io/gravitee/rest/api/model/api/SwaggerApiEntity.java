@@ -16,12 +16,11 @@
 package io.gravitee.rest.api.model.api;
 
 import io.gravitee.definition.model.Path;
-
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -106,13 +105,26 @@ public class SwaggerApiEntity {
 
     @Override
     public String toString() {
-        return "SwaggerApiEntity{" +
-                "name='" + name + '\'' +
-                ", version='" + version + '\'' +
-                ", description='" + description + '\'' +
-                ", contextPath='" + contextPath + '\'' +
-                ", endpoint='" + endpoint + '\'' +
-                ", paths=" + paths +
-                '}';
+        return (
+            "SwaggerApiEntity{" +
+            "name='" +
+            name +
+            '\'' +
+            ", version='" +
+            version +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", contextPath='" +
+            contextPath +
+            '\'' +
+            ", endpoint='" +
+            endpoint +
+            '\'' +
+            ", paths=" +
+            paths +
+            '}'
+        );
     }
 }

@@ -16,13 +16,11 @@
 package io.gravitee.rest.api.portal.rest.utils;
 
 import io.gravitee.rest.api.service.common.GraviteeContext;
-
 import javax.ws.rs.core.UriBuilder;
 
 public final class PortalApiLinkHelper {
 
-    private PortalApiLinkHelper() {
-    }
+    private PortalApiLinkHelper() {}
 
     public static String apisURL(UriBuilder baseUriBuilder) {
         return resourcesURL(baseUriBuilder, null, "apis");
@@ -84,10 +82,17 @@ public final class PortalApiLinkHelper {
         return resourcesURL(baseUriBuilder, resourceId, resourceName, null, null);
     }
 
-    private static String resourcesURL(UriBuilder baseUriBuilder, String resourceId, String resourceName,
-            String subResourceId, String subResourceName) {
-        UriBuilder resourcesURLBuilder = baseUriBuilder.path("environments").path(GraviteeContext.getCurrentEnvironment())
-                .path(resourceName);
+    private static String resourcesURL(
+        UriBuilder baseUriBuilder,
+        String resourceId,
+        String resourceName,
+        String subResourceId,
+        String subResourceName
+    ) {
+        UriBuilder resourcesURLBuilder = baseUriBuilder
+            .path("environments")
+            .path(GraviteeContext.getCurrentEnvironment())
+            .path(resourceName);
         if (resourceId != null && !resourceId.isEmpty()) {
             resourcesURLBuilder = resourcesURLBuilder.path(resourceId);
         }

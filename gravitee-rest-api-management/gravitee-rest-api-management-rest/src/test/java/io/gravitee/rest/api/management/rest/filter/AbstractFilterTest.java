@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.filter;
 
+import static org.mockito.Mockito.mock;
+
+import io.gravitee.rest.api.service.*;
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.SecurityContext;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -23,19 +28,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import io.gravitee.rest.api.service.*;
-
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.SecurityContext;
-
-import static org.mockito.Mockito.mock;
-
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(loader=AnnotationConfigContextLoader.class)
+@ContextConfiguration(loader = AnnotationConfigContextLoader.class)
 public abstract class AbstractFilterTest {
 
     @Autowired
@@ -59,10 +57,10 @@ public abstract class AbstractFilterTest {
     @Configuration
     static class ContextConfiguration {
 
-    	@Bean
-    	public ApiService apiService() {
-    		return mock(ApiService.class);
-    	}
+        @Bean
+        public ApiService apiService() {
+            return mock(ApiService.class);
+        }
 
         @Bean
         public ApplicationService applicationService() {

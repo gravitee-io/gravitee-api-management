@@ -15,6 +15,21 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.*;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
+import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
+import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
+import static io.gravitee.rest.api.model.PageType.SWAGGER;
+import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
+import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
+import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
+import static java.util.Collections.*;
+import static java.util.Comparator.comparing;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,15 +48,15 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
-import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
@@ -72,13 +87,6 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
-
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
@@ -88,21 +96,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static io.gravitee.repository.management.model.Api.AuditEvent.*;
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
-import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
-import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
-import static io.gravitee.rest.api.model.PageType.SWAGGER;
-import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
-import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
-import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
-import static java.util.Collections.*;
-import static java.util.Comparator.comparing;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.*;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import javax.xml.bind.DatatypeConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -113,7 +112,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Component
 public class ApiServiceImpl extends AbstractService implements ApiService {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
@@ -122,72 +121,106 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private ApiRepository apiRepository;
+
     @Autowired
     private ApiQualityRuleRepository apiQualityRuleRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
+
     @Autowired
     private EventService eventService;
+
     @Autowired
     private UserService userService;
+
     @Autowired
     private PageService pageService;
+
     @Autowired
     private MembershipService membershipService;
+
     @Autowired
     private GroupService groupService;
+
     @Autowired
     private PlanService planService;
+
     @Autowired
     private ApiSynchronizationProcessor apiSynchronizationProcessor;
+
     @Autowired
     private ApiMetadataService apiMetadataService;
+
     @Autowired
     private SubscriptionService subscriptionService;
+
     @Autowired
     private AuditService auditService;
+
     @Autowired
     private TopApiService topApiService;
+
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
+
     @Autowired
     private PortalNotificationConfigService portalNotificationConfigService;
+
     @Autowired
     private NotifierService notifierService;
+
     @Autowired
     private SwaggerService swaggerService;
+
     @Autowired
     private SearchEngineService searchEngineService;
+
     @Autowired
     private ApiHeaderService apiHeaderService;
+
     @Autowired
     private Configuration freemarkerConfiguration;
+
     @Autowired
     private ParameterService parameterService;
+
     @Autowired
     private TagService tagService;
+
     @Autowired
     private EntrypointService entrypointService;
+
     @Autowired
     private WorkflowService workflowService;
+
     @Autowired
     private HttpClientService httpClientService;
+
     @Autowired
     private VirtualHostService virtualHostService;
+
     @Autowired
     private AlertService alertService;
+
     @Autowired
     private RoleService roleService;
+
     @Autowired
     private CategoryService categoryService;
+
     @Autowired
     private ApplicationService applicationService;
+
     @Autowired
     private ImportConfiguration importConfiguration;
+
     @Autowired
     private MediaService mediaService;
 
-    private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile("(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)");
+    private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile(
+        "(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)"
+    );
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
     private static final String LOGGING_DELIMITER_BASE = "\\s+(\\|\\||\\&\\&)\\s+";
     private static final String ENDPOINTS_DELIMITER = "\n";
@@ -198,9 +231,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public ApiEntity create(final SwaggerApiEntity swaggerApiEntity, final String userId,
-                            final ImportSwaggerDescriptorEntity swaggerDescriptor) throws ApiAlreadyExistsException {
-
+    public ApiEntity create(
+        final SwaggerApiEntity swaggerApiEntity,
+        final String userId,
+        final ImportSwaggerDescriptorEntity swaggerDescriptor
+    ) throws ApiAlreadyExistsException {
         final NewApiEntity newApiEntity = new NewApiEntity();
         newApiEntity.setVersion(swaggerApiEntity.getVersion());
         newApiEntity.setName(swaggerApiEntity.getName());
@@ -211,8 +246,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return create(newApiEntity, userId, swaggerDescriptor, swaggerApiEntity);
     }
 
-    private ApiEntity create(final NewApiEntity newApiEntity, final String userId,
-                             final ImportSwaggerDescriptorEntity swaggerDescriptor, final SwaggerApiEntity swaggerApiEntity) throws ApiAlreadyExistsException {
+    private ApiEntity create(
+        final NewApiEntity newApiEntity,
+        final String userId,
+        final ImportSwaggerDescriptorEntity swaggerDescriptor,
+        final SwaggerApiEntity swaggerApiEntity
+    ) throws ApiAlreadyExistsException {
         UpdateApiEntity apiEntity = new UpdateApiEntity();
 
         apiEntity.setName(newApiEntity.getName());
@@ -257,11 +296,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         // Initialize with a default path and provided paths
-        Map<String, Path> paths = declaredPaths.stream().map(sPath -> {
-            Path path = new Path();
-            path.setPath(sPath);
-            return path;
-        }).collect(toMap(Path::getPath, path -> path));
+        Map<String, Path> paths = declaredPaths
+            .stream()
+            .map(
+                sPath -> {
+                    Path path = new Path();
+                    path.setPath(sPath);
+                    return path;
+                }
+            )
+            .collect(toMap(Path::getPath, path -> path));
 
         apiEntity.setPaths(paths);
         apiEntity.setPathMappings(new HashSet<>(declaredPaths));
@@ -283,12 +327,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return createdApi;
     }
 
-    private void createOrUpdateDocumentation(final ImportSwaggerDescriptorEntity swaggerDescriptor,
-                                             final ApiEntity api, boolean isForCreation) {
-        List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder()
-            .api(api.getId())
-            .type(PageType.SWAGGER)
-            .build());
+    private void createOrUpdateDocumentation(
+        final ImportSwaggerDescriptorEntity swaggerDescriptor,
+        final ApiEntity api,
+        boolean isForCreation
+    ) {
+        List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder().api(api.getId()).type(PageType.SWAGGER).build());
 
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
             if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
@@ -335,7 +379,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return this.create0(api, userId, createSystemFolder, null);
     }
 
-    private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder, String apiId) throws ApiAlreadyExistsException {
+    private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder, String apiId)
+        throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for user {}", api, userId);
 
@@ -381,10 +426,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 // Add Default groups
-                Set<String> defaultGroups = groupService.findByEvent(GroupEvent.API_CREATE).
-                    stream().
-                    map(GroupEntity::getId).
-                    collect(toSet());
+                Set<String> defaultGroups = groupService
+                    .findByEvent(GroupEvent.API_CREATE)
+                    .stream()
+                    .map(GroupEntity::getId)
+                    .collect(toSet());
                 if (!defaultGroups.isEmpty() && repoApi.getGroups() == null) {
                     repoApi.setGroups(defaultGroups);
                 } else if (!defaultGroups.isEmpty()) {
@@ -409,7 +455,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     API_CREATED,
                     createdApi.getCreatedAt(),
                     null,
-                    createdApi);
+                    createdApi
+                );
 
                 // Add the primary owner of the newly created API
                 UserEntity primaryOwner = userService.findById(userId);
@@ -417,7 +464,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     membershipService.addRoleToMemberOnReference(
                         new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
                         new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                        new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name()));
+                        new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+                    );
 
                     // create the default mail notification
                     final String emailMetadataValue = "${(api.primaryOwner.email)!''}";
@@ -447,7 +495,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     return apiEntity;
                 } else {
                     LOGGER.error("Unable to create API {} because primary owner role has not been found.", api.getName());
-                    throw new TechnicalManagementException("Unable to create API " + api.getName() + " because primary owner role has not been found");
+                    throw new TechnicalManagementException(
+                        "Unable to create API " + api.getName() + " because primary owner role has not been found"
+                    );
                 }
             } else {
                 LOGGER.error("Unable to create API {} because of previous error.", api.getName());
@@ -481,16 +531,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void checkEndpointsExists(UpdateApiEntity api) {
-        if (api.getProxy().getGroups() == null
-            || api.getProxy().getGroups().isEmpty()) {
+        if (api.getProxy().getGroups() == null || api.getProxy().getGroups().isEmpty()) {
             throw new EndpointMissingException();
         }
 
         EndpointGroup endpointGroup = api.getProxy().getGroups().iterator().next();
         //Is service discovery enabled ?
-        EndpointDiscoveryService endpointDiscoveryService = endpointGroup.getServices() == null ? null : endpointGroup.getServices().get(EndpointDiscoveryService.class);
-        if ((endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
-            (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())) {
+        EndpointDiscoveryService endpointDiscoveryService = endpointGroup.getServices() == null
+            ? null
+            : endpointGroup.getServices().get(EndpointDiscoveryService.class);
+        if (
+            (endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
+            (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())
+        ) {
             throw new EndpointMissingException();
         }
     }
@@ -540,9 +593,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void addLoggingMaxDuration(Logging logging) {
         if (logging != null && !LoggingMode.NONE.equals(logging.getMode())) {
-            Optional<Long> optionalMaxDuration = parameterService.findAll(Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf).stream().findFirst();
+            Optional<Long> optionalMaxDuration = parameterService
+                .findAll(Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf)
+                .stream()
+                .findFirst();
             if (optionalMaxDuration.isPresent() && optionalMaxDuration.get() > 0) {
-
                 long maxEndDate = System.currentTimeMillis() + optionalMaxDuration.get();
 
                 // if no condition set, add one
@@ -617,7 +672,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private UserEntity getPrimaryOwner(Api api) throws TechnicalException {
-        MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(io.gravitee.rest.api.model.MembershipReferenceType.API, api.getId());
+        MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
+            io.gravitee.rest.api.model.MembershipReferenceType.API,
+            api.getId()
+        );
         if (primaryOwnerMemberEntity == null) {
             LOGGER.error("The API {} doesn't have any primary owner.", api.getId());
             throw new TechnicalException("The API " + api.getId() + " doesn't have any primary owner.");
@@ -634,43 +692,62 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final String scheme = getScheme(defaultEntrypoint);
             if (api.getTags() != null && !api.getTags().isEmpty()) {
                 List<EntrypointEntity> entrypoints = entrypointService.findAll();
-                entrypoints.forEach(entrypoint -> {
-                    Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));
-                    tagEntrypoints.retainAll(api.getTags());
+                entrypoints.forEach(
+                    entrypoint -> {
+                        Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));
+                        tagEntrypoints.retainAll(api.getTags());
 
-                    if (tagEntrypoints.size() == entrypoint.getTags().length) {
-                        api.getProxy().getVirtualHosts().forEach(virtualHost -> {
-                            String targetHost = (virtualHost.getHost() == null || !virtualHost.isOverrideEntrypoint()) ?
-                                entrypoint.getValue() : virtualHost.getHost();
-                            if (!targetHost.toLowerCase().startsWith("http")) {
-                                targetHost = scheme + "://" + targetHost;
-                            }
-                            apiEntrypoints.add(new ApiEntrypointEntity(
-                                tagEntrypoints,
-                                DUPLICATE_SLASH_REMOVER
-                                    .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
-                                    .replaceAll(URI_PATH_SEPARATOR),
-                                virtualHost.getHost())
-                            );
-                        });
+                        if (tagEntrypoints.size() == entrypoint.getTags().length) {
+                            api
+                                .getProxy()
+                                .getVirtualHosts()
+                                .forEach(
+                                    virtualHost -> {
+                                        String targetHost = (virtualHost.getHost() == null || !virtualHost.isOverrideEntrypoint())
+                                            ? entrypoint.getValue()
+                                            : virtualHost.getHost();
+                                        if (!targetHost.toLowerCase().startsWith("http")) {
+                                            targetHost = scheme + "://" + targetHost;
+                                        }
+                                        apiEntrypoints.add(
+                                            new ApiEntrypointEntity(
+                                                tagEntrypoints,
+                                                DUPLICATE_SLASH_REMOVER
+                                                    .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                                    .replaceAll(URI_PATH_SEPARATOR),
+                                                virtualHost.getHost()
+                                            )
+                                        );
+                                    }
+                                );
+                        }
                     }
-                });
+                );
             }
 
             // If empty, get the default entrypoint
             if (apiEntrypoints.isEmpty()) {
-                api.getProxy().getVirtualHosts().forEach(virtualHost -> {
-                    String targetHost = (virtualHost.getHost() == null || !virtualHost.isOverrideEntrypoint()) ?
-                        defaultEntrypoint : virtualHost.getHost();
-                    if (!targetHost.toLowerCase().startsWith("http")) {
-                        targetHost = scheme + "://" + targetHost;
-                    }
-                    apiEntrypoints.add(new ApiEntrypointEntity(
-                        DUPLICATE_SLASH_REMOVER
-                            .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
-                            .replaceAll(URI_PATH_SEPARATOR), virtualHost.getHost())
+                api
+                    .getProxy()
+                    .getVirtualHosts()
+                    .forEach(
+                        virtualHost -> {
+                            String targetHost = (virtualHost.getHost() == null || !virtualHost.isOverrideEntrypoint())
+                                ? defaultEntrypoint
+                                : virtualHost.getHost();
+                            if (!targetHost.toLowerCase().startsWith("http")) {
+                                targetHost = scheme + "://" + targetHost;
+                            }
+                            apiEntrypoints.add(
+                                new ApiEntrypointEntity(
+                                    DUPLICATE_SLASH_REMOVER
+                                        .matcher(targetHost + URI_PATH_SEPARATOR + virtualHost.getPath())
+                                        .replaceAll(URI_PATH_SEPARATOR),
+                                    virtualHost.getHost()
+                                )
+                            );
+                        }
                     );
-                });
             }
         }
 
@@ -693,7 +770,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findByVisibility(io.gravitee.rest.api.model.Visibility visibility) {
         try {
             LOGGER.debug("Find APIs by visibility {}", visibility);
-            return convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).visibility(Visibility.valueOf(visibility.name())).build()));
+            return convert(
+                apiRepository.search(
+                    new ApiCriteria.Builder()
+                        .environmentId(GraviteeContext.getCurrentEnvironment())
+                        .visibility(Visibility.valueOf(visibility.name()))
+                        .build()
+                )
+            );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs", ex);
@@ -715,8 +799,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Set<ApiEntity> findAllLight() {
         try {
             LOGGER.debug("Find all APIs without some fields (definition, picture...)");
-            return convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()));
+            return convert(
+                apiRepository.search(
+                    new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                    new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
+                )
+            );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all APIs light", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all APIs light", ex);
@@ -744,7 +832,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (userId != null) {
                 // get user apis
                 final String[] userApiIds = membershipService
-                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API).stream()
+                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+                    .stream()
                     .map(MembershipEntity::getReferenceId)
                     .toArray(String[]::new);
                 if (userApiIds.length > 0) {
@@ -753,7 +842,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 // get user groups apis
                 final String[] groupIds = membershipService
-                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP).stream()
+                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
+                    .stream()
                     .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.API))
                     .map(MembershipEntity::getReferenceId)
                     .toArray(String[]::new);
@@ -763,16 +853,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members
                 if (portal) {
-                    final Set<String> applications =
-                        applicationService.findByUser(userId).stream().map(ApplicationListItem::getId).collect(toSet());
+                    final Set<String> applications = applicationService
+                        .findByUser(userId)
+                        .stream()
+                        .map(ApplicationListItem::getId)
+                        .collect(toSet());
                     if (!applications.isEmpty()) {
                         final SubscriptionQuery query = new SubscriptionQuery();
                         query.setApplications(applications);
                         final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
                         if (subscriptions != null && !subscriptions.isEmpty()) {
-                            subscribedApis = apiRepository
-                                .search(queryToCriteria(apiQuery).ids(subscriptions.stream()
-                                    .map(SubscriptionEntity::getApi).distinct().toArray(String[]::new)).build());
+                            subscribedApis =
+                                apiRepository.search(
+                                    queryToCriteria(apiQuery)
+                                        .ids(subscriptions.stream().map(SubscriptionEntity::getApi).distinct().toArray(String[]::new))
+                                        .build()
+                                );
                         }
                     }
                 }
@@ -811,8 +907,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
         return apiEntityStream
             .filter(api -> query.getTag() == null || (api.getTags() != null && api.getTags().contains(query.getTag())))
-            .filter(api -> query.getContextPath() == null || api.getProxy().getVirtualHosts().stream().anyMatch(
-                virtualHost -> query.getContextPath().equals(virtualHost.getPath())));
+            .filter(
+                api ->
+                    query.getContextPath() == null ||
+                    api.getProxy().getVirtualHosts().stream().anyMatch(virtualHost -> query.getContextPath().equals(virtualHost.getPath()))
+            );
     }
 
     @Override
@@ -909,7 +1008,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.setCreatedAt(apiToUpdate.getCreatedAt());
                 api.setLifecycleState(apiToUpdate.getLifecycleState());
                 // If no new picture and the current picture url is not the default one, keep the current picture
-                if (updateApiEntity.getPicture() == null && updateApiEntity.getPictureUrl() != null && updateApiEntity.getPictureUrl().indexOf("?hash") > 0) {
+                if (
+                    updateApiEntity.getPicture() == null &&
+                    updateApiEntity.getPictureUrl() != null &&
+                    updateApiEntity.getPictureUrl().indexOf("?hash") > 0
+                ) {
                     api.setPicture(apiToUpdate.getPicture());
                 }
                 if (updateApiEntity.getGroups() == null) {
@@ -923,16 +1026,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
-                    planService.findByApi(api.getId()).forEach(plan -> {
-                        if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
-                            planService.depreciate(plan.getId(), true);
-                        }
-                    });
-                    notifierService.trigger(ApiHook.API_DEPRECATED, apiId,
-                        new NotificationParamsBuilder()
-                            .api(apiToCheck)
-                            .user(userService.findById(getAuthenticatedUsername()))
-                            .build());
+                    planService
+                        .findByApi(api.getId())
+                        .forEach(
+                            plan -> {
+                                if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
+                                    planService.depreciate(plan.getId(), true);
+                                }
+                            }
+                        );
+                    notifierService.trigger(
+                        ApiHook.API_DEPRECATED,
+                        apiId,
+                        new NotificationParamsBuilder().api(apiToCheck).user(userService.findById(getAuthenticatedUsername())).build()
+                    );
                 }
 
                 Api updatedApi = apiRepository.update(api);
@@ -944,7 +1051,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     API_UPDATED,
                     updatedApi.getUpdatedAt(),
                     apiToUpdate,
-                    updatedApi);
+                    updatedApi
+                );
 
                 if (parameterService.findAsBoolean(Key.LOGGING_AUDIT_TRAIL_ENABLED)) {
                     // Audit API logging if option is enabled
@@ -969,7 +1077,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final Set<String> accessControlAllowOrigin = updateApiEntity.getProxy().getCors().getAccessControlAllowOrigin();
             if (accessControlAllowOrigin != null && !accessControlAllowOrigin.isEmpty()) {
                 for (String allowOriginItem : accessControlAllowOrigin) {
-                    if (! CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
+                    if (!CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
                         throw new AllowOriginNotAllowedException(allowOriginItem);
                     }
                 }
@@ -1001,26 +1109,37 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private void validateRegexfields(final UpdateApiEntity updateApiEntity) {
         // validate regex on paths
         if (updateApiEntity.getPaths() != null) {
-            updateApiEntity.getPaths().forEach((path, v) -> {
-                try {
-                    Pattern.compile(path);
-                } catch (java.util.regex.PatternSyntaxException pse) {
-                    LOGGER.error("An error occurs while trying to parse the path {}", path, pse);
-                    throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
-                }
-            });
+            updateApiEntity
+                .getPaths()
+                .forEach(
+                    (path, v) -> {
+                        try {
+                            Pattern.compile(path);
+                        } catch (java.util.regex.PatternSyntaxException pse) {
+                            LOGGER.error("An error occurs while trying to parse the path {}", path, pse);
+                            throw new TechnicalManagementException("An error occurs while trying to parse the path " + path, pse);
+                        }
+                    }
+                );
         }
 
         // validate regex on pathMappings
         if (updateApiEntity.getPathMappings() != null) {
-            updateApiEntity.getPathMappings().forEach(pathMapping -> {
-                try {
-                    Pattern.compile(pathMapping);
-                } catch (java.util.regex.PatternSyntaxException pse) {
-                    LOGGER.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
-                    throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
-                }
-            });
+            updateApiEntity
+                .getPathMappings()
+                .forEach(
+                    pathMapping -> {
+                        try {
+                            Pattern.compile(pathMapping);
+                        } catch (java.util.regex.PatternSyntaxException pse) {
+                            LOGGER.error("An error occurs while trying to parse the path mapping {}", pathMapping, pse);
+                            throw new TechnicalManagementException(
+                                "An error occurs while trying to parse the path mapping" + pathMapping,
+                                pse
+                            );
+                        }
+                    }
+                );
         }
     }
 
@@ -1061,7 +1180,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             } else {
                 // Delete plans
                 Set<PlanEntity> plans = planService.findByApi(apiId);
-                Set<String> plansNotClosed = plans.stream()
+                Set<String> plansNotClosed = plans
+                    .stream()
                     .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
                     .map(PlanEntity::getName)
                     .collect(toSet());
@@ -1080,8 +1200,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // Delete events
                 final EventQuery query = new EventQuery();
                 query.setApi(apiId);
-                eventService.search(query)
-                    .forEach(event -> eventService.delete(event.getId()));
+                eventService.search(query).forEach(event -> eventService.delete(event.getId()));
 
                 // https://github.com/gravitee-io/issues/issues/4130
                 // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and
@@ -1111,13 +1230,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // delete all reference on api quality rule
                 apiQualityRuleRepository.deleteByApi(apiId);
                 // Audit
-                auditService.createApiAuditLog(
-                    apiId,
-                    Collections.emptyMap(),
-                    API_DELETED,
-                    new Date(),
-                    optApi.get(),
-                    null);
+                auditService.createApiAuditLog(apiId, Collections.emptyMap(), API_DELETED, new Date(), optApi.get(), null);
                 // remove from search engine
                 searchEngineService.delete(convert(optApi.get()), false);
 
@@ -1139,10 +1252,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             notifierService.trigger(
                 ApiHook.API_STARTED,
                 apiId,
-                new NotificationParamsBuilder()
-                    .api(apiEntity)
-                    .user(userService.findById(userId))
-                    .build());
+                new NotificationParamsBuilder().api(apiEntity).user(userService.findById(userId)).build()
+            );
             return apiEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to start API {}", apiId, ex);
@@ -1158,10 +1269,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             notifierService.trigger(
                 ApiHook.API_STOPPED,
                 apiId,
-                new NotificationParamsBuilder()
-                    .api(apiEntity)
-                    .user(userService.findById(userId))
-                    .build());
+                new NotificationParamsBuilder().api(apiEntity).user(userService.findById(userId)).build()
+            );
             return apiEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to stop API {}", apiId, ex);
@@ -1178,9 +1287,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Map<String, Object> properties = new HashMap<>();
             properties.put(Event.EventProperties.API_ID.getValue(), apiId);
 
-            io.gravitee.common.data.domain.Page<EventEntity> events =
-                eventService.search(Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API),
-                    properties, 0, 0, 0, 1);
+            io.gravitee.common.data.domain.Page<EventEntity> events = eventService.search(
+                Arrays.asList(PUBLISH_API, EventType.UNPUBLISH_API),
+                properties,
+                0,
+                0,
+                0,
+                1
+            );
 
             if (!events.getContent().isEmpty()) {
                 // According to page size, we know that we have only one element in the list
@@ -1203,9 +1317,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 // but only for published or closed plan
                 if (sync) {
                     Set<PlanEntity> plans = planService.findByApi(api.getId());
-                    sync = plans.stream()
-                        .filter(plan -> (plan.getStatus() != PlanStatus.STAGING))
-                        .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt())).count() == 0;
+                    sync =
+                        plans
+                            .stream()
+                            .filter(plan -> (plan.getStatus() != PlanStatus.STAGING))
+                            .filter(plan -> plan.getNeedRedeployAt().after(api.getDeployedAt()))
+                            .count() ==
+                        0;
                 }
 
                 return sync;
@@ -1219,13 +1337,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void removeDescriptionFromPolicies(final ApiEntity api) {
         if (api.getPaths() != null) {
-            api.getPaths().forEach((s, path) -> {
-                if (path.getRules() != null) {
-                    path.getRules().forEach(rule -> rule.setDescription(""));
-                }
-            });
+            api
+                .getPaths()
+                .forEach(
+                    (s, path) -> {
+                        if (path.getRules() != null) {
+                            path.getRules().forEach(rule -> rule.setDescription(""));
+                        }
+                    }
+                );
         }
-
     }
 
     @Override
@@ -1245,13 +1366,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         LOGGER.debug("Rollback API : {}", apiId);
         try {
             // Audit
-            auditService.createApiAuditLog(
-                apiId,
-                Collections.emptyMap(),
-                API_ROLLBACKED,
-                new Date(),
-                null,
-                null);
+            auditService.createApiAuditLog(apiId, Collections.emptyMap(), API_ROLLBACKED, new Date(), null, null);
 
             return update(apiId, api);
         } catch (Exception ex) {
@@ -1299,8 +1414,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         query.setApi(apiId);
         query.setTypes(singleton(PUBLISH_API));
 
-        final Optional<EventEntity> optEvent =
-            eventService.search(query).stream().max(comparing(EventEntity::getCreatedAt));
+        final Optional<EventEntity> optEvent = eventService.search(query).stream().max(comparing(EventEntity::getCreatedAt));
         try {
             if (optEvent.isPresent()) {
                 EventEntity event = optEvent.get();
@@ -1380,10 +1494,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
         }
 
-        List<PageEntity> search = pageService
-            .search(new PageQuery.Builder().api(createdApiEntity.getId())
+        List<PageEntity> search = pageService.search(
+            new PageQuery.Builder()
+                .api(createdApiEntity.getId())
                 .name(SystemFolderType.ASIDE.folderName())
-                .type(PageType.SYSTEM_FOLDER).build());
+                .type(PageType.SYSTEM_FOLDER)
+                .build()
+        );
         if (search.isEmpty()) {
             createSystemFolder(createdApiEntity.getId());
         }
@@ -1455,7 +1572,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void updateApiReferences(ApiEntity createdOrUpdatedApiEntity, JsonNode jsonNode) throws JsonProcessingException {
-
         // Members
         final JsonNode membersToImport = jsonNode.path("members");
         if (membersToImport != null && membersToImport.isArray()) {
@@ -1463,22 +1579,30 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Set<MemberToImport> membersAlreadyPresent = membershipService
                 .getMembersByReference(MembershipReferenceType.API, createdOrUpdatedApiEntity.getId())
                 .stream()
-                .map(member -> {
-                    UserEntity userEntity = userService.findById(member.getId());
-                    return new MemberToImport(userEntity.getSource(), userEntity.getSourceId(), member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()), null);
-                }).collect(toSet());
+                .map(
+                    member -> {
+                        UserEntity userEntity = userService.findById(member.getId());
+                        return new MemberToImport(
+                            userEntity.getSource(),
+                            userEntity.getSourceId(),
+                            member.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()),
+                            null
+                        );
+                    }
+                )
+                .collect(toSet());
             // get the current PO
             Optional<RoleEntity> optPoRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
             if (optPoRole.isPresent()) {
                 String poRoleId = optPoRole.get().getId();
-                MemberToImport currentPo = membersAlreadyPresent.stream()
+                MemberToImport currentPo = membersAlreadyPresent
+                    .stream()
                     .filter(memberToImport -> memberToImport.getRoles().contains(poRoleId))
                     .findFirst()
                     .orElse(new MemberToImport());
 
                 List<String> roleUsedInTransfert = null;
                 MemberToImport futurePO = null;
-
 
                 // upsert members
                 for (final JsonNode memberNode : membersToImport) {
@@ -1500,44 +1624,66 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     if (rolesToImport != null) {
                         rolesToImport.sort(Comparator.naturalOrder());
                     }
-                    boolean presentWithSameRole = memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && membersAlreadyPresent
-                        .stream()
-                        .anyMatch(m -> {
-                            m.getRoles().sort(Comparator.naturalOrder());
-                            return
-                                m.getRoles().equals(memberToImport.getRoles())
-                                    && (m.getSourceId().equals(memberToImport.getSourceId())
-                                    && m.getSource().equals(memberToImport.getSource()));
-                        });
+                    boolean presentWithSameRole =
+                        memberToImport.getRoles() != null &&
+                        !memberToImport.getRoles().isEmpty() &&
+                        membersAlreadyPresent
+                            .stream()
+                            .anyMatch(
+                                m -> {
+                                    m.getRoles().sort(Comparator.naturalOrder());
+                                    return (
+                                        m.getRoles().equals(memberToImport.getRoles()) &&
+                                        (
+                                            m.getSourceId().equals(memberToImport.getSourceId()) &&
+                                            m.getSource().equals(memberToImport.getSource())
+                                        )
+                                    );
+                                }
+                            );
 
                     // add/update members if :
                     //  - not already present with the same role
                     //  - not the new PO
                     //  - not the current PO
-                    if (!presentWithSameRole
-                        && (memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && !memberToImport.getRoles().contains(poRoleId))
-                        && !(memberToImport.getSourceId().equals(currentPo.getSourceId())
-                        && memberToImport.getSource().equals(currentPo.getSource()))) {
+                    if (
+                        !presentWithSameRole &&
+                        (
+                            memberToImport.getRoles() != null &&
+                            !memberToImport.getRoles().isEmpty() &&
+                            !memberToImport.getRoles().contains(poRoleId)
+                        ) &&
+                        !(
+                            memberToImport.getSourceId().equals(currentPo.getSourceId()) &&
+                            memberToImport.getSource().equals(currentPo.getSource())
+                        )
+                    ) {
                         try {
-                            UserEntity userEntity = userService.findBySource(memberToImport.getSource(), memberToImport.getSourceId(), false);
-
-                            rolesToImport.forEach(role ->
-                                membershipService.addRoleToMemberOnReference(
-                                    MembershipReferenceType.API,
-                                    createdOrUpdatedApiEntity.getId(),
-                                    MembershipMemberType.USER,
-                                    userEntity.getId(),
-                                    role)
+                            UserEntity userEntity = userService.findBySource(
+                                memberToImport.getSource(),
+                                memberToImport.getSourceId(),
+                                false
                             );
-                        } catch (UserNotFoundException unfe) {
 
-                        }
+                            rolesToImport.forEach(
+                                role ->
+                                    membershipService.addRoleToMemberOnReference(
+                                        MembershipReferenceType.API,
+                                        createdOrUpdatedApiEntity.getId(),
+                                        MembershipMemberType.USER,
+                                        userEntity.getId(),
+                                        role
+                                    )
+                            );
+                        } catch (UserNotFoundException unfe) {}
                     }
 
                     // get the future role of the current PO
-                    if (currentPo.getSourceId().equals(memberToImport.getSourceId())
-                        && currentPo.getSource().equals(memberToImport.getSource())
-                        && !rolesToImport.contains(poRoleId)) {
+                    if (
+                        currentPo.getSourceId().equals(memberToImport.getSourceId()) &&
+                        currentPo.getSource().equals(memberToImport.getSource()) &&
+                        !rolesToImport.contains(poRoleId)
+                    ) {
                         roleUsedInTransfert = rolesToImport;
                     }
 
@@ -1547,9 +1693,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 // transfer the ownership
-                if (futurePO != null
-                    && !(currentPo.getSource().equals(futurePO.getSource())
-                    && currentPo.getSourceId().equals(futurePO.getSourceId()))) {
+                if (
+                    futurePO != null &&
+                    !(currentPo.getSource().equals(futurePO.getSource()) && currentPo.getSourceId().equals(futurePO.getSourceId()))
+                ) {
                     try {
                         UserEntity userEntity = userService.findBySource(futurePO.getSource(), futurePO.getSourceId(), false);
                         List<RoleEntity> roleEntity = null;
@@ -1559,10 +1706,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         membershipService.transferApiOwnership(
                             createdOrUpdatedApiEntity.getId(),
                             new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
-                            roleEntity);
-                    } catch (UserNotFoundException unfe) {
-
-                    }
+                            roleEntity
+                        );
+                    } catch (UserNotFoundException unfe) {}
                 }
             }
         }
@@ -1570,8 +1716,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         //Pages
         final JsonNode pagesDefinition = jsonNode.path("pages");
         if (pagesDefinition != null && pagesDefinition.isArray()) {
-            List<PageEntity> pagesList = objectMapper.readValue(pagesDefinition.toString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class));
+            List<PageEntity> pagesList = objectMapper.readValue(
+                pagesDefinition.toString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
+            );
             PageEntityTreeNode documentationTree = new PageEntityTreeNode(new PageEntity());
             documentationTree.appendListToTree(pagesList);
             createOrUpdateChildrenPages(createdOrUpdatedApiEntity.getId(), null, documentationTree.children);
@@ -1581,12 +1729,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final JsonNode plansDefinition = jsonNode.path("plans");
         if (plansDefinition != null && plansDefinition.isArray()) {
             for (JsonNode planNode : plansDefinition) {
-                PlanQuery query = new PlanQuery.Builder().
-                    api(createdOrUpdatedApiEntity.getId()).
-                    name(planNode.get("name").asText()).
-                    security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase())).
-                    build();
-                List<PlanEntity> planEntities = planService.search(query).stream()
+                PlanQuery query = new PlanQuery.Builder()
+                    .api(createdOrUpdatedApiEntity.getId())
+                    .name(planNode.get("name").asText())
+                    .security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase()))
+                    .build();
+                List<PlanEntity> planEntities = planService
+                    .search(query)
+                    .stream()
                     .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
                     .collect(toList());
                 if (planEntities.isEmpty()) {
@@ -1598,8 +1748,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     updatePlanEntity.setId(planEntities.iterator().next().getId());
                     planService.update(updatePlanEntity);
                 } else {
-                    LOGGER.error("Not able to identify the plan to update: {}. Too much plan with the same name", planNode.get("name").asText());
-                    throw new TechnicalManagementException("Not able to identify the plan to update: " + planNode.get("name").asText() + ". Too much plan with the same name");
+                    LOGGER.error(
+                        "Not able to identify the plan to update: {}. Too much plan with the same name",
+                        planNode.get("name").asText()
+                    );
+                    throw new TechnicalManagementException(
+                        "Not able to identify the plan to update: " + planNode.get("name").asText() + ". Too much plan with the same name"
+                    );
                 }
             }
         }
@@ -1608,7 +1763,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (metadataDefinition != null && metadataDefinition.isArray()) {
             try {
                 for (JsonNode metadataNode : metadataDefinition) {
-                    UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(metadataNode.toString(), UpdateApiMetadataEntity.class);
+                    UpdateApiMetadataEntity updateApiMetadataEntity = objectMapper.readValue(
+                        metadataNode.toString(),
+                        UpdateApiMetadataEntity.class
+                    );
                     updateApiMetadataEntity.setApiId(createdOrUpdatedApiEntity.getId());
                     apiMetadataService.update(updateApiMetadataEntity);
                 }
@@ -1621,7 +1779,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
         if (apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
-            UrlSanitizerUtils.checkAllowed(apiDefinitionOrURL, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
+            UrlSanitizerUtils.checkAllowed(
+                apiDefinitionOrURL,
+                importConfiguration.getImportWhitelist(),
+                importConfiguration.isAllowImportFromPrivate()
+            );
             Buffer buffer = httpClientService.request(HttpMethod.GET, apiDefinitionOrURL, null, null, null);
             return buffer.toString();
         }
@@ -1739,11 +1901,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void deleteCategoryFromAPIs(final String categoryId) {
-        findAll().forEach(api -> {
-            if (api.getCategories() != null && api.getCategories().contains(categoryId)) {
-                removeCategory(api.getId(), categoryId);
-            }
-        });
+        findAll()
+            .forEach(
+                api -> {
+                    if (api.getCategories() != null && api.getCategories().contains(categoryId)) {
+                        removeCategory(api.getId(), categoryId);
+                    }
+                }
+            );
     }
 
     private void removeCategory(String apiId, String categoryId) throws TechnicalManagementException {
@@ -1756,13 +1921,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.setUpdatedAt(new Date());
                 apiRepository.update(api);
                 // Audit
-                auditService.createApiAuditLog(
-                    apiId,
-                    Collections.emptyMap(),
-                    API_UPDATED,
-                    api.getUpdatedAt(),
-                    previousApi,
-                    api);
+                auditService.createApiAuditLog(apiId, Collections.emptyMap(), API_UPDATED, api.getUpdatedAt(), previousApi, api);
             } else {
                 throw new ApiNotFoundException(apiId);
             }
@@ -1774,11 +1933,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void deleteTagFromAPIs(final String tagId) {
-        findAll().forEach(api -> {
-            if (api.getTags() != null && api.getTags().contains(tagId)) {
-                removeTag(api.getId(), tagId);
-            }
-        });
+        findAll()
+            .forEach(
+                api -> {
+                    if (api.getTags() != null && api.getTags().contains(tagId)) {
+                        removeTag(api.getId(), tagId);
+                    }
+                }
+            );
     }
 
     @Override
@@ -1812,13 +1974,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         if (metadataList != null) {
             final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
-            metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(),
-                metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue()));
+            metadataList.forEach(
+                metadata ->
+                    mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
+            );
             apiModelEntity.setMetadata(mapMetadata);
             if (decodeTemplate) {
                 try {
-                    Template apiMetadataTemplate = new Template(apiModelEntity.getId(), new StringReader(mapMetadata.toString()), freemarkerConfiguration);
-                    String decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(apiMetadataTemplate, Collections.singletonMap("api", apiModelEntity));
+                    Template apiMetadataTemplate = new Template(
+                        apiModelEntity.getId(),
+                        new StringReader(mapMetadata.toString()),
+                        freemarkerConfiguration
+                    );
+                    String decodedValue = FreeMarkerTemplateUtils.processTemplateIntoString(
+                        apiMetadataTemplate,
+                        Collections.singletonMap("api", apiModelEntity)
+                    );
                     Map<String, String> metadataDecoded = Arrays
                         .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
                         .map(entry -> entry.split("="))
@@ -1859,8 +2030,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     public Collection<ApiEntity> search(final ApiQuery query) {
         try {
             LOGGER.debug("Search APIs by {}", query);
-            return filterApiByQuery(this.convert(apiRepository.search(queryToCriteria(query).build())).stream(), query)
-                .collect(toList());
+            return filterApiByQuery(this.convert(apiRepository.search(queryToCriteria(query).build())).stream(), query).collect(toList());
         } catch (TechnicalException ex) {
             final String errorMessage = "An error occurs while trying to search for APIs: " + query;
             LOGGER.error(errorMessage, ex);
@@ -1882,10 +2052,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public Collection<ApiEntity> search(String query, Map<String, Object> filters) {
-        Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class)
-            .setQuery(query)
-            .setFilters(filters)
-            .build();
+        Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class).setQuery(query).setFilters(filters).build();
 
         SearchResult matchApis = searchEngineService.search(apiQuery);
         return matchApis.getDocuments().stream().map(this::findById).collect(toList());
@@ -1897,18 +2064,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiModelEntity apiEntity = this.findByIdForTemplates(apiId);
         Map<String, Object> model = new HashMap<>();
         model.put("api", apiEntity);
-        entities.forEach(entity -> {
-            if (entity.getValue().contains("${")) {
-                try {
-                    Template template = new Template(entity.getId() + entity.getUpdatedAt().toString(), entity.getValue(), freemarkerConfiguration);
-                    entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));
-                } catch (IOException | TemplateException e) {
-                    LOGGER.error("Unable to apply templating on api headers ", e);
-                    throw new TechnicalManagementException("Unable to apply templating on api headers", e);
+        entities.forEach(
+            entity -> {
+                if (entity.getValue().contains("${")) {
+                    try {
+                        Template template = new Template(
+                            entity.getId() + entity.getUpdatedAt().toString(),
+                            entity.getValue(),
+                            freemarkerConfiguration
+                        );
+                        entity.setValue(FreeMarkerTemplateUtils.processTemplateIntoString(template, model));
+                    } catch (IOException | TemplateException e) {
+                        LOGGER.error("Unable to apply templating on api headers ", e);
+                        throw new TechnicalManagementException("Unable to apply templating on api headers", e);
+                    }
                 }
             }
-        });
-        return entities.stream()
+        );
+        return entities
+            .stream()
             .filter(apiHeaderEntity -> apiHeaderEntity.getValue() != null && !apiHeaderEntity.getValue().isEmpty())
             .collect(Collectors.toList());
     }
@@ -1928,7 +2102,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity rejectReview(final String apiId, final String userId, final ReviewEntity reviewEntity) {
         LOGGER.debug("Reject review API {}", apiId);
-        return updateWorkflowReview(apiId, userId, ApiHook.REQUEST_FOR_CHANGES, WorkflowState.REQUEST_FOR_CHANGES, reviewEntity.getMessage());
+        return updateWorkflowReview(
+            apiId,
+            userId,
+            ApiHook.REQUEST_FOR_CHANGES,
+            WorkflowState.REQUEST_FOR_CHANGES,
+            reviewEntity.getMessage()
+        );
     }
 
     @Override
@@ -1951,17 +2131,27 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ApiEntity duplicatedApi = create0(newApiEntity, getAuthenticatedUsername(), false);
 
         if (!duplicateApiEntity.getFilteredFields().contains("members")) {
-            final Set<MembershipEntity> membershipsToDuplicate =
-                membershipService.getMembershipsByReference(io.gravitee.rest.api.model.MembershipReferenceType.API, apiId);
+            final Set<MembershipEntity> membershipsToDuplicate = membershipService.getMembershipsByReference(
+                io.gravitee.rest.api.model.MembershipReferenceType.API,
+                apiId
+            );
             Optional<RoleEntity> optPrimaryOwnerRole = roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name());
             if (optPrimaryOwnerRole.isPresent()) {
                 String primaryOwnerRoleId = optPrimaryOwnerRole.get().getId();
-                membershipsToDuplicate.forEach(membership -> {
-                    String roleId = membership.getRoleId();
-                    if (!primaryOwnerRoleId.equals(roleId)) {
-                        membershipService.addRoleToMemberOnReference(io.gravitee.rest.api.model.MembershipReferenceType.API, duplicatedApi.getId(), membership.getMemberType(), membership.getMemberId(), roleId);
+                membershipsToDuplicate.forEach(
+                    membership -> {
+                        String roleId = membership.getRoleId();
+                        if (!primaryOwnerRoleId.equals(roleId)) {
+                            membershipService.addRoleToMemberOnReference(
+                                io.gravitee.rest.api.model.MembershipReferenceType.API,
+                                duplicatedApi.getId(),
+                                membership.getMemberType(),
+                                membership.getMemberId(),
+                                roleId
+                            );
+                        }
                     }
-                });
+                );
             }
         }
 
@@ -2001,17 +2191,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return updateApiEntity;
     }
 
-    private ApiEntity updateWorkflowReview(final String apiId, final String userId, final ApiHook hook,
-                                           final WorkflowState workflowState, final String workflowMessage) {
+    private ApiEntity updateWorkflowReview(
+        final String apiId,
+        final String userId,
+        final ApiHook hook,
+        final WorkflowState workflowState,
+        final String workflowMessage
+    ) {
         Workflow workflow = workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
         final ApiEntity apiEntity = findById(apiId);
         apiEntity.setWorkflowState(workflowState);
 
-        notifierService.trigger(hook, apiId,
-            new NotificationParamsBuilder()
-                .api(apiEntity)
-                .user(userService.findById(userId))
-                .build());
+        notifierService.trigger(hook, apiId, new NotificationParamsBuilder().api(apiEntity).user(userService.findById(userId)).build());
 
         Map<Audit.AuditProperties, String> properties = new HashMap<>();
         properties.put(Audit.AuditProperties.USER, userId);
@@ -2030,13 +2221,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 break;
         }
 
-        auditService.createApiAuditLog(
-                apiId,
-                properties,
-                evtType,
-                new Date(),
-                null,
-                workflow);
+        auditService.createApiAuditLog(apiId, properties, evtType, new Date(), null, workflow);
         return apiEntity;
     }
 
@@ -2045,9 +2230,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (query == null) {
             return builder;
         }
-        builder.label(query.getLabel())
-            .name(query.getName())
-            .version(query.getVersion());
+        builder.label(query.getLabel()).name(query.getName()).version(query.getVersion());
 
         if (!isBlank(query.getCategory())) {
             builder.category(categoryService.findById(query.getCategory()).getId());
@@ -2062,9 +2245,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             builder.visibility(Visibility.valueOf(query.getVisibility().name()));
         }
         if (query.getLifecycleStates() != null) {
-            builder.lifecycleStates(query.getLifecycleStates().stream()
-                .map(apiLifecycleState -> ApiLifecycleState.valueOf(apiLifecycleState.name()))
-                .collect(toList()));
+            builder.lifecycleStates(
+                query
+                    .getLifecycleStates()
+                    .stream()
+                    .map(apiLifecycleState -> ApiLifecycleState.valueOf(apiLifecycleState.name()))
+                    .collect(toList())
+            );
         }
 
         return builder;
@@ -2090,13 +2277,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setLifecycleState(lifecycleState);
             ApiEntity apiEntity = convert(apiRepository.update(api), getPrimaryOwner(api), null);
             // Audit
-            auditService.createApiAuditLog(
-                apiId,
-                Collections.emptyMap(),
-                API_UPDATED,
-                api.getUpdatedAt(),
-                previousApi,
-                api);
+            auditService.createApiAuditLog(apiId, Collections.emptyMap(), API_UPDATED, api.getUpdatedAt(), previousApi, api);
 
             EventType eventType = null;
             switch (lifecycleState) {
@@ -2122,26 +2303,43 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private void auditApiLogging(Api apiToUpdate, Api apiUpdated) {
         try {
             // get old logging configuration
-            io.gravitee.definition.model.Api apiToUpdateDefinition = objectMapper.readValue(apiToUpdate.getDefinition(), io.gravitee.definition.model.Api.class);
+            io.gravitee.definition.model.Api apiToUpdateDefinition = objectMapper.readValue(
+                apiToUpdate.getDefinition(),
+                io.gravitee.definition.model.Api.class
+            );
             Logging loggingToUpdate = apiToUpdateDefinition.getProxy().getLogging();
 
             // get new logging configuration
-            io.gravitee.definition.model.Api apiUpdatedDefinition = objectMapper.readValue(apiUpdated.getDefinition(), io.gravitee.definition.model.Api.class);
+            io.gravitee.definition.model.Api apiUpdatedDefinition = objectMapper.readValue(
+                apiUpdated.getDefinition(),
+                io.gravitee.definition.model.Api.class
+            );
             Logging loggingUpdated = apiUpdatedDefinition.getProxy().getLogging();
 
             // no changes for logging configuration, continue
-            if (loggingToUpdate == loggingUpdated ||
-                (loggingToUpdate != null && loggingUpdated != null
-                    && Objects.equals(loggingToUpdate.getMode(), loggingUpdated.getMode())
-                    && Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition()))) {
+            if (
+                loggingToUpdate == loggingUpdated ||
+                (
+                    loggingToUpdate != null &&
+                    loggingUpdated != null &&
+                    Objects.equals(loggingToUpdate.getMode(), loggingUpdated.getMode()) &&
+                    Objects.equals(loggingToUpdate.getCondition(), loggingUpdated.getCondition())
+                )
+            ) {
                 return;
             }
 
             // determine the audit event type
             Api.AuditEvent auditEvent;
-            if ((loggingToUpdate == null || loggingToUpdate.getMode().equals(LoggingMode.NONE)) && (!loggingUpdated.getMode().equals(LoggingMode.NONE))) {
+            if (
+                (loggingToUpdate == null || loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
+                (!loggingUpdated.getMode().equals(LoggingMode.NONE))
+            ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_ENABLED;
-            } else if ((loggingToUpdate != null && !loggingToUpdate.getMode().equals(LoggingMode.NONE)) && (loggingUpdated.getMode().equals(LoggingMode.NONE))) {
+            } else if (
+                (loggingToUpdate != null && !loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
+                (loggingUpdated.getMode().equals(LoggingMode.NONE))
+            ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_DISABLED;
             } else {
                 auditEvent = Api.AuditEvent.API_LOGGING_UPDATED;
@@ -2154,10 +2352,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 auditEvent,
                 new Date(),
                 loggingToUpdate,
-                loggingUpdated);
+                loggingUpdated
+            );
         } catch (Exception ex) {
             LOGGER.error("An error occurs while auditing API logging configuration for API: {}", apiUpdated.getId(), ex);
-            throw new TechnicalManagementException("An error occurs while auditing API logging configuration for API: " + apiUpdated.getId(), ex);
+            throw new TechnicalManagementException(
+                "An error occurs while auditing API logging configuration for API: " + apiUpdated.getId(),
+                ex
+            );
         }
     }
 
@@ -2172,7 +2374,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         //find primary owners usernames of each apis
         final List<String> apiIds = apis.stream().map(Api::getId).collect(toList());
 
-        Set<MemberEntity> memberships = membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, apiIds, optPrimaryOwnerRole.get().getId());
+        Set<MemberEntity> memberships = membershipService.getMembersByReferencesAndRole(
+            MembershipReferenceType.API,
+            apiIds,
+            optPrimaryOwnerRole.get().getId()
+        );
         int poMissing = apis.size() - memberships.size();
         Stream<Api> streamApis = apis.stream();
         if (poMissing > 0) {
@@ -2192,7 +2398,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         memberships.forEach(membership -> apiToUser.put(membership.getReferenceId(), membership.getId()));
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
-        userService.findByIds(memberships.stream().map(MemberEntity::getId).collect(toList()))
+        userService
+            .findByIds(memberships.stream().map(MemberEntity::getId).collect(toList()))
             .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         final List<CategoryEntity> categories = categoryService.findAll();
@@ -2217,8 +2424,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         if (api.getDefinition() != null) {
             try {
-                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(api.getDefinition(),
-                    io.gravitee.definition.model.Api.class);
+                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                    api.getDefinition(),
+                    io.gravitee.definition.model.Api.class
+                );
 
                 apiEntity.setProxy(apiDefinition.getProxy());
                 apiEntity.setPaths(apiDefinition.getPaths());
@@ -2228,8 +2437,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiEntity.setTags(apiDefinition.getTags());
 
                 // Issue https://github.com/gravitee-io/issues/issues/3356
-                if (apiDefinition.getProxy().getVirtualHosts() != null &&
-                    !apiDefinition.getProxy().getVirtualHosts().isEmpty()) {
+                if (apiDefinition.getProxy().getVirtualHosts() != null && !apiDefinition.getProxy().getVirtualHosts().isEmpty()) {
                     apiEntity.setContextPath(apiDefinition.getProxy().getVirtualHosts().get(0).getPath());
                 }
 
@@ -2302,8 +2510,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final List<CategoryEntity> categories = categoryService.findAll();
             final Set<String> newApiCategories = new HashSet<>(apiCategories.size());
             for (final String apiCategory : apiCategories) {
-                final Optional<CategoryEntity> optionalCategory =
-                    categories.stream().filter(c -> apiCategory.equals(c.getKey()) || apiCategory.equals(c.getId())).findAny();
+                final Optional<CategoryEntity> optionalCategory = categories
+                    .stream()
+                    .filter(c -> apiCategory.equals(c.getKey()) || apiCategory.equals(c.getId()))
+                    .findAny();
                 optionalCategory.ifPresent(category -> newApiCategories.add(category.getId()));
             }
             api.setCategories(newApiCategories);
@@ -2325,8 +2535,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             apiDefinition.setPaths(updateApiEntity.getPaths());
             if (updateApiEntity.getPathMappings() != null) {
-                apiDefinition.setPathMappings(updateApiEntity.getPathMappings().stream()
-                    .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile(""))));
+                apiDefinition.setPathMappings(
+                    updateApiEntity
+                        .getPathMappings()
+                        .stream()
+                        .collect(toMap(pathMapping -> pathMapping, pathMapping -> Pattern.compile("")))
+                );
             }
 
             apiDefinition.setServices(updateApiEntity.getServices());
@@ -2365,13 +2579,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private static class MemberToImport {
+
         private String source;
         private String sourceId;
         private List<String> roles; // After v3
         private String role; // Before v3
 
-        public MemberToImport() {
-        }
+        public MemberToImport() {}
 
         public MemberToImport(String source, String sourceId, List<String> roles, String role) {
             this.source = source;

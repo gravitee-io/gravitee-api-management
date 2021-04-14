@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.TENANT;
+import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_CREATED;
+import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_DELETED;
+import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_UPDATED;
+
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TenantRepository;
@@ -27,19 +32,12 @@ import io.gravitee.rest.api.service.TenantService;
 import io.gravitee.rest.api.service.exceptions.DuplicateTenantNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TenantNotFoundException;
-
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.TENANT;
-import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_CREATED;
-import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_DELETED;
-import static io.gravitee.repository.management.model.Tenant.AuditEvent.TENANT_UPDATED;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,7 +60,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
             LOGGER.debug("Find tenant by ID: {}", tenantId);
             Optional<Tenant> optTenant = tenantRepository.findById(tenantId);
 
-            if (! optTenant.isPresent()) {
+            if (!optTenant.isPresent()) {
                 throw new TenantNotFoundException(tenantId);
             }
 
@@ -77,9 +75,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     public List<TenantEntity> findAll() {
         try {
             LOGGER.debug("Find all tenants");
-            return tenantRepository.findAll()
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
+            return tenantRepository.findAll().stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all tenants", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all tenants", ex);
@@ -89,58 +85,60 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     @Override
     public List<TenantEntity> create(final List<NewTenantEntity> tenantEntities) {
         // First we prevent the duplicate tenant name
-        final List<String> tenantNames = tenantEntities.stream()
-                .map(NewTenantEntity::getName)
-                .collect(Collectors.toList());
+        final List<String> tenantNames = tenantEntities.stream().map(NewTenantEntity::getName).collect(Collectors.toList());
 
-        final Optional<TenantEntity> optionalTenant = findAll().stream()
-                .filter(tenant -> tenantNames.contains(tenant.getName()))
-                .findAny();
+        final Optional<TenantEntity> optionalTenant = findAll().stream().filter(tenant -> tenantNames.contains(tenant.getName())).findAny();
 
         if (optionalTenant.isPresent()) {
             throw new DuplicateTenantNameException(optionalTenant.get().getName());
         }
 
         final List<TenantEntity> savedTenants = new ArrayList<>(tenantEntities.size());
-        tenantEntities.forEach(tenantEntity -> {
-            try {
-                Tenant tenant = convert(tenantEntity);
-                savedTenants.add(convert(tenantRepository.create(tenant)));
-                auditService.createPortalAuditLog(
+        tenantEntities.forEach(
+            tenantEntity -> {
+                try {
+                    Tenant tenant = convert(tenantEntity);
+                    savedTenants.add(convert(tenantRepository.create(tenant)));
+                    auditService.createPortalAuditLog(
                         Collections.singletonMap(TENANT, tenant.getId()),
                         TENANT_CREATED,
                         new Date(),
                         null,
-                        tenant);
-            } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to create tenant {}", tenantEntity.getName(), ex);
-                throw new TechnicalManagementException("An error occurs while trying to create tenant " + tenantEntity.getName(), ex);
+                        tenant
+                    );
+                } catch (TechnicalException ex) {
+                    LOGGER.error("An error occurs while trying to create tenant {}", tenantEntity.getName(), ex);
+                    throw new TechnicalManagementException("An error occurs while trying to create tenant " + tenantEntity.getName(), ex);
+                }
             }
-        });
+        );
         return savedTenants;
     }
 
     @Override
     public List<TenantEntity> update(final List<UpdateTenantEntity> tenantEntities) {
         final List<TenantEntity> savedTenants = new ArrayList<>(tenantEntities.size());
-        tenantEntities.forEach(tenantEntity -> {
-            try {
-                Tenant tenant = convert(tenantEntity);
-                Optional<Tenant> tenantOptional = tenantRepository.findById(tenant.getId());
-                if (tenantOptional.isPresent()) {
-                    savedTenants.add(convert(tenantRepository.update(tenant)));
-                    auditService.createPortalAuditLog(
+        tenantEntities.forEach(
+            tenantEntity -> {
+                try {
+                    Tenant tenant = convert(tenantEntity);
+                    Optional<Tenant> tenantOptional = tenantRepository.findById(tenant.getId());
+                    if (tenantOptional.isPresent()) {
+                        savedTenants.add(convert(tenantRepository.update(tenant)));
+                        auditService.createPortalAuditLog(
                             Collections.singletonMap(TENANT, tenant.getId()),
                             TENANT_UPDATED,
                             new Date(),
                             tenantOptional.get(),
-                            tenant);
+                            tenant
+                        );
+                    }
+                } catch (TechnicalException ex) {
+                    LOGGER.error("An error occurs while trying to update tenant {}", tenantEntity.getName(), ex);
+                    throw new TechnicalManagementException("An error occurs while trying to update tenant " + tenantEntity.getName(), ex);
                 }
-            } catch (TechnicalException ex) {
-                LOGGER.error("An error occurs while trying to update tenant {}", tenantEntity.getName(), ex);
-                throw new TechnicalManagementException("An error occurs while trying to update tenant " + tenantEntity.getName(), ex);
             }
-        });
+        );
         return savedTenants;
     }
 
@@ -151,11 +149,12 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
             if (tenantOptional.isPresent()) {
                 tenantRepository.delete(tenantId);
                 auditService.createPortalAuditLog(
-                        Collections.singletonMap(TENANT, tenantId),
-                        TENANT_DELETED,
-                        new Date(),
-                        null,
-                        tenantOptional.get());
+                    Collections.singletonMap(TENANT, tenantId),
+                    TENANT_DELETED,
+                    new Date(),
+                    null,
+                    tenantOptional.get()
+                );
                 tenantRepository.delete(tenantId);
             }
         } catch (TechnicalException ex) {

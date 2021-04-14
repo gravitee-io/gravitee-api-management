@@ -22,5 +22,4 @@ import io.swagger.v3.oas.models.OpenAPI;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface OAIDescriptorVisitor<T> extends DescriptorVisitor<T, OpenAPI>, OAIVisitor {
-}
+public interface OAIDescriptorVisitor<T> extends DescriptorVisitor<T, OpenAPI>, OAIVisitor {}

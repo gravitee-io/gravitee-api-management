@@ -15,26 +15,25 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.impl.OrganizationServiceImpl;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -63,7 +62,7 @@ public class OrganizationService_CreateTest {
         org1.setDescription("org_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
         org1.setDomainRestrictions(domainRestrictions);
-        
+
         Organization createdOrganization = new Organization();
         createdOrganization.setId("org_id");
         when(mockOrganizationRepository.create(any())).thenReturn(createdOrganization);
@@ -72,12 +71,15 @@ public class OrganizationService_CreateTest {
 
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))
-            .create(argThat(arg -> 
-                arg != null 
-                && arg.getName().equals("org_name")
-                && arg.getDescription().equals("org_desc")
-                && arg.getDomainRestrictions().equals(domainRestrictions)
-            ));
+            .create(
+                argThat(
+                    arg ->
+                        arg != null &&
+                        arg.getName().equals("org_name") &&
+                        arg.getDescription().equals("org_desc") &&
+                        arg.getDomainRestrictions().equals(domainRestrictions)
+                )
+            );
         verify(mockOrganizationRepository, never()).update(any());
         verify(mockRoleService, times(1)).initialize("org_id");
         verify(mockRoleService, times(1)).createOrUpdateSystemRoles("org_id");
@@ -93,7 +95,7 @@ public class OrganizationService_CreateTest {
         org1.setDescription("org_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
         org1.setDomainRestrictions(domainRestrictions);
-        
+
         Organization createdOrganization = new Organization();
         when(mockOrganizationRepository.update(any())).thenReturn(createdOrganization);
 
@@ -101,12 +103,15 @@ public class OrganizationService_CreateTest {
 
         assertNotNull("result is null", organization);
         verify(mockOrganizationRepository, times(1))
-            .update(argThat(arg -> 
-                arg != null 
-                && arg.getName().equals("org_name")
-                && arg.getDescription().equals("org_desc")
-                && arg.getDomainRestrictions().equals(domainRestrictions)
-            ));
+            .update(
+                argThat(
+                    arg ->
+                        arg != null &&
+                        arg.getName().equals("org_name") &&
+                        arg.getDescription().equals("org_desc") &&
+                        arg.getDomainRestrictions().equals(domainRestrictions)
+                )
+            );
         verify(mockOrganizationRepository, never()).create(any());
         verify(mockRoleService, never()).initialize("org_id");
         verify(mockRoleService, never()).createOrUpdateSystemRoles("org_id");

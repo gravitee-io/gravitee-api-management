@@ -24,13 +24,12 @@ import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.DocExpansionEnum;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.ViewerEnum;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
-import org.springframework.stereotype.Component;
-
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -50,12 +49,12 @@ public class PageMapper {
 
         if (page.getMetadata() != null) {
             AtomicInteger counter = new AtomicInteger(0);
-            List<Metadata> metadataList = page.getMetadata().entrySet().stream()
-                    .map(e -> new Metadata()
-                            .name(e.getKey())
-                            .value(e.getValue())
-                            .order(Integer.toString(counter.getAndIncrement())))
-                    .collect(Collectors.toList());
+            List<Metadata> metadataList = page
+                .getMetadata()
+                .entrySet()
+                .stream()
+                .map(e -> new Metadata().name(e.getKey()).value(e.getValue()).order(Integer.toString(counter.getAndIncrement())))
+                .collect(Collectors.toList());
             pageItem.setMetadata(metadataList);
         }
         pageItem.setName(page.getName());
@@ -84,7 +83,7 @@ public class PageMapper {
         String tryItAnonymous = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS);
         String tryItURL = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL);
         String viewer = configuration.get(PageConfigurationKeys.SWAGGER_VIEWER);
-        
+
         if (displayOperationId != null) {
             pageConfiguration.setDisplayOperationId(Boolean.parseBoolean(displayOperationId));
         }

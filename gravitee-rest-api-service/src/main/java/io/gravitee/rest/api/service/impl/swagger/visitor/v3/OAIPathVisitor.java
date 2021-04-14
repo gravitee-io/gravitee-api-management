@@ -23,6 +23,4 @@ import io.swagger.v3.oas.models.PathItem;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface OAIPathVisitor<T> extends PathVisitor<T, OpenAPI, PathItem>, OAIVisitor {
-
-}
+public interface OAIPathVisitor<T> extends PathVisitor<T, OpenAPI, PathItem>, OAIVisitor {}

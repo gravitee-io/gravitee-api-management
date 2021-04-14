@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.security.authentication.impl;
 
-import java.util.Map;
-
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

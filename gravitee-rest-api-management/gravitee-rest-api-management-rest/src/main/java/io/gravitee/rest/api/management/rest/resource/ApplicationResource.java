@@ -32,23 +32,22 @@ import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.swagger.annotations.*;
-
+import java.io.ByteArrayOutputStream;
+import java.net.URI;
+import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.*;
-import java.io.ByteArrayOutputStream;
-import java.net.URI;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Applications"})
+@Api(tags = { "Applications" })
 public class ApplicationResource extends AbstractResource {
 
     @Context
@@ -69,54 +68,60 @@ public class ApplicationResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get an application",
-            notes = "User must have the READ permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Get an application", notes = "User must have the READ permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Application", response = ApplicationEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public ApplicationEntity getApplication() {
         return applicationService.findById(application);
     }
 
-
     @GET
     @Path("configuration")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get application type definition of an application",
-            notes = "User must have the READ permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Get application type definition of an application",
+        notes = "User must have the READ permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "ApplicationType", response = ApplicationType.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationType() {
         ApplicationEntity applicationEntity = applicationService.findById(application);
         ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(applicationEntity.getType());
-        return Response
-                .ok(applicationType)
-                .build();
+        return Response.ok(applicationType).build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update an application",
-            notes = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Update an application",
+        notes = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application."
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Updated application", response = ApplicationEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public ApplicationEntity updateApplication(
-            @Valid @NotNull(message = "An application must be provided") final UpdateApplicationEntity updatedApplication) {
+        @Valid @NotNull(message = "An application must be provided") final UpdateApplicationEntity updatedApplication
+    ) {
         // To preserve backward compatibility, ensure that we have at least default settings for simple application type
-        if (updatedApplication.getSettings() == null ||
-                (updatedApplication.getSettings().getoAuthClient() == null && updatedApplication.getSettings().getApp() == null)) {
+        if (
+            updatedApplication.getSettings() == null ||
+            (updatedApplication.getSettings().getoAuthClient() == null && updatedApplication.getSettings().getApp() == null)
+        ) {
             ApplicationSettings settings = new ApplicationSettings();
             SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();
             simpleAppSettings.setType(updatedApplication.getType());
@@ -129,14 +134,11 @@ public class ApplicationResource extends AbstractResource {
 
     @GET
     @Path("picture")
-    @ApiOperation(value = "Get the application's picture",
-            notes = "User must have the READ permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Application's picture"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-        @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ)
-    })
+    @ApiOperation(value = "Get the application's picture", notes = "User must have the READ permission to use this service")
+    @ApiResponses(
+        { @ApiResponse(code = 200, message = "Application's picture"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApplicationPicture(@Context Request request) throws ApplicationNotFoundException {
         PictureEntity picture = applicationService.getPicture(application);
 
@@ -160,46 +162,42 @@ public class ApplicationResource extends AbstractResource {
 
         if (builder != null) {
             // Preconditions are not met, returning HTTP 304 'not-modified'
-            return builder
-                    .cacheControl(cc)
-                    .build();
+            return builder.cacheControl(cc).build();
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return Response
-                .ok(baos)
-                .cacheControl(cc)
-                .tag(etag)
-                .type(image.getType())
-                .build();
+        return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
     }
 
     @POST
     @Path("/renew_secret")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Renew the client secret for an OAuth2 application",
-            notes = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application.")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Renew the client secret for an OAuth2 application",
+        notes = "User must have APPLICATION_DEFINITION[UPDATE] permission to update an application."
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Updated application", response = ApplicationEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public ApplicationEntity renewApplicationClientSecret() {
         return applicationService.renewClientSecret(application);
     }
 
     @DELETE
-    @ApiOperation(value = "Delete an application",
-            notes = "User must have the DELETE permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Delete an application", notes = "User must have the DELETE permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Application successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApplication() {
         applicationService.archive(application);
         return Response.noContent().build();
@@ -208,14 +206,17 @@ public class ApplicationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("notifiers")
-    @ApiOperation(value = "List available notifiers for application",
-            notes = "User must have the APPLICATION_NOTIFICATION[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "List available notifiers for application",
+        notes = "User must have the APPLICATION_NOTIFICATION[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "LList of notifiers", response = NotifierEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ) })
     public List<NotifierEntity> getApplicationNotifiers() {
         return notifierService.list(NotificationReferenceType.APPLICATION, application);
     }

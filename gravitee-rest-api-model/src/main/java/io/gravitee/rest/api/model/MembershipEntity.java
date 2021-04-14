@@ -22,6 +22,7 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 public class MembershipEntity {
+
     private String id;
 
     private String memberId;
@@ -114,11 +115,12 @@ public class MembershipEntity {
     public void setReferenceType(MembershipReferenceType referenceType) {
         this.referenceType = referenceType;
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MembershipEntity m = (MembershipEntity)o;
+        MembershipEntity m = (MembershipEntity) o;
         return Objects.equals(id, m.id);
     }
 
@@ -128,15 +130,31 @@ public class MembershipEntity {
     }
 
     public String toString() {
-        return "Membership{" +
-                "id='" + id + '\'' +
-                ", memberId='" + memberId + '\'' +
-                ", memberType='" + memberType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", role='" + roleId + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "Membership{" +
+            "id='" +
+            id +
+            '\'' +
+            ", memberId='" +
+            memberId +
+            '\'' +
+            ", memberType='" +
+            memberType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", role='" +
+            roleId +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

@@ -16,34 +16,34 @@
 package io.gravitee.rest.api.model.permissions;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum EnvironmentPermission implements Permission {
-    INSTANCE                        (   "INSTANCE",                     1000    ),
-    GROUP                           (   "GROUP",                        1200    ),
-    TAG                             (   "TAG",                          1300    ),
-    TENANT                          (   "TENANT",                       1400    ),
-    API                             (   "API",                          1500    ),
-    APPLICATION                     (   "APPLICATION",                  1700    ),
-    PLATFORM                        (   "PLATFORM",                     1800    ),
-    AUDIT                           (   "AUDIT",                        1900    ),
-    NOTIFICATION                    (   "NOTIFICATION",                 2000    ),
-    MESSAGE                         (   "MESSAGE",                      2200    ),
-    DICTIONARY                      (   "DICTIONARY",                   2300    ),
-    ALERT                           (   "ALERT",                        2400    ),
-    ENTRYPOINT                      (   "ENTRYPOINT",                   2500    ),
-    SETTINGS                        (   "SETTINGS",                     2600    ),
-    DASHBOARD                       (   "DASHBOARD",                    2700    ),
-    QUALITY_RULE                    (   "QUALITY_RULE",                 2800    ),
-    METADATA                        (   "METADATA",                     2900    ),
-    DOCUMENTATION                   (   "DOCUMENTATION",                3000    ),
-    CATEGORY                        (   "CATEGORY",                     3100    ),
-    TOP_APIS                        (   "TOP_APIS",                     3200    ),
-    API_HEADER                      (   "API_HEADER",                   3300    ),
-    IDENTITY_PROVIDER               (   "IDENTITY_PROVIDER",            3400    ),
-    CLIENT_REGISTRATION_PROVIDER    (   "CLIENT_REGISTRATION_PROVIDER", 3500    ),
-    THEME                           (   "THEME",                        3600    );
+    INSTANCE("INSTANCE", 1000),
+    GROUP("GROUP", 1200),
+    TAG("TAG", 1300),
+    TENANT("TENANT", 1400),
+    API("API", 1500),
+    APPLICATION("APPLICATION", 1700),
+    PLATFORM("PLATFORM", 1800),
+    AUDIT("AUDIT", 1900),
+    NOTIFICATION("NOTIFICATION", 2000),
+    MESSAGE("MESSAGE", 2200),
+    DICTIONARY("DICTIONARY", 2300),
+    ALERT("ALERT", 2400),
+    ENTRYPOINT("ENTRYPOINT", 2500),
+    SETTINGS("SETTINGS", 2600),
+    DASHBOARD("DASHBOARD", 2700),
+    QUALITY_RULE("QUALITY_RULE", 2800),
+    METADATA("METADATA", 2900),
+    DOCUMENTATION("DOCUMENTATION", 3000),
+    CATEGORY("CATEGORY", 3100),
+    TOP_APIS("TOP_APIS", 3200),
+    API_HEADER("API_HEADER", 3300),
+    IDENTITY_PROVIDER("IDENTITY_PROVIDER", 3400),
+    CLIENT_REGISTRATION_PROVIDER("CLIENT_REGISTRATION_PROVIDER", 3500),
+    THEME("THEME", 3600);
 
     String name;
     int mask;
@@ -62,5 +62,4 @@ public enum EnvironmentPermission implements Permission {
     public int getMask() {
         return mask;
     }
-
 }

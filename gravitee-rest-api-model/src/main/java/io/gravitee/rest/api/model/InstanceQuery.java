@@ -92,13 +92,15 @@ public class InstanceQuery {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         InstanceQuery that = (InstanceQuery) o;
-        return from == that.from &&
-                to == that.to &&
-                page == that.page &&
-                size == that.size &&
-                includeStopped == that.includeStopped &&
-                Objects.equals(types, that.types) &&
-                Objects.equals(properties, that.properties);
+        return (
+            from == that.from &&
+            to == that.to &&
+            page == that.page &&
+            size == that.size &&
+            includeStopped == that.includeStopped &&
+            Objects.equals(types, that.types) &&
+            Objects.equals(properties, that.properties)
+        );
     }
 
     @Override
@@ -108,14 +110,23 @@ public class InstanceQuery {
 
     @Override
     public String toString() {
-        return "InstanceQuery{" +
-                "types=" + types +
-                ", properties=" + properties +
-                ", from=" + from +
-                ", to=" + to +
-                ", page=" + page +
-                ", size=" + size +
-                ", includeStopped=" + includeStopped +
-                '}';
+        return (
+            "InstanceQuery{" +
+            "types=" +
+            types +
+            ", properties=" +
+            properties +
+            ", from=" +
+            from +
+            ", to=" +
+            to +
+            ", page=" +
+            page +
+            ", size=" +
+            size +
+            ", includeStopped=" +
+            includeStopped +
+            '}'
+        );
     }
 }

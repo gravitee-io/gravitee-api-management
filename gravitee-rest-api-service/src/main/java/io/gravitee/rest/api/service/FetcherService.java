@@ -15,10 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.Set;
-
 import io.gravitee.rest.api.model.FetcherEntity;
 import io.gravitee.rest.api.model.ResourceEntity;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,7 +25,6 @@ import io.gravitee.rest.api.model.ResourceEntity;
  * @author GraviteeSource Team
  */
 public interface FetcherService {
-
     Set<FetcherEntity> findAll();
     Set<FetcherEntity> findAll(boolean onlyFilesFetchers);
 

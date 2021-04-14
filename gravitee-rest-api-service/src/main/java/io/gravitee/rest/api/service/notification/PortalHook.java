@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.service.notification;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum PortalHook implements Hook {
-
     USER_REGISTERED("User Registered", "Triggered when an user is registered", "USER"),
     USER_CREATED("User Created", "Triggered when an user is created", "USER"),
     USER_FIRST_LOGIN("First Login", "Triggered when an user log in for the first time", "USER"),
@@ -69,6 +68,4 @@ public enum PortalHook implements Hook {
     public boolean isHidden() {
         return hidden;
     }
-
-
 }

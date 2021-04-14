@@ -49,8 +49,6 @@ public class ApiMetadataEntity extends ReferenceMetadataEntity {
 
     @Override
     public String toString() {
-        return "ApiMetadataEntity{" +
-                "apiId='" + apiId + '\'' +
-                "} " + super.toString();
+        return "ApiMetadataEntity{" + "apiId='" + apiId + '\'' + "} " + super.toString();
     }
 }

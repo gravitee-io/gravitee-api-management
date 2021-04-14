@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.portal.security;
 
+import io.gravitee.rest.api.portal.security.config.BasicSecurityConfigurerAdapter;
+import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
+import io.gravitee.rest.api.security.authentication.impl.AuthenticationProviderManagerImpl;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.MembershipService;
@@ -22,10 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.authentication.configuration.GlobalAuthenticationConfigurerAdapter;
-
-import io.gravitee.rest.api.portal.security.config.BasicSecurityConfigurerAdapter;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
-import io.gravitee.rest.api.security.authentication.impl.AuthenticationProviderManagerImpl;
 
 /**
  *

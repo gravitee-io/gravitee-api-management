@@ -23,15 +23,13 @@ import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -51,14 +49,16 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             if (notificationEntity.getHooks() == null || notificationEntity.getHooks().isEmpty()) {
                 portalNotificationConfigRepository.delete(convert(notificationEntity));
                 return getDefaultEmpty(
-                        notificationEntity.getUser(),
-                        NotificationReferenceType.valueOf(notificationEntity.getReferenceType()),
-                        notificationEntity.getReferenceId());
+                    notificationEntity.getUser(),
+                    NotificationReferenceType.valueOf(notificationEntity.getReferenceType()),
+                    notificationEntity.getReferenceId()
+                );
             } else {
                 Optional<PortalNotificationConfig> optionalConfig = portalNotificationConfigRepository.findById(
-                        notificationEntity.getUser(),
-                        NotificationReferenceType.valueOf(notificationEntity.getReferenceType()),
-                        notificationEntity.getReferenceId());
+                    notificationEntity.getUser(),
+                    NotificationReferenceType.valueOf(notificationEntity.getReferenceType()),
+                    notificationEntity.getReferenceId()
+                );
                 PortalNotificationConfig notificationConfig = convert(notificationEntity);
 
                 if (optionalConfig.isPresent()) {
@@ -73,21 +73,31 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             }
         } catch (TechnicalException te) {
             LOGGER.error("An error occurs while trying to save the notification settings {}", notificationEntity, te);
-            throw new TechnicalManagementException("An error occurs while trying to save the notification settings " + notificationEntity, te);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to save the notification settings " + notificationEntity,
+                te
+            );
         }
     }
 
     @Override
     public PortalNotificationConfigEntity findById(String user, NotificationReferenceType referenceType, String referenceId) {
         try {
-            Optional<PortalNotificationConfig> optionalConfig = portalNotificationConfigRepository.findById(user, referenceType, referenceId);
+            Optional<PortalNotificationConfig> optionalConfig = portalNotificationConfigRepository.findById(
+                user,
+                referenceType,
+                referenceId
+            );
             if (optionalConfig.isPresent()) {
                 return convert(optionalConfig.get());
             }
             return getDefaultEmpty(user, referenceType, referenceId);
         } catch (TechnicalException te) {
             LOGGER.error("An error occurs while trying to get the notification settings {}/{}/{}", user, referenceType, referenceId, te);
-            throw new TechnicalManagementException("An error occurs while trying to get the notification settings " + user + "/" + referenceType + "/" + referenceId, te);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to get the notification settings " + user + "/" + referenceType + "/" + referenceId,
+                te
+            );
         }
     }
 
@@ -106,8 +116,16 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
         try {
             portalNotificationConfigRepository.deleteReference(referenceType, referenceId);
         } catch (TechnicalException te) {
-            LOGGER.error("An error occurs while trying to delete notification settings for reference {} / {}", referenceType, referenceId, te);
-            throw new TechnicalManagementException("An error occurs while trying to delete notification settings for reference " + referenceType + " / " + referenceId, te);
+            LOGGER.error(
+                "An error occurs while trying to delete notification settings for reference {} / {}",
+                referenceType,
+                referenceId,
+                te
+            );
+            throw new TechnicalManagementException(
+                "An error occurs while trying to delete notification settings for reference " + referenceType + " / " + referenceId,
+                te
+            );
         }
     }
 

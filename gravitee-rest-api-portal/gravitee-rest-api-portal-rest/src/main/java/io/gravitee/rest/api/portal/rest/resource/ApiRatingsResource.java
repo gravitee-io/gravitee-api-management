@@ -17,20 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.*;
-import java.util.stream.Stream;
-
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.*;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.NewRatingEntity;
 import io.gravitee.rest.api.model.RatingEntity;
@@ -43,8 +29,19 @@ import io.gravitee.rest.api.portal.rest.model.RatingInput;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import java.util.*;
+import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -64,10 +61,12 @@ public class ApiRatingsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
-    public Response getApiRatingsByApiId(@PathParam("apiId") String apiId,
-                                         @BeanParam PaginationParam paginationParam,
-                                         @QueryParam("mine") Boolean mine,
-                                         @QueryParam("order") String order) {
+    public Response getApiRatingsByApiId(
+        @PathParam("apiId") String apiId,
+        @BeanParam PaginationParam paginationParam,
+        @QueryParam("mine") Boolean mine,
+        @QueryParam("order") String order
+    ) {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             List<Rating> ratings;
@@ -80,8 +79,9 @@ public class ApiRatingsResource extends AbstractResource {
                 }
             } else {
                 final List<RatingEntity> ratingEntities = ratingService.findByApi(apiId);
-                Stream<Rating> ratingStream = ratingEntities.stream()
-                        .map((RatingEntity ratingEntity) -> ratingMapper.convert(ratingEntity, uriInfo));
+                Stream<Rating> ratingStream = ratingEntities
+                    .stream()
+                    .map((RatingEntity ratingEntity) -> ratingMapper.convert(ratingEntity, uriInfo));
                 if (order != null) {
                     ratingStream = ratingStream.sorted(new RatingComparator(order));
                 }
@@ -96,9 +96,7 @@ public class ApiRatingsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE)
-    })
+    @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE) })
     public Response createApiRating(@PathParam("apiId") String apiId, @Valid RatingInput ratingInput) {
         if (ratingInput == null) {
             throw new BadRequestException("Input must not be null.");
@@ -112,10 +110,7 @@ public class ApiRatingsResource extends AbstractResource {
             rating.setRate(ratingInput.getValue().byteValue());
             RatingEntity createdRating = ratingService.create(rating);
 
-            return Response
-                    .status(Status.CREATED)
-                    .entity(ratingMapper.convert(createdRating, uriInfo))
-                    .build();
+            return Response.status(Status.CREATED).entity(ratingMapper.convert(createdRating, uriInfo)).build();
         }
         throw new ApiNotFoundException(apiId);
     }
@@ -148,7 +143,6 @@ public class ApiRatingsResource extends AbstractResource {
             return compare;
         }
 
-
         private int compare(Rating r1, Rating r2, String order) {
             int compare = 0;
             if (order.contains("value")) {
@@ -167,7 +161,5 @@ public class ApiRatingsResource extends AbstractResource {
             }
             return compare;
         }
-
-
     }
 }

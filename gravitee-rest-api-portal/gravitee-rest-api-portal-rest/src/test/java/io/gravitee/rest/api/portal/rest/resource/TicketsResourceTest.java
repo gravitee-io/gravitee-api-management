@@ -20,16 +20,14 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.portal.rest.model.TicketInput;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.portal.rest.model.TicketInput;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -41,14 +39,12 @@ public class TicketsResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "tickets";
     }
-    
+
     @Test
     public void shouldCreate() {
         resetAllMocks();
-        
-        TicketInput input = new TicketInput()
-                .subject("A")
-                .content("B");
+
+        TicketInput input = new TicketInput().subject("A").content("B");
         final Response response = target().request().post(Entity.json(input));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
 

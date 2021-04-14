@@ -22,7 +22,9 @@ import io.gravitee.rest.api.portal.rest.model.ApiInformation;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
@@ -30,9 +32,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -50,16 +49,20 @@ public class ApiInformationsResource extends AbstractResource {
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             List<ApiHeaderEntity> all = apiService.getPortalHeaders(apiId);
-            List<ApiInformation> information = all.stream().map(apiHeaderEntity -> {
-                ApiInformation ai = new ApiInformation();
-                ai.setName(apiHeaderEntity.getName());
-                ai.setValue(apiHeaderEntity.getValue());
-                return ai;
-            }).collect(Collectors.toList());
+            List<ApiInformation> information = all
+                .stream()
+                .map(
+                    apiHeaderEntity -> {
+                        ApiInformation ai = new ApiInformation();
+                        ai.setName(apiHeaderEntity.getName());
+                        ai.setValue(apiHeaderEntity.getValue());
+                        return ai;
+                    }
+                )
+                .collect(Collectors.toList());
 
             return Response.ok(information).build();
         }
         throw new ApiNotFoundException(apiId);
     }
-
 }

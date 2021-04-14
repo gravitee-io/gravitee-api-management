@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum ThemeCssType {
-
     COLOR("color"),
     LENGTH("length"),
     STRING("string"),
@@ -36,5 +35,4 @@ public enum ThemeCssType {
     public String getType() {
         return type;
     }
-
 }

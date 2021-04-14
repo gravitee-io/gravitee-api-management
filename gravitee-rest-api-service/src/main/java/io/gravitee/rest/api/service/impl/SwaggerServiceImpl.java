@@ -28,17 +28,16 @@ import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -63,14 +62,18 @@ public class SwaggerServiceImpl implements SwaggerService {
     public SwaggerApiEntity createAPI(ImportSwaggerDescriptorEntity swaggerDescriptor) {
         SwaggerDescriptor descriptor = parse(swaggerDescriptor.getPayload());
         if (descriptor != null) {
-            List<OAIOperationVisitor> visitors = policyOperationVisitorManager.getPolicyVisitors().stream()
-                    .filter(operationVisitor -> swaggerDescriptor.getWithPolicies() != null
-                            && swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId()))
-                    .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
-                    .collect(Collectors.toList());
+            List<OAIOperationVisitor> visitors = policyOperationVisitorManager
+                .getPolicyVisitors()
+                .stream()
+                .filter(
+                    operationVisitor ->
+                        swaggerDescriptor.getWithPolicies() != null &&
+                        swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId())
+                )
+                .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
+                .collect(Collectors.toList());
 
-            return new OAIToAPIConverter(visitors)
-                    .convert((OAIDescriptor) descriptor);
+            return new OAIToAPIConverter(visitors).convert((OAIDescriptor) descriptor);
         }
 
         throw new SwaggerDescriptorException();
@@ -86,7 +89,11 @@ public class SwaggerServiceImpl implements SwaggerService {
     @Override
     public SwaggerDescriptor parse(String content) {
         if (isUrl(content)) {
-            UrlSanitizerUtils.checkAllowed(content, importConfiguration.getImportWhitelist(), importConfiguration.isAllowImportFromPrivate());
+            UrlSanitizerUtils.checkAllowed(
+                content,
+                importConfiguration.getImportWhitelist(),
+                importConfiguration.isAllowImportFromPrivate()
+            );
         }
 
         OAIDescriptor oaiDescriptor = new OAIParser().parse(content);
@@ -98,7 +105,6 @@ public class SwaggerServiceImpl implements SwaggerService {
     }
 
     private boolean isUrl(String content) {
-
         try {
             new URL(content);
             return true;

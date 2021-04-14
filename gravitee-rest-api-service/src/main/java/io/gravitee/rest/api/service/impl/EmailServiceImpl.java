@@ -15,11 +15,25 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static java.lang.String.format;
+import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processTemplateIntoString;
+
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import io.gravitee.rest.api.service.EmailNotification;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.activation.MimetypesFileTypeMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -34,21 +48,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.activation.MimetypesFileTypeMap;
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static java.lang.String.format;
-import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.springframework.ui.freemarker.FreeMarkerTemplateUtils.processTemplateIntoString;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -61,29 +60,38 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
     @Autowired
     private JavaMailSender mailSender;
+
     @Autowired
     private Configuration freemarkerConfiguration;
+
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
+
     @Value("${email.subject:[Gravitee.io] %s}")
     private String subject;
+
     @Value("${email.enabled:false}")
     private boolean enabled;
+
     @Value("${email.from}")
     private String defaultFrom;
 
     public void sendEmailNotification(final EmailNotification emailNotification) {
         if (enabled && emailNotification.getTo() != null && emailNotification.getTo().length > 0) {
             try {
-                final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
+                final MimeMessageHelper mailMessage = new MimeMessageHelper(
+                    mailSender.createMimeMessage(),
+                    true,
+                    StandardCharsets.UTF_8.name()
+                );
 
                 final Template template = freemarkerConfiguration.getTemplate(emailNotification.getTemplate());
                 String content = processTemplateIntoString(template, emailNotification.getParams());
                 content = content.replaceAll("&lt;br /&gt;", "<br />");
 
                 final String from = isNull(emailNotification.getFrom()) || emailNotification.getFrom().isEmpty()
-                        ? defaultFrom
-                        : emailNotification.getFrom();
+                    ? defaultFrom
+                    : emailNotification.getFrom();
 
                 if (isEmpty(emailNotification.getFromName())) {
                     mailMessage.setFrom(from);
@@ -92,7 +100,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 }
 
                 String sender = emailNotification.getFrom();
-                if (! isEmpty(emailNotification.getReplyTo())) {
+                if (!isEmpty(emailNotification.getReplyTo())) {
                     mailMessage.setReplyTo(emailNotification.getReplyTo());
                     sender = emailNotification.getReplyTo();
                 }
@@ -111,8 +119,12 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
                 final String html = addResourcesInMessage(mailMessage, content);
 
-                LOGGER.debug("Sending an email to: {}\nSubject: {}\nMessage: {}",
-                        emailNotification.getTo(), emailNotification.getSubject(), html);
+                LOGGER.debug(
+                    "Sending an email to: {}\nSubject: {}\nMessage: {}",
+                    emailNotification.getTo(),
+                    emailNotification.getSubject(),
+                    html
+                );
 
                 mailSender.send(mailMessage.getMimeMessage());
             } catch (final Exception ex) {
@@ -133,15 +145,20 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         final List<String> resources = new ArrayList<>();
 
         final Elements imageElements = document.getElementsByTag("img");
-        resources.addAll(imageElements.stream()
+        resources.addAll(
+            imageElements
+                .stream()
                 .filter(imageElement -> imageElement.hasAttr("src"))
                 .filter(imageElement -> !imageElement.attr("src").startsWith("http"))
-                .map(imageElement -> {
-                    final String src = imageElement.attr("src");
-                    imageElement.attr("src", "cid:" + src);
-                    return src;
-                })
-                .collect(Collectors.toList()));
+                .map(
+                    imageElement -> {
+                        final String src = imageElement.attr("src");
+                        imageElement.attr("src", "cid:" + src);
+                        return src;
+                    }
+                )
+                .collect(Collectors.toList())
+        );
 
         final String html = document.html();
         mailMessage.setText(html, true);
@@ -177,8 +194,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     private static String extractMimeType(final String encoded) {
         final Pattern mime = Pattern.compile("^data:([a-zA-Z0-9]+/[a-zA-Z0-9]+).*,.*");
         final Matcher matcher = mime.matcher(encoded);
-        if (!matcher.find())
-            return "";
+        if (!matcher.find()) return "";
         return matcher.group(1).toLowerCase();
     }
 }

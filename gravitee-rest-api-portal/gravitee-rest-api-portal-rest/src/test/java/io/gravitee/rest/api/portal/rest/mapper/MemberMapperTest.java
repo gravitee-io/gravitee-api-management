@@ -15,13 +15,22 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.UserService;
-
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -29,17 +38,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -56,16 +54,16 @@ public class MemberMapperTest {
 
     @InjectMocks
     private MemberMapper memberMapper;
-    
+
     @Mock
     private UriInfo uriInfo;
 
     @Mock
     private UserService userService;
-    
+
     @Spy
     private UserMapper userMapper = new UserMapper();
-    
+
     @Test
     public void testConvert() {
         Instant now = Instant.now();
@@ -76,25 +74,25 @@ public class MemberMapperTest {
         ownerRoleEntity.setName("OWNER");
 
         memberEntity = new MemberEntity();
-       
+
         memberEntity.setCreatedAt(nowDate);
         memberEntity.setDisplayName(MEMBER_DISPLAYNAME);
         memberEntity.setEmail(MEMBER_EMAIL);
         memberEntity.setId(MEMBER_ID);
         memberEntity.setRoles(Arrays.asList(ownerRoleEntity));
         memberEntity.setUpdatedAt(nowDate);
-        
+
         UserEntity userEntity = Mockito.mock(UserEntity.class);
         when(userEntity.getDisplayName()).thenReturn(MEMBER_DISPLAYNAME);
         when(userEntity.getEmail()).thenReturn(MEMBER_EMAIL);
         when(userEntity.getId()).thenReturn(MEMBER_ID);
-        
+
         when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromPath(""));
 
         when(userService.findById(MEMBER_ID)).thenReturn(userEntity);
         when(userMapper.convert(userEntity)).thenCallRealMethod();
         when(userMapper.computeUserLinks(anyString(), any())).thenCallRealMethod();
-        
+
         //Test
         Member responseMember = memberMapper.convert(memberEntity, uriInfo);
         assertNotNull(responseMember);
@@ -102,7 +100,7 @@ public class MemberMapperTest {
         assertNull(responseMember.getId());
         assertEquals("OWNER", responseMember.getRole());
         assertEquals(now.toEpochMilli(), responseMember.getUpdatedAt().toInstant().toEpochMilli());
-        
+
         User user = responseMember.getUser();
         assertNotNull(user);
         assertEquals(MEMBER_DISPLAYNAME, user.getDisplayName());
@@ -110,5 +108,4 @@ public class MemberMapperTest {
         assertEquals(MEMBER_ID, user.getId());
         assertEquals("environments/DEFAULT/users/" + MEMBER_ID + "/avatar", user.getLinks().getAvatar());
     }
-    
 }

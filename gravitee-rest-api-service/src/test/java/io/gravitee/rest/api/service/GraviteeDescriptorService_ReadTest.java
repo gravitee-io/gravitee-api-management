@@ -15,17 +15,16 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorReadException;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorVersionException;
 import io.gravitee.rest.api.service.impl.GraviteeDescriptorServiceImpl;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -66,5 +65,4 @@ public class GraviteeDescriptorService_ReadTest {
 
         fail("should throw a GraviteeDescriptorVersionException");
     }
-
 }

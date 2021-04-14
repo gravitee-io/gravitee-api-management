@@ -17,6 +17,7 @@ package io.gravitee.rest.api.idp.memory.authentication.spring;
 
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,22 +28,19 @@ import org.springframework.security.core.userdetails.memory.UserAttributeEditor;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.util.Assert;
 
-import java.util.*;
-
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InMemoryGraviteeUserDetailsManager implements UserDetailsManager,
-        UserDetailsPasswordService {
+public class InMemoryGraviteeUserDetailsManager implements UserDetailsManager, UserDetailsPasswordService {
+
     private static final Logger logger = LoggerFactory.getLogger(InMemoryGraviteeUserDetailsManager.class);
 
     private final Map<String, UserDetails> users = new HashMap<>();
 
     private AuthenticationManager authenticationManager;
 
-    public InMemoryGraviteeUserDetailsManager() {
-    }
+    public InMemoryGraviteeUserDetailsManager() {}
 
     public InMemoryGraviteeUserDetailsManager(Collection<UserDetails> users) {
         for (UserDetails user : users) {
@@ -102,8 +100,7 @@ public class InMemoryGraviteeUserDetailsManager implements UserDetailsManager,
         throw new UnsupportedOperationException();
     }
 
-    public UserDetails loadUserByUsername(String username)
-            throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserDetails user = users.get(username.toLowerCase());
 
         if (user == null) {

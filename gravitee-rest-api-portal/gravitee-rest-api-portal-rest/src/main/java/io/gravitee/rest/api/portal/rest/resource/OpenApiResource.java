@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -30,12 +29,12 @@ import javax.ws.rs.core.Response;
  */
 @Path("/openapi")
 public class OpenApiResource extends AbstractResource {
-    
+
     @Context
     private ResourceContext resourceContext;
-    
+
     @GET
-    @Produces({MediaType.TEXT_PLAIN})
+    @Produces({ MediaType.TEXT_PLAIN })
     public Response getOpenApiDefinition() {
         return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi.yaml")).build();
     }

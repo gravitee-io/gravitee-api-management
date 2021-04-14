@@ -15,32 +15,31 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.quality.ApiQualityMetricTechnicalDocumentation;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.quality.ApiQualityMetricTechnicalDocumentation;
+import java.util.Collections;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApiQualityMetricTechnicalDocumentationTest {
+
     @InjectMocks
     private ApiQualityMetricTechnicalDocumentation srv = new ApiQualityMetricTechnicalDocumentation();
 

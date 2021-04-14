@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -28,6 +33,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,13 +41,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -57,40 +56,55 @@ public class ApiService_FindByUserTest {
 
     @Mock
     private ApiRepository apiRepository;
+
     @Mock
     private MembershipService membershipService;
+
     @Mock
     private GroupService groupService;
+
     @Mock
     private RoleService roleService;
+
     @Mock
     private SubscriptionService subscriptionService;
+
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
+
     @Mock
     private Api api;
+
     @Mock
     private Api privateApi;
+
     @Mock
     private SubscriptionEntity subscription;
+
     @Mock
     private UserService userService;
+
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private ApplicationService applicationService;
+
     @Mock
     private CategoryService categoryService;
 
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+        objectMapper.setFilterProvider(
+            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
+        );
     }
 
     @Test
     public void shouldFindByUser() throws TechnicalException {
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build())).thenReturn(singletonList(api));
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").ids(api.getId()).build()))
+            .thenReturn(singletonList(api));
 
         MembershipEntity membership = new MembershipEntity();
         membership.setId("id");
@@ -100,7 +114,8 @@ public class ApiService_FindByUserTest {
         membership.setReferenceType(MembershipReferenceType.API);
         membership.setRoleId("API_USER");
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API)).thenReturn(Collections.singleton(membership));
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
+            .thenReturn(Collections.singleton(membership));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -109,7 +124,14 @@ public class ApiService_FindByUserTest {
         MemberEntity poMember = new MemberEntity();
         poMember.setId("admin");
         poMember.setRoles(Collections.singletonList(poRole));
-        when(membershipService.getMembersByReferencesAndRole(MembershipReferenceType.API, Collections.singletonList(api.getId()), "API_PRIMARY_OWNER")).thenReturn(new HashSet(Arrays.asList(poMember)));
+        when(
+            membershipService.getMembersByReferencesAndRole(
+                MembershipReferenceType.API,
+                Collections.singletonList(api.getId()),
+                "API_PRIMARY_OWNER"
+            )
+        )
+            .thenReturn(new HashSet(Arrays.asList(poMember)));
 
         final ApplicationListItem application = new ApplicationListItem();
         application.setId("appId");
@@ -123,7 +145,7 @@ public class ApiService_FindByUserTest {
     @Test
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-                .thenReturn(Collections.emptySet());
+            .thenReturn(Collections.emptySet());
 
         final Set<ApiEntity> apiEntities = apiService.findByUser(USER_NAME, null, false);
 
@@ -138,9 +160,10 @@ public class ApiService_FindByUserTest {
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
 
-        verify(membershipService, times(0)).getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
-        verify(membershipService, times(0)).getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
+        verify(membershipService, times(0))
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
+        verify(membershipService, times(0))
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
         verify(applicationService, times(0)).findByUser(null);
-
     }
 }

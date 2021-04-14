@@ -19,7 +19,7 @@ import io.gravitee.rest.api.model.ApiQualityMetricsEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface QualityMetricsService {

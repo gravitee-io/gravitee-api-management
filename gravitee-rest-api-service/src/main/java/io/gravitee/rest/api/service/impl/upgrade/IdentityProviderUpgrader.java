@@ -22,6 +22,8 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProviderNotFoundException;
+import java.util.*;
+import java.util.stream.Collectors;
 import javassist.expr.NewArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,16 +32,15 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 @Component
 public class IdentityProviderUpgrader implements Upgrader, Ordered {
+
     private final Logger logger = LoggerFactory.getLogger(IdentityProviderUpgrader.class);
 
     private List<String> notStorableIDPs = Arrays.asList("gravitee", "ldap", "memory");
     private List<String> idpTypeNames = Arrays.stream(IdentityProviderType.values()).map(Enum::name).collect(Collectors.toList());
-    private static final String description = "Configuration provided by the system. Every modifications will be overridden at the next startup.";
+    private static final String description =
+        "Configuration provided by the system. Every modifications will be overridden at the next startup.";
 
     @Autowired
     private ConfigurableEnvironment environment;
@@ -99,7 +100,7 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
         return identityProviderService.create(idp).getId();
     }
 
-    private void updateIdp(String id,int providerIndex) {
+    private void updateIdp(String id, int providerIndex) {
         UpdateIdentityProviderEntity idp = new UpdateIdentityProviderEntity();
         idp.setName(id);
         idp.setDescription(description);
@@ -194,13 +195,15 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                 List<String> groupNames = getListOfString("security.providers[" + providerIndex + "].groupMapping[" + idx + "].groups");
                 if (!groupNames.isEmpty()) {
                     List<String> groups = new ArrayList<>();
-                    groupNames.forEach( groupName -> {
-                        List<GroupEntity> groupsFound = groupService.findByName(groupName);
+                    groupNames.forEach(
+                        groupName -> {
+                            List<GroupEntity> groupsFound = groupService.findByName(groupName);
 
-                        if (groupsFound != null && groupsFound.size() == 1) {
-                            groups.add(groupsFound.get(0).getId());
+                            if (groupsFound != null && groupsFound.size() == 1) {
+                                groups.add(groupsFound.get(0).getId());
+                            }
                         }
-                    });
+                    );
 
                     groupMappingEntity.setGroups(groups);
                 }
@@ -208,7 +211,6 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
             }
             idx++;
         }
-
 
         return mapping;
     }
@@ -228,14 +230,16 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
                 if (!roles.isEmpty()) {
                     List<String> organizationsRoles = new ArrayList<>();
                     List<String> environmentsRoles = new ArrayList<>();
-                    roles.forEach( role -> {
-                        if (role.startsWith(RoleScope.ENVIRONMENT.name())) {
-                            environmentsRoles.add(role.replace(RoleScope.ENVIRONMENT.name() + ":", ""));
+                    roles.forEach(
+                        role -> {
+                            if (role.startsWith(RoleScope.ENVIRONMENT.name())) {
+                                environmentsRoles.add(role.replace(RoleScope.ENVIRONMENT.name() + ":", ""));
+                            }
+                            if (role.startsWith(RoleScope.ORGANIZATION.name())) {
+                                organizationsRoles.add(role.replace(RoleScope.ORGANIZATION.name() + ":", ""));
+                            }
                         }
-                        if (role.startsWith(RoleScope.ORGANIZATION.name())) {
-                            organizationsRoles.add(role.replace(RoleScope.ORGANIZATION.name() + ":", ""));
-                        }
-                    });
+                    );
                     roleMappingEntity.setOrganizations(organizationsRoles);
                     roleMappingEntity.setEnvironments(environmentsRoles);
                 }
@@ -243,7 +247,6 @@ public class IdentityProviderUpgrader implements Upgrader, Ordered {
             }
             idx++;
         }
-
 
         return mapping;
     }

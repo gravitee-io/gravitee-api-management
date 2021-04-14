@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
-import io.gravitee.repository.exceptions.TechnicalException;
-
 import java.util.*;
 
 /**
@@ -28,7 +27,6 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 public interface ApiService {
-
     ApiEntity findById(String apiId);
 
     Set<ApiEntity> findAll();

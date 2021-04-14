@@ -25,13 +25,12 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -56,28 +55,29 @@ public class PermissionsResource extends AbstractResource {
             ApiQuery apiQuery = new ApiQuery();
             apiQuery.setIds(Collections.singletonList(apiId));
             Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
-            ApiEntity apiEntity = publishedByUser.stream().filter(a -> a.getId().equals(apiId)).findFirst().orElseThrow(() -> new ApiNotFoundException(apiId));
+            ApiEntity apiEntity = publishedByUser
+                .stream()
+                .filter(a -> a.getId().equals(apiId))
+                .findFirst()
+                .orElseThrow(() -> new ApiNotFoundException(apiId));
             Map<String, char[]> permissions;
             permissions = membershipService.getUserMemberPermissions(apiEntity, userId);
 
-            return Response
-                    .ok(permissions)
-                    .build();
-
+            return Response.ok(permissions).build();
         } else if (applicationId != null) {
-
-            ApplicationListItem applicationListItem = applicationService.findByUser(getAuthenticatedUser())
-                    .stream().filter(a -> a.getId().equals(applicationId))
-                    .findFirst().orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+            ApplicationListItem applicationListItem = applicationService
+                .findByUser(getAuthenticatedUser())
+                .stream()
+                .filter(a -> a.getId().equals(applicationId))
+                .findFirst()
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
             ApplicationEntity application = applicationService.findById(applicationListItem.getId());
 
             Map<String, char[]> permissions;
             permissions = membershipService.getUserMemberPermissions(application, userId);
 
-            return Response
-                    .ok(permissions)
-                    .build();
+            return Response.ok(permissions).build();
         }
         throw new BadRequestException("One of the two parameters appId or applicationId must not be null.");
     }
@@ -89,5 +89,4 @@ public class PermissionsResource extends AbstractResource {
     private boolean isUserInRole(String role) {
         return securityContext.isUserInRole(role);
     }
-
 }

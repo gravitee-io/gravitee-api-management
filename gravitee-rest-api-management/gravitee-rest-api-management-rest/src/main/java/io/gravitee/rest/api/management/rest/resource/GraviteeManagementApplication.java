@@ -31,16 +31,15 @@ import io.swagger.models.Model;
 import io.swagger.models.properties.LongProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.ServerProperties;
-
-import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.Iterator;
+import javax.inject.Inject;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,34 +61,41 @@ public class GraviteeManagementApplication extends ResourceConfig {
         beanConfig.setScan(true);
         beanConfig.setBasePath("/management");
 
-        ModelConverters.getInstance().addConverter(new ModelConverter() {
-            @Override
-            public Property resolveProperty(Type type, ModelConverterContext context, Annotation[] annotations, Iterator<ModelConverter> chain) {
-                final JavaType jType = Json.mapper().constructType(type);
-                if (jType != null) {
-                    final Class<?> cls = jType.getRawClass();
-                    if (Date.class.isAssignableFrom(cls)) {
-                        //DateTimeProperty property =
-                        //        (DateTimeProperty) chain.next().resolveProperty(type, context, annotations, chain);
-                        return new LongProperty();
+        ModelConverters
+            .getInstance()
+            .addConverter(
+                new ModelConverter() {
+                    @Override
+                    public Property resolveProperty(
+                        Type type,
+                        ModelConverterContext context,
+                        Annotation[] annotations,
+                        Iterator<ModelConverter> chain
+                    ) {
+                        final JavaType jType = Json.mapper().constructType(type);
+                        if (jType != null) {
+                            final Class<?> cls = jType.getRawClass();
+                            if (Date.class.isAssignableFrom(cls)) {
+                                //DateTimeProperty property =
+                                //        (DateTimeProperty) chain.next().resolveProperty(type, context, annotations, chain);
+                                return new LongProperty();
+                            }
+                        }
+
+                        return chain.hasNext() ? chain.next().resolveProperty(type, context, annotations, chain) : null;
+                    }
+
+                    @Override
+                    public Model resolve(Type type, ModelConverterContext context, Iterator<ModelConverter> chain) {
+                        return chain.next().resolve(type, context, chain);
                     }
                 }
-
-                return chain.hasNext() ?
-                        chain.next().resolveProperty(type, context, annotations, chain)
-                        : null;
-            }
-
-            @Override
-            public Model resolve(Type type, ModelConverterContext context, Iterator<ModelConverter> chain) {
-                return chain.next().resolve(type, context, chain);
-            }
-        });
+            );
         //Main resource
         register(OrganizationsResource.class);
-        
+
         register(MultiPartFeature.class);
-        
+
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
         register(ConstraintValidationExceptionMapper.class);

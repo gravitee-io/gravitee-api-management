@@ -15,22 +15,21 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.NewPageEntity;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.UpdatePageEntity;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.NewPageEntity;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.UpdatePageEntity;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -45,7 +44,6 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         return "portal/pages/";
     }
 
-
     @Test
     public void shouldNotCreateSystemFolder() {
         NewPageEntity newPageEntity = new NewPageEntity();
@@ -53,7 +51,6 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         final Response response = target().request().post(Entity.json(newPageEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
-
     }
 
     @Test
@@ -67,7 +64,6 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         final Response response = target(PAGE_NAME).request().delete();
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
-
     }
 
     @Test

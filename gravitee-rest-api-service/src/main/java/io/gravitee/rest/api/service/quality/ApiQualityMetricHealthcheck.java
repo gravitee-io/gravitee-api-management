@@ -21,7 +21,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiQualityMetricHealthcheck implements ApiQualityMetric {
@@ -33,22 +33,35 @@ public class ApiQualityMetricHealthcheck implements ApiQualityMetric {
 
     @Override
     public boolean isValid(ApiEntity api) {
-        boolean globalHC = api.getServices() != null &&
-                api.getServices().getAll() != null &&
-                api.getServices().getAll()
-                        .stream()
-                        .anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
+        boolean globalHC =
+            api.getServices() != null &&
+            api.getServices().getAll() != null &&
+            api.getServices().getAll().stream().anyMatch(service -> service.isEnabled() && service instanceof HealthCheckService);
         if (globalHC) {
             return true;
         } else {
-            return api.getProxy().getGroups().stream().allMatch(group -> group.getEndpoints().stream().allMatch(endpoint -> {
-                if (endpoint instanceof HttpEndpoint) {
-                    return ((HttpEndpoint) endpoint).getHealthCheck() != null &&
-                            ((HttpEndpoint) endpoint).getHealthCheck().isEnabled();
-                } else {
-                    return false;
-                }
-            }));
+            return api
+                .getProxy()
+                .getGroups()
+                .stream()
+                .allMatch(
+                    group ->
+                        group
+                            .getEndpoints()
+                            .stream()
+                            .allMatch(
+                                endpoint -> {
+                                    if (endpoint instanceof HttpEndpoint) {
+                                        return (
+                                            ((HttpEndpoint) endpoint).getHealthCheck() != null &&
+                                            ((HttpEndpoint) endpoint).getHealthCheck().isEnabled()
+                                        );
+                                    } else {
+                                        return false;
+                                    }
+                                }
+                            )
+                );
         }
     }
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefaultReferenceId;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;
@@ -34,17 +36,14 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.service.impl.MetadataServiceImpl.getDefaultReferenceId;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -85,12 +84,11 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
 
     @Override
     public MetadataPage<AuditEntity> search(AuditQuery query) {
-
-        Audit.AuditReferenceType referenceType =
-                query.isManagementLogsOnly() ? Audit.AuditReferenceType.PORTAL :
-                        (query.getApiIds() != null && !query.getApiIds().isEmpty()) ? Audit.AuditReferenceType.API :
-                                (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) ? Audit.AuditReferenceType.APPLICATION :
-                                        null;
+        Audit.AuditReferenceType referenceType = query.isManagementLogsOnly()
+            ? Audit.AuditReferenceType.PORTAL
+            : (query.getApiIds() != null && !query.getApiIds().isEmpty())
+                ? Audit.AuditReferenceType.API
+                : (query.getApplicationIds() != null && !query.getApplicationIds().isEmpty()) ? Audit.AuditReferenceType.APPLICATION : null;
 
         Builder criteria = new Builder().from(query.getFrom()).to(query.getTo());
         if (referenceType != null) {
@@ -113,19 +111,20 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         }
 
         Page<Audit> auditPage = auditRepository.search(
-                criteria.build(),
-                new PageableBuilder().pageNumber(query.getPage() - 1).pageSize(query.getSize()).build());
+            criteria.build(),
+            new PageableBuilder().pageNumber(query.getPage() - 1).pageSize(query.getSize()).build()
+        );
 
         List<AuditEntity> content = auditPage.getContent().stream().map(this::convert).collect(Collectors.toList());
 
-        return new MetadataPage<>(content, query.getPage(), query.getSize() , auditPage.getTotalElements(), getMetadata(content));
+        return new MetadataPage<>(content, query.getPage(), query.getSize(), auditPage.getTotalElements(), getMetadata(content));
     }
 
     private Map<String, String> getMetadata(List<AuditEntity> content) {
         Map<String, String> metadata = new HashMap<>();
         for (AuditEntity auditEntity : content) {
             //add user's display name
-            String metadataKey = "USER:"+auditEntity.getUser()+":name";
+            String metadataKey = "USER:" + auditEntity.getUser() + ":name";
             try {
                 UserEntity user = userService.findById(auditEntity.getUser());
                 metadata.put(metadataKey, user.getDisplayName());
@@ -167,11 +166,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             String name;
             if (auditEntity.getProperties() != null) {
                 for (Map.Entry<String, String> property : auditEntity.getProperties().entrySet()) {
-                    metadataKey = new StringJoiner(":").
-                            add(property.getKey()).
-                            add(property.getValue()).
-                            add("name").
-                            toString();
+                    metadataKey = new StringJoiner(":").add(property.getKey()).add(property.getValue()).add("name").toString();
                     if (!metadata.containsKey(metadataKey)) {
                         name = property.getValue();
                         try {
@@ -189,7 +184,9 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                     }
                                     break;
                                 case PAGE:
-                                    Optional<io.gravitee.repository.management.model.Page> optPage = pageRepository.findById(property.getValue());
+                                    Optional<io.gravitee.repository.management.model.Page> optPage = pageRepository.findById(
+                                        property.getValue()
+                                    );
                                     if (optPage.isPresent()) {
                                         name = optPage.get().getName();
                                     }
@@ -201,12 +198,16 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
                                     }
                                     break;
                                 case METADATA:
-                                    MetadataReferenceType refType = (Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType()))
-                                            ? MetadataReferenceType.API :
-                                            (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType())) ?
-                                                    MetadataReferenceType.APPLICATION :
-                                                    MetadataReferenceType.DEFAULT;
-                                    String refId = refType.equals(MetadataReferenceType.DEFAULT) ? getDefaultReferenceId() : auditEntity.getReferenceId();
+                                    MetadataReferenceType refType = (
+                                            Audit.AuditReferenceType.API.name().equals(auditEntity.getReferenceType())
+                                        )
+                                        ? MetadataReferenceType.API
+                                        : (Audit.AuditReferenceType.APPLICATION.name().equals(auditEntity.getReferenceType()))
+                                            ? MetadataReferenceType.APPLICATION
+                                            : MetadataReferenceType.DEFAULT;
+                                    String refId = refType.equals(MetadataReferenceType.DEFAULT)
+                                        ? getDefaultReferenceId()
+                                        : auditEntity.getReferenceId();
 
                                     Optional<Metadata> optMetadata = metadataRepository.findById(property.getValue(), refId, refType);
                                     if (optMetadata.isPresent()) {
@@ -242,68 +243,91 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     @Override
-    public void createApiAuditLog(String apiId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt,
-                                  Object oldValue, Object newValue) {
-        create(Audit.AuditReferenceType.API,
-                apiId,
-                properties,
-                event,
-                createdAt==null ? new Date() : createdAt,
-                oldValue,
-                newValue);
+    public void createApiAuditLog(
+        String apiId,
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    ) {
+        create(Audit.AuditReferenceType.API, apiId, properties, event, createdAt == null ? new Date() : createdAt, oldValue, newValue);
     }
 
     @Override
-    public void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, Date createdAt,
-                                          Object oldValue, Object newValue) {
-        createApplicationAuditLog(
-                applicationId,
-                properties,
-                event,
-                getAuthenticatedUsernameOrSystem(),
-                createdAt,
-                oldValue,
-                newValue);
+    public void createApplicationAuditLog(
+        String applicationId,
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    ) {
+        createApplicationAuditLog(applicationId, properties, event, getAuthenticatedUsernameOrSystem(), createdAt, oldValue, newValue);
     }
 
     @Override
-    public void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties,String> properties, Audit.AuditEvent event, String userId, Date createdAt,
-                                          Object oldValue, Object newValue) {
-        create(Audit.AuditReferenceType.APPLICATION,
-                applicationId,
-                properties,
-                event,
-                createdAt==null ? new Date() : createdAt,
-                oldValue,
-                newValue);
+    public void createApplicationAuditLog(
+        String applicationId,
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        String userId,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    ) {
+        create(
+            Audit.AuditReferenceType.APPLICATION,
+            applicationId,
+            properties,
+            event,
+            createdAt == null ? new Date() : createdAt,
+            oldValue,
+            newValue
+        );
     }
 
     @Override
-    public void createPortalAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue) {
-       createPortalAuditLog(
-               properties,
-               event,
-               getAuthenticatedUsernameOrSystem(),
-               createdAt,
-               oldValue,
-               newValue);
+    public void createPortalAuditLog(
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    ) {
+        createPortalAuditLog(properties, event, getAuthenticatedUsernameOrSystem(), createdAt, oldValue, newValue);
     }
+
     @Override
-    public void createPortalAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, String userId, Date createdAt, Object oldValue, Object newValue) {
-        create(Audit.AuditReferenceType.PORTAL,
-                "DEFAULT",
-                properties,
-                event,
-                createdAt==null ? new Date() : createdAt,
-                oldValue,
-                newValue);
+    public void createPortalAuditLog(
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        String userId,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    ) {
+        create(
+            Audit.AuditReferenceType.PORTAL,
+            "DEFAULT",
+            properties,
+            event,
+            createdAt == null ? new Date() : createdAt,
+            oldValue,
+            newValue
+        );
     }
 
     @Async
-    protected void create(Audit.AuditReferenceType referenceType, String referenceId, Map<Audit.AuditProperties,String> properties,
-                          Audit.AuditEvent event, Date createdAt,
-                          Object oldValue, Object newValue) {
-
+    protected void create(
+        Audit.AuditReferenceType referenceType,
+        String referenceId,
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    ) {
         Audit audit = new Audit();
         audit.setId(UUID.toString(UUID.random()));
         audit.setCreatedAt(createdAt);
@@ -311,8 +335,11 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         final UserDetails authenticatedUser = getAuthenticatedUser();
         final String user;
         if (authenticatedUser != null && "token".equals(authenticatedUser.getSource())) {
-            user = userService.findById(authenticatedUser.getUsername()).getDisplayName() +
-                    " - (using token \"" + authenticatedUser.getSourceId() + "\")";
+            user =
+                userService.findById(authenticatedUser.getUsername()).getDisplayName() +
+                " - (using token \"" +
+                authenticatedUser.getSourceId() +
+                "\")";
         } else {
             user = getAuthenticatedUsernameOrSystem();
         }
@@ -329,11 +356,11 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         audit.setEvent(event.name());
 
         ObjectNode oldNode = oldValue == null
-                ? mapper.createObjectNode()
-                : mapper.convertValue(oldValue, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"));
+            ? mapper.createObjectNode()
+            : mapper.convertValue(oldValue, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"));
         ObjectNode newNode = newValue == null
-                ? mapper.createObjectNode()
-                : mapper.convertValue(newValue, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"));
+            ? mapper.createObjectNode()
+            : mapper.convertValue(newValue, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"));
 
         audit.setPatch(JsonDiff.asJson(oldNode, newNode).toString());
 

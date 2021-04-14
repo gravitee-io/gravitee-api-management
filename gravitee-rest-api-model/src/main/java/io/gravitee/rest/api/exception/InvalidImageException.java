@@ -21,8 +21,7 @@ package io.gravitee.rest.api.exception;
  */
 public class InvalidImageException extends Exception {
 
-    public InvalidImageException() {
-    }
+    public InvalidImageException() {}
 
     public InvalidImageException(String message) {
         super(message);

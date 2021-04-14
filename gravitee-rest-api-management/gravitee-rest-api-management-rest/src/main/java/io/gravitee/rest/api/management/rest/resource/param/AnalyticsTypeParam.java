@@ -27,7 +27,7 @@ public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.Analyti
         GROUP_BY,
         DATE_HISTO,
         COUNT,
-        STATS
+        STATS,
     }
 
     public AnalyticsTypeParam(String param) throws WebApplicationException {
@@ -40,10 +40,8 @@ public class AnalyticsTypeParam extends AbstractParam<AnalyticsTypeParam.Analyti
             if (param != null) {
                 return AnalyticsType.valueOf(param.toUpperCase());
             }
-        } catch (IllegalArgumentException iae) {
-        }
+        } catch (IllegalArgumentException iae) {}
 
         return null;
     }
-
 }

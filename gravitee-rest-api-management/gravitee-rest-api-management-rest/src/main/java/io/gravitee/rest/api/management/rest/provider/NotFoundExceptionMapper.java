@@ -24,15 +24,11 @@ import javax.ws.rs.ext.Provider;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 @Provider
-public class NotFoundExceptionMapper extends AbstractExceptionMapper<NotFoundException>  {
+public class NotFoundExceptionMapper extends AbstractExceptionMapper<NotFoundException> {
 
     @Override
     public Response toResponse(final NotFoundException e) {
         final Response.Status error = Response.Status.NOT_FOUND;
-        return Response
-            .status(error)
-            .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(convert(e, error.getStatusCode()))
-            .build();
+        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(e, error.getStatusCode())).build();
     }
 }

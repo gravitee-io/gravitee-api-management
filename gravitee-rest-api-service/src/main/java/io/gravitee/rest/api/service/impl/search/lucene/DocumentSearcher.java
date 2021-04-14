@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.handler.TypedHandler;
 import io.gravitee.rest.api.service.search.query.Query;
-
 import java.util.List;
 
 /**
@@ -27,7 +26,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface DocumentSearcher extends TypedHandler {
-
     /**
      *
      * @param query

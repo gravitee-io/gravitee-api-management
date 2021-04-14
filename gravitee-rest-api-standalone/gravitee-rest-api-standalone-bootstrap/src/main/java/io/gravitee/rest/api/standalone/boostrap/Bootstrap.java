@@ -42,8 +42,7 @@ public class Bootstrap {
      */
     private Object graviteeDaemon = null;
 
-    private Bootstrap() {
-    }
+    private Bootstrap() {}
 
     public void init() throws Exception {
         setGraviteeHome();
@@ -64,8 +63,7 @@ public class Bootstrap {
     private void createGraviteeClassLoader() {
         ArrayList<URL> cpList = new ArrayList<>();
         URL[] cpURLs = new URL[0];
-        File libDir = new File(
-                System.getProperty(GRAVITEE_HOME_PROP), LIB_DIRECTORY);
+        File libDir = new File(System.getProperty(GRAVITEE_HOME_PROP), LIB_DIRECTORY);
 
         // Everything in the lib directory goes into the classpath
         for (File lib : libDir.listFiles()) {
@@ -77,15 +75,13 @@ public class Bootstrap {
         }
 
         cpURLs = cpList.toArray(cpURLs);
-        graviteeClassLoader = new URLClassLoader(
-                cpURLs, extensionClassLoader);
+        graviteeClassLoader = new URLClassLoader(cpURLs, extensionClassLoader);
     }
 
     private void createExtensionClassLoader() {
         List<URL> cpList = new ArrayList<>();
         URL[] cpURLs = new URL[0];
-        File libDir = new File(
-                System.getProperty(GRAVITEE_HOME_PROP), LIB_EXT_DIRECTORY);
+        File libDir = new File(System.getProperty(GRAVITEE_HOME_PROP), LIB_EXT_DIRECTORY);
 
         if (libDir.exists() || libDir.isDirectory()) {
             try {
@@ -102,8 +98,7 @@ public class Bootstrap {
         }
 
         cpURLs = cpList.toArray(cpURLs);
-        extensionClassLoader = new URLClassLoader(
-                cpURLs, getClass().getClassLoader());
+        extensionClassLoader = new URLClassLoader(cpURLs, getClass().getClassLoader());
     }
 
     /**
@@ -127,26 +122,23 @@ public class Bootstrap {
         checkInstallRoot(graviteeHomeDir);
 
         // pass this information along to the core framework
-        System.setProperty(GRAVITEE_HOME_PROP,
-                graviteeHomeDir.getAbsolutePath());
+        System.setProperty(GRAVITEE_HOME_PROP, graviteeHomeDir.getAbsolutePath());
     }
 
     private void checkInstallRoot(File graviteeHomeDir) {
         // quick sanity check on the install root
         if (!graviteeHomeDir.isDirectory()) {
-            throw new RuntimeException("Invalid Gravitee.io Node home directory. Not a directory: "
-                    + graviteeHomeDir.getAbsolutePath());
+            throw new RuntimeException("Invalid Gravitee.io Node home directory. Not a directory: " + graviteeHomeDir.getAbsolutePath());
         }
-
 
         File graviteeLibDir = new File(graviteeHomeDir, LIB_DIRECTORY);
 
-        File [] files = graviteeLibDir.listFiles(pathname ->
-                pathname.getName().startsWith("gravitee-rest-api-standalone-bootstrap"));
+        File[] files = graviteeLibDir.listFiles(pathname -> pathname.getName().startsWith("gravitee-rest-api-standalone-bootstrap"));
 
         if (files == null || files.length == 0 || files.length > 1) {
-            throw new RuntimeException("Invalid Gravitee.io Node home directory. No bootstrapable jar can be found in "
-                    + graviteeLibDir.getAbsolutePath());
+            throw new RuntimeException(
+                "Invalid Gravitee.io Node home directory. No bootstrapable jar can be found in " + graviteeLibDir.getAbsolutePath()
+            );
         }
     }
 

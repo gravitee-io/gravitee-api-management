@@ -20,7 +20,6 @@ package io.gravitee.rest.api.service;
  * @author GraviteeSource Team
  */
 public interface NewsletterService {
-
     /**
      * Subscribe to newsletters.
      * @param user a user with email, firstname and lastname.

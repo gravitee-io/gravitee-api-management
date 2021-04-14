@@ -21,13 +21,12 @@ import io.gravitee.repository.management.api.IdentityProviderRepository;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.*;
+import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -69,32 +68,42 @@ public class V3UpgraderService extends AbstractService {
         try {
             Set<IdentityProvider> allIdps = identityProviderRepository.findAll();
             logger.debug("{} Idp found", allIdps.size());
-            for(IdentityProvider idp: allIdps) {
+            for (IdentityProvider idp : allIdps) {
                 boolean idpHasBeenModified = false;
                 Map<String, String[]> roleMappings = idp.getRoleMappings();
-                if(roleMappings != null) {
+                if (roleMappings != null) {
                     logger.debug("Idp '{}' has {} roleMappings", idp.getId(), roleMappings.size());
-                    for (Entry<String, String[]> entry: roleMappings.entrySet()) {
+                    for (Entry<String, String[]> entry : roleMappings.entrySet()) {
                         String[] roles = entry.getValue();
                         if (roles != null) {
-                            logger.debug("Idp '{}' - RoleMapping with condition '{}' has {} roles", idp.getId(), entry.getKey(), roles.length);
+                            logger.debug(
+                                "Idp '{}' - RoleMapping with condition '{}' has {} roles",
+                                idp.getId(),
+                                entry.getKey(),
+                                roles.length
+                            );
                             List<String> newRoles = new ArrayList<>(roles.length);
                             boolean entryHasBeenModified = false;
-                            for (String role: roles) {
+                            for (String role : roles) {
                                 String[] splittedRole = role.split(":");
                                 if ("1".equals(splittedRole[0])) {
-                                    Optional<Role> existingOrgaRoleWithSameName = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.ORGANIZATION, splittedRole[1], "DEFAULT", RoleReferenceType.ORGANIZATION);
+                                    Optional<Role> existingOrgaRoleWithSameName = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                                        RoleScope.ORGANIZATION,
+                                        splittedRole[1],
+                                        "DEFAULT",
+                                        RoleReferenceType.ORGANIZATION
+                                    );
                                     if (existingOrgaRoleWithSameName.isPresent()) {
-                                        newRoles.add("ORGANIZATION:"+splittedRole[1]);
+                                        newRoles.add("ORGANIZATION:" + splittedRole[1]);
                                     }
-                                    newRoles.add("ENVIRONMENT:"+splittedRole[1]);
+                                    newRoles.add("ENVIRONMENT:" + splittedRole[1]);
                                     entryHasBeenModified = true;
                                 } else if ("2".equals(splittedRole[0])) {
-                                    newRoles.add("ENVIRONMENT:"+splittedRole[1]);
+                                    newRoles.add("ENVIRONMENT:" + splittedRole[1]);
                                     entryHasBeenModified = true;
                                 }
                             }
-                        
+
                             if (entryHasBeenModified) {
                                 entry.setValue(newRoles.toArray(new String[newRoles.size()]));
                                 idpHasBeenModified = true;
@@ -110,11 +119,10 @@ public class V3UpgraderService extends AbstractService {
                 } else {
                     logger.info("Idp '{}' has not been updated", idp.getId());
                 }
-            }  
+            }
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to retrieve all identity providers", ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to retrieve identity providers", ex);
+            throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }
 
@@ -122,5 +130,4 @@ public class V3UpgraderService extends AbstractService {
     protected void doStop() throws Exception {
         super.doStop();
     }
-
 }

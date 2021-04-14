@@ -16,10 +16,11 @@
 package io.gravitee.rest.api.model.notification;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class NotifierEntity {
+
     private String id;
     private String type;
     private String name;

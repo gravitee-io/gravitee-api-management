@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.spring;
 
+import java.io.IOException;
+import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
@@ -24,9 +26,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-import java.io.IOException;
-import java.util.Properties;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
@@ -34,9 +33,9 @@ import java.util.Properties;
 @EnableAsync
 public class PropertiesConfiguration {
 
-    protected final static Logger LOGGER = LoggerFactory.getLogger(PropertiesConfiguration.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(PropertiesConfiguration.class);
 
-    public final static String GRAVITEE_CONFIGURATION = "gravitee.conf";
+    public static final String GRAVITEE_CONFIGURATION = "gravitee.conf";
 
     @Bean(name = "graviteeProperties")
     public static Properties graviteeProperties() throws IOException {
