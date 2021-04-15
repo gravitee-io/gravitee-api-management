@@ -700,7 +700,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     accessControl.setReferenceId(groupId);
                     return accessControl;
                 })).collect(Collectors.toSet()));
-                newPageEntity.setExcludedGroups(Collections.emptyList());
             }
 
             if (PageType.TRANSLATION.equals(newPageType)) {
@@ -989,7 +988,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 })).collect(Collectors.toSet()));
 
                 updatePageEntity.setAccessControls(accessControlEntities);
-                updatePageEntity.setExcludedGroups(Collections.emptyList());
+                updatePageEntity.setExcludedGroups(updatePageEntity.getExcludedGroups());
             }
 
             if (partial) {
@@ -2022,6 +2021,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
         pageEntity.setExcludedAccessControls(page.isExcludedAccessControls());
         pageEntity.setAccessControls(PageServiceImpl.convertToEntities(page.getAccessControls()));
+
+        if(page.isExcludedAccessControls() && Visibility.PRIVATE.name().equals(page.getVisibility())) {
+            List<String> excludedGroups = page.getAccessControls().stream()
+                .filter(accessControl -> AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()))
+                .map(accessControl -> accessControl.getReferenceId()).collect(toList());
+            pageEntity.setExcludedGroups(excludedGroups);
+        }
+
         pageEntity.setParentId("".equals(page.getParentId()) ? null : page.getParentId());
         pageEntity.setMetadata(page.getMetadata());
 

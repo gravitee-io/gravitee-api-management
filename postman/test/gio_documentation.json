@@ -1943,6 +1943,7 @@
 									"var page = pm.response.json();",
 									"",
 									"pm.test(\"Should have excluded group\", function() {",
+									"    pm.expect(page.excluded_groups).to.have.members([pm.collectionVariables.get(\"created_reader_group_id\")]);",
 									"    pm.expect(page.visibility).to.eql(\"private\");",
 									"    pm.expect(page.excludedAccessControls).to.be.true;",
 									"    pm.expect(page.accessControls).not.to.be.null;",

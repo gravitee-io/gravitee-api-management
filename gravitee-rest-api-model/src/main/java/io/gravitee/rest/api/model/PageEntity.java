@@ -41,6 +41,8 @@ public class PageEntity implements Indexable {
     private boolean homepage;
     private String parentId;
     private String parentPath;
+    @JsonProperty("excluded_groups")
+    private List<String> excludedGroups;
     private boolean excludedAccessControls;
     private Set<AccessControlEntity> accessControls;
     private List<String> messages ;
@@ -229,6 +231,14 @@ public class PageEntity implements Indexable {
         this.visibility = visibility;
     }
 
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
+    }
+
     public void setExcludedAccessControls(boolean excludedAccessControls) {
         this.excludedAccessControls = excludedAccessControls;
     }
@@ -280,6 +290,7 @@ public class PageEntity implements Indexable {
 				", homepage=" + homepage +
 				", parentId='" + parentId + '\'' +
                 ", parentPath='" + parentPath + '\'' +
+                ", excludedGroups=" + excludedGroups +
                 ", excludedAccessControls='" + excludedAccessControls + '\'' +
                 ", accessControls='" + accessControls + '\'' +
                 ", attachedMedia=" + attachedMedia +
