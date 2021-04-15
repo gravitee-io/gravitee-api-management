@@ -33,7 +33,10 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.utils.ImageUtils;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.TaskService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
@@ -44,7 +47,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -177,14 +179,14 @@ public class CurrentUserResource extends AbstractResource {
                 environmentService.findByOrganization(GraviteeContext.getCurrentOrganization()).forEach(environment -> {
                     try {
                         final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
-                        userGroups.put(environment.getName(), new HashSet<>());
+                        userGroups.put(environment.getId(), new HashSet<>());
                         memberships.stream()
                                 .map(MembershipEntity::getReferenceId)
                                 .forEach(groupId -> {
                                     final Optional<Group> optionalGroup = groups.stream()
                                             .filter(group -> groupId.equals(group.getId())).findFirst();
                                     optionalGroup.ifPresent(entity ->
-                                            userGroups.get(environment.getName()).add(entity.getName()));
+                                            userGroups.get(environment.getId()).add(entity.getName()));
                                 });
                         userDetails.setGroupsByEnvironment(userGroups);
                     } catch (TechnicalException e) {
