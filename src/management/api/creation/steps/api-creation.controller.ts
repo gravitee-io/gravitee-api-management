@@ -128,11 +128,8 @@ class ApiCreationController {
     this.attachableGroups = this.groups.filter(
       (group) => group.apiPrimaryOwner == null
     );
-    this.UserService.getUserGroups(this.UserService.currentUser.id)
-      .then((response) => {
-        this.poGroups = this.groups.filter(
-          (group) => group.apiPrimaryOwner != null && response.data.some(userGroup => userGroup.id === group.id));
-      });
+    const currentUserGroups = this.UserService.getCurrentUserGroups();
+    this.poGroups = this.groups.filter((group) => group.apiPrimaryOwner != null && currentUserGroups.some(userGroup => userGroup.id === group.id));
   }
 
   /*

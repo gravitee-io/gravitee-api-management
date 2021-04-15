@@ -263,6 +263,13 @@ class UserService {
     return this.$http.get(`${this.Constants.org.baseURL}/users/` + id + '/groups');
   }
 
+  getCurrentUserGroups(): any {
+    if (this.currentUser != null && this.currentUser.groupsByEnvironment != null) {
+      return this.currentUser.groupsByEnvironment[this.Constants.org.currentEnv.id];
+    }
+    return [];
+  }
+
   save(user): ng.IPromise<any> {
     return this.$http.put(`${this.Constants.org.baseURL}/user/`, {
       username: user.username,
