@@ -177,14 +177,14 @@ public class CurrentUserResource extends AbstractResource {
                 environmentService.findByOrganization(GraviteeContext.getCurrentOrganization()).forEach(environment -> {
                     try {
                         final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
-                        userGroups.put(environment.getName(), new HashSet<>());
+                        userGroups.put(environment.getId(), new HashSet<>());
                         memberships.stream()
                                 .map(MembershipEntity::getReferenceId)
                                 .forEach(groupId -> {
                                     final Optional<Group> optionalGroup = groups.stream()
                                             .filter(group -> groupId.equals(group.getId())).findFirst();
                                     optionalGroup.ifPresent(entity ->
-                                            userGroups.get(environment.getName()).add(entity.getName()));
+                                            userGroups.get(environment.getId()).add(entity.getName()));
                                 });
                         userDetails.setGroupsByEnvironment(userGroups);
                     } catch (TechnicalException e) {

@@ -587,30 +587,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
 
         return false;
-
     }
-
-//    @Override
-//    public boolean isUserAuthorizedToAccessPortalData(AccessControlListEntity accessControlListEntity, String username) {
-//        // in anonymous mode
-//
-//        if (username == null) {
-//            // only pages without restrictions are authorized
-//            return (excludedGroups == null || excludedGroups.isEmpty());
-//        }
-//
-//        // in connected mode
-//
-//        // if no restriction defined
-//        if (excludedGroups == null || excludedGroups.isEmpty()) {
-//            return true;
-//        }
-//
-//        // User must not be a member of any exclusion group.
-//        // That is user must not have no role on each of the exclusion groups
-//        return excludedGroups.stream()
-//            .allMatch(group -> this.membershipService.getRoles(MembershipReferenceType.GROUP, group, MembershipMemberType.USER, username).isEmpty());
-//    }
 
     @Override
     public Set<GroupEntity> findByUser(String user) {
