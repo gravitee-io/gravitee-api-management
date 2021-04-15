@@ -57,8 +57,19 @@ databaseChangeLog:
 
         - sql:
             sql: insert into ${gravitee_prefix}page_acl (page_id, reference_id, reference_type) select page_id, excluded_group, 'GROUP' from ${gravitee_prefix}page_excluded_groups;
+
+        # dbms: postgres
         - sql:
+            dbms: postgres
             sql: update ${gravitee_prefix}pages set excluded_access_controls = true, visibility = 'PRIVATE' from ${gravitee_prefix}page_excluded_groups where ${gravitee_prefix}page_excluded_groups.page_id = ${gravitee_prefix}pages.id and (${gravitee_prefix}page_excluded_groups.excluded_group IS NOT NULL OR ${gravitee_prefix}page_excluded_groups.excluded_group <> '');
+        # dbms: mssql
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}pages set excluded_access_controls = 'TRUE', visibility = 'PRIVATE' from ${gravitee_prefix}pages inner join ${gravitee_prefix}page_excluded_groups on ${gravitee_prefix}page_excluded_groups.page_id = ${gravitee_prefix}pages.id where ${gravitee_prefix}page_excluded_groups.excluded_group IS NOT NULL OR ${gravitee_prefix}page_excluded_groups.excluded_group <> '';
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}pages inner join ${gravitee_prefix}page_excluded_groups on ${gravitee_prefix}page_excluded_groups.page_id = ${gravitee_prefix}pages.id set excluded_access_controls = true, visibility = 'PRIVATE' where ${gravitee_prefix}page_excluded_groups.excluded_group IS NOT NULL OR ${gravitee_prefix}page_excluded_groups.excluded_group <> ''
         - dropTable:
             cascadeConstraints: true
             tableName: ${gravitee_prefix}page_excluded_groups
