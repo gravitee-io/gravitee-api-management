@@ -39,7 +39,8 @@ class UserController {
     private $scope: IUserScope,
     private $rootScope: IScope,
     private TokenService: TokenService,
-    private $mdDialog: angular.material.IDialogService) {
+    private $mdDialog: angular.material.IDialogService,
+    private Constants) {
     'ngInject';
   }
 
@@ -58,12 +59,12 @@ class UserController {
         if (groupsByEnvironmentKeys.length === 1) {
           this.groups = Object.values(this.user.groupsByEnvironment)[0].join(' - ');
         } else {
-          groupsByEnvironmentKeys.forEach((env, i) => {
-            this.groups += '[' + env + '] ' + this.user.groupsByEnvironment[env].join(' / ');
-            if (!this.user.groupsByEnvironment[env].length || (groupsByEnvironmentKeys.length - 1) !== i) {
-              this.groups += ' - ';
-            }
-          });
+          this.groups = groupsByEnvironmentKeys
+            .map((envId) => {
+              const env = this.Constants.org.environments.find(env => env.id === envId);
+              return `[${env.name}] ${this.user.groupsByEnvironment[envId].join('/')}`;
+            })
+            .join(' - ');
         }
       } else {
         this.groups = '-';
