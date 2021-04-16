@@ -24,14 +24,13 @@ import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.*;
+import java.util.Map.Entry;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -85,13 +84,23 @@ public class V3UpgraderService extends AbstractService {
                     for (Entry<String, String[]> entry : roleMappings.entrySet()) {
                         String[] roles = entry.getValue();
                         if (roles != null) {
-                            logger.debug("Idp '{}' - RoleMapping with condition '{}' has {} roles", idp.getId(), entry.getKey(), roles.length);
+                            logger.debug(
+                                "Idp '{}' - RoleMapping with condition '{}' has {} roles",
+                                idp.getId(),
+                                entry.getKey(),
+                                roles.length
+                            );
                             List<String> newRoles = new ArrayList<>(roles.length);
                             boolean entryHasBeenModified = false;
                             for (String role : roles) {
                                 String[] splittedRole = role.split(":");
                                 if ("1".equals(splittedRole[0])) {
-                                    Optional<Role> existingOrgaRoleWithSameName = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.ORGANIZATION, splittedRole[1], "DEFAULT", RoleReferenceType.ORGANIZATION);
+                                    Optional<Role> existingOrgaRoleWithSameName = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                                        RoleScope.ORGANIZATION,
+                                        splittedRole[1],
+                                        "DEFAULT",
+                                        RoleReferenceType.ORGANIZATION
+                                    );
                                     if (existingOrgaRoleWithSameName.isPresent()) {
                                         newRoles.add("ORGANIZATION:" + splittedRole[1]);
                                     }
@@ -121,14 +130,18 @@ public class V3UpgraderService extends AbstractService {
             }
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to retrieve all identity providers", ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to retrieve identity providers", ex);
+            throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }
 
     public void moveIdpPermission() {
         try {
-            final Set<Role> allRole = this.roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.ENVIRONMENT, "DEFAULT", RoleReferenceType.ORGANIZATION);
+            final Set<Role> allRole =
+                this.roleRepository.findByScopeAndReferenceIdAndReferenceType(
+                        RoleScope.ENVIRONMENT,
+                        "DEFAULT",
+                        RoleReferenceType.ORGANIZATION
+                    );
             logger.info("{} environment roles found", allRole.size());
             for (Role envRole : allRole) {
                 int idpPerm = -1;
@@ -145,7 +158,13 @@ public class V3UpgraderService extends AbstractService {
                     logger.info("Permission: {} found on role {}", idpPerm, envRole.getName());
 
                     Role orgRole;
-                    final Optional<Role> existingOrgRoleWithSameNameRoleCursor = this.roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.ORGANIZATION, envRole.getName(), envRole.getReferenceId(), envRole.getReferenceType());
+                    final Optional<Role> existingOrgRoleWithSameNameRoleCursor =
+                        this.roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+                                RoleScope.ORGANIZATION,
+                                envRole.getName(),
+                                envRole.getReferenceId(),
+                                envRole.getReferenceType()
+                            );
                     if (existingOrgRoleWithSameNameRoleCursor.isPresent()) {
                         logger.info("An org role exist with the same name");
                         orgRole = existingOrgRoleWithSameNameRoleCursor.get();
@@ -154,7 +173,6 @@ public class V3UpgraderService extends AbstractService {
 
                         this.roleRepository.update(orgRole);
                         logger.info("Update of org role done");
-
                     } else {
                         logger.info("No org role exist with the same name");
 
@@ -168,10 +186,9 @@ public class V3UpgraderService extends AbstractService {
                         orgRole.setCreatedAt(new Date());
                         orgRole.setDescription(envRole.getDescription());
                         orgRole.setSystem(envRole.isSystem());
-                        orgRole.setPermissions(new int[]{1300 + idpPerm % 100});
+                        orgRole.setPermissions(new int[] { 1300 + idpPerm % 100 });
                         this.roleRepository.create(orgRole);
                         logger.info("Creation of org role done");
-
                     }
 
                     envRole.setPermissions(ArrayUtils.remove(envPermissions, idpPermIndex));
@@ -179,9 +196,17 @@ public class V3UpgraderService extends AbstractService {
                     logger.info("Remove permission from env role done");
 
                     // Update memberships
-                    final Set<Membership> envMembershipsWithRole = this.membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.ENVIRONMENT, "DEFAULT", envRole.getId());
+                    final Set<Membership> envMembershipsWithRole =
+                        this.membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.ENVIRONMENT, "DEFAULT", envRole.getId());
                     for (Membership membership : envMembershipsWithRole) {
-                        Set<Membership> orgMembershipsWithRole = this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(membership.getMemberId(), membership.getMemberType(), MembershipReferenceType.ORGANIZATION, "DEFAULT", orgRole.getId());
+                        Set<Membership> orgMembershipsWithRole =
+                            this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                                    membership.getMemberId(),
+                                    membership.getMemberType(),
+                                    MembershipReferenceType.ORGANIZATION,
+                                    "DEFAULT",
+                                    orgRole.getId()
+                                );
                         if (orgMembershipsWithRole.isEmpty()) {
                             Membership newOrganizationMembership = membership;
                             newOrganizationMembership.setId(RandomString.generate());
@@ -190,15 +215,18 @@ public class V3UpgraderService extends AbstractService {
                             newOrganizationMembership.setRoleId(orgRole.getId());
 
                             this.membershipRepository.create(newOrganizationMembership);
-                            logger.info("New membership {} on organization created for user {}", newOrganizationMembership.getId(), membership.getMemberId());
+                            logger.info(
+                                "New membership {} on organization created for user {}",
+                                newOrganizationMembership.getId(),
+                                membership.getMemberId()
+                            );
                         }
                     }
                 }
             }
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to retrieve all identity providers", ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to retrieve identity providers", ex);
+            throw new TechnicalManagementException("An error occurs while trying to retrieve identity providers", ex);
         }
     }
 
@@ -206,5 +234,4 @@ public class V3UpgraderService extends AbstractService {
     protected void doStop() throws Exception {
         super.doStop();
     }
-
 }

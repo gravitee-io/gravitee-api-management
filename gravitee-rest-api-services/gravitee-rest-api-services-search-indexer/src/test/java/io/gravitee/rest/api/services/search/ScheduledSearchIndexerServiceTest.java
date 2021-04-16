@@ -15,25 +15,23 @@
  */
 package io.gravitee.rest.api.services.search;
 
+import static org.mockito.Mockito.*;
+
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.services.search.ScheduledSearchIndexerService;
-
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.mockito.Mockito.*;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -57,7 +55,6 @@ public class ScheduledSearchIndexerServiceTest {
         verify(commandService, never()).ack(anyString());
         verify(searchEngineService, never()).process(any());
     }
-
 
     @Test
     public void shouldInsertAndDelete() {

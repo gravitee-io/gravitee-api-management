@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
-
 import java.util.List;
 
 /**

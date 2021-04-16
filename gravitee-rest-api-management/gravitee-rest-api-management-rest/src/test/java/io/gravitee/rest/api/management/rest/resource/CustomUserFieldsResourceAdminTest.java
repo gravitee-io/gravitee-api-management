@@ -15,23 +15,23 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.CustomUserFieldEntity;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.rest.api.model.CustomUserFieldEntity;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
+
     @Override
     protected String contextPath() {
         return "configuration/custom-user-fields";
@@ -53,7 +53,7 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         verify(customUserFieldService).create(argument.capture());
         assertNotNull("Field provided can't be null", argument.getValue());
         assertEquals(field.getKey(), argument.getValue().getKey());
-        assertTrue("LocationHeader value", response.getHeaderString("Location").endsWith(this.contextPath()+"/"+field.getKey()));
+        assertTrue("LocationHeader value", response.getHeaderString("Location").endsWith(this.contextPath() + "/" + field.getKey()));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         ArgumentCaptor<CustomUserFieldEntity> argument = ArgumentCaptor.forClass(CustomUserFieldEntity.class);
         when(customUserFieldService.update(any())).thenReturn(field);
 
-        final Response response = orgTarget("/"+field.getKey()).request().put(Entity.json(field));
+        final Response response = orgTarget("/" + field.getKey()).request().put(Entity.json(field));
 
         assertEquals(OK_200, response.getStatus());
         verify(customUserFieldService, times(1)).update(any());

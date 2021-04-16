@@ -49,8 +49,6 @@ public class NewApplicationMetadataEntity extends NewReferenceMetadataEntity {
 
     @Override
     public String toString() {
-        return "NewApplicationMetadataEntity{" +
-                "applicationId='" + applicationId + '\'' +
-                "} " + super.toString();
+        return "NewApplicationMetadataEntity{" + "applicationId='" + applicationId + '\'' + "} " + super.toString();
     }
 }

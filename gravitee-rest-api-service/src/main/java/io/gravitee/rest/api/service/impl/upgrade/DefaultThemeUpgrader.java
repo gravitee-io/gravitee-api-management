@@ -41,5 +41,4 @@ public class DefaultThemeUpgrader implements Upgrader, Ordered {
     public int getOrder() {
         return 400;
     }
-
 }

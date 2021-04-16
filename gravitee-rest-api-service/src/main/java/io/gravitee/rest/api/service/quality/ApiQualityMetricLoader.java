@@ -16,21 +16,21 @@
 package io.gravitee.rest.api.service.quality;
 
 import io.gravitee.common.spring.factory.SpringFactoriesLoader;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiQualityMetricLoader extends SpringFactoriesLoader<ApiQualityMetric> {
+
     private List<ApiQualityMetric> metrics;
 
     @Override
     protected Class<ApiQualityMetric> getObjectType() {
         return ApiQualityMetric.class;
-        }
+    }
 
     public synchronized List<ApiQualityMetric> getApiQualityMetrics() {
         if (metrics == null) {

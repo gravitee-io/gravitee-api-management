@@ -20,5 +20,6 @@ package io.gravitee.rest.api.model.configuration.identity;
  * @author GraviteeSource Team
  */
 public enum IdentityProviderActivationReferenceType {
-    ENVIRONMENT, ORGANIZATION;
+    ENVIRONMENT,
+    ORGANIZATION,
 }

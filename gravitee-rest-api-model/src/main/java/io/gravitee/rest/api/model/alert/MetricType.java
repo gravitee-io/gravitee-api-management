@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.model.alert;
 
-import java.util.List;
-
 import static io.gravitee.rest.api.model.alert.ThresholdType.PERCENT_RATE;
 import static java.util.Collections.singletonList;
+
+import java.util.List;
 
 public enum MetricType {
     QUOTA("Quota", "Quota percent", singletonList(PERCENT_RATE));

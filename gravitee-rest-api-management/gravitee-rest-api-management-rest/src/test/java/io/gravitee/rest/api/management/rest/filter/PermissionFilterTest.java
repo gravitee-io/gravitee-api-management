@@ -15,39 +15,37 @@
  */
 package io.gravitee.rest.api.management.rest.filter;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import io.gravitee.rest.api.management.rest.filter.PermissionsFilter;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.filter.PermissionsFilter;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-
+import java.security.Principal;
+import java.util.Collections;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.security.Principal;
-import java.util.Collections;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PermissionFilterTest {
@@ -76,7 +74,7 @@ public class PermissionFilterTest {
     @Mock
     protected ContainerRequestContext containerRequestContext;
 
-    private final static String USERNAME = "USERNAME";
+    private static final String USERNAME = "USERNAME";
 
     public static final String API_ID = "API_ID";
 
@@ -98,8 +96,8 @@ public class PermissionFilterTest {
         when(securityContext.getUserPrincipal()).thenReturn(user);
         Permission perm = mock(Permission.class);
         when(perm.value()).thenReturn(RolePermission.API_ANALYTICS);
-        when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
-        when(permissions.value()).thenReturn(new Permission[]{perm});
+        when(perm.acls()).thenReturn(new RolePermissionAction[] { RolePermissionAction.UPDATE });
+        when(permissions.value()).thenReturn(new Permission[] { perm });
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
         map.put("api", Collections.singletonList(api.getId()));
@@ -115,7 +113,7 @@ public class PermissionFilterTest {
 
         try {
             permissionFilter.filter(permissions, containerRequestContext);
-        } catch(ForbiddenAccessException e) {
+        } catch (ForbiddenAccessException e) {
             verify(apiService, times(1)).findById(api.getId());
             verify(applicationService, never()).findById(any());
             verify(roleService, times(1)).hasPermission(any(), any(), any());
@@ -151,8 +149,8 @@ public class PermissionFilterTest {
         when(securityContext.getUserPrincipal()).thenReturn(user);
         Permission perm = mock(Permission.class);
         when(perm.value()).thenReturn(RolePermission.APPLICATION_ANALYTICS);
-        when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
-        when(permissions.value()).thenReturn(new Permission[]{perm});
+        when(perm.acls()).thenReturn(new RolePermissionAction[] { RolePermissionAction.UPDATE });
+        when(permissions.value()).thenReturn(new Permission[] { perm });
         UriInfo uriInfo = mock(UriInfo.class);
         MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
         map.put("application", Collections.singletonList(application.getId()));
@@ -168,7 +166,7 @@ public class PermissionFilterTest {
 
         try {
             permissionFilter.filter(permissions, containerRequestContext);
-        } catch(ForbiddenAccessException e) {
+        } catch (ForbiddenAccessException e) {
             verify(applicationService, times(1)).findById(application.getId());
             verify(apiService, never()).findById(any());
             verify(roleService, times(1)).hasPermission(any(), any(), any());
@@ -202,8 +200,8 @@ public class PermissionFilterTest {
         when(securityContext.getUserPrincipal()).thenReturn(user);
         Permission perm = mock(Permission.class);
         when(perm.value()).thenReturn(RolePermission.ENVIRONMENT_API);
-        when(perm.acls()).thenReturn(new RolePermissionAction[]{RolePermissionAction.UPDATE});
-        when(permissions.value()).thenReturn(new Permission[]{perm});
+        when(perm.acls()).thenReturn(new RolePermissionAction[] { RolePermissionAction.UPDATE });
+        when(permissions.value()).thenReturn(new Permission[] { perm });
         UriInfo uriInfo = mock(UriInfo.class);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
     }
@@ -215,7 +213,7 @@ public class PermissionFilterTest {
 
         try {
             permissionFilter.filter(permissions, containerRequestContext);
-        } catch(ForbiddenAccessException e) {
+        } catch (ForbiddenAccessException e) {
             verify(applicationService, never()).findById(any());
             verify(apiService, never()).findById(any());
             verify(roleService, times(1)).hasPermission(any(), any(), any());

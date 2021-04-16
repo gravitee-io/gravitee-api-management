@@ -15,14 +15,12 @@
  */
 package io.gravitee.rest.api.repository.proxy;
 
-import java.util.Optional;
-import java.util.Set;
-
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
+import java.util.Optional;
+import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

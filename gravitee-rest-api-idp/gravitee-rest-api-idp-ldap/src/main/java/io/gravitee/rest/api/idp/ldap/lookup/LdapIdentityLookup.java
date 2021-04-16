@@ -21,7 +21,9 @@ import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.ldap.LdapIdentityProvider;
 import io.gravitee.rest.api.idp.ldap.lookup.spring.LdapIdentityLookupConfiguration;
 import io.gravitee.rest.api.idp.ldap.utils.LdapUtils;
-
+import java.util.Collection;
+import java.util.Collections;
+import javax.naming.ldap.LdapName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -41,10 +43,6 @@ import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.ldap.query.SearchScope;
 import org.springframework.ldap.support.LdapNameBuilder;
 
-import javax.naming.ldap.LdapName;
-import java.util.Collection;
-import java.util.Collections;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -55,12 +53,11 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
     private final Logger LOGGER = LoggerFactory.getLogger(LdapIdentityLookup.class);
 
-    private final static String LDAP_ATTRIBUTE_GIVENNAME = "givenName";
-    private final static String LDAP_ATTRIBUTE_SURNAME = "sn";
-    private final static String LDAP_ATTRIBUTE_MAIL = "mail";
-    private final static String LDAP_ATTRIBUTE_DISPLAYNAME = "displayName";
-    private final static String LDAP_DEFAULT_LOOKUP_FILTER ="(&(objectClass=Person)(|(cn=*{0}*)(uid={0})))";
-
+    private static final String LDAP_ATTRIBUTE_GIVENNAME = "givenName";
+    private static final String LDAP_ATTRIBUTE_SURNAME = "sn";
+    private static final String LDAP_ATTRIBUTE_MAIL = "mail";
+    private static final String LDAP_ATTRIBUTE_DISPLAYNAME = "displayName";
+    private static final String LDAP_DEFAULT_LOOKUP_FILTER = "(&(objectClass=Person)(|(cn=*{0}*)(uid={0})))";
 
     @Autowired
     private LdapTemplate ldapTemplate;
@@ -72,7 +69,7 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
     private LdapName baseDn;
 
-    private String [] userAttributes;
+    private String[] userAttributes;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -84,19 +81,22 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
             LOGGER.info("User identifier is based on the [{}] attribute", identifierAttribute);
 
-            userAttributes = new String [] {
-                    identifierAttribute, LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME,
-                    LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME
-            };
+            userAttributes =
+                new String[] {
+                    identifierAttribute,
+                    LDAP_ATTRIBUTE_GIVENNAME,
+                    LDAP_ATTRIBUTE_SURNAME,
+                    LDAP_ATTRIBUTE_MAIL,
+                    LDAP_ATTRIBUTE_DISPLAYNAME,
+                };
         } else {
-            userAttributes = new String [] {
-                    LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME,
-                    LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME
-            };
+            userAttributes =
+                new String[] { LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME, LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME };
         }
 
         // Base DN to search for users
-        baseDn = LdapNameBuilder
+        baseDn =
+            LdapNameBuilder
                 .newInstance(environment.getProperty("context.base"))
                 .add(environment.getProperty("lookup.user.base", ""))
                 .build();
@@ -113,23 +113,19 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
             String hardcodedFilter = usersSearchFilter.replaceAll("\\{0}", LdapUtils.addWhitespaceWildcards(query));
 
             LdapQuery ldapQuery = LdapQueryBuilder
-                    .query()
-                    .base(baseDn)
-                    .countLimit(20)
-                    .timeLimit(5000)
-                    .searchScope(SearchScope.SUBTREE)
-                    .attributes(
-                            LDAP_ATTRIBUTE_GIVENNAME,
-                            LDAP_ATTRIBUTE_SURNAME,
-                            LDAP_ATTRIBUTE_MAIL,
-                            LDAP_ATTRIBUTE_DISPLAYNAME)
-                    .filter(new HardcodedFilter(hardcodedFilter));
+                .query()
+                .base(baseDn)
+                .countLimit(20)
+                .timeLimit(5000)
+                .searchScope(SearchScope.SUBTREE)
+                .attributes(LDAP_ATTRIBUTE_GIVENNAME, LDAP_ATTRIBUTE_SURNAME, LDAP_ATTRIBUTE_MAIL, LDAP_ATTRIBUTE_DISPLAYNAME)
+                .filter(new HardcodedFilter(hardcodedFilter));
 
             return ldapTemplate.search(ldapQuery, USER_CONTEXT_MAPPER);
-        } catch(LimitExceededException lee) {
+        } catch (LimitExceededException lee) {
             LOGGER.info("Too much results while searching for [{}]. Returns an empty list.", query);
             return Collections.emptyList();
-        } catch(CommunicationException ce) {
+        } catch (CommunicationException ce) {
             LOGGER.error("LDAP server is not reachable.");
             return Collections.emptyList();
         } finally {
@@ -157,12 +153,11 @@ public class LdapIdentityLookup implements IdentityLookup, InitializingBean {
 
     @Override
     public boolean allowEmailInSearchResults() {
-        Boolean allow = environment.getProperty("lookup.allow-email-in-search-results",Boolean.class, false);
+        Boolean allow = environment.getProperty("lookup.allow-email-in-search-results", Boolean.class, false);
         return allow != null && allow;
     }
 
     private final ContextMapper<User> USER_CONTEXT_MAPPER = new AbstractContextMapper<User>() {
-
         @Override
         protected User doMapFromContext(DirContextOperations ctx) {
             LdapUser user = new LdapUser(ctx.getDn().toString());

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.monitoring;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 /**
@@ -27,12 +26,16 @@ public class MonitoringMemory {
 
     @JsonProperty("total_in_bytes")
     private long totalInBytes;
+
     @JsonProperty("free_in_bytes")
     private long freeInBytes;
+
     @JsonProperty("used_in_bytes")
     private long usedInBytes;
+
     @JsonProperty("free_percent")
     private int freePercent;
+
     @JsonProperty("used_percent")
     private int usedPercent;
 
@@ -81,11 +84,13 @@ public class MonitoringMemory {
         if (this == o) return true;
         if (!(o instanceof MonitoringMemory)) return false;
         MonitoringMemory that = (MonitoringMemory) o;
-        return totalInBytes == that.totalInBytes &&
-                freeInBytes == that.freeInBytes &&
-                usedInBytes == that.usedInBytes &&
-                freePercent == that.freePercent &&
-                usedPercent == that.usedPercent;
+        return (
+            totalInBytes == that.totalInBytes &&
+            freeInBytes == that.freeInBytes &&
+            usedInBytes == that.usedInBytes &&
+            freePercent == that.freePercent &&
+            usedPercent == that.usedPercent
+        );
     }
 
     @Override
@@ -95,12 +100,19 @@ public class MonitoringMemory {
 
     @Override
     public String toString() {
-        return "MonitoringMemory{" +
-                "totalInBytes=" + totalInBytes +
-                ", freeInBytes=" + freeInBytes +
-                ", usedInBytes=" + usedInBytes +
-                ", freePercent=" + freePercent +
-                ", usedPercent=" + usedPercent +
-                '}';
+        return (
+            "MonitoringMemory{" +
+            "totalInBytes=" +
+            totalInBytes +
+            ", freeInBytes=" +
+            freeInBytes +
+            ", usedInBytes=" +
+            usedInBytes +
+            ", freePercent=" +
+            freePercent +
+            ", usedPercent=" +
+            usedPercent +
+            '}'
+        );
     }
 }

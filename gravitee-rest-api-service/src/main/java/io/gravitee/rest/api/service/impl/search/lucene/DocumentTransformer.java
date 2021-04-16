@@ -24,6 +24,5 @@ import org.apache.lucene.document.Document;
  * @author GraviteeSource Team
  */
 public interface DocumentTransformer<T extends Indexable> extends TypedHandler {
-
     Document transform(T indexable);
 }

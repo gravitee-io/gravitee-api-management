@@ -23,8 +23,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
  * @author GraviteeSource Team
  */
 public interface PermissionService {
-
     boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls);
-    
+
     boolean hasManagementRights(String userId);
 }

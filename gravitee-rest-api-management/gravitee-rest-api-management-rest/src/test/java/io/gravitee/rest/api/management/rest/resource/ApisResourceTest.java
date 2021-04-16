@@ -15,21 +15,20 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -56,8 +55,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
-        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
-                Mockito.eq(USER_NAME));
+        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -72,8 +70,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
-        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
-                Mockito.eq(USER_NAME));
+        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -90,8 +87,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
-        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class),
-                Mockito.eq(USER_NAME));
+        doReturn(returnedApi).when(apiService).create(Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
         final Response response = envTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
@@ -112,7 +108,11 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        verify(swaggerService).createAPI(argThat(argument -> argument.getPayload().equalsIgnoreCase(swaggerDescriptor.getPayload())), eq(DefinitionVersion.valueOfLabel("1.0.0")));
+        verify(swaggerService)
+            .createAPI(
+                argThat(argument -> argument.getPayload().equalsIgnoreCase(swaggerDescriptor.getPayload())),
+                eq(DefinitionVersion.valueOfLabel("1.0.0"))
+            );
     }
 
     @Test
@@ -141,12 +141,11 @@ public class ApisResourceTest extends AbstractResourceTest {
         createdApi.setId("my-beautiful-api");
         doReturn(createdApi).when(apiService).createWithImportedDefinition(any(), any(), any());
 
-        final Response response =
-                envTarget()
-                .path("import")
-                .queryParam("definitionVersion", "2.0.0")
-                .request()
-                .post(Entity.json(apiDefinition));
+        final Response response = envTarget()
+            .path("import")
+            .queryParam("definitionVersion", "2.0.0")
+            .request()
+            .post(Entity.json(apiDefinition));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         verify(apiService, times(0)).migrate(any());
@@ -162,12 +161,11 @@ public class ApisResourceTest extends AbstractResourceTest {
         createdApi.setId("my-beautiful-api");
         doReturn(createdApi).when(apiService).createWithImportedDefinition(any(), any(), any());
 
-        final Response response =
-                envTarget()
-                        .path("import")
-                        .queryParam("definitionVersion", "2.0.0")
-                        .request()
-                        .post(Entity.json(apiDefinition));
+        final Response response = envTarget()
+            .path("import")
+            .queryParam("definitionVersion", "2.0.0")
+            .request()
+            .post(Entity.json(apiDefinition));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         verify(apiService, times(1)).migrate(any());

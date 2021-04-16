@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.quality;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.Objects;
 
@@ -27,11 +26,15 @@ import java.util.Objects;
 public class ApiQualityRuleEntity {
 
     private String api;
+
     @JsonProperty("quality_rule")
     private String qualityRule;
+
     private boolean checked;
+
     @JsonProperty("created_at")
     private Date createdAt;
+
     @JsonProperty("updated_at")
     private Date updatedAt;
 
@@ -80,8 +83,7 @@ public class ApiQualityRuleEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiQualityRuleEntity that = (ApiQualityRuleEntity) o;
-        return Objects.equals(api, that.api) &&
-                Objects.equals(qualityRule, that.qualityRule);
+        return Objects.equals(api, that.api) && Objects.equals(qualityRule, that.qualityRule);
     }
 
     @Override
@@ -91,12 +93,21 @@ public class ApiQualityRuleEntity {
 
     @Override
     public String toString() {
-        return "ApiQualityRuleEntity{" +
-                "api='" + api + '\'' +
-                ", qualityRule='" + qualityRule + '\'' +
-                ", checked=" + checked +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "ApiQualityRuleEntity{" +
+            "api='" +
+            api +
+            '\'' +
+            ", qualityRule='" +
+            qualityRule +
+            '\'' +
+            ", checked=" +
+            checked +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

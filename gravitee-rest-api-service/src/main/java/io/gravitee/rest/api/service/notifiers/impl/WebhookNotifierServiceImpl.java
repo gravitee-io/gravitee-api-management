@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
+
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.model.*;
@@ -23,19 +25,15 @@ import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.WebNotifierService;
 import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
 import io.vertx.core.json.JsonObject;
-
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
-
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -48,7 +46,6 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
 
     @Override
     public void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
-
         //body
         String body = toJson(hook, params);
 
@@ -57,7 +54,13 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         headers.put("X-Gravitee-Event", hook.name());
         headers.put("X-Gravitee-Event-Scope", hook.getScope().name());
 
-        webNotifierService.request(HttpMethod.POST, genericNotificationConfig.getConfig(), headers, body, genericNotificationConfig.isUseSystemProxy());
+        webNotifierService.request(
+            HttpMethod.POST,
+            genericNotificationConfig.getConfig(),
+            headers,
+            body,
+            genericNotificationConfig.isUseSystemProxy()
+        );
     }
 
     private String toJson(final Hook hook, final Map<String, Object> params) {
@@ -72,13 +75,16 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
                 JsonObject jsonApi = new JsonObject();
                 jsonApi.put("id", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getId() : ((ApiEntity) api).getId());
                 jsonApi.put("name", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getName() : ((ApiEntity) api).getName());
-                jsonApi.put("version", api instanceof ApiModelEntity ? ((ApiModelEntity) api).getVersion() : ((ApiEntity) api).getVersion());
+                jsonApi.put(
+                    "version",
+                    api instanceof ApiModelEntity ? ((ApiModelEntity) api).getVersion() : ((ApiEntity) api).getVersion()
+                );
                 content.put("api", jsonApi);
             }
         }
         // application
         if (params.containsKey(PARAM_APPLICATION)) {
-            ApplicationEntity application = (ApplicationEntity )params.get(PARAM_APPLICATION);
+            ApplicationEntity application = (ApplicationEntity) params.get(PARAM_APPLICATION);
             if (application != null) {
                 JsonObject jsonApplication = new JsonObject();
                 jsonApplication.put("id", application.getId());
@@ -103,7 +109,7 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         }
         // plan
         if (params.containsKey(PARAM_PLAN)) {
-            PlanEntity plan = (PlanEntity)params.get(PARAM_PLAN);
+            PlanEntity plan = (PlanEntity) params.get(PARAM_PLAN);
             if (plan != null) {
                 JsonObject jsonPlan = new JsonObject();
                 jsonPlan.put("id", plan.getId());

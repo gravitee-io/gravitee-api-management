@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource.search;
 
 import io.swagger.annotations.Api;
-
 import javax.ws.rs.Path;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -25,7 +24,7 @@ import javax.ws.rs.core.Context;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Users"})
+@Api(tags = { "Users" })
 public class SearchResource {
 
     @Context

@@ -18,7 +18,9 @@ package io.gravitee.rest.api.spec.converter.wsdl;
 import io.gravitee.rest.api.spec.converter.wsdl.binding.Soap12Binding;
 import io.gravitee.rest.api.spec.converter.wsdl.binding.SoapBinding;
 import io.gravitee.rest.api.spec.converter.wsdl.binding.SoapVersion;
-
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import javax.wsdl.BindingOperation;
 import javax.wsdl.Port;
 import javax.wsdl.extensions.http.HTTPAddress;
@@ -29,22 +31,15 @@ import javax.wsdl.extensions.soap12.SOAP12Address;
 import javax.wsdl.extensions.soap12.SOAP12Binding;
 import javax.wsdl.extensions.soap12.SOAP12Operation;
 import javax.xml.namespace.QName;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public class WSDLUtils {
 
     public static <T> Optional<T> extractFirstElement(List<Object> elements, Class<T> type) {
-        return elements.stream()
-                .filter(elt -> type.isAssignableFrom(elt.getClass()))
-                .map(e -> (T)e).findFirst();
+        return elements.stream().filter(elt -> type.isAssignableFrom(elt.getClass())).map(e -> (T) e).findFirst();
     }
 
     public static <T> Stream<T> extractAllElements(List<Object> elements, Class<T> type) {
-        return elements.stream()
-                .filter(elt -> type.isAssignableFrom(elt.getClass()))
-                .map(e -> (T)e);
+        return elements.stream().filter(elt -> type.isAssignableFrom(elt.getClass())).map(e -> (T) e);
     }
 
     public static Optional<SoapVersion> detectSoapVersion(List<Object> elements) {
@@ -58,7 +53,6 @@ public class WSDLUtils {
         }
         return Optional.empty();
     }
-
 
     public static String extractSOAPAddress(Port port) {
         Optional<SOAPAddress> optAddr = extractFirstElement(port.getExtensibilityElements(), SOAPAddress.class);
@@ -85,7 +79,7 @@ public class WSDLUtils {
 
     public static String formatQName(QName qname) {
         if (qname.getPrefix() != null) {
-            return qname.getPrefix()+":"+qname.getLocalPart();
+            return qname.getPrefix() + ":" + qname.getLocalPart();
         } else {
             return qname.getLocalPart();
         }

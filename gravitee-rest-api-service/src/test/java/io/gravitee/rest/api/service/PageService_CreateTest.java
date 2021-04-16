@@ -15,6 +15,13 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
@@ -30,25 +37,17 @@ import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -69,6 +68,7 @@ public class PageService_CreateTest {
 
     @Mock
     private NewPageEntity newPage;
+
     @Mock
     private Page page1;
 
@@ -124,16 +124,22 @@ public class PageService_CreateTest {
 
         final PageEntity createdPage = pageService.createPage(API_ID, newPage);
 
-        verify(pageRepository).create(argThat(pageToCreate -> pageToCreate.getId().split("-").length == 5 &&
-                API_ID.equals(pageToCreate.getReferenceId()) &&
-                PageReferenceType.API.equals(pageToCreate.getReferenceType()) &&
-                name.equals(pageToCreate.getName()) &&
-                contrib.equals(pageToCreate.getLastContributor()) &&
-                content.equals(pageToCreate.getContent()) &&
-                PageType.SWAGGER.name().equals(pageToCreate.getType()) &&
-                pageToCreate.getCreatedAt() != null &&
-                pageToCreate.getUpdatedAt() != null &&
-                pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())));
+        verify(pageRepository)
+            .create(
+                argThat(
+                    pageToCreate ->
+                        pageToCreate.getId().split("-").length == 5 &&
+                        API_ID.equals(pageToCreate.getReferenceId()) &&
+                        PageReferenceType.API.equals(pageToCreate.getReferenceType()) &&
+                        name.equals(pageToCreate.getName()) &&
+                        contrib.equals(pageToCreate.getLastContributor()) &&
+                        content.equals(pageToCreate.getContent()) &&
+                        PageType.SWAGGER.name().equals(pageToCreate.getType()) &&
+                        pageToCreate.getCreatedAt() != null &&
+                        pageToCreate.getUpdatedAt() != null &&
+                        pageToCreate.getCreatedAt().equals(pageToCreate.getUpdatedAt())
+                )
+            );
         assertNotNull(createdPage);
         assertEquals(5, createdPage.getId().split("-").length);
         assertEquals(1, createdPage.getOrder());
@@ -149,9 +155,8 @@ public class PageService_CreateTest {
         final String name = "PAGE_NAME";
         when(newPage.getName()).thenReturn(name);
         when(newPage.getType()).thenReturn(PageType.SWAGGER);
-        when(newPage.getContent()).thenReturn(
-                getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent()
-        );
+        when(newPage.getContent())
+            .thenReturn(getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent());
 
         when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 
@@ -187,7 +192,6 @@ public class PageService_CreateTest {
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
 
-
         NewPageEntity newFolder = new NewPageEntity();
         newFolder.setType(PageType.FOLDER);
         newFolder.setParentId("SYS");
@@ -211,7 +215,6 @@ public class PageService_CreateTest {
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
 
-
         NewPageEntity newFolder = new NewPageEntity();
         newFolder.setType(PageType.SWAGGER);
         newFolder.setParentId("SYS");
@@ -225,7 +228,6 @@ public class PageService_CreateTest {
         systemFolder.setId("SYS");
         systemFolder.setType("SYSTEM_FOLDER");
         doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
-
 
         NewPageEntity newFolder = new NewPageEntity();
         newFolder.setType(PageType.MARKDOWN);
@@ -299,7 +301,6 @@ public class PageService_CreateTest {
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
         // do not create revision for Link
         verify(pageRevisionService, times(0)).create(any());
-
     }
 
     @Test
@@ -329,7 +330,6 @@ public class PageService_CreateTest {
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
         // do not create revision for Link
         verify(pageRevisionService, times(0)).create(any());
-
     }
 
     @Test(expected = PageActionException.class)
@@ -418,7 +418,6 @@ public class PageService_CreateTest {
         page.setPublished(true);
         doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
 
-
         NewPageEntity newTranslation = new NewPageEntity();
         newTranslation.setType(PageType.TRANSLATION);
         newTranslation.setParentId(PAGE_ID);
@@ -440,10 +439,8 @@ public class PageService_CreateTest {
         verify(pageRevisionService, times(1)).create(any());
     }
 
-
     @Test(expected = UrlForbiddenException.class)
     public void shouldNotCreateBecauseUrlForbiddenException() throws TechnicalException {
-
         PageSourceEntity pageSource = new PageSourceEntity();
         pageSource.setType("HTTP");
         pageSource.setConfiguration(JsonNodeFactory.instance.objectNode().put("url", "http://localhost"));
@@ -463,7 +460,6 @@ public class PageService_CreateTest {
 
     @Test(expected = PageContentUnsafeException.class)
     public void shouldNotCreateBecausePageContentUnsafeException() throws TechnicalException, TemplateException {
-
         setField(pageService, "markdownSanitize", true);
 
         final String name = "MARKDOWN";
@@ -475,7 +471,8 @@ public class PageService_CreateTest {
         when(newPage.getContent()).thenReturn(content);
         when(newPage.getLastContributor()).thenReturn(contrib);
         when(newPage.getType()).thenReturn(PageType.MARKDOWN);
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean())).thenReturn(content);
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
+            .thenReturn(content);
         this.pageService.createPage(API_ID, newPage);
 
         verify(pageRepository, never()).create(any());
@@ -483,7 +480,6 @@ public class PageService_CreateTest {
 
     @Test
     public void shouldNotCreateBecausePageContentTemplatingException() throws TechnicalException, TemplateException {
-
         setField(pageService, "markdownSanitize", true);
 
         final String name = "MARKDOWN";
@@ -506,7 +502,8 @@ public class PageService_CreateTest {
 
         when(pageRepository.create(any())).thenReturn(page1);
 
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean())).thenThrow(new TemplateProcessingException(new TemplateException(null)));
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
+            .thenThrow(new TemplateProcessingException(new TemplateException(null)));
         this.pageService.createPage(API_ID, newPage);
 
         verify(pageRepository).create(any());

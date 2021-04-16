@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.model.configuration.application;
 
-
 import java.util.List;
 
 public class ApplicationTypeEntity {

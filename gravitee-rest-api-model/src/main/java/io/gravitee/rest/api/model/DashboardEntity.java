@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.Objects;
 
@@ -27,18 +26,25 @@ import java.util.Objects;
 public class DashboardEntity {
 
     private String id;
+
     @JsonProperty("reference_type")
     private String referenceType;
+
     @JsonProperty("reference_id")
     private String referenceId;
+
     private String name;
+
     @JsonProperty("query_filter")
     private String queryFilter;
+
     private int order;
     private boolean enabled;
     private String definition;
+
     @JsonProperty("created_at")
     private Date createdAt;
+
     @JsonProperty("updated_at")
     private Date updatedAt;
 
@@ -137,17 +143,35 @@ public class DashboardEntity {
 
     @Override
     public String toString() {
-        return "DashboardEntity{" +
-                "id='" + id + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", name='" + name + '\'' +
-                ", queryFilter='" + queryFilter + '\'' +
-                ", order=" + order +
-                ", enabled=" + enabled +
-                ", definition='" + definition + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "DashboardEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", queryFilter='" +
+            queryFilter +
+            '\'' +
+            ", order=" +
+            order +
+            ", enabled=" +
+            enabled +
+            ", definition='" +
+            definition +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

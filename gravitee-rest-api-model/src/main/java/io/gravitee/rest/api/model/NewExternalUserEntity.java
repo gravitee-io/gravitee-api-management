@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,10 +40,10 @@ public class NewExternalUserEntity {
     @NotNull
     private String email;
 
-	/**
-	 * The user source
-	 */
-	private String source;
+    /**
+     * The user source
+     */
+    private String source;
 
     /**
      * The user picture
@@ -125,15 +125,31 @@ public class NewExternalUserEntity {
 
     @Override
     public String toString() {
-        return "NewExternalUserEntity{" +
-                "firstname='" + firstname + '\'' +
-                ", lastname='" + lastname + '\'' +
-                ", email='" + email + '\'' +
-                ", source='" + source + '\'' +
-                ", picture='" + picture + '\'' +
-                ", sourceId='" + sourceId + '\'' +
-                ", newsletter=" + newsletter +
-                ", customFields=" + customFields +
-                '}';
+        return (
+            "NewExternalUserEntity{" +
+            "firstname='" +
+            firstname +
+            '\'' +
+            ", lastname='" +
+            lastname +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", source='" +
+            source +
+            '\'' +
+            ", picture='" +
+            picture +
+            '\'' +
+            ", sourceId='" +
+            sourceId +
+            '\'' +
+            ", newsletter=" +
+            newsletter +
+            ", customFields=" +
+            customFields +
+            '}'
+        );
     }
 }

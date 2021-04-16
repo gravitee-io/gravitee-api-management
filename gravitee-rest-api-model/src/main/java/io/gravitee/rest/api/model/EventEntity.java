@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.Map;
 
@@ -34,6 +33,7 @@ public class EventEntity {
 
     @JsonProperty("created_at")
     private Date createdAt;
+
     @JsonProperty("updated_at")
     private Date updatedAt;
 

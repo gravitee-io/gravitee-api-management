@@ -15,11 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.model;
 
-import javax.validation.constraints.NotNull;
-
 import io.gravitee.rest.api.model.MemberRoleEntity;
-
 import java.util.List;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

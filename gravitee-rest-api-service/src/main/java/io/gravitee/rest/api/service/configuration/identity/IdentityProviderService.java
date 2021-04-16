@@ -15,18 +15,16 @@
  */
 package io.gravitee.rest.api.service.configuration.identity;
 
-import java.util.Set;
-
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface IdentityProviderService {
-
     IdentityProviderEntity create(NewIdentityProviderEntity identityProvider);
 
     IdentityProviderEntity update(String id, UpdateIdentityProviderEntity identityProvider);

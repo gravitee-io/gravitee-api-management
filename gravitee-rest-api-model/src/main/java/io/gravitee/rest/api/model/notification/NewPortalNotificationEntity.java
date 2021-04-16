@@ -56,9 +56,7 @@ public class NewPortalNotificationEntity {
         if (this == o) return true;
         if (!(o instanceof NewPortalNotificationEntity)) return false;
         NewPortalNotificationEntity that = (NewPortalNotificationEntity) o;
-        return Objects.equals(title, that.title)
-                && Objects.equals(message, that.message)
-                && Objects.equals(user, that.user);
+        return Objects.equals(title, that.title) && Objects.equals(message, that.message) && Objects.equals(user, that.user);
     }
 
     @Override
@@ -68,10 +66,6 @@ public class NewPortalNotificationEntity {
 
     @Override
     public String toString() {
-        return "NewNotificationEntity{" +
-                ", title='" + title + '\'' +
-                ", message='" + message + '\'' +
-                ", user='" + user + '\'' +
-                '}';
+        return "NewNotificationEntity{" + ", title='" + title + '\'' + ", message='" + message + '\'' + ", user='" + user + '\'' + '}';
     }
 }

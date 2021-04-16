@@ -27,13 +27,12 @@ import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RatingAnswerNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.Collection;
+import java.util.Collections;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.util.Collection;
-import java.util.Collections;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -46,23 +45,21 @@ public class ApiRatingAnswerResource extends AbstractResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE)
-    })
-    public Response deleteApiRatingAnswer(@PathParam("apiId") String apiId, @PathParam("ratingId") String ratingId, @PathParam("answerId") String answerId) {
+    @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE) })
+    public Response deleteApiRatingAnswer(
+        @PathParam("apiId") String apiId,
+        @PathParam("ratingId") String ratingId,
+        @PathParam("answerId") String answerId
+    ) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-
             RatingEntity ratingEntity = ratingService.findById(ratingId);
             if (ratingEntity != null && ratingEntity.getApi().equals(apiId)) {
-
-                if (ratingEntity.getAnswers().stream().anyMatch(answer -> answer.getId().equals(answerId))){
+                if (ratingEntity.getAnswers().stream().anyMatch(answer -> answer.getId().equals(answerId))) {
                     ratingService.deleteAnswer(ratingId, answerId);
-                    return Response
-                            .status(Status.NO_CONTENT)
-                            .build();
+                    return Response.status(Status.NO_CONTENT).build();
                 }
 
                 throw new RatingAnswerNotFoundException(answerId, ratingId, apiId);

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.alert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.Objects;
 
@@ -25,13 +24,17 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class AlertEntity {
+
     private String id;
     private String name;
     private String description;
+
     @JsonProperty("reference_type")
     private AlertReferenceType referenceType;
+
     @JsonProperty("reference_id")
     private String referenceId;
+
     private AlertType type;
     private boolean enabled;
     private MetricType metricType;
@@ -39,8 +42,10 @@ public class AlertEntity {
     private ThresholdType thresholdType;
     private Double threshold;
     private String plan;
+
     @JsonProperty("created_at")
     private Date createdAt;
+
     @JsonProperty("updated_at")
     private Date updatedAt;
 
@@ -171,21 +176,42 @@ public class AlertEntity {
 
     @Override
     public String toString() {
-        return "AlertEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", referenceType=" + referenceType +
-                ", referenceId='" + referenceId + '\'' +
-                ", type=" + type +
-                ", enabled=" + enabled +
-                ", metricType=" + metricType +
-                ", metric=" + metric +
-                ", thresholdType=" + thresholdType +
-                ", threshold=" + threshold +
-                ", plan='" + plan + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "AlertEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", type=" +
+            type +
+            ", enabled=" +
+            enabled +
+            ", metricType=" +
+            metricType +
+            ", metric=" +
+            metric +
+            ", thresholdType=" +
+            thresholdType +
+            ", threshold=" +
+            threshold +
+            ", plan='" +
+            plan +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

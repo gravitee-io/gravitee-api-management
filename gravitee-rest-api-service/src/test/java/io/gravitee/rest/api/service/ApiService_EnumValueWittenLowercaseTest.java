@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.gravitee.rest.api.model.Visibility;
@@ -22,16 +25,12 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Guillaume Gillon
@@ -65,26 +64,33 @@ public class ApiService_EnumValueWittenLowercaseTest {
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(ApiSerializer.METADATA_EXPORT_VERSION, ApiSerializer.Version.DEFAULT.getVersion());
-        metadata.put(ApiSerializer.METADATA_FILTERED_FIELDS_LIST, Arrays.asList("groups", "members", "pages", "plans", "metadata", "media"));
+        metadata.put(
+            ApiSerializer.METADATA_FILTERED_FIELDS_LIST,
+            Arrays.asList("groups", "members", "pages", "plans", "metadata", "media")
+        );
         apiEntity.setMetadata(metadata);
 
         String result = objectMapper.writeValueAsString(apiEntity);
-        assertThat(result).isEqualTo("{\n" +
-            "  \"name\" : \"test\",\n" +
-            "  \"description\" : \"Gravitee.io\",\n" +
-            "  \"visibility\" : \"PUBLIC\",\n" +
-            "  \"paths\" : { },\n" +
-            "  \"flows\" : [ ],\n" +
-            "  \"resources\" : [ ],\n" +
-            "  \"properties\" : [ ],\n" +
-            "  \"id\" : \"id-api\",\n" +
-            "  \"path_mappings\" : [ ]\n" +
-            "}");
+        assertThat(result)
+            .isEqualTo(
+                "{\n" +
+                "  \"name\" : \"test\",\n" +
+                "  \"description\" : \"Gravitee.io\",\n" +
+                "  \"visibility\" : \"PUBLIC\",\n" +
+                "  \"paths\" : { },\n" +
+                "  \"flows\" : [ ],\n" +
+                "  \"resources\" : [ ],\n" +
+                "  \"properties\" : [ ],\n" +
+                "  \"id\" : \"id-api\",\n" +
+                "  \"path_mappings\" : [ ]\n" +
+                "}"
+            );
     }
 
     @Test
     public void shouldConvertAsObjectForImportWithLowercaseEnum() throws IOException {
-        final String lowercaseApiDefinition = "{\n" +
+        final String lowercaseApiDefinition =
+            "{\n" +
             "  \"name\" : \"test\",\n" +
             "  \"description\" : \"Gravitee.io\",\n" +
             "  \"visibility\" : \"public\",\n" +
@@ -99,7 +105,8 @@ public class ApiService_EnumValueWittenLowercaseTest {
 
     @Test
     public void shouldConvertAsObjectForImportWithUppercaseEnum() throws IOException {
-        final String lowercaseApiDefinition = "{\n" +
+        final String lowercaseApiDefinition =
+            "{\n" +
             "  \"name\" : \"test\",\n" +
             "  \"description\" : \"Gravitee.io\",\n" +
             "  \"visibility\" : \"PUBLIC\",\n" +

@@ -15,24 +15,22 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-
+import java.util.Collections;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Set;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -41,6 +39,7 @@ import static org.mockito.Mockito.verify;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ApplicationService_FindByGroupTest {
+
     private static final String GROUP_ID = "group-id";
 
     @InjectMocks

@@ -20,6 +20,5 @@ package io.gravitee.rest.api.service.impl.swagger.visitor;
  * @author GraviteeSource Team
  */
 public interface PathVisitor<T, D, P> extends Visitor {
-
     T visit(D descriptor, String path, P pathItem);
 }

@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Newsletter {
+
     @ParameterKey(Key.NEWSLETTER_ENABLED)
     private Boolean enabled;
 

@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import java.util.Map;
-
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+
+import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.subscription;
 
 import io.gravitee.rest.api.model.SubscriptionStatus;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -118,13 +117,15 @@ public class SubscriptionQuery {
         if (this == o) return true;
         if (!(o instanceof SubscriptionQuery)) return false;
         SubscriptionQuery that = (SubscriptionQuery) o;
-        return from == that.from &&
-                to == that.to &&
-                Objects.equals(apis, that.apis) &&
-                Objects.equals(plans, that.plans) &&
-                Objects.equals(statuses, that.statuses) &&
-                Objects.equals(applications, that.applications) &&
-                Objects.equals(apiKey, that.apiKey);
+        return (
+            from == that.from &&
+            to == that.to &&
+            Objects.equals(apis, that.apis) &&
+            Objects.equals(plans, that.plans) &&
+            Objects.equals(statuses, that.statuses) &&
+            Objects.equals(applications, that.applications) &&
+            Objects.equals(apiKey, that.apiKey)
+        );
     }
 
     @Override

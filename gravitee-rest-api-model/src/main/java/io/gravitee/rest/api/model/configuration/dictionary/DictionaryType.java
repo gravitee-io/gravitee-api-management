@@ -20,7 +20,6 @@ package io.gravitee.rest.api.model.configuration.dictionary;
  * @author GraviteeSource Team
  */
 public enum DictionaryType {
-
-	MANUAL,
-	DYNAMIC
+    MANUAL,
+    DYNAMIC,
 }

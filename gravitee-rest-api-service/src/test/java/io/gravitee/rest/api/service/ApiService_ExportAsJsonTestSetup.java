@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -38,21 +43,15 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
 import org.junit.Before;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.util.collections.Sets;
 import org.springframework.context.ApplicationContext;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
@@ -68,35 +67,49 @@ public class ApiService_ExportAsJsonTestSetup {
 
     @Mock
     protected ApiRepository apiRepository;
+
     @Mock
     private MembershipRepository membershipRepository;
+
     @Spy
     protected ObjectMapper objectMapper = new GraviteeMapper();
+
     @Mock
     private MembershipService membershipService;
+
     @Mock
     private PageService pageService;
+
     @Mock
     private UserService userService;
+
     @Mock
     private PlanService planService;
+
     @Mock
     private GroupService groupService;
+
     @Mock
     private ApplicationContext applicationContext;
+
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private ApiMetadataService apiMetadataService;
+
     @Mock
     private MediaService mediaService;
 
     @Before
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+        objectMapper.setFilterProvider(
+            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
+        );
 
-        when(parameterService.find(Key.PORTAL_ENTRYPOINT, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(Key.PORTAL_ENTRYPOINT.defaultValue());
+        when(parameterService.find(Key.PORTAL_ENTRYPOINT, "DEFAULT", ParameterReferenceType.ENVIRONMENT))
+            .thenReturn(Key.PORTAL_ENTRYPOINT.defaultValue());
         // register API Entity serializers
         when(applicationContext.getBean(MembershipService.class)).thenReturn(membershipService);
         when(applicationContext.getBean(PlanService.class)).thenReturn(planService);
@@ -122,7 +135,15 @@ public class ApiService_ExportAsJsonTestSetup {
         ApiSerializer apiPrior30VersionSerializer = new Api3_0VersionSerializer();
         apiPrior30VersionSerializer.setApplicationContext(applicationContext);
 
-        apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer, apiPrior115VersionSerializer, apiPrior120VersionSerializer, apiPrior125VersionSerializer, apiPrior30VersionSerializer));
+        apiCompositeSerializer.setSerializers(
+            Arrays.asList(
+                apiDefaultSerializer,
+                apiPrior115VersionSerializer,
+                apiPrior120VersionSerializer,
+                apiPrior125VersionSerializer,
+                apiPrior30VersionSerializer
+            )
+        );
         SimpleModule module = new SimpleModule();
         module.addSerializer(ApiEntity.class, apiCompositeSerializer);
         objectMapper.registerModule(module);
@@ -133,8 +154,7 @@ public class ApiService_ExportAsJsonTestSetup {
         String definition = null;
         try {
             definition = objectMapper.writeValueAsString(buildApiDefinition(api));
-        } catch (JsonProcessingException e) {
-        }
+        } catch (JsonProcessingException e) {}
         api.setDefinition(definition);
         api.setEnvironmentId("DEFAULT");
 
@@ -157,8 +177,7 @@ public class ApiService_ExportAsJsonTestSetup {
         MembershipEntity membership = new MembershipEntity();
         membership.setMemberId("johndoe");
         membership.setRoleId("API_PRIMARY_OWNER");
-        when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), eq(API_ID)))
-            .thenReturn(membership);
+        when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), eq(API_ID))).thenReturn(membership);
 
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(membership.getMemberId());
@@ -194,13 +213,21 @@ public class ApiService_ExportAsJsonTestSetup {
         Policy policy = new Policy();
         policy.setName("rate-limit");
         String ls = System.lineSeparator();
-        policy.setConfiguration("{" + ls +
-            "          \"rate\": {" + ls +
-            "            \"limit\": 1," + ls +
-            "            \"periodTime\": 1," + ls +
-            "            \"periodTimeUnit\": \"SECONDS\"" + ls +
-            "          }" + ls +
-            "        }");
+        policy.setConfiguration(
+            "{" +
+            ls +
+            "          \"rate\": {" +
+            ls +
+            "            \"limit\": 1," +
+            ls +
+            "            \"periodTime\": 1," +
+            ls +
+            "            \"periodTimeUnit\": \"SECONDS\"" +
+            ls +
+            "          }" +
+            ls +
+            "        }"
+        );
         rule.setPolicy(policy);
         path.setRules(Collections.singletonList(rule));
         paths.put("/", path);
@@ -263,7 +290,9 @@ public class ApiService_ExportAsJsonTestSetup {
     protected void shouldConvertAsJsonForExport(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
-        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExport" + (filename != null ? "-" + filename : "") + ".json");
+        URL url = Resources.getResource(
+            "io/gravitee/rest/api/management/service/export-convertAsJsonForExport" + (filename != null ? "-" + filename : "") + ".json"
+        );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -273,7 +302,11 @@ public class ApiService_ExportAsJsonTestSetup {
     protected void shouldConvertAsJsonWithoutMembers(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "members");
 
-        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMembers" + (filename != null ? "-" + filename : "") + ".json");
+        URL url = Resources.getResource(
+            "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMembers" +
+            (filename != null ? "-" + filename : "") +
+            ".json"
+        );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -283,7 +316,11 @@ public class ApiService_ExportAsJsonTestSetup {
     protected void shouldConvertAsJsonWithoutPages(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "pages");
 
-        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPages" + (filename != null ? "-" + filename : "") + ".json");
+        URL url = Resources.getResource(
+            "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPages" +
+            (filename != null ? "-" + filename : "") +
+            ".json"
+        );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -293,7 +330,11 @@ public class ApiService_ExportAsJsonTestSetup {
     protected void shouldConvertAsJsonWithoutPlans(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "plans");
 
-        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPlans" + (filename != null ? "-" + filename : "") + ".json");
+        URL url = Resources.getResource(
+            "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutPlans" +
+            (filename != null ? "-" + filename : "") +
+            ".json"
+        );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -303,11 +344,14 @@ public class ApiService_ExportAsJsonTestSetup {
     protected void shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version version, String filename) throws IOException {
         String jsonForExport = apiService.exportAsJson(API_ID, version.getVersion(), SystemRole.PRIMARY_OWNER.name(), "metadata");
 
-        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMetadata" + (filename != null ? "-" + filename : "") + ".json");
+        URL url = Resources.getResource(
+            "io/gravitee/rest/api/management/service/export-convertAsJsonForExportWithoutMetadata" +
+            (filename != null ? "-" + filename : "") +
+            ".json"
+        );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
         assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
     }
-
 }

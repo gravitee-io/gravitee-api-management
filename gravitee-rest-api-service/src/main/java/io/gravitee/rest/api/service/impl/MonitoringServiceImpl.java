@@ -19,12 +19,10 @@ import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import io.gravitee.rest.api.model.monitoring.*;
 import io.gravitee.rest.api.service.MonitoringService;
-
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import javax.inject.Inject;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)

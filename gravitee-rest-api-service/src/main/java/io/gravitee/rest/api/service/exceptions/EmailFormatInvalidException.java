@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import java.util.Map;
-
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static java.util.Collections.singletonMap;
+
+import java.util.Map;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

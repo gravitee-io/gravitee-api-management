@@ -21,20 +21,6 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import io.gravitee.rest.api.model.RatingAnswerEntity;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -42,9 +28,20 @@ import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingAnswer;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.UserService;
-
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -109,7 +106,7 @@ public class RatingMapperTest {
         ratingEntity.setComment(RATING_COMMENT);
         ratingEntity.setCreatedAt(nowDate);
         ratingEntity.setId(RATING_ID);
-        ratingEntity.setRate((byte)1);
+        ratingEntity.setRate((byte) 1);
         ratingEntity.setTitle(RATING_TITLE);
         ratingEntity.setUpdatedAt(nowDate);
         ratingEntity.setUser(RATING_AUTHOR);
@@ -149,5 +146,4 @@ public class RatingMapperTest {
         assertEquals(RATING_ID, responseRating.getId());
         assertEquals(Integer.valueOf(1), responseRating.getValue());
     }
-
 }

@@ -25,7 +25,6 @@ import io.gravitee.rest.api.model.InstanceQuery;
  * @author GraviteeSource Team
  */
 public interface InstanceService {
-
     Page<InstanceListItem> search(InstanceQuery query);
     InstanceEntity findById(String instance);
     InstanceEntity findByEvent(String event);

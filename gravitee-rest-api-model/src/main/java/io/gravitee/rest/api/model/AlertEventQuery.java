@@ -53,6 +53,7 @@ public class AlertEventQuery {
     }
 
     public static class Builder {
+
         private Map<String, Object> properties;
         private Collection<EventType> types;
         private long from, to;
@@ -76,7 +77,7 @@ public class AlertEventQuery {
             return this;
         }
 
-        public Builder type(EventType ... types) {
+        public Builder type(EventType... types) {
             this.types = Arrays.asList(types);
             return this;
         }
@@ -107,10 +108,7 @@ public class AlertEventQuery {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AlertEventQuery that = (AlertEventQuery) o;
-        return from == that.from &&
-                to == that.to &&
-                pageSize == that.pageSize &&
-                pageNumber == that.pageNumber;
+        return from == that.from && to == that.to && pageSize == that.pageSize && pageNumber == that.pageNumber;
     }
 
     @Override
@@ -120,11 +118,6 @@ public class AlertEventQuery {
 
     @Override
     public String toString() {
-        return "AlertEventQuery{" +
-                ", from=" + from +
-                ", to=" + to +
-                ", pageSize=" + pageSize +
-                ", pageNumber=" + pageNumber +
-                '}';
+        return "AlertEventQuery{" + ", from=" + from + ", to=" + to + ", pageSize=" + pageSize + ", pageNumber=" + pageNumber + '}';
     }
 }

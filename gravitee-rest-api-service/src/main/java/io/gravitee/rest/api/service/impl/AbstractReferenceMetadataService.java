@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
+import static io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer.formatKeyValue;
+import static java.util.stream.Collectors.toMap;
+
 import io.gravitee.common.util.Maps;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -29,18 +35,11 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.exceptions.*;
+import java.util.*;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
-import java.util.function.Function;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
-import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
-import static io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer.formatKeyValue;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -52,43 +51,53 @@ public abstract class AbstractReferenceMetadataService {
 
     @Autowired
     protected MetadataRepository metadataRepository;
+
     @Autowired
     private MetadataService metadataService;
+
     @Autowired
     private AuditService auditService;
+
     @Autowired
     private ApiService apiService;
+
     @Autowired
     private ApplicationService applicationService;
 
-    protected List<ReferenceMetadataEntity> findAllByReference(final MetadataReferenceType referenceType, final String referenceId,
-                                                               final boolean withDefaults) {
+    protected List<ReferenceMetadataEntity> findAllByReference(
+        final MetadataReferenceType referenceType,
+        final String referenceId,
+        final boolean withDefaults
+    ) {
         try {
             LOGGER.debug("Find all metadata by reference {} / {}", referenceType, referenceId);
 
             final List<Metadata> referenceMetadataList = metadataRepository.findByReferenceTypeAndReferenceId(referenceType, referenceId);
 
-            Map<String, ReferenceMetadataEntity> referenceMetadataMap = referenceMetadataList.stream()
-                    .map(this::convert)
-                    .peek(m -> m.setValue(m.getValue() == null ? "" : m.getValue()))
-                    .collect(toMap(ReferenceMetadataEntity::getKey, Function.identity()));
+            Map<String, ReferenceMetadataEntity> referenceMetadataMap = referenceMetadataList
+                .stream()
+                .map(this::convert)
+                .peek(m -> m.setValue(m.getValue() == null ? "" : m.getValue()))
+                .collect(toMap(ReferenceMetadataEntity::getKey, Function.identity()));
 
             final List<ReferenceMetadataEntity> allMetadata = new ArrayList<>();
             if (withDefaults) {
                 final List<MetadataEntity> defaultMetadataList = metadataService.findAllDefault();
                 defaultMetadataList.forEach(
-                        defaultMetadata -> {
-                            ReferenceMetadataEntity referenceMetadataEntity = referenceMetadataMap.get(defaultMetadata.getKey());
-                            if (referenceMetadataEntity != null) {
-                                //update the reference metadata in the map
-                                referenceMetadataEntity.setDefaultValue(defaultMetadata.getValue());
-                            } else {
-                                final Optional<Metadata> optReferenceMetadata = referenceMetadataList.stream()
-                                        .filter(referenceMetadata -> defaultMetadata.getKey().equals(referenceMetadata.getKey()))
-                                        .findAny();
-                                allMetadata.add(convert(optReferenceMetadata, defaultMetadata));
-                            }
-                        });
+                    defaultMetadata -> {
+                        ReferenceMetadataEntity referenceMetadataEntity = referenceMetadataMap.get(defaultMetadata.getKey());
+                        if (referenceMetadataEntity != null) {
+                            //update the reference metadata in the map
+                            referenceMetadataEntity.setDefaultValue(defaultMetadata.getValue());
+                        } else {
+                            final Optional<Metadata> optReferenceMetadata = referenceMetadataList
+                                .stream()
+                                .filter(referenceMetadata -> defaultMetadata.getKey().equals(referenceMetadata.getKey()))
+                                .findAny();
+                            allMetadata.add(convert(optReferenceMetadata, defaultMetadata));
+                        }
+                    }
+                );
             }
             //add all reference metadata
             allMetadata.addAll(referenceMetadataMap.values());
@@ -100,13 +109,15 @@ public abstract class AbstractReferenceMetadataService {
         }
     }
 
-    protected ReferenceMetadataEntity findByIdAndReference(final String metadataId, final MetadataReferenceType referenceType,
-                                                        final String referenceId, final boolean withDefaults) {
+    protected ReferenceMetadataEntity findByIdAndReference(
+        final String metadataId,
+        final MetadataReferenceType referenceType,
+        final String referenceId,
+        final boolean withDefaults
+    ) {
         LOGGER.debug("Find metadata by id {} and reference {} / {}", metadataId, referenceType, referenceId);
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(referenceType, referenceId, withDefaults);
-        final Optional<ReferenceMetadataEntity> optMetadata = allMetadata.stream()
-                .filter(m -> metadataId.equals(m.getKey()))
-                .findAny();
+        final Optional<ReferenceMetadataEntity> optMetadata = allMetadata.stream().filter(m -> metadataId.equals(m.getKey())).findAny();
         if (optMetadata.isPresent()) {
             final ReferenceMetadataEntity metadata = optMetadata.get();
             if (metadata.getValue() == null) {
@@ -147,17 +158,22 @@ public abstract class AbstractReferenceMetadataService {
         }
     }
 
-    protected ReferenceMetadataEntity create(final NewReferenceMetadataEntity metadataEntity, final MetadataReferenceType referenceType,
-                                             final String referenceId, final boolean withDefaults) {
+    protected ReferenceMetadataEntity create(
+        final NewReferenceMetadataEntity metadataEntity,
+        final MetadataReferenceType referenceType,
+        final String referenceId,
+        final boolean withDefaults
+    ) {
         // if no format defined, we just set String format
         if (metadataEntity.getFormat() == null) {
             metadataEntity.setFormat(MetadataFormat.STRING);
         }
         checkReferenceMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
         // First we prevent the duplicate metadata name
-        final Optional<ReferenceMetadataEntity> optionalMetadata = findAllByReference(referenceType, referenceId, withDefaults).stream()
-                .filter(metadata -> metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
-                .findAny();
+        final Optional<ReferenceMetadataEntity> optionalMetadata = findAllByReference(referenceType, referenceId, withDefaults)
+            .stream()
+            .filter(metadata -> metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
+            .findAny();
 
         if (optionalMetadata.isPresent()) {
             throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
@@ -173,14 +189,19 @@ public abstract class AbstractReferenceMetadataService {
             createReferenceAuditLog(referenceType, referenceId, null, metadata, METADATA_CREATED);
             return convert(metadata);
         } catch (TechnicalException ex) {
-            final String message = "An error occurred while trying to create metadata " +
-                    metadataEntity.getName() + " on reference " + referenceId;
+            final String message =
+                "An error occurred while trying to create metadata " + metadataEntity.getName() + " on reference " + referenceId;
             LOGGER.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }
     }
 
-    private void checkReferenceMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, String referenceId) {
+    private void checkReferenceMetadataFormat(
+        MetadataFormat format,
+        String value,
+        MetadataReferenceType referenceType,
+        String referenceId
+    ) {
         switch (referenceType) {
             case API:
                 final ApiEntity apiEntity = apiService.findById(referenceId);
@@ -196,49 +217,57 @@ public abstract class AbstractReferenceMetadataService {
         }
     }
 
-    private void createReferenceAuditLog(MetadataReferenceType referenceType, String referenceId,
-                                         Metadata oldMetadata, Metadata metadata, Metadata.AuditEvent auditEvent) {
+    private void createReferenceAuditLog(
+        MetadataReferenceType referenceType,
+        String referenceId,
+        Metadata oldMetadata,
+        Metadata metadata,
+        Metadata.AuditEvent auditEvent
+    ) {
         final String key = metadata == null ? oldMetadata.getKey() : metadata.getKey();
         final Date updatedAt = metadata == null ? oldMetadata.getUpdatedAt() : metadata.getUpdatedAt();
         switch (referenceType) {
             case API:
                 auditService.createApiAuditLog(
-                        referenceId,
-                        Collections.singletonMap(METADATA, key),
-                        auditEvent,
-                        updatedAt,
-                        oldMetadata,
-                        metadata);
+                    referenceId,
+                    Collections.singletonMap(METADATA, key),
+                    auditEvent,
+                    updatedAt,
+                    oldMetadata,
+                    metadata
+                );
                 break;
             case APPLICATION:
                 auditService.createApplicationAuditLog(
-                        referenceId,
-                        Collections.singletonMap(METADATA, key),
-                        auditEvent,
-                        updatedAt,
-                        oldMetadata,
-                        metadata);
+                    referenceId,
+                    Collections.singletonMap(METADATA, key),
+                    auditEvent,
+                    updatedAt,
+                    oldMetadata,
+                    metadata
+                );
                 break;
             case USER:
                 auditService.createOrganizationAuditLog(
-                        Maps.<Audit.AuditProperties, String>builder()
-                                .put(USER, referenceId)
-                                .put(METADATA, key)
-                                .build(),
-                        auditEvent,
-                        updatedAt,
-                        oldMetadata,
-                        metadata);
+                    Maps.<Audit.AuditProperties, String>builder().put(USER, referenceId).put(METADATA, key).build(),
+                    auditEvent,
+                    updatedAt,
+                    oldMetadata,
+                    metadata
+                );
                 break;
         }
     }
 
-    protected ReferenceMetadataEntity update(final UpdateReferenceMetadataEntity metadataEntity, final MetadataReferenceType referenceType,
-                                             final String referenceId, final boolean withDefaults) {
+    protected ReferenceMetadataEntity update(
+        final UpdateReferenceMetadataEntity metadataEntity,
+        final MetadataReferenceType referenceType,
+        final String referenceId,
+        final boolean withDefaults
+    ) {
         checkReferenceMetadataFormat(metadataEntity.getFormat(), metadataEntity.getValue(), referenceType, referenceId);
         try {
-            final Optional<Metadata> referenceMetadata = metadataRepository.findById(metadataEntity.getKey(),
-                    referenceId, referenceType);
+            final Optional<Metadata> referenceMetadata = metadataRepository.findById(metadataEntity.getKey(), referenceId, referenceType);
 
             final Metadata savedMetadata;
             final Metadata metadata = convertForReference(metadataEntity, referenceType, referenceId);
@@ -258,15 +287,19 @@ public abstract class AbstractReferenceMetadataService {
             final ReferenceMetadataEntity referenceMetadataEntity = convert(savedMetadata);
             if (withDefaults) {
                 final List<MetadataEntity> defaultMetatata = metadataService.findAllDefault();
-                final Optional<MetadataEntity> optDefaultMetadata =
-                        defaultMetatata.stream().filter(m -> m.getKey().equals(metadataEntity.getKey())).findAny();
+                final Optional<MetadataEntity> optDefaultMetadata = defaultMetatata
+                    .stream()
+                    .filter(m -> m.getKey().equals(metadataEntity.getKey()))
+                    .findAny();
                 optDefaultMetadata.ifPresent(defaultMetadata -> referenceMetadataEntity.setDefaultValue(defaultMetadata.getValue()));
             }
             return referenceMetadataEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to update metadata {} on REFERENCE {}", metadataEntity.getName(), referenceId, ex);
-            throw new TechnicalManagementException("An error occurred while trying to update metadata " +
-                    metadataEntity.getName() + " on REFERENCE " + referenceId, ex);
+            throw new TechnicalManagementException(
+                "An error occurred while trying to update metadata " + metadataEntity.getName() + " on REFERENCE " + referenceId,
+                ex
+            );
         }
     }
 
@@ -310,8 +343,11 @@ public abstract class AbstractReferenceMetadataService {
         return metadata;
     }
 
-    private Metadata convertForReference(final NewReferenceMetadataEntity metadataEntity,
-                                         final MetadataReferenceType referenceType, final String referenceId) {
+    private Metadata convertForReference(
+        final NewReferenceMetadataEntity metadataEntity,
+        final MetadataReferenceType referenceType,
+        final String referenceId
+    ) {
         final Metadata metadata = new Metadata();
         if (referenceType.equals(MetadataReferenceType.USER)) {
             metadata.setKey(formatKeyValue(metadataEntity.getName()));
@@ -335,8 +371,11 @@ public abstract class AbstractReferenceMetadataService {
         return metadata;
     }
 
-    private Metadata convertForReference(final UpdateReferenceMetadataEntity metadataEntity,
-                                         final MetadataReferenceType referenceType, final String referenceId) {
+    private Metadata convertForReference(
+        final UpdateReferenceMetadataEntity metadataEntity,
+        final MetadataReferenceType referenceType,
+        final String referenceId
+    ) {
         final Metadata metadata = new Metadata();
         metadata.setKey(metadataEntity.getKey());
         metadata.setName(metadataEntity.getName());

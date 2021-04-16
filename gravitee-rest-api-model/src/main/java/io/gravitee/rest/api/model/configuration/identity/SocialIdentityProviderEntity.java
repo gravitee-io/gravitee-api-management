@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.configuration.identity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +50,7 @@ public abstract class SocialIdentityProviderEntity {
     private List<RoleMappingEntity> roleMappings;
 
     public static class UserProfile {
+
         public static final String ID = "id";
         public static final String SUB = "sub";
         public static final String FIRSTNAME = "firstname";

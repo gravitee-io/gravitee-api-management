@@ -24,7 +24,6 @@ import io.gravitee.common.utils.UUID;
  * @author GraviteeSource Team
  */
 public interface RandomString {
-
     public static String generate() {
         return UUID.toString(UUID.random());
     }

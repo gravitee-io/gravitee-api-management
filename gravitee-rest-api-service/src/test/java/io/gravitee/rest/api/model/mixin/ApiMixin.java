@@ -19,15 +19,14 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * 
+ *
  * Api Mixin used to (de)serialize Api @Mock class via Jackson ObjectMapper
- * 
+ *
  * @author Titouan COMPIEGNE
  *
  */
 @JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE, isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public interface ApiMixin {
-
     @JsonProperty
     String getId();
 

@@ -18,14 +18,14 @@ package io.gravitee.rest.api.service.quality;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.ApiService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiQualityMetricLogo implements ApiQualityMetric {
+
     @Autowired
     ApiService apiService;
 

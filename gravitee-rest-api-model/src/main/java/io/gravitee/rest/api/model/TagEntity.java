@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -29,10 +28,13 @@ import java.util.Objects;
 public class TagEntity {
 
     private String id;
+
     @NotNull
     @Size(min = 1)
     private String name;
+
     private String description;
+
     @JsonProperty("restricted_groups")
     private List<String> restrictedGroups;
 
@@ -73,10 +75,12 @@ public class TagEntity {
         if (this == o) return true;
         if (!(o instanceof TagEntity)) return false;
         TagEntity tagEntity = (TagEntity) o;
-        return Objects.equals(id, tagEntity.id) &&
-                Objects.equals(name, tagEntity.name) &&
-                Objects.equals(description, tagEntity.description) &&
-                Objects.equals(restrictedGroups, tagEntity.restrictedGroups);
+        return (
+            Objects.equals(id, tagEntity.id) &&
+            Objects.equals(name, tagEntity.name) &&
+            Objects.equals(description, tagEntity.description) &&
+            Objects.equals(restrictedGroups, tagEntity.restrictedGroups)
+        );
     }
 
     @Override
@@ -86,11 +90,20 @@ public class TagEntity {
 
     @Override
     public String toString() {
-        return "TagEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", restrictedGroups=" + restrictedGroups +
-                '}';
+        return (
+            "TagEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", restrictedGroups=" +
+            restrictedGroups +
+            '}'
+        );
     }
 }

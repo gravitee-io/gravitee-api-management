@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -22,19 +27,12 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
-
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -121,7 +119,9 @@ public class PageService_IsDisplayableTest {
         doReturn(Visibility.PRIVATE).when(apiEntityMock).getVisibility();
         when(apiEntityMock.getGroups()).thenReturn(Collections.singleton("groupid"));
         doReturn(null).when(membershipServiceMock).getUserMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
-        doReturn(mock(MemberEntity.class)).when(membershipServiceMock).getUserMember(eq(MembershipReferenceType.GROUP), any(), eq(USERNAME));
+        doReturn(mock(MemberEntity.class))
+            .when(membershipServiceMock)
+            .getUserMember(eq(MembershipReferenceType.GROUP), any(), eq(USERNAME));
 
         boolean displayable = pageService.isDisplayable(apiEntityMock, true, USERNAME);
 
@@ -129,7 +129,6 @@ public class PageService_IsDisplayableTest {
         verify(membershipServiceMock, times(1)).getUserMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
         verify(membershipServiceMock, times(1)).getUserMember(eq(MembershipReferenceType.GROUP), any(), eq(USERNAME));
     }
-
 
     /**
      * *****************************

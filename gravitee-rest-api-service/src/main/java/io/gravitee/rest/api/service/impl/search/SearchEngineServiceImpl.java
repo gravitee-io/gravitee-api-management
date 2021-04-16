@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl.search;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.rest.api.model.ApiPageEntity;
@@ -38,7 +37,7 @@ import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import io.gravitee.rest.api.service.impl.search.lucene.SearchEngineIndexer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +45,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -128,7 +125,10 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 source.setId(content.getId());
                 deleteLocally(source);
             } catch (Exception ex) {
-                throw new TechnicalManagementException("Unable to delete document for content [ " + content.getId() + " - " + content.getClazz() + " ]", ex);
+                throw new TechnicalManagementException(
+                    "Unable to delete document for content [ " + content.getId() + " - " + content.getClazz() + " ]",
+                    ex
+                );
             }
         } else if (ACTION_INDEX.equals(content.getAction())) {
             Indexable source = getSource(content.getClazz(), content.getId());
@@ -167,29 +167,35 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     }
 
     private void indexLocally(Indexable source) {
-        transformers.stream()
-                .filter(transformer -> transformer.handle(source.getClass()))
-                .findFirst()
-                .ifPresent(transformer -> {
+        transformers
+            .stream()
+            .filter(transformer -> transformer.handle(source.getClass()))
+            .findFirst()
+            .ifPresent(
+                transformer -> {
                     try {
                         indexer.index(transformer.transform(source));
                     } catch (TechnicalException te) {
                         logger.error("Unexpected error while indexing a document", te);
                     }
-                });
+                }
+            );
     }
 
     private void deleteLocally(Indexable source) {
-        transformers.stream()
-                .filter(transformer -> transformer.handle(source.getClass()))
-                .findFirst()
-                .ifPresent(transformer -> {
+        transformers
+            .stream()
+            .filter(transformer -> transformer.handle(source.getClass()))
+            .findFirst()
+            .ifPresent(
+                transformer -> {
                     try {
                         indexer.remove(transformer.transform(source));
                     } catch (TechnicalException te) {
                         logger.error("Unexpected error while deleting a document", te);
                     }
-                });
+                }
+            );
     }
 
     private Indexable createInstance(String className) throws Exception {
@@ -205,17 +211,20 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Override
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query<? extends Indexable> query) {
-        Optional<SearchResult> results = searchers.stream()
-                .filter(searcher -> searcher.handle(query.getRoot()))
-                .findFirst()
-                .flatMap(searcher -> {
+        Optional<SearchResult> results = searchers
+            .stream()
+            .filter(searcher -> searcher.handle(query.getRoot()))
+            .findFirst()
+            .flatMap(
+                searcher -> {
                     try {
                         return Optional.of(searcher.search(query));
                     } catch (TechnicalException te) {
                         logger.error("Unexpected error while searching a document", te);
                         return Optional.empty();
                     }
-                });
+                }
+            );
 
         return results.orElse(null);
     }

@@ -29,42 +29,43 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.resource.param.TicketsParam;
 import io.gravitee.rest.api.service.TicketService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TicketsResource extends AbstractResource  {
+public class TicketsResource extends AbstractResource {
 
     @Inject
     private TicketService ticketService;
 
     @Inject
     private TicketMapper ticketMapper;
-    
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@Valid @NotNull(message = "Input must not be null.") final TicketInput ticketInput) {
-        ticketService.create(getAuthenticatedUser(), ticketMapper.convert(ticketInput), GraviteeContext.getCurrentEnvironment(), ParameterReferenceType.ENVIRONMENT);
+        ticketService.create(
+            getAuthenticatedUser(),
+            ticketMapper.convert(ticketInput),
+            GraviteeContext.getCurrentEnvironment(),
+            ParameterReferenceType.ENVIRONMENT
+        );
         return Response.status(Response.Status.CREATED).build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getTickets(
-            @Valid @BeanParam PaginationParam paginationParam,
-            @BeanParam TicketsParam ticketsParam) {
-
+    public Response getTickets(@Valid @BeanParam PaginationParam paginationParam, @BeanParam TicketsParam ticketsParam) {
         TicketQuery query = new TicketQuery();
         query.setApi(ticketsParam.getApi());
         query.setApplication(ticketsParam.getApplication());
@@ -77,9 +78,10 @@ public class TicketsResource extends AbstractResource  {
         }
 
         Page<TicketEntity> tickets = ticketService.search(
-                query,
-                sortable,
-                new PageableImpl(paginationParam.getPage(), paginationParam.getSize()));
+            query,
+            sortable,
+            new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
+        );
 
         final Map<String, Object> metadataTotal = new HashMap<>();
         metadataTotal.put(METADATA_DATA_TOTAL_KEY, tickets.getTotalElements());

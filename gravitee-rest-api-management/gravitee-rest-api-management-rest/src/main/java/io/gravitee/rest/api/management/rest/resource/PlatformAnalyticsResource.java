@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.*;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.param.Aggregation;
 import io.gravitee.rest.api.management.rest.resource.param.AnalyticsParam;
@@ -33,27 +36,23 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.permissions.RolePermission.*;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Platform Analytics"})
-public class PlatformAnalyticsResource extends AbstractResource  {
+@Api(tags = { "Platform Analytics" })
+public class PlatformAnalyticsResource extends AbstractResource {
 
     @Inject
     private AnalyticsService analyticsService;
@@ -69,16 +68,10 @@ public class PlatformAnalyticsResource extends AbstractResource  {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get platform analytics",
-            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Platform analytics"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = ENVIRONMENT_PLATFORM, acls = READ)
-    })
+    @ApiOperation(value = "Get platform analytics", notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
+    @ApiResponses({ @ApiResponse(code = 200, message = "Platform analytics"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Permissions({ @Permission(value = ENVIRONMENT_PLATFORM, acls = READ) })
     public Response getPlatformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
-
         analyticsParam.validate();
 
         Analytics analytics = null;
@@ -90,14 +83,18 @@ public class PlatformAnalyticsResource extends AbstractResource  {
             List<String> ids;
             if ("application".equals(analyticsParam.getField())) {
                 fieldName = "application";
-                ids = applicationService.findByUser(getAuthenticatedUser())
+                ids =
+                    applicationService
+                        .findByUser(getAuthenticatedUser())
                         .stream()
                         .filter(app -> permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ))
                         .map(ApplicationListItem::getId)
                         .collect(Collectors.toList());
             } else {
                 fieldName = "api";
-                ids = apiService.findByUser(getAuthenticatedUser(), null, false)
+                ids =
+                    apiService
+                        .findByUser(getAuthenticatedUser(), null, false)
                         .stream()
                         .filter(api -> permissionService.hasPermission(API_ANALYTICS, api.getId(), READ))
                         .map(ApiEntity::getId)
@@ -162,18 +159,22 @@ public class PlatformAnalyticsResource extends AbstractResource  {
         List<Aggregation> aggregations = analyticsParam.getAggregations();
         if (aggregations != null) {
             List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations
-                    .stream()
-                    .map((Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation -> new io.gravitee.rest.api.model.analytics.query.Aggregation() {
-                        @Override
-                        public AggregationType type() {
-                            return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
-                        }
+                .stream()
+                .map(
+                    (Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation ->
+                        new io.gravitee.rest.api.model.analytics.query.Aggregation() {
+                            @Override
+                            public AggregationType type() {
+                                return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
+                            }
 
-                        @Override
-                        public String field() {
-                            return aggregation.getField();
+                            @Override
+                            public String field() {
+                                return aggregation.getField();
+                            }
                         }
-                    }).collect(Collectors.toList());
+                )
+                .collect(Collectors.toList());
 
             query.setAggregations(aggregationList);
         }
@@ -199,8 +200,7 @@ public class PlatformAnalyticsResource extends AbstractResource  {
 
         List<Range> ranges = analyticsParam.getRanges();
         if (ranges != null) {
-            Map<Double, Double> rangeMap = ranges.stream().collect(
-                    Collectors.toMap(Range::getFrom, Range::getTo));
+            Map<Double, Double> rangeMap = ranges.stream().collect(Collectors.toMap(Range::getFrom, Range::getTo));
 
             query.setGroups(rangeMap);
         }
@@ -211,7 +211,7 @@ public class PlatformAnalyticsResource extends AbstractResource  {
     private void addExtraFilter(AbstractQuery query, String extraFilter) {
         if (query.getQuery() == null || query.getQuery().isEmpty()) {
             query.setQuery(extraFilter);
-        } else if (extraFilter != null && ! extraFilter.isEmpty()) {
+        } else if (extraFilter != null && !extraFilter.isEmpty()) {
             query.setQuery(query.getQuery() + " AND " + extraFilter);
         } else {
             query.setQuery(query.getQuery());

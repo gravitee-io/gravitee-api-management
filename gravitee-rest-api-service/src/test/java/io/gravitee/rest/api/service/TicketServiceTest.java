@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUPPORT_TICKET;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -38,19 +44,12 @@ import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
 import io.gravitee.rest.api.service.impl.TicketServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUPPORT_TICKET;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -78,27 +77,37 @@ public class TicketServiceTest {
 
     @Mock
     private UserService userService;
+
     @Mock
     private MetadataService metadataService;
+
     @Mock
     private ApiService apiService;
+
     @Mock
     private ApplicationService applicationService;
+
     @Mock
     private EmailService emailService;
 
     @Mock
     private NewTicketEntity newTicketEntity;
+
     @Mock
     private UserEntity user;
+
     @Mock
     private ApiModelEntity api;
+
     @Mock
     private ApplicationEntity application;
+
     @Mock
     private ParameterService mockParameterService;
+
     @Mock
     private NotifierService mockNotifierService;
+
     @Mock
     private TicketRepository ticketRepository;
 
@@ -111,7 +120,8 @@ public class TicketServiceTest {
 
     @Test(expected = SupportUnavailableException.class)
     public void shouldNotCreateIfSupportForPortalDisabled() {
-        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.FALSE);
+        when(mockParameterService.findAsBoolean(Key.PORTAL_SUPPORT_ENABLED, REFERENCE_ID, ParameterReferenceType.ENVIRONMENT))
+            .thenReturn(Boolean.FALSE);
         ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, ParameterReferenceType.ENVIRONMENT);
         verify(mockNotifierService, never()).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
     }
@@ -211,15 +221,30 @@ public class TicketServiceTest {
 
         TicketEntity createdTicket = ticketService.create(USERNAME, newTicketEntity, REFERENCE_ID, REFERENCE_TYPE);
 
-        verify(emailService).sendEmailNotification(
+        verify(emailService)
+            .sendEmailNotification(
                 new EmailNotificationBuilder()
-                        .replyTo(USER_EMAIL)
-                        .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
-                        .to(EMAIL_SUPPORT)
-                        .copyToSender(EMAIL_COPY_TO_SENDER)
-                        .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
-                        .params(ImmutableMap.of("user", user, "api", api, "content", "Email<br />Content", "application", application, "ticketSubject", EMAIL_SUBJECT))
-                        .build());
+                    .replyTo(USER_EMAIL)
+                    .fromName(USER_FIRSTNAME + ' ' + USER_LASTNAME)
+                    .to(EMAIL_SUPPORT)
+                    .copyToSender(EMAIL_COPY_TO_SENDER)
+                    .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
+                    .params(
+                        ImmutableMap.of(
+                            "user",
+                            user,
+                            "api",
+                            api,
+                            "content",
+                            "Email<br />Content",
+                            "application",
+                            application,
+                            "ticketSubject",
+                            EMAIL_SUBJECT
+                        )
+                    )
+                    .build()
+            );
         verify(mockNotifierService, times(1)).trigger(eq(PortalHook.NEW_SUPPORT_TICKET), anyMap());
 
         assertEquals("Invalid saved ticket id", createdTicket.getId(), ticketToCreate.getId());
@@ -233,7 +258,6 @@ public class TicketServiceTest {
 
     @Test
     public void shouldSearchForTicketsFromUser() throws TechnicalException {
-
         Ticket ticket = new Ticket();
         ticket.setId("generatedId");
         ticket.setApi(API_ID);
@@ -254,7 +278,7 @@ public class TicketServiceTest {
         }
 
         when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class)))
-                .thenReturn(new Page<>(ticketList, 0, 20, 20));
+            .thenReturn(new Page<>(ticketList, 0, 20, 20));
         when(apiService.findById(API_ID)).thenReturn(apiEntity);
         when(applicationService.findById(APPLICATION_ID)).thenReturn(appEntity);
 
@@ -262,9 +286,10 @@ public class TicketServiceTest {
         query.setFromUser("fromUser");
 
         Page<TicketEntity> searchResult = ticketService.search(
-                query,
-                new SortableImpl("subject", true),
-                new PageableImpl(1, Integer.MAX_VALUE));
+            query,
+            new SortableImpl("subject", true),
+            new PageableImpl(1, Integer.MAX_VALUE)
+        );
 
         assertEquals(searchResult.getContent().size(), 20);
         assertEquals(searchResult.getPageNumber(), 1);
@@ -273,7 +298,6 @@ public class TicketServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotSearchSearchIfRepositoryThrowException() throws TechnicalException {
-
         Ticket ticket = new Ticket();
         ticket.setId("generatedId");
         ticket.setApi(API_ID);
@@ -291,20 +315,16 @@ public class TicketServiceTest {
         }
 
         when(ticketRepository.search(any(TicketCriteria.class), any(Sortable.class), any(Pageable.class)))
-                .thenThrow(new TechnicalException());
+            .thenThrow(new TechnicalException());
 
         TicketQuery query = new TicketQuery();
         query.setFromUser("fromUser");
 
-        ticketService.search(
-                query,
-                new SortableImpl("subject", true),
-                new PageableImpl(1, Integer.MAX_VALUE));
+        ticketService.search(query, new SortableImpl("subject", true), new PageableImpl(1, Integer.MAX_VALUE));
     }
 
     @Test
     public void shouldFindById() throws TechnicalException {
-
         Ticket ticket = new Ticket();
         ticket.setId("ticket1");
         ticket.setApi(API_ID);
@@ -332,7 +352,6 @@ public class TicketServiceTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByIdIfRepositoryThrowException() throws TechnicalException {
-
         Ticket ticket = new Ticket();
         ticket.setId("ticket1");
         ticket.setApi(API_ID);
@@ -354,7 +373,6 @@ public class TicketServiceTest {
 
     @Test(expected = TicketNotFoundException.class)
     public void shouldThrowNotFoundExceptionWhenNoTicket() throws TechnicalException {
-
         when(ticketRepository.findById("ticket1")).thenReturn(Optional.empty());
 
         ticketService.findById("ticket1");

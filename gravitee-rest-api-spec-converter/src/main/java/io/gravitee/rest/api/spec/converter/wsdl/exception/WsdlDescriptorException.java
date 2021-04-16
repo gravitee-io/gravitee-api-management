@@ -20,6 +20,7 @@ package io.gravitee.rest.api.spec.converter.wsdl.exception;
  * @author GraviteeSource Team
  */
 public class WsdlDescriptorException extends RuntimeException {
+
     public WsdlDescriptorException(String message) {
         super(message);
     }

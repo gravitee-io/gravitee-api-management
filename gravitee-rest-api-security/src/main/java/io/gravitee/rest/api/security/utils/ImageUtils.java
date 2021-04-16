@@ -16,10 +16,6 @@
 package io.gravitee.rest.api.security.utils;
 
 import io.gravitee.rest.api.exception.InvalidImageException;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -27,6 +23,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,18 +33,17 @@ import java.util.regex.Pattern;
  */
 public final class ImageUtils {
 
-    private final static Pattern DATA_IMAGE_PATTERN = Pattern.compile("data:(image/([a-zA-Z+]*));base64,(.*)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern DATA_IMAGE_PATTERN = Pattern.compile("data:(image/([a-zA-Z+]*));base64,(.*)", Pattern.CASE_INSENSITIVE);
 
-    private final static Set<String> ALLOWED_MIMETYPE = new HashSet<>(Arrays.asList("gif", "jpeg", "webmp", "bmp", "png", "tiff"));
+    private static final Set<String> ALLOWED_MIMETYPE = new HashSet<>(Arrays.asList("gif", "jpeg", "webmp", "bmp", "png", "tiff"));
 
-    private final static int IMAGE_MAX_SIZE = 500_000;
-    private final static int IMAGE_DEFAULT_WIDTH = 200;
-    private final static int IMAGE_DEFAULT_HEIGHT = 200;
+    private static final int IMAGE_MAX_SIZE = 500_000;
+    private static final int IMAGE_DEFAULT_WIDTH = 200;
+    private static final int IMAGE_DEFAULT_HEIGHT = 200;
 
-    private ImageUtils() {
-    }
+    private ImageUtils() {}
 
-    public static void verify(String type, String mimeType, byte [] data) throws InvalidImageException {
+    public static void verify(String type, String mimeType, byte[] data) throws InvalidImageException {
         verify(new Image(type, mimeType, data), IMAGE_MAX_SIZE);
     }
 
@@ -104,7 +102,7 @@ public final class ImageUtils {
                         throw new InvalidImageException("Image is not a valid base64 format");
                     }
                 } else {
-                    throw new InvalidImageException("Image mime-type " + matcher.group(1)+ " is not allowed");
+                    throw new InvalidImageException("Image mime-type " + matcher.group(1) + " is not allowed");
                 }
             } else {
                 throw new InvalidImageException("Unknown image format");
@@ -123,7 +121,7 @@ public final class ImageUtils {
                 ImageReader reader = imageReaders.next();
                 String discoveredType = reader.getFormatName();
 
-                if (! ALLOWED_MIMETYPE.contains(discoveredType.toLowerCase())) {
+                if (!ALLOWED_MIMETYPE.contains(discoveredType.toLowerCase())) {
                     throw new InvalidImageException(discoveredType + " format is not supported");
                 }
 
@@ -153,7 +151,7 @@ public final class ImageUtils {
 
         private String type;
         private String mimeType;
-        private byte [] data;
+        private byte[] data;
 
         public Image(String type, String mimeType, byte[] data) {
             this.type = type;

@@ -15,28 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.UpdateApiEntity;
-import io.gravitee.rest.api.model.permissions.RoleScope;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.internal.util.collections.Sets;
-
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.Collections;
-import java.util.Date;
-
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
@@ -44,6 +22,27 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Collections;
+import java.util.Date;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.internal.util.collections.Sets;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -65,24 +64,35 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return () -> USER_NAME;
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return () -> USER_NAME;
+                    }
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
-                @Override
-                public boolean isSecure() { return true; }
-                @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
-            });
+            );
         }
     }
+
     private ApiEntity mockApi;
     private UpdateApiEntity updateApiEntity;
 
@@ -96,7 +106,6 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         mockApi.setProxy(proxy);
         mockApi.setUpdatedAt(new Date());
         doReturn(mockApi).when(apiService).findById(API);
-
     }
 
     @After
@@ -119,7 +128,7 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotAccessToApiState_BecauseNotAMember() {
-        final Response response = envTarget(API+"/state").request().get();
+        final Response response = envTarget(API + "/state").request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -128,20 +137,22 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         MembershipEntity membershipEntity = mock(MembershipEntity.class);
         when(membershipEntity.getReferenceType()).thenReturn(MembershipReferenceType.API);
         when(membershipEntity.getReferenceId()).thenReturn(API);
-        when(membershipService.getMembershipsByMemberAndReference(
+        when(
+            membershipService.getMembershipsByMemberAndReference(
                 eq(MembershipMemberType.USER),
                 eq(USER_NAME),
-                eq(MembershipReferenceType.API)))
-                .thenReturn(Sets.newSet(membershipEntity));
+                eq(MembershipReferenceType.API)
+            )
+        )
+            .thenReturn(Sets.newSet(membershipEntity));
 
-        final Response response = envTarget(API+"/state").request().get();
+        final Response response = envTarget(API + "/state").request().get();
 
         assertEquals(OK_200, response.getStatus());
         ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
         assertNotNull(stateEntity);
         assertEquals(API, stateEntity.getApiId());
     }
-
 
     @Test
     public void shouldAccessToApiState_BecauseGroupMember_onApi() {
@@ -155,29 +166,34 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(RoleScope.API);
 
-        when(membershipService.getMembershipsByMemberAndReference(
+        when(
+            membershipService.getMembershipsByMemberAndReference(
                 eq(MembershipMemberType.USER),
                 eq(USER_NAME),
-                eq(MembershipReferenceType.API)))
-                .thenReturn(Collections.emptySet());
+                eq(MembershipReferenceType.API)
+            )
+        )
+            .thenReturn(Collections.emptySet());
 
-        when(membershipService.getMembershipsByMemberAndReference(
+        when(
+            membershipService.getMembershipsByMemberAndReference(
                 eq(MembershipMemberType.USER),
                 eq(USER_NAME),
-                eq(MembershipReferenceType.GROUP)))
-                .thenReturn(Sets.newSet(membershipEntity));
+                eq(MembershipReferenceType.GROUP)
+            )
+        )
+            .thenReturn(Sets.newSet(membershipEntity));
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
         when(apiService.searchIds(any())).thenReturn(Collections.singletonList(mockApi.getId()));
 
-        final Response response = envTarget(API+"/state").request().get();
+        final Response response = envTarget(API + "/state").request().get();
 
         assertEquals(OK_200, response.getStatus());
         ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
         assertNotNull(stateEntity);
         assertEquals(API, stateEntity.getApiId());
     }
-
 
     public void shouldNotAccessToApiState_BecauseGroupMember_onApplication() {
         final String groupId = "group_id";
@@ -190,21 +206,27 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(RoleScope.APPLICATION);
 
-        when(membershipService.getMembershipsByMemberAndReference(
+        when(
+            membershipService.getMembershipsByMemberAndReference(
                 eq(MembershipMemberType.USER),
                 eq(USER_NAME),
-                eq(MembershipReferenceType.API)))
-                .thenReturn(Collections.emptySet());
+                eq(MembershipReferenceType.API)
+            )
+        )
+            .thenReturn(Collections.emptySet());
 
-        when(membershipService.getMembershipsByMemberAndReference(
+        when(
+            membershipService.getMembershipsByMemberAndReference(
                 eq(MembershipMemberType.USER),
                 eq(USER_NAME),
-                eq(MembershipReferenceType.GROUP)))
-                .thenReturn(Sets.newSet(membershipEntity));
+                eq(MembershipReferenceType.GROUP)
+            )
+        )
+            .thenReturn(Sets.newSet(membershipEntity));
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
 
-        final Response response = envTarget(API+"/state").request().get();
+        final Response response = envTarget(API + "/state").request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 }

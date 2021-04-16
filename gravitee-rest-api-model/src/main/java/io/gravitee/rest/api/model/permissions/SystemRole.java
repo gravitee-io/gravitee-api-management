@@ -21,5 +21,6 @@ package io.gravitee.rest.api.model.permissions;
  * @author GraviteeSource Team
  */
 public enum SystemRole {
-    ADMIN, PRIMARY_OWNER
+    ADMIN,
+    PRIMARY_OWNER,
 }

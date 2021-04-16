@@ -31,20 +31,19 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
+import java.net.URI;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Api(tags = "Platform Tickets")
-public class PlatformTicketsResource extends AbstractResource  {
+public class PlatformTicketsResource extends AbstractResource {
 
     @Inject
     private TicketService ticketService;
@@ -52,25 +51,29 @@ public class PlatformTicketsResource extends AbstractResource  {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create a platform ticket")
-    @ApiResponses({
-            @ApiResponse(code = 201, message = "Ticket succesfully created"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-
+    @ApiResponses(
+        { @ApiResponse(code = 201, message = "Ticket succesfully created"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
     public Response createPlatformTicket(@Valid @NotNull final NewTicketEntity ticketEntity) {
-        ticketService.create(getAuthenticatedUser(), ticketEntity, GraviteeContext.getCurrentOrganization(), ParameterReferenceType.ORGANIZATION);
+        ticketService.create(
+            getAuthenticatedUser(),
+            ticketEntity,
+            GraviteeContext.getCurrentOrganization(),
+            ParameterReferenceType.ORGANIZATION
+        );
         return Response.status(Response.Status.CREATED).build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Search for platform tickets written by current user")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List platform tickets written by current user", response = Page.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Page<TicketEntity> getTickets(
-            @Valid @BeanParam Pageable pageable,
-            @Valid @BeanParam TicketsParam ticketsParam) {
-
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public Page<TicketEntity> getTickets(@Valid @BeanParam Pageable pageable, @Valid @BeanParam TicketsParam ticketsParam) {
         TicketQuery query = new TicketQuery();
         query.setApi(ticketsParam.getApi());
         query.setApplication(ticketsParam.getApplication());
@@ -82,22 +85,21 @@ public class PlatformTicketsResource extends AbstractResource  {
             sortable = new SortableImpl(ticketsParam.getOrder().getField(), ticketsParam.getOrder().isOrder());
         }
 
-        return ticketService.search(
-                query,
-                sortable,
-                pageable.toPageable());
+        return ticketService.search(query, sortable, pageable.toPageable());
     }
 
     @GET
     @Path("/{ticket}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a specific ticket")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Get a platform ticket", response = TicketEntity.class),
             @ApiResponse(code = 404, message = "Ticket not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response getTicket(@PathParam("ticket") String ticketId) {
-
         TicketEntity ticketEntity = ticketService.findById(ticketId);
 
         return Response.ok(ticketEntity).build();

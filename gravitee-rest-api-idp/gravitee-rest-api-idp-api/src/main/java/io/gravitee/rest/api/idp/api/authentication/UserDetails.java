@@ -17,13 +17,12 @@ package io.gravitee.rest.api.idp.api.authentication;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -45,16 +44,19 @@ public class UserDetails extends User implements org.springframework.security.co
     private boolean firstLogin;
     private boolean displayNewsletterSubscription;
     private Map<String, Object> customFields;
+
     /**
      * The user creation date
      */
     @JsonProperty("created_at")
     private Date createdAt;
+
     /**
      * The user creation date
      */
     @JsonProperty("updated_at")
     private Date updatedAt;
+
     /**
      * The user last connection date
      */
@@ -67,7 +69,7 @@ public class UserDetails extends User implements org.springframework.security.co
     }
 
     public UserDetails(String username, String password, String email, Collection<? extends GrantedAuthority> authorities) {
-        this(username,password,authorities);
+        this(username, password, authorities);
         this.email = email;
     }
 
@@ -148,7 +150,7 @@ public class UserDetails extends User implements org.springframework.security.co
                 displayName = lastname;
             }
         } else {
-            if (email != null && !email.isEmpty() && !"memory".equals(source)){
+            if (email != null && !email.isEmpty() && !"memory".equals(source)) {
                 displayName = email;
             } else {
                 displayName = sourceId;
@@ -236,13 +238,25 @@ public class UserDetails extends User implements org.springframework.security.co
 
     @Override
     public String toString() {
-        return super.toString() +
-                ", email='" + email + '\'' +
-                ", firstname='" + firstname + '\'' +
-                ", lastname='" + lastname + '\'' +
-                ", source='" + lastname + '\'' +
-                ", external_reference='" + lastname + '\'' +
-                "}";
+        return (
+            super.toString() +
+            ", email='" +
+            email +
+            '\'' +
+            ", firstname='" +
+            firstname +
+            '\'' +
+            ", lastname='" +
+            lastname +
+            '\'' +
+            ", source='" +
+            lastname +
+            '\'' +
+            ", external_reference='" +
+            lastname +
+            '\'' +
+            "}"
+        );
     }
 
     public byte[] getPicture() {

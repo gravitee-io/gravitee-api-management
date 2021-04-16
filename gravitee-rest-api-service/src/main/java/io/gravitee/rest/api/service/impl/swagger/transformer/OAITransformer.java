@@ -22,6 +22,5 @@ import io.gravitee.rest.api.service.swagger.OAIDescriptor;
  * @author GraviteeSource Team
  */
 public interface OAITransformer extends SwaggerTransformer<OAIDescriptor> {
-
     void transform(OAIDescriptor descriptor);
 }

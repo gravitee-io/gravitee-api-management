@@ -27,7 +27,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -35,18 +39,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugins"})
+@Api(tags = { "Plugins" })
 public class ResourcesResource {
 
     @Context
@@ -57,31 +56,33 @@ public class ResourcesResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List resource plugins",
-            notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "List resource plugins", notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List of resources", response = ResourceListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public Collection<ResourceListItem> getResources(@QueryParam("expand") List<String> expand) {
         Stream<ResourceListItem> stream = resourceService.findAll().stream().map(this::convert);
 
-        if(expand!=null && !expand.isEmpty()) {
+        if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
-                        stream = stream.peek(resourceListItem -> resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId())));
+                        stream =
+                            stream.peek(
+                                resourceListItem -> resourceListItem.setSchema(resourceService.getSchema(resourceListItem.getId()))
+                            );
                     case "icon":
-                        stream = stream.peek(resourceListItem -> resourceListItem.setIcon(resourceService.getIcon(resourceListItem.getId())));
+                        stream =
+                            stream.peek(resourceListItem -> resourceListItem.setIcon(resourceService.getIcon(resourceListItem.getId())));
                 }
             }
         }
 
-        return stream
-                .sorted(Comparator.comparing(ResourceListItem::getName))
-                .collect(Collectors.toList());
+        return stream.sorted(Comparator.comparing(ResourceListItem::getName)).collect(Collectors.toList());
     }
 
     @Path("{resource}")

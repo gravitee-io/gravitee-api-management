@@ -16,9 +16,7 @@
 package io.gravitee.rest.api.management.rest.model.configuration.identity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
-
 import java.util.Date;
 import java.util.Objects;
 
@@ -120,7 +118,6 @@ public class IdentityProviderListItem {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(id);
     }
 }

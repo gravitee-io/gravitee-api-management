@@ -22,7 +22,6 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface AuthenticationProvider {
-
     String type();
 
     int index();

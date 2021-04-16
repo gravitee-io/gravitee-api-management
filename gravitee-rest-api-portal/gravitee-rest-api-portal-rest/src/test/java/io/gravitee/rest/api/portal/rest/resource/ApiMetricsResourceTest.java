@@ -15,21 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
-import io.gravitee.rest.api.model.analytics.query.StatsQuery;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-
-import java.io.IOException;
-import java.util.*;
-
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Collections.emptySet;
@@ -38,6 +23,19 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
+
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
+import io.gravitee.rest.api.model.analytics.query.StatsQuery;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import java.io.IOException;
+import java.util.*;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -142,7 +140,7 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
         assertNull(apiMetrics.getHits());
         assertNull(apiMetrics.getHealth());
         assertNull(apiMetrics.getSubscribers());
-        
+
         // Case 2
         doReturn(null).when(analyticsService).execute(any(StatsQuery.class));
         doReturn(Collections.emptyList()).when(subscriptionService).search(any());
@@ -156,7 +154,7 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
         assertNull(apiMetrics.getHits());
         assertNull(apiMetrics.getHealth());
         assertNull(apiMetrics.getSubscribers());
-        
+
         // Case 3
         doReturn(null).when(analyticsService).execute(any(StatsQuery.class));
         doReturn(null).when(subscriptionService).search(any());

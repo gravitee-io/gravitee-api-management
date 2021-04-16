@@ -26,11 +26,14 @@ import javax.validation.constraints.Size;
 public class NewRatingEntity {
 
     private String api;
+
     @Min(1)
     @Max(5)
     private byte rate;
+
     @Size(max = 64)
     private String title;
+
     @Size(max = 1024)
     private String comment;
 
@@ -68,11 +71,8 @@ public class NewRatingEntity {
 
     @Override
     public String toString() {
-        return "NewRatingEntity{" +
-                "api='" + api + '\'' +
-                ", rate=" + rate +
-                ", title='" + title + '\'' +
-                ", comment='" + comment + '\'' +
-                '}';
+        return (
+            "NewRatingEntity{" + "api='" + api + '\'' + ", rate=" + rate + ", title='" + title + '\'' + ", comment='" + comment + '\'' + '}'
+        );
     }
 }

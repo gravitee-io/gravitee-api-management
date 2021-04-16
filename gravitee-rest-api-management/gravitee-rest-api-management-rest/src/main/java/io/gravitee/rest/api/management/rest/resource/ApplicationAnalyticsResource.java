@@ -27,24 +27,23 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.swagger.annotations.*;
-
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Application Analytics"})
+@Api(tags = { "Application Analytics" })
 public class ApplicationAnalyticsResource extends AbstractResource {
 
     @Inject
@@ -57,16 +56,15 @@ public class ApplicationAnalyticsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get application analytics",
-            notes = "User must have the APPLICATION_ANALYTICS[READ] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Application analytics"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ)
-    })
-    public Response getApplicationAnalyticsHits(
-            @BeanParam AnalyticsParam analyticsParam) {
+    @ApiOperation(
+        value = "Get application analytics",
+        notes = "User must have the APPLICATION_ANALYTICS[READ] permission to use this service"
+    )
+    @ApiResponses(
+        { @ApiResponse(code = 200, message = "Application analytics"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_ANALYTICS, acls = RolePermissionAction.READ) })
+    public Response getApplicationAnalyticsHits(@BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
 
         Analytics analytics = null;
@@ -123,18 +121,22 @@ public class ApplicationAnalyticsResource extends AbstractResource {
         List<Aggregation> aggregations = analyticsParam.getAggregations();
         if (aggregations != null) {
             List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations
-                    .stream()
-                    .map((Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation -> new io.gravitee.rest.api.model.analytics.query.Aggregation() {
-                        @Override
-                        public AggregationType type() {
-                            return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
-                        }
+                .stream()
+                .map(
+                    (Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation ->
+                        new io.gravitee.rest.api.model.analytics.query.Aggregation() {
+                            @Override
+                            public AggregationType type() {
+                                return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
+                            }
 
-                        @Override
-                        public String field() {
-                            return aggregation.getField();
+                            @Override
+                            public String field() {
+                                return aggregation.getField();
+                            }
                         }
-                    }).collect(Collectors.toList());
+                )
+                .collect(Collectors.toList());
 
             query.setAggregations(aggregationList);
         }
@@ -161,8 +163,7 @@ public class ApplicationAnalyticsResource extends AbstractResource {
 
         List<Range> ranges = analyticsParam.getRanges();
         if (ranges != null) {
-            Map<Double, Double> rangeMap = ranges.stream().collect(
-                    Collectors.toMap(Range::getFrom, Range::getTo));
+            Map<Double, Double> rangeMap = ranges.stream().collect(Collectors.toMap(Range::getFrom, Range::getTo));
 
             query.setGroups(rangeMap);
         }

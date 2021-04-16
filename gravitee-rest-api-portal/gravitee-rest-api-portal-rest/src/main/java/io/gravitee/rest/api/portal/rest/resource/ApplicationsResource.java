@@ -35,7 +35,9 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
-
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -43,9 +45,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -68,13 +67,13 @@ public class ApplicationsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE),
-    })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.CREATE) })
     public Response createApplication(@Valid @NotNull(message = "Input must not be null.") ApplicationInput applicationInput) {
         NewApplicationEntity newApplicationEntity = new NewApplicationEntity();
         newApplicationEntity.setDescription(applicationInput.getDescription());
-        newApplicationEntity.setGroups(applicationInput.getGroups() != null ? new HashSet<>(applicationInput.getGroups()) : new HashSet<>());
+        newApplicationEntity.setGroups(
+            applicationInput.getGroups() != null ? new HashSet<>(applicationInput.getGroups()) : new HashSet<>()
+        );
         newApplicationEntity.setName(applicationInput.getName());
         newApplicationEntity.setPicture(applicationInput.getPicture());
 
@@ -106,35 +105,47 @@ public class ApplicationsResource extends AbstractResource {
         ApplicationEntity createdApplicationEntity = applicationService.create(newApplicationEntity, getAuthenticatedUser());
 
         return Response
-                .created(this.getLocationHeader(createdApplicationEntity.getId()))
-                .entity(applicationMapper.convert(createdApplicationEntity, uriInfo))
-                .build();
+            .created(this.getLocationHeader(createdApplicationEntity.getId()))
+            .entity(applicationMapper.convert(createdApplicationEntity, uriInfo))
+            .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
+    @Permissions(
+        {
             @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ)
-    })
-    public Response getApplications(@BeanParam PaginationParam paginationParam,
-                                    @QueryParam("forSubscription") final boolean forSubscription,
-                                    @QueryParam("order") @DefaultValue("name") final String order) {
-
+            @Permission(value = RolePermission.ENVIRONMENT_APPLICATION, acls = RolePermissionAction.READ),
+        }
+    )
+    public Response getApplications(
+        @BeanParam PaginationParam paginationParam,
+        @QueryParam("forSubscription") final boolean forSubscription,
+        @QueryParam("order") @DefaultValue("name") final String order
+    ) {
         Stream<ApplicationListItem> applicationStream = applicationService.findByUser(getAuthenticatedUser()).stream();
 
         if (forSubscription) {
-            applicationStream = applicationStream.filter(app -> this.hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.CREATE));
+            applicationStream =
+                applicationStream.filter(
+                    app -> this.hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, app.getId(), RolePermissionAction.CREATE)
+                );
         }
 
         boolean isAsc = !order.startsWith("-");
 
         if (order.contains("nbSubscriptions")) {
-            FilteredEntities<ApplicationListItem> filteredApplications = filteringService.getEntitiesOrderByNumberOfSubscriptions(applicationStream.collect(Collectors.toList()), null, isAsc);
-            List<Application> applicationsList = filteredApplications.getFilteredItems().stream()
-                    .map(application -> applicationMapper.convert(application, uriInfo))
-                    .map(this::addApplicationLinks)
-                    .collect(Collectors.toList());
+            FilteredEntities<ApplicationListItem> filteredApplications = filteringService.getEntitiesOrderByNumberOfSubscriptions(
+                applicationStream.collect(Collectors.toList()),
+                null,
+                isAsc
+            );
+            List<Application> applicationsList = filteredApplications
+                .getFilteredItems()
+                .stream()
+                .map(application -> applicationMapper.convert(application, uriInfo))
+                .map(this::addApplicationLinks)
+                .collect(Collectors.toList());
 
             return createListResponse(applicationsList, paginationParam, filteredApplications.getMetadata());
         }
@@ -144,10 +155,10 @@ public class ApplicationsResource extends AbstractResource {
             applicationNameComparator.reversed();
         }
         List<Application> applicationsList = applicationStream
-                .map(application -> applicationMapper.convert(application, uriInfo))
-                .map(this::addApplicationLinks)
-                .sorted(applicationNameComparator)
-                .collect(Collectors.toList());
+            .map(application -> applicationMapper.convert(application, uriInfo))
+            .map(this::addApplicationLinks)
+            .sorted(applicationNameComparator)
+            .collect(Collectors.toList());
 
         return createListResponse(applicationsList, paginationParam);
     }
@@ -170,6 +181,7 @@ public class ApplicationsResource extends AbstractResource {
     }
 
     private class FilteredApplication {
+
         List<Application> filteredApplications;
         Map<String, Map<String, Object>> metadata;
 

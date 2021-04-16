@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.idp.ldap.authentication;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -33,13 +35,10 @@ import org.springframework.security.ldap.server.ApacheDSContainer;
 import org.springframework.security.ldap.userdetails.*;
 import org.springframework.util.Assert;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-
 /**
  * NOTE: This is a copy of org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer
  * to avoid classloader collision.
- * 
+ *
  * Configures LDAP {@link AuthenticationProvider} in the {@link ProviderManagerBuilder}.
  *
  * @param <B> the {@link ProviderManagerBuilder} type that this is configuring.
@@ -48,13 +47,14 @@ import java.net.ServerSocket;
  * @since 3.2
  */
 public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuilder<B>>
-        extends SecurityConfigurerAdapter<AuthenticationManager, B> {
+    extends SecurityConfigurerAdapter<AuthenticationManager, B> {
+
     private String groupRoleAttribute = "cn";
     private String groupSearchBase = "";
     private String groupSearchFilter = "(uniqueMember={0})";
     private String rolePrefix = "ROLE_";
     private String userSearchBase = ""; // only for search
-    private String userSearchFilter = null;// "uid={0}"; // only for search
+    private String userSearchFilter = null; // "uid={0}"; // only for search
     private String[] userDnPatterns;
     private BaseLdapPathContextSource contextSource;
     private ContextSourceBuilder contextSourceBuilder = new ContextSourceBuilder();
@@ -70,14 +70,15 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
         LdapAuthoritiesPopulator authoritiesPopulator = getLdapAuthoritiesPopulator();
 
         LdapAuthenticationProvider ldapAuthenticationProvider = new LdapAuthenticationProviderProxy(
-                ldapAuthenticator, authoritiesPopulator);
+            ldapAuthenticator,
+            authoritiesPopulator
+        );
         SimpleAuthorityMapper simpleAuthorityMapper = new SimpleAuthorityMapper();
         simpleAuthorityMapper.setPrefix(rolePrefix);
         simpleAuthorityMapper.afterPropertiesSet();
         ldapAuthenticationProvider.setAuthoritiesMapper(simpleAuthorityMapper);
         if (userDetailsContextMapper != null) {
-            ldapAuthenticationProvider
-                    .setUserDetailsContextMapper(userDetailsContextMapper);
+            ldapAuthenticationProvider.setUserDetailsContextMapper(userDetailsContextMapper);
         }
         return ldapAuthenticationProvider;
     }
@@ -89,8 +90,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * {@link DefaultLdapAuthoritiesPopulator}
      * @return the {@link LdapAuthenticationProviderConfigurer} for further customizations
      */
-    public LdapAuthenticationProviderConfigurer<B> ldapAuthoritiesPopulator(
-            LdapAuthoritiesPopulator ldapAuthoritiesPopulator) {
+    public LdapAuthenticationProviderConfigurer<B> ldapAuthoritiesPopulator(LdapAuthoritiesPopulator ldapAuthoritiesPopulator) {
         this.ldapAuthoritiesPopulator = ldapAuthoritiesPopulator;
         return this;
     }
@@ -101,8 +101,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @param objectPostProcessor
      * @return the {@link ChannelSecurityConfigurer} for further customizations
      */
-    public LdapAuthenticationProviderConfigurer<B> withObjectPostProcessor(
-            ObjectPostProcessor<?> objectPostProcessor) {
+    public LdapAuthenticationProviderConfigurer<B> withObjectPostProcessor(ObjectPostProcessor<?> objectPostProcessor) {
         addObjectPostProcessor(objectPostProcessor);
         return this;
     }
@@ -118,8 +117,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
             return ldapAuthoritiesPopulator;
         }
 
-        DefaultLdapAuthoritiesPopulator defaultAuthoritiesPopulator = new DefaultLdapAuthoritiesPopulator(
-                contextSource, groupSearchBase);
+        DefaultLdapAuthoritiesPopulator defaultAuthoritiesPopulator = new DefaultLdapAuthoritiesPopulator(contextSource, groupSearchBase);
         defaultAuthoritiesPopulator.setGroupRoleAttribute(groupRoleAttribute);
         defaultAuthoritiesPopulator.setGroupSearchFilter(groupSearchFilter);
 
@@ -133,10 +131,10 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @param contextSource the {@link BaseLdapPathContextSource} to use
      * @return the {@link LdapAuthenticator} to use
      */
-    private LdapAuthenticator createLdapAuthenticator(
-            BaseLdapPathContextSource contextSource) {
-        AbstractLdapAuthenticator ldapAuthenticator = passwordEncoder == null ? createBindAuthenticator(contextSource)
-                : createPasswordCompareAuthenticator(contextSource);
+    private LdapAuthenticator createLdapAuthenticator(BaseLdapPathContextSource contextSource) {
+        AbstractLdapAuthenticator ldapAuthenticator = passwordEncoder == null
+            ? createBindAuthenticator(contextSource)
+            : createPasswordCompareAuthenticator(contextSource);
         LdapUserSearch userSearch = createUserSearch();
         if (userSearch != null) {
             ldapAuthenticator.setUserSearch(userSearch);
@@ -153,10 +151,8 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @param contextSource the {@link BaseLdapPathContextSource} to use
      * @return
      */
-    private PasswordComparisonAuthenticator createPasswordCompareAuthenticator(
-            BaseLdapPathContextSource contextSource) {
-        PasswordComparisonAuthenticator ldapAuthenticator = new PasswordComparisonAuthenticator(
-                contextSource);
+    private PasswordComparisonAuthenticator createPasswordCompareAuthenticator(BaseLdapPathContextSource contextSource) {
+        PasswordComparisonAuthenticator ldapAuthenticator = new PasswordComparisonAuthenticator(contextSource);
         if (passwordAttribute != null) {
             ldapAuthenticator.setPasswordAttributeName(passwordAttribute);
         }
@@ -170,8 +166,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @param contextSource the {@link BaseLdapPathContextSource} to use
      * @return the {@link BindAuthenticator} to use
      */
-    private BindAuthenticator createBindAuthenticator(
-            BaseLdapPathContextSource contextSource) {
+    private BindAuthenticator createBindAuthenticator(BaseLdapPathContextSource contextSource) {
         return new BindAuthenticator(contextSource);
     }
 
@@ -179,8 +174,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
         if (userSearchFilter == null) {
             return null;
         }
-        return new FilterBasedLdapUserSearch(userSearchBase, userSearchFilter,
-                contextSource);
+        return new FilterBasedLdapUserSearch(userSearchBase, userSearchFilter, contextSource);
     }
 
     /**
@@ -191,8 +185,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @return the {@link LdapAuthenticationProviderConfigurer} for further customizations
      * @see #contextSource()
      */
-    public LdapAuthenticationProviderConfigurer<B> contextSource(
-            BaseLdapPathContextSource contextSource) {
+    public LdapAuthenticationProviderConfigurer<B> contextSource(BaseLdapPathContextSource contextSource) {
         this.contextSource = contextSource;
         return this;
     }
@@ -232,8 +225,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @param userDnPatterns the LDAP patterns for finding the usernames
      * @return the {@link LdapAuthenticationProviderConfigurer} for further customizations
      */
-    public LdapAuthenticationProviderConfigurer<B> userDnPatterns(
-            String... userDnPatterns) {
+    public LdapAuthenticationProviderConfigurer<B> userDnPatterns(String... userDnPatterns) {
         this.userDnPatterns = userDnPatterns;
         return this;
     }
@@ -250,8 +242,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @see InetOrgPersonContextMapper
      * @see LdapUserDetailsMapper
      */
-    public LdapAuthenticationProviderConfigurer<B> userDetailsContextMapper(
-            UserDetailsContextMapper userDetailsContextMapper) {
+    public LdapAuthenticationProviderConfigurer<B> userDetailsContextMapper(UserDetailsContextMapper userDetailsContextMapper) {
         this.userDetailsContextMapper = userDetailsContextMapper;
         return this;
     }
@@ -261,8 +252,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @param groupRoleAttribute the attribute name that maps a group to a role.
      * @return
      */
-    public LdapAuthenticationProviderConfigurer<B> groupRoleAttribute(
-            String groupRoleAttribute) {
+    public LdapAuthenticationProviderConfigurer<B> groupRoleAttribute(String groupRoleAttribute) {
         this.groupRoleAttribute = groupRoleAttribute;
         return this;
     }
@@ -284,8 +274,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @param groupSearchFilter the LDAP filter to search for groups
      * @return the {@link LdapAuthenticationProviderConfigurer} for further customizations
      */
-    public LdapAuthenticationProviderConfigurer<B> groupSearchFilter(
-            String groupSearchFilter) {
+    public LdapAuthenticationProviderConfigurer<B> groupSearchFilter(String groupSearchFilter) {
         this.groupSearchFilter = groupSearchFilter;
         return this;
     }
@@ -322,8 +311,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @param userSearchFilter the LDAP filter used to search for users
      * @return the {@link LdapAuthenticationProviderConfigurer} for further customizations
      */
-    public LdapAuthenticationProviderConfigurer<B> userSearchFilter(
-            String userSearchFilter) {
+    public LdapAuthenticationProviderConfigurer<B> userSearchFilter(String userSearchFilter) {
         this.userSearchFilter = userSearchFilter;
         return this;
     }
@@ -374,8 +362,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
             return LdapAuthenticationProviderConfigurer.this;
         }
 
-        private PasswordCompareConfigurer() {
-        }
+        private PasswordCompareConfigurer() {}
     }
 
     /**
@@ -386,6 +373,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @since 3.2
      */
     public final class ContextSourceBuilder {
+
         private String ldif = "classpath*:*.ldif";
         private String managerPassword;
         private String managerDn;
@@ -478,13 +466,11 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
         }
 
         private DefaultSpringSecurityContextSource build() throws Exception {
-            DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(
-                    getProviderUrl());
+            DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(getProviderUrl());
             if (managerDn != null) {
                 contextSource.setUserDn(managerDn);
                 if (managerPassword == null) {
-                    throw new IllegalStateException(
-                            "managerPassword is required if managerDn is supplied");
+                    throw new IllegalStateException("managerPassword is required if managerDn is supplied");
                 }
                 contextSource.setPassword(managerPassword);
             }
@@ -510,24 +496,19 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
             try {
                 try {
                     serverSocket = new ServerSocket(DEFAULT_PORT);
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     try {
                         serverSocket = new ServerSocket(0);
-                    }
-                    catch (IOException e2) {
+                    } catch (IOException e2) {
                         return DEFAULT_PORT;
                     }
                 }
                 return serverSocket.getLocalPort();
-            }
-            finally {
+            } finally {
                 if (serverSocket != null) {
                     try {
                         serverSocket.close();
-                    }
-                    catch (IOException e) {
-                    }
+                    } catch (IOException e) {}
                 }
             }
         }
@@ -539,8 +520,7 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
             return url;
         }
 
-        private ContextSourceBuilder() {
-        }
+        private ContextSourceBuilder() {}
     }
 
     private BaseLdapPathContextSource getContextSource() throws Exception {

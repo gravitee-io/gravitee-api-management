@@ -20,6 +20,7 @@ package io.gravitee.rest.api.model.analytics.query;
  * @author GraviteeSource Team
  */
 public class StatsQuery extends AbstractQuery {
+
     private String field;
 
     public String getField() {

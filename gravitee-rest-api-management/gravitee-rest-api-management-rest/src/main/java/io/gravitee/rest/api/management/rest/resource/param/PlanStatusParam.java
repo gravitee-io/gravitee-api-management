@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
+import io.gravitee.rest.api.model.PlanStatus;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import io.gravitee.rest.api.model.PlanStatus;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,7 +38,7 @@ public class PlanStatusParam {
         this.statuses = new ArrayList<>();
 
         if (param != null) {
-            String[] params = param.replaceAll("\\s","").split(SEPARATOR);
+            String[] params = param.replaceAll("\\s", "").split(SEPARATOR);
             for (String _param : params) {
                 this.statuses.add(PlanStatus.valueOf(_param.toUpperCase()));
             }

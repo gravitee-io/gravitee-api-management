@@ -68,6 +68,6 @@ public class RepositoryUser implements User {
 
     @Override
     public String getReference() {
-       return userEntity.getSourceId();
+        return userEntity.getSourceId();
     }
 }

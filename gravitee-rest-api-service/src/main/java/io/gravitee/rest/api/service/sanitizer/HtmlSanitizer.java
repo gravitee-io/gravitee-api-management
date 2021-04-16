@@ -18,13 +18,12 @@ package io.gravitee.rest.api.service.sanitizer;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.data.MutableDataSet;
-import org.owasp.html.*;
-
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nullable;
+import org.owasp.html.*;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -33,12 +32,13 @@ import java.util.List;
 public final class HtmlSanitizer {
 
     private static final Parser mdParser = Parser.builder(new MutableDataSet()).build();
-    private static final HtmlRenderer htmlRenderer = HtmlRenderer.builder(new MutableDataSet().set(HtmlRenderer.SUPPRESSED_LINKS, "")).build();
+    private static final HtmlRenderer htmlRenderer = HtmlRenderer
+        .builder(new MutableDataSet().set(HtmlRenderer.SUPPRESSED_LINKS, ""))
+        .build();
 
     private static final AttributePolicy INTEGER = new AttributePolicy() {
         @Override
-        public String apply(
-                String elementName, String attributeName, String value) {
+        public String apply(String elementName, String attributeName, String value) {
             int n = value.length();
             if (n == 0) {
                 return null;
@@ -49,7 +49,7 @@ public final class HtmlSanitizer {
                     if (i == 0) {
                         return null;
                     }
-                    return value.substring(0, i);  // truncate to integer.
+                    return value.substring(0, i); // truncate to integer.
                 } else if (!('0' <= ch && ch <= '9')) {
                     return null;
                 }
@@ -59,38 +59,38 @@ public final class HtmlSanitizer {
     };
 
     private static final PolicyFactory HTML_IMAGES_SANITIZER = new HtmlPolicyBuilder()
-            .allowUrlProtocols("data", "http", "https").allowElements("img")
-            .allowAttributes("alt", "title", "src").onElements("img")
-            .allowAttributes("border", "height", "width").matching(INTEGER).onElements("img")
-            .toFactory();
+        .allowUrlProtocols("data", "http", "https")
+        .allowElements("img")
+        .allowAttributes("alt", "title", "src")
+        .onElements("img")
+        .allowAttributes("border", "height", "width")
+        .matching(INTEGER)
+        .onElements("img")
+        .toFactory();
 
     private static final PolicyFactory HTML_CSS_SANITIZER = new HtmlPolicyBuilder()
-            .allowStyling(CssSchema.union(CssSchema.DEFAULT, CssSchema.withProperties(Collections.singleton("float"))))
-            .toFactory();
+        .allowStyling(CssSchema.union(CssSchema.DEFAULT, CssSchema.withProperties(Collections.singleton("float"))))
+        .toFactory();
 
     private static final PolicyFactory factory = Sanitizers.BLOCKS
-            .and(Sanitizers.FORMATTING)
-            .and(new HtmlPolicyBuilder()
-                    .allowStandardUrlProtocols().allowElements("a")
-                    .allowAttributes("href", "title")
-                    .onElements("a")
-                    .toFactory())
-            .and(HTML_CSS_SANITIZER)
-            .and(Sanitizers.TABLES)
-            .and(new HtmlPolicyBuilder()
-                    .allowElements("pre", "hr").toFactory())
-            .and(HTML_IMAGES_SANITIZER)
-            .and(new HtmlPolicyBuilder()
-                    .allowElements("code")
-                    .allowAttributes("class")
-                    .globally()
-                    .toFactory());
+        .and(Sanitizers.FORMATTING)
+        .and(
+            new HtmlPolicyBuilder()
+                .allowStandardUrlProtocols()
+                .allowElements("a")
+                .allowAttributes("href", "title")
+                .onElements("a")
+                .toFactory()
+        )
+        .and(HTML_CSS_SANITIZER)
+        .and(Sanitizers.TABLES)
+        .and(new HtmlPolicyBuilder().allowElements("pre", "hr").toFactory())
+        .and(HTML_IMAGES_SANITIZER)
+        .and(new HtmlPolicyBuilder().allowElements("code").allowAttributes("class").globally().toFactory());
 
-    private HtmlSanitizer() {
-    }
+    private HtmlSanitizer() {}
 
     public static String sanitize(String content) {
-
         if (content == null || content.isEmpty()) {
             return content;
         }
@@ -99,7 +99,6 @@ public final class HtmlSanitizer {
     }
 
     public static <CTX> String sanitize(String content, HtmlChangeListener<CTX> listener, CTX context) {
-
         if (content == null || content.isEmpty()) {
             return content;
         }
@@ -108,7 +107,6 @@ public final class HtmlSanitizer {
     }
 
     public static SanitizeInfos isSafe(String content) {
-
         if (content == null || content.isEmpty()) {
             return new SanitizeInfos(true);
         }
@@ -132,7 +130,6 @@ public final class HtmlSanitizer {
     }
 
     public static class SanitizeInfos {
-
 
         boolean safe;
         String rejectedMessage;

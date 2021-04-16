@@ -28,8 +28,7 @@ public class NewSubscriptionEntity {
     private PageEntity.PageRevisionId generalConditionsContentRevision;
     private Boolean generalConditionsAccepted;
 
-    public NewSubscriptionEntity() {
-    }
+    public NewSubscriptionEntity() {}
 
     public NewSubscriptionEntity(String plan, String application) {
         this.application = application;

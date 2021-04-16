@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.providers.User;
-
 import java.util.Collection;
 import java.util.Optional;
 
@@ -26,7 +25,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface IdentityService {
-
     Collection<SearchableUser> search(String query);
 
     Optional<User> findByReference(String reference);

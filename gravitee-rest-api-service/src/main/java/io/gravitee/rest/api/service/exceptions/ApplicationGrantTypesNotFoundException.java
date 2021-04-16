@@ -33,5 +33,4 @@ public class ApplicationGrantTypesNotFoundException extends AbstractNotFoundExce
     public Map<String, String> getParameters() {
         return null;
     }
-
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.jackson.ser.api;
 
+import static java.util.Collections.emptyList;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -24,15 +26,12 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
-import org.springframework.context.ApplicationContext;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyList;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -148,28 +147,43 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
             // members
             if (!filteredFieldsList.contains("members")) {
-                Set<MemberEntity> memberEntities = applicationContext.getBean(MembershipService.class).getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
+                Set<MemberEntity> memberEntities = applicationContext
+                    .getBean(MembershipService.class)
+                    .getMembersByReference(MembershipReferenceType.API, apiEntity.getId());
                 List<Member> members = new ArrayList<>(memberEntities == null ? 0 : memberEntities.size());
                 if (memberEntities != null) {
-                    memberEntities.forEach(m -> {
-                        UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
-                        if (userEntity != null) {
-                            Member member = new Member();
-                            member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
-                            member.setSource(userEntity.getSource());
-                            member.setSourceId(userEntity.getSourceId());
-                            members.add(member);
+                    memberEntities.forEach(
+                        m -> {
+                            UserEntity userEntity = applicationContext.getBean(UserService.class).findById(m.getId());
+                            if (userEntity != null) {
+                                Member member = new Member();
+                                member.setRoles(m.getRoles().stream().map(RoleEntity::getId).collect(Collectors.toList()));
+                                member.setSource(userEntity.getSource());
+                                member.setSourceId(userEntity.getSourceId());
+                                members.add(member);
+                            }
                         }
-                    });
+                    );
                 }
                 jsonGenerator.writeObjectField("members", members);
             }
 
             // pages
             if (!filteredFieldsList.contains("pages")) {
-                List<PageEntity> pages = applicationContext.getBean(PageService.class).search(new PageQuery.Builder().api(apiEntity.getId()).build(), true);
+                List<PageEntity> pages = applicationContext
+                    .getBean(PageService.class)
+                    .search(new PageQuery.Builder().api(apiEntity.getId()).build(), true);
                 if (this.version().getVersion().startsWith("1.")) {
-                    pages = pages.stream().filter(pageEntity -> !pageEntity.getType().equals(PageType.LINK.name()) && !pageEntity.getType().equals(PageType.TRANSLATION.name()) && !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name())).collect(Collectors.toList());
+                    pages =
+                        pages
+                            .stream()
+                            .filter(
+                                pageEntity ->
+                                    !pageEntity.getType().equals(PageType.LINK.name()) &&
+                                    !pageEntity.getType().equals(PageType.TRANSLATION.name()) &&
+                                    !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name())
+                            )
+                            .collect(Collectors.toList());
                 }
                 jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
                 List<MediaEntity> apiMedia = applicationContext.getBean(MediaService.class).findAllByApiId(apiEntity.getId());
@@ -182,10 +196,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             if (!filteredFieldsList.contains("plans")) {
                 Set<PlanEntity> plans = applicationContext.getBean(PlanService.class).findByApi(apiEntity.getId());
                 Set<PlanEntity> plansToAdd = plans == null
-                        ? Collections.emptySet()
-                        : plans.stream()
-                        .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
-                        .collect(Collectors.toSet());
+                    ? Collections.emptySet()
+                    : plans.stream().filter(p -> !PlanStatus.CLOSED.equals(p.getStatus())).collect(Collectors.toSet());
                 jsonGenerator.writeObjectField("plans", plansToAdd);
             }
 
@@ -200,7 +212,12 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
     }
 
     public enum Version {
-        DEFAULT("default"), V_1_15("1.15"), V_1_20("1.20"), V_1_25("1.25"), V_3_0("3.0");
+        DEFAULT("default"),
+        V_1_15("1.15"),
+        V_1_20("1.20"),
+        V_1_25("1.25"),
+        V_3_0("3.0");
+
         private final String version;
 
         Version(String version) {
@@ -217,6 +234,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
     }
 
     class Member {
+
         private String username;
         private String source;
         private String sourceId;
@@ -265,7 +283,8 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
     }
 
     private static Pattern uid = Pattern.compile("uid=(.*?),");
-    public static  String getUsernameFromSourceId(String sourceId) {
+
+    public static String getUsernameFromSourceId(String sourceId) {
         if (sourceId == null) {
             return null;
         }

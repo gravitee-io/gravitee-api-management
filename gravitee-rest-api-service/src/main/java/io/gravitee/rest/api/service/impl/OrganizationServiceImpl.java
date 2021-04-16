@@ -25,14 +25,13 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -55,7 +54,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             LOGGER.debug("Find organization by ID: {}", organizationId);
             Optional<Organization> optOrganization = organizationRepository.findById(organizationId);
 
-            if (! optOrganization.isPresent()) {
+            if (!optOrganization.isPresent()) {
                 throw new OrganizationNotFoundException(organizationId);
             }
 
@@ -70,9 +69,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     public List<OrganizationEntity> findAll() {
         try {
             LOGGER.debug("Find all organizations");
-            return organizationRepository.findAll()
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
+            return organizationRepository.findAll().stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all organizations", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all organizations", ex);
@@ -88,19 +85,20 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 return convert(organizationRepository.update(organization));
             } else {
                 OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
-                
+
                 //create Default role for organization
                 roleService.initialize(createdOrganization.getId());
                 roleService.createOrUpdateSystemRoles(createdOrganization.getId());
-                
+
                 return createdOrganization;
             }
-            
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
-            throw new TechnicalManagementException("An error occurs while trying to update organization " + organizationEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to update organization " + organizationEntity.getName(),
+                ex
+            );
         }
-        
     }
 
     @Override

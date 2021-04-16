@@ -18,7 +18,6 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
@@ -29,7 +28,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(value = {"displayName"}, allowGetters = true)
+@JsonIgnoreProperties(value = { "displayName" }, allowGetters = true)
 public class UserEntity implements Indexable {
 
     /**
@@ -313,24 +312,52 @@ public class UserEntity implements Indexable {
 
     @Override
     public String toString() {
-        return "UserEntity{" +
-                "id='" + id + '\'' +
-                ", firstname='" + firstname + '\'' +
-                ", lastname='" + lastname + '\'' +
-                ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
-                ", roles=" + roles +
-                ", envRoles=" + envRoles +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", picture='" + picture + '\'' +
-                ", source='" + source + '\'' +
-                ", sourceId='" + sourceId + '\'' +
-                ", lastConnectionAt=" + lastConnectionAt +
-                ", primaryOwner=" + primaryOwner +
-                ", status='" + status + '\'' +
-                ", loginCount=" + loginCount +
-                ", nbActiveTokens=" + nbActiveTokens +
-                '}';
+        return (
+            "UserEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", firstname='" +
+            firstname +
+            '\'' +
+            ", lastname='" +
+            lastname +
+            '\'' +
+            ", password='" +
+            password +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", roles=" +
+            roles +
+            ", envRoles=" +
+            envRoles +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            ", picture='" +
+            picture +
+            '\'' +
+            ", source='" +
+            source +
+            '\'' +
+            ", sourceId='" +
+            sourceId +
+            '\'' +
+            ", lastConnectionAt=" +
+            lastConnectionAt +
+            ", primaryOwner=" +
+            primaryOwner +
+            ", status='" +
+            status +
+            '\'' +
+            ", loginCount=" +
+            loginCount +
+            ", nbActiveTokens=" +
+            nbActiveTokens +
+            '}'
+        );
     }
 }

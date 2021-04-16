@@ -19,6 +19,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -28,11 +32,6 @@ import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.apache.lucene.search.*;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiConsumer;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -40,10 +39,10 @@ import java.util.function.BiConsumer;
 @Component
 public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
-    private final static String FIELD_API_TYPE_VALUE = "api";
-    private final static String FIELD_PAGE_TYPE_VALUE = "page";
+    private static final String FIELD_API_TYPE_VALUE = "api";
+    private static final String FIELD_PAGE_TYPE_VALUE = "page";
 
-    private final static Map<String, Float> API_FIELD_BOOST = new HashMap<String, Float>() {
+    private static final Map<String, Float> API_FIELD_BOOST = new HashMap<String, Float>() {
         {
             put("name", 12.0f);
             put("name_lowercase", 12.0f);
@@ -55,7 +54,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         }
     };
 
-    private final static Map<String, Float> PAGE_FIELD_BOOST = new HashMap<String, Float>() {
+    private static final Map<String, Float> PAGE_FIELD_BOOST = new HashMap<String, Float>() {
         {
             put("name", 1.0f);
             put("name_lowercase", 1.0f);
@@ -66,7 +65,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     @Override
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
-        MultiFieldQueryParser apiParser = new MultiFieldQueryParser(new String[]{
+        MultiFieldQueryParser apiParser = new MultiFieldQueryParser(
+            new String[] {
                 "id",
                 "name",
                 "name_lowercase",
@@ -84,16 +84,18 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 "paths_split",
                 "hosts",
                 "hosts_split",
-        }, analyzer, API_FIELD_BOOST);
+            },
+            analyzer,
+            API_FIELD_BOOST
+        );
         apiParser.setFuzzyMinSim(0.6f);
         apiParser.setAllowLeadingWildcard(true);
 
-        QueryParser pageParser = new MultiFieldQueryParser(new String[]{
-                "name",
-                "name_lowercase",
-                "name_split",
-                "content"
-        }, analyzer, PAGE_FIELD_BOOST);
+        QueryParser pageParser = new MultiFieldQueryParser(
+            new String[] { "name", "name_lowercase", "name_split", "content" },
+            analyzer,
+            PAGE_FIELD_BOOST
+        );
         pageParser.setFuzzyMinSim(0.6f);
         pageParser.setAllowLeadingWildcard(true);
 
@@ -110,7 +112,10 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
             apiFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-            apiFieldsQuery.add(new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
+            apiFieldsQuery.add(
+                new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')),
+                BooleanClause.Occur.SHOULD
+            );
             apiFieldsQuery.add(new WildcardQuery(new Term("paths", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("hosts", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
             apiFieldsQuery.add(new WildcardQuery(new Term("labels", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
@@ -129,7 +134,10 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
             pageFieldsQuery.add(parsePage, BooleanClause.Occur.SHOULD);
             pageFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-            pageFieldsQuery.add(new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(
+                new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')),
+                BooleanClause.Occur.SHOULD
+            );
             pageFieldsQuery.add(new WildcardQuery(new Term("content", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
 
             pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
@@ -150,22 +158,27 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             // Manage filters
             if (query.getFilters() != null) {
                 BooleanQuery.Builder filtersQuery = new BooleanQuery.Builder();
-                final boolean[] hasClause = {false};
-                query.getFilters().forEach(new BiConsumer<String, Object>() {
-                    @Override
-                    public void accept(String field, Object value) {
-                        if (Collection.class.isAssignableFrom(value.getClass())) {
-                        } else {
-                            filtersQuery.add(new TermQuery(new Term(field, QueryParserBase.escape((String) value))), BooleanClause.Occur.MUST);
-                            hasClause[0] = true;
+                final boolean[] hasClause = { false };
+                query
+                    .getFilters()
+                    .forEach(
+                        new BiConsumer<String, Object>() {
+                            @Override
+                            public void accept(String field, Object value) {
+                                if (Collection.class.isAssignableFrom(value.getClass())) {} else {
+                                    filtersQuery.add(
+                                        new TermQuery(new Term(field, QueryParserBase.escape((String) value))),
+                                        BooleanClause.Occur.MUST
+                                    );
+                                    hasClause[0] = true;
+                                }
+                            }
                         }
-                    }
-                });
+                    );
 
                 if (hasClause[0]) {
                     mainQuery.add(filtersQuery.build(), BooleanClause.Occur.MUST);
                 }
-
             }
             return search(mainQuery.build());
         } catch (ParseException pe) {
@@ -179,9 +192,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         if (filter != null) {
             BooleanQuery.Builder filterApisQuery = new BooleanQuery.Builder();
 
-            ((Collection)filter)
-                    .stream()
-                    .forEach(value1 -> filterApisQuery.add(new TermQuery(new Term(field, (String) value1)), BooleanClause.Occur.SHOULD));
+            ((Collection) filter).stream()
+                .forEach(value1 -> filterApisQuery.add(new TermQuery(new Term(field, (String) value1)), BooleanClause.Occur.SHOULD));
 
             return filterApisQuery.build();
         }

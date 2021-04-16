@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.exceptions;
 
 import freemarker.template.TemplateException;
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -37,7 +36,7 @@ public class TemplateProcessingException extends AbstractManagementException {
 
     @Override
     public int getHttpStatusCode() {
-        return  HttpStatusCode.INTERNAL_SERVER_ERROR_500;
+        return HttpStatusCode.INTERNAL_SERVER_ERROR_500;
     }
 
     @Override
@@ -51,6 +50,6 @@ public class TemplateProcessingException extends AbstractManagementException {
     }
 
     public String getBlamedExpressionString() {
-        return ((TemplateException)this.getCause()).getBlamedExpressionString();
+        return ((TemplateException) this.getCause()).getBlamedExpressionString();
     }
 }

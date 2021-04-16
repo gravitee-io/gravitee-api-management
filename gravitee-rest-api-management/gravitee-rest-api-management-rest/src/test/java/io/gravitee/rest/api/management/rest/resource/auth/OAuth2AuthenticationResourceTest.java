@@ -15,6 +15,16 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static javax.ws.rs.client.Entity.json;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -36,14 +46,6 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -51,16 +53,13 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.*;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static javax.ws.rs.client.Entity.json;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.*;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
@@ -69,10 +68,11 @@ import static org.mockito.Mockito.*;
  */
 public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
-    private final static String USER_SOURCE_OAUTH2 = "oauth2";
+    private static final String USER_SOURCE_OAUTH2 = "oauth2";
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+
     private SocialIdentityProviderEntity identityProvider = null;
 
     @Override
@@ -82,86 +82,87 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
-        identityProvider = new SocialIdentityProviderEntity() {
-            private Map<String, String> userProfileMapping = new HashMap<>();
-            private List<GroupMappingEntity> groupMappings = new ArrayList<>();
-            private List<RoleMappingEntity> roleMappings = new ArrayList<>();
+        identityProvider =
+            new SocialIdentityProviderEntity() {
+                private Map<String, String> userProfileMapping = new HashMap<>();
+                private List<GroupMappingEntity> groupMappings = new ArrayList<>();
+                private List<RoleMappingEntity> roleMappings = new ArrayList<>();
 
-            @Override
-            public String getId() {
-                return USER_SOURCE_OAUTH2;
-            }
+                @Override
+                public String getId() {
+                    return USER_SOURCE_OAUTH2;
+                }
 
-            @Override
-            public IdentityProviderType getType() {
-                return IdentityProviderType.OIDC;
-            }
+                @Override
+                public IdentityProviderType getType() {
+                    return IdentityProviderType.OIDC;
+                }
 
-            @Override
-            public String getAuthorizationEndpoint() {
-                return null;
-            }
+                @Override
+                public String getAuthorizationEndpoint() {
+                    return null;
+                }
 
-            @Override
-            public String getTokenEndpoint() {
-                return "http://localhost:" + wireMockRule.port() + "/token";
-            }
+                @Override
+                public String getTokenEndpoint() {
+                    return "http://localhost:" + wireMockRule.port() + "/token";
+                }
 
-            @Override
-            public String getUserInfoEndpoint() {
-                return "http://localhost:" + wireMockRule.port() + "/userinfo";
-            }
+                @Override
+                public String getUserInfoEndpoint() {
+                    return "http://localhost:" + wireMockRule.port() + "/userinfo";
+                }
 
-            @Override
-            public List<String> getRequiredUrlParams() {
-                return null;
-            }
+                @Override
+                public List<String> getRequiredUrlParams() {
+                    return null;
+                }
 
-            @Override
-            public List<String> getOptionalUrlParams() {
-                return null;
-            }
+                @Override
+                public List<String> getOptionalUrlParams() {
+                    return null;
+                }
 
-            @Override
-            public List<String> getScopes() {
-                return null;
-            }
+                @Override
+                public List<String> getScopes() {
+                    return null;
+                }
 
-            @Override
-            public String getDisplay() {
-                return null;
-            }
+                @Override
+                public String getDisplay() {
+                    return null;
+                }
 
-            @Override
-            public String getColor() {
-                return null;
-            }
+                @Override
+                public String getColor() {
+                    return null;
+                }
 
-            @Override
-            public String getClientSecret() {
-                return "the_client_secret";
-            }
+                @Override
+                public String getClientSecret() {
+                    return "the_client_secret";
+                }
 
-            @Override
-            public Map<String, String> getUserProfileMapping() {
-                return userProfileMapping;
-            }
+                @Override
+                public Map<String, String> getUserProfileMapping() {
+                    return userProfileMapping;
+                }
 
-            @Override
-            public List<GroupMappingEntity> getGroupMappings() {
-                return groupMappings;
-            }
+                @Override
+                public List<GroupMappingEntity> getGroupMappings() {
+                    return groupMappings;
+                }
 
-            @Override
-            public List<RoleMappingEntity> getRoleMappings() {
-                return roleMappings;
-            }
+                @Override
+                public List<RoleMappingEntity> getRoleMappings() {
+                    return roleMappings;
+                }
 
-            @Override
-            public boolean isEmailRequired() {
-                return true;
-            }
-        };
+                @Override
+                public boolean isEmailRequired() {
+                    return true;
+                }
+            };
 
         when(socialIdentityProviderService.findById(eq(USER_SOURCE_OAUTH2), any())).thenReturn(identityProvider);
         cleanEnvironment();
@@ -180,7 +181,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldConnectExistingUser() throws Exception {
-
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();
@@ -206,8 +206,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
-
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
@@ -219,7 +217,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verifyJwtToken(response);
     }
 
-    private void verifyJwtToken(Response response) throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
+    private void verifyJwtToken(Response response)
+        throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
         TokenEntity responseToken = response.readEntity(TokenEntity.class);
         assertEquals("BEARER", responseToken.getType().name());
 
@@ -239,12 +238,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals(jwt.getClaim("lastname").asString(), "Doe");
     }
 
-    private void verifyJwtTokenIsNotPresent(Response response) throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
+    private void verifyJwtTokenIsNotPresent(Response response)
+        throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
         assertNull(response.getCookies().get(HttpHeaders.AUTHORIZATION));
     }
 
     private AbstractAuthenticationResource.Payload createPayload(String clientId, String redirectUri, String code, String state) {
-
         AbstractAuthenticationResource.Payload payload = new AbstractAuthenticationResource.Payload();
         payload.clientId = clientId;
         payload.redirectUri = redirectUri;
@@ -256,7 +255,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldConnectNewUser() throws Exception {
-
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();
@@ -280,19 +278,16 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
-
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any());
-        verify(userService, times(1)).connect("janedoe@example.com");
 
+        verify(userService, times(1)).connect("janedoe@example.com");
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // verify jwt token
         verifyJwtToken(response);
-
     }
 
     /*
@@ -323,7 +318,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private void mockUserCreation(SocialIdentityProviderEntity socialIdentityProviderEntity, String userInfo, UserEntity createdUser) {
-        when(userService.createOrUpdateUserFromSocialIdentityProvider(refEq(socialIdentityProviderEntity), eq(userInfo))).thenReturn(createdUser);
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(refEq(socialIdentityProviderEntity), eq(userInfo)))
+            .thenReturn(createdUser);
     }
 
     private UserEntity mockUserEntity() {
@@ -351,7 +347,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotConnectUserOn401UserInfo() throws Exception {
-
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();
@@ -360,31 +355,30 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockExchangeAuthorizationCodeForAccessToken();
 
         //mock oauth2 user info call
-        mockUserInfo(WireMock.unauthorized().withBody(IOUtils.toString(read("/oauth2/json/user_info_401_response_body.json"), Charset.defaultCharset())));
+        mockUserInfo(
+            WireMock
+                .unauthorized()
+                .withBody(IOUtils.toString(read("/oauth2/json/user_info_401_response_body.json"), Charset.defaultCharset()))
+        );
 
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
-
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
         verify(userService, times(0)).createOrUpdateUserFromSocialIdentityProvider(any(), any());
-        verify(userService, times(0)).connect(anyString());
 
+        verify(userService, times(0)).connect(anyString());
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
 
         // verify jwt token not present
 
         assertFalse(response.getCookies().containsKey(HttpHeaders.AUTHORIZATION));
-
     }
-
 
     @Test
     public void shouldNotConnectUserWhenMissingMailInUserInfo() throws Exception {
-
         // -- MOCK
         //mock environment
         mockWrongEnvironment();
@@ -415,25 +409,28 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     private void mockUserInfo(ResponseDefinitionBuilder responseDefinitionBuilder) throws IOException {
         stubFor(
-                get("/userinfo")
-                        .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
-                        .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer 2YotnFZFEjr1zCsicMWpAA"))
-                        .willReturn(responseDefinitionBuilder));
+            get("/userinfo")
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer 2YotnFZFEjr1zCsicMWpAA"))
+                .willReturn(responseDefinitionBuilder)
+        );
     }
 
     private void mockExchangeAuthorizationCodeForAccessToken() throws IOException {
-        String tokenRequestBody = ""
-                + "code=CoDe&"
-                + "grant_type=authorization_code&"
-                + "redirect_uri=http%3A%2F%2Flocalhost%2Fcallback&"
-                + "client_secret=the_client_secret&"
-                + "client_id=the_client_id";
+        String tokenRequestBody =
+            "" +
+            "code=CoDe&" +
+            "grant_type=authorization_code&" +
+            "redirect_uri=http%3A%2F%2Flocalhost%2Fcallback&" +
+            "client_secret=the_client_secret&" +
+            "client_id=the_client_id";
 
         stubFor(
-                post("/token")
-                        .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
-                        .withRequestBody(equalTo(tokenRequestBody))
-                        .willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset()))));
+            post("/token")
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
+                .withRequestBody(equalTo(tokenRequestBody))
+                .willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset())))
+        );
     }
 
     private void mockDefaultEnvironment() {
@@ -457,7 +454,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldConnectNewUserWithGroupsMappingFromUserInfo() throws Exception {
-
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();
@@ -472,7 +468,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfo));
 
         //mock DB find user by name
-        when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
+        when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+            .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
         NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
@@ -486,20 +483,22 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         when(groupService.findById("Api consumer")).thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
         // mock role search
-        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER")).thenReturn(Optional.of(mockRoleEntity(RoleScope.ORGANIZATION, "USER")));
-        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "ADMIN")).thenReturn(Optional.of(mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN")));
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER"))
+            .thenReturn(Optional.of(mockRoleEntity(RoleScope.ORGANIZATION, "USER")));
+        when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "ADMIN"))
+            .thenReturn(Optional.of(mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN")));
 
         RoleEntity roleApiUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "ADMIN");
 
-        when(roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION)).thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
+        when(roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION))
+            .thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
 
         //mock DB update user picture
         UpdateUserEntity updateUserEntity = mockUpdateUserPicture(createdUser);
 
         //mock DB user connect
         when(userService.connect("janedoe@example.com")).thenReturn(createdUser);
-
 
         // -- CALL
 
@@ -515,16 +514,14 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // verify response body
-//        verifyUserInResponseBody(response);
+        //        verifyUserInResponseBody(response);
 
         // verify jwt token
         verifyJwtToken(response);
-
     }
 
     @Test
     public void shouldConnectNewUserWithNoMatchingGroupsMappingFromUserInfo() throws Exception {
-
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();
@@ -538,7 +535,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfo));
 
         //mock DB find user by name
-        when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
+        when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+            .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
         NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
@@ -551,12 +549,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         //mock DB user connect
         when(userService.connect("janedoe@example.com")).thenReturn(createdUser);
 
-
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
-
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
@@ -565,15 +560,17 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(1)).connect("janedoe@example.com");
 
         //verify group creations
-        verify(membershipService, times(0)).addRoleToMemberOnReference(
+        verify(membershipService, times(0))
+            .addRoleToMemberOnReference(
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
-                any(MembershipService.MembershipRole.class));
+                any(MembershipService.MembershipRole.class)
+            );
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         // verify response body
-//        verifyUserInResponseBody(response);
+        //        verifyUserInResponseBody(response);
 
         // verify jwt token
         verifyJwtToken(response);
@@ -581,7 +578,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldConnectNewUserWithGroupsMappingFromUserInfoWhenGroupIsNotFound() throws Exception {
-
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();
@@ -595,7 +591,8 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfo));
 
         //mock DB find user by name
-        when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false)).thenThrow(new UserNotFoundException("janedoe@example.com"));
+        when(userService.findBySource(USER_SOURCE_OAUTH2, "janedoe@example.com", false))
+            .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock group search and association
         when(groupService.findByName("Example group")).thenReturn(Collections.emptyList());
@@ -613,21 +610,21 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
-
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(refEq(identityProvider), anyString());
 
         verify(userService, times(0)).update(any(String.class), any(UpdateUserEntity.class));
-        verify(userService, times(1)).connect(anyString());
 
+        verify(userService, times(1)).connect(anyString());
         //verify group creations
-        verify(membershipService, times(0)).addRoleToMemberOnReference(
+        verify(membershipService, times(0))
+            .addRoleToMemberOnReference(
                 any(MembershipService.MembershipReference.class),
                 any(MembershipService.MembershipMember.class),
-                any(MembershipService.MembershipRole.class));
+                any(MembershipService.MembershipRole.class)
+            );
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -637,7 +634,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotConnectNewUserWhenWrongELGroupsMapping() throws Exception {
-
         // -- MOCK
         //mock environment
         mockDefaultEnvironment();
@@ -654,14 +650,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // -- CALL
 
         AbstractAuthenticationResource.Payload payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
-        ;
-
         Response response = orgTarget().request().post(json(payload));
 
         // -- VERIFY
         verify(userService, times(1)).createOrUpdateUserFromSocialIdentityProvider(any(), any());
-        verify(userService, times(0)).connect(anyString());
 
+        verify(userService, times(0)).connect(anyString());
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
 
         // verify jwt token
@@ -688,9 +682,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private void mockGroupsMapping() {
-
         GroupMappingEntity condition1 = new GroupMappingEntity();
-        condition1.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        condition1.setCondition(
+            "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
+        );
         condition1.setGroups(Arrays.asList("Example group", "soft user"));
         identityProvider.getGroupMappings().add(condition1);
 
@@ -706,9 +701,10 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private void mockRolesMapping() {
-
         RoleMappingEntity role1 = new RoleMappingEntity();
-        role1.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
+        role1.setCondition(
+            "{#jsonPath(#profile, '$.identity_provider_id') == 'idp_5' && #jsonPath(#profile, '$.job_id') != 'API_BREAKER'}"
+        );
         role1.setOrganizations(Collections.singletonList("USER"));
         identityProvider.getRoleMappings().add(role1);
 
@@ -725,7 +721,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private void mockWrongELGroupsMapping() {
-
         GroupMappingEntity condition1 = new GroupMappingEntity();
         condition1.setCondition("Some Soup");
         condition1.setGroups(Arrays.asList("Example group", "soft user"));
@@ -740,7 +735,5 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         condition3.setCondition("{#jsonPath(#profile, '$.job_id') != 'API_BREAKER'}");
         condition3.setGroups(Collections.singletonList("Api consumer"));
         identityProvider.getGroupMappings().add(condition3);
-
     }
-
 }

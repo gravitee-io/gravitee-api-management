@@ -22,6 +22,5 @@ import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
  * @author GraviteeSource Team
  */
 public interface SwaggerTransformer<T extends SwaggerDescriptor> {
-
     void transform(T descriptor);
 }

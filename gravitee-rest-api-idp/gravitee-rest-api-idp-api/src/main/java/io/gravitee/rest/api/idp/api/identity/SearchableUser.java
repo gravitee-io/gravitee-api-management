@@ -20,10 +20,13 @@ package io.gravitee.rest.api.idp.api.identity;
  * @author GraviteeSource Team
  */
 public interface SearchableUser {
+    default String getId() {
+        return null;
+    }
 
-    default String getId() { return null; }
-
-    default String getReference() { return null; }
+    default String getReference() {
+        return null;
+    }
 
     String getDisplayName();
 
@@ -32,6 +35,6 @@ public interface SearchableUser {
     String getLastname();
 
     String getEmail();
-    
+
     String getPicture();
 }

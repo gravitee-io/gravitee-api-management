@@ -19,7 +19,6 @@ import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
 import io.gravitee.rest.api.model.NewUserMetadataEntity;
 import io.gravitee.rest.api.model.UpdateUserMetadataEntity;
 import io.gravitee.rest.api.model.UserMetadataEntity;
-
 import java.util.List;
 
 /**

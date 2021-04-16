@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model.permissions;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum RolePermission {
@@ -47,8 +47,8 @@ public enum RolePermission {
     APPLICATION_LOG(RoleScope.APPLICATION, ApplicationPermission.LOG),
     APPLICATION_SUBSCRIPTION(RoleScope.APPLICATION, ApplicationPermission.SUBSCRIPTION),
     APPLICATION_NOTIFICATION(RoleScope.APPLICATION, ApplicationPermission.NOTIFICATION),
-    APPLICATION_ALERT       (RoleScope.APPLICATION, ApiPermission.ALERT),
-    APPLICATION_METADATA    (RoleScope.APPLICATION, ApiPermission.METADATA),
+    APPLICATION_ALERT(RoleScope.APPLICATION, ApiPermission.ALERT),
+    APPLICATION_METADATA(RoleScope.APPLICATION, ApiPermission.METADATA),
 
     GROUP_MEMBER(RoleScope.GROUP, GroupPermission.MEMBER),
     GROUP_INVITATION(RoleScope.GROUP, GroupPermission.INVITATION),
@@ -85,8 +85,7 @@ public enum RolePermission {
     ORGANIZATION_IDENTITY_PROVIDER(RoleScope.ORGANIZATION, OrganizationPermission.IDENTITY_PROVIDER),
     ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION(RoleScope.ORGANIZATION, OrganizationPermission.IDENTITY_PROVIDER_ACTIVATION),
     ORGANIZATION_NOTIFICATION_TEMPLATES(RoleScope.ORGANIZATION, OrganizationPermission.NOTIFICATION_TEMPLATES),
-    ORGANIZATION_SETTINGS(RoleScope.ORGANIZATION, OrganizationPermission.SETTINGS),
-    ;
+    ORGANIZATION_SETTINGS(RoleScope.ORGANIZATION, OrganizationPermission.SETTINGS);
 
     RoleScope scope;
     Permission permission;

@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.model.Page;
@@ -24,18 +27,14 @@ import io.gravitee.rest.api.model.PageRevisionEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageRevisionServiceImpl;
+import java.util.Date;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Date;
-import java.util.Optional;
-
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -81,7 +80,6 @@ public class PageRevisionServiceTest {
         PageRevision createdRev = newRevisionCaptor.getValue();
         assertNotNull(createdRev);
         assertEquals(1, createdRev.getRevision());
-
     }
 
     @Test
@@ -112,7 +110,6 @@ public class PageRevisionServiceTest {
         PageRevision createdRev = newRevisionCaptor.getValue();
         assertNotNull(createdRev);
         assertEquals(lastRevision.getRevision() + 1, createdRev.getRevision());
-
     }
 
     @Test
@@ -151,5 +148,4 @@ public class PageRevisionServiceTest {
         when(page.getType()).thenReturn(PageType.FOLDER.name());
         pageRevisionService.create(page);
     }
-
 }

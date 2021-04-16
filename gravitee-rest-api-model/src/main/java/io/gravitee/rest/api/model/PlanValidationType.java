@@ -28,5 +28,5 @@ public enum PlanValidationType {
     /**
      * Subscription requires a human validation.
      */
-    MANUAL
+    MANUAL,
 }

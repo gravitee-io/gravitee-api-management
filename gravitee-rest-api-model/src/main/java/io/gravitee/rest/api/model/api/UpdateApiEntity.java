@@ -25,10 +25,9 @@ import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.Visibility;
 import io.swagger.annotations.ApiModelProperty;
-
+import java.util.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.*;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -37,117 +36,95 @@ public class UpdateApiEntity {
 
     @NotNull
     @NotEmpty(message = "Api's name must not be empty")
-    @ApiModelProperty(
-            value = "Api's name. Duplicate names can exists.",
-            example = "My Api")
+    @ApiModelProperty(value = "Api's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
     @NotNull
-    @ApiModelProperty(
-            value = "Api's version. It's a simple string only used in the portal.",
-            example = "v1.0")
+    @ApiModelProperty(value = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
     private String version;
 
     @NotNull
     @ApiModelProperty(
-            value = "API's description. A short description of your API.",
-            example = "I can use a hundred characters to describe this API.")
+        value = "API's description. A short description of your API.",
+        example = "I can use a hundred characters to describe this API."
+    )
     private String description;
 
     @NotNull
     @JsonProperty(value = "proxy", required = true)
-    @ApiModelProperty(
-            value = "API's definition.")
+    @ApiModelProperty(value = "API's definition.")
     private Proxy proxy;
 
     @JsonProperty(value = "paths", required = true)
     @ApiModelProperty(
-            // specify a type here because jackson der/ser for Path handle only array of rules
-            dataType = "io.gravitee.rest.api.model.api.PathsSwaggerDef",
-            value = "a map where you can associate a path to a configuration (the policies configuration)")
+        // specify a type here because jackson der/ser for Path handle only array of rules
+        dataType = "io.gravitee.rest.api.model.api.PathsSwaggerDef",
+        value = "a map where you can associate a path to a configuration (the policies configuration)"
+    )
     private Map<String, Path> paths = new HashMap<>();
 
     @JsonProperty(value = "flows", required = true)
-    @ApiModelProperty(
-        value = "a list of flows (the policies configuration)")
+    @ApiModelProperty(value = "a list of flows (the policies configuration)")
     private List<Flow> flows = new ArrayList<>();
 
     @JsonProperty(value = "plans", required = true)
-    @ApiModelProperty(
-        value = "a list of plans with flows (the policies configuration)")
+    @ApiModelProperty(value = "a list of plans with flows (the policies configuration)")
     private List<Plan> plans = new ArrayList<>();
 
-    @ApiModelProperty(
-            value = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
+    @ApiModelProperty(value = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
 
-    @ApiModelProperty(
-            value = "The list of API resources used by policies like cache resources or oauth2")
+    @ApiModelProperty(value = "The list of API resources used by policies like cache resources or oauth2")
     private List<Resource> resources = new ArrayList<>();
 
     @JsonProperty(value = "properties")
-    @ApiModelProperty(
-            value = "A dictionary (could be dynamic) of properties available in the API context.")
+    @ApiModelProperty(value = "A dictionary (could be dynamic) of properties available in the API context.")
     private io.gravitee.definition.model.Properties properties;
 
     @NotNull
-    @ApiModelProperty(
-            value = "The visibility of the API regarding the portal.",
-            example = "PUBLIC",
-            allowableValues = "PUBLIC, PRIVATE")
+    @ApiModelProperty(value = "The visibility of the API regarding the portal.", example = "PUBLIC", allowableValues = "PUBLIC, PRIVATE")
     private Visibility visibility;
 
-    @ApiModelProperty(
-            value = "the list of sharding tags associated with this API.",
-            example = "public, private")
+    @ApiModelProperty(value = "the list of sharding tags associated with this API.", example = "public, private")
     private Set<String> tags;
 
-    @ApiModelProperty(
-            value = "the API logo encoded in base64")
+    @ApiModelProperty(value = "the API logo encoded in base64")
     private String picture;
 
     @DeploymentRequired
     @JsonProperty(value = "gravitee", required = false)
-    @ApiModelProperty(
-        value = "API's gravitee definition version")
+    @ApiModelProperty(value = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
 
     @DeploymentRequired
     @JsonProperty(value = "flow_mode")
-    @ApiModelProperty(
-            value = "API's flow mode.",
-            example = "BEST_MATCH")
+    @ApiModelProperty(value = "API's flow mode.", example = "BEST_MATCH")
     private FlowMode flowMode;
 
     @JsonProperty("picture_url")
-    @ApiModelProperty(
-            value = "the API logo encoded in base64")
+    @ApiModelProperty(value = "the API logo encoded in base64")
     private String pictureUrl;
 
-    @ApiModelProperty(
-            value = "the list of categories associated with this API",
-            example = "Product, Customer, Misc")
+    @ApiModelProperty(value = "the list of categories associated with this API", example = "Product, Customer, Misc")
     private Set<String> categories;
 
-    @ApiModelProperty(
-            value = "the free list of labels associated with this API",
-            example = "json, read_only, awesome")
+    @ApiModelProperty(value = "the free list of labels associated with this API", example = "json, read_only, awesome")
     private List<String> labels;
 
-    @ApiModelProperty(
-            value = "API's groups. Used to add team in your API.",
-            example = "['MY_GROUP1', 'MY_GROUP2']")
+    @ApiModelProperty(value = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     @JsonProperty(value = "path_mappings")
     @ApiModelProperty(
-            value = "A list of paths used to aggregate data in analytics",
-            example = "/products/:productId, /products/:productId/media")
+        value = "A list of paths used to aggregate data in analytics",
+        example = "/products/:productId, /products/:productId/media"
+    )
     private Set<String> pathMappings;
 
     @JsonProperty(value = "response_templates")
     @ApiModelProperty(
-            value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ...")
+        value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
+    )
     private Map<String, ResponseTemplates> responseTemplates;
 
     private List<ApiMetadataEntity> metadata;
@@ -158,8 +135,7 @@ public class UpdateApiEntity {
     @JsonProperty("disable_membership_notifications")
     private boolean disableMembershipNotifications;
 
-    @ApiModelProperty(
-            value = "the API background encoded in base64")
+    @ApiModelProperty(value = "the API background encoded in base64")
     private String background;
 
     public Visibility getVisibility() {

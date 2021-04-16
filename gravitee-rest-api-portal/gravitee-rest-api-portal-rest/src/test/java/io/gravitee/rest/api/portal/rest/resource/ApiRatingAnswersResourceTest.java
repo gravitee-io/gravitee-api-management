@@ -15,23 +15,22 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.RatingEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.*;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-import java.util.*;
-
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+
+import io.gravitee.rest.api.model.RatingEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import java.util.*;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -62,11 +61,10 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
         ratingEntity.setRate(Integer.valueOf(1).byteValue());
         doReturn(ratingEntity).when(ratingService).findById(eq(RATING));
         doReturn(ratingEntity).when(ratingService).createAnswer(any());
-
     }
 
     @Test
-    public void shouldHaveBadRequestWhenCreateApiRatingAnswerWithoutInput(){
+    public void shouldHaveBadRequestWhenCreateApiRatingAnswerWithoutInput() {
         final Response response = target(API).path("ratings").path(RATING).path("answers").request().post(null);
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
@@ -86,7 +84,12 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
         RatingAnswerInput ratingAnswerInput = new RatingAnswerInput().comment(RATING);
 
         final String fakeId = "fake";
-        final Response response = target(fakeId).path("ratings").path(RATING).path("answers").request().post(Entity.json(ratingAnswerInput));
+        final Response response = target(fakeId)
+            .path("ratings")
+            .path(RATING)
+            .path("answers")
+            .request()
+            .post(Entity.json(ratingAnswerInput));
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -133,5 +136,4 @@ public class ApiRatingAnswersResourceTest extends AbstractResourceTest {
         assertNotNull(updatedRatingResponse);
         assertEquals(rating.getValue(), updatedRatingResponse.getValue());
     }
-
 }

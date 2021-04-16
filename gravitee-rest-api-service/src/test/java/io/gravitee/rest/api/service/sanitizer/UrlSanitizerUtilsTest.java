@@ -15,14 +15,13 @@
  */
 package io.gravitee.rest.api.service.sanitizer;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
+import java.util.Collections;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
-
-import java.util.Collections;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -32,58 +31,51 @@ public class UrlSanitizerUtilsTest {
 
     @Test
     public void checkAllowed_allowPrivate() {
-
         UrlSanitizerUtils.checkAllowed("http://localhost:8080", Collections.emptyList(), true);
     }
 
     @Test(expected = UrlForbiddenException.class)
     public void checkAllowed_disallowPrivate() {
-
         UrlSanitizerUtils.checkAllowed("http://localhost:8080", Collections.emptyList(), false);
     }
 
     @Test
     public void checkAllowed_whitelisted() {
-
         UrlSanitizerUtils.checkAllowed("http://localhost:8080/test", Collections.singletonList("http://localhost:8080"), false);
     }
 
     @Test
     public void checkAllowed_public() {
-
         UrlSanitizerUtils.checkAllowed("https://demo.gravitee.io", Collections.emptyList(), false);
     }
 
     @Test(expected = InvalidDataException.class)
     public void checkAllowed_invalidUrl() {
-
         UrlSanitizerUtils.checkAllowed("https://invalid-url.not-exist" + RandomStringUtils.random(5), Collections.emptyList(), false);
     }
 
     @Test(expected = UrlForbiddenException.class)
     public void checkAllowed_notWhitelisted() {
-
         UrlSanitizerUtils.checkAllowed("https://demo.gravitee.io", Collections.singletonList("http://localhost:8080"), false);
     }
 
     @Test
     public void isPrivate() {
-
-        String[] privateUrls = new String[]{
-                "http://localhost:8080",
-                "http://127.0.0.1",
-                "http://192.168.0.1",
-                "http://[::1]:8080",
-                "http://[0:0:0:0:0:0:0:1]:8080",
-                "http://10.0.2.3:8080",
-                "http://169.254.1.2",
-                "https://169.254.1.2:443",
-                "http://172.31.1.2:443",
-                "http://[fd8a:c424:312e:b006:cec8:ecf2:6cde:3c45]",
-                "http://[fd8a:c424:312e:b006:cec8:ecf2:6cde:3c45]:8080",
-                "http://[fc8a:c424:312e:b006:cec8:ecf2:6cde:3c45]",
-                "http://[fe8a:c424:312e:b006:cec8:ecf2:6cde:3c45]",
-                "http://[ff8a:c424:312e:b006:cec8:ecf2:6cde:3c45]"
+        String[] privateUrls = new String[] {
+            "http://localhost:8080",
+            "http://127.0.0.1",
+            "http://192.168.0.1",
+            "http://[::1]:8080",
+            "http://[0:0:0:0:0:0:0:1]:8080",
+            "http://10.0.2.3:8080",
+            "http://169.254.1.2",
+            "https://169.254.1.2:443",
+            "http://172.31.1.2:443",
+            "http://[fd8a:c424:312e:b006:cec8:ecf2:6cde:3c45]",
+            "http://[fd8a:c424:312e:b006:cec8:ecf2:6cde:3c45]:8080",
+            "http://[fc8a:c424:312e:b006:cec8:ecf2:6cde:3c45]",
+            "http://[fe8a:c424:312e:b006:cec8:ecf2:6cde:3c45]",
+            "http://[ff8a:c424:312e:b006:cec8:ecf2:6cde:3c45]",
         };
 
         for (String url : privateUrls) {
@@ -93,7 +85,6 @@ public class UrlSanitizerUtilsTest {
 
     @Test
     public void isNotPrivate() {
-
         assertFalse("Url should not be considered private", UrlSanitizerUtils.isPrivate("https://demo.gravitee.io/"));
     }
 }

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.monitoring;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 /**
@@ -27,10 +26,13 @@ public class MonitoringGC {
 
     @JsonProperty("young_collection_count")
     private int youngCollectionCount;
+
     @JsonProperty("young_collection_time_in_millis")
     private long youngCollectionTimeInMillis;
+
     @JsonProperty("old_collection_count")
     private int oldCollectionCount;
+
     @JsonProperty("old_collection_time_in_millis")
     private long oldCollectionTimeInMillis;
 
@@ -71,10 +73,12 @@ public class MonitoringGC {
         if (this == o) return true;
         if (!(o instanceof MonitoringGC)) return false;
         MonitoringGC that = (MonitoringGC) o;
-        return youngCollectionCount == that.youngCollectionCount &&
-                youngCollectionTimeInMillis == that.youngCollectionTimeInMillis &&
-                oldCollectionCount == that.oldCollectionCount &&
-                oldCollectionTimeInMillis == that.oldCollectionTimeInMillis;
+        return (
+            youngCollectionCount == that.youngCollectionCount &&
+            youngCollectionTimeInMillis == that.youngCollectionTimeInMillis &&
+            oldCollectionCount == that.oldCollectionCount &&
+            oldCollectionTimeInMillis == that.oldCollectionTimeInMillis
+        );
     }
 
     @Override
@@ -84,11 +88,17 @@ public class MonitoringGC {
 
     @Override
     public String toString() {
-        return "MonitoringGC{" +
-                "youngCollectionCount=" + youngCollectionCount +
-                ", youngCollectionTimeInMillis=" + youngCollectionTimeInMillis +
-                ", oldCollectionCount=" + oldCollectionCount +
-                ", oldCollectionTimeInMillis=" + oldCollectionTimeInMillis +
-                '}';
+        return (
+            "MonitoringGC{" +
+            "youngCollectionCount=" +
+            youngCollectionCount +
+            ", youngCollectionTimeInMillis=" +
+            youngCollectionTimeInMillis +
+            ", oldCollectionCount=" +
+            oldCollectionCount +
+            ", oldCollectionTimeInMillis=" +
+            oldCollectionTimeInMillis +
+            '}'
+        );
     }
 }

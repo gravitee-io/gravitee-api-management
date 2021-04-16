@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.services.sync;
 
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toMap;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
@@ -32,10 +35,6 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashSet;
@@ -45,9 +44,9 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
-
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,20 +61,28 @@ public class SyncManager {
 
     @Autowired
     private ApiRepository apiRepository;
+
     @Autowired
     private DictionaryManager dictionaryManager;
+
     @Autowired
     private DictionaryRepository dictionaryRepository;
+
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private ApiManager apiManager;
+
     @Autowired
     private ObjectMapper objectMapper;
+
     @Autowired
     private EventManager eventManager;
+
     @Autowired
     private MembershipService membershipService;
+
     @Autowired
     private UserService userService;
 
@@ -111,34 +118,33 @@ public class SyncManager {
         // Initial synchronization
         if (lastRefreshAt == -1) {
             // Extract all registered APIs
-            List<io.gravitee.repository.management.model.Api> apis =
-                    apiRepository.search(null, new ApiFieldExclusionFilter.Builder()
-                            .excludeDefinition()
-                            .excludePicture().build());
+            List<io.gravitee.repository.management.model.Api> apis = apiRepository.search(
+                null,
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
+            );
 
             // Get last event by API
-            apiEvents = apis
+            apiEvents =
+                apis
                     .stream()
                     .map(api -> getLastApiEvent(api.getId()))
                     .filter(Objects::nonNull)
-                    .collect(
-                            toMap(
-                                    event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()),
-                                    event -> event
-                            )
-                    );
+                    .collect(toMap(event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()), event -> event));
         } else {
             // Get latest API events
             List<Event> events = getLatestApiEvents(nextLastRefreshAt);
 
             // Extract only the latest event by API
-            apiEvents = events
+            apiEvents =
+                events
                     .stream()
                     .collect(
-                            toMap(
-                                    event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()),
-                                    event -> event,
-                                    BinaryOperator.maxBy(comparing(Event::getCreatedAt))));
+                        toMap(
+                            event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()),
+                            event -> event,
+                            BinaryOperator.maxBy(comparing(Event::getCreatedAt))
+                        )
+                    );
         }
 
         // Then, compute events
@@ -150,134 +156,142 @@ public class SyncManager {
 
         // Initial synchronization
         if (lastRefreshAt == -1) {
-            List<Dictionary> dictionaries = dictionaryRepository.findAll()
-                    .stream()
-                    .filter(dictionary -> dictionary.getType() == DictionaryType.DYNAMIC)
-                    .collect(Collectors.toList());
+            List<Dictionary> dictionaries = dictionaryRepository
+                .findAll()
+                .stream()
+                .filter(dictionary -> dictionary.getType() == DictionaryType.DYNAMIC)
+                .collect(Collectors.toList());
 
             // Get last event by dictionary
-            dictionaryEvents = dictionaries
+            dictionaryEvents =
+                dictionaries
                     .stream()
                     .map(api -> getLastDictionaryEvent(api.getId()))
                     .filter(Objects::nonNull)
-                    .collect(
-                            toMap(
-                                    event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()),
-                                    event -> event
-                            )
-                    );
+                    .collect(toMap(event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()), event -> event));
         } else {
             // Get latest dictionary events
             List<Event> events = getLatestDictionaryEvents(nextLastRefreshAt);
 
             // Extract only the latest event by API
-            dictionaryEvents = events
+            dictionaryEvents =
+                events
                     .stream()
                     .collect(
-                            toMap(
-                                    event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()),
-                                    event -> event,
-                                    BinaryOperator.maxBy(comparing(Event::getCreatedAt))));
+                        toMap(
+                            event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()),
+                            event -> event,
+                            BinaryOperator.maxBy(comparing(Event::getCreatedAt))
+                        )
+                    );
         }
-
 
         computeDictionaryEvents(dictionaryEvents);
     }
 
     private void computeDictionaryEvents(Map<String, Event> dictionaryEvents) {
-        dictionaryEvents.forEach((id, event) -> {
-
-            switch (event.getType()) {
-                case START_DICTIONARY:
-                    dictionaryManager.start(id);
-                    break;
-                case STOP_DICTIONARY:
-                    dictionaryManager.stop(id);
-                    break;
-                default:
-                    break;
+        dictionaryEvents.forEach(
+            (id, event) -> {
+                switch (event.getType()) {
+                    case START_DICTIONARY:
+                        dictionaryManager.start(id);
+                        break;
+                    case STOP_DICTIONARY:
+                        dictionaryManager.stop(id);
+                        break;
+                    default:
+                        break;
+                }
             }
-        });
+        );
     }
 
     private void computeApiEvents(Map<String, Event> apiEvents) {
-        apiEvents.forEach((apiId, apiEvent) -> {
-            switch (apiEvent.getType()) {
-                case UNPUBLISH_API:
-                case STOP_API:
-                    apiManager.undeploy(apiId);
-                    break;
-                case START_API:
-                case PUBLISH_API:
-                    try {
-                        // Read API definition from event
-                        io.gravitee.repository.management.model.Api payloadApi =
-                                objectMapper.readValue(apiEvent.getPayload(), io.gravitee.repository.management.model.Api.class);
+        apiEvents.forEach(
+            (apiId, apiEvent) -> {
+                switch (apiEvent.getType()) {
+                    case UNPUBLISH_API:
+                    case STOP_API:
+                        apiManager.undeploy(apiId);
+                        break;
+                    case START_API:
+                    case PUBLISH_API:
+                        try {
+                            // Read API definition from event
+                            io.gravitee.repository.management.model.Api payloadApi = objectMapper.readValue(
+                                apiEvent.getPayload(),
+                                io.gravitee.repository.management.model.Api.class
+                            );
 
-                        // API to deploy
-                        ApiEntity apiToDeploy = convert(payloadApi);
+                            // API to deploy
+                            ApiEntity apiToDeploy = convert(payloadApi);
 
-                        if (apiToDeploy != null) {
-                            // Get deployed API
-                            ApiEntity deployedApi = apiManager.get(apiToDeploy.getId());
+                            if (apiToDeploy != null) {
+                                // Get deployed API
+                                ApiEntity deployedApi = apiManager.get(apiToDeploy.getId());
 
-                            // API is not yet deployed, so let's do it !
-                            if (deployedApi == null) {
-                                apiManager.deploy(apiToDeploy);
-                            } else {
-                                if (deployedApi.getDeployedAt().before(apiToDeploy.getDeployedAt())) {
-                                    apiManager.update(apiToDeploy);
+                                // API is not yet deployed, so let's do it !
+                                if (deployedApi == null) {
+                                    apiManager.deploy(apiToDeploy);
+                                } else {
+                                    if (deployedApi.getDeployedAt().before(apiToDeploy.getDeployedAt())) {
+                                        apiManager.update(apiToDeploy);
+                                    }
                                 }
                             }
+                        } catch (Exception e) {
+                            logger.error("Error while determining deployed APIs store into events payload", e);
                         }
-                    } catch (Exception e) {
-                        logger.error("Error while determining deployed APIs store into events payload", e);
-                    }
-                    break;
-                default:
-                    break;
+                        break;
+                    default:
+                        break;
+                }
             }
-        });
+        );
     }
 
     private Event getLastDictionaryEvent(final String dictionary) {
-        final EventCriteria.Builder eventCriteriaBuilder =
-                new EventCriteria.Builder()
-                        .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary);
+        final EventCriteria.Builder eventCriteriaBuilder = new EventCriteria.Builder()
+        .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary);
 
-        List<Event> events = eventRepository.search(eventCriteriaBuilder
-                        .types(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()).getContent();
+        List<Event> events = eventRepository
+            .search(
+                eventCriteriaBuilder.types(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY).build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build()
+            )
+            .getContent();
 
         return (!events.isEmpty()) ? events.get(0) : null;
     }
 
     private List<Event> getLatestDictionaryEvents(long nextLastRefreshAt) {
         final EventCriteria.Builder builder = new EventCriteria.Builder()
-                .types(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY)
-                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
+            .types(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY)
+            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
 
         return eventRepository.search(builder.build());
     }
 
     private List<Event> getLatestApiEvents(long nextLastRefreshAt) {
         final EventCriteria.Builder builder = new EventCriteria.Builder()
-                .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
-                .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
+            .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
 
         return eventRepository.search(builder.build());
     }
 
     private Event getLastApiEvent(final String api) {
-        final EventCriteria.Builder eventCriteriaBuilder =
-                new EventCriteria.Builder()
-                        .property(Event.EventProperties.API_ID.getValue(), api);
+        final EventCriteria.Builder eventCriteriaBuilder = new EventCriteria.Builder()
+        .property(Event.EventProperties.API_ID.getValue(), api);
 
-        List<Event> events = eventRepository.search(eventCriteriaBuilder
-                        .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()).getContent();
+        List<Event> events = eventRepository
+            .search(
+                eventCriteriaBuilder.types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API).build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build()
+            )
+            .getContent();
 
         return (!events.isEmpty()) ? events.get(0) : null;
     }
@@ -292,8 +306,10 @@ public class SyncManager {
 
         if (api.getDefinition() != null) {
             try {
-                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(api.getDefinition(),
-                        io.gravitee.definition.model.Api.class);
+                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                    api.getDefinition(),
+                    io.gravitee.definition.model.Api.class
+                );
 
                 apiEntity.setProxy(apiDefinition.getProxy());
                 apiEntity.setPaths(apiDefinition.getPaths());
@@ -330,7 +346,7 @@ public class SyncManager {
         MembershipEntity optPrimaryOwner = membershipService.getPrimaryOwner(MembershipReferenceType.API, api.getId());
         final UserEntity user = userService.findById(optPrimaryOwner.getMemberId());
         apiEntity.setPrimaryOwner(new PrimaryOwnerEntity(user));
-            
+
         return apiEntity;
     }
 }

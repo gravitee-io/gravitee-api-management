@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
+import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.ok;
+
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -26,22 +29,18 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.UserService;
 import io.swagger.annotations.*;
-
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-
-import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.ok;
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.*;
 
 /**
  * Defines the REST resources to manage Newsletter.
@@ -49,24 +48,29 @@ import static javax.ws.rs.core.Response.ok;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Newsletter"})
+@Api(tags = { "Newsletter" })
 public class NewsletterResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
+
     @Inject
     private NewsletterService newsletterService;
+
     @Inject
     private UserService userService;
 
     @POST
     @Path("/_subscribe")
     @ApiOperation(value = "Subscribe to the newsletter the authenticated user")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Updated user", response = UserEntity.class),
             @ApiResponse(code = 400, message = "Invalid user profile"),
             @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response subscribeNewsletterToCurrentUser(@Valid @NotNull final String email) {
         UserEntity userEntity = userService.findById(getAuthenticatedUser());
         UpdateUserEntity user = new UpdateUserEntity(userEntity);
@@ -77,9 +81,12 @@ public class NewsletterResource extends AbstractResource {
     @GET
     @Path("/taglines")
     @ApiOperation(value = "Get taglines to display in the newsletter")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Retrieved taglines", response = List.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response getTaglines() {
         return ok(newsletterService.getTaglines()).build();
     }

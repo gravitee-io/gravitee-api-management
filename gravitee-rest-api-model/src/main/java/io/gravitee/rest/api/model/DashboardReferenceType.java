@@ -20,5 +20,7 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public enum DashboardReferenceType {
-    API, APPLICATION, PLATFORM
+    API,
+    APPLICATION,
+    PLATFORM,
 }

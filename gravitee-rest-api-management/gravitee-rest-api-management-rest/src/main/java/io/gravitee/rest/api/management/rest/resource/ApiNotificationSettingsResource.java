@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_NOTIFICATION;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.management.rest.security.Permission;
@@ -28,22 +31,18 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-
-import javax.inject.Inject;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_NOTIFICATION;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.core.Response;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Notifications"})
+@Api(tags = { "API Notifications" })
 public class ApiNotificationSettingsResource extends AbstractResource {
 
     @Inject
@@ -60,13 +59,11 @@ public class ApiNotificationSettingsResource extends AbstractResource {
     @GET
     @ApiOperation(value = "Get notification settings")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = API_NOTIFICATION, acls = READ)
-    })
+    @Permissions({ @Permission(value = API_NOTIFICATION, acls = READ) })
     public List<Object> getApiNotificationSettings() {
         List<Object> settings = new ArrayList<>();
         settings.add(portalNotificationConfigService.findById(getAuthenticatedUser(), NotificationReferenceType.API, api));
-        if (hasPermission(API_NOTIFICATION, api, CREATE, UPDATE, DELETE)){
+        if (hasPermission(API_NOTIFICATION, api, CREATE, UPDATE, DELETE)) {
             settings.addAll(genericNotificationConfigService.findByReference(NotificationReferenceType.API, api));
         }
         return settings;
@@ -77,15 +74,12 @@ public class ApiNotificationSettingsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Object createApiNotificationSettings(GenericNotificationConfigEntity config) {
-        if (!api.equals(config.getReferenceId())
-                || !NotificationReferenceType.API.name().equals(config.getReferenceType())) {
+        if (!api.equals(config.getReferenceId()) || !NotificationReferenceType.API.name().equals(config.getReferenceType())) {
             throw new ForbiddenAccessException();
         }
-        if (config.getConfigType().equals(NotificationConfigType.GENERIC)
-                && hasPermission(API_NOTIFICATION, api, CREATE)) {
+        if (config.getConfigType().equals(NotificationConfigType.GENERIC) && hasPermission(API_NOTIFICATION, api, CREATE)) {
             return genericNotificationConfigService.create(config);
-        } else if (config.getConfigType().equals(NotificationConfigType.PORTAL)
-                && hasPermission(API_NOTIFICATION, api, READ)) {
+        } else if (config.getConfigType().equals(NotificationConfigType.PORTAL) && hasPermission(API_NOTIFICATION, api, READ)) {
             return portalNotificationConfigService.save(convert(config));
         }
         throw new ForbiddenAccessException();
@@ -96,33 +90,33 @@ public class ApiNotificationSettingsResource extends AbstractResource {
     @ApiOperation(value = "Update generic notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = API_NOTIFICATION, acls = UPDATE)
-    })
+    @Permissions({ @Permission(value = API_NOTIFICATION, acls = UPDATE) })
     public GenericNotificationConfigEntity updateApiGeneralNotificationSettings(
-            @PathParam("notificationId") String notificationId,
-            GenericNotificationConfigEntity config) {
-        if (!api.equals(config.getReferenceId())
-                || !NotificationReferenceType.API.name().equals(config.getReferenceType())
-                || !config.getConfigType().equals(NotificationConfigType.GENERIC)
-                || !notificationId.equals(config.getId())) {
+        @PathParam("notificationId") String notificationId,
+        GenericNotificationConfigEntity config
+    ) {
+        if (
+            !api.equals(config.getReferenceId()) ||
+            !NotificationReferenceType.API.name().equals(config.getReferenceType()) ||
+            !config.getConfigType().equals(NotificationConfigType.GENERIC) ||
+            !notificationId.equals(config.getId())
+        ) {
             throw new ForbiddenAccessException();
         }
-            return genericNotificationConfigService.update(config);
+        return genericNotificationConfigService.update(config);
     }
 
     @PUT
     @ApiOperation(value = "Update portal notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = API_NOTIFICATION, acls = READ)
-    })
-    public PortalNotificationConfigEntity updateApiPortalNotificationSettings(
-            PortalNotificationConfigEntity config) {
-        if (!api.equals(config.getReferenceId())
-                || !NotificationReferenceType.API.name().equals(config.getReferenceType())
-                || !config.getConfigType().equals(NotificationConfigType.PORTAL)) {
+    @Permissions({ @Permission(value = API_NOTIFICATION, acls = READ) })
+    public PortalNotificationConfigEntity updateApiPortalNotificationSettings(PortalNotificationConfigEntity config) {
+        if (
+            !api.equals(config.getReferenceId()) ||
+            !NotificationReferenceType.API.name().equals(config.getReferenceType()) ||
+            !config.getConfigType().equals(NotificationConfigType.PORTAL)
+        ) {
             throw new ForbiddenAccessException();
         }
         config.setUser(getAuthenticatedUser());
@@ -134,11 +128,8 @@ public class ApiNotificationSettingsResource extends AbstractResource {
     @ApiOperation(value = "Delete notification settings")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = API_NOTIFICATION, acls = DELETE)
-    })
-    public Response deleteApiNotificationSettings(
-            @PathParam("notificationId") String notificationId) {
+    @Permissions({ @Permission(value = API_NOTIFICATION, acls = DELETE) })
+    public Response deleteApiNotificationSettings(@PathParam("notificationId") String notificationId) {
         genericNotificationConfigService.delete(notificationId);
         return Response.noContent().build();
     }

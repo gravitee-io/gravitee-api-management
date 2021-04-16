@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.converter.api;
 
+import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
+import static io.gravitee.rest.api.service.validator.PolicyHelper.getScope;
+
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
@@ -28,14 +31,10 @@ import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
-
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
-import static io.gravitee.rest.api.service.validator.PolicyHelper.getScope;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -53,50 +52,61 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
 
         List<Flow> allFlows = new ArrayList();
-        oai.getPaths().forEach(new BiConsumer<String, PathItem>() {
-            @Override
-            public void accept(String key, PathItem pathItem) {
-                String path = key.replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
-
-                Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
-                operations.forEach(new BiConsumer<PathItem.HttpMethod, Operation>() {
+        oai
+            .getPaths()
+            .forEach(
+                new BiConsumer<String, PathItem>() {
                     @Override
-                    public void accept(PathItem.HttpMethod httpMethod, Operation operation) {
+                    public void accept(String key, PathItem pathItem) {
+                        String path = key.replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
 
-                        final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
+                        Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
+                        operations.forEach(
+                            new BiConsumer<PathItem.HttpMethod, Operation>() {
+                                @Override
+                                public void accept(PathItem.HttpMethod httpMethod, Operation operation) {
+                                    final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
 
-                        visitors.forEach(new Consumer<OAIOperationVisitor>() {
-                            @Override
-                            public void accept(OAIOperationVisitor oaiOperationVisitor) {
+                                    visitors.forEach(
+                                        new Consumer<OAIOperationVisitor>() {
+                                            @Override
+                                            public void accept(OAIOperationVisitor oaiOperationVisitor) {
+                                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                                                if (policy.isPresent()) {
+                                                    final Step step = new Step();
+                                                    step.setName(policy.get().getName());
+                                                    step.setEnabled(true);
+                                                    step.setDescription(
+                                                        operation.getSummary() == null
+                                                            ? (
+                                                                operation.getOperationId() == null
+                                                                    ? operation.getDescription()
+                                                                    : operation.getOperationId()
+                                                            )
+                                                            : operation.getSummary()
+                                                    );
 
-                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
-                                if (policy.isPresent()) {
-                                    final Step step = new Step();
-                                    step.setName(policy.get().getName());
-                                    step.setEnabled(true);
-                                    step.setDescription(operation.getSummary() == null ?
-                                        (operation.getOperationId() == null ? operation.getDescription() : operation.getOperationId()) :
-                                        operation.getSummary());
+                                                    step.setPolicy(policy.get().getName());
+                                                    String configuration = clearNullValues(policy.get().getConfiguration());
+                                                    step.setConfiguration(configuration);
 
-                                    step.setPolicy(policy.get().getName());
-                                    String configuration = clearNullValues(policy.get().getConfiguration());
-                                    step.setConfiguration(configuration);
-
-                                    String scope = getScope(configuration);
-                                    if (scope != null && scope.toLowerCase().equals("response")) {
-                                        flow.getPost().add(step);
-                                    } else {
-                                        flow.getPre().add(step);
-                                    }
+                                                    String scope = getScope(configuration);
+                                                    if (scope != null && scope.toLowerCase().equals("response")) {
+                                                        flow.getPost().add(step);
+                                                    } else {
+                                                        flow.getPre().add(step);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    );
+                                    allFlows.add(flow);
                                 }
-
                             }
-                        });
-                        allFlows.add(flow);
+                        );
                     }
-                });
-            }
-        });
+                }
+            );
         apiEntity.setFlows(allFlows);
 
         if (allFlows.size() > 0) {
@@ -105,7 +115,6 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
 
         return apiEntity;
     }
-
 
     private Flow createFlow(String path, Set<HttpMethod> methods) {
         final Flow flow = new Flow();

@@ -15,21 +15,16 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import org.apache.http.client.utils.DateUtils;
-import org.eclipse.jetty.http.HttpHeader;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -39,12 +34,15 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import org.apache.http.client.utils.DateUtils;
+import org.eclipse.jetty.http.HttpHeader;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -144,16 +142,13 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         doReturn(updatedApp).when(applicationMapper).convert(eq(updatedEntity), any());
 
         String newPicture = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-        String scaledPicture = "data:image/gif;base64,R0lGODlhyADIAPAAAAAAAP///ywAAAAAyADIAEAC/4SPqcvtD6OctNqL"
-                + "s968+w+G4kiW5omm6sq27gvH8kzX9o3n+s73/g8MCofEovGITCqXzKbzCY1Kp9Sq9YrNarfcrvcLDovH5LL5jE6r1+y2+w2Py+"
-                + "f0uv2Oz+v3/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tba3uLm6u7y9vr"
-                + "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj"
-                + "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
-        Application appInput = new Application()
-                .description(APPLICATION_ID)
-                .name(APPLICATION_ID)
-                .picture(newPicture)
-                ;
+        String scaledPicture =
+            "data:image/gif;base64,R0lGODlhyADIAPAAAAAAAP///ywAAAAAyADIAEAC/4SPqcvtD6OctNqL" +
+            "s968+w+G4kiW5omm6sq27gvH8kzX9o3n+s73/g8MCofEovGITCqXzKbzCY1Kp9Sq9YrNarfcrvcLDovH5LL5jE6r1+y2+w2Py+" +
+            "f0uv2Oz+v3/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tba3uLm6u7y9vr" +
+            "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj" +
+            "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
+        Application appInput = new Application().description(APPLICATION_ID).name(APPLICATION_ID).picture(newPicture);
         appInput.setId(APPLICATION_ID);
 
         final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
@@ -169,7 +164,6 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         assertEquals(scaledPicture, updateAppEntity.getPicture());
         assertNull(updateAppEntity.getSettings());
 
-
         String expectedBasePath = target(APPLICATION_ID).getUri().toString();
         Mockito.verify(applicationMapper).computeApplicationLinks(expectedBasePath, updatedApp.getUpdatedAt());
 
@@ -182,9 +176,8 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         assertEquals(nowDate.toInstant().getEpochSecond(), DateUtils.parseDate(lastModified).toInstant().getEpochSecond());
 
-        String expectedTag = '"'+Long.toString(nowDate.getTime())+'"';
+        String expectedTag = '"' + Long.toString(nowDate.getTime()) + '"';
         assertEquals(expectedTag, etag);
-
     }
 
     @Test
@@ -206,11 +199,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         updatedApp.setUpdatedAt(now.atOffset(ZoneOffset.UTC));
         doReturn(updatedApp).when(applicationMapper).convert(eq(updatedEntity), any());
 
-        Application appInput = new Application()
-                .description(APPLICATION_ID)
-                .name(APPLICATION_ID)
-                .settings(new ApplicationSettings())
-                ;
+        Application appInput = new Application().description(APPLICATION_ID).name(APPLICATION_ID).settings(new ApplicationSettings());
         appInput.setId(APPLICATION_ID);
         final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -232,7 +221,6 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION_ID, applicationResponse.getId());
-
     }
 
     @Test
@@ -259,17 +247,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         doReturn(updatedApp).when(applicationMapper).convert(eq(updatedEntity), any());
 
         Application appInput = new Application()
-                .description(APPLICATION_ID)
-                .name(APPLICATION_ID)
-                .settings(
-                        new ApplicationSettings()
-                            .app(
-                                    new SimpleApplicationSettings()
-                                        .clientId(APPLICATION_ID)
-                                        .type(APPLICATION_ID)
-                            )
-                )
-                ;
+            .description(APPLICATION_ID)
+            .name(APPLICATION_ID)
+            .settings(new ApplicationSettings().app(new SimpleApplicationSettings().clientId(APPLICATION_ID).type(APPLICATION_ID)));
         appInput.setId(APPLICATION_ID);
         final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -294,7 +274,6 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION_ID, applicationResponse.getId());
-
     }
 
     @Test
@@ -321,24 +300,23 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         doReturn(updatedApp).when(applicationMapper).convert(eq(updatedEntity), any());
 
         Application appInput = new Application()
-                .description(APPLICATION_ID)
-                .name(APPLICATION_ID)
-                .settings(
-                        new ApplicationSettings()
-                            .oauth(
-                                    new OAuthClientSettings()
-                                        .applicationType(APPLICATION_ID)
-                                        .clientId(APPLICATION_ID)
-                                        .clientSecret(APPLICATION_ID)
-                                        .clientUri(APPLICATION_ID)
-                                        .logoUri(APPLICATION_ID)
-                                        .grantTypes(Arrays.asList(APPLICATION_ID))
-                                        .redirectUris(Arrays.asList(APPLICATION_ID))
-                                        .responseTypes(Arrays.asList(APPLICATION_ID))
-                                        .renewClientSecretSupported(Boolean.TRUE)
-                            )
-                )
-                ;
+            .description(APPLICATION_ID)
+            .name(APPLICATION_ID)
+            .settings(
+                new ApplicationSettings()
+                .oauth(
+                        new OAuthClientSettings()
+                            .applicationType(APPLICATION_ID)
+                            .clientId(APPLICATION_ID)
+                            .clientSecret(APPLICATION_ID)
+                            .clientUri(APPLICATION_ID)
+                            .logoUri(APPLICATION_ID)
+                            .grantTypes(Arrays.asList(APPLICATION_ID))
+                            .redirectUris(Arrays.asList(APPLICATION_ID))
+                            .responseTypes(Arrays.asList(APPLICATION_ID))
+                            .renewClientSecretSupported(Boolean.TRUE)
+                    )
+            );
         appInput.setId(APPLICATION_ID);
 
         final Response response = target(APPLICATION_ID).request().put(Entity.json(appInput));
@@ -371,7 +349,6 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION_ID, applicationResponse.getId());
-
     }
 
     @Test
@@ -386,7 +363,6 @@ public class ApplicationResourceTest extends AbstractResourceTest {
 
         Application applicationResponse = response.readEntity(Application.class);
         assertEquals(APPLICATION_ID, applicationResponse.getId());
-
     }
 
     @Test

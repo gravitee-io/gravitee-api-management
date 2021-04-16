@@ -21,7 +21,6 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
-
 import java.util.*;
 
 /**
@@ -165,7 +164,7 @@ public class ApiModelEntity {
     public void setTags(Set<String> tags) {
         this.tags = tags;
     }
-    
+
     public Date getDeployedAt() {
         return deployedAt;
     }
@@ -173,7 +172,7 @@ public class ApiModelEntity {
     public void setDeployedAt(Date deployedAt) {
         this.deployedAt = deployedAt;
     }
-    
+
     public String getPicture() {
         return picture;
     }
@@ -235,8 +234,7 @@ public class ApiModelEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiModelEntity api = (ApiModelEntity) o;
-        return Objects.equals(id, api.id) &&
-                Objects.equals(version, api.version);
+        return Objects.equals(id, api.id) && Objects.equals(version, api.version);
     }
 
     @Override
@@ -245,24 +243,47 @@ public class ApiModelEntity {
     }
 
     public String toString() {
-        return "ApiEntity{" +
-            "id='" + id + '\'' +
-            ", name='" + name + '\'' +
-            ", version='" + version + '\'' +
-            ", description='" + description + '\'' +
-            ", proxy=" + proxy +
-            ", paths=" + paths +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            ", visibility=" + visibility +
-            ", state=" + state +
-            ", primaryOwner=" + primaryOwner +
-            ", tags=" + tags +
-            ", category=" + categories +
-            ", groups=" + groups +
-            ", metadata=" + metadata +
-            ", lifecycleState=" + lifecycleState +
-                ", disableMembershipNotifications=" + disableMembershipNotifications +
-            '}';
+        return (
+            "ApiEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", version='" +
+            version +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", proxy=" +
+            proxy +
+            ", paths=" +
+            paths +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            ", visibility=" +
+            visibility +
+            ", state=" +
+            state +
+            ", primaryOwner=" +
+            primaryOwner +
+            ", tags=" +
+            tags +
+            ", category=" +
+            categories +
+            ", groups=" +
+            groups +
+            ", metadata=" +
+            metadata +
+            ", lifecycleState=" +
+            lifecycleState +
+            ", disableMembershipNotifications=" +
+            disableMembershipNotifications +
+            '}'
+        );
     }
 }

@@ -15,18 +15,17 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
+import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -34,8 +33,7 @@ import static org.junit.Assert.*;
  */
 public class PaginationFilteringTest {
 
-    AbstractResource paginatedResourceForTest = new AbstractResource() {
-    };
+    AbstractResource paginatedResourceForTest = new AbstractResource() {};
     List<Integer> initList = Collections.emptyList();
 
     @Before
@@ -58,8 +56,7 @@ public class PaginationFilteringTest {
         assertEquals(20, resultList.get(0).intValue());
         assertEquals(29, resultList.get(9).intValue());
 
-        assertEquals(page,
-                paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_CURRENT_PAGE_KEY));
+        assertEquals(page, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_CURRENT_PAGE_KEY));
         assertEquals(21, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_FIRST_ITEM_INDEX_KEY));
         assertEquals(30, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_LAST_ITEM_INDEX_KEY));
         assertEquals(10, paginatedMetadata.get(AbstractResource.METADATA_PAGINATION_SIZE_KEY));
@@ -148,7 +145,11 @@ public class PaginationFilteringTest {
         dataMetadata.put("KEY", 12);
         Map<String, Object> paginationMetadata = new HashMap<>();
 
-        Map<String, Map<String, Object>> metadata = paginatedResourceForTest.computeMetadata(initMetadata, dataMetadata, paginationMetadata);
+        Map<String, Map<String, Object>> metadata = paginatedResourceForTest.computeMetadata(
+            initMetadata,
+            dataMetadata,
+            paginationMetadata
+        );
 
         assertNotNull(metadata);
         assertEquals(2, metadata.size());
@@ -156,6 +157,5 @@ public class PaginationFilteringTest {
         assertEquals(dataMetadata, metadata.get(AbstractResource.METADATA_DATA_KEY));
 
         assertEquals(testMetadata, metadata.get("test"));
-
     }
 }

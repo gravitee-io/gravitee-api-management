@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.configuration.identity;
 
+import java.util.Map;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

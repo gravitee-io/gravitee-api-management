@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.gravitee.definition.jackson.datatype.services.core.deser.ServiceDeserializer;
 import io.gravitee.definition.jackson.datatype.services.core.ser.ServiceSerializer;
 import io.gravitee.definition.model.Service;
-
 import java.util.List;
 
 /**

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
@@ -38,22 +40,18 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
-
+import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
-
-import java.net.URI;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -65,24 +63,31 @@ public class WebNotifierServiceImpl implements WebNotifierService {
 
     @Value("${httpClient.timeout:10000}")
     private int httpClientTimeout;
+
     @Value("${httpClient.proxy.type:HTTP}")
     private String httpClientProxyType;
 
     @Value("${httpClient.proxy.http.host:#{systemProperties['http.proxyHost'] ?: 'localhost'}}")
     private String httpClientProxyHttpHost;
+
     @Value("${httpClient.proxy.http.port:#{systemProperties['http.proxyPort'] ?: 3128}}")
     private int httpClientProxyHttpPort;
+
     @Value("${httpClient.proxy.http.username:#{null}}")
     private String httpClientProxyHttpUsername;
+
     @Value("${httpClient.proxy.http.password:#{null}}")
     private String httpClientProxyHttpPassword;
 
     @Value("${httpClient.proxy.https.host:#{systemProperties['https.proxyHost'] ?: 'localhost'}}")
     private String httpClientProxyHttpsHost;
+
     @Value("${httpClient.proxy.https.port:#{systemProperties['https.proxyPort'] ?: 3128}}")
     private int httpClientProxyHttpsPort;
+
     @Value("${httpClient.proxy.https.username:#{null}}")
     private String httpClientProxyHttpsUsername;
+
     @Value("${httpClient.proxy.https.password:#{null}}")
     private String httpClientProxyHttpsPassword;
 
@@ -100,12 +105,12 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
 
         final HttpClientOptions options = new HttpClientOptions()
-                .setSsl(ssl)
-                .setTrustAll(true)
-                .setMaxPoolSize(1)
-                .setKeepAlive(false)
-                .setTcpKeepAlive(false)
-                .setConnectTimeout(httpClientTimeout);
+            .setSsl(ssl)
+            .setTrustAll(true)
+            .setMaxPoolSize(1)
+            .setKeepAlive(false)
+            .setTcpKeepAlive(false)
+            .setConnectTimeout(httpClientTimeout);
 
         if (useSystemProxy) {
             ProxyOptions proxyOptions = new ProxyOptions();
@@ -126,15 +131,14 @@ public class WebNotifierServiceImpl implements WebNotifierService {
 
         final HttpClient httpClient = vertx.createHttpClient(options);
 
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
-                (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
         HttpClientRequest request = httpClient.request(
-                io.vertx.core.http.HttpMethod.valueOf(method.name()),
-                port,
-                requestUri.getHost(),
-                requestUri.toString(),
-                response -> LOGGER.debug("Web response status code : {}", response.statusCode())
+            io.vertx.core.http.HttpMethod.valueOf(method.name()),
+            port,
+            requestUri.getHost(),
+            requestUri.toString(),
+            response -> LOGGER.debug("Web response status code : {}", response.statusCode())
         );
         request.setTimeout(httpClientTimeout);
 
@@ -145,28 +149,39 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
         request.write(body);
 
-        request.handler(response -> {
-            if (response.statusCode() == HttpStatusCode.OK_200) {
-                response.bodyHandler(buffer -> {
-                    future.complete(buffer);
+        request.handler(
+            response -> {
+                if (response.statusCode() == HttpStatusCode.OK_200) {
+                    response.bodyHandler(
+                        buffer -> {
+                            future.complete(buffer);
+
+                            // Close client
+                            httpClient.close();
+                        }
+                    );
+                } else {
+                    future.completeExceptionally(
+                        new TechnicalManagementException(
+                            " Error on url '" + uri + "'. Status code: " + response.statusCode() + ". Message: " + response.statusMessage(),
+                            null
+                        )
+                    );
+                }
+            }
+        );
+        request.exceptionHandler(
+            event -> {
+                try {
+                    future.completeExceptionally(event);
 
                     // Close client
                     httpClient.close();
-                });
-            } else {
-                future.completeExceptionally(new TechnicalManagementException(" Error on url '" + uri + "'. Status code: " + response.statusCode() + ". Message: " + response.statusMessage(), null));
+                } catch (IllegalStateException ise) {
+                    // Do not take care about exception when closing client
+                }
             }
-        });
-        request.exceptionHandler(event -> {
-            try {
-                future.completeExceptionally(event);
-
-                // Close client
-                httpClient.close();
-            } catch (IllegalStateException ise) {
-                // Do not take care about exception when closing client
-            }
-        });
+        );
 
         request.end();
 

@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -94,12 +94,23 @@ public class ReferenceMetadataEntity {
 
     @Override
     public String toString() {
-        return "ReferenceMetadataEntity{" +
-                "key='" + key + '\'' +
-                ", name='" + name + '\'' +
-                ", format=" + format +
-                ", value='" + value + '\'' +
-                ", defaultValue='" + defaultValue + '\'' +
-                '}';
+        return (
+            "ReferenceMetadataEntity{" +
+            "key='" +
+            key +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", format=" +
+            format +
+            ", value='" +
+            value +
+            '\'' +
+            ", defaultValue='" +
+            defaultValue +
+            '\'' +
+            '}'
+        );
     }
 }

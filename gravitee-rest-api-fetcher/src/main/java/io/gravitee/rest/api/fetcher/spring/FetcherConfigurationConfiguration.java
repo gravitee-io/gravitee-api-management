@@ -15,17 +15,17 @@
  */
 package io.gravitee.rest.api.fetcher.spring;
 
-
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.fetcher.impl.FetcherConfigurationFactoryImpl;
 import org.springframework.context.annotation.Bean;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com) 
+ * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
  * @author GraviteeSource Team
  */
 
 public class FetcherConfigurationConfiguration {
+
     @Bean
     public FetcherConfigurationFactory fetcherConfigurationFactory() {
         return new FetcherConfigurationFactoryImpl();

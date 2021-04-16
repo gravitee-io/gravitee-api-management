@@ -33,13 +33,13 @@ public class SocialIdentityProvider {
 
     private String authorizationEndpoint;
 
-    private String [] requiredUrlParams;
+    private String[] requiredUrlParams;
 
     private String scopeDelimiter;
 
-    private String [] optionalUrlParams;
+    private String[] optionalUrlParams;
 
-    private String [] scopes;
+    private String[] scopes;
 
     private String display;
 
@@ -163,7 +163,6 @@ public class SocialIdentityProvider {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(id);
     }
 }

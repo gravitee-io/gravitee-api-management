@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.rest.api.model.permissions.RoleScope;
-
 import java.util.HashMap;
 import java.util.Map;
 

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.monitoring;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Map;
 import java.util.Objects;
 
@@ -28,6 +27,7 @@ public class MonitoringCPU {
 
     @JsonProperty("percent_use")
     private int percentUse;
+
     @JsonProperty("load_average")
     private Map<String, ? super Number> loadAverage;
 
@@ -47,14 +47,12 @@ public class MonitoringCPU {
         this.loadAverage = loadAverage;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof MonitoringCPU)) return false;
         MonitoringCPU that = (MonitoringCPU) o;
-        return percentUse == that.percentUse &&
-                Objects.equals(loadAverage, that.loadAverage);
+        return percentUse == that.percentUse && Objects.equals(loadAverage, that.loadAverage);
     }
 
     @Override
@@ -64,9 +62,6 @@ public class MonitoringCPU {
 
     @Override
     public String toString() {
-        return "MonitoringCPU{" +
-                "percentUse=" + percentUse +
-                ", loadAverage=" + loadAverage +
-                '}';
+        return "MonitoringCPU{" + "percentUse=" + percentUse + ", loadAverage=" + loadAverage + '}';
     }
 }

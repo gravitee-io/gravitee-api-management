@@ -24,9 +24,7 @@ import io.gravitee.rest.api.model.PolicyEntity;
  * @author GraviteeSource Team
  */
 public interface PolicyService extends PluginService<PolicyEntity> {
-
     void validatePolicyConfiguration(Policy policy);
 
     void validatePolicyConfiguration(Step step);
-
 }

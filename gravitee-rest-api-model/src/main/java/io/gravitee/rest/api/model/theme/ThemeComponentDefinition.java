@@ -38,5 +38,4 @@ public class ThemeComponentDefinition {
     public void setCss(List<ThemeCssDefinition> css) {
         this.css = css;
     }
-
 }

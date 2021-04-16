@@ -19,6 +19,4 @@ package io.gravitee.rest.api.model.analytics.query;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CountQuery extends AbstractQuery {
-
-}
+public class CountQuery extends AbstractQuery {}

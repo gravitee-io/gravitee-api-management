@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.SubscriptionEntity;
-
 import java.util.HashMap;
 import java.util.Map;
 

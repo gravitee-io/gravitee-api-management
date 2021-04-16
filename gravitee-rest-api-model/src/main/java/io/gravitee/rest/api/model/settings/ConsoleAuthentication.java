@@ -24,7 +24,8 @@ import io.gravitee.rest.api.model.parameters.Key;
  * @author GraviteeSource Team
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConsoleAuthentication extends CommonAuthentication{
+public class ConsoleAuthentication extends CommonAuthentication {
+
     @ParameterKey(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED)
     private Enabled localLogin;
 

@@ -20,6 +20,5 @@ package io.gravitee.rest.api.idp.api.authentication;
  * @author GraviteeSource Team
  */
 public interface AuthenticationProvider<T> {
-
     T configure() throws Exception;
 }

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.rest.provider;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpStatusCode;
-
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.MediaType;
@@ -32,11 +31,7 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
     @Override
     public Response toResponse(ConstraintViolationException cve) {
         final Response.Status error = Response.Status.BAD_REQUEST;
-        return Response
-                .status(error)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(new ConstraintValidationError(cve))
-                .build();
+        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(new ConstraintValidationError(cve)).build();
     }
 
     private String prepareMessage(ConstraintViolationException exception) {
@@ -49,6 +44,7 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
     }
 
     static class ConstraintValidationError {
+
         private final String message;
 
         private final String path;

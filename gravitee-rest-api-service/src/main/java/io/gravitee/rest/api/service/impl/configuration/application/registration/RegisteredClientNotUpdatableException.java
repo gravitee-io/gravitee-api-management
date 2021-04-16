@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl.configuration.application.registration;
 
 import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
-
 import java.util.Map;
 
 /**

@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.NewEventEntity;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -31,25 +30,36 @@ import java.util.function.Predicate;
  * @author Titouan COMPIEGNE
  */
 public interface EventService {
-
     EventEntity findById(String id);
 
     EventEntity create(NewEventEntity event);
 
     EventEntity create(EventType type, String payload, Map<String, String> properties);
-    
+
     void delete(String eventId);
 
-    Page<EventEntity> search(
-            List<EventType> eventTypes, Map<String, Object> properties, long from, long to, int page, int size);
+    Page<EventEntity> search(List<EventType> eventTypes, Map<String, Object> properties, long from, long to, int page, int size);
 
-    <T> Page<T> search(List<EventType> eventTypes,
-            Map<String, Object> properties, long from, long to, int page, int size,
-            Function<EventEntity, T> mapper);
+    <T> Page<T> search(
+        List<EventType> eventTypes,
+        Map<String, Object> properties,
+        long from,
+        long to,
+        int page,
+        int size,
+        Function<EventEntity, T> mapper
+    );
 
-    <T> Page<T> search(List<EventType> eventTypes,
-                       Map<String, Object> properties, long from, long to, int page, int size,
-                       Function<EventEntity, T> mapper, Predicate<T> filter);
+    <T> Page<T> search(
+        List<EventType> eventTypes,
+        Map<String, Object> properties,
+        long from,
+        long to,
+        int page,
+        int size,
+        Function<EventEntity, T> mapper,
+        Predicate<T> filter
+    );
 
     Collection<EventEntity> search(EventQuery query);
 }

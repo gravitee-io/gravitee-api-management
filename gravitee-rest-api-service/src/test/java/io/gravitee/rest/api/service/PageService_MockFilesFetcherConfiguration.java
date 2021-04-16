@@ -30,7 +30,5 @@ public class PageService_MockFilesFetcherConfiguration implements FetcherConfigu
     }
 
     @Override
-    public void setFilepath(String filepath) {
-
-    }
+    public void setFilepath(String filepath) {}
 }

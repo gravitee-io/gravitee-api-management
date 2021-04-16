@@ -19,7 +19,6 @@ import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.springframework.stereotype.Component;
 
-
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team

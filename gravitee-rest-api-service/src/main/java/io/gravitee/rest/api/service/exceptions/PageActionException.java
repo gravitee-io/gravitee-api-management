@@ -17,16 +17,15 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.PageType;
-
 import java.util.Map;
 
 /**
  * @author Guillaume GILLON
  */
-public class PageActionException  extends AbstractManagementException {
+public class PageActionException extends AbstractManagementException {
+
     private final String action;
     private final String pageType;
-    
 
     public PageActionException(PageType pageType, String action) {
         this.action = action;

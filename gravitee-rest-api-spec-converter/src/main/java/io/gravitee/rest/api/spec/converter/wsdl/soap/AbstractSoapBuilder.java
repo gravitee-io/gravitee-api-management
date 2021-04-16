@@ -15,17 +15,16 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl.soap;
 
-import io.gravitee.rest.api.spec.converter.wsdl.utils.SampleXmlUtil;
 import io.gravitee.rest.api.spec.converter.wsdl.binding.SoapVersion;
+import io.gravitee.rest.api.spec.converter.wsdl.utils.SampleXmlUtil;
+import java.util.Map;
+import javax.wsdl.BindingOperation;
+import javax.wsdl.Part;
+import javax.xml.namespace.QName;
 import org.apache.xmlbeans.SchemaType;
 import org.apache.xmlbeans.SchemaTypeSystem;
 import org.apache.xmlbeans.XmlCursor;
 import org.apache.xmlbeans.impl.schema.BuiltinSchemaTypeSystem;
-
-import javax.wsdl.BindingOperation;
-import javax.wsdl.Part;
-import javax.xml.namespace.QName;
-import java.util.Map;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -35,7 +34,6 @@ public abstract class AbstractSoapBuilder {
 
     private SchemaTypeSystem shemaTypeSystem;
     private Map<Object, Object> namespaceMappings;
-
 
     protected SoapVersion version;
     protected BindingOperation bindingOperation;
@@ -102,7 +100,7 @@ public abstract class AbstractSoapBuilder {
     }
 
     protected String buildPrefixedName(SchemaType type) {
-        String prefix = (String)this.namespaceMappings.get(type.getName().getNamespaceURI());
-        return prefix +":"+type.getName().getLocalPart();
+        String prefix = (String) this.namespaceMappings.get(type.getName().getNamespaceURI());
+        return prefix + ":" + type.getName().getLocalPart();
     }
 }

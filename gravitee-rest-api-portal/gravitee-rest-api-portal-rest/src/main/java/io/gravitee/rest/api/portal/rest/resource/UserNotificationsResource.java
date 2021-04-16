@@ -21,33 +21,34 @@ import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
 import io.gravitee.rest.api.portal.rest.model.PortalNotification;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.PortalNotificationService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UserNotificationsResource extends AbstractResource  {
+public class UserNotificationsResource extends AbstractResource {
 
     @Autowired
     private PortalNotificationService portalNotificationService;
+
     @Autowired
     private PortalNotificationMapper portalNotificationMapper;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getCurrentUserNotifications(@BeanParam PaginationParam paginationParam)  {
-        List<PortalNotification> notifications = portalNotificationService.findByUser(getAuthenticatedUser())
-                .stream()
-                .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt, Comparator.reverseOrder()))
-                .map(portalNotificationMapper::convert)
-                .collect(Collectors.toList());
+    public Response getCurrentUserNotifications(@BeanParam PaginationParam paginationParam) {
+        List<PortalNotification> notifications = portalNotificationService
+            .findByUser(getAuthenticatedUser())
+            .stream()
+            .sorted(Comparator.comparing(PortalNotificationEntity::getCreatedAt, Comparator.reverseOrder()))
+            .map(portalNotificationMapper::convert)
+            .collect(Collectors.toList());
 
         return createListResponse(notifications, paginationParam);
     }
@@ -55,9 +56,7 @@ public class UserNotificationsResource extends AbstractResource  {
     @DELETE
     public Response deleteAll() {
         portalNotificationService.deleteAll(getAuthenticatedUser());
-        return Response
-                .status(Response.Status.NO_CONTENT)
-                .build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
     @Path("{notificationId}")
@@ -65,10 +64,8 @@ public class UserNotificationsResource extends AbstractResource  {
     public Response delete(@PathParam("notificationId") String notificationId) {
         //notification exist ?
         portalNotificationService.findById(notificationId);
-        
+
         portalNotificationService.delete(notificationId);
-        return Response
-                .status(Response.Status.NO_CONTENT)
-                .build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 }

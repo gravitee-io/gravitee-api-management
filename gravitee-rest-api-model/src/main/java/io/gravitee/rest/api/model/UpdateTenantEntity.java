@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,9 +26,11 @@ import java.util.Objects;
 public class UpdateTenantEntity {
 
     private String id;
+
     @NotNull
     @Size(min = 1)
     private String name;
+
     private String description;
 
     public String getId() {
@@ -60,9 +62,7 @@ public class UpdateTenantEntity {
         if (this == o) return true;
         if (!(o instanceof UpdateTenantEntity)) return false;
         UpdateTenantEntity that = (UpdateTenantEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(description, that.description);
     }
 
     @Override
@@ -72,10 +72,6 @@ public class UpdateTenantEntity {
 
     @Override
     public String toString() {
-        return "UpdateTenantEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                '}';
+        return "UpdateTenantEntity{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", description='" + description + '\'' + '}';
     }
 }

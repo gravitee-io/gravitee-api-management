@@ -19,7 +19,6 @@ import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.fetcher.api.FilesFetcher;
 import io.gravitee.fetcher.api.Resource;
-
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -30,6 +29,7 @@ import java.util.Collections;
  * @author GraviteeSource Team
  */
 public class PageService_ImportAutFetchDescriptorMockFetcher implements FilesFetcher {
+
     public PageService_ImportAutFetchDescriptorMockFetcher(PageService_MockAutoFetchDescriptorFetcherConfiguration cfg) {
         super();
     }
@@ -44,7 +44,7 @@ public class PageService_ImportAutFetchDescriptorMockFetcher implements FilesFet
 
     @Override
     public String[] files() throws FetcherException {
-        return new String[]{".gravitee.json"};
+        return new String[] { ".gravitee.json" };
     }
 
     @Override
@@ -52,40 +52,40 @@ public class PageService_ImportAutFetchDescriptorMockFetcher implements FilesFet
         return new PageService_MockAutoFetchDescriptorFetcherConfiguration();
     }
 
-
-    private static final String descriptor = "{" +
-            "    \"version\": \"1\"," +
-            "    \"documentation\": {" +
-            "        \"pages\": [" +
-            "            {" +
-            "                \"src\": \"/docs/first.md\"," +
-            "                \"dest\": \"/\"," +
-            "                \"name\": \"ma premiere page\"," +
-            "                \"homepage\": true" +
-            "            }," +
-            "            {" +
-            "                \"src\": \"/docs/second.md\"," +
-            "                \"dest\": \"/\"," +
-            "                \"name\": \"ma deuxieme page\"" +
-            "            }," +
-            "            {" +
-            "                \"src\": \"/docs/swagger/swagger.json\"," +
-            "                \"dest\": \"/technical\"," +
-            "                \"name\": \"Swagger\"" +
-            "            }," +
-            "            {" +
-            "                \"src\": \"/docs/swagger/readme.md\"," +
-            "                \"dest\": \"/technical\"," +
-            "                \"name\": \"How to use the api\"" +
-            "            }," +
-            "            {" +
-            "                \"src\": \"/how-to/howto.md\"" +
-            "            }," +
-            "            {" +
-            "                \"src\": \"/other.dir/foobar.md\"," +
-            "                \"dest\": \"/how-to\"" +
-            "            }" +
-            "        ]" +
-            "    }" +
-            "}";
+    private static final String descriptor =
+        "{" +
+        "    \"version\": \"1\"," +
+        "    \"documentation\": {" +
+        "        \"pages\": [" +
+        "            {" +
+        "                \"src\": \"/docs/first.md\"," +
+        "                \"dest\": \"/\"," +
+        "                \"name\": \"ma premiere page\"," +
+        "                \"homepage\": true" +
+        "            }," +
+        "            {" +
+        "                \"src\": \"/docs/second.md\"," +
+        "                \"dest\": \"/\"," +
+        "                \"name\": \"ma deuxieme page\"" +
+        "            }," +
+        "            {" +
+        "                \"src\": \"/docs/swagger/swagger.json\"," +
+        "                \"dest\": \"/technical\"," +
+        "                \"name\": \"Swagger\"" +
+        "            }," +
+        "            {" +
+        "                \"src\": \"/docs/swagger/readme.md\"," +
+        "                \"dest\": \"/technical\"," +
+        "                \"name\": \"How to use the api\"" +
+        "            }," +
+        "            {" +
+        "                \"src\": \"/how-to/howto.md\"" +
+        "            }," +
+        "            {" +
+        "                \"src\": \"/other.dir/foobar.md\"," +
+        "                \"dest\": \"/how-to\"" +
+        "            }" +
+        "        ]" +
+        "    }" +
+        "}";
 }

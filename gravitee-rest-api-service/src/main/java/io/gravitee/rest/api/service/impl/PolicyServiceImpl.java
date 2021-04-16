@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -38,9 +40,6 @@ import io.gravitee.rest.api.model.PolicyDevelopmentEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,8 +48,8 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -69,10 +68,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
 
     @Override
     public Set<PolicyEntity> findAll() {
-        return super.list()
-                .stream()
-                .map(policyDefinition -> convert(policyDefinition, true))
-                .collect(Collectors.toSet());
+        return super.list().stream().map(policyDefinition -> convert(policyDefinition, true)).collect(Collectors.toSet());
     }
 
     @Override
@@ -93,7 +89,9 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
                 if (schema != null && !schema.equals("")) {
                     // Validate json against schema when defined.
                     JsonNode jsonSchema = JsonLoader.fromString(schema);
-                    ListProcessingReport report = (ListProcessingReport) jsonSchemaFactory.getValidator().validate(jsonSchema, jsonConfiguration, true);
+                    ListProcessingReport report = (ListProcessingReport) jsonSchemaFactory
+                        .getValidator()
+                        .validate(jsonSchema, jsonConfiguration, true);
                     if (!report.isSuccess()) {
                         boolean hasDefaultValue = false;
                         String msg = "";
@@ -104,9 +102,8 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
                             if (matcher.find()) {
                                 String field = matcher.group(1);
                                 JsonNode properties = jsonSchema.get("properties");
-                                hasDefaultValue = properties != null &&
-                                        properties.get(field) != null &&
-                                        properties.get(field).get("default") != null;
+                                hasDefaultValue =
+                                    properties != null && properties.get(field) != null && properties.get(field).get("default") != null;
                             }
                         }
                         if (!hasDefaultValue) {
@@ -116,7 +113,6 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
                 }
 
                 return safePolicyConfiguration;
-
             } catch (IOException | ProcessingException e) {
                 throw new InvalidDataException("Unable to validate policy configuration", e);
             }
@@ -164,61 +160,72 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
     }
 
     private PolicyDevelopmentEntity loadPolicy(PolicyPlugin policy) {
-        return policies.computeIfAbsent(policy.id(), new Function<String, PolicyDevelopmentEntity>() {
-            @Override
-            public PolicyDevelopmentEntity apply(String s) {
-                // Policy development information
-                PolicyDevelopmentEntity developmentEntity = new PolicyDevelopmentEntity();
-                developmentEntity.setClassName(policy.policy().getName());
+        return policies.computeIfAbsent(
+            policy.id(),
+            new Function<String, PolicyDevelopmentEntity>() {
+                @Override
+                public PolicyDevelopmentEntity apply(String s) {
+                    // Policy development information
+                    PolicyDevelopmentEntity developmentEntity = new PolicyDevelopmentEntity();
+                    developmentEntity.setClassName(policy.policy().getName());
 
-                ScanResult scan = null;
-                PluginClassLoader policyClassLoader = null;
+                    ScanResult scan = null;
+                    PluginClassLoader policyClassLoader = null;
 
-                try {
-                    policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policy);
+                    try {
+                        policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policy);
 
-                    scan = new ClassGraph()
-                            .enableMethodInfo()
-                            .enableAnnotationInfo()
-                            .acceptClasses(policy.policy().getName())
-                            .ignoreParentClassLoaders()
-                            .overrideClassLoaders(policyClassLoader)
-                            .scan(1);
+                        scan =
+                            new ClassGraph()
+                                .enableMethodInfo()
+                                .enableAnnotationInfo()
+                                .acceptClasses(policy.policy().getName())
+                                .ignoreParentClassLoaders()
+                                .overrideClassLoaders(policyClassLoader)
+                                .scan(1);
 
-                    MethodInfoList methodInfo = scan.getClassInfo(policy.policy().getName()).getMethodInfo();
+                        MethodInfoList methodInfo = scan.getClassInfo(policy.policy().getName()).getMethodInfo();
 
-                    MethodInfoList filter = methodInfo.filter(methodInfo1 -> methodInfo1.hasAnnotation(OnRequest.class.getName())
-                            || methodInfo1.hasAnnotation(OnRequestContent.class.getName()));
+                        MethodInfoList filter = methodInfo.filter(
+                            methodInfo1 ->
+                                methodInfo1.hasAnnotation(OnRequest.class.getName()) ||
+                                methodInfo1.hasAnnotation(OnRequestContent.class.getName())
+                        );
 
-                    if (!filter.isEmpty()) {
-                        developmentEntity.setOnRequestMethod(filter.get(0).getName());
-                    }
-
-                    filter = methodInfo.filter(methodInfo12 -> methodInfo12.hasAnnotation(OnResponse.class.getName())
-                            || methodInfo12.hasAnnotation(OnResponseContent.class.getName()));
-
-                    if (!filter.isEmpty()) {
-                        developmentEntity.setOnResponseMethod(filter.get(0).getName());
-                    }
-
-                    return developmentEntity;
-                } catch (Throwable ex) {
-                    logger.error("An unexpected error occurs while loading policy", ex);
-                    return null;
-                } finally {
-                    if (policyClassLoader != null) {
-                        try {
-                            policyClassLoader.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        if (!filter.isEmpty()) {
+                            developmentEntity.setOnRequestMethod(filter.get(0).getName());
                         }
-                    }
 
-                    if (scan != null) {
-                        scan.close();
+                        filter =
+                            methodInfo.filter(
+                                methodInfo12 ->
+                                    methodInfo12.hasAnnotation(OnResponse.class.getName()) ||
+                                    methodInfo12.hasAnnotation(OnResponseContent.class.getName())
+                            );
+
+                        if (!filter.isEmpty()) {
+                            developmentEntity.setOnResponseMethod(filter.get(0).getName());
+                        }
+
+                        return developmentEntity;
+                    } catch (Throwable ex) {
+                        logger.error("An unexpected error occurs while loading policy", ex);
+                        return null;
+                    } finally {
+                        if (policyClassLoader != null) {
+                            try {
+                                policyClassLoader.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        if (scan != null) {
+                            scan.close();
+                        }
                     }
                 }
             }
-        });
+        );
     }
 }

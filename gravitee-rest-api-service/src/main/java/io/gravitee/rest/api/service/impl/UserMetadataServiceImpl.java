@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.MetadataReferenceType.USER;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
@@ -29,15 +32,11 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MetadataNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static io.gravitee.repository.management.model.MetadataReferenceType.USER;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -45,6 +44,7 @@ import static java.util.stream.Collectors.toList;
  */
 @Component
 public class UserMetadataServiceImpl extends AbstractReferenceMetadataService implements UserMetadataService {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(UserMetadataServiceImpl.class);
 
     @Autowired
@@ -75,12 +75,15 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
 
     @Override
     public List<UserMetadataEntity> findAllByUserId(String userId) {
-        return GraviteeContext.getCurrentUsersMetadata().computeIfAbsent(userId, k -> {
-            final List<ReferenceMetadataEntity> allMetadata = findAllByReference(USER, userId, false);
-            return allMetadata.stream()
-                    .map(m -> convert(m, userId))
-                    .collect(toList());
-        });
+        return GraviteeContext
+            .getCurrentUsersMetadata()
+            .computeIfAbsent(
+                userId,
+                k -> {
+                    final List<ReferenceMetadataEntity> allMetadata = findAllByReference(USER, userId, false);
+                    return allMetadata.stream().map(m -> convert(m, userId)).collect(toList());
+                }
+            );
     }
 
     @Override
@@ -106,9 +109,13 @@ public class UserMetadataServiceImpl extends AbstractReferenceMetadataService im
                     try {
                         this.delete(CustomFieldSanitizer.formatKeyValue(key), USER, user.getId());
                     } catch (MetadataNotFoundException e) {
-                        LOGGER.debug("Metadata key={}, refType={}, refId={} not found," +
-                                " ignore error because we want to delete it and user may not have this metadata",
-                                key, USER, user.getId());
+                        LOGGER.debug(
+                            "Metadata key={}, refType={}, refId={} not found," +
+                            " ignore error because we want to delete it and user may not have this metadata",
+                            key,
+                            USER,
+                            user.getId()
+                        );
                     }
                 }
                 pageNumber++;

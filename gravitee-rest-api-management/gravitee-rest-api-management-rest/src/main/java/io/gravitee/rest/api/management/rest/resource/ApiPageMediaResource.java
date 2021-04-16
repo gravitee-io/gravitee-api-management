@@ -26,25 +26,25 @@ import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.annotations.*;
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
-@Api(tags = {"API Media"})
+@Api(tags = { "API Media" })
 public class ApiPageMediaResource extends AbstractResource {
+
     @Inject
     private MediaService mediaService;
 
@@ -62,27 +62,32 @@ public class ApiPageMediaResource extends AbstractResource {
     private String page;
 
     @POST
-    @ApiOperation(value = "Attach a media to an API page ",
-            notes = "User must have the API_DOCUMENTATION[UPDATE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Attach a media to an API page ",
+        notes = "User must have the API_DOCUMENTATION[UPDATE] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Media successfully added", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Response attachApiPageMedia(
-            @Context final HttpServletRequest request,
-            @FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileDetail,
-            @FormDataParam("file") final FormDataBodyPart body,
-            @FormDataParam("fileName") final String fileName
+        @Context final HttpServletRequest request,
+        @FormDataParam("file") InputStream uploadedInputStream,
+        @FormDataParam("file") FormDataContentDisposition fileDetail,
+        @FormDataParam("file") final FormDataBodyPart body,
+        @FormDataParam("fileName") final String fileName
     ) throws IOException {
         final String mediaId;
 
         if (request.getContentLength() > this.mediaService.getMediaMaxSize()) {
-            throw new UploadUnauthorized("Max size is " + this.mediaService.getMediaMaxSize() + "bytes. Actual size is " + request.getContentLength() + "bytes.");
+            throw new UploadUnauthorized(
+                "Max size is " + this.mediaService.getMediaMaxSize() + "bytes. Actual size is " + request.getContentLength() + "bytes."
+            );
         }
         final String originalFileName = fileDetail.getFileName();
         MediaEntity mediaEntity = new MediaEntity();
@@ -102,19 +107,17 @@ public class ApiPageMediaResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Retrieve all media for an API page",
-            notes = "User must have the API_DOCUMENTATION[READ] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ)
-    })
+    @ApiOperation(
+        value = "Retrieve all media for an API page",
+        notes = "User must have the API_DOCUMENTATION[READ] permission to use this service"
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public Response getApiPageMedia() {
         final PageEntity currentPage = pageService.findById(page);
         List<MediaEntity> pageMedia = mediaService.findAllWithoutContent(currentPage.getAttachedMedia(), api);
 
         if (pageMedia != null && !pageMedia.isEmpty()) {
-            return Response
-                    .ok(pageMedia)
-                    .build();
+            return Response.ok(pageMedia).build();
         }
         return Response.noContent().build();
     }

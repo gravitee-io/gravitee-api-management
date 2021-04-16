@@ -38,5 +38,5 @@ public enum PlanStatus {
     /**
      * Plan is deprecated
      */
-    DEPRECATED
+    DEPRECATED,
 }

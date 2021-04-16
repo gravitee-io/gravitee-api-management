@@ -21,7 +21,7 @@ import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team 
+ * @author GraviteeSource Team
  */
 public class EventQuery {
 
@@ -84,12 +84,14 @@ public class EventQuery {
         if (this == o) return true;
         if (!(o instanceof EventQuery)) return false;
         EventQuery that = (EventQuery) o;
-        return from == that.from &&
-                to == that.to &&
-                Objects.equals(types, that.types) &&
-                Objects.equals(properties, that.properties) &&
-                Objects.equals(api, that.api) &&
-                Objects.equals(id, that.id);
+        return (
+            from == that.from &&
+            to == that.to &&
+            Objects.equals(types, that.types) &&
+            Objects.equals(properties, that.properties) &&
+            Objects.equals(api, that.api) &&
+            Objects.equals(id, that.id)
+        );
     }
 
     @Override
@@ -99,13 +101,23 @@ public class EventQuery {
 
     @Override
     public String toString() {
-        return "EventQuery{" +
-                "types=" + types +
-                ", properties=" + properties +
-                ", from=" + from +
-                ", to=" + to +
-                ", api='" + api + '\'' +
-                ", id='" + id + '\'' +
-                '}';
+        return (
+            "EventQuery{" +
+            "types=" +
+            types +
+            ", properties=" +
+            properties +
+            ", from=" +
+            from +
+            ", to=" +
+            to +
+            ", api='" +
+            api +
+            '\'' +
+            ", id='" +
+            id +
+            '\'' +
+            '}'
+        );
     }
 }

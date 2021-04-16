@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiService {
-
     ApiEntity findById(String apiId);
 
     Set<ApiEntity> findAll();

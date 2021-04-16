@@ -15,13 +15,12 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.common.http.HttpStatusCode;
+import static java.lang.String.format;
 
+import io.gravitee.common.http.HttpStatusCode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-
-import static java.lang.String.format;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)

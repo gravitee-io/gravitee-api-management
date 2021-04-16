@@ -19,15 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.analytics.query.Aggregation;
 import io.gravitee.rest.api.model.analytics.query.AggregationType;
@@ -35,6 +26,12 @@ import io.gravitee.rest.api.model.analytics.query.CountQuery;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery;
 import io.gravitee.rest.api.model.analytics.query.GroupByQuery.Order;
+import java.util.List;
+import java.util.Map;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,23 +43,24 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "applications/";
     }
-    
+
     private static final String APPLICATION = "my-application";
     private static final String ANALYTICS_ROOT_FIELD = "application";
 
     @Test
     public void shouldGetDateHistoAnalytics() {
-        
-        final Response response = target(APPLICATION).path("analytics")
-                .queryParam("from", 0)
-                .queryParam("to", 100)
-                .queryParam("interval", 10_000)
-                .queryParam("query", APPLICATION)
-                .queryParam("type", "DATE_HISTO")
-                .queryParam("aggs", "AVG:hit")
-                .request().get();
+        final Response response = target(APPLICATION)
+            .path("analytics")
+            .queryParam("from", 0)
+            .queryParam("to", 100)
+            .queryParam("interval", 10_000)
+            .queryParam("query", APPLICATION)
+            .queryParam("type", "DATE_HISTO")
+            .queryParam("aggs", "AVG:hit")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         ArgumentCaptor<DateHistogramQuery> queryCaptor = ArgumentCaptor.forClass(DateHistogramQuery.class);
         Mockito.verify(analyticsService).execute(queryCaptor.capture());
         final DateHistogramQuery query = queryCaptor.getValue();
@@ -78,25 +76,24 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
         assertNotNull(agg);
         assertEquals(AggregationType.AVG, agg.type());
         assertEquals("hit", agg.field());
-        
     }
-
 
     @Test
     public void shouldGetGroupByAnalytics() {
-        
-        final Response response = target(APPLICATION).path("analytics")
-                .queryParam("from", 0)
-                .queryParam("to", 100)
-                .queryParam("interval", 10_000)
-                .queryParam("query", APPLICATION)
-                .queryParam("field", APPLICATION)
-                .queryParam("type", "GROUP_BY")
-                .queryParam("ranges", "10:20")
-                .queryParam("order", "orderType:orderField")
-                .request().get();
+        final Response response = target(APPLICATION)
+            .path("analytics")
+            .queryParam("from", 0)
+            .queryParam("to", 100)
+            .queryParam("interval", 10_000)
+            .queryParam("query", APPLICATION)
+            .queryParam("field", APPLICATION)
+            .queryParam("type", "GROUP_BY")
+            .queryParam("ranges", "10:20")
+            .queryParam("order", "orderType:orderField")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         ArgumentCaptor<GroupByQuery> queryCaptor = ArgumentCaptor.forClass(GroupByQuery.class);
         Mockito.verify(analyticsService).execute(queryCaptor.capture());
         final GroupByQuery query = queryCaptor.getValue();
@@ -118,21 +115,21 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
         Double upperRange = groups.get(Double.valueOf(10));
         assertNotNull(upperRange);
         assertEquals(0, upperRange.compareTo(Double.valueOf(20)));
-
     }
-    
+
     @Test
     public void shouldGetCountAnalytics() {
-        
-        final Response response = target(APPLICATION).path("analytics")
-                .queryParam("from", 0)
-                .queryParam("to", 100)
-                .queryParam("interval", 10_000)
-                .queryParam("query", APPLICATION)
-                .queryParam("type", "COUNT")
-                .request().get();
+        final Response response = target(APPLICATION)
+            .path("analytics")
+            .queryParam("from", 0)
+            .queryParam("to", 100)
+            .queryParam("interval", 10_000)
+            .queryParam("query", APPLICATION)
+            .queryParam("type", "COUNT")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         ArgumentCaptor<CountQuery> queryCaptor = ArgumentCaptor.forClass(CountQuery.class);
         Mockito.verify(analyticsService).execute(queryCaptor.capture());
         final CountQuery query = queryCaptor.getValue();
@@ -142,6 +139,5 @@ public class ApplicationAnalyticsResourceTest extends AbstractResourceTest {
         assertEquals(APPLICATION, query.getQuery());
         assertEquals(ANALYTICS_ROOT_FIELD, query.getRootField());
         assertEquals(APPLICATION, query.getRootIdentifier());
-
     }
 }

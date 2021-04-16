@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
@@ -25,21 +29,16 @@ import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
 import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -108,15 +107,15 @@ public class UserMapperTest {
         userRoleEntityOrganization.setId("org-id");
         userRoleEntityOrganization.setScope(RoleScope.ORGANIZATION);
         HashMap<String, char[]> organizationPermissions = new HashMap<>();
-        organizationPermissions.put("USER", new char[]{'C', 'R', 'U', 'D'});
-        organizationPermissions.put("ENVIRONMENT", new char[]{'C', 'R', 'U', 'D'});
+        organizationPermissions.put("USER", new char[] { 'C', 'R', 'U', 'D' });
+        organizationPermissions.put("ENVIRONMENT", new char[] { 'C', 'R', 'U', 'D' });
         userRoleEntityOrganization.setPermissions(organizationPermissions);
 
         UserRoleEntity userRoleEntityEnvironment = new UserRoleEntity();
         userRoleEntityEnvironment.setScope(RoleScope.ENVIRONMENT);
         userRoleEntityEnvironment.setId("env-id");
         HashMap<String, char[]> environmentPermissions = new HashMap<>();
-        environmentPermissions.put("APPLICATION", new char[]{'C'});
+        environmentPermissions.put("APPLICATION", new char[] { 'C' });
         userRoleEntityEnvironment.setPermissions(environmentPermissions);
 
         userEntity.setCreatedAt(nowDate);
@@ -166,7 +165,7 @@ public class UserMapperTest {
         assertEquals(SEARCHABLE_USER_DISPLAY_NAME, responseUser.getDisplayName());
         assertEquals(SEARCHABLE_USER_REFERENCE, responseUser.getReference());
     }
-    
+
     @Test
     public void testConvertRegisterUserInput() {
         // init

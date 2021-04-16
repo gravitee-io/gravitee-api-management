@@ -15,25 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Page;
-import io.gravitee.rest.api.portal.rest.model.PageLinks;
-import io.gravitee.rest.api.portal.rest.model.PagesResponse;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Response;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Collections.emptySet;
@@ -42,6 +23,23 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
+import io.gravitee.rest.api.portal.rest.model.PagesResponse;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -58,16 +56,16 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
     @Before
     public void init() throws IOException {
         resetAllMocks();
-        
+
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(API);
-        
+
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any(), isNull());
-        
+
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
     }
@@ -79,11 +77,11 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
         doReturn(emptySet()).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
-        
+
         //test
         final Response response = target(API).path("pages").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
@@ -92,13 +90,13 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
 
     @Test
     public void shouldGetApiPages() {
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        
+
         final Response response = target(API).path("pages").request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -113,10 +111,10 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoApiPage() {
         final Builder request = target(API).path("pages").request();
-        
+
         // case 1
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        
+
         Response response = request.get();
         assertEquals(OK_200, response.getStatus());
 
@@ -124,10 +122,10 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         List<Page> pages = pagesResponse.getData();
         assertNotNull(pages);
         assertEquals(0, pages.size());
-        
+
         // case 2
         doReturn(false).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        
+
         response = request.get();
         assertEquals(OK_200, response.getStatus());
 

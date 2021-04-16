@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.theme;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -113,11 +113,21 @@ public class UpdateThemeEntity {
 
     @Override
     public String toString() {
-        return "UpdateThemeEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", enabled='"+ enabled + '\'' +
-                ", definition='" + definition + '\'' +
-                '}';
+        return (
+            "UpdateThemeEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", enabled='" +
+            enabled +
+            '\'' +
+            ", definition='" +
+            definition +
+            '\'' +
+            '}'
+        );
     }
 }

@@ -15,25 +15,24 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.PageEntity;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
-
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.Collections;
-
 import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+
+import io.gravitee.rest.api.model.PageEntity;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Collections;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -48,7 +47,6 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
         return "portal/pages/";
     }
 
-
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
@@ -56,22 +54,32 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return null;
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return null;
+                    }
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
-                @Override
-                public boolean isSecure() { return true; }
-                @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
-            });
+            );
         }
     }
 
@@ -83,11 +91,10 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
         doReturn(page).when(pageService).findById(any(), any());
         doReturn(false).when(configService).portalLoginForced();
         doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(Collections.emptyList(), null);
-
-//        final Response response = envTarget(PAGE_NAME).request().get();
-//
-//        assertNotNull("Response should be present", response);
-//        assertEquals("Response should be 200", OK.getStatusCode(), response.getStatus());
+        //        final Response response = envTarget(PAGE_NAME).request().get();
+        //
+        //        assertNotNull("Response should be present", response);
+        //        assertEquals("Response should be 200", OK.getStatusCode(), response.getStatus());
     }
 
     @Test
@@ -98,10 +105,9 @@ public class PortalPagesResourceAnonymousTest extends AbstractResourceTest {
         doReturn(page).when(pageService).findById(any(), any());
         doReturn(true).when(configService).portalLoginForced();
         doReturn(true).when(groupService).isUserAuthorizedToAccessPortalData(Collections.emptyList(), null);
-
-//        final Response response = envTarget(PAGE_NAME).request().get();
-//
-//        assertNotNull("Response should be present", response);
-//        assertEquals("Response should be 401", UNAUTHORIZED.getStatusCode(), response.getStatus());
+        //        final Response response = envTarget(PAGE_NAME).request().get();
+        //
+        //        assertNotNull("Response should be present", response);
+        //        assertEquals("Response should be 401", UNAUTHORIZED.getStatusCode(), response.getStatus());
     }
 }

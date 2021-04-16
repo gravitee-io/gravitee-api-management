@@ -20,5 +20,5 @@ package io.gravitee.rest.api.management.rest.model;
  * @author GraviteeSource Team
  */
 public enum TokenType {
-    BEARER
+    BEARER,
 }

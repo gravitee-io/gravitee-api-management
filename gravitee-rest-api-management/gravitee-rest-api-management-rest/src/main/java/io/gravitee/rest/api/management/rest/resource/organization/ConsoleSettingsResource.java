@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -22,7 +24,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.swagger.annotations.*;
-
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -33,15 +34,13 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
-
 /**
  * Defines the REST resources to manage Portal.
  *
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Settings"})
+@Api(tags = { "Settings" })
 public class ConsoleSettingsResource {
 
     @Inject
@@ -53,12 +52,13 @@ public class ConsoleSettingsResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the console settings")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Console configuration", response = ConsoleSettingsEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = READ) })
     public ConsoleSettingsEntity getConsoleSettings() {
         return configService.getConsoleSettings();
     }
@@ -67,18 +67,15 @@ public class ConsoleSettingsResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Save the console settings")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Updated console settings", response = ConsoleSettingsEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = {CREATE, UPDATE, DELETE})
-    })
-    public Response saveConsoleSettings(
-            @ApiParam(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
+    public Response saveConsoleSettings(@ApiParam(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
         configService.save(consoleSettingsEntity);
-        return Response
-                .ok()
-                .entity(consoleSettingsEntity)
-                .build();
+        return Response.ok().entity(consoleSettingsEntity).build();
     }
 }

@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -28,6 +27,7 @@ import java.util.Objects;
 public class EnvironmentEntity {
 
     private String id;
+
     @NotNull
     @Size(min = 1)
     private String name;
@@ -84,8 +84,7 @@ public class EnvironmentEntity {
         if (this == o) return true;
         if (!(o instanceof EnvironmentEntity)) return false;
         EnvironmentEntity that = (EnvironmentEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name);
     }
 
     @Override
@@ -95,12 +94,24 @@ public class EnvironmentEntity {
 
     @Override
     public String toString() {
-        return "EnvironmentEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", organizationId='" + organizationId + '\'' +
-                ", domain restrictions='" + domainRestrictions + '\'' +
-                '}';
+        return (
+            "EnvironmentEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", organizationId='" +
+            organizationId +
+            '\'' +
+            ", domain restrictions='" +
+            domainRestrictions +
+            '\'' +
+            '}'
+        );
     }
 }

@@ -22,16 +22,13 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-
 import io.gravitee.rest.api.idp.api.identity.IdentityReference;
-
+import java.util.Base64;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.util.Base64;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -75,10 +72,7 @@ public class ReferenceSerializer implements ApplicationContextAware {
         JWSSigner signer = new MACSigner(secretKey.getEncoded());
 
         // Prepare JWT with claims set
-        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(reference.getReference())
-                .issuer(reference.getSource())
-                .build();
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder().subject(reference.getReference()).issuer(reference.getSource()).build();
 
         SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
 
@@ -87,10 +81,11 @@ public class ReferenceSerializer implements ApplicationContextAware {
 
         // Create JWE object with signed JWT as payload
         JWEObject jweObject = new JWEObject(
-                new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A256GCM)
-                        .contentType("JWT") // required to signal nested JWT
-                        .build(),
-                new Payload(signedJWT));
+            new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A256GCM)
+                .contentType("JWT") // required to signal nested JWT
+                .build(),
+            new Payload(signedJWT)
+        );
 
         // Perform encryption
         jweObject.encrypt(new DirectEncrypter(secretKey.getEncoded()));

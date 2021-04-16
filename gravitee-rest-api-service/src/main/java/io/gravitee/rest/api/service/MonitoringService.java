@@ -22,6 +22,5 @@ import io.gravitee.rest.api.model.monitoring.MonitoringData;
  * @author GraviteeSource Team
  */
 public interface MonitoringService {
-
     MonitoringData findMonitoring(String gatewayId);
 }

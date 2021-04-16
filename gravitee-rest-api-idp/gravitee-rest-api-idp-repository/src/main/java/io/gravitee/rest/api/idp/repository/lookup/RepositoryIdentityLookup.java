@@ -15,14 +15,6 @@
  */
 package io.gravitee.rest.api.idp.repository.lookup;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
-
 import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.api.identity.IdentityReference;
 import io.gravitee.rest.api.idp.api.identity.User;
@@ -31,6 +23,12 @@ import io.gravitee.rest.api.idp.repository.lookup.spring.RepositoryIdentityLooku
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
 /**
@@ -51,10 +49,7 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     @Override
     public io.gravitee.rest.api.idp.api.identity.User retrieve(IdentityReference identityReference) {
         try {
-            return new RepositoryUser(userService.findBySource(
-                    identityReference.getSource(),
-                    identityReference.getReference(),
-                    false));
+            return new RepositoryUser(userService.findBySource(identityReference.getSource(), identityReference.getReference(), false));
         } catch (UserNotFoundException te) {
             LOGGER.error("Unexpected error while looking for a user with id " + identityReference.getReference(), te);
         }
@@ -73,22 +68,22 @@ public class RepositoryIdentityLookup implements IdentityLookup {
 
     @Override
     public boolean allowEmailInSearchResults() {
-        Boolean allow = environment.getProperty("allow-email-in-search-results",Boolean.class);
+        Boolean allow = environment.getProperty("allow-email-in-search-results", Boolean.class);
         return allow != null && allow;
     }
 
     @Override
     public Collection<User> search(String query) {
         return userService
-                .search(query, new PageableImpl(1, 20))
-                .getContent()
-                .stream()
-                .map(RepositoryUser::new)
-                .collect(Collectors.toList());
+            .search(query, new PageableImpl(1, 20))
+            .getContent()
+            .stream()
+            .map(RepositoryUser::new)
+            .collect(Collectors.toList());
     }
 
     @Override
     public int getOrder() {
         return 10;
-    }   
+    }
 }

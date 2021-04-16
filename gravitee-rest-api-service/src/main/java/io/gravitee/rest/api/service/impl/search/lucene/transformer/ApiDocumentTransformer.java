@@ -28,27 +28,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
 
-    private final static String FIELD_ID = "id";
-    private final static String FIELD_TYPE = "type";
-    private final static String FIELD_TYPE_VALUE = "api";
-    private final static String FIELD_NAME = "name";
-    private final static String FIELD_NAME_LOWERCASE = "name_lowercase";
-    private final static String FIELD_NAME_SPLIT = "name_split";
-    private final static String FIELD_DESCRIPTION = "description";
-    private final static String FIELD_OWNER = "ownerName";
-    private final static String FIELD_OWNER_MAIL = "ownerMail";
-    private final static String FIELD_LABELS = "labels";
-    private final static String FIELD_LABELS_SPLIT = "labels_split";
-    private final static String FIELD_CATEGORIES = "categories";
-    private final static String FIELD_CATEGORIES_SPLIT = "categories_split";
-    private final static String FIELD_CREATED_AT = "createdAt";
-    private final static String FIELD_UPDATED_AT = "updatedAt";
-    private final static String FIELD_PATHS = "paths";
-    private final static String FIELD_HOSTS = "hosts";
-    private final static String FIELD_PATHS_SPLIT = "paths_split";
-    private final static String FIELD_HOSTS_SPLIT = "hosts_split";
-    private final static String FIELD_TAGS = "tags";
-    private final static String FIELD_TAGS_SPLIT = "tags_split";
+    private static final String FIELD_ID = "id";
+    private static final String FIELD_TYPE = "type";
+    private static final String FIELD_TYPE_VALUE = "api";
+    private static final String FIELD_NAME = "name";
+    private static final String FIELD_NAME_LOWERCASE = "name_lowercase";
+    private static final String FIELD_NAME_SPLIT = "name_split";
+    private static final String FIELD_DESCRIPTION = "description";
+    private static final String FIELD_OWNER = "ownerName";
+    private static final String FIELD_OWNER_MAIL = "ownerMail";
+    private static final String FIELD_LABELS = "labels";
+    private static final String FIELD_LABELS_SPLIT = "labels_split";
+    private static final String FIELD_CATEGORIES = "categories";
+    private static final String FIELD_CATEGORIES_SPLIT = "categories_split";
+    private static final String FIELD_CREATED_AT = "createdAt";
+    private static final String FIELD_UPDATED_AT = "updatedAt";
+    private static final String FIELD_PATHS = "paths";
+    private static final String FIELD_HOSTS = "hosts";
+    private static final String FIELD_PATHS_SPLIT = "paths_split";
+    private static final String FIELD_HOSTS_SPLIT = "hosts_split";
+    private static final String FIELD_TAGS = "tags";
+    private static final String FIELD_TAGS_SPLIT = "tags_split";
 
     @Override
     public Document transform(io.gravitee.rest.api.model.api.ApiEntity api) {
@@ -72,14 +72,19 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
         }
 
         if (api.getProxy() != null) {
-            api.getProxy().getVirtualHosts().forEach(virtualHost -> {
-            doc.add(new StringField(FIELD_PATHS, virtualHost.getPath(), Field.Store.NO));
-                doc.add(new TextField(FIELD_PATHS_SPLIT, virtualHost.getPath(), Field.Store.NO));
-                if (virtualHost.getHost() != null && !virtualHost.getHost().isEmpty()) {
-                    doc.add(new StringField(FIELD_HOSTS, virtualHost.getHost(), Field.Store.NO));
-                    doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
-                }
-            });
+            api
+                .getProxy()
+                .getVirtualHosts()
+                .forEach(
+                    virtualHost -> {
+                        doc.add(new StringField(FIELD_PATHS, virtualHost.getPath(), Field.Store.NO));
+                        doc.add(new TextField(FIELD_PATHS_SPLIT, virtualHost.getPath(), Field.Store.NO));
+                        if (virtualHost.getHost() != null && !virtualHost.getHost().isEmpty()) {
+                            doc.add(new StringField(FIELD_HOSTS, virtualHost.getHost(), Field.Store.NO));
+                            doc.add(new TextField(FIELD_HOSTS_SPLIT, virtualHost.getHost(), Field.Store.NO));
+                        }
+                    }
+                );
         }
 
         // labels

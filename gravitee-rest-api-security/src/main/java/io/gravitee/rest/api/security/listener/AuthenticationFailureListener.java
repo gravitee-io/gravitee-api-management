@@ -15,20 +15,19 @@
  */
 package io.gravitee.rest.api.security.listener;
 
+import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 
-import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
-
 public class AuthenticationFailureListener implements ApplicationListener<AbstractAuthenticationFailureEvent> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationFailureListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationFailureListener.class);
 
-  @Override
-  public void onApplicationEvent(AbstractAuthenticationFailureEvent e) {
-    GraviteeAuthenticationDetails auth = (GraviteeAuthenticationDetails)  e.getAuthentication().getDetails();
-    LOGGER.warn("Authentication failed event for: " + e.getAuthentication().getPrincipal() + " - IP: " + auth.getRemoteAddress());
-  }
+    @Override
+    public void onApplicationEvent(AbstractAuthenticationFailureEvent e) {
+        GraviteeAuthenticationDetails auth = (GraviteeAuthenticationDetails) e.getAuthentication().getDetails();
+        LOGGER.warn("Authentication failed event for: " + e.getAuthentication().getPrincipal() + " - IP: " + auth.getRemoteAddress());
+    }
 }

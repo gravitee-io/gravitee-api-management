@@ -20,11 +20,10 @@ import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.swagger.annotations.ApiModelProperty;
-
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,54 +34,40 @@ public class NewApiEntity {
 
     @NotNull
     @NotEmpty(message = "Api's name must not be empty")
-    @ApiModelProperty(
-            value = "Api's name. Duplicate names can exists.",
-            example = "My Api")
+    @ApiModelProperty(value = "Api's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
     @NotNull
-    @ApiModelProperty(
-            value = "Api's version. It's a simple string only used in the portal.",
-            example = "v1.0")
+    @ApiModelProperty(value = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
     private String version;
 
     @NotNull
     @ApiModelProperty(
-            value = "API's description. A short description of your API.",
-            example = "I can use a hundred characters to describe this API.")
+        value = "API's description. A short description of your API.",
+        example = "I can use a hundred characters to describe this API."
+    )
     private String description;
 
     @NotNull
-    @ApiModelProperty(
-            value = "API's context path.",
-            example = "/my-awesome-api")
+    @ApiModelProperty(value = "API's context path.", example = "/my-awesome-api")
     private String contextPath;
 
     @NotNull
-    @ApiModelProperty(
-            value = "API's first endpoint (target url).",
-            example = "https://local-dc:8081/api")
+    @ApiModelProperty(value = "API's first endpoint (target url).", example = "https://local-dc:8081/api")
     private String endpoint;
 
-    @ApiModelProperty(
-            value = "API's groups. Used to add team in your API.",
-            example = "['MY_GROUP1', 'MY_GROUP2']")
+    @ApiModelProperty(value = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
-    @ApiModelProperty(
-            value = "API's paths. A json representation of the design of each path.")
+    @ApiModelProperty(value = "API's paths. A json representation of the design of each path.")
     private List<String> paths;
 
-    @ApiModelProperty(
-        value = "API's paths. A json representation of the design of each flow.")
+    @ApiModelProperty(value = "API's paths. A json representation of the design of each flow.")
     private List<Flow> flows;
 
     @JsonProperty(value = "flow_mode")
-    @ApiModelProperty(
-            value = "API's flow mode.",
-            example = "BEST_MATCH")
+    @ApiModelProperty(value = "API's flow mode.", example = "BEST_MATCH")
     private FlowMode flowMode;
-
 
     public String getName() {
         return name;
@@ -158,14 +143,30 @@ public class NewApiEntity {
 
     @Override
     public String toString() {
-        return "NewApiEntity{" +
-                "name='" + name + '\'' +
-                ", version='" + version + '\'' +
-                ", description='" + description + '\'' +
-                ", contextPath='" + contextPath + '\'' +
-                ", endpoint='" + endpoint + '\'' +
-                ", groups='" + groups + '\'' +
-                ", flowMode='" + flowMode + '\'' +
-                '}';
+        return (
+            "NewApiEntity{" +
+            "name='" +
+            name +
+            '\'' +
+            ", version='" +
+            version +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", contextPath='" +
+            contextPath +
+            '\'' +
+            ", endpoint='" +
+            endpoint +
+            '\'' +
+            ", groups='" +
+            groups +
+            '\'' +
+            ", flowMode='" +
+            flowMode +
+            '\'' +
+            '}'
+        );
     }
 }

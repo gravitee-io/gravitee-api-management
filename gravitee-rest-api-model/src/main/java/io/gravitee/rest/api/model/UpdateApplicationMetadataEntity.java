@@ -49,8 +49,6 @@ public class UpdateApplicationMetadataEntity extends UpdateReferenceMetadataEnti
 
     @Override
     public String toString() {
-        return "UpdateApplicationMetadataEntity{" +
-                "applicationId='" + applicationId + '\'' +
-                "} " + super.toString();
+        return "UpdateApplicationMetadataEntity{" + "applicationId='" + applicationId + '\'' + "} " + super.toString();
     }
 }

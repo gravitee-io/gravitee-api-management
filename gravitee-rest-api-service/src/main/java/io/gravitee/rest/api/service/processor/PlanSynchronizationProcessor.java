@@ -16,18 +16,15 @@
 package io.gravitee.rest.api.service.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.PlanEntity;
-
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -70,5 +67,4 @@ public class PlanSynchronizationProcessor {
             return false;
         }
     }
-
 }

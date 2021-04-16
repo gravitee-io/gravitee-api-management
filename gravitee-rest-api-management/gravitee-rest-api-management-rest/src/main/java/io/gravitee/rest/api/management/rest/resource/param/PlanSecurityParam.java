@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
+import io.gravitee.rest.api.model.PlanSecurityType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import io.gravitee.rest.api.model.PlanSecurityType;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -38,7 +37,7 @@ public class PlanSecurityParam {
         this.securities = new ArrayList<>();
 
         if (param != null) {
-            String[] params = param.replaceAll("\\s","").split(SEPARATOR);
+            String[] params = param.replaceAll("\\s", "").split(SEPARATOR);
             for (String _param : params) {
                 this.securities.add(PlanSecurityType.valueOf(_param.toUpperCase()));
             }

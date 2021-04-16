@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.idp.memory.authentication.spring;
 
 import java.util.Collections;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,34 +32,33 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class InMemoryAuthenticationProviderConfiguration {
 
-  private static final String ENCODING_ALGORITHM_PROPERTY_NAME = "password-encoding-algo";
+    private static final String ENCODING_ALGORITHM_PROPERTY_NAME = "password-encoding-algo";
 
-  private static final String NOOP_ALGORITHM = "none";
+    private static final String NOOP_ALGORITHM = "none";
 
-  private static final String BCRYPT_ALGORITHM = "bcrypt";
+    private static final String BCRYPT_ALGORITHM = "bcrypt";
 
-  @Autowired
-  private Environment environment;
+    @Autowired
+    private Environment environment;
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    String encodingAlgo = environment.getProperty(ENCODING_ALGORITHM_PROPERTY_NAME, BCRYPT_ALGORITHM);
-    if ( encodingAlgo == null || encodingAlgo.isEmpty() ) {
-      encodingAlgo = BCRYPT_ALGORITHM;
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        String encodingAlgo = environment.getProperty(ENCODING_ALGORITHM_PROPERTY_NAME, BCRYPT_ALGORITHM);
+        if (encodingAlgo == null || encodingAlgo.isEmpty()) {
+            encodingAlgo = BCRYPT_ALGORITHM;
+        }
+        switch (encodingAlgo.toLowerCase()) {
+            case BCRYPT_ALGORITHM:
+                return new BCryptPasswordEncoder();
+            case NOOP_ALGORITHM:
+                return NoOpPasswordEncoder.getInstance();
+            default:
+                throw new IllegalArgumentException("Unsupported password encoding algorithm : " + encodingAlgo);
+        }
     }
-    switch (encodingAlgo.toLowerCase()) {
-    case BCRYPT_ALGORITHM:
-      return new BCryptPasswordEncoder();
-    case NOOP_ALGORITHM:
-      return NoOpPasswordEncoder.getInstance();
-    default:
-      throw new IllegalArgumentException("Unsupported password encoding algorithm : " + encodingAlgo);
+
+    @Bean
+    public InMemoryGraviteeUserDetailsManager userDetailsService() {
+        return new InMemoryGraviteeUserDetailsManager(Collections.emptyList());
     }
-
-  }
-
-  @Bean
-  public InMemoryGraviteeUserDetailsManager userDetailsService() {
-    return new InMemoryGraviteeUserDetailsManager(Collections.emptyList());
-  }
 }

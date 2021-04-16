@@ -15,15 +15,15 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import javax.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractListParam<T> extends AbstractParam<List<T>>{
+public abstract class AbstractListParam<T> extends AbstractParam<List<T>> {
 
     private static final String SEPARATOR = ",";
 
@@ -36,7 +36,7 @@ public abstract class AbstractListParam<T> extends AbstractParam<List<T>>{
         List<T> values = new ArrayList<>();
 
         if (param != null) {
-            String[] params = param.replaceAll("\\s","").split(SEPARATOR);
+            String[] params = param.replaceAll("\\s", "").split(SEPARATOR);
             for (String _param : params) {
                 try {
                     if (!_param.isEmpty()) {

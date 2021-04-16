@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
+import static io.gravitee.rest.api.management.rest.model.TokenType.BEARER;
+import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
+import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.status;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.common.http.MediaType;
@@ -42,14 +48,13 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-
+import java.io.ByteArrayOutputStream;
+import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -61,26 +66,20 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import java.io.ByteArrayOutputStream;
-import java.net.URI;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.management.rest.model.TokenType.BEARER;
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
-import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Current User"})
+@Api(tags = { "Current User" })
 public class CurrentUserResource extends AbstractResource {
 
     public static final String IDP_SOURCE_MEMORY = "memory";
@@ -88,28 +87,38 @@ public class CurrentUserResource extends AbstractResource {
 
     @Inject
     private UserService userService;
+
     @Context
     private HttpServletResponse response;
+
     @Inject
     private TaskService taskService;
+
     @Context
     private ResourceContext resourceContext;
+
     @Inject
     private ConfigurableEnvironment environment;
+
     @Inject
     private CookieGenerator cookieGenerator;
+
     @Inject
     private TagService tagService;
+
     @Autowired
     private EnvironmentService environmentService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the authenticated user")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Authenticated user", response = UserDetails.class),
             @ApiResponse(code = 401, message = "Unauthorized user"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response getCurrentUser() {
         if (isAuthenticated()) {
             final UserDetails details = getAuthenticatedUserDetails();
@@ -134,8 +143,16 @@ public class CurrentUserResource extends AbstractResource {
             UserDetails userDetails = new UserDetails(userEntity.getId(), password, authorities);
             userDetails.setId(userEntity.getId());
             // in case of memory user, look at the repository layer to get value updated by the user through the MyAccount page
-            userDetails.setFirstname(IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getFirstname() != null ? userEntity.getFirstname() : details.getFirstname());
-            userDetails.setLastname(IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getLastname() != null ? userEntity.getLastname() : details.getLastname());
+            userDetails.setFirstname(
+                IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getFirstname() != null
+                    ? userEntity.getFirstname()
+                    : details.getFirstname()
+            );
+            userDetails.setLastname(
+                IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getLastname() != null
+                    ? userEntity.getLastname()
+                    : details.getLastname()
+            );
             userDetails.setSource(userEntity.getSource());
             userDetails.setSourceId(userEntity.getSourceId());
             userDetails.setPrimaryOwner(userEntity.isPrimaryOwner());
@@ -158,15 +175,21 @@ public class CurrentUserResource extends AbstractResource {
             }
 
             //convert UserEntityRoles to UserDetailsRoles
-            userDetails.setRoles(userEntity.getRoles().
-                    stream().
-                    map(userEntityRole -> {
-                        UserDetailRole userDetailRole = new UserDetailRole();
-                        userDetailRole.setScope(userEntityRole.getScope().name());
-                        userDetailRole.setName(userEntityRole.getName());
-                        userDetailRole.setPermissions(userEntityRole.getPermissions());
-                        return userDetailRole;
-                    }).collect(Collectors.toList()));
+            userDetails.setRoles(
+                userEntity
+                    .getRoles()
+                    .stream()
+                    .map(
+                        userEntityRole -> {
+                            UserDetailRole userDetailRole = new UserDetailRole();
+                            userDetailRole.setScope(userEntityRole.getScope().name());
+                            userDetailRole.setName(userEntityRole.getName());
+                            userDetailRole.setPermissions(userEntityRole.getPermissions());
+                            return userDetailRole;
+                        }
+                    )
+                    .collect(Collectors.toList())
+            );
 
             userDetails.setFirstLogin(1 == userEntity.getLoginCount());
             if (userEntity.getCustomFields() != null) {
@@ -180,12 +203,14 @@ public class CurrentUserResource extends AbstractResource {
 
     @DELETE
     @ApiOperation(value = "Delete the current logged user")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Current user successfully deleted"),
             @ApiResponse(code = 401, message = "Unauthorized"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response deleteCurrentUser() {
-
         if (isAuthenticated()) {
             userService.delete(getAuthenticatedUser());
             logoutCurrentUser();
@@ -197,11 +222,14 @@ public class CurrentUserResource extends AbstractResource {
 
     @PUT
     @ApiOperation(value = "Update the authenticated user")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Updated user", response = UserEntity.class),
             @ApiResponse(code = 400, message = "Invalid user profile"),
             @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response updateCurrentUser(@Valid @NotNull final UpdateUserEntity user) {
         UserEntity userEntity = userService.findById(getAuthenticatedUser());
         try {
@@ -221,10 +249,13 @@ public class CurrentUserResource extends AbstractResource {
     @GET
     @Path("avatar")
     @ApiOperation(value = "Get user's avatar")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "User's avatar"),
             @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response getCurrentUserPicture(@Context Request request) {
         String userId = userService.findById(getAuthenticatedUser()).getId();
         PictureEntity picture = userService.getPicture(userId);
@@ -248,11 +279,7 @@ public class CurrentUserResource extends AbstractResource {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(image.getContent(), 0, image.getContent().length);
 
-        return ok()
-                .entity(baos)
-                .tag(etag)
-                .type(image.getType())
-                .build();
+        return ok().entity(baos).tag(etag).type(image.getType()).build();
     }
 
     @POST
@@ -269,47 +296,69 @@ public class CurrentUserResource extends AbstractResource {
             final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
             // Manage authorities, initialize it with dynamic permissions from the IDP
-            List<Map<String, String>> authorities = userDetails.getAuthorities().stream().map(authority -> Maps.<String, String>builder().put("authority", authority.getAuthority()).build()).collect(Collectors.toList());
+            List<Map<String, String>> authorities = userDetails
+                .getAuthorities()
+                .stream()
+                .map(authority -> Maps.<String, String>builder().put("authority", authority.getAuthority()).build())
+                .collect(Collectors.toList());
 
             // We must also load permissions from repository for configured management or portal role
             Set<RoleEntity> roles = membershipService.getRoles(
-                    MembershipReferenceType.ORGANIZATION,
-                    GraviteeContext.getCurrentOrganization(),
-                    MembershipMemberType.USER,
-                    userDetails.getUsername());
+                MembershipReferenceType.ORGANIZATION,
+                GraviteeContext.getCurrentOrganization(),
+                MembershipMemberType.USER,
+                userDetails.getUsername()
+            );
             if (!roles.isEmpty()) {
-                roles.forEach(role -> authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()));
+                roles.forEach(
+                    role ->
+                        authorities.add(
+                            Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
+                        )
+                );
             }
 
-            this.environmentService.findByOrganization(GraviteeContext.getCurrentOrganization()).stream()
-                    .flatMap(env -> membershipService.getRoles(
-                            MembershipReferenceType.ENVIRONMENT,
-                            env.getId(),
-                            MembershipMemberType.USER,
-                            userDetails.getUsername()).stream())
-                    .filter(Objects::nonNull)
-                    .forEach(role -> authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()));
-
+            this.environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())
+                .stream()
+                .flatMap(
+                    env ->
+                        membershipService
+                            .getRoles(
+                                MembershipReferenceType.ENVIRONMENT,
+                                env.getId(),
+                                MembershipMemberType.USER,
+                                userDetails.getUsername()
+                            )
+                            .stream()
+                )
+                .filter(Objects::nonNull)
+                .forEach(
+                    role ->
+                        authorities.add(
+                            Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
+                        )
+                );
 
             // JWT signer
             Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
 
             Date issueAt = new Date();
-            Instant expireAt = issueAt.toInstant().plus(Duration.ofSeconds(environment.getProperty("jwt.expire-after",
-                    Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
+            Instant expireAt = issueAt
+                .toInstant()
+                .plus(Duration.ofSeconds(environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
 
-            final String token = JWT.create()
-                    .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
-                    .withIssuedAt(issueAt)
-                    .withExpiresAt(Date.from(expireAt))
-                    .withSubject(userDetails.getUsername())
-                    .withClaim(JWTHelper.Claims.PERMISSIONS, authorities)
-                    .withClaim(JWTHelper.Claims.EMAIL, userDetails.getEmail())
-                    .withClaim(JWTHelper.Claims.FIRSTNAME, userDetails.getFirstname())
-                    .withClaim(JWTHelper.Claims.LASTNAME, userDetails.getLastname())
-                    .withJWTId(UUID.randomUUID().toString())
-                    .sign(algorithm);
-
+            final String token = JWT
+                .create()
+                .withIssuer(environment.getProperty("jwt.issuer", DEFAULT_JWT_ISSUER))
+                .withIssuedAt(issueAt)
+                .withExpiresAt(Date.from(expireAt))
+                .withSubject(userDetails.getUsername())
+                .withClaim(JWTHelper.Claims.PERMISSIONS, authorities)
+                .withClaim(JWTHelper.Claims.EMAIL, userDetails.getEmail())
+                .withClaim(JWTHelper.Claims.FIRSTNAME, userDetails.getFirstname())
+                .withClaim(JWTHelper.Claims.LASTNAME, userDetails.getLastname())
+                .withJWTId(UUID.randomUUID().toString())
+                .sign(algorithm);
 
             final TokenEntity tokenEntity = new TokenEntity();
             tokenEntity.setType(BEARER);
@@ -335,10 +384,13 @@ public class CurrentUserResource extends AbstractResource {
     @Path("/tasks")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get the user's tasks")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "User's tasks"),
             @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public PagedResult getUserTasks() {
         List<TaskEntity> tasks = taskService.findAll(getAuthenticatedUserOrNull());
         Map<String, Map<String, Object>> metadata = taskService.getMetadata(tasks).getMetadata();
@@ -350,10 +402,13 @@ public class CurrentUserResource extends AbstractResource {
     @GET
     @Path("/tags")
     @ApiOperation(value = "Get the user's allowed sharding tags")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "User's sharding tags"),
             @ApiResponse(code = 404, message = "User not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserShardingTags() {
         return Response.ok(tagService.findByUser(getAuthenticatedUser())).build();

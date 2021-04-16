@@ -21,9 +21,8 @@ import io.gravitee.repository.management.api.AlertEventRepository;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AlertEvent;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,7 +35,7 @@ public class AlertEventRepositoryProxy extends AbstractProxy<AlertEventRepositor
         return target.search(criteria, pageable);
     }
 
-    public void deleteAll(String alertId){
+    public void deleteAll(String alertId) {
         target.deleteAll(alertId);
     }
 

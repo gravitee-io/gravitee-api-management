@@ -25,8 +25,10 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PortalAuthentication extends CommonAuthentication {
+
     @ParameterKey(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED)
     private Enabled forceLogin;
+
     @ParameterKey(Key.PORTAL_AUTHENTICATION_LOCALLOGIN_ENABLED)
     private Enabled localLogin;
 

@@ -21,6 +21,4 @@ import org.apache.xmlbeans.XmlCursor;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SoapBookmark extends XmlCursor.XmlBookmark {
-
-}
+public class SoapBookmark extends XmlCursor.XmlBookmark {}

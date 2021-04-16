@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import static java.util.Collections.singletonMap;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.PlanSecurityType;
-
 import java.util.Map;
-
-import static java.util.Collections.singletonMap;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

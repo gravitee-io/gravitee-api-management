@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.model;
 
+import io.gravitee.rest.api.model.common.PageableImpl;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
-
-import io.gravitee.rest.api.model.common.PageableImpl;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,8 +27,8 @@ import io.gravitee.rest.api.model.common.PageableImpl;
  */
 public class Pageable {
 
-    private final static int DEFAULT_PAGE_SIZE = 20;
-    private final static int DEFAULT_PAGE_NUMBER = 1;
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int DEFAULT_PAGE_NUMBER = 1;
 
     @QueryParam("size")
     @DefaultValue("20")

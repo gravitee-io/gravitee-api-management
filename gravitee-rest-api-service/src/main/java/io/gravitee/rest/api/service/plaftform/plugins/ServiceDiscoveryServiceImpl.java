@@ -19,24 +19,22 @@ import io.gravitee.plugin.discovery.ServiceDiscoveryPlugin;
 import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
 import io.gravitee.rest.api.service.ServiceDiscoveryService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
-import org.springframework.stereotype.Component;
-
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class ServiceDiscoveryServiceImpl extends AbstractPluginService<ServiceDiscoveryPlugin, PluginEntity> implements ServiceDiscoveryService {
+public class ServiceDiscoveryServiceImpl
+    extends AbstractPluginService<ServiceDiscoveryPlugin, PluginEntity>
+    implements ServiceDiscoveryService {
 
     @Override
     public Set<PluginEntity> findAll() {
-        return super.list()
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+        return super.list().stream().map(this::convert).collect(Collectors.toSet());
     }
 
     @Override

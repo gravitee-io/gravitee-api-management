@@ -15,19 +15,20 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl.binding;
 
-import javax.wsdl.BindingOperation;
-import javax.wsdl.extensions.soap12.SOAP12Body;
-import javax.wsdl.extensions.soap12.SOAP12Header;
-import javax.xml.namespace.QName;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.extractAllElements;
 import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.extractFirstElement;
 import static java.util.Collections.emptyList;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.wsdl.BindingOperation;
+import javax.wsdl.extensions.soap12.SOAP12Body;
+import javax.wsdl.extensions.soap12.SOAP12Header;
+import javax.xml.namespace.QName;
+
 public class Soap12Binding extends AbstractBinding {
+
     public static final String SOAP12_ENVELOPE_NS = "http://www.w3.org/2003/05/soap-envelope";
     public static final String SOAP12_ENVELOPE_PREFIX = "soapenv";
 
@@ -44,8 +45,9 @@ public class Soap12Binding extends AbstractBinding {
     @Override
     public BobyParts extractBodyParts(List<Object> elements) {
         Optional<SOAP12Body> optBody12 = extractFirstElement(elements, SOAP12Body.class);
-        final Optional<BobyParts> optionalBobyParts =
-                optBody12.map(body -> new BobyParts(body.getParts() == null ? emptyList() : body.getParts(), body.getUse()));
+        final Optional<BobyParts> optionalBobyParts = optBody12.map(
+            body -> new BobyParts(body.getParts() == null ? emptyList() : body.getParts(), body.getUse())
+        );
         return optionalBobyParts.orElse(null);
     }
 
@@ -58,13 +60,16 @@ public class Soap12Binding extends AbstractBinding {
     @Override
     public List<HeaderDef> extractHeaderParts(List<Object> elements) {
         return extractAllElements(elements, SOAP12Header.class)
-                .map(header -> new HeaderDef(header.getMessage(), header.getUse(), header.getPart(), header.getRequired()))
-                .collect(Collectors.toList());
+            .map(header -> new HeaderDef(header.getMessage(), header.getUse(), header.getPart(), header.getRequired()))
+            .collect(Collectors.toList());
     }
 
     @Override
     public String getRpcNamespace(BindingOperation bindingOperation) {
-        Optional<SOAP12Body> optional = extractFirstElement(bindingOperation.getBindingInput().getExtensibilityElements(), SOAP12Body.class);
+        Optional<SOAP12Body> optional = extractFirstElement(
+            bindingOperation.getBindingInput().getExtensibilityElements(),
+            SOAP12Body.class
+        );
         return optional.get().getNamespaceURI();
     }
 

@@ -116,5 +116,4 @@ public class ConsoleConfigEntity {
     public void setTheme(Theme theme) {
         this.theme = theme;
     }
-
 }

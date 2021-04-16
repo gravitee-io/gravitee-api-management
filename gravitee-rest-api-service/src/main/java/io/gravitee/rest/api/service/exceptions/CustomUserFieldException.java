@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.Maps;
-
 import java.util.Map;
 
 /**
@@ -25,6 +24,7 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class CustomUserFieldException extends AbstractManagementException {
+
     private String key;
     private String action;
 
@@ -48,10 +48,7 @@ public class CustomUserFieldException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps.<String, String>builder()
-                .put("key", key)
-                .put("action", action)
-                .build();
+        return Maps.<String, String>builder().put("key", key).put("action", action).build();
     }
 
     @Override
@@ -61,6 +58,6 @@ public class CustomUserFieldException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return this.message == null ? "Unable to " + action + " the custom user field '"+key+"'" : this.message;
+        return this.message == null ? "Unable to " + action + " the custom user field '" + key + "'" : this.message;
     }
 }

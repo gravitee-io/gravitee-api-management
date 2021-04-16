@@ -26,13 +26,12 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.HashSet;
+import java.util.Set;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.util.HashSet;
-import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
@@ -42,52 +41,61 @@ public class ApplicationNotificationResource extends AbstractResource {
 
     @Autowired
     private PortalNotificationConfigService portalNotificationConfigService;
+
     @Autowired
     private GenericNotificationConfigService genericNotificationConfigService;
+
     @Autowired
     private ApplicationService applicationService;
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.READ) })
     public Response get(@PathParam("applicationId") String applicationId) {
         //Does application exists ?
         applicationService.findById(applicationId);
 
-        final PortalNotificationConfigEntity portalConfig =
-                portalNotificationConfigService.findById(getAuthenticatedUser(), NotificationReferenceType.APPLICATION, applicationId);
+        final PortalNotificationConfigEntity portalConfig = portalNotificationConfigService.findById(
+            getAuthenticatedUser(),
+            NotificationReferenceType.APPLICATION,
+            applicationId
+        );
 
         final Set<String> hooks = new HashSet<>(portalConfig.getHooks());
-        
-        genericNotificationConfigService.findByReference(NotificationReferenceType.APPLICATION, applicationId)
-                .forEach(genericNotif -> hooks.addAll(genericNotif.getHooks()));
+
+        genericNotificationConfigService
+            .findByReference(NotificationReferenceType.APPLICATION, applicationId)
+            .forEach(genericNotif -> hooks.addAll(genericNotif.getHooks()));
         return Response.ok(hooks).build();
     }
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.UPDATE)
-    })
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_NOTIFICATION, acls = RolePermissionAction.UPDATE) })
     public Response update(
-            @PathParam("applicationId") String applicationId,
-            @NotNull(message="Input must not be null.") NotificationInput notification) {
+        @PathParam("applicationId") String applicationId,
+        @NotNull(message = "Input must not be null.") NotificationInput notification
+    ) {
         //Does application exists ?
         applicationService.findById(applicationId);
 
-        final PortalNotificationConfigEntity portalConfig =
-                portalNotificationConfigService.findById(getAuthenticatedUser(), NotificationReferenceType.APPLICATION, applicationId);
+        final PortalNotificationConfigEntity portalConfig = portalNotificationConfigService.findById(
+            getAuthenticatedUser(),
+            NotificationReferenceType.APPLICATION,
+            applicationId
+        );
         portalConfig.setHooks(notification.getHooks());
         portalNotificationConfigService.save(portalConfig);
 
-        genericNotificationConfigService.findByReference(NotificationReferenceType.APPLICATION, applicationId)
-                .forEach(genericConfig -> {
+        genericNotificationConfigService
+            .findByReference(NotificationReferenceType.APPLICATION, applicationId)
+            .forEach(
+                genericConfig -> {
                     genericConfig.setHooks(notification.getHooks());
                     genericNotificationConfigService.update(genericConfig);
-                });
+                }
+            );
         return Response.ok(notification.getHooks()).build();
     }
 }

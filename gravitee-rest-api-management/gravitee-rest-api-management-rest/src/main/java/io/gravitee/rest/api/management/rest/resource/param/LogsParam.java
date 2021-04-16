@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.swagger.annotations.ApiParam;
-
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -31,24 +30,32 @@ public class LogsParam {
     @QueryParam("from")
     @ApiParam(value = "Timestamp used to define the start date of the time window to query")
     private long from;
+
     @QueryParam("to")
     @ApiParam(value = "Timestamp used to define the end date of the time window to query")
     private long to;
-    @ApiParam(name="query",
-            value = "The expresion used to search for logs. It looks like 'transaction:123-456-789 AND uri=\\\\/path\\\\/to\\\\/resource* AND response-time:[100 TO 200]'." +
-                    " Reserved characters that must be escaped + - = && || > < ! ( ) { } [ ] ^ \" ~ * ? : \\ /")
+
+    @ApiParam(
+        name = "query",
+        value = "The expresion used to search for logs. It looks like 'transaction:123-456-789 AND uri=\\\\/path\\\\/to\\\\/resource* AND response-time:[100 TO 200]'." +
+        " Reserved characters that must be escaped + - = && || > < ! ( ) { } [ ] ^ \" ~ * ? : \\ /"
+    )
     @QueryParam("query")
     private String query;
+
     @QueryParam("size")
     @DefaultValue("20")
     @ApiParam(value = "The number of data to retrieve")
     private int size;
+
     @QueryParam("page")
     @DefaultValue("1")
     private int page;
+
     @QueryParam("field")
     @ApiParam(value = "The field to query when doing `group_by` queries")
     private String field;
+
     @QueryParam("order")
     @ApiParam(value = "true means ASC order, false means DESC")
     private boolean order;
@@ -111,24 +118,21 @@ public class LogsParam {
 
     public void validate() throws WebApplicationException {
         if (from == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'from' is not valid")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'from' is not valid").build()
+            );
         }
 
         if (to == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'to' is not valid")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'to' is not valid").build()
+            );
         }
 
         if (from >= to) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'from' query parameter value must be greater than 'to'")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("'from' query parameter value must be greater than 'to'").build()
+            );
         }
 
         if (page < 0) {

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -42,29 +41,37 @@ public class Api3_0VersionSerializer extends ApiSerializer {
         // path mappings part
         if (apiEntity.getPathMappings() != null) {
             jsonGenerator.writeArrayFieldStart("path_mappings");
-            apiEntity.getPathMappings().forEach(pathMapping -> {
-                try {
-                    jsonGenerator.writeObject(pathMapping);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            apiEntity
+                .getPathMappings()
+                .forEach(
+                    pathMapping -> {
+                        try {
+                            jsonGenerator.writeObject(pathMapping);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                );
             jsonGenerator.writeEndArray();
         }
 
         // proxy part
         if (apiEntity.getProxy() != null) {
-
             Set<EndpointGroup> groups = apiEntity.getProxy().getGroups();
             if (groups != null) {
-                groups.forEach(grp ->  {
-                    if (grp.getEndpoints() != null) {
-                        grp.setEndpoints(grp.getEndpoints()
-                                .stream()
-                                .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
-                                .collect(Collectors.toSet()));
+                groups.forEach(
+                    grp -> {
+                        if (grp.getEndpoints() != null) {
+                            grp.setEndpoints(
+                                grp
+                                    .getEndpoints()
+                                    .stream()
+                                    .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
+                                    .collect(Collectors.toSet())
+                            );
+                        }
                     }
-                });
+                );
             }
             jsonGenerator.writeObjectField("proxy", apiEntity.getProxy());
         }
@@ -72,9 +79,9 @@ public class Api3_0VersionSerializer extends ApiSerializer {
         // response templates
         if (apiEntity.getResponseTemplates() != null) {
             jsonGenerator.writeObjectFieldStart("response_templates");
-            for(Map.Entry<String, ResponseTemplates> rt : apiEntity.getResponseTemplates().entrySet()) {
+            for (Map.Entry<String, ResponseTemplates> rt : apiEntity.getResponseTemplates().entrySet()) {
                 jsonGenerator.writeObjectFieldStart(rt.getKey());
-                for(Map.Entry<String, ResponseTemplate> entry : rt.getValue().getTemplates().entrySet()) {
+                for (Map.Entry<String, ResponseTemplate> entry : rt.getValue().getTemplates().entrySet()) {
                     jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
                 }
                 jsonGenerator.writeEndObject();

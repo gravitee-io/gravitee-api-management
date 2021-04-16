@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.service.MediaService;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -39,7 +38,7 @@ public class MediaResource extends AbstractResource {
 
     @GET
     @Path("{mediaHash}")
-    @Produces({MediaType.WILDCARD, MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.WILDCARD, MediaType.APPLICATION_JSON })
     public Response getPortalMedia(@Context Request request, @PathParam("mediaHash") String mediaHash) {
         MediaEntity mediaEntity = mediaService.findByHash(mediaHash, true);
 
@@ -49,5 +48,4 @@ public class MediaResource extends AbstractResource {
 
         return createMediaResponse(request, mediaHash, mediaEntity);
     }
-
 }

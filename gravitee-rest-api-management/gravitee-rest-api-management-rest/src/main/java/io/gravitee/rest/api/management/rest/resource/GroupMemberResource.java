@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.GroupService;
 import io.swagger.annotations.*;
-
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PathParam;
@@ -30,10 +29,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Group Memberships"})
+@Api(tags = { "Group Memberships" })
 public class GroupMemberResource extends AbstractResource {
 
     @Context
@@ -49,17 +48,22 @@ public class GroupMemberResource extends AbstractResource {
 
     @DELETE
     @ApiOperation(value = "Remove a group member")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Member has been removed successfully"),
             @ApiResponse(code = 400, message = "User does not exist"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions(
+        {
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.DELETE)
-    })
+            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.DELETE),
+        }
+    )
     public Response deleteGroupMember(@PathParam("member") String userId) {
         groupService.deleteUserFromGroup(group, userId);
-        
+
         return Response.ok().build();
     }
 }

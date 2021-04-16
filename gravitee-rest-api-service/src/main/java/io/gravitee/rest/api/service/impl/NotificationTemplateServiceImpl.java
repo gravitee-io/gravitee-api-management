@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.NOTIFICATION_TEMPLATE;
+
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.cache.TemplateLoader;
@@ -37,6 +39,12 @@ import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundExcep
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
 import io.gravitee.rest.api.service.notification.*;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,17 +55,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.NOTIFICATION_TEMPLATE;
-
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com) 
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -89,7 +88,9 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         Collections.addAll(allHooks, ApplicationHook.values());
         Collections.addAll(allHooks, ActionHook.values());
 
-        this.fromFilesNotificationTemplateEntities = allHooks.stream()
+        this.fromFilesNotificationTemplateEntities =
+            allHooks
+                .stream()
                 .map(this::loadNotificationTemplatesFromHook)
                 .flatMap(List::stream)
                 .filter(Objects::nonNull)
@@ -97,17 +98,17 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
         // Must add HTML template files that are not linked to a Hook. They may be useful for inclusion in others templates (e.g header.html)
         this.fromFilesNotificationTemplateEntities.putAll(this.addExtraHtmlTemplate());
-
     }
 
     private Map<String, NotificationTemplateEntity> addExtraHtmlTemplate() {
         try {
-            return Files.list(new File(templatesPath).toPath())
-                    .filter(path -> path.getFileName().toString().endsWith(HTML_TEMPLATE_EXTENSION))
-                    .filter(path -> EmailTemplate.fromHtmlTemplateName(path.getFileName().toString()) == null)
-                    .map(path -> this.loadEmailNotificationTemplateFromFile(path))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toMap(NotificationTemplateEntity::getTemplateName, Function.identity()));
+            return Files
+                .list(new File(templatesPath).toPath())
+                .filter(path -> path.getFileName().toString().endsWith(HTML_TEMPLATE_EXTENSION))
+                .filter(path -> EmailTemplate.fromHtmlTemplateName(path.getFileName().toString()) == null)
+                .map(path -> this.loadEmailNotificationTemplateFromFile(path))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(NotificationTemplateEntity::getTemplateName, Function.identity()));
         } catch (IOException e) {
             LOGGER.warn("Problem while getting freemarker templates from files", e);
             return Collections.emptyMap();
@@ -166,8 +167,9 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
     private Configuration initCurrentOrgFreemarkerConfiguration(String currentOrganization) {
         // Init the configuration
-        final freemarker.template.Configuration configuration =
-                new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_22);
+        final freemarker.template.Configuration configuration = new freemarker.template.Configuration(
+            freemarker.template.Configuration.VERSION_2_3_22
+        );
 
         configuration.setNewBuiltinClassResolver(TemplateClassResolver.SAFER_RESOLVER);
 
@@ -184,14 +186,17 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
         // First we add a loader for templates from Database since their priority is higher
         StringTemplateLoader orgCustomizedTemplatesLoader = new StringTemplateLoader();
-        this.findAllInDatabase(currentOrganization, NotificationTemplateReferenceType.ORGANIZATION).forEach(template -> {
-            if (template.isEnabled()) {
-                if (template.getTitle() != null && !template.getTitle().isEmpty()) {
-                    orgCustomizedTemplatesLoader.putTemplate(template.getTitleTemplateName(), template.getTitle());
+        this.findAllInDatabase(currentOrganization, NotificationTemplateReferenceType.ORGANIZATION)
+            .forEach(
+                template -> {
+                    if (template.isEnabled()) {
+                        if (template.getTitle() != null && !template.getTitle().isEmpty()) {
+                            orgCustomizedTemplatesLoader.putTemplate(template.getTitleTemplateName(), template.getTitle());
+                        }
+                        orgCustomizedTemplatesLoader.putTemplate(template.getContentTemplateName(), template.getContent());
+                    }
                 }
-                orgCustomizedTemplatesLoader.putTemplate(template.getContentTemplateName(), template.getContent());
-            }
-        });
+            );
         loaders.add(orgCustomizedTemplatesLoader);
 
         // Then we also add this loader to a map, so we can access them easily to update or remove a template
@@ -199,12 +204,16 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
         // Then we add a loader for portal template in files.
         StringTemplateLoader fileNotificationTemplatesLoader = new StringTemplateLoader();
-        this.fromFilesNotificationTemplateEntities.values().stream().forEach(template -> {
-            if(template.getTitle() != null && !template.getTitle().isEmpty()) {
-                fileNotificationTemplatesLoader.putTemplate(template.getTitleTemplateName(), template.getTitle());
-            }
-            fileNotificationTemplatesLoader.putTemplate(template.getContentTemplateName(), template.getContent());
-        });
+        this.fromFilesNotificationTemplateEntities.values()
+            .stream()
+            .forEach(
+                template -> {
+                    if (template.getTitle() != null && !template.getTitle().isEmpty()) {
+                        fileNotificationTemplatesLoader.putTemplate(template.getTitleTemplateName(), template.getTitle());
+                    }
+                    fileNotificationTemplatesLoader.putTemplate(template.getContentTemplateName(), template.getContent());
+                }
+            );
         loaders.add(fileNotificationTemplatesLoader);
 
         final MultiTemplateLoader multiTemplateLoader = new MultiTemplateLoader(loaders.toArray(new TemplateLoader[loaders.size()]));
@@ -212,12 +221,11 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         return multiTemplateLoader;
     }
 
-
     @Override
     public Set<NotificationTemplateEntity> findAll() {
-
         // Load all template from database
-        final Set<NotificationTemplateEntity> allFromDatabase = this.findAllInDatabase(GraviteeContext.getCurrentOrganization(), NotificationTemplateReferenceType.ORGANIZATION);
+        final Set<NotificationTemplateEntity> allFromDatabase =
+            this.findAllInDatabase(GraviteeContext.getCurrentOrganization(), NotificationTemplateReferenceType.ORGANIZATION);
 
         Set<NotificationTemplateEntity> all = new HashSet<>();
         all.addAll(allFromDatabase);
@@ -230,14 +238,13 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     private Set<NotificationTemplateEntity> findAllInDatabase(String referenceId, NotificationTemplateReferenceType referenceType) {
         try {
             return notificationTemplateRepository
-                    .findAllByReferenceIdAndReferenceType(referenceId, referenceType)
-                    .stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet());
+                .findAllByReferenceIdAndReferenceType(referenceId, referenceType)
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to retrieve notificationTemplates", ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to retrieve notificationTemplates", ex);
+            throw new TechnicalManagementException("An error occurs while trying to retrieve notificationTemplates", ex);
         }
     }
 
@@ -269,16 +276,15 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             Map<String, String> load = yaml.load(new FileInputStream(portalTemplateFile));
 
             return new NotificationTemplateEntity(
-                    hook.name(),
-                    hook.getScope().name(),
-                    templateName,
-                    hook.getLabel(),
-                    hook.getDescription(),
-                    load.get("title"),
-                    load.get("message"),
-                    io.gravitee.rest.api.model.notification.NotificationTemplateType.PORTAL
+                hook.name(),
+                hook.getScope().name(),
+                templateName,
+                hook.getLabel(),
+                hook.getDescription(),
+                load.get("title"),
+                load.get("message"),
+                io.gravitee.rest.api.model.notification.NotificationTemplateType.PORTAL
             );
-
         } catch (IOException e) {
             LOGGER.warn("Problem while getting freemarker template {} from file : {}", hook.getTemplate(), e.getMessage());
             return null;
@@ -294,17 +300,17 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
             try {
                 String title = (emailTemplate == null ? "unused title" : emailTemplate.getSubject());
-                String content = new String (Files.readAllBytes(emailTemplateFile.toPath()));
+                String content = new String(Files.readAllBytes(emailTemplateFile.toPath()));
 
                 return new NotificationTemplateEntity(
-                        hook.name(),
-                        hook.getScope().name(),
-                        templateName,
-                        hook.getLabel(),
-                        hook.getDescription(),
-                        title,
-                        content,
-                        io.gravitee.rest.api.model.notification.NotificationTemplateType.EMAIL
+                    hook.name(),
+                    hook.getScope().name(),
+                    templateName,
+                    hook.getLabel(),
+                    hook.getDescription(),
+                    title,
+                    content,
+                    io.gravitee.rest.api.model.notification.NotificationTemplateType.EMAIL
                 );
             } catch (IOException e) {
                 LOGGER.warn("Problem while getting freemarker template {} from file : {}", hook.getTemplate(), e.getMessage());
@@ -318,19 +324,18 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
         try {
             File templateFile = fileTemplateName.toFile();
-            String content = new String (Files.readAllBytes(templateFile.toPath()));
+            String content = new String(Files.readAllBytes(templateFile.toPath()));
 
             return new NotificationTemplateEntity(
-                    "",
-                    TEMPLATES_TO_INCLUDE_SCOPE,
-                    templateName,
-                    templateName,
-                    null,
-                    null,
-                    content,
-                    io.gravitee.rest.api.model.notification.NotificationTemplateType.EMAIL
+                "",
+                TEMPLATES_TO_INCLUDE_SCOPE,
+                templateName,
+                templateName,
+                null,
+                null,
+                content,
+                io.gravitee.rest.api.model.notification.NotificationTemplateType.EMAIL
             );
-
         } catch (IOException e) {
             LOGGER.warn("Problem while getting freemarker template {} from file : {}", templateName, e.getMessage());
         }
@@ -342,25 +347,30 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     public Set<NotificationTemplateEntity> findByType(io.gravitee.rest.api.model.notification.NotificationTemplateType type) {
         try {
             return notificationTemplateRepository
-                    .findByTypeAndReferenceIdAndReferenceType(NotificationTemplateType.valueOf(type.name()), GraviteeContext.getCurrentOrganization(), NotificationTemplateReferenceType.ORGANIZATION)
-                    .stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet());
+                .findByTypeAndReferenceIdAndReferenceType(
+                    NotificationTemplateType.valueOf(type.name()),
+                    GraviteeContext.getCurrentOrganization(),
+                    NotificationTemplateReferenceType.ORGANIZATION
+                )
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to retrieve notificationTemplates by type", ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to retrieve notificationTemplates by type", ex);
+            throw new TechnicalManagementException("An error occurs while trying to retrieve notificationTemplates by type", ex);
         }
     }
 
     @Override
     public Set<NotificationTemplateEntity> findByHookAndScope(String hook, String scope) {
-        return this.findAll().stream()
-                .filter(notificationTemplateEntity ->
-                        notificationTemplateEntity.getHook().equalsIgnoreCase(hook)
-                        && notificationTemplateEntity.getScope().equalsIgnoreCase(scope)
-                )
-                .collect(Collectors.toSet());
+        return this.findAll()
+            .stream()
+            .filter(
+                notificationTemplateEntity ->
+                    notificationTemplateEntity.getHook().equalsIgnoreCase(hook) &&
+                    notificationTemplateEntity.getScope().equalsIgnoreCase(scope)
+            )
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -379,7 +389,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                     newNotificationTemplate.getCreatedAt(),
                     null,
                     createdNotificationTemplate
-            );
+                );
 
             final NotificationTemplateEntity createdNotificationTemplateEntity = convert(createdNotificationTemplate);
 
@@ -401,15 +411,24 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 updatingNotificationTemplate.setUpdatedAt(new Date());
             }
 
-            Optional<NotificationTemplate> optNotificationTemplate = notificationTemplateRepository.findById(updatingNotificationTemplate.getId());
+            Optional<NotificationTemplate> optNotificationTemplate = notificationTemplateRepository.findById(
+                updatingNotificationTemplate.getId()
+            );
 
-            NotificationTemplate notificationTemplateToUpdate = optNotificationTemplate.orElseThrow( () -> new NotificationTemplateNotFoundException(updatingNotificationTemplate.getId()));
+            NotificationTemplate notificationTemplateToUpdate = optNotificationTemplate.orElseThrow(
+                () -> new NotificationTemplateNotFoundException(updatingNotificationTemplate.getId())
+            );
             notificationTemplateToUpdate.setTitle(updatingNotificationTemplate.getTitle());
             notificationTemplateToUpdate.setContent(updatingNotificationTemplate.getContent());
             notificationTemplateToUpdate.setEnabled(updatingNotificationTemplate.isEnabled());
             NotificationTemplate updatedNotificationTemplate = notificationTemplateRepository.update(notificationTemplateToUpdate);
 
-            createAuditLog(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED, updatingNotificationTemplate.getUpdatedAt(), optNotificationTemplate.get(), updatedNotificationTemplate);
+            createAuditLog(
+                NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED,
+                updatingNotificationTemplate.getUpdatedAt(),
+                optNotificationTemplate.get(),
+                updatedNotificationTemplate
+            );
 
             final NotificationTemplateEntity updatedNotificationTemplateEntity = convert(updatedNotificationTemplate);
 
@@ -445,8 +464,12 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
         try {
             // force cache to be reloaded
-            freemarkerConfigurationByOrg.get(GraviteeContext.getCurrentOrganization()).removeTemplateFromCache(notificationTemplate.getTitleTemplateName());
-            freemarkerConfigurationByOrg.get(GraviteeContext.getCurrentOrganization()).removeTemplateFromCache(notificationTemplate.getName());
+            freemarkerConfigurationByOrg
+                .get(GraviteeContext.getCurrentOrganization())
+                .removeTemplateFromCache(notificationTemplate.getTitleTemplateName());
+            freemarkerConfigurationByOrg
+                .get(GraviteeContext.getCurrentOrganization())
+                .removeTemplateFromCache(notificationTemplate.getName());
         } catch (IOException ex) {
             LOGGER.error("An error occurs while trying to update freemarker cache with this template {}", notificationTemplate, ex);
         }
@@ -465,19 +488,18 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             throw new NotificationTemplateNotFoundException(id);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete a notificationTemplate using its ID {}", id, ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to delete a notificationTemplate using its ID " + id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a notificationTemplate using its ID " + id, ex);
         }
     }
 
     private void createAuditLog(Audit.AuditEvent event, Date createdAt, NotificationTemplate oldValue, NotificationTemplate newValue) {
         String notificationTemplateName = oldValue != null ? oldValue.getName() : newValue.getName();
         auditService.createOrganizationAuditLog(
-                Collections.singletonMap(NOTIFICATION_TEMPLATE, notificationTemplateName),
-                event,
-                createdAt,
-                oldValue,
-                newValue
+            Collections.singletonMap(NOTIFICATION_TEMPLATE, notificationTemplateName),
+            event,
+            createdAt,
+            oldValue,
+            newValue
         );
     }
 
@@ -511,7 +533,9 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         notificationTemplateEntity.setDescription((notificationTemplate.getDescription()));
         notificationTemplateEntity.setTitle(notificationTemplate.getTitle());
         notificationTemplateEntity.setContent(notificationTemplate.getContent());
-        notificationTemplateEntity.setType(io.gravitee.rest.api.model.notification.NotificationTemplateType.valueOf(notificationTemplate.getType().name()));
+        notificationTemplateEntity.setType(
+            io.gravitee.rest.api.model.notification.NotificationTemplateType.valueOf(notificationTemplate.getType().name())
+        );
         notificationTemplateEntity.setCreatedAt(notificationTemplate.getCreatedAt());
         notificationTemplateEntity.setUpdatedAt(notificationTemplate.getUpdatedAt());
         notificationTemplateEntity.setEnabled(notificationTemplate.isEnabled());
@@ -519,7 +543,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         if (TEMPLATES_TO_INCLUDE_SCOPE.equalsIgnoreCase(notificationTemplate.getScope())) {
             notificationTemplateEntity.setTemplateName(notificationTemplate.getName());
         } else {
-            StringBuilder sb  = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.append(notificationTemplate.getScope());
             sb.append(".");
             sb.append(notificationTemplate.getHook());
@@ -529,5 +553,4 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         }
         return notificationTemplateEntity;
     }
-
 }

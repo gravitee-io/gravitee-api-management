@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.VirtualHost;
@@ -24,6 +28,9 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
 import io.gravitee.rest.api.service.impl.VirtualHostServiceImpl;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,14 +39,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -224,9 +223,17 @@ public class VirtualHostServiceTest {
         when(api1.getId()).thenReturn(api);
         when(api1.getEnvironmentId()).thenReturn("DEFAULT");
         if (host == null) {
-            when(api1.getDefinition()).thenReturn("{\"id\": \"" + api + "\",\"name\": \"API 1\",\"proxy\": {\"context_path\": \"" + path + "\"}}");
+            when(api1.getDefinition())
+                .thenReturn("{\"id\": \"" + api + "\",\"name\": \"API 1\",\"proxy\": {\"context_path\": \"" + path + "\"}}");
         } else {
-            when(api1.getDefinition()).thenReturn("{\"id\": \"" + api + "\",\"name\": \"API 1\",\"proxy\": {\"virtual_hosts\": [{\"host\": \"api.gravitee.io\", \"path\": \"" + path + "\"}]}}");
+            when(api1.getDefinition())
+                .thenReturn(
+                    "{\"id\": \"" +
+                    api +
+                    "\",\"name\": \"API 1\",\"proxy\": {\"virtual_hosts\": [{\"host\": \"api.gravitee.io\", \"path\": \"" +
+                    path +
+                    "\"}]}}"
+                );
         }
 
         return api1;

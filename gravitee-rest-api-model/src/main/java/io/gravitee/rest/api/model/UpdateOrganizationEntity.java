@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -28,6 +27,7 @@ import java.util.Objects;
 public class UpdateOrganizationEntity {
 
     private String id;
+
     @NotNull
     @Size(min = 1)
     private String name;
@@ -35,7 +35,7 @@ public class UpdateOrganizationEntity {
     private String description;
 
     private List<String> domainRestrictions;
-    
+
     public String getId() {
         return id;
     }
@@ -73,8 +73,7 @@ public class UpdateOrganizationEntity {
         if (this == o) return true;
         if (!(o instanceof UpdateOrganizationEntity)) return false;
         UpdateOrganizationEntity that = (UpdateOrganizationEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name);
     }
 
     @Override
@@ -84,11 +83,21 @@ public class UpdateOrganizationEntity {
 
     @Override
     public String toString() {
-        return "UpdateOrganizationEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", domain restrictions='" + domainRestrictions + '\'' +
-                '}';
+        return (
+            "UpdateOrganizationEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", domain restrictions='" +
+            domainRestrictions +
+            '\'' +
+            '}'
+        );
     }
 }

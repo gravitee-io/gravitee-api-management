@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -29,136 +28,140 @@ import java.util.Map;
  */
 public class NewPageEntity {
 
-	@NotNull
-	@Size(min = 1)
-	private String name;
+    @NotNull
+    @Size(min = 1)
+    private String name;
 
-	@NotNull
-	private PageType type;
+    @NotNull
+    private PageType type;
 
-	private String content;
+    private String content;
 
-	private int order;
+    private int order;
 
-	private boolean published;
+    private boolean published;
 
-	private String lastContributor;
+    private String lastContributor;
 
-	private PageSourceEntity source;
+    private PageSourceEntity source;
 
-	private Map<String, String> configuration;
+    private Map<String, String> configuration;
 
-	private boolean homepage;
+    private boolean homepage;
 
-	@JsonProperty("excluded_groups")
-	private List<String> excludedGroups;
+    @JsonProperty("excluded_groups")
+    private List<String> excludedGroups;
 
-	@JsonProperty("attached_media")
-	private List<PageMediaEntity> attachedMedia;
+    @JsonProperty("attached_media")
+    private List<PageMediaEntity> attachedMedia;
 
-	private String parentId;
+    private String parentId;
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public PageType getType() {
-		return type;
-	}
+    public PageType getType() {
+        return type;
+    }
 
-	public void setType(PageType type) {
-		this.type = type;
-	}
+    public void setType(PageType type) {
+        this.type = type;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    public String getContent() {
+        return content;
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-	public int getOrder() {
-		return order;
-	}
+    public int getOrder() {
+        return order;
+    }
 
-	public void setOrder(int order) {
-		this.order = order;
-	}
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
-	public boolean isPublished() {
-		return published;
-	}
+    public boolean isPublished() {
+        return published;
+    }
 
-	public void setPublished(boolean published) {
-		this.published = published;
-	}
+    public void setPublished(boolean published) {
+        this.published = published;
+    }
 
-	public String getLastContributor() {
-		return lastContributor;
-	}
+    public String getLastContributor() {
+        return lastContributor;
+    }
 
-	public void setLastContributor(String lastContributor) {
-		this.lastContributor = lastContributor;
-	}
+    public void setLastContributor(String lastContributor) {
+        this.lastContributor = lastContributor;
+    }
 
-	public PageSourceEntity getSource() {
-		return source;
-	}
+    public PageSourceEntity getSource() {
+        return source;
+    }
 
-	public void setSource(PageSourceEntity source) {
-		this.source = source;
-	}
+    public void setSource(PageSourceEntity source) {
+        this.source = source;
+    }
 
-	public Map<String, String> getConfiguration() {
-		return configuration;
-	}
+    public Map<String, String> getConfiguration() {
+        return configuration;
+    }
 
-	public void setConfiguration(Map<String, String> configuration) {
-		this.configuration = configuration;
-	}
+    public void setConfiguration(Map<String, String> configuration) {
+        this.configuration = configuration;
+    }
 
-	public boolean isHomepage() {
-		return homepage;
-	}
+    public boolean isHomepage() {
+        return homepage;
+    }
 
-	public void setHomepage(boolean homepage) {
-		this.homepage = homepage;
-	}
+    public void setHomepage(boolean homepage) {
+        this.homepage = homepage;
+    }
 
-	public List<String> getExcludedGroups() {
-		return excludedGroups;
-	}
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
 
-	public void setExcludedGroups(List<String> excludedGroups) {
-		this.excludedGroups = excludedGroups;
-	}
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
+    }
 
-	public String getParentId() { return parentId; }
+    public String getParentId() {
+        return parentId;
+    }
 
-	public void setParentId(String parentId) { this.parentId = parentId; }
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
 
-	@Override
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
         sb.append("name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append(", order='").append(order).append('\'');
-		sb.append(", homepage='").append(homepage).append('\'');
+        sb.append(", homepage='").append(homepage).append('\'');
         sb.append(", lastContributor='").append(lastContributor).append('\'');
         sb.append('}');
         return sb.toString();
     }
 
-	public List<PageMediaEntity> getAttachedMedia() {
-		return attachedMedia;
-	}
+    public List<PageMediaEntity> getAttachedMedia() {
+        return attachedMedia;
+    }
 
-	public void setAttachedMedia(List<PageMediaEntity> attachedMedia) {
-		this.attachedMedia = attachedMedia;
-	}
+    public void setAttachedMedia(List<PageMediaEntity> attachedMedia) {
+        this.attachedMedia = attachedMedia;
+    }
 }

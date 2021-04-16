@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
@@ -23,9 +26,6 @@ import io.gravitee.rest.api.portal.rest.model.ReferenceMetadata;
 import io.gravitee.rest.api.portal.rest.model.ReferenceMetadataFormatType;
 import io.gravitee.rest.api.portal.rest.model.ReferenceMetadataInput;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -74,7 +74,10 @@ public class ReferenceMetadataMapperTest {
         metadataInput.setName(METADATA_NAME);
 
         //Test
-        final NewApplicationMetadataEntity newApplicationMetadataEntity = referenceMetadataMapper.convert(metadataInput, METADATA_APPLICATION_ID);
+        final NewApplicationMetadataEntity newApplicationMetadataEntity = referenceMetadataMapper.convert(
+            metadataInput,
+            METADATA_APPLICATION_ID
+        );
         assertNotNull(newApplicationMetadataEntity);
         assertEquals(METADATA_APPLICATION_ID, newApplicationMetadataEntity.getApplicationId());
         assertEquals(METADATA_DEFAULT_VALUE, newApplicationMetadataEntity.getDefaultValue());
@@ -93,7 +96,11 @@ public class ReferenceMetadataMapperTest {
         metadataInput.setName(METADATA_NAME);
 
         //Test
-        final UpdateApplicationMetadataEntity updateApplicationMetadataEntity = referenceMetadataMapper.convert(metadataInput, METADATA_APPLICATION_ID, METADATA_KEY);
+        final UpdateApplicationMetadataEntity updateApplicationMetadataEntity = referenceMetadataMapper.convert(
+            metadataInput,
+            METADATA_APPLICATION_ID,
+            METADATA_KEY
+        );
         assertNotNull(updateApplicationMetadataEntity);
         assertEquals(METADATA_APPLICATION_ID, updateApplicationMetadataEntity.getApplicationId());
         assertEquals(METADATA_DEFAULT_VALUE, updateApplicationMetadataEntity.getDefaultValue());

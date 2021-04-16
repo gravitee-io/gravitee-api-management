@@ -15,18 +15,16 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-
 import io.gravitee.rest.api.model.NewTenantEntity;
 import io.gravitee.rest.api.model.TenantEntity;
 import io.gravitee.rest.api.model.UpdateTenantEntity;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface TenantService {
-
     List<TenantEntity> findAll();
 
     TenantEntity findById(String tenantId);

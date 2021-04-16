@@ -19,11 +19,10 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
+import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.io.IOException;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -45,5 +44,4 @@ public class ApiService_gRPC_ExportAsJsonV2Test extends ApiService_gRPC_ExportAs
     public void shouldConvertAsJsonForExport_3_0V2() throws TechnicalException, IOException {
         shouldConvertAsJsonForExport(ApiSerializer.Version.V_3_0, "3_0V2");
     }
-
 }

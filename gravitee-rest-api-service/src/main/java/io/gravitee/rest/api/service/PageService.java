@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-
 import java.util.List;
 import java.util.Map;
 
@@ -31,73 +30,72 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface PageService {
+    Page<PageEntity> findAll(Pageable pageable);
 
-	Page<PageEntity> findAll(Pageable pageable);
+    PageEntity findById(String pageId);
 
-	PageEntity findById(String pageId);
+    PageEntity findById(String pageId, String acceptedLocale);
 
-	PageEntity findById(String pageId, String acceptedLocale);
-
-	List<PageEntity> search(PageQuery query);
+    List<PageEntity> search(PageQuery query);
 
     List<PageEntity> search(PageQuery query, boolean withTranslations);
 
-	List<PageEntity> search(PageQuery query, String acceptedLocale);
+    List<PageEntity> search(PageQuery query, String acceptedLocale);
 
-	void transformSwagger(PageEntity pageEntity);
+    void transformSwagger(PageEntity pageEntity);
 
-	void transformSwagger(PageEntity pageEntity, String apiId);
+    void transformSwagger(PageEntity pageEntity, String apiId);
 
-	PageEntity createPage(String apiId, NewPageEntity page);
+    PageEntity createPage(String apiId, NewPageEntity page);
 
-	PageEntity createPage(NewPageEntity page);
+    PageEntity createPage(NewPageEntity page);
 
-	PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
+    PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
 
-	PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial);
+    PageEntity update(String pageId, UpdatePageEntity updatePageEntity, boolean partial);
 
-	void delete(String pageId);
+    void delete(String pageId);
 
-	void deleteAllByApi(String apiId);
+    void deleteAllByApi(String apiId);
 
-	int findMaxApiPageOrderByApi(String apiId);
+    int findMaxApiPageOrderByApi(String apiId);
 
-	int findMaxPortalPageOrder();
+    int findMaxPortalPageOrder();
 
-	boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
+    boolean isDisplayable(ApiEntity api, boolean isPagePublished, String username);
 
-	void fetchAll(PageQuery query, String contributor);
+    void fetchAll(PageQuery query, String contributor);
 
-	long execAutoFetch();
+    long execAutoFetch();
 
-	PageEntity fetch(String pageId, String contributor);
+    PageEntity fetch(String pageId, String contributor);
 
-	List<PageEntity> importFiles(ImportPageEntity pageEntity);
+    List<PageEntity> importFiles(ImportPageEntity pageEntity);
 
-	List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity);
+    List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity);
 
-	void transformWithTemplate(PageEntity pageEntity, String api);
+    void transformWithTemplate(PageEntity pageEntity, String api);
 
-	PageEntity create(String apiId, PageEntity pageEntity);
+    PageEntity create(String apiId, PageEntity pageEntity);
 
-	List<String> validateSafeContent(PageEntity pageEntity, String apiId);
+    List<String> validateSafeContent(PageEntity pageEntity, String apiId);
 
-	Map<SystemFolderType, String> initialize(String environmentId);
+    Map<SystemFolderType, String> initialize(String environmentId);
 
-	PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId);
+    PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId);
 
     PageEntity createWithDefinition(String apiId, String toString);
 
-	/**
-	 * Check if the page is used as GeneralCondition by an active Plan for the given ApiID
-	 *
-	 * @param page
-	 * @param apiId
-	 * @return
-	 */
-	boolean isPageUsedAsGeneralConditions(PageEntity page, String apiId);
+    /**
+     * Check if the page is used as GeneralCondition by an active Plan for the given ApiID
+     *
+     * @param page
+     * @param apiId
+     * @return
+     */
+    boolean isPageUsedAsGeneralConditions(PageEntity page, String apiId);
 
-	boolean shouldHaveRevision(String pageType);
+    boolean shouldHaveRevision(String pageType);
 
-	void attachMedia(String pageId, String mediaId, String mediaName);
+    void attachMedia(String pageId, String mediaId, String mediaName);
 }

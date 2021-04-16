@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
-import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
-
-import java.util.Map;
-
 import static java.util.Collections.singletonMap;
+
+import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

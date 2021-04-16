@@ -24,6 +24,11 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URLConnection;
+import java.util.Collection;
+import java.util.Optional;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
@@ -33,12 +38,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URLConnection;
-import java.util.Collection;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -81,7 +80,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             newUser.setEmail(details.getEmail());
 
             byte[] pictureData = details.getPicture();
-            if(pictureData != null && pictureData.length > 0) {
+            if (pictureData != null && pictureData.length > 0) {
                 String picture = computePicture(pictureData);
                 newUser.setPicture(picture);
             }
@@ -100,19 +99,18 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             }
         }
 
-
         userService.connect(details.getUsername());
     }
 
     public String computePicture(final byte[] pictureData) {
         String pictureContent = new String(pictureData);
-        if(pictureContent.toUpperCase().startsWith("HTTP")) {
+        if (pictureContent.toUpperCase().startsWith("HTTP")) {
             return pictureContent;
         }
 
         try {
             String contentType = URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(pictureData));
-            if(contentType != null) {
+            if (contentType != null) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("data:");
                 sb.append(contentType);
@@ -123,20 +121,19 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
                 //null contentType means that pictureData is a String but doesn't starts with HTTP
                 LOGGER.warn("Unable to compute the user picture from URL.");
             }
-
         } catch (IOException e) {
             LOGGER.warn("Problem while parsing picture", e);
         }
 
         return null;
-
     }
 
     private void updateRegisteredUser(UserEntity registeredUser, UserDetails details) {
-
-        if ((details.getFirstname() != null && !details.getFirstname().equals(registeredUser.getFirstname()))
-                || (details.getLastname() != null && !details.getLastname().equals(registeredUser.getLastname()))
-                || (details.getEmail() != null && !details.getEmail().equals(registeredUser.getEmail()))) {
+        if (
+            (details.getFirstname() != null && !details.getFirstname().equals(registeredUser.getFirstname())) ||
+            (details.getLastname() != null && !details.getLastname().equals(registeredUser.getLastname())) ||
+            (details.getEmail() != null && !details.getEmail().equals(registeredUser.getEmail()))
+        ) {
             UpdateUserEntity updateUserEntity = new UpdateUserEntity(registeredUser);
             updateUserEntity.setFirstname(details.getFirstname());
             updateUserEntity.setLastname(details.getLastname());
@@ -210,14 +207,17 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
         }
 
         MembershipService.MembershipReference membershipRef;
-        if(roleScope == RoleScope.ENVIRONMENT) {
-            membershipRef = new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment());
+        if (roleScope == RoleScope.ENVIRONMENT) {
+            membershipRef =
+                new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment());
         } else {
-            membershipRef = new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization());
+            membershipRef =
+                new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization());
         }
         membershipService.addRoleToMemberOnReference(
-                membershipRef,
-                new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(roleScope, roleName));
+            membershipRef,
+            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+            new MembershipService.MembershipRole(roleScope, roleName)
+        );
     }
 }

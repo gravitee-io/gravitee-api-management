@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
-
 import java.util.List;
 
 /**
@@ -25,7 +24,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface EnvironmentService {
-
     List<EnvironmentEntity> findAll();
 
     List<EnvironmentEntity> findByUser(String userId);
@@ -37,6 +35,6 @@ public interface EnvironmentService {
     EnvironmentEntity createOrUpdate(UpdateEnvironmentEntity environment);
 
     void delete(String environmentId);
-    
+
     void initialize();
 }

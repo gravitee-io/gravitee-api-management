@@ -15,15 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.service.ApiMetadataService;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.function.Consumer;
-
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
 import static java.util.stream.Collectors.toList;
+
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import java.util.List;
+import java.util.function.Consumer;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -35,9 +34,7 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
     @Override
     public List<ApiMetadataEntity> findAllByApi(final String apiId) {
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, true);
-        return allMetadata.stream()
-                .map(m -> convert(m, apiId))
-                .collect(toList());
+        return allMetadata.stream().map(m -> convert(m, apiId)).collect(toList());
     }
 
     @Override

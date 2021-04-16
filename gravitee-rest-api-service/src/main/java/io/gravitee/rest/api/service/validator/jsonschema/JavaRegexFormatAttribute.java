@@ -23,7 +23,6 @@ import com.github.fge.jsonschema.format.AbstractFormatAttribute;
 import com.github.fge.jsonschema.format.FormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
-
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -46,18 +45,18 @@ public class JavaRegexFormatAttribute extends AbstractFormatAttribute {
 
     @Override
     public void validate(ProcessingReport report, MessageBundle bundle, FullData data) throws ProcessingException {
-
         final String input = data.getInstance().getNode().textValue();
 
         try {
             Pattern.compile(input);
         } catch (PatternSyntaxException pse) {
-
-            ProcessingMessage processingMessage = data.newMessage().put("domain", "validation")
-                    .put("keyword", "format")
-                    .put("attribute", NAME)
-                    .setMessage("Invalid java regular expression [" + input + "]")
-                    .put("value", input);
+            ProcessingMessage processingMessage = data
+                .newMessage()
+                .put("domain", "validation")
+                .put("keyword", "format")
+                .put("attribute", NAME)
+                .setMessage("Invalid java regular expression [" + input + "]")
+                .put("value", input);
 
             report.error(processingMessage);
         }

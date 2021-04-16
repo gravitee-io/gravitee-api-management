@@ -18,6 +18,15 @@ package io.gravitee.rest.api.management.rest;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
+import java.io.IOException;
+import java.security.Principal;
+import javax.annotation.Priority;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.SecurityContext;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
@@ -31,23 +40,13 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import javax.annotation.Priority;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.SecurityContext;
-import java.io.IOException;
-import java.security.Principal;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public abstract class JerseySpringTest {
 
     protected static final String USER_NAME = "UnitTests";
-    protected final static Principal PRINCIPAL = () -> USER_NAME;
+    protected static final Principal PRINCIPAL = () -> USER_NAME;
     protected AuthenticationProviderManager authenticationProviderManager;
     private JerseyTest _jerseyTest;
 
@@ -92,70 +91,74 @@ public abstract class JerseySpringTest {
 
     @Autowired
     public void setApplicationContext(final ApplicationContext context) {
-        _jerseyTest = new JerseyTest() {
+        _jerseyTest =
+            new JerseyTest() {
+                @Override
+                protected Application configure() {
+                    // Find first available port.
+                    forceSet(TestProperties.CONTAINER_PORT, "0");
 
-            @Override
-            protected Application configure() {
-                // Find first available port.
-                forceSet(TestProperties.CONTAINER_PORT, "0");
+                    ResourceConfig application = new GraviteeManagementApplication(authenticationProviderManager);
 
-                ResourceConfig application = new GraviteeManagementApplication(authenticationProviderManager);
+                    application.property("contextConfig", context);
+                    decorate(application);
 
-                application.property("contextConfig", context);
-                decorate(application);
+                    return application;
+                }
 
-                return application;
-            }
+                @Override
+                protected void configureClient(ClientConfig config) {
+                    super.configureClient(config);
 
-            @Override
-            protected void configureClient(ClientConfig config) {
-                super.configureClient(config);
-
-                config.register(ObjectMapperResolver.class);
-                config.register(MultiPartFeature.class);
-                config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
-
-            }
-        };
+                    config.register(ObjectMapperResolver.class);
+                    config.register(MultiPartFeature.class);
+                    config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
+                }
+            };
     }
 
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
 
         final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-        resourceConfig.register(new AbstractBinder() {
-            @Override
-            protected void configure() {
-                bind(response).to(HttpServletResponse.class);
+        resourceConfig.register(
+            new AbstractBinder() {
+                @Override
+                protected void configure() {
+                    bind(response).to(HttpServletResponse.class);
+                }
             }
-        });
+        );
     }
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return () -> USER_NAME;
-                }
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return () -> USER_NAME;
+                    }
 
-                @Override
-                public boolean isUserInRole(String string) {
-                    return true;
-                }
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return true;
+                    }
 
-                @Override
-                public boolean isSecure() {
-                    return true;
-                }
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
 
-                @Override
-                public String getAuthenticationScheme() {
-                    return "BASIC";
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-            });
+            );
         }
     }
 }

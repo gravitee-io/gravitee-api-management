@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.rest.api.model.permissions.RoleScope;
+import static java.util.Collections.singletonMap;
 
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.util.Arrays;
 import java.util.Map;
-
-import static java.util.Collections.singletonMap;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -31,10 +30,7 @@ public class DefaultRoleNotFoundException extends AbstractNotFoundException {
     private final String scopes;
 
     public DefaultRoleNotFoundException(RoleScope... scopes) {
-        this.scopes = Arrays.stream(scopes).
-                map(RoleScope::name).
-                reduce((s, s2) -> s + ", " + s2).
-                orElse("null");
+        this.scopes = Arrays.stream(scopes).map(RoleScope::name).reduce((s, s2) -> s + ", " + s2).orElse("null");
     }
 
     @Override

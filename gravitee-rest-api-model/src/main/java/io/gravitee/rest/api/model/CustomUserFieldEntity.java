@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -75,10 +75,12 @@ public class CustomUserFieldEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CustomUserFieldEntity that = (CustomUserFieldEntity) o;
-        return required == that.required &&
-                Objects.equals(key, that.key) &&
-                Objects.equals(label, that.label) &&
-                Objects.equals(values, that.values);
+        return (
+            required == that.required &&
+            Objects.equals(key, that.key) &&
+            Objects.equals(label, that.label) &&
+            Objects.equals(values, that.values)
+        );
     }
 
     @Override
@@ -88,11 +90,19 @@ public class CustomUserFieldEntity {
 
     @Override
     public String toString() {
-        return "CustomUserFieldEntity{" +
-                "key='" + key + '\'' +
-                ", label='" + label + '\'' +
-                ", values=" + values +
-                ", required=" + required +
-                '}';
+        return (
+            "CustomUserFieldEntity{" +
+            "key='" +
+            key +
+            '\'' +
+            ", label='" +
+            label +
+            '\'' +
+            ", values=" +
+            values +
+            ", required=" +
+            required +
+            '}'
+        );
     }
 }

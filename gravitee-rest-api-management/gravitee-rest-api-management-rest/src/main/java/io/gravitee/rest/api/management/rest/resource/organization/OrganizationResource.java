@@ -35,7 +35,8 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActiv
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.annotations.*;
-
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -44,8 +45,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -75,15 +74,18 @@ public class OrganizationResource extends AbstractResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an Organization", tags = {"Organization"})
-    @ApiResponses({@ApiResponse(code = 201, message = "Organization successfully created"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(value = "Create an Organization", tags = { "Organization" })
+    @ApiResponses(
+        {
+            @ApiResponse(code = 201, message = "Organization successfully created"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response createOrganization(
-            @ApiParam(name = "organizationEntity", required = true) @Valid @NotNull final UpdateOrganizationEntity organizationEntity) {
+        @ApiParam(name = "organizationEntity", required = true) @Valid @NotNull final UpdateOrganizationEntity organizationEntity
+    ) {
         organizationEntity.setId(GraviteeContext.getCurrentOrganization());
-        return Response
-                .ok(organizationService.createOrUpdate(organizationEntity))
-                .build();
+        return Response.ok(organizationService.createOrUpdate(organizationEntity)).build();
     }
 
     /**
@@ -92,49 +94,74 @@ public class OrganizationResource extends AbstractResource {
      */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete an Organization", tags = {"Organization"})
-    @ApiResponses({
+    @ApiOperation(value = "Delete an Organization", tags = { "Organization" })
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Organization successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response deleteOrganization() {
         organizationService.delete(GraviteeContext.getCurrentOrganization());
         //TODO: should delete all items that refers to this organization
-        return Response
-                .status(Status.NO_CONTENT)
-                .build();
+        return Response.status(Status.NO_CONTENT).build();
     }
 
     @GET
     @Path("/identities")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION, acls = RolePermissionAction.READ))
-    @ApiOperation(value = "Get the list of identity provider activations for current organization",
-            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "List identity provider activations for current organization", response = IdentityProviderActivationEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(
+        value = "Get the list of identity provider activations for current organization",
+        notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "List identity provider activations for current organization",
+                response = IdentityProviderActivationEntity.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Set<IdentityProviderActivationEntity> listIdentityProviderActivations() {
-        return identityProviderActivationService.findAllByTarget(new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION));
+        return identityProviderActivationService.findAllByTarget(
+            new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION)
+        );
     }
 
     @PUT
     @Path("/identities")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION, acls = {RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE}))
-    @ApiOperation(value = "Update available organization identities", tags = {"Organization"})
-    @ApiResponses({
+    @Permissions(
+        @Permission(
+            value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION,
+            acls = { RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
+        )
+    )
+    @ApiOperation(value = "Update available organization identities", tags = { "Organization" })
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Organization successfully updated"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response updateOrganizationIdentities(Set<IdentityProviderActivationEntity> identityProviderActivations) {
         this.identityProviderActivationService.updateTargetIdp(
                 new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION),
-                identityProviderActivations.stream()
-                        .filter(ipa -> {
+                identityProviderActivations
+                    .stream()
+                    .filter(
+                        ipa -> {
                             final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
                             return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
-                        })
-                        .map(IdentityProviderActivationEntity::getIdentityProvider)
-                        .collect(Collectors.toList()));
+                        }
+                    )
+                    .map(IdentityProviderActivationEntity::getIdentityProvider)
+                    .collect(Collectors.toList())
+            );
         return Response.noContent().build();
     }
 

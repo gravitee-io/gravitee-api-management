@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.Maps;
-
 import java.util.Map;
 
 /**
@@ -55,11 +54,12 @@ public class PageUsedByCategoryException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps.<String, String>builder()
-                .put("action", action)
-                .put("categoriesName", categoriesName)
-                .put("pageName", pageName)
-                .put("pageId", pageId)
-                .build();
+        return Maps
+            .<String, String>builder()
+            .put("action", action)
+            .put("categoriesName", categoriesName)
+            .put("pageName", pageName)
+            .put("pageId", pageId)
+            .build();
     }
 }

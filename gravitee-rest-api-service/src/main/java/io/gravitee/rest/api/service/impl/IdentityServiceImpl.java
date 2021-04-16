@@ -20,12 +20,10 @@ import io.gravitee.rest.api.idp.core.authentication.IdentityManager;
 import io.gravitee.rest.api.model.providers.User;
 import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.UserService;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

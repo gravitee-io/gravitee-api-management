@@ -15,15 +15,15 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.InlinePictureEntity;
+import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.CategoryService;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.Set;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -31,10 +31,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-
-import java.util.Set;
-
-import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -58,9 +55,7 @@ public class CategoryResource extends AbstractResource {
         Set<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull());
         category.setTotalApis(categoryService.getTotalApisByCategory(apis, category));
 
-        return Response
-                .ok(categoryMapper.convert(category, uriInfo.getBaseUriBuilder()))
-                .build();
+        return Response.ok(categoryMapper.convert(category, uriInfo.getBaseUriBuilder())).build();
     }
 
     @GET

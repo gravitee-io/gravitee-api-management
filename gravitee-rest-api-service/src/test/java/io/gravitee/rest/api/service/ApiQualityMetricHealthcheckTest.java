@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
@@ -24,23 +29,16 @@ import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckServ
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricHealthcheck;
-
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -115,7 +113,6 @@ public class ApiQualityMetricHealthcheckTest {
 
         assertFalse(valid);
     }
-
 
     @Test
     public void shouldNotBeValidWithDisabledGlobalHC() {

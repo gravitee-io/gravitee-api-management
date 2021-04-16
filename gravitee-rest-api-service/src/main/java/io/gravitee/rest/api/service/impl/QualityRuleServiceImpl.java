@@ -15,6 +15,15 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.QUALITY_RULE;
+import static io.gravitee.repository.management.model.QualityRule.AuditEvent.QUALITY_RULE_UPDATED;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiQualityRuleRepository;
+import io.gravitee.repository.management.api.QualityRuleRepository;
+import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.rest.api.model.quality.NewQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
@@ -23,24 +32,14 @@ import io.gravitee.rest.api.service.QualityRuleService;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.QualityRuleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiQualityRuleRepository;
-import io.gravitee.repository.management.api.QualityRuleRepository;
-import io.gravitee.repository.management.model.QualityRule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.QUALITY_RULE;
-import static io.gravitee.repository.management.model.QualityRule.AuditEvent.QUALITY_RULE_UPDATED;
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -53,8 +52,10 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
 
     @Autowired
     private QualityRuleRepository qualityRuleRepository;
+
     @Autowired
     private ApiQualityRuleRepository apiQualityRuleRepository;
+
     @Autowired
     private AuditService auditService;
 
@@ -91,11 +92,12 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             final QualityRule qualityRule = convert(newEntity);
             final QualityRule createdQualityRule = qualityRuleRepository.create(qualityRule);
             auditService.createEnvironmentAuditLog(
-                    Collections.singletonMap(QUALITY_RULE, createdQualityRule.getId()),
-                    QualityRule.AuditEvent.QUALITY_RULE_CREATED,
-                    qualityRule.getCreatedAt(),
-                    null,
-                    qualityRule);
+                Collections.singletonMap(QUALITY_RULE, createdQualityRule.getId()),
+                QualityRule.AuditEvent.QUALITY_RULE_CREATED,
+                qualityRule.getCreatedAt(),
+                null,
+                qualityRule
+            );
             return convert(createdQualityRule);
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to create a quality rule {}", newEntity, e);
@@ -112,11 +114,12 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             }
             final QualityRule qualityRule = qualityRuleRepository.update(convert(updateEntity));
             auditService.createEnvironmentAuditLog(
-                    singletonMap(QUALITY_RULE, qualityRule.getId()),
-                    QUALITY_RULE_UPDATED,
-                    qualityRule.getUpdatedAt(),
-                    optionalQualityRule.get(),
-                    qualityRule);
+                singletonMap(QUALITY_RULE, qualityRule.getId()),
+                QUALITY_RULE_UPDATED,
+                qualityRule.getUpdatedAt(),
+                optionalQualityRule.get(),
+                qualityRule
+            );
             return convert(qualityRule);
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to update quality rule {}", updateEntity, e);
@@ -133,11 +136,12 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
                 // delete all reference on api quality rule
                 apiQualityRuleRepository.deleteByQualityRule(qualityRule);
                 auditService.createEnvironmentAuditLog(
-                        Collections.singletonMap(QUALITY_RULE, qualityRule),
-                        QualityRule.AuditEvent.QUALITY_RULE_DELETED,
-                        new Date(),
-                        null,
-                        qualityRuleOptional.get());
+                    Collections.singletonMap(QUALITY_RULE, qualityRule),
+                    QualityRule.AuditEvent.QUALITY_RULE_DELETED,
+                    new Date(),
+                    null,
+                    qualityRuleOptional.get()
+                );
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete quality rule {}", qualityRule, ex);

@@ -15,21 +15,20 @@
  */
 package io.gravitee.rest.api.repository.proxy;
 
-import java.util.Optional;
-import java.util.Set;
-
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
+import java.util.Optional;
+import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class GroupRepositoryProxy extends AbstractProxy<GroupRepository> implements GroupRepository {
+
     @Override
     public Optional<Group> findById(String id) throws TechnicalException {
         return target.findById(id);

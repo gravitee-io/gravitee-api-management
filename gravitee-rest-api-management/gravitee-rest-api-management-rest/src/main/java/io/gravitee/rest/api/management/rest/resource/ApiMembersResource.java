@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.ApiMembership;
 import io.gravitee.rest.api.management.rest.model.TransferOwnership;
@@ -31,26 +34,22 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.annotations.*;
-
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
-import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
+import javax.inject.Inject;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.core.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Memberships"})
+@Api(tags = { "API Memberships" })
 public class ApiMembersResource extends AbstractResource {
 
     @Inject
@@ -64,19 +63,21 @@ public class ApiMembersResource extends AbstractResource {
     @GET
     @Path("/permissions")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get API members",
-            notes = "User must have the MANAGE_MEMBERS permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Get API members", notes = "User must have the MANAGE_MEMBERS permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "API member's permissions", response = MemberEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response getApiMembersPermissions() {
         final ApiEntity apiEntity = apiService.findById(api);
         Map<String, char[]> permissions = new HashMap<>();
         if (isAuthenticated()) {
             final String userId = getAuthenticatedUser();
             if (isAdmin()) {
-                final char[] rights = new char[]{CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId()};
-                for (ApiPermission perm: ApiPermission.values()) {
+                final char[] rights = new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() };
+                for (ApiPermission perm : ApiPermission.values()) {
                     permissions.put(perm.getName(), rights);
                 }
             } else {
@@ -88,44 +89,52 @@ public class ApiMembersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List API members",
-            notes = "User must have the MANAGE_MEMBERS permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "List API members", notes = "User must have the MANAGE_MEMBERS permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List of API's members", response = MembershipListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ) })
     public List<MembershipListItem> getApiMembers() {
         apiService.findById(api);
-        return membershipService.getMembersByReference(MembershipReferenceType.API, api)
-                .stream()
-                .map(MembershipListItem::new)
-                .sorted(Comparator.comparing(MembershipListItem::getId))
-                .collect(Collectors.toList());
+        return membershipService
+            .getMembersByReference(MembershipReferenceType.API, api)
+            .stream()
+            .map(MembershipListItem::new)
+            .sorted(Comparator.comparing(MembershipListItem::getId))
+            .collect(Collectors.toList());
     }
 
     @POST
-    @ApiOperation(value = "Add or update an API member",
-            notes = "User must have the MANAGE_MEMBERS permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Add or update an API member", notes = "User must have the MANAGE_MEMBERS permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Member has been added or updated successfully"),
             @ApiResponse(code = 400, message = "Membership parameter is not valid"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions(
+        {
             @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE)
-    })
+            @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE),
+        }
+    )
     public Response addOrUpdateApiMember(@Valid @NotNull ApiMembership apiMembership) {
-
         if (PRIMARY_OWNER.name().equals(apiMembership.getRole())) {
             throw new SinglePrimaryOwnerException(RoleScope.API);
         }
 
         apiService.findById(api);
-        
+
         MembershipService.MembershipReference reference = new MembershipService.MembershipReference(MembershipReferenceType.API, api);
-        MembershipService.MembershipMember member = new MembershipService.MembershipMember(apiMembership.getId(), apiMembership.getReference(), MembershipMemberType.USER);
+        MembershipService.MembershipMember member = new MembershipService.MembershipMember(
+            apiMembership.getId(),
+            apiMembership.getReference(),
+            MembershipMemberType.USER
+        );
         MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.API, apiMembership.getRole());
 
         MemberEntity membership = null;
@@ -136,10 +145,7 @@ public class ApiMembersResource extends AbstractResource {
             }
         }
         if (membership == null) {
-            membershipService.addRoleToMemberOnReference(
-                    reference,
-                    member,
-                    role);
+            membershipService.addRoleToMemberOnReference(reference, member, role);
         }
 
         return Response.status(Response.Status.CREATED).build();
@@ -147,16 +153,18 @@ public class ApiMembersResource extends AbstractResource {
 
     @POST
     @Path("transfer_ownership")
-    @ApiOperation(value = "Transfer the ownership of the API",
-            notes = "User must have the TRANSFER_OWNERSHIP permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Transfer the ownership of the API",
+        notes = "User must have the TRANSFER_OWNERSHIP permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Ownership has been transferred successfully"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE)
-    })
-    public Response transferApiMemberOwnership(
-            @Valid @NotNull TransferOwnership transferOwnership) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE) })
+    public Response transferApiMemberOwnership(@Valid @NotNull TransferOwnership transferOwnership) {
         List<RoleEntity> newRoles = new ArrayList<>();
 
         Optional<RoleEntity> optNewRole = roleService.findByScopeAndName(RoleScope.API, transferOwnership.getPoRole());
@@ -167,23 +175,25 @@ public class ApiMembersResource extends AbstractResource {
         }
 
         apiService.findById(api);
-        membershipService.transferApiOwnership(api, new MembershipService.MembershipMember(
-                transferOwnership.getId(), transferOwnership.getReference(), MembershipMemberType.USER), newRoles);
+        membershipService.transferApiOwnership(
+            api,
+            new MembershipService.MembershipMember(transferOwnership.getId(), transferOwnership.getReference(), MembershipMemberType.USER),
+            newRoles
+        );
         return Response.ok().build();
     }
 
     @DELETE
-    @ApiOperation(value = "Remove an API member",
-            notes = "User must have the MANAGE_MEMBERS permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Remove an API member", notes = "User must have the MANAGE_MEMBERS permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Member has been removed successfully"),
             @ApiResponse(code = 400, message = "User does not exist"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.DELETE)
-    })
-    public Response deleteApiMember(
-            @ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.DELETE) })
+    public Response deleteApiMember(@ApiParam(name = "user", required = true) @NotNull @QueryParam("user") String userId) {
         apiService.findById(api);
         try {
             userService.findById(userId);

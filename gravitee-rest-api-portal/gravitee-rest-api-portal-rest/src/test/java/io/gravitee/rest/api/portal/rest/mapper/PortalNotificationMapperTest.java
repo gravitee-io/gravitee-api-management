@@ -18,13 +18,11 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.time.Instant;
-import java.util.Date;
-
-import org.junit.Test;
-
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.portal.rest.model.PortalNotification;
+import java.time.Instant;
+import java.util.Date;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -40,15 +38,15 @@ public class PortalNotificationMapperTest {
     public void testConvert() {
         Instant now = Instant.now();
         Date nowDate = Date.from(now);
-        
+
         //init
         PortalNotificationEntity portalNotificationEntity = new PortalNotificationEntity();
-       
+
         portalNotificationEntity.setCreatedAt(nowDate);
         portalNotificationEntity.setId(NOTIF_ID);
         portalNotificationEntity.setMessage(NOTIF_MESSAGE);
         portalNotificationEntity.setTitle(NOTIF_TITLE);
-        
+
         //Test
         PortalNotification responsePortalNotif = new PortalNotificationMapper().convert(portalNotificationEntity);
         assertNotNull(responsePortalNotif);
@@ -57,5 +55,4 @@ public class PortalNotificationMapperTest {
         assertEquals(NOTIF_TITLE, responsePortalNotif.getTitle());
         assertEquals(now.toEpochMilli(), responsePortalNotif.getCreatedAt().toInstant().toEpochMilli());
     }
-    
 }

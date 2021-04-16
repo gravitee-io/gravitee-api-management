@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUPPORT_TICKET;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TicketRepository;
@@ -42,20 +45,16 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.notification.PortalHook;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_SUPPORT_TICKET;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import javax.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -68,18 +67,25 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
 
     @Inject
     private UserService userService;
+
     @Inject
     private MetadataService metadataService;
+
     @Inject
     private ApiService apiService;
+
     @Inject
     private ApplicationService applicationService;
+
     @Inject
     private EmailService emailService;
+
     @Inject
     private ParameterService parameterService;
+
     @Inject
     private NotifierService notifierService;
+
     @Inject
     private TicketRepository ticketRepository;
 
@@ -91,7 +97,12 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     }
 
     @Override
-    public TicketEntity create(final String userId, final NewTicketEntity ticketEntity, final String referenceId, final ParameterReferenceType referenceType) {
+    public TicketEntity create(
+        final String userId,
+        final NewTicketEntity ticketEntity,
+        final String referenceId,
+        final ParameterReferenceType referenceType
+    ) {
         try {
             if (!isEnabled(referenceId, referenceType)) {
                 throw new SupportUnavailableException();
@@ -141,14 +152,15 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             parameters.put("ticketSubject", ticketEntity.getSubject());
             final String fromName = user.getFirstname() == null ? user.getEmail() : user.getFirstname() + ' ' + user.getLastname();
             emailService.sendEmailNotification(
-                    new EmailNotificationBuilder()
-                            .replyTo(user.getEmail())
-                            .fromName(fromName)
-                            .to(emailTo)
-                            .copyToSender(ticketEntity.isCopyToSender())
-                            .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
-                            .params(parameters)
-                            .build());
+                new EmailNotificationBuilder()
+                    .replyTo(user.getEmail())
+                    .fromName(fromName)
+                    .to(emailTo)
+                    .copyToSender(ticketEntity.isCopyToSender())
+                    .template(TEMPLATES_FOR_ACTION_SUPPORT_TICKET)
+                    .params(parameters)
+                    .build()
+            );
             sendUserNotification(user, api, applicationEntity);
 
             Ticket ticket = convert(ticketEntity);
@@ -159,7 +171,6 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             Ticket createdTicket = ticketRepository.create(ticket);
 
             return convert(createdTicket);
-
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create a ticket {}", ticketEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create a ticket " + ticketEntity, ex);
@@ -173,30 +184,22 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
 
             TicketCriteria criteria = queryToCriteriaBuilder(query).build();
 
-
             Page<Ticket> tickets = ticketRepository.search(
-                    criteria,
-                    buildSortable(sortable),
-                    new PageableBuilder()
-                            .pageNumber(pageable.getPageNumber() - 1)
-                            .pageSize(pageable.getPageSize())
-                            .build()
+                criteria,
+                buildSortable(sortable),
+                new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
             );
 
-            List<TicketEntity> entities = tickets.getContent()
-                    .stream()
-                    .map(this::getApiNameAndApplicationName)
-                    .map(this::convert)
-                    .collect(Collectors.toList());
-
+            List<TicketEntity> entities = tickets
+                .getContent()
+                .stream()
+                .map(this::getApiNameAndApplicationName)
+                .map(this::convert)
+                .collect(Collectors.toList());
 
             LOGGER.debug("search tickets - Done with {} elements", entities.size());
 
-            return new Page<>(entities,
-                    tickets.getPageNumber() + 1,
-                    (int) tickets.getPageElements(),
-                    tickets.getTotalElements()
-            );
+            return new Page<>(entities, tickets.getPageNumber() + 1, (int) tickets.getPageElements(), tickets.getTotalElements());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to search tickets", ex);
             throw new TechnicalManagementException("An error occurs while trying to search tickets", ex);
@@ -207,38 +210,36 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     public TicketEntity findById(String ticketId) {
         try {
             return ticketRepository
-                    .findById(ticketId)
-                    .map(this::getApiNameAndApplicationName)
-                    .map(this::convert)
-                    .orElseThrow(() -> new TicketNotFoundException(ticketId));
-
-        }  catch (TechnicalException ex) {
+                .findById(ticketId)
+                .map(this::getApiNameAndApplicationName)
+                .map(this::convert)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to search ticket {}", ticketId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to search ticket " + ticketId , ex);
+            throw new TechnicalManagementException("An error occurs while trying to search ticket " + ticketId, ex);
         }
     }
 
     private void sendUserNotification(final UserEntity user, final ApiModelEntity api, final ApplicationEntity application) {
-        notifierService.trigger(PortalHook.NEW_SUPPORT_TICKET, new NotificationParamsBuilder()
-                .user(user)
-                .api(api)
-                .application(application)
-                .build());
+        notifierService.trigger(
+            PortalHook.NEW_SUPPORT_TICKET,
+            new NotificationParamsBuilder().user(user).api(api).application(application).build()
+        );
 
         if (api != null) {
-            notifierService.trigger(ApiHook.NEW_SUPPORT_TICKET, api.getId(), new NotificationParamsBuilder()
-                    .user(user)
-                    .api(api)
-                    .application(application)
-                    .build());
+            notifierService.trigger(
+                ApiHook.NEW_SUPPORT_TICKET,
+                api.getId(),
+                new NotificationParamsBuilder().user(user).api(api).application(application).build()
+            );
         }
 
         if (application != null) {
-            notifierService.trigger(ApplicationHook.NEW_SUPPORT_TICKET, application.getId(), new NotificationParamsBuilder()
-                    .user(user)
-                    .api(api)
-                    .application(application)
-                    .build());
+            notifierService.trigger(
+                ApplicationHook.NEW_SUPPORT_TICKET,
+                application.getId(),
+                new NotificationParamsBuilder().user(user).api(api).application(application).build()
+            );
         }
     }
 
@@ -274,7 +275,6 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     }
 
     private Ticket getApiNameAndApplicationName(Ticket ticket) {
-
         //Retrieve application name
         if (StringUtils.isNotEmpty(ticket.getApplication())) {
             ApplicationEntity application = applicationService.findById(ticket.getApplication());
@@ -310,9 +310,6 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         if (sortable == null) {
             return null;
         }
-        return new SortableBuilder()
-                .field(sortable.getField())
-                .order(sortable.isAscOrder() ? Order.ASC : Order.DESC)
-                .build();
+        return new SortableBuilder().field(sortable.getField()).order(sortable.isAscOrder() ? Order.ASC : Order.DESC).build();
     }
 }

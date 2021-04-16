@@ -24,19 +24,17 @@ import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
-
-import java.io.IOException;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -91,21 +89,22 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
         query.setTo(MessageRecipient.MANAGEMENT_APIS.name());
         query.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
         List<CommandEntity> messageEntities = commandService.search(query);
-        messageEntities.forEach(commandEntity -> {
-            if (commandEntity.isExpired()) {
-                commandService.delete(commandEntity.getId());
-            } else {
-                if (!commandEntity.isProcessedInCurrentNode()) {
-                    commandService.ack(commandEntity.getId());
-                    try {
-                        searchEngineService.process(
-                                mapper.readValue(commandEntity.getContent(), CommandSearchIndexerEntity.class));
-                    } catch (IOException e) {
-                        logger.error("Search Indexer has received a bad message.", e);
+        messageEntities.forEach(
+            commandEntity -> {
+                if (commandEntity.isExpired()) {
+                    commandService.delete(commandEntity.getId());
+                } else {
+                    if (!commandEntity.isProcessedInCurrentNode()) {
+                        commandService.ack(commandEntity.getId());
+                        try {
+                            searchEngineService.process(mapper.readValue(commandEntity.getContent(), CommandSearchIndexerEntity.class));
+                        } catch (IOException e) {
+                            logger.error("Search Indexer has received a bad message.", e);
+                        }
                     }
                 }
             }
-        });
+        );
 
         logger.debug("Search Indexer #{} ended at {}", counter.get(), Instant.now());
     }

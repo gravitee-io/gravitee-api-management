@@ -29,16 +29,14 @@ import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -62,35 +60,41 @@ public class ApiPagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getPagesByApiId(
-            @HeaderParam("Accept-Language") String acceptLang,
-            @PathParam("apiId") String apiId,
-            @BeanParam PaginationParam paginationParam,
-            @QueryParam("homepage") Boolean homepage,
-            @QueryParam("parent") String parent) {
+        @HeaderParam("Accept-Language") String acceptLang,
+        @PathParam("apiId") String apiId,
+        @BeanParam PaginationParam paginationParam,
+        @QueryParam("homepage") Boolean homepage,
+        @QueryParam("parent") String parent
+    ) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), apiQuery);
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
             final ApiEntity apiEntity = apiService.findById(apiId);
-            
-            Stream<Page> pageStream = pageService.search(new PageQuery.Builder().api(apiId).homepage(homepage).published(true).build(), acceptedLocale)
-                    .stream()
-                    .filter(pageEntity -> isDisplayable(apiEntity, pageEntity))
-                    .map(pageMapper::convert)
-                    .map(page -> this.addPageLink(apiId, page));
+
+            Stream<Page> pageStream = pageService
+                .search(new PageQuery.Builder().api(apiId).homepage(homepage).published(true).build(), acceptedLocale)
+                .stream()
+                .filter(pageEntity -> isDisplayable(apiEntity, pageEntity))
+                .map(pageMapper::convert)
+                .map(page -> this.addPageLink(apiId, page));
 
             List<Page> pages;
             if (parent != null) {
                 pages = new ArrayList<>();
 
                 Map<String, Page> pagesMap = pageStream.collect(Collectors.toMap(Page::getId, page -> page));
-                pagesMap.values().forEach(page -> {
-                    List<String> ancestors = this.getAncestors(pagesMap, page);
-                    if (ancestors.contains(parent)) {
-                        pages.add(page);
-                    }
-                });
+                pagesMap
+                    .values()
+                    .forEach(
+                        page -> {
+                            List<String> ancestors = this.getAncestors(pagesMap, page);
+                            if (ancestors.contains(parent)) {
+                                pages.add(page);
+                            }
+                        }
+                    );
             } else {
                 pages = pageStream.collect(Collectors.toList());
             }
@@ -121,14 +125,18 @@ public class ApiPagesResource extends AbstractResource {
     }
 
     private boolean isDisplayable(ApiEntity api, PageEntity page) {
-        return groupService.isUserAuthorizedToAccessApiData(api, page.getExcludedGroups(), getAuthenticatedUserOrNull())
-                && !"SYSTEM_FOLDER".equals(page.getType());
+        return (
+            groupService.isUserAuthorizedToAccessApiData(api, page.getExcludedGroups(), getAuthenticatedUserOrNull()) &&
+            !"SYSTEM_FOLDER".equals(page.getType())
+        );
     }
-    
+
     private Page addPageLink(String apiId, Page page) {
-        return page.links(pageMapper.computePageLinks(
+        return page.links(
+            pageMapper.computePageLinks(
                 PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getId()),
                 PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getParent())
-                ));
+            )
+        );
     }
 }

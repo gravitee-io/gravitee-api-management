@@ -15,19 +15,17 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.CustomUserFieldEntity;
-import org.junit.Test;
-
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.CustomUserFieldEntity;
+import java.util.Arrays;
+import java.util.List;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -52,15 +50,11 @@ public class ConfigurationCustomFieldsResourceTest extends AbstractResourceTest 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        final List<CustomUserFieldEntity> listOfCustomUserFields = response.readEntity(new GenericType<List<CustomUserFieldEntity>>(){});
+        final List<CustomUserFieldEntity> listOfCustomUserFields = response.readEntity(new GenericType<List<CustomUserFieldEntity>>() {});
         assertEquals(1, listOfCustomUserFields.size());
         assertEquals(customUserFieldEntity.getKey(), listOfCustomUserFields.get(0).getKey());
         assertEquals(customUserFieldEntity.getLabel(), listOfCustomUserFields.get(0).getLabel());
         assertEquals(customUserFieldEntity.isRequired(), listOfCustomUserFields.get(0).isRequired());
         assertTrue(listOfCustomUserFields.get(0).getValues().containsAll(customUserFieldEntity.getValues()));
-
     }
-
 }
-
-

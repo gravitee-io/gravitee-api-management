@@ -20,10 +20,10 @@ package io.gravitee.rest.api.model.settings;
  * @author GraviteeSource Team
  */
 public class Enabled {
+
     private boolean enabled;
 
-    Enabled() {
-    }
+    Enabled() {}
 
     public Enabled(boolean enabled) {
         this.enabled = enabled;

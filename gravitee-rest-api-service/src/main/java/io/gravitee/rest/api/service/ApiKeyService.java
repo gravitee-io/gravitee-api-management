@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.ApiKeyEntity;
-
 import java.util.List;
 
 /**
@@ -24,7 +23,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApiKeyService {
-
     ApiKeyEntity generate(String subscription);
 
     ApiKeyEntity generate(String subscription, String customApiKey);

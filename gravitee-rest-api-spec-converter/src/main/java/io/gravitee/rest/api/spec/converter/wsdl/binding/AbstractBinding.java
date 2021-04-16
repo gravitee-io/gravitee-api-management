@@ -19,6 +19,7 @@ import javax.wsdl.BindingOperation;
 import javax.xml.namespace.QName;
 
 public abstract class AbstractBinding implements SoapVersion {
+
     private QName envelopeQName;
     private QName bodyQName;
     private QName headerQName;
@@ -28,7 +29,7 @@ public abstract class AbstractBinding implements SoapVersion {
     private boolean rpcStyle = false;
 
     AbstractBinding(String namespace, String prefix, boolean rpc) {
-        this.envelopeQName = new QName( namespace, "Envelope", prefix);
+        this.envelopeQName = new QName(namespace, "Envelope", prefix);
         this.bodyQName = new QName(namespace, "Body", prefix);
         this.headerQName = new QName(namespace, "Header", prefix);
         this.faultQName = new QName(namespace, "Fault", prefix);

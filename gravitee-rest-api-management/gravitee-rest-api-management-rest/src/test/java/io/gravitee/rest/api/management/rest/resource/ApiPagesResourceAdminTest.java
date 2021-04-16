@@ -15,23 +15,22 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
+
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiPagesResourceAdminTest extends AbstractResourceTest {
@@ -123,7 +122,6 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newPageEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
-
     }
 
     @Test
@@ -137,7 +135,6 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final Response response = envTarget(PAGE_NAME).request().delete();
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
-
     }
 
     @Test

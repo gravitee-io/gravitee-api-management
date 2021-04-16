@@ -16,24 +16,22 @@
 package io.gravitee.rest.api.fetcher.impl;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 /**
  * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
  * @author GraviteeSource Team
  */
 public class FetcherConfigurationFactoryImpl implements FetcherConfigurationFactory {
 
-
     private final Logger LOGGER = LoggerFactory.getLogger(FetcherConfigurationFactoryImpl.class);
 
-    private final ObjectMapper mapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends FetcherConfiguration> T create(Class<T> fetcherConfigurationClass, String configuration) {

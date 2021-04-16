@@ -19,20 +19,20 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.UserMetadataEntity;
 import io.gravitee.rest.api.model.parameters.Key;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GraviteeContext {
+
     private static final String DEFAULT_ENVIRONMENT = "DEFAULT";
     private static final String DEFAULT_ORGANIZATION = "DEFAULT";
 
@@ -43,16 +43,18 @@ public class GraviteeContext {
     private static final String USERS_METADATA_CONTEXT_CACHE_KEY = "currentUsersMetadata";
     private static final String PARAMETERS_CONTEXT_CACHE_KEY = "currentParameters";
 
-    private static final ThreadLocal<Map<String, Object>> contextThread = ThreadLocal.withInitial(() -> {
-        Map<String, Object> propertiesMap = new HashMap<>();
-        propertiesMap.put(CURRENT_ENVIRONMENT_CONTEXT_KEY, DEFAULT_ENVIRONMENT);
-        propertiesMap.put(CURRENT_ORGANIZATION_CONTEXT_KEY, DEFAULT_ORGANIZATION);
-        propertiesMap.put(ROLES_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
-        propertiesMap.put(USERS_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
-        propertiesMap.put(USERS_METADATA_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
-        propertiesMap.put(PARAMETERS_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
-        return propertiesMap;
-    });
+    private static final ThreadLocal<Map<String, Object>> contextThread = ThreadLocal.withInitial(
+        () -> {
+            Map<String, Object> propertiesMap = new HashMap<>();
+            propertiesMap.put(CURRENT_ENVIRONMENT_CONTEXT_KEY, DEFAULT_ENVIRONMENT);
+            propertiesMap.put(CURRENT_ORGANIZATION_CONTEXT_KEY, DEFAULT_ORGANIZATION);
+            propertiesMap.put(ROLES_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
+            propertiesMap.put(USERS_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
+            propertiesMap.put(USERS_METADATA_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
+            propertiesMap.put(PARAMETERS_CONTEXT_CACHE_KEY, new ConcurrentHashMap<>());
+            return propertiesMap;
+        }
+    );
 
     public static void cleanContext() {
         contextThread.remove();
@@ -111,6 +113,7 @@ public class GraviteeContext {
     }
 
     public static class ReferenceContext {
+
         String referenceId;
         ReferenceContextType referenceType;
 
@@ -132,8 +135,7 @@ public class GraviteeContext {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             ReferenceContext that = (ReferenceContext) o;
-            return Objects.equals(referenceId, that.referenceId) &&
-                    referenceType == that.referenceType;
+            return Objects.equals(referenceId, that.referenceId) && referenceType == that.referenceType;
         }
 
         @Override
@@ -143,6 +145,7 @@ public class GraviteeContext {
     }
 
     public enum ReferenceContextType {
-        ENVIRONMENT, ORGANIZATION
+        ENVIRONMENT,
+        ORGANIZATION,
     }
 }

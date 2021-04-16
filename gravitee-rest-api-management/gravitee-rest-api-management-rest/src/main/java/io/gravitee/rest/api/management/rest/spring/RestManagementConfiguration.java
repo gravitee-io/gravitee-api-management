@@ -20,7 +20,7 @@ import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-
+import java.util.Properties;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,17 +28,20 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 
-import java.util.Properties;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({
-        PropertiesConfiguration.class, PluginConfiguration.class, ServiceConfiguration.class,
-        SecurityManagementConfiguration.class, IdentityProviderPluginConfiguration.class
-})
+@Import(
+    {
+        PropertiesConfiguration.class,
+        PluginConfiguration.class,
+        ServiceConfiguration.class,
+        SecurityManagementConfiguration.class,
+        IdentityProviderPluginConfiguration.class,
+    }
+)
 public class RestManagementConfiguration {
 
     @Bean
@@ -56,15 +59,16 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public static PropertySourceBeanProcessor propertySourceBeanProcessor(@Qualifier("graviteeProperties") Properties graviteeProperties,
-                                                                          Environment environment) {
+    public static PropertySourceBeanProcessor propertySourceBeanProcessor(
+        @Qualifier("graviteeProperties") Properties graviteeProperties,
+        Environment environment
+    ) {
         // Using this we are now able to use {@link org.springframework.core.env.Environment} in Spring beans
         return new PropertySourceBeanProcessor(graviteeProperties, environment);
     }
 
     @Bean
     public ExpressionLanguageInitializer expressionLanguageInitializer() {
-
         return new ExpressionLanguageInitializer();
     }
 }

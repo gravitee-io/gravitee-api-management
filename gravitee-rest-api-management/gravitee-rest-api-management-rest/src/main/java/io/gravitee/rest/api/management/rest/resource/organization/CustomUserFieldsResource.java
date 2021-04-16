@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -26,25 +28,22 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
+import java.net.URI;
+import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.util.List;
-
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Custom User Fields"})
+@Api(tags = { "Custom User Fields" })
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class CustomUserFieldsResource extends AbstractResource {
@@ -57,14 +56,21 @@ public class CustomUserFieldsResource extends AbstractResource {
 
     @GET
     @ApiOperation(
-            value = "List All Custom User Fields",
-            notes = "User must have the CUSTOM_USER_FIELDS[READ] permission to use this service"
+        value = "List All Custom User Fields",
+        notes = "User must have the CUSTOM_USER_FIELDS[READ] permission to use this service"
     )
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Custom User Field deleted", responseContainer = "List" ,response = CustomUserFieldEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "Custom User Field deleted",
+                responseContainer = "List",
+                response = CustomUserFieldEntity.class
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response getCustomUserFields() {
-
         List<CustomUserFieldEntity> fields = fieldService.listAllFields();
         return Response.ok().entity(fields).build();
     }
@@ -72,19 +78,19 @@ public class CustomUserFieldsResource extends AbstractResource {
     @POST
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_CUSTOM_USER_FIELDS, acls = CREATE))
     @ApiOperation(
-            value = "Create a Custom User Field",
-            notes = "User must have the CUSTOM_USER_FIELDS[CREATE] permission to use this service"
+        value = "Create a Custom User Field",
+        notes = "User must have the CUSTOM_USER_FIELDS[CREATE] permission to use this service"
     )
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Custom User Field Created", response = CustomUserFieldEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response createCustomUserField(@Valid CustomUserFieldEntity newCustomUserFieldEntity) {
         CustomUserFieldEntity newField = fieldService.create(newCustomUserFieldEntity);
         if (newField != null) {
-            return Response
-                    .created(URI.create(uriInfo.getPath() + "/" + newField.getKey()))
-                    .entity(newField)
-                    .build();
+            return Response.created(URI.create(uriInfo.getPath() + "/" + newField.getKey())).entity(newField).build();
         }
 
         return Response.serverError().build();
@@ -94,25 +100,23 @@ public class CustomUserFieldsResource extends AbstractResource {
     @Path("{key}")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_CUSTOM_USER_FIELDS, acls = UPDATE))
     @ApiOperation(
-            value = "Update a Custom User Field",
-            notes = "User must have the CUSTOM_USER_FIELDS[UPDATE] permission to use this service"
+        value = "Update a Custom User Field",
+        notes = "User must have the CUSTOM_USER_FIELDS[UPDATE] permission to use this service"
     )
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Custom User Field updated", response = CustomUserFieldEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Response updateCustomUserField(@PathParam ("key")String key,
-                               @Valid CustomUserFieldEntity toUpdateFieldEntity) {
-
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public Response updateCustomUserField(@PathParam("key") String key, @Valid CustomUserFieldEntity toUpdateFieldEntity) {
         if (toUpdateFieldEntity == null || !key.toLowerCase().equals(toUpdateFieldEntity.getKey().toLowerCase())) {
             throw new CustomUserFieldException(key, "update");
         }
 
         CustomUserFieldEntity updatedField = fieldService.update(toUpdateFieldEntity);
         if (updatedField != null) {
-            return Response
-                    .ok()
-                    .entity(updatedField)
-                    .build();
+            return Response.ok().entity(updatedField).build();
         }
 
         return Response.serverError().build();
@@ -122,14 +126,13 @@ public class CustomUserFieldsResource extends AbstractResource {
     @Path("{key}")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_CUSTOM_USER_FIELDS, acls = DELETE))
     @ApiOperation(
-            value = "Delete a Custom User Field",
-            notes = "User must have the CUSTOM_USER_FIELDS[DELETE] permission to use this service"
+        value = "Delete a Custom User Field",
+        notes = "User must have the CUSTOM_USER_FIELDS[DELETE] permission to use this service"
     )
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "Custom User Field deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Response deleteCustomUserField(@PathParam ("key")String key) {
-
+    @ApiResponses(
+        { @ApiResponse(code = 204, message = "Custom User Field deleted"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    public Response deleteCustomUserField(@PathParam("key") String key) {
         fieldService.delete(key);
         return Response.noContent().build();
     }

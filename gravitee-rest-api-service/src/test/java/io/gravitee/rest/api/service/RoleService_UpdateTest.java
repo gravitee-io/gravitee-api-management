@@ -15,6 +15,13 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
@@ -26,22 +33,13 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.impl.RoleServiceImpl;
-
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -59,32 +57,35 @@ public class RoleService_UpdateTest {
     @Mock
     private AuditService auditService;
 
-
     @Test
     public void shouldUpdate() throws TechnicalException {
         UpdateRoleEntity updateRoleEntityMock = mock(UpdateRoleEntity.class);
         when(updateRoleEntityMock.getId()).thenReturn("updated_mock_role");
         when(updateRoleEntityMock.getName()).thenReturn("update mock role");
         when(updateRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-        when(updateRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(
-                DOCUMENTATION.getName(),
-                new char[]{RolePermissionAction.CREATE.getId()}));
+        when(updateRoleEntityMock.getPermissions())
+            .thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() }));
         Role roleMock = mock(Role.class);
         when(roleMock.getId()).thenReturn("updated_mock_role");
         when(roleMock.getName()).thenReturn("new mock role");
         when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
-        when(roleMock.getPermissions()).thenReturn(new int[]{3008});
+        when(roleMock.getPermissions()).thenReturn(new int[] { 3008 });
         when(roleMock.getReferenceType()).thenReturn(RoleReferenceType.ORGANIZATION);
         when(roleMock.getReferenceId()).thenReturn("orga#1");
-        when(mockRoleRepository.update(argThat(role -> role.getReferenceId().equals("orga#1") && role.getReferenceType() == RoleReferenceType.ORGANIZATION))).thenReturn(roleMock);
+        when(
+            mockRoleRepository.update(
+                argThat(role -> role.getReferenceId().equals("orga#1") && role.getReferenceType() == RoleReferenceType.ORGANIZATION)
+            )
+        )
+            .thenReturn(roleMock);
         when(mockRoleRepository.findById("updated_mock_role")).thenReturn(Optional.of(roleMock));
 
         RoleEntity entity = roleService.update(updateRoleEntityMock);
 
         assertNotNull("no entoty created", entity);
-        assertEquals("invalid id","updated_mock_role", entity.getId());
-        assertEquals("invalid name","new mock role", entity.getName());
-        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT , entity.getScope());
+        assertEquals("invalid id", "updated_mock_role", entity.getId());
+        assertEquals("invalid name", "new mock role", entity.getName());
+        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT, entity.getScope());
         assertFalse("no permissions found", entity.getPermissions().isEmpty());
         assertTrue("invalid Permission name", entity.getPermissions().containsKey(DOCUMENTATION.getName()));
         char[] perms = entity.getPermissions().get(DOCUMENTATION.getName());

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.mockito.Mockito.mock;
+
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
@@ -29,6 +31,9 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActiv
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.configuration.spel.SpelService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,12 +44,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.mockito.Mockito.mock;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -54,17 +53,19 @@ import static org.mockito.Mockito.mock;
 public abstract class AbstractResourceTest extends JerseySpringTest {
 
     public AbstractResourceTest() {
-        super(new AuthenticationProviderManager() {
-            @Override
-            public List<AuthenticationProvider> getIdentityProviders() {
-                return Collections.emptyList();
-            }
+        super(
+            new AuthenticationProviderManager() {
+                @Override
+                public List<AuthenticationProvider> getIdentityProviders() {
+                    return Collections.emptyList();
+                }
 
-            @Override
-            public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
-                return Optional.empty();
+                @Override
+                public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
+                    return Optional.empty();
+                }
             }
-        });
+        );
     }
 
     public AbstractResourceTest(AuthenticationProviderManager authenticationProviderManager) {
@@ -320,7 +321,7 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
         @Bean
         public ApplicationMetadataService applicationMetadataService() {
-    	    return mock(ApplicationMetadataService.class);
+            return mock(ApplicationMetadataService.class);
         }
 
         @Bean
@@ -412,6 +413,5 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public SpelService spelService() {
             return mock(SpelService.class);
         }
-
     }
 }
