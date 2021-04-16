@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "be9be741-048b-46d5-9146-ef98c444e31e",
+		"_postman_id": "f111e935-c2b6-4ffe-96d6-ac57b50fd553",
 		"name": "APIs",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14680,8 +14680,8 @@
 											"    pm.expect(jsonData.lifecycle_state).to.eql(\"created\");",
 											"});",
 											"",
-											"pm.collectionVariables.set(\"created_api_id\", jsonData.id);",
-											"pm.collectionVariables.set(\"created_api\", JSON.stringify(jsonData));"
+											"pm.collectionVariables.set(\"created_api_api1_id\", jsonData.id);",
+											"pm.collectionVariables.set(\"created_api_api1\", JSON.stringify(jsonData));"
 										],
 										"type": "text/javascript"
 									}
@@ -14759,8 +14759,8 @@
 											"    pm.expect(jsonData.lifecycle_state).to.eql(\"created\");",
 											"});",
 											"",
-											"pm.collectionVariables.set(\"created_api_id\", jsonData.id);",
-											"pm.collectionVariables.set(\"created_api\", JSON.stringify(jsonData));"
+											"pm.collectionVariables.set(\"created_api_admin_id\", jsonData.id);",
+											"pm.collectionVariables.set(\"created_api_admin\", JSON.stringify(jsonData));"
 										],
 										"type": "text/javascript"
 									}
@@ -14844,7 +14844,7 @@
 					"name": "search apis",
 					"item": [
 						{
-							"name": "found API1 by admin",
+							"name": "Found search_API1 as admin",
 							"event": [
 								{
 									"listen": "test",
@@ -14856,7 +14856,7 @@
 											"",
 											"var jsonData = pm.response.json();",
 											"",
-											"pm.test(\"API1 is found\", function () {",
+											"pm.test(\"search_API1 is found\", function () {",
 											"    pm.expect(jsonData).to.be.an('array');",
 											"    pm.expect(jsonData.length).to.equal(1);",
 											"    pm.expect(jsonData[0].name).to.contains(\"search_API1\");",
@@ -14901,7 +14901,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"contextPath\": \"/api{{random_uid}}\",\n\t\"description\": \"The API {{random_uid}}\",\n\t\"endpoint\": \"http://api/{{random_uid}}\",\n\t\"name\": \"API {{random_uid}}\",\n\t\"version\": \"{{random_uid}}\"\n}"
+									"raw": ""
 								},
 								"url": {
 									"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/_search?q=search_API1",
@@ -14923,7 +14923,7 @@
 							"response": []
 						},
 						{
-							"name": "found ADMIN by admin",
+							"name": "Found search_ADMIN as admin",
 							"event": [
 								{
 									"listen": "test",
@@ -14935,7 +14935,7 @@
 											"",
 											"var jsonData = pm.response.json();",
 											"",
-											"pm.test(\"ADMIN is found\", function () {",
+											"pm.test(\"search_ADMIN is found\", function () {",
 											"    pm.expect(jsonData).to.be.an('array');",
 											"    pm.expect(jsonData.length).to.equal(1);",
 											"    pm.expect(jsonData[0].name).to.contains(\"search_ADMIN\");",
@@ -14980,7 +14980,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"contextPath\": \"/api{{random_uid}}\",\n\t\"description\": \"The API {{random_uid}}\",\n\t\"endpoint\": \"http://api/{{random_uid}}\",\n\t\"name\": \"API {{random_uid}}\",\n\t\"version\": \"{{random_uid}}\"\n}"
+									"raw": ""
 								},
 								"url": {
 									"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/_search?q=search_ADMIN",
@@ -15002,7 +15002,7 @@
 							"response": []
 						},
 						{
-							"name": "not found ADMIN by api1",
+							"name": "Not found ADMIN as api1",
 							"event": [
 								{
 									"listen": "test",
@@ -15014,7 +15014,7 @@
 											"",
 											"var jsonData = pm.response.json();",
 											"",
-											"pm.test(\"ADMIN not found\", function () {",
+											"pm.test(\"search_ADMIN not found\", function () {",
 											"    pm.expect(jsonData).to.be.an('array');",
 											"    pm.expect(jsonData.length).to.equal(0);",
 											"});"
@@ -15058,7 +15058,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"contextPath\": \"/api{{random_uid}}\",\n\t\"description\": \"The API {{random_uid}}\",\n\t\"endpoint\": \"http://api/{{random_uid}}\",\n\t\"name\": \"API {{random_uid}}\",\n\t\"version\": \"{{random_uid}}\"\n}"
+									"raw": ""
 								},
 								"url": {
 									"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/_search?q=search_ADMIN",
@@ -15080,7 +15080,7 @@
 							"response": []
 						},
 						{
-							"name": "found API1 by api1",
+							"name": "Found search_API1 as api1",
 							"event": [
 								{
 									"listen": "test",
@@ -15092,7 +15092,7 @@
 											"",
 											"var jsonData = pm.response.json();",
 											"",
-											"pm.test(\"API1 is found\", function () {",
+											"pm.test(\"search_API1 is found\", function () {",
 											"    pm.expect(jsonData.length).to.equals == 3;",
 											"    pm.expect(jsonData[0].name).to.contains(\"search_API1\");",
 											"});"
@@ -15136,7 +15136,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"contextPath\": \"/api{{random_uid}}\",\n\t\"description\": \"The API {{random_uid}}\",\n\t\"endpoint\": \"http://api/{{random_uid}}\",\n\t\"name\": \"API {{random_uid}}\",\n\t\"version\": \"{{random_uid}}\"\n}"
+									"raw": ""
 								},
 								"url": {
 									"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/_search?q=search_API1",
@@ -15179,6 +15179,115 @@
 									""
 								]
 							}
+						}
+					]
+				},
+				{
+					"name": "-- Clean Up --",
+					"item": [
+						{
+							"name": "Delete created API for API1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/:apiId",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"apis",
+										":apiId"
+									],
+									"variable": [
+										{
+											"key": "apiId",
+											"value": "{{created_api_api1_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete created API for admin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/apis/:apiId",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"apis",
+										":apiId"
+									],
+									"variable": [
+										{
+											"key": "apiId",
+											"value": "{{created_api_admin_id}}"
+										}
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				}
@@ -15332,6 +15441,46 @@
 		},
 		{
 			"key": "api_already_imported",
+			"value": ""
+		},
+		{
+			"key": "created_excluded_group",
+			"value": ""
+		},
+		{
+			"key": "created_excluded_group_id",
+			"value": ""
+		},
+		{
+			"key": "created_application_id",
+			"value": ""
+		},
+		{
+			"key": "created_plan_id",
+			"value": ""
+		},
+		{
+			"key": "created_plan",
+			"value": ""
+		},
+		{
+			"key": "created_subscription_id",
+			"value": ""
+		},
+		{
+			"key": "created_api_api1_id",
+			"value": ""
+		},
+		{
+			"key": "created_api_api1",
+			"value": ""
+		},
+		{
+			"key": "created_api_admin_id",
+			"value": ""
+		},
+		{
+			"key": "created_api_admin",
 			"value": ""
 		}
 	]
