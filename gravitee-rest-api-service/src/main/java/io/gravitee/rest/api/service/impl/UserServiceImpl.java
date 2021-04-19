@@ -68,6 +68,7 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
@@ -80,6 +81,7 @@ import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -94,7 +96,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class UserServiceImpl extends AbstractService implements UserService {
+public class UserServiceImpl extends AbstractService implements UserService, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
@@ -192,7 +194,21 @@ public class UserServiceImpl extends AbstractService implements UserService {
     @Value("${user.anonymize-on-delete.enabled:false}")
     private boolean anonymizeOnDelete;
 
+    private List<String> portalWhitelist;
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Override
+    public void afterPropertiesSet() {
+        int i = 0;
+        portalWhitelist = new ArrayList<>();
+
+        String whitelistUrl;
+
+        while ((whitelistUrl = environment.getProperty("portal.whitelist[" + i + "]")) != null) {
+            portalWhitelist.add(whitelistUrl);
+            i++;
+        }
+    }
 
     @Override
     public UserEntity connect(String userId) {
@@ -739,6 +755,8 @@ public class UserServiceImpl extends AbstractService implements UserService {
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity, final String confirmationPageUrl) {
         final GraviteeContext.ReferenceContext currentContext = GraviteeContext.getCurrentContext();
 
+        UrlSanitizerUtils.checkAllowed(confirmationPageUrl, portalWhitelist, true);
+
         checkUserRegistrationEnabled(currentContext);
         boolean autoRegistrationEnabled = isAutoRegistrationEnabled(currentContext);
 
@@ -1228,6 +1246,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
         if (sourceId.startsWith("deleted")) {
             throw new UserNotActiveException(sourceId);
         }
+
+        UrlSanitizerUtils.checkAllowed(resetPageUrl, portalWhitelist, true);
+
         UserEntity foundUser = this.findBySource(IDP_SOURCE_GRAVITEE, sourceId, false);
         if ("ACTIVE".equals(foundUser.getStatus())) {
             this.resetPassword(foundUser.getId(), resetPageUrl);
