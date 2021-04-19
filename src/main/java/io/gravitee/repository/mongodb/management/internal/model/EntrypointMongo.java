@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.repository.management.model.EntrypointReferenceType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -29,9 +30,10 @@ public class EntrypointMongo {
 
 	@Id
 	private String id;
-	private String environmentId;
 	private String value;
 	private String tags;
+	private String referenceId;
+	private EntrypointReferenceType referenceType;
 
 	public String getId() {
 		return id;
@@ -40,14 +42,6 @@ public class EntrypointMongo {
 	public void setId(String id) {
 		this.id = id;
 	}
-
-	public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
 
     public String getValue() {
 		return value;
@@ -63,6 +57,22 @@ public class EntrypointMongo {
 
 	public void setTags(String tags) {
 		this.tags = tags;
+	}
+
+	public String getReferenceId() {
+		return referenceId;
+	}
+
+	public void setReferenceId(String referenceId) {
+		this.referenceId = referenceId;
+	}
+
+	public EntrypointReferenceType getReferenceType() {
+		return referenceType;
+	}
+
+	public void setReferenceType(EntrypointReferenceType referenceType) {
+		this.referenceType = referenceType;
 	}
 
 	@Override
@@ -82,9 +92,10 @@ public class EntrypointMongo {
 	public String toString() {
 		return "EntrypointMongo{" +
 				"id='" + id + '\'' +
-                ", environmentId='" + environmentId + '\'' +
 				", value='" + value + '\'' +
 				", tags='" + tags + '\'' +
+				", referenceId='" + referenceId + '\'' +
+				", referenceType=" + referenceType +
 				'}';
 	}
 }

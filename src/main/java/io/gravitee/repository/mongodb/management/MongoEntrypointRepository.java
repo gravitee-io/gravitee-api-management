@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
+import io.gravitee.repository.management.model.EntrypointReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.EntrypointMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EntrypointMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -57,6 +58,16 @@ public class MongoEntrypointRepository implements EntrypointRepository {
     }
 
     @Override
+    public Optional<Entrypoint> findByIdAndReference(String entrypointId, String referenceId, EntrypointReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("Find entry point by ID and reference [{}, {}, {}]", entrypointId, referenceId, referenceType);
+
+        final EntrypointMongo entrypoint = internalEntryPointRepo.findByIdAndReferenceIdAndReferenceType(entrypointId, referenceId, referenceType).orElse(null);
+
+        LOGGER.debug("Find entry point by ID and reference [{}, {}, {}] - Done", entrypointId, referenceId, referenceType);
+        return Optional.ofNullable(mapper.map(entrypoint, Entrypoint.class));
+    }
+
+    @Override
     public Entrypoint create(Entrypoint entrypoint) throws TechnicalException {
         LOGGER.debug("Create entry point [{}]", entrypoint.getValue());
 
@@ -85,7 +96,8 @@ public class MongoEntrypointRepository implements EntrypointRepository {
         try {
             //Update
             entrypointMongo.setValue(entrypoint.getValue());
-            entrypointMongo.setEnvironmentId(entrypoint.getEnvironmentId());
+            entrypointMongo.setReferenceId(entrypoint.getReferenceId());
+            entrypointMongo.setReferenceType(entrypoint.getReferenceType());
             entrypointMongo.setTags(entrypoint.getTags());
 
             EntrypointMongo entrypointMongoUpdated = internalEntryPointRepo.save(entrypointMongo);
@@ -109,28 +121,14 @@ public class MongoEntrypointRepository implements EntrypointRepository {
     }
 
     @Override
-    public Set<Entrypoint> findAll() {
-        final List<EntrypointMongo> entrypoints = internalEntryPointRepo.findAll();
+    public Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) {
+        final List<EntrypointMongo> entrypoints = internalEntryPointRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
         return entrypoints.stream()
                 .map(entrypointMongo -> {
                     final Entrypoint entrypoint = new Entrypoint();
                     entrypoint.setId(entrypointMongo.getId());
-                    entrypoint.setEnvironmentId(entrypointMongo.getEnvironmentId());
-                    entrypoint.setValue(entrypointMongo.getValue());
-                    entrypoint.setTags(entrypointMongo.getTags());
-                    return entrypoint;
-                })
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<Entrypoint> findAllByEnvironment(String environmentId) throws TechnicalException {
-        final List<EntrypointMongo> entrypoints = internalEntryPointRepo.findByEnvironmentId(environmentId);
-        return entrypoints.stream()
-                .map(entrypointMongo -> {
-                    final Entrypoint entrypoint = new Entrypoint();
-                    entrypoint.setId(entrypointMongo.getId());
-                    entrypoint.setEnvironmentId(entrypointMongo.getEnvironmentId());
+                    entrypointMongo.setReferenceId(entrypoint.getReferenceId());
+                    entrypointMongo.setReferenceType(entrypoint.getReferenceType());
                     entrypoint.setValue(entrypointMongo.getValue());
                     entrypoint.setTags(entrypointMongo.getTags());
                     return entrypoint;

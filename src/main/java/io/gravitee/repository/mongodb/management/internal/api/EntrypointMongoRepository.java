@@ -16,9 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.api;
 
 import java.util.List;
+import java.util.Optional;
 
+import io.gravitee.repository.management.model.EntrypointReferenceType;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import io.gravitee.repository.mongodb.management.internal.model.EntrypointMongo;
@@ -29,6 +30,8 @@ import io.gravitee.repository.mongodb.management.internal.model.EntrypointMongo;
  */
 @Repository
 public interface EntrypointMongoRepository extends MongoRepository<EntrypointMongo, String> {
-    @Query("{ environmentId: ?0 }")
-    List<EntrypointMongo> findByEnvironmentId(String environmentId);
+
+    List<EntrypointMongo> findByReferenceIdAndReferenceType(String referenceId, EntrypointReferenceType referenceType);
+
+    Optional<EntrypointMongo> findByIdAndReferenceIdAndReferenceType(String entrypointId, String referenceId, EntrypointReferenceType referenceType);
 }

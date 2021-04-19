@@ -15,9 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.TagMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -26,6 +30,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TagMongoRepository extends MongoRepository<TagMongo, String> {
 
+    List<TagMongo> findByReferenceIdAndReferenceType(String referenceId, TagReferenceType referenceType);
+
+    Optional<TagMongo> findByIdAndReferenceIdAndReferenceType(String tagId, String referenceId, TagReferenceType referenceType);
 }
 
 

@@ -24,6 +24,11 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.LookupOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -38,8 +43,14 @@ public class MongoGroupRepository implements GroupRepository {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Value("${management.mongodb.prefix:}")
+    private String tablePrefix;
+
     @Autowired
     private GroupMongoRepository internalRepository;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Autowired
     private GraviteeMapper mapper;
@@ -125,4 +136,38 @@ public class MongoGroupRepository implements GroupRepository {
         return all;
     }
 
+    @Override
+    public Set<Group> findAllByOrganization(String organizationId) throws TechnicalException {
+        logger.debug("Find all groups by organization");
+
+        LookupOperation lookupOperation = LookupOperation.newLookup()
+                .from(getTableNameFor("environments"))
+                .localField("environmentId")
+                .foreignField("_id")
+                .as("environment");
+
+        Aggregation aggregation = Aggregation
+                .newAggregation(
+                        lookupOperation,
+                        Aggregation.match(
+                                Criteria
+                                    .where("environment.organizationId")
+                                    .is(organizationId)
+                        )
+                );
+
+
+        Set<Group> groups = mongoTemplate.aggregate(aggregation, getTableNameFor("groups"), GroupMongo.class)
+                .getMappedResults()
+                .stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
+
+        logger.debug("Find all groups by organization - Found {}", groups);
+        return groups;
+    }
+
+    private String getTableNameFor(String table) {
+        return tablePrefix + table;
+    }
 }

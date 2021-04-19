@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.repository.management.model.TenantReferenceType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -33,6 +34,10 @@ public class TenantMongo {
 	private String name;
 
 	private String description;
+
+	private String referenceId;
+
+	private TenantReferenceType referenceType;
 
 	public String getId() {
 		return id;
@@ -58,6 +63,22 @@ public class TenantMongo {
 		this.description = description;
 	}
 
+	public String getReferenceId() {
+		return referenceId;
+	}
+
+	public void setReferenceId(String referenceId) {
+		this.referenceId = referenceId;
+	}
+
+	public TenantReferenceType getReferenceType() {
+		return referenceType;
+	}
+
+	public void setReferenceType(TenantReferenceType referenceType) {
+		this.referenceType = referenceType;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -77,6 +98,8 @@ public class TenantMongo {
 				"id='" + id + '\'' +
 				", name='" + name + '\'' +
 				", description='" + description + '\'' +
+				", referenceId='" + referenceId + '\'' +
+				", referenceType='" + referenceType + '\'' +
 				'}';
 	}
 }

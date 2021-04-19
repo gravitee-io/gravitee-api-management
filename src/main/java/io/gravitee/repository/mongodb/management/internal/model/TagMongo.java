@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.repository.management.model.TagReferenceType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -33,6 +34,8 @@ public class TagMongo {
 	private String name;
 	private String description;
 	private List<String> restrictedGroups;
+	private String referenceId;
+	private TagReferenceType referenceType;
 
 	public String getId() {
 		return id;
@@ -66,6 +69,22 @@ public class TagMongo {
 		this.restrictedGroups = restrictedGroups;
 	}
 
+	public String getReferenceId() {
+		return referenceId;
+	}
+
+	public void setReferenceId(String referenceId) {
+		this.referenceId = referenceId;
+	}
+
+	public TagReferenceType getReferenceType() {
+		return referenceType;
+	}
+
+	public void setReferenceType(TagReferenceType referenceType) {
+		this.referenceType = referenceType;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -86,6 +105,8 @@ public class TagMongo {
 				", name='" + name + '\'' +
 				", description='" + description + '\'' +
 				", restrictedGroups=" + restrictedGroups +
+				", referenceId='" + referenceId + '\'' +
+				", referenceType='" + referenceType + '\'' +
 				'}';
 	}
 }

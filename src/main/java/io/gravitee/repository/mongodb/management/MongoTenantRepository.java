@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
+import io.gravitee.repository.management.model.TenantReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.TenantMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.TenantMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -57,6 +58,16 @@ public class MongoTenantRepository implements TenantRepository {
     }
 
     @Override
+    public Optional<Tenant> findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType) throws TechnicalException {
+        LOGGER.debug("Find tenant by ID [{}]", tenantId);
+
+        final TenantMongo tenant = internalTenantRepo.findByIdAndReferenceIdAndReferenceType(tenantId, referenceId, referenceType).orElse(null);
+
+        LOGGER.debug("Find tenant by ID [{}] - Done", tenantId);
+        return Optional.ofNullable(mapper.map(tenant, Tenant.class));
+    }
+
+    @Override
     public Tenant create(Tenant tenant) throws TechnicalException {
         LOGGER.debug("Create tenant [{}]", tenant.getName());
 
@@ -86,6 +97,8 @@ public class MongoTenantRepository implements TenantRepository {
             //Update
             tenantMongo.setName(tenant.getName());
             tenantMongo.setDescription(tenant.getDescription());
+            tenantMongo.setReferenceId(tenant.getReferenceId());
+            tenantMongo.setReferenceType(tenant.getReferenceType());
 
             TenantMongo tenantMongoUpdated = internalTenantRepo.save(tenantMongo);
             return mapper.map(tenantMongoUpdated, Tenant.class);
@@ -108,14 +121,16 @@ public class MongoTenantRepository implements TenantRepository {
     }
 
     @Override
-    public Set<Tenant> findAll() throws TechnicalException {
-        final List<TenantMongo> tenants = internalTenantRepo.findAll();
+    public Set<Tenant> findByReference(String referenceId, TenantReferenceType referenceType) throws TechnicalException {
+        final List<TenantMongo> tenants = internalTenantRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
         return tenants.stream()
                 .map(tenantMongo -> {
                     final Tenant tenant = new Tenant();
                     tenant.setId(tenantMongo.getId());
                     tenant.setName(tenantMongo.getName());
                     tenant.setDescription(tenantMongo.getDescription());
+                    tenant.setReferenceId(tenantMongo.getReferenceId());
+                    tenant.setReferenceType(tenantMongo.getReferenceType());
                     return tenant;
                 })
                 .collect(Collectors.toSet());
