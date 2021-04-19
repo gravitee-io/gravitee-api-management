@@ -16,14 +16,19 @@
 
 -->
 <div class="newsletter-box" ng-if="$ctrl.displayNewsletterSubscription">
-    <div class="newsletter-title-box">
-      <div class="newsletter-title">Join the community</div>
-      <a ng-click="$ctrl.close()" title="Maybe later, thanks !"><ng-md-icon icon="close" style="fill: rgba(0, 0, 0, 0.54);" size="20"></a>
-    </div>
-    <p>Subscribe to get product updates in your inbox</p>
-    <form id="newsletter-form" class="newsletter-form" ng-submit="$ctrl.subscribe()" >
-        <input ng-model="$ctrl.email" ng-required="$ctrl.error" name="email" type="email" class="gv-input" placeholder="Email Address">
-        <button type="submit" class="gv-button">Subscribe</button>
-    </form>
-    <span class="message">We won’t send you spam, unsubscribe at any time. <a ng-click="$ctrl.unsubscribe()" title="No thanks, don't ask me anymore.">No thanks, don't ask me anymore.</a></span>
+  <div class="newsletter-title-box">
+    <div class="newsletter-title">Join the community</div>
+    <a ng-click="$ctrl.close()" title="Maybe later, thanks !"
+      ><ng-md-icon icon="close" style="fill: rgba(0, 0, 0, 0.54)" size="20"></ng-md-icon
+    ></a>
+  </div>
+  <p>Subscribe to get product updates in your inbox</p>
+  <form id="newsletter-form" class="newsletter-form" ng-submit="$ctrl.subscribe()">
+    <input ng-model="$ctrl.email" ng-required="$ctrl.error" name="email" type="email" class="gv-input" placeholder="Email Address" />
+    <button type="submit" class="gv-button">Subscribe</button>
+  </form>
+  <span class="message"
+    >We won’t send you spam, unsubscribe at any time.
+    <a ng-click="$ctrl.unsubscribe()" title="No thanks, don't ask me anymore.">No thanks, don't ask me anymore.</a></span
+  >
 </div>

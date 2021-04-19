@@ -23,56 +23,48 @@
         <div layout="row">
           <md-input-container>
             <label>Key</label>
-            <input ng-model="$ctrl.field.key"  
-            ng-pattern='/^[a-zA-Z0-9_\-]+$/'
-            ng-disabled="$ctrl.updateAction" 
-            autocomplete="off" 
-            required 
-            autocomplete="true"
-            md-autofocus="!$ctrl.updateAction"
-            placeholder="click to display predifined options"
-            list="predefinedKeys">
+            <input
+              ng-model="$ctrl.field.key"
+              ng-pattern="/^[a-zA-Z0-9_\-]+$/"
+              ng-disabled="$ctrl.updateAction"
+              autocomplete="off"
+              required
+              autocomplete="true"
+              md-autofocus="!$ctrl.updateAction"
+              placeholder="click to display predifined options"
+              list="predefinedKeys"
+            />
             <datalist id="predefinedKeys">
-              <select >
-                <option ng-repeat="predefKey in $ctrl.predefinedKeys" value="{{predefKey}}">
+              <select>
+                <option ng-repeat="predefKey in $ctrl.predefinedKeys" value="{{predefKey}}"></option>
               </select>
             </datalist>
-          </input>
-          <span style="font-style: italic;
-          font-size: 12px;
-          color: gray; ">Authorized characters: [a-z0-9_\-]</span>
+            <span style="font-style: italic; font-size: 12px; color: gray">Authorized characters: [a-z0-9_\-]</span>
           </md-input-container>
         </div>
         <div layout="row">
           <md-input-container flex>
             <label>Label</label>
-            <input ng-model="$ctrl.field.label" md-autofocus="$ctrl.updateAction"
-                   required>
+            <input ng-model="$ctrl.field.label" md-autofocus="$ctrl.updateAction" required />
           </md-input-container>
         </div>
         <div layout="row">
           <md-input-container flex>
-          <md-checkbox ng-model="$ctrl.field.required"
-                       ng-pattern="pattern"
-                       >
-            Required
-          </md-checkbox>
-        </md-input-container>
+            <md-checkbox ng-model="$ctrl.field.required" ng-pattern="pattern"> Required </md-checkbox>
+          </md-input-container>
         </div>
         <div layout="row">
-        <md-input-container flex>
+          <md-input-container flex>
             <label>Values</label>
             <textarea ng-model="$ctrl.field.values" rows="3" class="custom-user-fields-values"> </textarea>
             <span class="custom-user-fields-values-help">Enter the possible values (if any) separated by a new line</span>
-        </md-input-container>
-        </div>  
+          </md-input-container>
+        </div>
       </div>
     </md-dialog-content>
     <md-dialog-actions layout="row">
-      <md-button ng-click="$ctrl.cancel()">
-        Cancel
-      </md-button>
-      <md-button  type="submit" class="md-raised md-primary" ng-disabled="formCustomField.$invalid">
+      <md-button ng-click="$ctrl.cancel()"> Cancel </md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formCustomField.$invalid">
         {{$ctrl.updateAction?'Update':'Create'}} User Field
       </md-button>
     </md-dialog-actions>
