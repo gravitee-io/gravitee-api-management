@@ -33,7 +33,7 @@ class ApiHealthCheckConfigureController {
     private $state,
     private $stateParams,
     private $rootScope,
-    private $window 
+    private $window
   ) {
     'ngInject';
 
