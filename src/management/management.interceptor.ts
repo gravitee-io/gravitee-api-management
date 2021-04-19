@@ -17,10 +17,7 @@ import NotificationService from '../services/notification.service';
 import UserService from '../services/user.service';
 import ReCaptchaService from '../services/reCaptcha.service';
 
-function interceptorConfig(
-  $httpProvider: angular.IHttpProvider,
-  Constants
-) {
+function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   'ngInject';
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
@@ -32,14 +29,19 @@ function interceptorConfig(
 
   let sessionExpired;
 
-  const interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService, $location, $state): angular.IHttpInterceptor => ({
+  const interceptorUnauthorized = (
+    $q: angular.IQService,
+    $injector: angular.auto.IInjectorService,
+    $location,
+    $state,
+  ): angular.IHttpInterceptor => ({
     responseError: function (error) {
       if (error.config && !error.config.tryItMode) {
         const unauthorizedError = !error || error.status === 401;
         let errorMessage = '';
 
-        const notificationService = ($injector.get('NotificationService') as NotificationService);
-        const userService = ($injector.get('UserService') as UserService);
+        const notificationService = $injector.get('NotificationService') as NotificationService;
+        const userService = $injector.get('UserService') as UserService;
         const $timeout = $injector.get('$timeout');
         if (unauthorizedError) {
           if (error.config.headers.Authorization) {
@@ -48,12 +50,14 @@ function interceptorConfig(
           } else {
             // if on portal home do not redirect
             error.config.forceSessionExpired =
-              $location.$$path !== ''
-              && $location.$$path !== '/'
-              && $location.$$path !== '/login'
-              && !$location.$$path.startsWith('/registration')
-              && !$location.$$path.startsWith('/resetPassword')
-              && !error.config.url.startsWith(Constants.env.baseURL.endsWith('/') ? Constants.env.baseURL + 'user' :  Constants.env.baseURL + '/user/');
+              $location.$$path !== '' &&
+              $location.$$path !== '/' &&
+              $location.$$path !== '/login' &&
+              !$location.$$path.startsWith('/registration') &&
+              !$location.$$path.startsWith('/resetPassword') &&
+              !error.config.url.startsWith(
+                Constants.env.baseURL.endsWith('/') ? Constants.env.baseURL + 'user' : Constants.env.baseURL + '/user/',
+              );
             if (error.config.forceSessionExpired || (!sessionExpired && !error.config.silentCall)) {
               sessionExpired = true;
               // session expired
@@ -89,7 +93,7 @@ function interceptorConfig(
       }
 
       return $q.reject(error);
-    }
+    },
   });
 
   const interceptorTimeout = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
@@ -100,7 +104,7 @@ function interceptorConfig(
         return config;
       },
       responseError: function (error) {
-        const notificationService = ($injector.get('NotificationService') as NotificationService);
+        const notificationService = $injector.get('NotificationService') as NotificationService;
         if (!error.config || !error.config.silentCall) {
           if (error.config && !error.config.tryItMode) {
             if (error && error.status <= 0 && error.xhrStatus !== 'abort') {
@@ -111,7 +115,7 @@ function interceptorConfig(
           }
         }
         return $q.reject(error);
-      }
+      },
     };
   };
 
@@ -136,12 +140,11 @@ function interceptorConfig(
           xsrfToken = response.headers('X-Xsrf-Token');
         }
         return $q.reject(response);
-      }
+      },
     };
   };
 
   const reCaptchaInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
-
     return {
       request: function (config) {
         let reCaptchaService: ReCaptchaService = $injector.get('ReCaptchaService');
@@ -153,22 +156,22 @@ function interceptorConfig(
           }
         }
         return config;
-      }
+      },
     };
   };
 
   // This interceptor aims to resolve the problem with Satellizer which, after exchanging oauth provider's token with apim's one, adds the apim token on all requests (through Authorization bearer header).
   // It caused logout problems between Portal and Management console because session Cookie is successfully removed but token is still sent by Satellizer using Authorization header.
   // See https://github.com/sahat/satellizer#question-how-can-i-avoid-sending-authorization-header-on-all-http-requests
-  const noSatellizerAuthorizationInterceptor = function(): angular.IHttpInterceptor {
+  const noSatellizerAuthorizationInterceptor = function (): angular.IHttpInterceptor {
     return {
-      request: function(config) {
+      request: function (config) {
         if (config.url.startsWith(Constants.baseURL)) {
           // tslint:disable:no-string-literal
           config['skipAuthorization'] = true;
         }
         return config;
-      }
+      },
     };
   };
 
@@ -180,10 +183,9 @@ function interceptorConfig(
           config.url = config.url.replace('{:envId}', constants.org.currentEnv.id);
         }
         return config;
-      }
+      },
     };
   };
-
 
   if ($httpProvider.interceptors) {
     // Add custom noSatellizerAuthorizationInterceptor at the beginning of the list to make sure they are activated before others interceptors such as Satellizer's interceptors.

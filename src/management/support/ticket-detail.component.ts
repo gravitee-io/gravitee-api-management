@@ -1,4 +1,4 @@
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -18,18 +18,17 @@ import {StateService} from '@uirouter/core';
 const TicketDetailComponent: ng.IComponentOptions = {
   template: require('./ticket-detail.html'),
   bindings: {
-    ticket: '<'
+    ticket: '<',
   },
-  controller: function($state: StateService) {
+  controller: function ($state: StateService) {
     'ngInject';
 
     this.backStateParams = {
       page: $state.params.page,
       size: $state.params.size,
-      order: $state.params.order
+      order: $state.params.order,
     };
-  }
-
+  },
 };
 
 export default TicketDetailComponent;

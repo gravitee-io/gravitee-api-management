@@ -20,7 +20,7 @@ const ApplicationMembersComponent: ng.IComponentOptions = {
     resolvedGroups: '<',
   },
   controller: 'ApplicationMembersController',
-  template: require('./application-members.html')
+  template: require('./application-members.html'),
 };
 
 export default ApplicationMembersComponent;

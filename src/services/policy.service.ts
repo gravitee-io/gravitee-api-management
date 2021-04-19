@@ -47,7 +47,6 @@ class PolicyService {
   getDocumentation(policyId) {
     return this.$http.get(this.policiesURL + policyId + '/documentation');
   }
-
 }
 
 export default PolicyService;

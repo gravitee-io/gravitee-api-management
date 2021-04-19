@@ -16,12 +16,12 @@
 
 const DashboardFilterComponent: ng.IComponentOptions = {
   bindings: {
-    onFilterChange: '&'
+    onFilterChange: '&',
   },
   template: require('./dashboard-filter.html'),
   controller: 'DashboardFilterController',
   require: {
-    parent: '^gvDashboard'
+    parent: '^gvDashboard',
   },
 };
 

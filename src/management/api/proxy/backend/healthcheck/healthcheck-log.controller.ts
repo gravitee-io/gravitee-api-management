@@ -18,12 +18,7 @@ class ApiHealthCheckLogController {
   private api: any;
   private log: any;
 
-  constructor (
-    private $scope,
-    private resolvedLog,
-    private $state,
-    private $window
-  ) {
+  constructor(private $scope, private resolvedLog, private $state, private $window) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
     this.log = resolvedLog.data;
@@ -40,7 +35,12 @@ class ApiHealthCheckLogController {
 
   backToHealthcheck() {
     let query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
-    this.$state.go('management.apis.detail.proxy.healthcheck.visualize', {page: query.page, size: query.size, from: query.from, to: query.to});
+    this.$state.go('management.apis.detail.proxy.healthcheck.visualize', {
+      page: query.page,
+      size: query.size,
+      from: query.from,
+      to: query.to,
+    });
   }
 }
 

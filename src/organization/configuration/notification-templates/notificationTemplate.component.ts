@@ -18,7 +18,7 @@ const NotificationTemplateComponent: ng.IComponentOptions = {
     notifTemplates: '<',
   },
   controller: 'NotificationTemplateController',
-  template: require('./notificationTemplate.html')
+  template: require('./notificationTemplate.html'),
 };
 
 export default NotificationTemplateComponent;

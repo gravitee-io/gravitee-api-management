@@ -1,6 +1,7 @@
 table.md-table {
   border: 0;
-  .md-cell, .md-column {
+  .md-cell,
+  .md-column {
     padding: 0 18px !important;
   }
 
@@ -23,7 +24,6 @@ table.md-table {
       }
     }
   }
-
 }
 
 //////////////////////////////////////
@@ -31,7 +31,8 @@ table.md-table {
 //////////////////////////////////////
 table.md-table.gv-table-dense {
   margin-bottom: 1.1rem;
-  .md-cell, .md-column {
+  .md-cell,
+  .md-column {
     padding: 4px 12px !important;
   }
 
@@ -56,7 +57,10 @@ table.md-table.gv-table-dense {
 }
 
 .audit-properties {
-  display: grid; grid-gap: 5px; grid-template-columns: auto 1fr; line-height: 20px;
+  display: grid;
+  grid-gap: 5px;
+  grid-template-columns: auto 1fr;
+  line-height: 20px;
 }
 
 .audit-property {

@@ -38,7 +38,7 @@ const EditPageComponent: ng.IComponentOptions = {
     systemFolders: '<',
     pageResources: '<',
     categoryResources: '<',
-    attachedResources: '<'
+    attachedResources: '<',
   },
   template: require('./edit-page.html'),
   controller: function (
@@ -67,7 +67,7 @@ const EditPageComponent: ng.IComponentOptions = {
       if (this.resolvedPage.messages && this.resolvedPage.messages.length > 0) {
         this.error = {
           title: 'Validation messages',
-          message: this.resolvedPage.messages
+          message: this.resolvedPage.messages,
         };
       }
       this.groups = this.resolvedGroups;
@@ -77,19 +77,18 @@ const EditPageComponent: ng.IComponentOptions = {
       this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
       this.pageList = this.buildPageList(this.pageResources, true);
       this.pagesToLink = this.buildPageList(this.pagesToLink);
-      if ( DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
+      if (DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
         $state.go('management.settings.documentation');
       }
 
       this.emptyFetcher = {
-        'type': 'object',
-        'id': 'empty',
-        'properties': {'' : {}}
+        type: 'object',
+        id: 'empty',
+        properties: { '': {} },
       };
       $scope.fetcherJsonSchema = this.emptyFetcher;
       this.fetcherJsonSchemaForm = ['*'];
       this.initEditor();
-
 
       this.codeMirrorOptions = {
         lineWrapping: true,
@@ -113,7 +112,8 @@ const EditPageComponent: ng.IComponentOptions = {
       }
 
       this.settings = Constants.env.settings;
-      this.shouldShowOpenApiDocFormat = this.settings &&
+      this.shouldShowOpenApiDocFormat =
+        this.settings &&
         this.settings.openAPIDocViewer &&
         this.settings.openAPIDocViewer.openAPIDocType.swagger.enabled &&
         this.settings.openAPIDocViewer.openAPIDocType.redoc.enabled;
@@ -123,7 +123,6 @@ const EditPageComponent: ng.IComponentOptions = {
           this.page.configuration.viewer = this.settings.openAPIDocViewer.openAPIDocType.defaultType;
         }
       }
-
     };
 
     this.usedAsGeneralConditions = () => {
@@ -141,7 +140,7 @@ const EditPageComponent: ng.IComponentOptions = {
       this.currentTranslation = {
         type: 'TRANSLATION',
         parentId: this.page.id,
-        configuration: {}
+        configuration: {},
       };
       if (this.page.type === 'MARKDOWN' || this.page.type === 'SWAGGER') {
         this.currentTranslation.configuration.inheritContent = 'true';
@@ -149,49 +148,52 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.saveTranslation = () => {
-      if (this.page.configuration && ('page' === this.page.configuration.resourceType || 'category' === this.page.configuration.resourceType)) {
+      if (
+        this.page.configuration &&
+        ('page' === this.page.configuration.resourceType || 'category' === this.page.configuration.resourceType)
+      ) {
         this.currentTranslation.content = this.page.content;
       }
       // save translation
       if (!this.currentTranslation.id) {
-        DocumentationService.create(this.currentTranslation, this.apiId)
-        .then((response: any) => {
+        DocumentationService.create(this.currentTranslation, this.apiId).then((response: any) => {
           const page = response.data;
-          NotificationService.show('\'' + page.name + '\' has been created');
+          NotificationService.show("'" + page.name + "' has been created");
           this.refreshTranslations();
         });
       } else {
-        DocumentationService.update(this.currentTranslation, this.apiId)
-          .then( (response: any) => {
-            NotificationService.show('\'' + this.currentTranslation.name + '\' has been updated');
-            this.refreshTranslations();
-          });
-        }
+        DocumentationService.update(this.currentTranslation, this.apiId).then((response: any) => {
+          NotificationService.show("'" + this.currentTranslation.name + "' has been updated");
+          this.refreshTranslations();
+        });
+      }
     };
 
     this.remove = (page: any) => {
       let that = this;
-      $mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Would you like to remove "' + page.name + '"?',
-          confirmButton: 'Remove'
-        }
-      }).then(function (response: any) {
-        if (response) {
-          DocumentationService.remove(page.id, that.apiId).then( () => {
-            NotificationService.show('Translation ' + page.name + ' has been removed');
-            that.refreshTranslations();
-          });
-        }
-      });
+      $mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Would you like to remove "' + page.name + '"?',
+            confirmButton: 'Remove',
+          },
+        })
+        .then(function (response: any) {
+          if (response) {
+            DocumentationService.remove(page.id, that.apiId).then(() => {
+              NotificationService.show('Translation ' + page.name + ' has been removed');
+              that.refreshTranslations();
+            });
+          }
+        });
     };
 
     this.refreshTranslations = () => {
-      DocumentationService.get(this.apiId, this.page.id).then((response: any) => this.page.translations = response.data.translations);
+      DocumentationService.get(this.apiId, this.page.id).then((response: any) => (this.page.translations = response.data.translations));
       delete this.currentTranslation;
     };
 
@@ -218,19 +220,23 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.buildPageList = (pagesToFilter: any[], withRootFolder?: boolean) => {
-      let pageList = _
-        .filter(pagesToFilter, (p) => p.type === 'MARKDOWN' || p.type === 'SWAGGER' || (p.type === 'FOLDER' && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER))
-        .sort((a, b) => {
-          let comparison = 0;
-          const aFullPath = a.parentPath + '/' + a.name;
-          const bFullPath = b.parentPath + '/' + b.name;
-          if (aFullPath > bFullPath) {
-            comparison = 1;
-          } else if (aFullPath < bFullPath) {
-            comparison = -1;
-          }
-          return comparison;
-        });
+      let pageList = _.filter(
+        pagesToFilter,
+        (p) =>
+          p.type === 'MARKDOWN' ||
+          p.type === 'SWAGGER' ||
+          (p.type === 'FOLDER' && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER),
+      ).sort((a, b) => {
+        let comparison = 0;
+        const aFullPath = a.parentPath + '/' + a.name;
+        const bFullPath = b.parentPath + '/' + b.name;
+        if (aFullPath > bFullPath) {
+          comparison = 1;
+        } else if (aFullPath < bFullPath) {
+          comparison = -1;
+        }
+        return comparison;
+      });
 
       if (withRootFolder) {
         pageList.unshift({ id: 'root', name: '', type: 'FOLDER', fullPath: '' });
@@ -260,7 +266,7 @@ const EditPageComponent: ng.IComponentOptions = {
     this.initEditor = () => {
       $scope.editorReadonly = false;
       if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
-        _.forEach(this.fetchers, fetcher => {
+        _.forEach(this.fetchers, (fetcher) => {
           if (fetcher.id === this.page.source.type) {
             $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
             $scope.editorReadonly = true;
@@ -270,13 +276,13 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.configureFetcher = (fetcher) => {
-      if (! this.page.source) {
+      if (!this.page.source) {
         this.page.source = {};
       }
 
       this.page.source = {
         type: fetcher.id,
-        configuration: {}
+        configuration: {},
       };
       $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
     };
@@ -308,7 +314,7 @@ const EditPageComponent: ng.IComponentOptions = {
       if (this.page.configuration.resourceType === 'external') {
         delete this.page.configuration.inherit;
         if (this.page.translations) {
-          _.forEach(this.page.translations, t => delete t.content);
+          _.forEach(this.page.translations, (t) => delete t.content);
         }
       } else if (!this.page.configuration.inherit) {
         this.page.configuration.inherit = 'true';
@@ -318,18 +324,24 @@ const EditPageComponent: ng.IComponentOptions = {
     this.save = () => {
       this.error = null;
       DocumentationService.update(this.page, this.apiId)
-        .then( (response) => {
+        .then((response) => {
           if (response.data.messages && response.data.messages.length > 0) {
-            NotificationService.showError('\'' + this.page.name + '\' has been updated (with validation errors - check the bottom of the page for details)');
+            NotificationService.showError(
+              "'" + this.page.name + "' has been updated (with validation errors - check the bottom of the page for details)",
+            );
           } else {
-            NotificationService.show('\'' + this.page.name + '\' has been updated');
+            NotificationService.show("'" + this.page.name + "' has been updated");
           }
           if (this.apiId) {
-            $state.go('management.apis.detail.portal.editdocumentation', {pageId: this.page.id, tab: this.currentTab}, {reload: true});
+            $state.go('management.apis.detail.portal.editdocumentation', { pageId: this.page.id, tab: this.currentTab }, { reload: true });
           } else {
-            $state.go('management.settings.editdocumentation', {pageId: this.page.id, type: this.page.type, tab: this.currentTab}, {reload: true});
+            $state.go(
+              'management.settings.editdocumentation',
+              { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
+              { reload: true },
+            );
           }
-      })
+        })
         .catch((err) => {
           this.error = { ...err.data, title: 'Sorry, unable to update page' };
         });
@@ -338,7 +350,7 @@ const EditPageComponent: ng.IComponentOptions = {
     this.changeContentMode = (newMode) => {
       if ('fetcher' === newMode) {
         this.page.source = {
-          configuration: {}
+          configuration: {},
         };
       } else {
         delete this.page.source;
@@ -347,17 +359,17 @@ const EditPageComponent: ng.IComponentOptions = {
 
     this.cancel = () => {
       if (this.apiId) {
-        $state.go('management.apis.detail.portal.documentation', {apiId: this.apiId, parent: this.page.parentId});
+        $state.go('management.apis.detail.portal.documentation', { apiId: this.apiId, parent: this.page.parentId });
       } else {
-        $state.go('management.settings.documentation', {parent: this.page.parentId});
+        $state.go('management.settings.documentation', { parent: this.page.parentId });
       }
     };
 
     this.reset = () => {
       if (this.apiId) {
-        $state.go('management.apis.detail.portal.editdocumentation', {pageId: this.page.id}, {reload: true});
+        $state.go('management.apis.detail.portal.editdocumentation', { pageId: this.page.id }, { reload: true });
       } else {
-        $state.go('management.settings.editdocumentation', {pageId: this.page.id, type: this.page.type}, {reload: true});
+        $state.go('management.settings.editdocumentation', { pageId: this.page.id, type: this.page.type }, { reload: true });
       }
     };
 
@@ -369,8 +381,8 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.rename = () => {
-      DocumentationService.partialUpdate('name', this.newName, this.page.id, this.apiId).then( () => {
-        NotificationService.show('\'' + this.page.name + '\' has been renamed to \'' + this.newName + '\'');
+      DocumentationService.partialUpdate('name', this.newName, this.page.id, this.apiId).then(() => {
+        NotificationService.show("'" + this.page.name + "' has been renamed to '" + this.newName + "'");
         this.page.name = this.newName;
         this.toggleRename();
       });
@@ -383,9 +395,17 @@ const EditPageComponent: ng.IComponentOptions = {
     this.selectTab = (idx: number) => {
       this.changeTab(idx);
       if (this.apiId) {
-        $state.transitionTo('management.apis.detail.portal.editdocumentation', {apiId: this.apiId, type: this.page.type, pageId: this.page.id, tab: this.currentTab}, {notify: false});
+        $state.transitionTo(
+          'management.apis.detail.portal.editdocumentation',
+          { apiId: this.apiId, type: this.page.type, pageId: this.page.id, tab: this.currentTab },
+          { notify: false },
+        );
       } else {
-        $state.transitionTo('management.settings.editdocumentation', {pageId: this.page.id, type: this.page.type, tab: this.currentTab}, {notify: false});
+        $state.transitionTo(
+          'management.settings.editdocumentation',
+          { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
+          { notify: false },
+        );
       }
     };
 
@@ -395,8 +415,8 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.fetch = () => {
-      DocumentationService.fetch(this.page.id, this.apiId).then( () => {
-        NotificationService.show('\'' + this.page.name + '\' has been successfully fetched');
+      DocumentationService.fetch(this.page.id, this.apiId).then(() => {
+        NotificationService.show("'" + this.page.name + "' has been successfully fetched");
         this.reset();
       });
     };
@@ -415,21 +435,24 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.updateLinkNameWithPageId = (resourceId: string) => {
-      const relatedPage = _.find(this.pageList, p => p.id === resourceId);
-      if (relatedPage) {
+      const relatedPage = _.find(this.pageList, (p) => p.id === resourceId);
+      if (relatedPage) {
         this.updateLinkName(relatedPage.name);
       }
     };
 
     this.updateLinkNameWithCategoryId = (resourceId: string) => {
-      const relatedCategory = _.find(this.categoryResources, p => p.id === resourceId);
-      if (relatedCategory) {
+      const relatedCategory = _.find(this.categoryResources, (p) => p.id === resourceId);
+      if (relatedCategory) {
         this.updateLinkName(relatedCategory.name);
       }
     };
 
     this.updateTranslationContent = () => {
-      if (this.currentTranslation.configuration.inheritContent === 'false' && (!this.currentTranslation.content || this.currentTranslation.content === '')) {
+      if (
+        this.currentTranslation.configuration.inheritContent === 'false' &&
+        (!this.currentTranslation.content || this.currentTranslation.content === '')
+      ) {
         this.currentTranslation.content = this.page.content;
       }
       if (this.currentTranslation.configuration.inheritContent === 'true') {
@@ -447,64 +470,60 @@ const EditPageComponent: ng.IComponentOptions = {
 
     this.addAttachedResource = () => {
       let that = this;
-      $mdDialog.show({
-        controller: 'FileChooserDialogController',
-        controllerAs: 'ctrl',
-        template: require('../dialog/fileChooser.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Select a file to attach',
-          confirmButton: 'Add'
-        }
-      }).then(function (response: any) {
-        if (response.file) {
-          // upload new media to portal or api
-          let fd = new FormData();
-          let fileName = response.file.name;
-          if (response.filename) {
-            fileName = response.filename;
-          }
-          fd.append('file', response.file);
-          fd.append('fileName', fileName);
+      $mdDialog
+        .show({
+          controller: 'FileChooserDialogController',
+          controllerAs: 'ctrl',
+          template: require('../dialog/fileChooser.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Select a file to attach',
+            confirmButton: 'Add',
+          },
+        })
+        .then(function (response: any) {
+          if (response.file) {
+            // upload new media to portal or api
+            let fd = new FormData();
+            let fileName = response.file.name;
+            if (response.filename) {
+              fileName = response.filename;
+            }
+            fd.append('file', response.file);
+            fd.append('fileName', fileName);
 
-          DocumentationService.addMedia(fd, that.page.id, that.apiId)
-            .then(
-              response => that.reset()
-            )
-            .then(
-              () => NotificationService.show(fileName + ' has been attached')
-            )
-          ;
-        }
-      });
+            DocumentationService.addMedia(fd, that.page.id, that.apiId)
+              .then((response) => that.reset())
+              .then(() => NotificationService.show(fileName + ' has been attached'));
+          }
+        });
     };
 
     this.removeAttachedResource = (resource: any) => {
       let that = this;
-      $mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Would you like to remove "' + resource.fileName + '"?',
-          confirmButton: 'Remove'
-        }
-      }).then(function (response) {
-        if (response) {
-          that.page.attached_media = that.page.attached_media.filter(media => !(media.mediaHash === resource.hash && media.mediaName === resource.fileName && media.attachedAt === resource.createAt));
-          DocumentationService.update(that.page, that.apiId)
-            .then(
-              response => that.reset()
-            )
-            .then(
-              () => NotificationService.show(resource.fileName + ' has been removed from page')
-            )
-          ;
-        }
-      });
+      $mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Would you like to remove "' + resource.fileName + '"?',
+            confirmButton: 'Remove',
+          },
+        })
+        .then(function (response) {
+          if (response) {
+            that.page.attached_media = that.page.attached_media.filter(
+              (media) =>
+                !(media.mediaHash === resource.hash && media.mediaName === resource.fileName && media.attachedAt === resource.createAt),
+            );
+            DocumentationService.update(that.page, that.apiId)
+              .then((response) => that.reset())
+              .then(() => NotificationService.show(resource.fileName + ' has been removed from page'));
+          }
+        });
     };
-
   },
 };
 

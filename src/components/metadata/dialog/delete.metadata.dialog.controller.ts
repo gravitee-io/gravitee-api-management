@@ -17,8 +17,14 @@ import MetadataService from '../../../services/metadata.service';
 import ApiService from '../../../services/api.service';
 import ApplicationService from '../../../services/application.service';
 
-function DeleteMetadataDialogController(MetadataService: MetadataService, ApiService: ApiService, ApplicationService: ApplicationService,
-                                        $mdDialog: angular.material.IDialogService, metadata, $stateParams) {
+function DeleteMetadataDialogController(
+  MetadataService: MetadataService,
+  ApiService: ApiService,
+  ApplicationService: ApplicationService,
+  $mdDialog: angular.material.IDialogService,
+  metadata,
+  $stateParams,
+) {
   'ngInject';
 
   if ($stateParams.apiId) {
@@ -37,15 +43,15 @@ function DeleteMetadataDialogController(MetadataService: MetadataService, ApiSer
 
   this.delete = () => {
     if ($stateParams.apiId) {
-      ApiService.deleteMetadata($stateParams.apiId, metadata.key).then(response => {
+      ApiService.deleteMetadata($stateParams.apiId, metadata.key).then((response) => {
         $mdDialog.hide(true);
       });
     } else if ($stateParams.applicationId) {
-      ApplicationService.deleteMetadata($stateParams.applicationId, metadata.key).then(response => {
+      ApplicationService.deleteMetadata($stateParams.applicationId, metadata.key).then((response) => {
         $mdDialog.hide(true);
       });
     } else {
-      MetadataService.delete(metadata).then(response => {
+      MetadataService.delete(metadata).then((response) => {
         $mdDialog.hide(true);
       });
     }

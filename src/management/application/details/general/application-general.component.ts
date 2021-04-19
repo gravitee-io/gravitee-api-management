@@ -17,10 +17,10 @@ const ApplicationGeneralComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
     groups: '<',
-    applicationType: '<'
+    applicationType: '<',
   },
   controller: 'ApplicationGeneralController',
-  template: require('./application-general.html')
+  template: require('./application-general.html'),
 };
 
 export default ApplicationGeneralComponent;

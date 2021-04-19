@@ -18,18 +18,18 @@ import AlertService from '../../../../services/alert.service';
 
 const AlertHistoryComponent: ng.IComponentOptions = {
   bindings: {
-    alert: '<'
+    alert: '<',
   },
   require: {
-    parent: '^alertComponent'
+    parent: '^alertComponent',
   },
   template: require('./alert-history.html'),
-  controller: function(AlertService: AlertService) {
+  controller: function (AlertService: AlertService) {
     'ngInject';
 
     this.query = {
       limit: 10,
-      page: 1
+      page: 1,
     };
 
     this.$onInit = () => {
@@ -40,16 +40,16 @@ const AlertHistoryComponent: ng.IComponentOptions = {
 
     this.search = () => {
       AlertService.listAlertEvents(this.alert, {
-          from: this.lastFrom,
-          to: this.lastTo,
-          page: this.query.page - 1,
-          size: this.query.limit
-        }).then(response => {
-          this.events = response.data;
-          this.$scope.eventsFetchData = false;
+        from: this.lastFrom,
+        to: this.lastTo,
+        page: this.query.page - 1,
+        size: this.query.limit,
+      }).then((response) => {
+        this.events = response.data;
+        this.$scope.eventsFetchData = false;
       });
     };
-  }
+  },
 };
 
 export default AlertHistoryComponent;

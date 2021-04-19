@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 
 interface IMoveToFolderScope extends IScope {
   folders: any[];
   title: string;
 }
-function SelectFolderDialogController(
-  $scope: IMoveToFolderScope,
-  $mdDialog: angular.material.IDialogService,
-  locals: any) {
+function SelectFolderDialogController($scope: IMoveToFolderScope, $mdDialog: angular.material.IDialogService, locals: any) {
   'ngInject';
 
   $scope.folders = locals.folders;

@@ -25,7 +25,6 @@ class PortalConfigService {
   get() {
     return this.$http.get(this.configURL);
   }
-
 }
 
 export default PortalConfigService;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import MessageService from '../../services/message.service';
 import NotificationService from '../../services/notification.service';
 import _ = require('lodash');
@@ -23,23 +23,23 @@ const MessagesComponent: ng.IComponentOptions = {
   bindings: {
     resolvedScope: '<',
     resolvedRoles: '<',
-    resolvedApiId: '<'
+    resolvedApiId: '<',
   },
   template: require('./messages.html'),
-  controller: function(
+  controller: function (
     $state: StateService,
     NotificationService: NotificationService,
     MessageService: MessageService,
-    ApiService: ApiService
+    ApiService: ApiService,
   ) {
     'ngInject';
 
     this.$onInit = () => {
       this.roles = _.sortBy(this.resolvedRoles, ['name']);
       this.channels = [
-        {id: 'PORTAL', name: 'Portal Notifications'},
-        {id: 'MAIL', name: 'Email'},
-        {id: 'HTTP', name: 'POST HTTP message'}
+        { id: 'PORTAL', name: 'Portal Notifications' },
+        { id: 'MAIL', name: 'Email' },
+        { id: 'HTTP', name: 'POST HTTP message' },
       ];
       this.channel = 'PORTAL';
       this.defaultHttpHeaders = ApiService.defaultHttpHeaders();
@@ -50,19 +50,34 @@ const MessagesComponent: ng.IComponentOptions = {
 
     this.send = () => {
       if (this.resolvedApiId) {
-        MessageService
-          .sendFromApi(this.resolvedApiId, this.title, this.text, this.channel, this.resolvedScope, this.roleValues, this.url, this.useSystemProxy, this.httpHeaders)
-          .then( (response) => {
-            NotificationService.show(response.data + ' messages has been sent.');
-            this.resetForm();
-          });
+        MessageService.sendFromApi(
+          this.resolvedApiId,
+          this.title,
+          this.text,
+          this.channel,
+          this.resolvedScope,
+          this.roleValues,
+          this.url,
+          this.useSystemProxy,
+          this.httpHeaders,
+        ).then((response) => {
+          NotificationService.show(response.data + ' messages has been sent.');
+          this.resetForm();
+        });
       } else {
-        MessageService
-          .sendFromPortal(this.title, this.text, this.channel, this.resolvedScope, this.roleValues, this.url, this.useSystemProxy, this.httpHeaders)
-          .then( (response) => {
-            NotificationService.show(response.data + ' messages has been sent.');
-            this.resetForm();
-          });
+        MessageService.sendFromPortal(
+          this.title,
+          this.text,
+          this.channel,
+          this.resolvedScope,
+          this.roleValues,
+          this.url,
+          this.useSystemProxy,
+          this.httpHeaders,
+        ).then((response) => {
+          NotificationService.show(response.data + ' messages has been sent.');
+          this.resetForm();
+        });
       }
     };
 
@@ -80,14 +95,14 @@ const MessagesComponent: ng.IComponentOptions = {
     this.newHttpHeader = () => {
       this.httpHeaders.push({
         key: '',
-        value: ''
+        value: '',
       });
     };
 
     this.deleteHttpHeader = (idx) => {
       this.httpHeaders.splice(idx, 1);
     };
-  }
+  },
 };
 
 export default MessagesComponent;

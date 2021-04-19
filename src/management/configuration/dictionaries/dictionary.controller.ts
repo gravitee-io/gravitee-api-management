@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 
 import DictionaryService from '../../../services/dictionary.service';
 import NotificationService from '../../../services/notification.service';
@@ -26,10 +26,9 @@ interface IDictionaryScope extends ng.IScope {
 }
 
 class DictionaryController {
-
   private dictionary: any;
   private initialDictionary: any;
-  private dictProperties : any;
+  private dictProperties: any;
 
   private joltSpecificationOptions: any;
   private providers: { id: string; name: string }[];
@@ -57,34 +56,34 @@ class DictionaryController {
     this.types = [
       {
         id: 'manual',
-        name: 'Manual'
+        name: 'Manual',
       },
       {
         id: 'dynamic',
-        name: 'Dynamic'
-      }
+        name: 'Dynamic',
+      },
     ];
 
     this.providers = [
       {
         id: 'HTTP',
-        name: 'Custom (HTTP)'
-      }
+        name: 'Custom (HTTP)',
+      },
     ];
 
     this.timeUnits = [
       {
         id: 'seconds',
-        name: 'Seconds'
+        name: 'Seconds',
       },
       {
         id: 'minutes',
-        name: 'Minutes'
+        name: 'Minutes',
       },
       {
         id: 'hours',
-        name: 'Hours'
-      }
+        name: 'Hours',
+      },
     ];
 
     this.joltSpecificationOptions = {
@@ -94,7 +93,7 @@ class DictionaryController {
       allowDropFileTypes: true,
       autoCloseTags: true,
       mode: 'javascript',
-      controller: this
+      controller: this,
     };
   }
 
@@ -106,7 +105,7 @@ class DictionaryController {
     this.query = {
       limit: 10,
       page: 1,
-      total: (this.initialDictionary && this.initialDictionary.properties && Object.keys(this.initialDictionary.properties).length) || 0
+      total: (this.initialDictionary && this.initialDictionary.properties && Object.keys(this.initialDictionary.properties).length) || 0,
     };
   }
 
@@ -119,12 +118,10 @@ class DictionaryController {
           return entry.key.localeCompare(entry2.key);
         }
       })
-      .slice(
-        (this.query.page - 1) * this.query.limit,
-        (this.query.page * this.query.limit));
+      .slice((this.query.page - 1) * this.query.limit, this.query.page * this.query.limit);
 
-      return properties;
-  }
+    return properties;
+  };
 
   reset() {
     this.dictionary = _.cloneDeep(this.initialDictionary);
@@ -136,7 +133,7 @@ class DictionaryController {
     if (!this.updateMode) {
       this.DictionaryService.create(this.dictionary).then((response: any) => {
         this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been created');
-        this.$state.go('management.settings.dictionaries.dictionary', {dictionaryId: response.data.id}, {reload: true});
+        this.$state.go('management.settings.dictionaries.dictionary', { dictionaryId: response.data.id }, { reload: true });
       });
     } else {
       this.DictionaryService.update(this.dictionary).then((response) => {
@@ -148,23 +145,25 @@ class DictionaryController {
   }
 
   delete() {
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to delete this dictionary?',
-        confirmButton: 'Yes, delete it'
-      }
-    }).then((response) => {
-      if (response) {
-        this.DictionaryService.delete(this.dictionary).then((response) => {
-          this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deleted');
-          this.$state.go('management.settings.dictionaries.list', {}, {reload: true});
-        });
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to delete this dictionary?',
+          confirmButton: 'Yes, delete it',
+        },
+      })
+      .then((response) => {
+        if (response) {
+          this.DictionaryService.delete(this.dictionary).then((response) => {
+            this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deleted');
+            this.$state.go('management.settings.dictionaries.list', {}, { reload: true });
+          });
+        }
+      });
   }
 
   deploy() {
@@ -196,23 +195,25 @@ class DictionaryController {
   }
 
   addProperty() {
-    this.$mdDialog.show({
-      controller: 'DialogAddPropertyController',
-      controllerAs: 'dialogDictionaryAddPropertyCtrl',
-      template: require('./add-property.dialog.html'),
-      clickOutsideToClose: true
-    }).then((property) => {
-      if (this.dictionary.properties === undefined) {
-        this.dictionary.properties = {};
-      }
+    this.$mdDialog
+      .show({
+        controller: 'DialogAddPropertyController',
+        controllerAs: 'dialogDictionaryAddPropertyCtrl',
+        template: require('./add-property.dialog.html'),
+        clickOutsideToClose: true,
+      })
+      .then((property) => {
+        if (this.dictionary.properties === undefined) {
+          this.dictionary.properties = {};
+        }
 
-      if (property) {
-        this.dictionary.properties[property.key] = property.value;
-        ++this.query.total;
-      }
+        if (property) {
+          this.dictionary.properties[property.key] = property.value;
+          ++this.query.total;
+        }
 
-      this.dictProperties = this.computeProperties();
-    });
+        this.dictProperties = this.computeProperties();
+      });
   }
 
   editProperty(event, key, value) {
@@ -226,8 +227,8 @@ class DictionaryController {
       },
       targetEvent: event,
       validators: {
-        'md-maxlength': 160
-      }
+        'md-maxlength': 160,
+      },
     });
   }
 
@@ -256,7 +257,7 @@ class DictionaryController {
 
   toggleSelectAll(selectAll) {
     if (selectAll) {
-      _.forEach(this.dictionary.properties, (v, k) => this.selectedProperties[k] = true);
+      _.forEach(this.dictionary.properties, (v, k) => (this.selectedProperties[k] = true));
     } else {
       this.selectedProperties = {};
     }
@@ -275,7 +276,7 @@ class DictionaryController {
       this.dictionary.provider.configuration.headers = [];
     }
 
-    this.dictionary.provider.configuration.headers.push({name: '', value: ''});
+    this.dictionary.provider.configuration.headers.push({ name: '', value: '' });
   }
 
   removeHTTPHeader(idx) {
@@ -287,15 +288,14 @@ class DictionaryController {
 
   computeProperties = () => {
     if (this.dictionary && this.dictionary.properties) {
-      return Object.entries(this.dictionary.properties)
-        .map(entry => {
-          let result: any = {};
-          result.key = entry[0];
-          result.value = entry[1];
-          return result;
-        });
+      return Object.entries(this.dictionary.properties).map((entry) => {
+        let result: any = {};
+        result.key = entry[0];
+        result.value = entry[1];
+        return result;
+      });
     }
-  }
+  };
 }
 
 export default DictionaryController;

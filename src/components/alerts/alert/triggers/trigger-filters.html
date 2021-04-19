@@ -23,7 +23,7 @@
 <div class="gv-form-content" layout="column">
   <div style="margin-bottom: 5px" ng-if="$ctrl.alert.filters === undefined || $ctrl.alert.filters.length === 0">
     <span style="font-style: italic">Filters allow you to apply conditions only on a subset of events.</span>
-    <br/>
+    <br />
   </div>
 
   <a style="margin-bottom: 5px" ng-click="$ctrl.addFilter()" style="font-style: italic">> Add a filter</a>
@@ -32,7 +32,8 @@
     alert="$ctrl.alert"
     ng-repeat="condition in $ctrl.alert.filters"
     condition="condition"
-    on-filter-remove="$ctrl.removeFilter($index)">
-  ></gv-alert-trigger-filter>
+    on-filter-remove="$ctrl.removeFilter($index)"
+  >
+    ></gv-alert-trigger-filter
+  >
 </div>
-

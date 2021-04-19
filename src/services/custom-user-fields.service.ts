@@ -25,7 +25,7 @@ class CustomUserFieldsService {
     const transformedField: any = {
       key: field.key,
       label: field.label,
-      required: field.required
+      required: field.required,
     };
 
     if (field.values) {
@@ -40,7 +40,7 @@ class CustomUserFieldsService {
     const transformedField: any = {
       key: field.key,
       label: field.label,
-      required: field.required
+      required: field.required,
     };
 
     if (field.values) {
@@ -57,7 +57,7 @@ class CustomUserFieldsService {
   }
 
   listPredefinedKeys() {
-    return ['organization', 'job_position' , 'telephone_number', 'country', 'city', 'zip_code', 'address'].sort();
+    return ['organization', 'job_position', 'telephone_number', 'country', 'city', 'zip_code', 'address'].sort();
   }
 
   list() {

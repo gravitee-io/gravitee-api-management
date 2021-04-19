@@ -22,9 +22,7 @@
       <label style="padding: 27px">Select a dashboard</label>
       <md-input-container>
         <md-select ng-model="analyticsCtrl.dashboard" ng-change="analyticsCtrl.onDashboardChanged()" aria-label="Dashboard selection">
-          <md-option ng-repeat="dashboard in analyticsCtrl.dashboards" ng-value="dashboard">
-            {{dashboard.name}}
-          </md-option>
+          <md-option ng-repeat="dashboard in analyticsCtrl.dashboards" ng-value="dashboard"> {{dashboard.name}} </md-option>
         </md-select>
       </md-input-container>
     </div>
@@ -34,4 +32,3 @@
     <gv-dashboard model="analyticsCtrl.dashboard" on-view-log-click="analyticsCtrl.viewLogs()" access-logs="true"></gv-dashboard>
   </div>
 </div>
-

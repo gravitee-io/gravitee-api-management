@@ -21,7 +21,7 @@ import { IScope } from 'angular';
 
 const UsersComponent: ng.IComponentOptions = {
   bindings: {
-    usersPage: '<'
+    usersPage: '<',
   },
   template: require('./users.html'),
   controller: function (
@@ -30,7 +30,7 @@ const UsersComponent: ng.IComponentOptions = {
     $mdDialog: angular.material.IDialogService,
     $state: StateService,
     $rootScope: IScope,
-    $window
+    $window,
   ) {
     'ngInject';
     this.$rootScope = $rootScope;
@@ -42,32 +42,36 @@ const UsersComponent: ng.IComponentOptions = {
 
     this.remove = (ev: Event, user: User) => {
       ev.stopPropagation();
-      $mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          msg: user.number_of_active_tokens > 0 ?
-            `The user has ${user.number_of_active_tokens} active token(s) that will be definitively removed.` : '',
-          title: 'Are you sure you want to remove the user "' + user.displayName + '"?',
-          confirmButton: 'Remove'
-        }
-      }).then( (response) => {
-        if (response) {
-          UserService.remove(user.id).then((response) => {
-            NotificationService.show('User ' + user.displayName + ' has been removed.');
-            $state.reload();
-          });
-        }
-      });
+      $mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            msg:
+              user.number_of_active_tokens > 0
+                ? `The user has ${user.number_of_active_tokens} active token(s) that will be definitively removed.`
+                : '',
+            title: 'Are you sure you want to remove the user "' + user.displayName + '"?',
+            confirmButton: 'Remove',
+          },
+        })
+        .then((response) => {
+          if (response) {
+            UserService.remove(user.id).then((response) => {
+              NotificationService.show('User ' + user.displayName + ' has been removed.');
+              $state.reload();
+            });
+          }
+        });
     };
 
     this.onPaginate = (page: number) => {
       $window.localStorage.usersTablePage = page;
       UserService.list(this.query, page).then((response) => {
         this.usersPage = response.data;
-        $state.go('.', {page: page});
+        $state.go('.', { page: page });
       });
     };
 
@@ -78,13 +82,13 @@ const UsersComponent: ng.IComponentOptions = {
     this.search = () => {
       $window.localStorage.usersTableQuery = this.query;
       $window.localStorage.usersTablePage = 1;
-      $state.go('.', {q: this.query, page: 1});
+      $state.go('.', { q: this.query, page: 1 });
     };
 
     this.newUser = () => {
       $state.go('organization.settings.newuser');
     };
-  }
+  },
 };
 
 export default UsersComponent;

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-const FileLoaderDirective: ng.IDirective = ({
+const FileLoaderDirective: ng.IDirective = {
   scope: {
-    fileloader: '='
+    fileloader: '=',
   },
   link: function (scope: any, element: ng.IRootElementService) {
     element.bind('change', function (changeEvent: any) {
       scope.fileloader = changeEvent.target.files[0];
       scope.$apply();
     });
-  }
-});
+  },
+};
 export default FileLoaderDirective;

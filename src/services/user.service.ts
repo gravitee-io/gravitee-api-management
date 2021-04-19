@@ -24,7 +24,6 @@ import Base64Service from './base64.service';
 import _ = require('lodash');
 
 class UserService {
-
   /**
    * Current authenticated user or empty user if not authenticated.
    */
@@ -37,19 +36,21 @@ class UserService {
   private isLogout: boolean = false;
   private Constants: any;
 
-  constructor(private $http: ng.IHttpService,
-              private $q: ng.IQService,
-              Constants,
-              private RoleService: RoleService,
-              private PermPermissionStore,
-              private $urlService: UrlService,
-              private ApplicationService: ApplicationService,
-              private ApiService: ApiService,
-              private $location,
-              private $cookies,
-              private $window,
-              private StringService: StringService,
-              private Base64Service: Base64Service) {
+  constructor(
+    private $http: ng.IHttpService,
+    private $q: ng.IQService,
+    Constants,
+    private RoleService: RoleService,
+    private PermPermissionStore,
+    private $urlService: UrlService,
+    private ApplicationService: ApplicationService,
+    private ApiService: ApiService,
+    private $location,
+    private $cookies,
+    private $window,
+    private StringService: StringService,
+    private Base64Service: Base64Service,
+  ) {
     'ngInject';
     this.searchUsersURL = `${Constants.org.baseURL}/search/users/`;
     this.usersURL = `${Constants.org.baseURL}/users/`;
@@ -69,7 +70,7 @@ class UserService {
   }
 
   get(code: string): ng.IPromise<User> {
-    return this.$http.get(this.usersURL + code).then(response => Object.assign(new User(), response.data));
+    return this.$http.get(this.usersURL + code).then((response) => Object.assign(new User(), response.data));
   }
 
   remove(userId: string): ng.IPromise<any> {
@@ -116,10 +117,12 @@ class UserService {
     let that = this;
 
     if (!this.currentUser || !this.currentUser.authenticated) {
-      const promises = [this.$http.get(this.userURL, {
-        silentCall: true,
-        forceSessionExpired: true
-      } as ng.IRequestShortcutConfig)];
+      const promises = [
+        this.$http.get(this.userURL, {
+          silentCall: true,
+          forceSessionExpired: true,
+        } as ng.IRequestShortcutConfig),
+      ];
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       let applicationId = applicationRegex.exec(this.$location.$$path);
@@ -133,8 +136,9 @@ class UserService {
         promises.push(this.ApiService.getPermissions(apiId[1]));
       }
 
-      return this.$q.all(promises)
-        .then(response => {
+      return this.$q
+        .all(promises)
+        .then((response) => {
           that.currentUser = Object.assign(new User(), response[0].data);
 
           that.currentUser.userPermissions = [];
@@ -172,12 +176,14 @@ class UserService {
 
           that.currentUser.authenticated = true;
           return this.$q.resolve<User>(that.currentUser);
-        }).catch((error) => {
+        })
+        .catch((error) => {
           // Returns an unauthenticated user
           this.currentUser = new User();
           this.currentUser.authenticated = false;
           return this.$q.resolve<User>(this.currentUser);
-        }).finally(() => {
+        })
+        .finally(() => {
           if (!that.routerInitialized) {
             that.$urlService.sync();
             that.$urlService.listen();
@@ -203,23 +209,29 @@ class UserService {
       });
 
       this.PermPermissionStore.defineManyPermissions(allPermissions, (permissionName) => {
-        return _.includes(this.currentUser.userPermissions, permissionName) ||
+        return (
+          _.includes(this.currentUser.userPermissions, permissionName) ||
           _.includes(this.currentUser.userApiPermissions, permissionName) ||
-          _.includes(this.currentUser.userApplicationPermissions, permissionName);
+          _.includes(this.currentUser.userApplicationPermissions, permissionName)
+        );
       });
     });
   }
 
   isAuthenticated(): boolean {
-    return (this.currentUser !== undefined && this.currentUser.id !== undefined);
+    return this.currentUser !== undefined && this.currentUser.id !== undefined;
   }
 
   login(user): ng.IPromise<any> {
-    return this.$http.post(`${this.userURL}login`, {}, {
-      headers: {
-        Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`
-      }
-    });
+    return this.$http.post(
+      `${this.userURL}login`,
+      {},
+      {
+        headers: {
+          Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`,
+        },
+      },
+    );
   }
 
   logout(): ng.IPromise<any> {
@@ -259,7 +271,7 @@ class UserService {
       email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
-      customFields: user.customFields
+      customFields: user.customFields,
     });
   }
 
@@ -293,7 +305,7 @@ class UserService {
       user,
       referenceId,
       referenceType,
-      roles
+      roles,
     });
   }
 

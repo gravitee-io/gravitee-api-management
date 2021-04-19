@@ -16,15 +16,17 @@
 import * as _ from 'lodash';
 import TopApiService from '../../../services/top-api.service';
 import NotificationService from '../../../services/notification.service';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 
 class TopApisController {
   private topApis: any[];
 
-  constructor(private TopApiService: TopApiService,
-              private $mdDialog: angular.material.IDialogService,
-              private NotificationService: NotificationService,
-              private $rootScope: IScope) {
+  constructor(
+    private TopApiService: TopApiService,
+    private $mdDialog: angular.material.IDialogService,
+    private NotificationService: NotificationService,
+    private $rootScope: IScope,
+  ) {
     'ngInject';
     this.$rootScope = $rootScope;
   }
@@ -36,32 +38,36 @@ class TopApisController {
   }
 
   showAddTopAPIModal() {
-    this.$mdDialog.show({
-      controller: 'AddTopApiDialogController',
-      controllerAs: '$ctrl',
-      template: require('./dialog/add.top-api.dialog.html'),
-      locals: {
-        topApis: this.topApis
-      }
-    }).then((topApis) => {
-      if (topApis) {
-        this.topApis = topApis;
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'AddTopApiDialogController',
+        controllerAs: '$ctrl',
+        template: require('./dialog/add.top-api.dialog.html'),
+        locals: {
+          topApis: this.topApis,
+        },
+      })
+      .then((topApis) => {
+        if (topApis) {
+          this.topApis = topApis;
+        }
+      });
   }
 
   delete(topApi) {
-    this.$mdDialog.show({
-      controller: 'DeleteTopApiDialogController',
-      template: require('./dialog/delete.top-api.dialog.html'),
-      locals: {
-        topApi: topApi
-      }
-    }).then((deletedTopApi) => {
-      if (deletedTopApi) {
-        this.refreshTopApis();
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DeleteTopApiDialogController',
+        template: require('./dialog/delete.top-api.dialog.html'),
+        locals: {
+          topApi: topApi,
+        },
+      })
+      .then((deletedTopApi) => {
+        if (deletedTopApi) {
+          this.refreshTopApis();
+        }
+      });
   }
 
   upward(order) {
@@ -84,9 +90,10 @@ class TopApisController {
       .then((response) => {
         this.topApis = response.data;
         this.NotificationService.show('Top APIs saved with success');
-      }).catch(() => {
-      this.refreshTopApis();
-    });
+      })
+      .catch(() => {
+        this.refreshTopApis();
+      });
   }
 }
 

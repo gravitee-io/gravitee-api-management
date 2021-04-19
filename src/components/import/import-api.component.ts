@@ -19,16 +19,15 @@ import NotificationService from '../../services/notification.service';
 import ApiService from '../../services/api.service';
 import _ = require('lodash');
 
-
 const ImportComponent: ng.IComponentOptions = {
   template: require('./import-api.html'),
   bindings: {
     apiId: '<',
     cancelAction: '&',
     policies: '<',
-    definitionVersion: '<'
+    definitionVersion: '<',
   },
-  controller: function(
+  controller: function (
     $state: StateService,
     $scope: IScope,
     $mdDialog: angular.material.IDialogService,
@@ -36,7 +35,6 @@ const ImportComponent: ng.IComponentOptions = {
     ApiService: ApiService,
     $attrs,
   ) {
-
     'ngInject';
 
     this.$onInit = () => {
@@ -48,9 +46,9 @@ const ImportComponent: ng.IComponentOptions = {
       this.importURLMode = false;
       this.importTriggered = false;
       this.importURLTypes = [
-        {id: 'SWAGGER', name: 'Swagger / OpenAPI'},
-        {id: 'GRAVITEE', name: 'API Definition'},
-        {id: 'WSDL', name: 'WSDL'}
+        { id: 'SWAGGER', name: 'Swagger / OpenAPI' },
+        { id: 'GRAVITEE', name: 'API Definition' },
+        { id: 'WSDL', name: 'WSDL' },
       ];
       this.importURLType = 'SWAGGER';
       this.apiDescriptorURL = null;
@@ -89,16 +87,16 @@ const ImportComponent: ng.IComponentOptions = {
       if (this.importFileMode && this.importAPIFile) {
         var extension = this.importAPIFile.name.split('.').pop().toLowerCase();
         switch (extension) {
-          case 'yml' :
-          case 'yaml' :
+          case 'yml':
+          case 'yaml':
             return true;
-          case 'json' :
+          case 'json':
             if (this.isSwaggerDescriptor()) {
               return true;
             }
             break;
-          case 'wsdl' :
-          case 'xml' :
+          case 'wsdl':
+          case 'xml':
             return true;
           default:
             return false;
@@ -119,9 +117,9 @@ const ImportComponent: ng.IComponentOptions = {
       try {
         if (this.enableFileImport) {
           var fileContent = JSON.parse(this.importAPIFile.content);
-          return fileContent.hasOwnProperty('swagger')
-            || fileContent.hasOwnProperty('swaggerVersion')
-            || fileContent.hasOwnProperty('openapi');
+          return (
+            fileContent.hasOwnProperty('swagger') || fileContent.hasOwnProperty('swaggerVersion') || fileContent.hasOwnProperty('openapi')
+          );
         }
       } catch (e) {
         NotificationService.showError('Invalid json file.');
@@ -133,7 +131,7 @@ const ImportComponent: ng.IComponentOptions = {
       if (this.importFileMode) {
         return this.enableFileImport;
       } else {
-        return (this.apiDescriptorURL && this.apiDescriptorURL.length);
+        return this.apiDescriptorURL && this.apiDescriptorURL.length;
       }
     };
 
@@ -145,8 +143,8 @@ const ImportComponent: ng.IComponentOptions = {
       if (this.importFileMode) {
         var extension = this.importAPIFile.name.split('.').pop().toLowerCase();
         switch (extension) {
-          case 'wsdl' :
-          case 'xml' :
+          case 'wsdl':
+          case 'xml':
             return true;
           default:
             return false;
@@ -169,11 +167,11 @@ const ImportComponent: ng.IComponentOptions = {
       if (this.importFileMode) {
         var extension = this.importAPIFile.name.split('.').pop().toLowerCase();
         switch (extension) {
-          case 'yml' :
-          case 'yaml' :
+          case 'yml':
+          case 'yaml':
             this.importSwagger();
             break;
-          case 'json' :
+          case 'json':
             let isSwagger = this.isSwaggerDescriptor();
             if (isSwagger !== null) {
               if (isSwagger) {
@@ -183,8 +181,8 @@ const ImportComponent: ng.IComponentOptions = {
               }
             }
             break;
-          case 'wsdl' :
-          case 'xml' :
+          case 'wsdl':
+          case 'xml':
             this.importWSDL();
             break;
           default:
@@ -205,16 +203,16 @@ const ImportComponent: ng.IComponentOptions = {
     };
 
     this.importGraviteeIODefinition = () => {
-      var id = (this.isForUpdate() ? this.apiId : null);
-      var apiDefinition = (this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL);
+      var id = this.isForUpdate() ? this.apiId : null;
+      var apiDefinition = this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL;
       var isUpdate = this.isForUpdate();
-      ApiService.import(id, apiDefinition, this.definitionVersion).then(function(api) {
+      ApiService.import(id, apiDefinition, this.definitionVersion).then(function (api) {
         if (isUpdate) {
           NotificationService.show('API updated');
           $state.reload();
         } else {
           NotificationService.show('API created');
-          $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+          $state.go('management.apis.detail.portal.general', { apiId: api.data.id });
         }
       });
     };
@@ -226,7 +224,7 @@ const ImportComponent: ng.IComponentOptions = {
     };
 
     this._manageSwaggerError = (err) => {
-      this.error = {...err.data, title: 'Sorry, we can\'t seem to parse the definition'};
+      this.error = { ...err.data, title: "Sorry, we can't seem to parse the definition" };
     };
 
     this.importSwagger = () => {
@@ -243,7 +241,7 @@ const ImportComponent: ng.IComponentOptions = {
         with_documentation: this.importCreateDocumentation,
         with_path_mapping: this.importCreatePathMapping,
         with_policy_paths: this.importCreatePolicyPaths,
-        with_policies: _.map(_.filter(this.policies, 'enable'), 'id')
+        with_policies: _.map(_.filter(this.policies, 'enable'), 'id'),
       };
 
       if (this.importFileMode) {
@@ -258,19 +256,23 @@ const ImportComponent: ng.IComponentOptions = {
 
       if (this.isForUpdate()) {
         // @ts-ignore
-        ApiService.importSwagger(this.apiId, swagger, this.definitionVersion, {silentCall: true}).then((api) => {
-          NotificationService.show('API successfully imported');
-          $state.reload();
-        }).catch(this._manageSwaggerError);
+        ApiService.importSwagger(this.apiId, swagger, this.definitionVersion, { silentCall: true })
+          .then((api) => {
+            NotificationService.show('API successfully imported');
+            $state.reload();
+          })
+          .catch(this._manageSwaggerError);
       } else {
         // @ts-ignore
-        ApiService.importSwagger(null, swagger, this.definitionVersion, {silentCall: true}).then((api) => {
-          NotificationService.show('API successfully updated');
-          $state.go('management.apis.detail.portal.general', {apiId: api.data.id});
-        }).catch(this._manageSwaggerError);
+        ApiService.importSwagger(null, swagger, this.definitionVersion, { silentCall: true })
+          .then((api) => {
+            NotificationService.show('API successfully updated');
+            $state.go('management.apis.detail.portal.general', { apiId: api.data.id });
+          })
+          .catch(this._manageSwaggerError);
       }
     };
-  }
+  },
 };
 
 export default ImportComponent;

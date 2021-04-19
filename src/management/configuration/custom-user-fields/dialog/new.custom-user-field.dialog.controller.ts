@@ -16,21 +16,23 @@
 
 import CustomUserFieldsService from '../../../../services/custom-user-fields.service';
 
-function NewFieldDialogController(CustomUserFieldsService: CustomUserFieldsService,
+function NewFieldDialogController(
+  CustomUserFieldsService: CustomUserFieldsService,
   $mdDialog: angular.material.IDialogService,
-  predefinedKeys) {
+  predefinedKeys,
+) {
   'ngInject';
 
   this.updateAction = false;
   this.field = {};
   this.predefinedKeys = predefinedKeys;
 
-  this.cancel = function() {
+  this.cancel = function () {
     $mdDialog.cancel();
   };
 
   this.save = () => {
-    CustomUserFieldsService.create(this.field).then(response => {
+    CustomUserFieldsService.create(this.field).then((response) => {
       $mdDialog.hide(response.data);
     });
   };

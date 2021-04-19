@@ -18,7 +18,7 @@ import * as _ from 'lodash';
 const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-chart-pie-configuration.html'),
   bindings: {
-    chart: '<'
+    chart: '<',
   },
   controller: function (DashboardService: DashboardService) {
     'ngInject';
@@ -36,7 +36,7 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
                 min: parseInt(range.split(':')[0], 10),
                 max: parseInt(range.split(':')[1], 10),
                 label: this.chart.labels[i],
-                color: this.chart.colors[i++]
+                color: this.chart.colors[i++],
               });
             }
           });
@@ -46,10 +46,10 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
           request: {
             type: 'group_by',
             field: this.fields[0].value,
-            ranges: ''
+            ranges: '',
           },
           labels: [],
-          colors: []
+          colors: [],
         });
       }
     };
@@ -75,7 +75,7 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
       _.remove(this.data, data);
       this.onDataChanged();
     };
-  }
+  },
 };
 
 export default WidgetChartPieConfigurationComponent;

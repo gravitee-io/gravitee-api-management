@@ -32,62 +32,81 @@
       <md-table-container ng-show="$ctrl.members.length">
         <table md-table class="gv-table-dense">
           <thead md-head md-order="order">
-          <tr md-row>
-            <th md-column width="1%" nowrap></th>
-            <th md-column order-by="lastname">Member</th>
-            <th md-column order-by="type">Role</th>
-            <th md-column></th>
-          </tr>
+            <tr md-row>
+              <th md-column width="1%" nowrap></th>
+              <th md-column order-by="lastname">Member</th>
+              <th md-column order-by="type">Role</th>
+              <th md-column></th>
+            </tr>
           </thead>
           <tbody md-body>
-          <tr md-row ng-repeat="member in $ctrl.members | orderBy: order">
-            <td md-cell>
-              <gravitee-identity-picture
-                image-id="member.id"
-                image-url="$ctrl.getMembershipAvatar(member)"
-                image-name="$ctrl.getMembershipDisplay(member)"
-                image-width="40"
-                image-border-radius="true"
-                class="md-avatar"
-              ></gravitee-identity-picture>
-            </td>
-            <td md-cell>
-              <md-list-item class="md-2-line contact-item">
-                <div class="md-list-item-text compact">
-                  <span ng-if="member.role == 'PRIMARY_OWNER'"><b>{{$ctrl.getMembershipDisplay(member)}}</b></span>
-                  <span ng-if="member.role != 'PRIMARY_OWNER'">{{$ctrl.getMembershipDisplay(member)}}</span>
+            <tr md-row ng-repeat="member in $ctrl.members | orderBy: order">
+              <td md-cell>
+                <gravitee-identity-picture
+                  image-id="member.id"
+                  image-url="$ctrl.getMembershipAvatar(member)"
+                  image-name="$ctrl.getMembershipDisplay(member)"
+                  image-width="40"
+                  image-border-radius="true"
+                  class="md-avatar"
+                ></gravitee-identity-picture>
+              </td>
+              <td md-cell>
+                <md-list-item class="md-2-line contact-item">
+                  <div class="md-list-item-text compact">
+                    <span ng-if="member.role == 'PRIMARY_OWNER'"><b>{{$ctrl.getMembershipDisplay(member)}}</b></span>
+                    <span ng-if="member.role != 'PRIMARY_OWNER'">{{$ctrl.getMembershipDisplay(member)}}</span>
+                  </div>
+                </md-list-item>
+              </td>
+              <td md-cell permission permission-only="'application-member-u'">
+                <md-select
+                  ng-model="member.role"
+                  ng-change="$ctrl.updateMember(member)"
+                  ng-disabled="member.role == 'PRIMARY_OWNER'"
+                  aria-label="Update member role"
+                >
+                  <md-option ng-value="role.name" ng-repeat="role in $ctrl.roles" ng-disabled="role.system">{{role.name}}</md-option>
+                </md-select>
+              </td>
+              <td md-cell permission permission-except="'application-member-u'">
+                <span>{{member.role}}</span>
+              </td>
+              <td md-cell>
+                <div>
+                  <ng-md-icon
+                    ng-if="member.role != 'PRIMARY_OWNER'"
+                    ng-click="$ctrl.showDeleteMemberConfirm($event, member)"
+                    icon="delete"
+                    size="24"
+                    style="cursor: pointer"
+                    permission
+                    permission-only="'application-member-d'"
+                  ></ng-md-icon>
                 </div>
-              </md-list-item>
-            </td>
-            <td md-cell permission permission-only="'application-member-u'">
-              <md-select ng-model="member.role" ng-change="$ctrl.updateMember(member)" ng-disabled="member.role == 'PRIMARY_OWNER'" aria-label="Update member role">
-                <md-option ng-value="role.name" ng-repeat="role in $ctrl.roles" ng-disabled="role.system">{{role.name}}</md-option>
-              </md-select>
-            </td>
-            <td md-cell permission permission-except="'application-member-u'">
-              <span>{{member.role}}</span>
-            </td>
-            <td md-cell>
-              <div>
-                <ng-md-icon ng-if="member.role != 'PRIMARY_OWNER'"
-                            ng-click="$ctrl.showDeleteMemberConfirm($event, member)" icon="delete"
-                            size="24" style="cursor: pointer;"
-                            permission permission-only="'application-member-d'"></ng-md-icon>
-              </div>
-            </td>
-          </tr>
+              </td>
+            </tr>
           </tbody>
         </table>
       </md-table-container>
-      <gravitee-empty-state ng-if="!$ctrl.members.length"
-                            icon="group"
-                            model="Member"
-                            message="Members will appear here"
-                            sub-message="Start attaching a member"
-                            create-mode="true"></gravitee-empty-state>
+      <gravitee-empty-state
+        ng-if="!$ctrl.members.length"
+        icon="group"
+        model="Member"
+        message="Members will appear here"
+        sub-message="Start attaching a member"
+        create-mode="true"
+      ></gravitee-empty-state>
 
       <div ng-style="!$ctrl.members.length && {'text-align':'center'}">
-        <md-button permission permission-only="'application-member-c'" ng-class="{'md-fab-bottom-right': $ctrl.members.length}" class="md-fab" aria-label="Add" ng-click="$ctrl.showAddMemberModal($event)">
+        <md-button
+          permission
+          permission-only="'application-member-c'"
+          ng-class="{'md-fab-bottom-right': $ctrl.members.length}"
+          class="md-fab"
+          aria-label="Add"
+          ng-click="$ctrl.showAddMemberModal($event)"
+        >
           <ng-md-icon icon="add"></ng-md-icon>
         </md-button>
       </div>
@@ -97,10 +116,7 @@
   <div class="gv-form" ng-if="$ctrl.isAllowedToTransferOwnership()" permission permission-only="'application-member-u'">
     <h2>Transfer ownership</h2>
     <div class="gv-form-content" layout="column">
-
-      <p>
-        Give full access to this application to an other user.
-      </p>
+      <p>Give full access to this application to an other user.</p>
       <gv-user-autocomplete
         users-selected="$ctrl.usersSelected"
         place-holder="'Select a user'"
@@ -117,7 +133,12 @@
         </md-select>
       </md-input-container>
       <div class="md-actions gravitee-api-save-button" layout="row">
-        <md-button ng-disabled="!$ctrl.usersSelected || !$ctrl.usersSelected[0]" class="md-raised md-primary" ng-click="$ctrl.showTransferOwnershipConfirm($event)">Transfer</md-button>
+        <md-button
+          ng-disabled="!$ctrl.usersSelected || !$ctrl.usersSelected[0]"
+          class="md-raised md-primary"
+          ng-click="$ctrl.showTransferOwnershipConfirm($event)"
+          >Transfer</md-button
+        >
       </div>
     </div>
   </div>
@@ -126,12 +147,20 @@
     <h2>{{$ctrl.groupMembers[grp].length}} members inherited from "{{$ctrl.groupById[grp].name}}"</h2>
     <div class="gv-form-content" layout="column">
       <div layout="row" layout-align="start end">
-        <div style="margin-bottom: 5px;" ng-model="$ctrl.displayGroups[grp]"
-             ng-if="!$ctrl.displayGroups[grp]" ng-click="$ctrl.displayGroups[grp]=true">
+        <div
+          style="margin-bottom: 5px"
+          ng-model="$ctrl.displayGroups[grp]"
+          ng-if="!$ctrl.displayGroups[grp]"
+          ng-click="$ctrl.displayGroups[grp]=true"
+        >
           <a>Show</a>
         </div>
-        <div style="margin-bottom: 5px;" ng-model="$ctrl.displayGroups[grp]"
-             ng-if="$ctrl.displayGroups[grp]" ng-click="$ctrl.displayGroups[grp]=false">
+        <div
+          style="margin-bottom: 5px"
+          ng-model="$ctrl.displayGroups[grp]"
+          ng-if="$ctrl.displayGroups[grp]"
+          ng-click="$ctrl.displayGroups[grp]=false"
+        >
           <a>Hide</a>
         </div>
       </div>
@@ -139,16 +168,16 @@
         <md-table-container ng-show="$ctrl.groupMembers[grp].length">
           <table md-table class="gv-table-dense">
             <thead md-head md-order="order">
-            <tr md-row>
-              <th md-column order-by="username">Member</th>
-              <th md-column order-by="type">Role</th>
-            </tr>
+              <tr md-row>
+                <th md-column order-by="username">Member</th>
+                <th md-column order-by="type">Role</th>
+              </tr>
             </thead>
             <tbody md-body>
-            <tr md-row ng-repeat="member in $ctrl.groupMembers[grp] | orderBy: order">
-              <td md-cell>{{$ctrl.getMembershipDisplay(member)}}</td>
-              <td md-cell>{{member.roles["APPLICATION"]}}</td>
-            </tr>
+              <tr md-row ng-repeat="member in $ctrl.groupMembers[grp] | orderBy: order">
+                <td md-cell>{{$ctrl.getMembershipDisplay(member)}}</td>
+                <td md-cell>{{member.roles["APPLICATION"]}}</td>
+              </tr>
             </tbody>
           </table>
         </md-table-container>
@@ -156,4 +185,3 @@
     </div>
   </div>
 </div>
-

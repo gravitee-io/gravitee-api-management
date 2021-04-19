@@ -18,16 +18,16 @@ import SidenavService from '../../../components/sidenav/sidenav.service';
 
 const ApplicationComponent: ng.IComponentOptions = {
   bindings: {
-    application: '<'
+    application: '<',
   },
-  controller: function(SidenavService : SidenavService) {
+  controller: function (SidenavService: SidenavService) {
     'ngInject';
 
-    this.$onInit = function() {
+    this.$onInit = function () {
       SidenavService.setCurrentResource(this.application.name);
     };
   },
-  template: require('./application.html')
+  template: require('./application.html'),
 };
 
 export default ApplicationComponent;

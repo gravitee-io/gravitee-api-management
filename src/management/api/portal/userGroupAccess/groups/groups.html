@@ -19,33 +19,42 @@
   <div class="gv-forms" layout="column">
     <h1>Groups</h1>
 
-
     <div class="gv-form">
       <h2></h2>
       <div class="gv-form-content" layout="column">
-
-  <md-input-container permission permission-only="'api-definition-u'" class="flex">
-    <label>Groups</label>
-    <md-select ng-model="portalCtrl.api.groups" multiple ng-disabled="!(portalCtrl.groups && portalCtrl.groups.length > 0)">
-      <md-option ng-repeat="group in portalCtrl.groups" ng-value="group.id">
-        {{group.name}}
-      </md-option>
-    </md-select>
-  </md-input-container>
-  <div permission permission-except="'api-definition-u'" layout="column">
-    <label>Groups</label>
-    <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="portalCtrl.api.groups">
-      <md-chip-template>{{portalCtrl.getGroup($chip).name}}</md-chip-template>
-    </md-chips>
-  </div>
-  <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="portalCtrl.formApi.$invalid || portalCtrl.formApi.$pristine">
-      Save
-    </md-button>
-    <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button" ng-click="portalCtrl.reset()" ng-disabled="portalCtrl.formApi.$invalid || portalCtrl.formApi.$pristine">
-      Reset
-    </md-button>
-  </div>
+        <md-input-container permission permission-only="'api-definition-u'" class="flex">
+          <label>Groups</label>
+          <md-select ng-model="portalCtrl.api.groups" multiple ng-disabled="!(portalCtrl.groups && portalCtrl.groups.length > 0)">
+            <md-option ng-repeat="group in portalCtrl.groups" ng-value="group.id"> {{group.name}} </md-option>
+          </md-select>
+        </md-input-container>
+        <div permission permission-except="'api-definition-u'" layout="column">
+          <label>Groups</label>
+          <md-chips permission permission-except="'api-definition-u'" readonly="true" ng-model="portalCtrl.api.groups">
+            <md-chip-template>{{portalCtrl.getGroup($chip).name}}</md-chip-template>
+          </md-chips>
+        </div>
+        <div class="md-actions gravitee-api-save-button" layout="row">
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            class="md-raised md-primary"
+            type="submit"
+            ng-disabled="portalCtrl.formApi.$invalid || portalCtrl.formApi.$pristine"
+          >
+            Save
+          </md-button>
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            class="md-raised"
+            type="button"
+            ng-click="portalCtrl.reset()"
+            ng-disabled="portalCtrl.formApi.$invalid || portalCtrl.formApi.$pristine"
+          >
+            Reset
+          </md-button>
+        </div>
       </div>
     </div>
   </div>

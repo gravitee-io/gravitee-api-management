@@ -21,26 +21,26 @@
     <md-table-container>
       <table md-table>
         <tbody md-body>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">ID</span></td>
-          <td md-cell>{{healthCheckLogCtrl.log.id}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Timestamp</span></td>
-          <td md-cell>{{healthCheckLogCtrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Response time</span></td>
-          <td md-cell>{{healthCheckLogCtrl.log.responseTime | number}} ms</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Gateway</span></td>
-          <td md-cell>{{healthCheckLogCtrl.log.gateway}}</td>
-        </tr>
-        <tr md-row style="height: 30px;">
-          <td md-cell><span style="font-weight: bold">Assertion</span></td>
-          <td md-cell>{{healthCheckLogCtrl.log.message}}</td>
-        </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">ID</span></td>
+            <td md-cell>{{healthCheckLogCtrl.log.id}}</td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Timestamp</span></td>
+            <td md-cell>{{healthCheckLogCtrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Response time</span></td>
+            <td md-cell>{{healthCheckLogCtrl.log.responseTime | number}} ms</td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Gateway</span></td>
+            <td md-cell>{{healthCheckLogCtrl.log.gateway}}</td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Assertion</span></td>
+            <td md-cell>{{healthCheckLogCtrl.log.message}}</td>
+          </tr>
         </tbody>
       </table>
     </md-table-container>
@@ -48,37 +48,38 @@
 </div>
 
 <div class="log-table" layout="row" layout-padding>
-
   <div layout="row" layout-padding flex="45" class="gv-log-response-panel">
     <div flex="10" layout="row" layout-align="center center">
-      <span class="vertical-text log-header" style="text-align: center;">REQUEST</span>
+      <span class="vertical-text log-header" style="text-align: center">REQUEST</span>
     </div>
 
     <div layout="column" flex>
       <md-table-container>
         <table md-table>
           <tbody md-body>
-          <tr md-row>
-            <td md-cell>
-                <span class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{healthCheckLogCtrl.log.request.method | uppercase}}-selected">
+            <tr md-row>
+              <td md-cell>
+                <span
+                  class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{healthCheckLogCtrl.log.request.method | uppercase}}-selected"
+                >
                   {{healthCheckLogCtrl.log.request.method | uppercase}}
                 </span>
-            </td>
-            <td md-cell>{{healthCheckLogCtrl.log.request.uri}}</td>
-          </tr>
+              </td>
+              <td md-cell>{{healthCheckLogCtrl.log.request.uri}}</td>
+            </tr>
           </tbody>
         </table>
       </md-table-container>
 
-      <br>
+      <br />
 
       <md-table-container ng-if="healthCheckLogCtrl.log.request.headers">
         <table md-table>
           <tbody md-body>
-          <tr md-row ng-repeat="(key, value) in healthCheckLogCtrl.log.request.headers" style="height: 30px;">
-            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-            <td md-cell>{{value[0]}}</td>
-          </tr>
+            <tr md-row ng-repeat="(key, value) in healthCheckLogCtrl.log.request.headers" style="height: 30px">
+              <td md-cell><span style="font-weight: bold">{{key}}</span></td>
+              <td md-cell>{{value[0]}}</td>
+            </tr>
           </tbody>
         </table>
       </md-table-container>
@@ -86,48 +87,54 @@
         <span>No HTTP Headers</span>
       </div>
 
-      <br>
+      <br />
 
-      <div ng-if="healthCheckLogCtrl.log.request.body"
-           ui-codemirror
-           ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: healthCheckLogCtrl.getMimeType(healthCheckLogCtrl.log.request)}"
-           ng-model="healthCheckLogCtrl.log.response.body">
-      </div>
+      <div
+        ng-if="healthCheckLogCtrl.log.request.body"
+        ui-codemirror
+        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: healthCheckLogCtrl.getMimeType(healthCheckLogCtrl.log.request)}"
+        ng-model="healthCheckLogCtrl.log.response.body"
+      ></div>
     </div>
   </div>
 
   <div flex="5" layout="column" layout-align="center center">
-        <span>
-          <ng-md-icon icon="arrow_forward" size="30px"></ng-md-icon>
-        </span>
+    <span>
+      <ng-md-icon icon="arrow_forward" size="30px"></ng-md-icon>
+    </span>
   </div>
 
-  <div layout="row" layout-padding flex="45" ng-class="{'gv-log-response-panel-{{healthCheckLogCtrl.log.response.status / 100 | number:0}}': true}">
+  <div
+    layout="row"
+    layout-padding
+    flex="45"
+    ng-class="{'gv-log-response-panel-{{healthCheckLogCtrl.log.response.status / 100 | number:0}}': true}"
+  >
     <div flex="10" layout="row" layout-align="center center">
-      <span class="vertical-text log-header" style="text-align: center;">RESPONSE</span>
+      <span class="vertical-text log-header" style="text-align: center">RESPONSE</span>
     </div>
 
     <div layout="column" flex>
       <md-table-container>
         <table md-table>
           <tbody md-body>
-          <tr md-row>
-            <td md-cell><span style="font-weight: bold">Status</span></td>
-            <td md-cell>{{healthCheckLogCtrl.log.response.status | number}}</td>
-          </tr>
+            <tr md-row>
+              <td md-cell><span style="font-weight: bold">Status</span></td>
+              <td md-cell>{{healthCheckLogCtrl.log.response.status | number}}</td>
+            </tr>
           </tbody>
         </table>
       </md-table-container>
 
-      <br>
+      <br />
 
       <md-table-container ng-if="healthCheckLogCtrl.log.response.headers">
         <table md-table>
           <tbody md-body>
-          <tr md-row ng-repeat="(key, value) in healthCheckLogCtrl.log.response.headers" style="height: 30px;">
-            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
-            <td md-cell>{{value[0]}}</td>
-          </tr>
+            <tr md-row ng-repeat="(key, value) in healthCheckLogCtrl.log.response.headers" style="height: 30px">
+              <td md-cell><span style="font-weight: bold">{{key}}</span></td>
+              <td md-cell>{{value[0]}}</td>
+            </tr>
           </tbody>
         </table>
       </md-table-container>
@@ -135,19 +142,20 @@
         <span>No HTTP Headers</span>
       </div>
 
-      <br>
+      <br />
 
-      <div ng-if="healthCheckLogCtrl.log.response.body"
-           ui-codemirror
-           ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: healthCheckLogCtrl.getMimeType(healthCheckLogCtrl.log.response)}"
-           ng-model="healthCheckLogCtrl.log.response.body">
-      </div>
+      <div
+        ng-if="healthCheckLogCtrl.log.response.body"
+        ui-codemirror
+        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: healthCheckLogCtrl.getMimeType(healthCheckLogCtrl.log.response)}"
+        ng-model="healthCheckLogCtrl.log.response.body"
+      ></div>
     </div>
   </div>
 </div>
 <section>
   <md-button class="md-button" aria-label="Back to healthcheck" ng-click="healthCheckLogCtrl.backToHealthcheck()">
     <ng-md-icon icon="reply"></ng-md-icon>
-    <span style="color: rgba(0, 0, 0, 0.54);">Back to healthcheck</span>
+    <span style="color: rgba(0, 0, 0, 0.54)">Back to healthcheck</span>
   </md-button>
 </section>

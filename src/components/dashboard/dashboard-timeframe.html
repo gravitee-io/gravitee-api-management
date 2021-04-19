@@ -21,12 +21,10 @@
       <span class="md-title">
         <div layout="row" layout-align="start center">
           <div flex layout="row" layout-align="end center">
-            <div style="text-align: center;width: 34%;">
+            <div style="text-align: center; width: 34%">
               <md-input-container ng-if="$ctrl.$state.params['apiId']">
                 <md-select ng-model="$ctrl.displayMode" ng-change="$ctrl.updateDisplayMode()" aria-label="Display mode">
-                  <md-option ng-repeat="displayMode in $ctrl.displayModes" ng-value="displayMode">
-                    {{displayMode.label}}
-                  </md-option>
+                  <md-option ng-repeat="displayMode in $ctrl.displayModes" ng-value="displayMode"> {{displayMode.label}} </md-option>
                 </md-select>
               </md-input-container>
             </div>
@@ -40,9 +38,7 @@
               <ng-md-icon icon="autorenew" size="20"></ng-md-icon>
               <md-input-container>
                 <md-select ng-model="$ctrl.autoRefreshInterval" ng-change="$ctrl.autoRefreshChange()" aria-label="Auto refresh">
-                  <md-option ng-repeat="interval in $ctrl.arIntervals" ng-value="interval.interval">
-                    {{interval.label}}
-                  </md-option>
+                  <md-option ng-repeat="interval in $ctrl.arIntervals" ng-value="interval.interval"> {{interval.label}} </md-option>
                 </md-select>
               </md-input-container>
             </div>
@@ -54,30 +50,37 @@
   <md-card-content>
     <div layout="row" layout-align="space-around center" style="margin-bottom: 10px">
       <div class="btn-group float-right">
-        <button class="btn btn-default" type="button"
-                ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
-                ng-click="$ctrl.updateTimeframe(timeframe.id)"
-                ng-class="{'gravitee-analytics-timeframe-active' : timeframe === $ctrl.timeframe}">
+        <button
+          class="btn btn-default"
+          type="button"
+          ng-repeat="timeframe in $ctrl.timeframes track by timeframe.id"
+          ng-click="$ctrl.updateTimeframe(timeframe.id)"
+          ng-class="{'gravitee-analytics-timeframe-active' : timeframe === $ctrl.timeframe}"
+        >
           {{timeframe.title}}
         </button>
       </div>
 
       <div class="gv-log-filter-dates">
-        <md-input-container style="margin-bottom: 0;">
+        <md-input-container style="margin-bottom: 0">
           <label>from</label>
-          <input moment-picker="$ctrl.pickerStartDateFormated"
-                 format="YYYY-MM-DD HH:mm"
-                 max-date="$ctrl.pickerEndDate"
-                 ng-model="$ctrl.pickerStartDate"
-                 ng-model-options="{ updateOn: 'blur' }">
+          <input
+            moment-picker="$ctrl.pickerStartDateFormated"
+            format="YYYY-MM-DD HH:mm"
+            max-date="$ctrl.pickerEndDate"
+            ng-model="$ctrl.pickerStartDate"
+            ng-model-options="{ updateOn: 'blur' }"
+          />
         </md-input-container>
-        <md-input-container style="margin-bottom: 0;">
+        <md-input-container style="margin-bottom: 0">
           <label>to</label>
-          <input moment-picker="$ctrl.pickerEndDateFormated"
-                 format="YYYY-MM-DD HH:mm"
-                 min-date="$ctrl.pickerStartDate"
-                 ng-model="$ctrl.pickerEndDate"
-                 ng-model-options="{ updateOn: 'blur' }">
+          <input
+            moment-picker="$ctrl.pickerEndDateFormated"
+            format="YYYY-MM-DD HH:mm"
+            min-date="$ctrl.pickerStartDate"
+            ng-model="$ctrl.pickerEndDate"
+            ng-model-options="{ updateOn: 'blur' }"
+          />
         </md-input-container>
         <md-button type="button" class="md-raised" ng-click="$ctrl.updateRangeDate()">Apply</md-button>
       </div>

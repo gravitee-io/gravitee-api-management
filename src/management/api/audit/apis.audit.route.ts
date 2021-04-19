@@ -21,7 +21,7 @@ function apisAuditRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.audit', {
-      template: require('./apis.audit.route.html')
+      template: require('./apis.audit.route.html'),
     })
     .state('management.apis.detail.audit.general', {
       url: '/audit',
@@ -34,16 +34,16 @@ function apisAuditRouterConfig($stateProvider) {
           icon: 'visibility',
         },
         perms: {
-          only: ['api-audit-r']
+          only: ['api-audit-r'],
         },
         docs: {
-          page: 'management-api-audit'
-        }
+          page: 'management-api-audit',
+        },
       },
       resolve: {
-        resolvedEvents:
-          (AuditService: AuditService, $stateParams) => AuditService.listEvents($stateParams.apiId).then(response => response.data)
-      }
+        resolvedEvents: (AuditService: AuditService, $stateParams) =>
+          AuditService.listEvents($stateParams.apiId).then((response) => response.data),
+      },
     })
     .state('management.apis.detail.audit.history', {
       url: '/history',
@@ -54,16 +54,16 @@ function apisAuditRouterConfig($stateProvider) {
         resolvedEvents: function ($stateParams, ApiService) {
           var eventTypes = 'PUBLISH_API';
           return ApiService.getApiEvents($stateParams.apiId, eventTypes);
-        }
+        },
       },
       data: {
         perms: {
-          only: ['api-event-r']
+          only: ['api-event-r'],
         },
         docs: {
-          page: 'management-api-history'
-        }
-      }
+          page: 'management-api-history',
+        },
+      },
     })
     .state('management.apis.detail.audit.events', {
       url: '/events',
@@ -74,15 +74,15 @@ function apisAuditRouterConfig($stateProvider) {
         resolvedEvents: function ($stateParams, ApiService) {
           const eventTypes = 'START_API,STOP_API';
           return ApiService.getApiEvents($stateParams.apiId, eventTypes);
-        }
+        },
       },
       data: {
         perms: {
-          only: ['api-event-r']
+          only: ['api-event-r'],
         },
         docs: {
-          page: 'management-api-events'
-        }
-      }
+          page: 'management-api-events',
+        },
+      },
     });
 }

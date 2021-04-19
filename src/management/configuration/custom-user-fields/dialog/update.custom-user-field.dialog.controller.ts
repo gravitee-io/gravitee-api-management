@@ -16,10 +16,12 @@
 
 import CustomUserFieldsService from '../../../../services/custom-user-fields.service';
 
-function UpdateFieldDialogController(CustomUserFieldsService: CustomUserFieldsService,
-                                        $mdDialog: angular.material.IDialogService,
-                                        field,
-                                        predefinedKeys) {
+function UpdateFieldDialogController(
+  CustomUserFieldsService: CustomUserFieldsService,
+  $mdDialog: angular.material.IDialogService,
+  field,
+  predefinedKeys,
+) {
   'ngInject';
 
   this.updateAction = true;
@@ -32,7 +34,7 @@ function UpdateFieldDialogController(CustomUserFieldsService: CustomUserFieldsSe
   };
 
   this.save = () => {
-    CustomUserFieldsService.update(this.field).then(response => {
+    CustomUserFieldsService.update(this.field).then((response) => {
       $mdDialog.hide(response.data);
     });
   };

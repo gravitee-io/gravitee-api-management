@@ -26,7 +26,6 @@ interface IApiPropertiesScope extends ng.IScope {
 }
 
 class ApiPropertiesController {
-
   private api: any;
   private dynamicPropertyService: any;
   private controller: any;
@@ -45,14 +44,14 @@ class ApiPropertiesController {
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
     private $scope: IApiPropertiesScope,
-    private $rootScope
+    private $rootScope,
   ) {
     'ngInject';
     this.dynamicPropertyProviders = [
       {
         id: 'HTTP',
-        name: 'Custom (HTTP)'
-      }
+        name: 'Custom (HTTP)',
+      },
     ];
     this.timeUnits = ['SECONDS', 'MINUTES', 'HOURS'];
     this.api = this.$scope.$parent.apiCtrl.api;
@@ -68,7 +67,7 @@ class ApiPropertiesController {
       allowDropFileTypes: true,
       autoCloseTags: true,
       mode: 'javascript',
-      controller: this
+      controller: this,
     };
 
     this.dynamicPropertyService = this.api.services && this.api.services['dynamic-property'];
@@ -90,44 +89,48 @@ class ApiPropertiesController {
 
   deleteProperty(key) {
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to remove property [' + key + ']?',
-        msg: '',
-        confirmButton: 'Remove'
-      }
-    }).then(function (response) {
-      if (response) {
-        _.remove(that.api.properties, (property: any) => {
-          return property.key === key;
-        });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to remove property [' + key + ']?',
+          msg: '',
+          confirmButton: 'Remove',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          _.remove(that.api.properties, (property: any) => {
+            return property.key === key;
+          });
 
-        that.update();
-      }
-    });
+          that.update();
+        }
+      });
   }
 
   showPropertyModal() {
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogAddPropertyController',
-      controllerAs: 'dialogAddPropertyCtrl',
-      template: require('./add-property.dialog.html'),
-      clickOutsideToClose: true
-    }).then(function (property) {
-      if (that.api.properties === undefined) {
-        that.api.properties = [];
-      }
+    this.$mdDialog
+      .show({
+        controller: 'DialogAddPropertyController',
+        controllerAs: 'dialogAddPropertyCtrl',
+        template: require('./add-property.dialog.html'),
+        clickOutsideToClose: true,
+      })
+      .then(function (property) {
+        if (that.api.properties === undefined) {
+          that.api.properties = [];
+        }
 
-      if (property) {
-        that.api.properties.push(property);
-        that.update();
-      }
-    });
+        if (property) {
+          that.api.properties.push(property);
+          that.update();
+        }
+      });
   }
 
   update() {
@@ -136,8 +139,8 @@ class ApiPropertiesController {
     return this.ApiService.update(this.api).then((updatedApi) => {
       _that.api = updatedApi.data;
       _that.api.etag = updatedApi.headers('etag');
-      _that.$rootScope.$broadcast('apiChangeSuccess', {api: _that.api});
-      _that.NotificationService.show('API \'' + (_that.$scope as any).$parent.apiCtrl.api.name + '\' saved');
+      _that.$rootScope.$broadcast('apiChangeSuccess', { api: _that.api });
+      _that.NotificationService.show("API '" + (_that.$scope as any).$parent.apiCtrl.api.name + "' saved");
     });
   }
 
@@ -154,8 +157,8 @@ class ApiPropertiesController {
       },
       targetEvent: event,
       validators: {
-        'md-maxlength': 160
-      }
+        'md-maxlength': 160,
+      },
     });
   }
 
@@ -179,8 +182,7 @@ class ApiPropertiesController {
   }
 
   close() {
-    this.$mdSidenav('dynamic-properties-config')
-      .close();
+    this.$mdSidenav('dynamic-properties-config').close();
   }
 
   codemirrorLoaded(_editor) {
@@ -199,39 +201,41 @@ class ApiPropertiesController {
       controllerAs: 'ctrl',
       template: require('./dynamic-provider-http.dialog.html'),
       parent: angular.element(document.body),
-      clickOutsideToClose: true
+      clickOutsideToClose: true,
     });
   }
 
   deleteSelectedProperties() {
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to remove selected properties?',
-        msg: '',
-        confirmButton: 'Remove'
-      }
-    }).then((response) => {
-      if (response) {
-        _.forEach(this.selectedProperties, (v, k) => {
-          if (v) {
-            _.remove(this.api.properties, (property: any) => {
-              return property.key === k;
-            });
-            delete this.selectedProperties[k];
-          }
-        });
-        this.update();
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to remove selected properties?',
+          msg: '',
+          confirmButton: 'Remove',
+        },
+      })
+      .then((response) => {
+        if (response) {
+          _.forEach(this.selectedProperties, (v, k) => {
+            if (v) {
+              _.remove(this.api.properties, (property: any) => {
+                return property.key === k;
+              });
+              delete this.selectedProperties[k];
+            }
+          });
+          this.update();
+        }
+      });
   }
 
   toggleSelectAll(selectAll) {
     if (selectAll) {
-      _.forEach(this.api.properties, (p) => this.selectedProperties[p.key] = true);
+      _.forEach(this.api.properties, (p) => (this.selectedProperties[p.key] = true));
     } else {
       this.selectedProperties = {};
     }

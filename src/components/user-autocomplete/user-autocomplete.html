@@ -43,9 +43,7 @@
       </div>
     </md-list-item>
   </md-item-template>
-  <md-not-found>
-    No user matching "{{$ctrl.searchText}}" were found, or users already selected.
-  </md-not-found>
+  <md-not-found> No user matching "{{$ctrl.searchText}}" were found, or users already selected. </md-not-found>
 </md-autocomplete>
 
 <md-list class="fixedRows" ng-if="!$ctrl.singleUser" ng-show="$ctrl.usersSelected.length > 0">

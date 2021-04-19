@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class FlowService {
-
   private flowURL: string;
 
   constructor(private $http, Constants) {
@@ -25,7 +24,6 @@ class FlowService {
   getSchema() {
     return this.$http.get(`${this.flowURL}schema`);
   }
-
 }
 
 export default FlowService;

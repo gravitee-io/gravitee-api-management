@@ -27,7 +27,6 @@ class ApplicationTypesService {
   getEnabledApplicationTypes(): ng.IHttpPromise<Array<ApplicationType>> {
     return this.$http.get(this.URL);
   }
-
 }
 
 export default ApplicationTypesService;

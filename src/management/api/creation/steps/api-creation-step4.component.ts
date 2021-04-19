@@ -15,9 +15,9 @@
  */
 const ApiCreationStep4Component: ng.IComponentOptions = {
   require: {
-    parent: '^apiCreation'
+    parent: '^apiCreation',
   },
-  template: require('./api-creation-step4.html')
+  template: require('./api-creation-step4.html'),
 };
 
 export default ApiCreationStep4Component;

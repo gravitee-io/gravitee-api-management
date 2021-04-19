@@ -44,16 +44,75 @@ class ApiService {
 
   defaultHttpHeaders(): string[] {
     return [
-      'Accept', 'Accept-Charset', 'Accept-Encoding', 'Accept-Language', 'Accept-Ranges', 'Access-Control-Allow-Credentials',
-      'Access-Control-Allow-Headers', 'Access-Control-Allow-Methods', 'Access-Control-Allow-Origin',
-      'Access-Control-Expose-Headers', 'Access-Control-Max-Age', 'Access-Control-Request-Headers',
-      'Access-Control-Request-Method', 'Age', 'Allow', 'Authorization', 'Cache-Control', 'Connection', 'Content-Disposition',
-      'Content-Encoding', 'Content-ID', 'Content-Language', 'Content-Length', 'Content-Location', 'Content-MD5', 'Content-Range',
-      'Content-Type', 'Cookie', 'Date', 'ETag', 'Expires', 'Expect', 'Forwarded', 'From', 'Host', 'If-Match', 'If-Modified-Since',
-      'If-None-Match', 'If-Unmodified-Since', 'Keep-Alive', 'Last-Modified', 'Location', 'Link', 'Max-Forwards', 'MIME-Version',
-      'Origin', 'Pragma', 'Proxy-Authenticate', 'Proxy-Authorization', 'Proxy-Connection', 'Range', 'Referer', 'Retry-After',
-      'Server', 'Set-Cookie', 'Set-Cookie2', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'User-Agent', 'Vary', 'Via',
-      'Warning', 'WWW-Authenticate', 'X-Forwarded-For', 'X-Forwarded-Proto', 'X-Forwarded-Server', 'X-Forwarded-Host'
+      'Accept',
+      'Accept-Charset',
+      'Accept-Encoding',
+      'Accept-Language',
+      'Accept-Ranges',
+      'Access-Control-Allow-Credentials',
+      'Access-Control-Allow-Headers',
+      'Access-Control-Allow-Methods',
+      'Access-Control-Allow-Origin',
+      'Access-Control-Expose-Headers',
+      'Access-Control-Max-Age',
+      'Access-Control-Request-Headers',
+      'Access-Control-Request-Method',
+      'Age',
+      'Allow',
+      'Authorization',
+      'Cache-Control',
+      'Connection',
+      'Content-Disposition',
+      'Content-Encoding',
+      'Content-ID',
+      'Content-Language',
+      'Content-Length',
+      'Content-Location',
+      'Content-MD5',
+      'Content-Range',
+      'Content-Type',
+      'Cookie',
+      'Date',
+      'ETag',
+      'Expires',
+      'Expect',
+      'Forwarded',
+      'From',
+      'Host',
+      'If-Match',
+      'If-Modified-Since',
+      'If-None-Match',
+      'If-Unmodified-Since',
+      'Keep-Alive',
+      'Last-Modified',
+      'Location',
+      'Link',
+      'Max-Forwards',
+      'MIME-Version',
+      'Origin',
+      'Pragma',
+      'Proxy-Authenticate',
+      'Proxy-Authorization',
+      'Proxy-Connection',
+      'Range',
+      'Referer',
+      'Retry-After',
+      'Server',
+      'Set-Cookie',
+      'Set-Cookie2',
+      'TE',
+      'Trailer',
+      'Transfer-Encoding',
+      'Upgrade',
+      'User-Agent',
+      'Vary',
+      'Via',
+      'Warning',
+      'WWW-Authenticate',
+      'X-Forwarded-For',
+      'X-Forwarded-Proto',
+      'X-Forwarded-Server',
+      'X-Forwarded-Host',
     ];
   }
 
@@ -81,7 +140,7 @@ class ApiService {
       category: category,
       portal: portal,
       page: page,
-      order: order
+      order: order,
     };
 
     return this.$http.get(url, opts);
@@ -102,7 +161,7 @@ class ApiService {
     opts.params = {
       q: query ? query : '*',
       page: page,
-      order: order
+      order: order,
     };
 
     return this.$http.post(url, {}, opts);
@@ -117,11 +176,11 @@ class ApiService {
   }
 
   start(api): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '?action=START', {}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '?action=START', {}, { headers: { 'If-Match': api.etag } });
   }
 
   stop(api): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '?action=STOP', {}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '?action=STOP', {}, { headers: { 'If-Match': api.etag } });
   }
 
   reload(name): ng.IPromise<any> {
@@ -142,33 +201,35 @@ class ApiService {
       });
     }
 
-    return this.$http.put(this.apisURL + api.id,
+    return this.$http.put(
+      this.apisURL + api.id,
       {
-        'version': api.version,
-        'description': api.description,
-        'proxy': api.proxy,
-        'paths': api.paths,
-        'flows': api.flows,
-        'plans': api.plans,
-        'private': api.private,
-        'visibility': api.visibility,
-        'name': api.name,
-        'services': api.services,
-        'properties': api.properties,
-        'tags': api.tags,
-        'picture': api.picture,
-        'picture_url': api.picture_url,
-        'background': api.background,
-        'resources': api.resources,
-        'categories': api.categories,
-        'groups': api.groups,
-        'labels': api.labels,
-        'path_mappings': api.path_mappings,
-        'response_templates': api.response_templates,
-        'lifecycle_state': api.lifecycle_state,
-        'disable_membership_notifications': api.disable_membership_notifications,
-        'flow_mode': api.flow_mode
-      }, {headers: {'If-Match': api.etag}}
+        version: api.version,
+        description: api.description,
+        proxy: api.proxy,
+        paths: api.paths,
+        flows: api.flows,
+        plans: api.plans,
+        private: api.private,
+        visibility: api.visibility,
+        name: api.name,
+        services: api.services,
+        properties: api.properties,
+        tags: api.tags,
+        picture: api.picture,
+        picture_url: api.picture_url,
+        background: api.background,
+        resources: api.resources,
+        categories: api.categories,
+        groups: api.groups,
+        labels: api.labels,
+        path_mappings: api.path_mappings,
+        response_templates: api.response_templates,
+        lifecycle_state: api.lifecycle_state,
+        disable_membership_notifications: api.disable_membership_notifications,
+        flow_mode: api.flow_mode,
+      },
+      { headers: { 'If-Match': api.etag } },
     );
   }
 
@@ -210,7 +271,9 @@ class ApiService {
   }
 
   export(apiId, exclude, exportVersion): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/export?exclude=' + exclude.join(',') + (exportVersion ? '&version=' + exportVersion : ''));
+    return this.$http.get(
+      this.apisURL + apiId + '/export?exclude=' + exclude.join(',') + (exportVersion ? '&version=' + exportVersion : ''),
+    );
   }
 
   verify(criteria, config?): ng.IPromise<any> {
@@ -232,18 +295,18 @@ class ApiService {
     var url = this.apisURL + api + '/analytics?';
 
     var keys = Object.keys(request);
-    _.forEach(keys, function(key) {
+    _.forEach(keys, function (key) {
       var val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
     });
 
-    return this.$http.get(url, {timeout: this.getAnalyticsHttpTimeout()});
+    return this.$http.get(url, { timeout: this.getAnalyticsHttpTimeout() });
   }
 
   findLogs(api: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs?'), {timeout: 30000});
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.apisURL + api + '/logs?'), { timeout: 30000 });
   }
 
   exportLogsAsCSV(api: string, query: LogsQuery): ng.IPromise<any> {
@@ -254,7 +317,7 @@ class ApiService {
   }
 
   getLog(api, logId, timestamp): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
+    return this.$http.get(this.apisURL + api + '/logs/' + logId + (timestamp ? '?timestamp=' + timestamp : ''));
   }
 
   /*
@@ -266,7 +329,6 @@ class ApiService {
 
   addOrUpdateMember(api: string, membership: IMembership): ng.IHttpPromise<any> {
     return this.$http.post(`${this.apisURL}${api}/members`, membership);
-
   }
 
   deleteMember(api: string, userId: string): ng.IHttpPromise<any> {
@@ -296,7 +358,13 @@ class ApiService {
    * API plans
    */
   getApiPlans(apiId, status?, security?): ng.IPromise<any> {
-    return this.$http.get(this.apisURL + apiId + '/plans?status=' + (status ? status : 'staging,published,closed,deprecated') + (security ? '&security=' + security : ''));
+    return this.$http.get(
+      this.apisURL +
+        apiId +
+        '/plans?status=' +
+        (status ? status : 'staging,published,closed,deprecated') +
+        (security ? '&security=' + security : ''),
+    );
   }
 
   getApiPlan(apiId, planId): ng.IPromise<any> {
@@ -310,40 +378,43 @@ class ApiService {
   savePlan(api, plan): ng.IPromise<any> {
     let promise = null;
     if (plan.id) {
-      promise = this.$http.put(this.apisURL + api.id + '/plans/' + plan.id,
-        {
-          id: plan.id, name: plan.name, description: plan.description,
-          validation: plan.validation, policies: plan.policies,
-          securityDefinition: plan.securityDefinition,
-          characteristics: plan.characteristics, order: plan.order, paths: plan.paths,
-          excluded_groups: plan.excluded_groups,
-          comment_required: plan.comment_required,
-          comment_message: plan.comment_message,
-          tags: plan.tags,
-          selection_rule: plan.selection_rule,
-          general_conditions: plan.general_conditions
-        });
+      promise = this.$http.put(this.apisURL + api.id + '/plans/' + plan.id, {
+        id: plan.id,
+        name: plan.name,
+        description: plan.description,
+        validation: plan.validation,
+        policies: plan.policies,
+        securityDefinition: plan.securityDefinition,
+        characteristics: plan.characteristics,
+        order: plan.order,
+        paths: plan.paths,
+        excluded_groups: plan.excluded_groups,
+        comment_required: plan.comment_required,
+        comment_message: plan.comment_message,
+        tags: plan.tags,
+        selection_rule: plan.selection_rule,
+        general_conditions: plan.general_conditions,
+      });
     } else {
-      promise = this.$http.post(this.apisURL + api.id + '/plans',
-        {
-          name: plan.name,
-          description: plan.description,
-          api: plan.api,
-          validation: plan.validation,
-          policies: plan.policies,
-          characteristics: plan.characteristics,
-          type: plan.type,
-          paths: plan.paths,
-          flows: plan.flows,
-          security: plan.security,
-          securityDefinition: plan.securityDefinition,
-          excluded_groups: plan.excluded_groups,
-          comment_required: plan.comment_required,
-          comment_message: plan.comment_message,
-          tags: plan.tags,
-          selection_rule: plan.selection_rule,
-          general_conditions: plan.general_conditions
-        });
+      promise = this.$http.post(this.apisURL + api.id + '/plans', {
+        name: plan.name,
+        description: plan.description,
+        api: plan.api,
+        validation: plan.validation,
+        policies: plan.policies,
+        characteristics: plan.characteristics,
+        type: plan.type,
+        paths: plan.paths,
+        flows: plan.flows,
+        security: plan.security,
+        securityDefinition: plan.securityDefinition,
+        excluded_groups: plan.excluded_groups,
+        comment_required: plan.comment_required,
+        comment_message: plan.comment_message,
+        tags: plan.tags,
+        selection_rule: plan.selection_rule,
+        general_conditions: plan.general_conditions,
+      });
     }
     return promise.then(async (response) => {
       await this.syncV2Api(api);
@@ -390,7 +461,7 @@ class ApiService {
       req += query;
     }
 
-    return this.$http.get(req, {timeout: 30000});
+    return this.$http.get(req, { timeout: 30000 });
   }
 
   getSubscribers(apiId: string): ng.IHttpPromise<any> {
@@ -410,12 +481,11 @@ class ApiService {
   }
 
   updateSubscription(apiId, subscription) {
-    return this.$http.put(this.apisURL + apiId + '/subscriptions/' + subscription.id,
-      {
-        id: subscription.id,
-        starting_at: subscription.starting_at,
-        ending_at: subscription.ending_at
-      });
+    return this.$http.put(this.apisURL + apiId + '/subscriptions/' + subscription.id, {
+      id: subscription.id,
+      starting_at: subscription.starting_at,
+      ending_at: subscription.ending_at,
+    });
   }
 
   resumeSubscription(apiId, subscriptionId) {
@@ -429,7 +499,7 @@ class ApiService {
   transferSubscription(apiId, subscriptionId, transferSubscription): ng.IPromise<any> {
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId + '/_transfer', {
       id: transferSubscription.id,
-      plan: transferSubscription.plan
+      plan: transferSubscription.plan,
     });
   }
 
@@ -446,8 +516,8 @@ class ApiService {
       params: {
         plan: planId,
         application: applicationId,
-        customApiKey: customApiKey
-      }
+        customApiKey: customApiKey,
+      },
     };
     return this.$http.post(this.apisURL + apiId + '/subscriptions', null, params);
   }
@@ -467,8 +537,8 @@ class ApiService {
   renewApiKey(apiId, subscriptionId, customApiKey): ng.IPromise<any> {
     let params = {
       params: {
-        customApiKey: customApiKey
-      }
+        customApiKey: customApiKey,
+      },
     };
     return this.$http.post(this.apisURL + apiId + '/subscriptions/' + subscriptionId, null, params);
   }
@@ -509,21 +579,21 @@ class ApiService {
       req += '&field=' + field;
     }
 
-    return this.$http.get(req, {timeout: 30000});
+    return this.$http.get(req, { timeout: 30000 });
   }
 
   apiHealthLogs(api: string, query: LogsQuery): ng.IPromise<any> {
     let url = this.apisURL + api + '/health/logs?';
 
     let keys = Object.keys(query);
-    _.forEach(keys, function(key) {
+    _.forEach(keys, function (key) {
       let val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
     });
 
-    return this.$http.get(url, {timeout: 30000});
+    return this.$http.get(url, { timeout: 30000 });
   }
 
   getHealthLog(api: string, log: string): ng.IPromise<any> {
@@ -534,14 +604,14 @@ class ApiService {
     var url = this.apisURL + api + '/health/average?';
 
     var keys = Object.keys(request);
-    _.forEach(keys, function(key) {
+    _.forEach(keys, function (key) {
       var val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
     });
 
-    return this.$http.get(url, {timeout: 30000});
+    return this.$http.get(url, { timeout: 30000 });
   }
 
   /*
@@ -573,8 +643,11 @@ class ApiService {
   }
 
   updateRating(api, rating): ng.IPromise<any> {
-    return this.$http.put(this.apisURL + api + '/ratings/' + rating.id,
-      {'rate': rating.rate, 'title': rating.title, 'comment': rating.comment});
+    return this.$http.put(this.apisURL + api + '/ratings/' + rating.id, {
+      rate: rating.rate,
+      title: rating.title,
+      comment: rating.comment,
+    });
   }
 
   deleteRating(api, ratingId): ng.IPromise<any> {
@@ -623,15 +696,15 @@ class ApiService {
   }
 
   askForReview(api, message?): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '/reviews?action=ASK', {message: message}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=ASK', { message: message }, { headers: { 'If-Match': api.etag } });
   }
 
   acceptReview(api, message): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '/reviews?action=ACCEPT', {message: message}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=ACCEPT', { message: message }, { headers: { 'If-Match': api.etag } });
   }
 
   rejectReview(api, message): ng.IPromise<any> {
-    return this.$http.post(this.apisURL + api.id + '/reviews?action=REJECT', {message: message}, {headers: {'If-Match': api.etag}});
+    return this.$http.post(this.apisURL + api.id + '/reviews?action=REJECT', { message: message }, { headers: { 'If-Match': api.etag } });
   }
 
   /*
@@ -648,7 +721,7 @@ class ApiService {
   private async syncV2Api(api) {
     if (isV2(api)) {
       const updatedApi = await this.get(api.id);
-      this.$rootScope.$broadcast('apiChangeSuccess', {api: updatedApi.data});
+      this.$rootScope.$broadcast('apiChangeSuccess', { api: updatedApi.data });
       return true;
     }
     return false;
@@ -659,7 +732,7 @@ class ApiService {
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     var keys = Object.keys(query);
-    _.forEach(keys, function(key) {
+    _.forEach(keys, function (key) {
       var val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';

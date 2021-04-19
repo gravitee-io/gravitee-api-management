@@ -20,13 +20,9 @@ import { StateService } from '@uirouter/core';
 const NewUserComponent: ng.IComponentOptions = {
   template: require('./new-user.html'),
   bindings: {
-    identityProviders: '<'
+    identityProviders: '<',
   },
-  controller: function (
-    UserService: UserService,
-    NotificationService: NotificationService,
-    $state: StateService
-  ) {
+  controller: function (UserService: UserService, NotificationService: NotificationService, $state: StateService) {
     'ngInject';
     this.$onInit = () => {
       if (this.identityProviders && this.identityProviders.length) {
@@ -41,7 +37,7 @@ const NewUserComponent: ng.IComponentOptions = {
         $state.go('organization.settings.users');
       });
     };
-  }
+  },
 };
 
 export default NewUserComponent;

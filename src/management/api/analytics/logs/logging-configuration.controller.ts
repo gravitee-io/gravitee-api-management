@@ -19,7 +19,6 @@ import NotificationService from '../../../../services/notification.service';
 import DialogConfigureLoggingEditorController from './configure-logging-editor.dialog.controller';
 
 class ApiLoggingConfigurationController {
-
   private initialApi: any;
   private api: any;
   private formLogging: any;
@@ -33,9 +32,9 @@ class ApiLoggingConfigurationController {
     private $stateParams,
     private $rootScope,
     private $scope,
-    private Constants
+    private Constants,
   ) {
-  'ngInject';
+    'ngInject';
 
     this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
@@ -45,17 +44,21 @@ class ApiLoggingConfigurationController {
     this.$scope.loggingModes = [
       {
         name: 'None',
-        value: 'NONE'
-      }, {
+        value: 'NONE',
+      },
+      {
         name: 'Client only',
-        value: 'CLIENT'
-      }, {
+        value: 'CLIENT',
+      },
+      {
         name: 'Proxy only',
-        value: 'PROXY'
-      }, {
+        value: 'PROXY',
+      },
+      {
         name: 'Client and proxy',
-        value: 'CLIENT_PROXY'
-      }];
+        value: 'CLIENT_PROXY',
+      },
+    ];
 
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       this.api = args.api;
@@ -73,7 +76,7 @@ class ApiLoggingConfigurationController {
       this.api.etag = updatedApi.headers('etag');
       this.initialApi = _.cloneDeep(updatedApi.data);
       this.$scope.formLogging.$setPristine();
-      this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
+      this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
     });
   }
 
@@ -88,10 +91,11 @@ class ApiLoggingConfigurationController {
   }
 
   initLoggingMode() {
-    if (_.isUndefined(this.api.proxy.logging) ||
+    if (
+      _.isUndefined(this.api.proxy.logging) ||
       _.isUndefined(this.api.proxy.logging.condition) ||
-      this.api.proxy.logging.condition === 'true') {
-
+      this.api.proxy.logging.condition === 'true'
+    ) {
       this.loggingMode = 'ON';
     } else {
       this.loggingMode = 'CONDITION';
@@ -99,29 +103,34 @@ class ApiLoggingConfigurationController {
   }
 
   showConditionEditor(index) {
-    this.$mdDialog.show({
-      controller: DialogConfigureLoggingEditorController,
-      controllerAs: '$ctrl',
-      template: require('./configure-logging-editor.dialog.html'),
-      clickOutsideToClose: true,
-      resolve: {
-        subscribers: ($stateParams, ApiService: ApiService) => {
-          'ngInject';
-          return ApiService.getSubscribers($stateParams.apiId).then(response => response.data);
+    this.$mdDialog
+      .show({
+        controller: DialogConfigureLoggingEditorController,
+        controllerAs: '$ctrl',
+        template: require('./configure-logging-editor.dialog.html'),
+        clickOutsideToClose: true,
+        resolve: {
+          subscribers: ($stateParams, ApiService: ApiService) => {
+            'ngInject';
+            return ApiService.getSubscribers($stateParams.apiId).then((response) => response.data);
+          },
+          plans: ($stateParams, ApiService: ApiService) => {
+            'ngInject';
+            return ApiService.getApiPlans($stateParams.apiId, 'published,deprecated').then((response) => response.data);
+          },
         },
-        plans: ($stateParams, ApiService: ApiService) => {
-          'ngInject';
-          return ApiService.getApiPlans($stateParams.apiId, 'published,deprecated').then(response => response.data);
-        }
-      }
-    }).then((condition) => {
-      if (condition) {
-        this.api.proxy.logging.condition = condition;
-        this.$scope.formLogging.$setDirty();
-      }
-    }, function () {
-      // Cancel of the dialog
-    });
+      })
+      .then(
+        (condition) => {
+          if (condition) {
+            this.api.proxy.logging.condition = condition;
+            this.$scope.formLogging.$setDirty();
+          }
+        },
+        function () {
+          // Cancel of the dialog
+        },
+      );
   }
 }
 

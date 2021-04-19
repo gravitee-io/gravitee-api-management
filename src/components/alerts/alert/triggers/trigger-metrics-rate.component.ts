@@ -14,48 +14,50 @@
  * limitations under the License.
  */
 
-
-import {Metrics, RateCondition} from '../../../../entities/alert';
-import {Rule} from '../../../../entities/alerts/rule.metrics';
+import { Metrics, RateCondition } from '../../../../entities/alert';
+import { Rule } from '../../../../entities/alerts/rule.metrics';
 
 const AlertTriggerMetricsRateComponent: ng.IComponentOptions = {
   bindings: {
-    alert: '<'
+    alert: '<',
   },
   require: {
-    parent: '^alertComponent'
+    parent: '^alertComponent',
   },
   template: require('./trigger-metrics-rate.html'),
-  controller: function() {
+  controller: function () {
     'ngInject';
 
     this.$onInit = () => {
       this.metrics = Metrics.filterByScope(
         Rule.findByScopeAndType(this.alert.reference_type, this.alert.type).metrics,
-        this.alert.reference_type);
+        this.alert.reference_type,
+      );
       this.operators = RateCondition.OPERATORS;
 
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
-        this.alert.conditions = [{
-          'operator': 'GT',
-          'type': 'RATE',
-          'comparison': {
-            'property': this.metrics[0].key,
-            'operator': 'GT',
-            'threshold': 100.0,
-            'type': 'THRESHOLD'
-          }
-        }];
+        this.alert.conditions = [
+          {
+            operator: 'GT',
+            type: 'RATE',
+            comparison: {
+              property: this.metrics[0].key,
+              operator: 'GT',
+              threshold: 100.0,
+              type: 'THRESHOLD',
+            },
+          },
+        ];
 
         this.alert.dampening = {
-          'mode': 'strict_count',
-          'trueEvaluations': 1,
-          'totalEvaluations': 1
+          mode: 'strict_count',
+          trueEvaluations: 1,
+          totalEvaluations: 1,
         };
       }
     };
-  }
+  },
 };
 
 export default AlertTriggerMetricsRateComponent;

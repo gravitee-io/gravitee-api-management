@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class SpelService {
-
   private spelURL: string;
 
   constructor(private $http, Constants) {
@@ -25,7 +24,6 @@ class SpelService {
   getGrammar() {
     return this.$http.get(`${this.spelURL}grammar`);
   }
-
 }
 
 export default SpelService;

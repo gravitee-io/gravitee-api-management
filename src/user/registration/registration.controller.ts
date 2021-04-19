@@ -22,21 +22,22 @@ class RegistrationController {
   user: any = {};
   fields: any[] = [];
 
-  constructor(private UserService: UserService,
-              private $scope,
-              private NotificationService: NotificationService,
-              private ReCaptchaService: ReCaptchaService) {
+  constructor(
+    private UserService: UserService,
+    private $scope,
+    private NotificationService: NotificationService,
+    private ReCaptchaService: ReCaptchaService,
+  ) {
     'ngInject';
     this.UserService = UserService;
     this.$scope = $scope;
     this.NotificationService = NotificationService;
     this.ReCaptchaService = ReCaptchaService;
-
   }
 
   $onInit() {
     this.ReCaptchaService.displayBadge();
-    this.UserService.customUserFieldsToRegister().then((resp) => this.fields = resp.data);
+    this.UserService.customUserFieldsToRegister().then((resp) => (this.fields = resp.data));
   }
 
   register() {
@@ -44,12 +45,17 @@ class RegistrationController {
     let notificationService = this.NotificationService;
     let self = this;
 
-    this.ReCaptchaService.execute('register').then(() => this.UserService.register(this.user).then(function () {
-      scope.formRegistration.$setPristine();
-      notificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
-    }, function (e) {
-      notificationService.showError(e);
-    }));
+    this.ReCaptchaService.execute('register').then(() =>
+      this.UserService.register(this.user).then(
+        function () {
+          scope.formRegistration.$setPristine();
+          notificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
+        },
+        function (e) {
+          notificationService.showError(e);
+        },
+      ),
+    );
   }
 }
 

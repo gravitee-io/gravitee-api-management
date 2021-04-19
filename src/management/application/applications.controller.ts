@@ -22,10 +22,7 @@ class ApplicationsController {
   private selectedApplications: any;
   private subMessage: string;
 
-  constructor(
-    private UserService: UserService,
-    private $filter
-  ) {
+  constructor(private UserService: UserService, private $filter) {
     'ngInject';
     this.selectedApplications = [];
 
@@ -42,7 +39,8 @@ class ApplicationsController {
   }
 
   loadMore = function (order, searchApplications, showNext) {
-    const doNotLoad = showNext && (this.applications && this.applications.length) === (this.applicationsToDisplay && this.applicationsToDisplay.length);
+    const doNotLoad =
+      showNext && (this.applications && this.applications.length) === (this.applicationsToDisplay && this.applicationsToDisplay.length);
     if (!doNotLoad && this.applications && this.applications.length) {
       let applications = _.clone(this.applications);
       if (searchApplications) {

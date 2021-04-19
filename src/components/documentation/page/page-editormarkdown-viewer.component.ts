@@ -48,7 +48,7 @@ class ComponentCtrl implements ng.IComponentController {
       let value = this.findChildrenValue(child.children);
       if (value) {
         let id = value.replace(new RegExp(' ', 'g'), '').toLowerCase();
-        sectionValue += '<section id=\'' + id + '\'>';
+        sectionValue += "<section id='" + id + "'>";
       } else {
         sectionValue += '<section>';
       }
@@ -56,7 +56,7 @@ class ComponentCtrl implements ng.IComponentController {
 
       ast.children.splice(c, 0, {
         type: 'html',
-        value: sectionValue
+        value: sectionValue,
       });
       c++;
       sectionValue = '';
@@ -65,7 +65,7 @@ class ComponentCtrl implements ng.IComponentController {
     if (sectionOpen) {
       ast.children.splice(ast.children.length - 1, 0, {
         type: 'html',
-        value: sectionValue
+        value: sectionValue,
       });
     }
 
@@ -73,18 +73,23 @@ class ComponentCtrl implements ng.IComponentController {
 
     const Viewer = require('@toast-ui/editor/dist/toastui-editor-viewer');
     // tslint:disable-next-line:no-unused-expression
-    new Viewer(Object.assign({
-      el: document.querySelector('#viewerSection'),
-      viewer: true,
-      height: 'auto',
-      initialValue: _.replace(
-        _.replace(content,
-          '(#', '(' + this.$location.absUrl() + '#'),
-        'href="#', 'href="' + this.$location.absUrl() + '#'
+    new Viewer(
+      Object.assign(
+        {
+          el: document.querySelector('#viewerSection'),
+          viewer: true,
+          height: 'auto',
+          initialValue: _.replace(
+            _.replace(content, '(#', '(' + this.$location.absUrl() + '#'),
+            'href="#',
+            'href="' + this.$location.absUrl() + '#',
+          ),
+          useDefaultHTMLSanitizer: false,
+          plugins: [[codeSyntaxHighlight, { hljs }]],
+        },
+        this.options,
       ),
-      useDefaultHTMLSanitizer: false,
-      plugins: [[codeSyntaxHighlight, {hljs}]]
-    }, this.options));
+    );
   }
 
   findChildrenValue = (children: any, count: number = 0) => {
@@ -94,19 +99,19 @@ class ComponentCtrl implements ng.IComponentController {
     count++;
 
     if (children && Array.isArray(children) && children.length > 0) {
-      return (children[0].type === 'text') ? children[0].value : this.findChildrenValue(children[0].children, count);
+      return children[0].type === 'text' ? children[0].value : this.findChildrenValue(children[0].children, count);
     }
     return;
-  }
+  };
 }
 
 const PageEditorMarkdownViewerComponent: ng.IComponentOptions = {
   template: require('./page-editormarkdown-viewer.html'),
   bindings: {
     page: '<',
-    options: '<'
+    options: '<',
   },
-  controller: ComponentCtrl
+  controller: ComponentCtrl,
 };
 
 export default PageEditorMarkdownViewerComponent;

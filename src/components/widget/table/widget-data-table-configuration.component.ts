@@ -19,23 +19,26 @@ import DashboardService from '../../../services/dashboard.service';
 const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-data-table-configuration.html'),
   bindings: {
-    chart: '<'
+    chart: '<',
   },
   controller: function (DashboardService: DashboardService) {
     'ngInject';
     this.fields = DashboardService.getIndexedFields();
-    this.projections = _.concat({label: 'Hits', value: '_count'}, DashboardService.getAverageableFields());
-    this.projectionOrders = [{label: 'Desc', value: '-'}, {label: 'Asc', value: ''}];
+    this.projections = _.concat({ label: 'Hits', value: '_count' }, DashboardService.getAverageableFields());
+    this.projectionOrders = [
+      { label: 'Desc', value: '-' },
+      { label: 'Asc', value: '' },
+    ];
 
     this.$onInit = () => {
       if (!this.chart.request) {
         _.merge(this.chart, {
           request: {
             type: 'group_by',
-            field: this.fields[0].value
+            field: this.fields[0].value,
           },
           columns: [],
-          paging: 5
+          paging: 5,
         });
       }
       this.field = this.chart.request.field;
@@ -62,11 +65,11 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
 
     this.onFieldChanged = () => {
       this.chart.request.field = this.field;
-      this.chart.columns[0] = _.find(this.fields, f => f.value === this.field).label;
+      this.chart.columns[0] = _.find(this.fields, (f) => f.value === this.field).label;
     };
 
     this.onProjectionChanged = () => {
-      this.chart.columns[1] = _.find(this.projections, p => p.value === this.projection).label;
+      this.chart.columns[1] = _.find(this.projections, (p) => p.value === this.projection).label;
       if (this.projection) {
         this.chart.request.order = this.order + this.aggregate + ':' + this.projection;
         this.chart.percent = false;
@@ -74,7 +77,7 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
         delete this.chart.request.order;
       }
     };
-  }
+  },
 };
 
 export default WidgetDataTableConfigurationComponent;

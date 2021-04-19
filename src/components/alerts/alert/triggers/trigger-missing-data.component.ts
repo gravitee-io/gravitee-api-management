@@ -16,30 +16,32 @@
 
 const AlertTriggerMissingDataComponent: ng.IComponentOptions = {
   bindings: {
-    alert: '<'
+    alert: '<',
   },
   require: {
-    parent: '^alertComponent'
+    parent: '^alertComponent',
   },
   template: require('./trigger-missing-data.html'),
-  controller: function() {
+  controller: function () {
     'ngInject';
 
     this.$onInit = () => {
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
-        this.alert.conditions = [{
-          'type': 'MISSING_DATA'
-        }];
+        this.alert.conditions = [
+          {
+            type: 'MISSING_DATA',
+          },
+        ];
 
         this.alert.dampening = {
-          'mode': 'strict_count',
-          'trueEvaluations': 1,
-          'totalEvaluations': 1
+          mode: 'strict_count',
+          trueEvaluations: 1,
+          totalEvaluations: 1,
         };
       }
     };
-  }
+  },
 };
 
 export default AlertTriggerMissingDataComponent;

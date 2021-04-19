@@ -15,7 +15,7 @@
  */
 const AlertTriggerConditionThresholdRangeComponent: ng.IComponentOptions = {
   bindings: {
-    condition: '<'
+    condition: '<',
   },
   template: require('./trigger-condition-threshold-range.html'),
   controller: function () {
@@ -31,7 +31,7 @@ const AlertTriggerConditionThresholdRangeComponent: ng.IComponentOptions = {
       this.condition.operatorLow = 'INCLUSIVE';
       this.condition.operatorHigh = 'INCLUSIVE';
     };
-  }
+  },
 };
 
 export default AlertTriggerConditionThresholdRangeComponent;

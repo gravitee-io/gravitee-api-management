@@ -15,10 +15,10 @@
  */
 const TenantsComponent: ng.IComponentOptions = {
   bindings: {
-    tenants: '<'
+    tenants: '<',
   },
   controller: 'TenantsController',
-  template: require('./tenants.html')
+  template: require('./tenants.html'),
 };
 
 export default TenantsComponent;

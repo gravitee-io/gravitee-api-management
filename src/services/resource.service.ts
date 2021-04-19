@@ -43,7 +43,6 @@ class ResourceService {
   getDocumentation(resourceId) {
     return this.$http.get(this.resourcesURL + resourceId + '/documentation');
   }
-
 }
 
 export default ResourceService;

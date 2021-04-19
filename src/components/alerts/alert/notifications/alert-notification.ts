@@ -19,13 +19,13 @@ import NotificationService from '../../../../services/notification.service';
 const AlertNotificationComponent: ng.IComponentOptions = {
   bindings: {
     notification: '<',
-    onNotificationRemove: '&'
+    onNotificationRemove: '&',
   },
   require: {
-    parent: '^gvAlertNotifications'
+    parent: '^gvAlertNotifications',
   },
   template: require('./alert-notification.html'),
-  controller: function(NotificationService: NotificationService, NotifierService: NotifierService) {
+  controller: function (NotificationService: NotificationService, NotifierService: NotifierService) {
     'ngInject';
 
     this.notifierJsonSchemaForm = ['*'];
@@ -42,29 +42,31 @@ const AlertNotificationComponent: ng.IComponentOptions = {
     };
 
     this.reloadNotifierSchema = () => {
-      NotifierService.getSchema(this.notification.type).then( ({data}) => {
+      NotifierService.getSchema(this.notification.type).then(
+        ({ data }) => {
           this.notifierJsonSchema = data;
           return {
-            schema: data
+            schema: data,
           };
         },
         (response) => {
-          if ( response.status === 404) {
+          if (response.status === 404) {
             this.notifierJsonSchema = {};
             return {
-              schema: {}
+              schema: {},
             };
           } else {
             // todo manage errors
             NotificationService.showError('Unexpected error while loading notifier schema for ' + this.notifier.type);
           }
-        });
+        },
+      );
     };
 
     this.remove = () => {
       this.onNotificationRemove();
     };
-  }
+  },
 };
 
 export default AlertNotificationComponent;

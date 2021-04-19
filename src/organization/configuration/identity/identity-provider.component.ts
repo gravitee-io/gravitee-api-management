@@ -18,10 +18,10 @@ const IdentityProviderComponent: ng.IComponentOptions = {
     identityProvider: '<',
     groups: '<',
     environmentRoles: '<',
-    organizationRoles: '<'
+    organizationRoles: '<',
   },
   controller: 'IdentityProviderController',
-  template: require('./identity-provider.html')
+  template: require('./identity-provider.html'),
 };
 
 export default IdentityProviderComponent;

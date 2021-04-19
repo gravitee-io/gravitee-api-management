@@ -22,14 +22,14 @@
         <h1>Support ticket creation</h1>
         <a ui-sref="management.support.tickets">See tickets history</a>
       </div>
-      <h5 ng-if="!supportTicketCtrl.userHasAnEmail" style="color: red;margin-left: 10px;">
+      <h5 ng-if="!supportTicketCtrl.userHasAnEmail" style="color: red; margin-left: 10px">
         <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
         <span>You can not submit a ticket because you do not have an email configured on your account</span>
       </h5>
 
       <div class="gv-form">
         <h2></h2>
-        <div class="gv-form-content" layout="column" style="background-color: #FAFAFA;">
+        <div class="gv-form-content" layout="column" style="background-color: #fafafa">
           <md-input-container ng-if="!supportTicketCtrl.stateParams.apiId">
             <label>Select an API</label>
             <md-select ng-model="supportTicketCtrl.ticket.api" ng-disabled="!supportTicketCtrl.userHasAnEmail">
@@ -39,27 +39,42 @@
           <md-input-container>
             <label>Select an application</label>
             <md-select ng-model="supportTicketCtrl.ticket.application" ng-disabled="!supportTicketCtrl.userHasAnEmail">
-              <md-option ng-repeat="application in supportTicketCtrl.applications" ng-value="application.id">{{application.name}} ({{application.owner.displayName}})</md-option>
+              <md-option ng-repeat="application in supportTicketCtrl.applications" ng-value="application.id"
+                >{{application.name}} ({{application.owner.displayName}})</md-option
+              >
             </md-select>
           </md-input-container>
           <md-input-container>
             <label>Subject</label>
-            <input ng-model="supportTicketCtrl.ticket.subject" ng-required="true" ng-disabled="!supportTicketCtrl.userHasAnEmail">
+            <input ng-model="supportTicketCtrl.ticket.subject" ng-required="true" ng-disabled="!supportTicketCtrl.userHasAnEmail" />
           </md-input-container>
           <md-input-container>
             <label>Content</label>
-            <textarea ng-model="supportTicketCtrl.ticket.content" ng-required="true" rows="10" ng-disabled="!supportTicketCtrl.userHasAnEmail"></textarea>
+            <textarea
+              ng-model="supportTicketCtrl.ticket.content"
+              ng-required="true"
+              rows="10"
+              ng-disabled="!supportTicketCtrl.userHasAnEmail"
+            ></textarea>
           </md-input-container>
           <md-input-container>
-            <md-checkbox ng-model="supportTicketCtrl.ticket.copyToSender" ng-disabled="!supportTicketCtrl.userHasAnEmail" aria-label="cb-copy-to-sender">
+            <md-checkbox
+              ng-model="supportTicketCtrl.ticket.copyToSender"
+              ng-disabled="!supportTicketCtrl.userHasAnEmail"
+              aria-label="cb-copy-to-sender"
+            >
               <span>Receive a copy of the email</span>
             </md-checkbox>
           </md-input-container>
 
           <div class="md-actions" layout="row">
-            <md-button type="submit" class="md-raised md-primary"
-            ng-disabled="supportTicketCtrl.formTicket.$pristine || supportTicketCtrl.formTicket.$invalid || !supportTicketCtrl.userHasAnEmail"
-            aria-label="create-ticket">Create</md-button>
+            <md-button
+              type="submit"
+              class="md-raised md-primary"
+              ng-disabled="supportTicketCtrl.formTicket.$pristine || supportTicketCtrl.formTicket.$invalid || !supportTicketCtrl.userHasAnEmail"
+              aria-label="create-ticket"
+              >Create</md-button
+            >
           </div>
         </div>
       </div>

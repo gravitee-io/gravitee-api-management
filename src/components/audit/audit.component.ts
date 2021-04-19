@@ -22,19 +22,19 @@ const AuditComponent: ng.IComponentOptions = {
     api: '<',
     apis: '<',
     applications: '<',
-    events: '<'
+    events: '<',
   },
-  controller: function(AuditService: AuditService) {
+  controller: function (AuditService: AuditService) {
     'ngInject';
     const vm = this;
 
     vm.$onInit = () => {
-      vm.events = _.map(vm.events, (ev: string) => {return ev.toUpperCase(); });
+      vm.events = _.map(vm.events, (ev: string) => {
+        return ev.toUpperCase();
+      });
       vm.query = new AuditQuery();
       vm.onPaginate = vm.onPaginate.bind(this);
-      AuditService.list(null, vm.api).then(response =>
-        vm.handleAuditResponseData(response.data)
-      );
+      AuditService.list(null, vm.api).then((response) => vm.handleAuditResponseData(response.data));
       vm.queryLogType = 'all';
     };
 
@@ -45,17 +45,16 @@ const AuditComponent: ng.IComponentOptions = {
       vm.query.page = responseData.pageNumber;
       vm.result = {
         size: responseData.pageElements,
-        total: responseData.totalElements
+        total: responseData.totalElements,
       };
     };
 
     vm.enhanceAuditLogs = (auditLogs) => {
       _.forEach(auditLogs, (log) => {
-          log.prettyPatch = JSON.stringify(JSON.parse(log.patch), null, '  ');
-          log.displayPatch = false;
-          log.displayProperties = false;
-        }
-      );
+        log.prettyPatch = JSON.stringify(JSON.parse(log.patch), null, '  ');
+        log.displayPatch = false;
+        log.displayProperties = false;
+      });
     };
 
     vm.onPaginate = () => {
@@ -64,7 +63,7 @@ const AuditComponent: ng.IComponentOptions = {
       });
     };
 
-    vm.getNameByReference = ( ref: {type: string, id: string} ) => {
+    vm.getNameByReference = (ref: { type: string; id: string }) => {
       if (vm.metadata[ref.type + ':' + ref.id + ':name']) {
         return vm.metadata[ref.type + ':' + ref.id + ':name'];
       }
@@ -75,7 +74,7 @@ const AuditComponent: ng.IComponentOptions = {
       return _.mapValues(properties, (v, k) => vm.metadata[k + ':' + v + ':name']);
     };
 
-    vm.onOrgEnvFilterChange = ( ) => {
+    vm.onOrgEnvFilterChange = () => {
       if (vm.queryLogType === 'env') {
         vm.query.orgLog = false;
         vm.query.envLog = true;
@@ -99,7 +98,7 @@ const AuditComponent: ng.IComponentOptions = {
         vm.handleAuditResponseData(response.data);
       });
     };
-  }
+  },
 };
 
 export default AuditComponent;

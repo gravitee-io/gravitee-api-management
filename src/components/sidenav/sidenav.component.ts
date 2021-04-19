@@ -17,21 +17,21 @@ import { IScope, IWindowService } from 'angular';
 import { StateService } from '@uirouter/core';
 import PortalConfigService from '../../services/portalConfig.service';
 
-
 export const SidenavComponent: ng.IComponentOptions = {
   template: require('./sidenav.html'),
   bindings: {
     graviteeUser: '<',
     menuItems: '<',
-    allMenuItems: '<'
+    allMenuItems: '<',
   },
-  controller: function(
+  controller: function (
     Constants,
     $window: IWindowService,
     $scope: IScope,
     $state: StateService,
     $rootScope: IScope,
-    PortalConfigService: PortalConfigService) {
+    PortalConfigService: PortalConfigService,
+  ) {
     'ngInject';
     const lastEnvironmentLoaded = 'gv-last-environment-loaded';
     const reduceModeKey = 'gv-sidenav-reduce-mode';
@@ -48,7 +48,7 @@ export const SidenavComponent: ng.IComponentOptions = {
     };
 
     this.updateCurrentEnvSettings = () => {
-      PortalConfigService.get().then(response => {
+      PortalConfigService.get().then((response) => {
         Constants.env.settings = response.data;
         $rootScope.$broadcast('graviteePortalUrlRefresh', Constants.env.settings.portal.url);
       });
@@ -63,8 +63,7 @@ export const SidenavComponent: ng.IComponentOptions = {
     this.isActive = function (menuItem) {
       let menuItemSplitted = menuItem.name.split('.');
       let currentStateSplitted = $state.current.name.split('.');
-      return menuItemSplitted[0] === currentStateSplitted[0] &&
-        menuItemSplitted[1] === currentStateSplitted[1];
+      return menuItemSplitted[0] === currentStateSplitted[0] && menuItemSplitted[1] === currentStateSplitted[1];
     };
 
     $scope.$on('reduceSideNav', () => {
@@ -77,7 +76,7 @@ export const SidenavComponent: ng.IComponentOptions = {
       this.updateCurrentEnvSettings();
       $window.localStorage.setItem(lastEnvironmentLoaded, Constants.org.currentEnv.id);
 
-      $state.go('management', {}, {reload: true});
+      $state.go('management', {}, { reload: true });
     };
-  }
+  },
 };

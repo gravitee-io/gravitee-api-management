@@ -20,56 +20,72 @@
   <div class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
-<md-table-container ng-if="$ctrl.dictionaries.length > 0">
-  <table md-table class="gv-table-dense">
-    <thead md-head>
-    <tr md-row>
-      <th md-column>ID</th>
-      <th md-column>Name</th>
-      <th md-column>Description</th>
-      <th md-column>Type</th>
-      <th md-column>Number of properties</th>
-      <th md-column>Last updated at</th>
-      <th md-column>Last deployment at</th>
-    </tr>
-    </thead>
-    <tbody md-body>
-    <tr md-row ng-repeat="dictionary in $ctrl.dictionaries | orderBy: name">
-      <td md-cell>
-        <a ui-sref="management.settings.dictionaries.dictionary({dictionaryId: dictionary.id})">
-        {{dictionary.id}}
-        </a>
-      </td>
-      <td md-cell>{{dictionary.name}}</td>
-      <td md-cell>{{dictionary.description}}</td>
-      <td md-cell>
-        {{dictionary.type}}
-        <span permission permission-only="['environment-dictionary-u']" ng-if="dictionary.type === 'dynamic' && dictionary.state === 'started'" style="color: #429f46;"> - Started</span>
-        <span permission permission-only="['environment-dictionary-u']" ng-if="dictionary.type === 'dynamic' && dictionary.state !== 'started'" style="color: red"> - Stopped</span>
-      </td>
-      <td md-cell>{{dictionary.properties}}</td>
-      <td md-cell>{{dictionary.updated_at | date:'MMM d, y h:mm:ss a'}}</td>
-      <td md-cell>{{(dictionary.deployed_at | date:'MMM d, y h:mm:ss a') || '-'}}</td>
-    </tr>
-    </tbody>
-  </table>
-</md-table-container>
+      <md-table-container ng-if="$ctrl.dictionaries.length > 0">
+        <table md-table class="gv-table-dense">
+          <thead md-head>
+            <tr md-row>
+              <th md-column>ID</th>
+              <th md-column>Name</th>
+              <th md-column>Description</th>
+              <th md-column>Type</th>
+              <th md-column>Number of properties</th>
+              <th md-column>Last updated at</th>
+              <th md-column>Last deployment at</th>
+            </tr>
+          </thead>
+          <tbody md-body>
+            <tr md-row ng-repeat="dictionary in $ctrl.dictionaries | orderBy: name">
+              <td md-cell>
+                <a ui-sref="management.settings.dictionaries.dictionary({dictionaryId: dictionary.id})"> {{dictionary.id}} </a>
+              </td>
+              <td md-cell>{{dictionary.name}}</td>
+              <td md-cell>{{dictionary.description}}</td>
+              <td md-cell>
+                {{dictionary.type}}
+                <span
+                  permission
+                  permission-only="['environment-dictionary-u']"
+                  ng-if="dictionary.type === 'dynamic' && dictionary.state === 'started'"
+                  style="color: #429f46"
+                >
+                  - Started</span
+                >
+                <span
+                  permission
+                  permission-only="['environment-dictionary-u']"
+                  ng-if="dictionary.type === 'dynamic' && dictionary.state !== 'started'"
+                  style="color: red"
+                >
+                  - Stopped</span
+                >
+              </td>
+              <td md-cell>{{dictionary.properties}}</td>
+              <td md-cell>{{dictionary.updated_at | date:'MMM d, y h:mm:ss a'}}</td>
+              <td md-cell>{{(dictionary.deployed_at | date:'MMM d, y h:mm:ss a') || '-'}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
 
-<gravitee-empty-state ng-if="$ctrl.dictionaries.length === 0"
-                      icon="assignment"
-                      model="Dictionary"
-                      message="Dictionaries will appear here"
-                      sub-message="Start creating a dictionary"
-                      create-mode="true"></gravitee-empty-state>
-
+      <gravitee-empty-state
+        ng-if="$ctrl.dictionaries.length === 0"
+        icon="assignment"
+        model="Dictionary"
+        message="Dictionaries will appear here"
+        sub-message="Start creating a dictionary"
+        create-mode="true"
+      ></gravitee-empty-state>
     </div>
   </div>
-<md-button permission permission-only="'environment-dictionary-c'"
-           aria-label="Add dictionary"
-           class="md-fab md-fab-bottom-right md-fab-scrollable"
-           ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-           ui-sref="management.settings.dictionaries.new">
-  <md-tooltip md-direction="top" md-visible="false">Add a new dictionary</md-tooltip>
-  <ng-md-icon icon="add"></ng-md-icon>
-</md-button>
+  <md-button
+    permission
+    permission-only="'environment-dictionary-c'"
+    aria-label="Add dictionary"
+    class="md-fab md-fab-bottom-right md-fab-scrollable"
+    ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+    ui-sref="management.settings.dictionaries.new"
+  >
+    <md-tooltip md-direction="top" md-visible="false">Add a new dictionary</md-tooltip>
+    <ng-md-icon icon="add"></ng-md-icon>
+  </md-button>
 </div>

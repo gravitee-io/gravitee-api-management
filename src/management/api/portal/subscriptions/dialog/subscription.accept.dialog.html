@@ -39,9 +39,10 @@
         <div ng-if="canUseCustomApiKey">
           <h5 style="margin-bottom: 20px">This plan allows custom API keys. You can provide it here.</h5>
           <div>
-            <api-key-validated-input form-reference="SubscriptionForm"
-                                     api-id="apiId"
-                                     on-change="dialogSubscriptionAcceptController.onApiKeyValueChange"
+            <api-key-validated-input
+              form-reference="SubscriptionForm"
+              api-id="apiId"
+              on-change="dialogSubscriptionAcceptController.onApiKeyValueChange"
             ></api-key-validated-input>
           </div>
         </div>
@@ -51,10 +52,12 @@
 
   <md-dialog-actions layout="row">
     <md-button ng-click="dialogSubscriptionAcceptController.hide()">Cancel</md-button>
-    <md-button class="md-raised md-primary"
-               ng-click="dialogSubscriptionAcceptController.save()"
-               ng-disabled="dialogSubscriptionAcceptController.customApiKeyInputState === 'invalid'
+    <md-button
+      class="md-raised md-primary"
+      ng-click="dialogSubscriptionAcceptController.save()"
+      ng-disabled="dialogSubscriptionAcceptController.customApiKeyInputState === 'invalid'
                             || SubscriptionForm.$invalid"
-    >Accept</md-button>
+      >Accept</md-button
+    >
   </md-dialog-actions>
 </md-dialog>

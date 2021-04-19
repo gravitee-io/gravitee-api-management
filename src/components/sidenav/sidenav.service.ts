@@ -24,7 +24,6 @@ class SidenavService {
   setCurrentResource(resource: string): void {
     this.currentResource = resource;
   }
-
 }
 
 export default SidenavService;

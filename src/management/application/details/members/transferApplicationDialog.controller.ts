@@ -20,11 +20,11 @@ function DialogTransferAppplicationController($scope, $mdDialog, newRole) {
   'ngInject';
 
   this.newRole = newRole;
-  $scope.cancel = function() {
+  $scope.cancel = function () {
     $mdDialog.cancel();
   };
 
-  $scope.transferOwnership = function() {
+  $scope.transferOwnership = function () {
     $mdDialog.hide(true);
   };
 }

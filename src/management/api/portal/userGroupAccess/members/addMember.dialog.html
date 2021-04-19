@@ -18,20 +18,14 @@
 <md-dialog aria-label="Add member" layout-padding flex="30">
   <md-dialog-content class="searchMembers">
     <form name="formMember" ng-submit="$event.preventDefault()">
-      <gv-user-autocomplete
-        users-selected="usersSelected"
-        user-filter-fn="userFilterFn"
-      >
-      </gv-user-autocomplete>
+      <gv-user-autocomplete users-selected="usersSelected" user-filter-fn="userFilterFn"> </gv-user-autocomplete>
 
       <div ng-show="usersSelected.length > 0">
         <md-subheader class="md-no-sticky">Select role</md-subheader>
         <md-input-container class="md-block">
           <label>Role</label>
           <md-select ng-model="role" required>
-            <md-option ng-repeat="role in roles" ng-value="role" ng-disabled="role.system">
-              {{role.name}}
-            </md-option>
+            <md-option ng-repeat="role in roles" ng-value="role" ng-disabled="role.system"> {{role.name}} </md-option>
           </md-select>
         </md-input-container>
       </div>
@@ -39,10 +33,13 @@
   </md-dialog-content>
 
   <md-dialog-actions layout="row">
-    <md-button ng-click="hide()">
-      Cancel
-    </md-button>
-    <md-button type="submit" class="md-raised md-primary" ng-click="addMembers()" ng-disabled="formMember.$invalid || usersSelected.length === 0">
+    <md-button ng-click="hide()"> Cancel </md-button>
+    <md-button
+      type="submit"
+      class="md-raised md-primary"
+      ng-click="addMembers()"
+      ng-disabled="formMember.$invalid || usersSelected.length === 0"
+    >
       Add
     </md-button>
   </md-dialog-actions>

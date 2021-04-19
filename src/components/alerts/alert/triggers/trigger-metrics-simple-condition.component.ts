@@ -14,39 +14,42 @@
  * limitations under the License.
  */
 
-import {Rule} from '../../../../entities/alerts/rule.metrics';
-import {Metrics} from '../../../../entities/alert';
+import { Rule } from '../../../../entities/alerts/rule.metrics';
+import { Metrics } from '../../../../entities/alert';
 
 const AlertTriggerMetricsSimpleConditionComponent: ng.IComponentOptions = {
   bindings: {
-    alert: '<'
+    alert: '<',
   },
   require: {
-    parent: '^alertComponent'
+    parent: '^alertComponent',
   },
   template: require('./trigger-metrics-simple-condition.html'),
-  controller: function() {
+  controller: function () {
     'ngInject';
 
     this.$onInit = () => {
       this.metrics = Metrics.filterByScope(
         Rule.findByScopeAndType(this.alert.reference_type, this.alert.type).metrics,
-        this.alert.reference_type);
+        this.alert.reference_type,
+      );
 
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
-        this.alert.conditions = [{
-          'property': this.metrics[0].key
-        }];
+        this.alert.conditions = [
+          {
+            property: this.metrics[0].key,
+          },
+        ];
 
         this.alert.dampening = {
-          'mode': 'strict_count',
-          'trueEvaluations': 1,
-          'totalEvaluations': 1
+          mode: 'strict_count',
+          trueEvaluations: 1,
+          totalEvaluations: 1,
         };
       }
     };
-  }
+  },
 };
 
 export default AlertTriggerMetricsSimpleConditionComponent;

@@ -22,9 +22,7 @@
     <h2></h2>
     <div class="gv-form-content" layout="column" layout-align="start stretch">
       <div ng-if="apiTransferOwnershipCtrl.isAllowedToTransferOwnership()">
-        <p>
-          Give full access to this API to an other user.
-        </p>
+        <p>Give full access to this API to an other user.</p>
         <gv-user-autocomplete
           users-selected="apiTransferOwnershipCtrl.usersSelected"
           place-holder="'Select a user'"
@@ -33,7 +31,7 @@
           default-users-list="apiTransferOwnershipCtrl.defaultUsersList"
         >
         </gv-user-autocomplete>
-        <br/>
+        <br />
         <md-input-container class="md-block">
           <label>New role for current Primary Owner</label>
           <md-select ng-model="apiTransferOwnershipCtrl.newPORole">
@@ -42,9 +40,13 @@
         </md-input-container>
 
         <div class="md-actions gravitee-api-save-button" layout="row">
-          <md-button ng-disabled="!apiTransferOwnershipCtrl.usersSelected || !apiTransferOwnershipCtrl.usersSelected[0]" class="md-primary md-raised" ng-click="apiTransferOwnershipCtrl.showTransferOwnershipConfirm($event)">Transfer</md-button>
+          <md-button
+            ng-disabled="!apiTransferOwnershipCtrl.usersSelected || !apiTransferOwnershipCtrl.usersSelected[0]"
+            class="md-primary md-raised"
+            ng-click="apiTransferOwnershipCtrl.showTransferOwnershipConfirm($event)"
+            >Transfer</md-button
+          >
         </div>
-
       </div>
     </div>
   </div>

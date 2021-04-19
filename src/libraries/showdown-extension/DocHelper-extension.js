@@ -21,7 +21,7 @@
     // Showdown was not found so we throw
     throw Error('Could not find showdown library');
   }
-})(showdown => {
+})((showdown) => {
   'use strict';
 
   showdown.extension('docHelper', () => {
@@ -33,22 +33,22 @@
         regex: '(!){2}(>){1}',
         replace(match, prefix, content) {
           return '<p class="box alert">';
-        }
+        },
       },
       {
         type: 'lang',
         regex: '(!){1}(>){1}',
         replace(match, prefix, content) {
           return '<p class="box warn">';
-        }
+        },
       },
       {
         type: 'lang',
         regex: '(\\?){1}(>){1}',
         replace(match, prefix, content) {
           return '<p class="box tip">';
-        }
-      }
+        },
+      },
     ];
   });
 });

@@ -32,7 +32,7 @@ class ConsoleSettingsService {
 
   isReadonly(settings: any, property: string): boolean {
     if (settings && settings.metadata && settings.metadata.readonly) {
-      return settings.metadata.readonly.some(key => key === property);
+      return settings.metadata.readonly.some((key) => key === property);
     }
     return false;
   }

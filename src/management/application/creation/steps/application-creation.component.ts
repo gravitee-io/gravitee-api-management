@@ -18,7 +18,7 @@ const ApplicationCreationComponent: ng.IComponentOptions = {
     enabledApplicationTypes: '<',
   },
   template: require('./application-creation.html'),
-  controller: 'ApplicationCreationController'
+  controller: 'ApplicationCreationController',
 };
 
 export default ApplicationCreationComponent;

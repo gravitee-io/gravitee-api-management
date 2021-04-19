@@ -51,7 +51,6 @@ class ApplicationService {
     return this.Constants.env.settings.analytics.clientTimeout as number;
   }
 
-
   get(applicationId: string): ng.IHttpPromise<any> {
     return this.$http.get(this.applicationsURL + applicationId);
   }
@@ -89,19 +88,16 @@ class ApplicationService {
   }
 
   update(application): ng.IHttpPromise<any> {
-    return this.$http.put(
-      this.applicationsURL + application.id,
-      {
-        'name': application.name,
-        'description': application.description,
-        'groups': application.groups,
-        'settings': application.settings,
-        'picture': application.picture,
-        'picture_url': application.picture_url,
-        'disable_membership_notifications': application.disable_membership_notifications,
-        'background': application.background
-      }
-    );
+    return this.$http.put(this.applicationsURL + application.id, {
+      name: application.name,
+      description: application.description,
+      groups: application.groups,
+      settings: application.settings,
+      picture: application.picture,
+      picture_url: application.picture_url,
+      disable_membership_notifications: application.disable_membership_notifications,
+      background: application.background,
+    });
   }
 
   delete(applicationId: string): ng.IHttpPromise<any> {
@@ -176,7 +172,9 @@ class ApplicationService {
   }
 
   findLogs(application: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.applicationsURL + application + '/logs?'), { timeout: 30000 });
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), this.applicationsURL + application + '/logs?'), {
+      timeout: 30000,
+    });
   }
 
   exportLogsAsCSV(application: string, query: LogsQuery): ng.IPromise<any> {
@@ -187,7 +185,7 @@ class ApplicationService {
   }
 
   getLog(api, logId, timestamp) {
-    return this.$http.get(this.applicationsURL + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
+    return this.$http.get(this.applicationsURL + api + '/logs/' + logId + (timestamp ? '?timestamp=' + timestamp : ''));
   }
 
   getPermissions(application) {

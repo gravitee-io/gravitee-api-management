@@ -16,7 +16,6 @@
 
 -->
 <div layout="column">
-
   <md-input-container>
     <label>Field</label>
     <md-select ng-model="$ctrl.data" ng-change="$ctrl.onDataChanged()" multiple="true">
@@ -25,15 +24,10 @@
   </md-input-container>
 
   <md-input-container>
-    <md-checkbox ng-model="$ctrl.chart.stacked">
-      Display stacked
-    </md-checkbox>
+    <md-checkbox ng-model="$ctrl.chart.stacked"> Display stacked </md-checkbox>
   </md-input-container>
 
   <md-input-container>
-    <md-checkbox ng-model="$ctrl.chart.selectable">
-      Allows to check a field to filter
-    </md-checkbox>
+    <md-checkbox ng-model="$ctrl.chart.selectable"> Allows to check a field to filter </md-checkbox>
   </md-input-container>
-
 </div>

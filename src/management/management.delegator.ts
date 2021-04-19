@@ -15,10 +15,7 @@
  */
 function delegatorConfig($sceDelegateProvider, Constants) {
   'ngInject';
-  $sceDelegateProvider.resourceUrlWhitelist([
-    'self',
-    Constants.org.baseURL + '/**',
-  ]);
+  $sceDelegateProvider.resourceUrlWhitelist(['self', Constants.org.baseURL + '/**']);
 }
 
 export default delegatorConfig;

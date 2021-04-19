@@ -17,9 +17,14 @@ import _ = require('lodash');
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
 
-
-function DialogAddUserRoleController($mdDialog: angular.material.IDialogService, role, roleScope, $q: ng.IQService,
-  NotificationService: NotificationService, RoleService: RoleService) {
+function DialogAddUserRoleController(
+  $mdDialog: angular.material.IDialogService,
+  role,
+  roleScope,
+  $q: ng.IQService,
+  NotificationService: NotificationService,
+  RoleService: RoleService,
+) {
   'ngInject';
 
   this.role = role;

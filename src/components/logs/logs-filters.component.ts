@@ -21,9 +21,8 @@ const LogsFiltersComponent: ng.IComponentOptions = {
     onFiltersChange: '&',
     metadata: '<',
     context: '@',
-    api: '<'
-  }
+    api: '<',
+  },
 };
 
 export default LogsFiltersComponent;
-

@@ -23,10 +23,10 @@ function DialogDynamicProviderHttpController($mdDialog: angular.material.IDialog
     lineNumbers: true,
     mode: 'javascript',
     readOnly: true,
-    controller: this
+    controller: this,
   };
 
-  this.codemirrorLoaded = function(_editor) {
+  this.codemirrorLoaded = function (_editor) {
     this.controller.editor = _editor;
 
     // Editor part
@@ -36,16 +36,24 @@ function DialogDynamicProviderHttpController($mdDialog: angular.material.IDialog
     _doc.markClean();
   };
 
-  this.specificationExample = JSON.stringify([{
-    'key' : 1,
-    'value' : 'https://north-europe.company.com/'
-  }, {
-    'key' : 2,
-    'value' : 'https://north-europe.company.com/'
-  }, {
-    'key' : 3,
-    'value' : 'https://south-asia.company.com/'
-  }], null, 2);
+  this.specificationExample = JSON.stringify(
+    [
+      {
+        key: 1,
+        value: 'https://north-europe.company.com/',
+      },
+      {
+        key: 2,
+        value: 'https://north-europe.company.com/',
+      },
+      {
+        key: 3,
+        value: 'https://south-asia.company.com/',
+      },
+    ],
+    null,
+    2,
+  );
 }
 
 export default DialogDynamicProviderHttpController;

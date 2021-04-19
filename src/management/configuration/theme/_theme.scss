@@ -1,5 +1,4 @@
 .theme-component {
-
   .theme-component-container {
     display: flex;
   }
@@ -40,7 +39,8 @@
     overflow: auto;
   }
 
-  .theme-component-color-picker label, .theme-component-color-picker input  {
+  .theme-component-color-picker label,
+  .theme-component-color-picker input {
     display: none;
   }
 
@@ -61,20 +61,20 @@
   .theme-component-text {
     margin-top: 5px;
 
-    ng-md-icon, .md-input-container {
+    ng-md-icon,
+    .md-input-container {
       margin: 18px 0 0 12px;
     }
-
   }
 
   .theme-component-label {
-    color: rgba(0,0,0,0.54);
+    color: rgba(0, 0, 0, 0.54);
     font-size: 10px;
   }
 
   .theme-component-container-fullscreen v-accordion {
-      display: flex;
-      flex-wrap: wrap;
+    display: flex;
+    flex-wrap: wrap;
   }
 
   .theme-component-container-fullscreen v-pane {

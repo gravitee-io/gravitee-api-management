@@ -17,7 +17,6 @@ import * as _ from 'lodash';
 import { PageQuery } from '../entities/pageQuery';
 
 class GroupService {
-
   private groupsURL: string;
 
   static _mapToEntity(grp) {
@@ -48,7 +47,6 @@ class GroupService {
   }
 
   getMembers(groupId: string, page?: PageQuery, opts?: any): ng.IPromise<any> {
-
     let url = [this.groupsURL, groupId, 'members'].join('/');
 
     if (page !== undefined) {
@@ -60,7 +58,7 @@ class GroupService {
     }
 
     opts.params = {
-      ...page
+      ...page,
     };
 
     return this.$http.get(url, opts);
@@ -109,13 +107,13 @@ class GroupService {
         _.forEach(roleScopes, (roleScope) => {
           groupRole.push({
             scope: roleScope,
-            name: member.roles[roleScope]
+            name: member.roles[roleScope],
           });
         });
         body.push({
-          'id': member.id,
-          'reference': member.reference,
-          'roles': groupRole
+          id: member.id,
+          reference: member.reference,
+          roles: groupRole,
         });
       }
     });
@@ -151,7 +149,7 @@ class GroupService {
       reference_id: group.id,
       email: email,
       api_role: group.api_role,
-      application_role: group.application_role
+      application_role: group.application_role,
     });
   }
 

@@ -18,7 +18,7 @@ const ApiLoggingComponent: ng.IComponentOptions = {
     settings: '<',
   },
   controller: 'ApiLoggingController',
-  template: require('./api_logging.html')
+  template: require('./api_logging.html'),
 };
 
 export default ApiLoggingComponent;

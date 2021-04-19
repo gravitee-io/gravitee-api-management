@@ -15,17 +15,17 @@
  */
 const ApiCreationStep5Component: ng.IComponentOptions = {
   require: {
-    parent: '^apiCreation'
+    parent: '^apiCreation',
   },
   template: require('./api-creation-step5.html'),
-  controller: function(Constants) {
+  controller: function (Constants) {
     'ngInject';
     if (Constants.org.settings.documentation && Constants.org.settings.documentation.url) {
       this.url = Constants.org.settings.documentation.url;
     } else {
       this.url = 'https://docs.gravitee.io';
     }
-  }
+  },
 };
 
 export default ApiCreationStep5Component;

@@ -19,7 +19,6 @@ import NotificationService from '../../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 
 class ApiEditPlanController {
-
   pages: any[];
   plan: any;
   groups: any[];
@@ -41,8 +40,8 @@ class ApiEditPlanController {
       label?: string;
       completed: boolean;
       optional: boolean;
-      data: any
-    }[]
+      data: any;
+    }[];
   };
   private isCreate: boolean;
 
@@ -52,7 +51,7 @@ class ApiEditPlanController {
     private $stateParams,
     private $timeout: ng.ITimeoutService,
     private ApiService: ApiService,
-    private NotificationService: NotificationService
+    private NotificationService: NotificationService,
   ) {
     'ngInject';
   }
@@ -64,16 +63,16 @@ class ApiEditPlanController {
   $onInit() {
     this.isCreate = this.plan == null;
     const stepData = [
-      {step: 1, completed: false, optional: false, data: {}},
-      {step: 2, completed: false, optional: false, data: {}},
+      { step: 1, completed: false, optional: false, data: {} },
+      { step: 2, completed: false, optional: false, data: {} },
     ];
 
     if (this.hasRestrictionStep()) {
-      stepData.push({step: 3, completed: false, optional: true, data: {}});
+      stepData.push({ step: 3, completed: false, optional: true, data: {} });
     }
 
     if (this.hasPoliciesStep()) {
-      stepData.push({step: 4, completed: false, optional: true, data: {}});
+      stepData.push({ step: 4, completed: false, optional: true, data: {} });
     }
 
     this.vm = {
@@ -81,26 +80,26 @@ class ApiEditPlanController {
       stepProgress: 1,
       maxStep: stepData.length,
       showBusyText: false,
-      stepData
+      stepData,
     };
 
     if (!this.plan) {
-      this.plan = {characteristics: []};
+      this.plan = { characteristics: [] };
     }
 
     if (!this.plan.paths || !this.plan.paths['/']) {
-      this.plan.paths = {'/': []};
+      this.plan.paths = { '/': [] };
     }
 
     if (!this.isV2()) {
       this.planPolicies = this.plan.paths['/'];
       // Add policy metadata
       if (this.planPolicies) {
-        this.planPolicies.forEach(policy => {
+        this.planPolicies.forEach((policy) => {
           _.forEach(policy, (value, property) => {
             if (property !== 'methods' && property !== 'enabled' && property !== 'description' && property !== '$$hashKey') {
               policy.id = property;
-              let policyDef = this.policies.find(policyDef => policyDef.id === policy.id);
+              let policyDef = this.policies.find((policyDef) => policyDef.id === policy.id);
               if (policyDef) {
                 policy.name = policyDef.name;
               }
@@ -120,7 +119,6 @@ class ApiEditPlanController {
         this.groups = [];
       }
     }
-
   }
 
   hasRestrictionStep() {
@@ -171,7 +169,7 @@ class ApiEditPlanController {
       this.vm.stepProgress = this.vm.stepProgress + 1;
     }
 
-    this.$timeout(() => this.vm.selectedStep = this.vm.selectedStep + 1);
+    this.$timeout(() => (this.vm.selectedStep = this.vm.selectedStep + 1));
   }
 
   saveOrUpdate() {
@@ -179,10 +177,8 @@ class ApiEditPlanController {
     const plan = { ...this.plan, securityDefinition: JSON.stringify(this.plan.securityDefinition) };
     this.ApiService.savePlan(this.api, plan).then(() => {
       this.NotificationService.show(this.plan.name + ' has been saved successfully');
-      this.$state.go(
-        'management.apis.detail.portal.plans.list',
-        this.plan.id === undefined ? {'state': 'staging'} : {});
-      this.$scope.$parent.apiCtrl.checkAPISynchronization({id: this.$stateParams.apiId});
+      this.$state.go('management.apis.detail.portal.plans.list', this.plan.id === undefined ? { state: 'staging' } : {});
+      this.$scope.$parent.apiCtrl.checkAPISynchronization({ id: this.$stateParams.apiId });
     });
   }
 
@@ -191,7 +187,7 @@ class ApiEditPlanController {
   }
 
   shouldNotEditConditions(): boolean {
-    return (this.plan.status === 'published' || this.plan.status === 'deprecated');
+    return this.plan.status === 'published' || this.plan.status === 'deprecated';
   }
 }
 

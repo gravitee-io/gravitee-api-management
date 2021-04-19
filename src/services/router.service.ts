@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 class RouterService {
-
   private last: any = {};
 
-  constructor() {
-  }
+  constructor() {}
 
   setLastRoute(from, fromParams) {
     this.last.from = from;

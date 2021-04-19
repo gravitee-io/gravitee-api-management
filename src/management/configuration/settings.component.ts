@@ -20,7 +20,6 @@ import { StateService } from '@uirouter/core';
 import _ = require('lodash');
 
 const SettingsComponent: ng.IComponentOptions = {
-
   template: require('./settings.html'),
   controller: function (
     $rootScope: IScope,
@@ -35,103 +34,92 @@ const SettingsComponent: ng.IComponentOptions = {
     this.settingsMenu = {
       // PORTAL
       analytics: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-settings-r']),
-        goTo: 'management.settings.analytics'
+        perm: UserService.isUserHasPermissions(['environment-settings-r']),
+        goTo: 'management.settings.analytics',
       },
       apiPortalHeader: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-api_header-r']),
-        goTo: 'management.settings.apiPortalHeader'
+        perm: UserService.isUserHasPermissions(['environment-api_header-r']),
+        goTo: 'management.settings.apiPortalHeader',
       },
       apiQuality: {
         perm: UserService.isUserHasPermissions(['environment-settings-r']),
-        goTo: 'management.settings.apiQuality'
+        goTo: 'management.settings.apiQuality',
       },
       clientRegistration: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-client_registration_provider-r']),
-        goTo: 'management.settings.clientregistrationproviders.list'
+        perm: UserService.isUserHasPermissions(['environment-client_registration_provider-r']),
+        goTo: 'management.settings.clientregistrationproviders.list',
       },
       environmentIdentityProviders: {
-        perm: UserService.isUserHasAllPermissions(
-          ['organization-identity_provider-r', 'environment-identity_provider_activation-r']),
-        goTo: 'management.settings.environment.identityproviders'
+        perm: UserService.isUserHasAllPermissions(['organization-identity_provider-r', 'environment-identity_provider_activation-r']),
+        goTo: 'management.settings.environment.identityproviders',
       },
       documentations: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d']),
-        goTo: 'management.settings.documentation'
+        perm: UserService.isUserHasPermissions([
+          'environment-documentation-c',
+          'environment-documentation-u',
+          'environment-documentation-d',
+        ]),
+        goTo: 'management.settings.documentation',
       },
       metadata: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-metadata-r']),
-        goTo: 'management.settings.metadata'
+        perm: UserService.isUserHasPermissions(['environment-metadata-r']),
+        goTo: 'management.settings.metadata',
       },
       portalSettings: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-settings-r']),
-        goTo: 'management.settings.portal'
+        perm: UserService.isUserHasPermissions(['environment-settings-r']),
+        goTo: 'management.settings.portal',
       },
       theme: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-theme-r']),
-        goTo: 'management.settings.theme'
+        perm: UserService.isUserHasPermissions(['environment-theme-r']),
+        goTo: 'management.settings.theme',
       },
       topApis: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-top_apis-r']),
-        goTo: 'management.settings.top-apis'
+        perm: UserService.isUserHasPermissions(['environment-top_apis-r']),
+        goTo: 'management.settings.top-apis',
       },
       categories: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-category-r']),
-        goTo: 'management.settings.categories'
+        perm: UserService.isUserHasPermissions(['environment-category-r']),
+        goTo: 'management.settings.categories',
       },
 
       // GATEWAYS
       api_logging: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-settings-r']),
-        goTo: 'management.settings.api_logging'
+        perm: UserService.isUserHasPermissions(['environment-settings-r']),
+        goTo: 'management.settings.api_logging',
       },
       dictionaries: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-dictionary-r']),
-        goTo: 'management.settings.dictionaries.list'
+        perm: UserService.isUserHasPermissions(['environment-dictionary-r']),
+        goTo: 'management.settings.dictionaries.list',
       },
       tags: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-tag-c', 'environment-tag-u', 'environment-tag-d']),
-        goTo: 'management.settings.tags'
+        perm: UserService.isUserHasPermissions(['environment-tag-c', 'environment-tag-u', 'environment-tag-d']),
+        goTo: 'management.settings.tags',
       },
       tenants: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-tenant-c', 'environment-tenant-u', 'environment-tenant-d']),
-        goTo: 'management.settings.tenants'
+        perm: UserService.isUserHasPermissions(['environment-tenant-c', 'environment-tenant-u', 'environment-tenant-d']),
+        goTo: 'management.settings.tenants',
       },
 
       // USER MANAGEMENT
       groups: {
-        perm: UserService.isUserHasPermissions(
-          ['environment-group-r']),
-        goTo: 'management.settings.groups.list'
+        perm: UserService.isUserHasPermissions(['environment-group-r']),
+        goTo: 'management.settings.groups.list',
       },
       customUserFields: {
-        perm: UserService.isUserHasPermissions(
-          ['organization-custom_user_fields-r']),
-        goTo: 'management.settings.customUserFields'
+        perm: UserService.isUserHasPermissions(['organization-custom_user_fields-r']),
+        goTo: 'management.settings.customUserFields',
       },
 
       // ALERT
       notifications: {
         perm: UserService.isUserHasPermissions(['environment-notification-r']),
-        goTo: 'management.settings.notifications'
+        goTo: 'management.settings.notifications',
       },
       alerts: {
-        perm: UserService.isUserHasPermissions(['environment-alert-r']) && Constants.org.settings.alert && Constants.org.settings.alert.enabled,
-        goTo: 'management.settings.alerts.list'
-      }
+        perm:
+          UserService.isUserHasPermissions(['environment-alert-r']) && Constants.org.settings.alert && Constants.org.settings.alert.enabled,
+        goTo: 'management.settings.alerts.list',
+      },
     };
 
     let that = this;
@@ -144,7 +132,7 @@ const SettingsComponent: ng.IComponentOptions = {
       }
     }
 
-    $transitions.onBefore({}, function(trans) {
+    $transitions.onBefore({}, function (trans) {
       if (trans.to().name === 'management.settings') {
         SidenavService.setCurrentResource('SETTINGS');
         return trans.router.stateService.target(getDefaultSettingsMenu());
@@ -157,7 +145,7 @@ const SettingsComponent: ng.IComponentOptions = {
         $state.go(getDefaultSettingsMenu());
       }
     };
-  }
+  },
 };
 
 export default SettingsComponent;

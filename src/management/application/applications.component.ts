@@ -15,10 +15,10 @@
  */
 const ApplicationsComponent: ng.IComponentOptions = {
   bindings: {
-    applications: '<'
+    applications: '<',
   },
   controller: 'ApplicationsController',
-  template: require('./applications.html')
+  template: require('./applications.html'),
 };
 
 export default ApplicationsComponent;

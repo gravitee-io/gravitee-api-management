@@ -17,8 +17,15 @@ import RoleService from '../../../../../services/role.service';
 import ApiService from '../../../../../services/api.service';
 import * as _ from 'lodash';
 
-function DialogAddMemberApiController($scope, $mdDialog, api, members, ApiService: ApiService, NotificationService,
-                                      RoleService: RoleService) {
+function DialogAddMemberApiController(
+  $scope,
+  $mdDialog,
+  api,
+  members,
+  ApiService: ApiService,
+  NotificationService,
+  RoleService: RoleService,
+) {
   'ngInject';
 
   RoleService.list('API').then(function (roles) {
@@ -43,13 +50,15 @@ function DialogAddMemberApiController($scope, $mdDialog, api, members, ApiServic
       let membership = {
         id: member.id,
         reference: member.reference,
-        role: $scope.role.name
+        role: $scope.role.name,
       };
-      ApiService.addOrUpdateMember($scope.api.id, membership).then(function () {
-        NotificationService.show('User ' + member.displayName + ' has been added as a member.');
-      }).catch(function (error) {
-        $scope.error = error;
-      });
+      ApiService.addOrUpdateMember($scope.api.id, membership)
+        .then(function () {
+          NotificationService.show('User ' + member.displayName + ' has been added as a member.');
+        })
+        .catch(function (error) {
+          $scope.error = error;
+        });
     }
     $mdDialog.hide($scope.api);
   };

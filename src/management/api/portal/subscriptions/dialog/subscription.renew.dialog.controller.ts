@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-function DialogSubscriptionRenewController(
-  $scope,
-  $mdDialog,
-  locals
-) {
+function DialogSubscriptionRenewController($scope, $mdDialog, locals) {
   'ngInject';
 
   $scope.title = locals.title;
@@ -30,14 +26,12 @@ function DialogSubscriptionRenewController(
   this.selectedPlanCustomApiKey = null;
   this.customValue = '';
 
-  this.cancel = function() {
-    $mdDialog.hide({confirmed: false});
+  this.cancel = function () {
+    $mdDialog.hide({ confirmed: false });
   };
 
   this.confirm = () => {
-    this.customValue ?
-      $mdDialog.hide({confirmed: true, customValue: this.customValue})
-      : $mdDialog.hide({confirmed: true});
+    this.customValue ? $mdDialog.hide({ confirmed: true, customValue: this.customValue }) : $mdDialog.hide({ confirmed: true });
   };
 
   this.onApiKeyValueChange = (customApiKey) => {

@@ -19,15 +19,20 @@
   <md-dialog-content layout-padding>
     <h4>Change the end date of the subscription</h4>
     <div ng-cloak layout="column">
-      <p style="color: #d73a49;">Be careful, by changing the end date <code>{{ $ctrl.subscription.application.name }}</code> could be no longer have access to this API.</p>
-      <p ng-if="'api_key'===$ctrl.subscription.plan.security"><br>All API keys after the new end date will be revoked.</p>
-      <md-input-container style="margin-bottom: 0;">
+      <p style="color: #d73a49">
+        Be careful, by changing the end date <code>{{ $ctrl.subscription.application.name }}</code> could be no longer have access to this
+        API.
+      </p>
+      <p ng-if="'api_key'===$ctrl.subscription.plan.security"><br />All API keys after the new end date will be revoked.</p>
+      <md-input-container style="margin-bottom: 0">
         <label>New End Date</label>
-        <input moment-picker="$ctrl.endDateFormated"
-               format="YYYY-MM-DD HH:mm"
-               min-date="$ctrl.now"
-               ng-model="$ctrl.endDate"
-               ng-model-options="{ updateOn: 'blur' }">
+        <input
+          moment-picker="$ctrl.endDateFormated"
+          format="YYYY-MM-DD HH:mm"
+          min-date="$ctrl.now"
+          ng-model="$ctrl.endDate"
+          ng-model-options="{ updateOn: 'blur' }"
+        />
       </md-input-container>
     </div>
   </md-dialog-content>

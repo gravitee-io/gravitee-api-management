@@ -23,9 +23,7 @@
       <label style="padding: 27px">Select a dashboard</label>
       <md-input-container>
         <md-select ng-model="$ctrl.dashboard" ng-change="$ctrl.onDashboardChanged()" aria-label="Dashboard selection">
-          <md-option ng-repeat="dashboard in $ctrl.dashboards" ng-value="dashboard">
-            {{dashboard.name}}
-          </md-option>
+          <md-option ng-repeat="dashboard in $ctrl.dashboards" ng-value="dashboard"> {{dashboard.name}} </md-option>
         </md-select>
       </md-input-container>
     </div>

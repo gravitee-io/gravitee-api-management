@@ -23,23 +23,28 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
     { id: 'members', description: 'Members', checked: true },
     { id: 'pages', description: 'Pages', checked: true },
     { id: 'plans', description: 'Plans', checked: true },
-    { id: 'metadata', description: 'Metadata', checked: true }
+    { id: 'metadata', description: 'Metadata', checked: true },
   ];
 
   $scope.data = {
-    exportVersion: null
+    exportVersion: null,
   };
 
-  $scope.hide = function() {
+  $scope.hide = function () {
     $mdDialog.hide();
   };
 
   $scope.graviteeVersion = Build.version;
 
-  $scope.export = function() {
-    var excludes = _.map(_.filter($scope.filteredFields, (fl: any) => { return !fl.checked; }), 'id');
+  $scope.export = function () {
+    var excludes = _.map(
+      _.filter($scope.filteredFields, (fl: any) => {
+        return !fl.checked;
+      }),
+      'id',
+    );
     ApiService.export(apiId, excludes, $scope.data.exportVersion)
-      .then( (response) => {
+      .then((response) => {
         let link = document.createElement('a');
         document.body.appendChild(link);
         link.href = 'data:application/json;charset=utf-8;base64,' + base64.encode(JSON.stringify(response.data, null, 2));
@@ -51,7 +56,7 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
         link.click();
         document.body.removeChild(link);
       })
-      .then( (data) => {
+      .then((data) => {
         $mdDialog.hide(data);
       });
   };

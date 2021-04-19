@@ -19,7 +19,7 @@ function DialogPublishPlanController($scope, $mdDialog, plan) {
   $scope.plan = plan;
 
   $scope.hide = function () {
-     $mdDialog.cancel();
+    $mdDialog.cancel();
   };
 
   $scope.publish = function () {

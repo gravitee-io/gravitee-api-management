@@ -16,17 +16,16 @@
 import _ = require('lodash');
 import ApiService from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
-import {StateParams, StateService} from '@uirouter/core';
+import { StateParams, StateService } from '@uirouter/core';
 
 class ApiEndpointController {
-
   private group: any;
   private api: any;
   private endpoint: any;
   private initialEndpoints: any;
   private tenants: any;
   private creation: boolean = false;
-  private types: string [];
+  private types: string[];
 
   constructor(
     private ApiService: ApiService,
@@ -35,7 +34,8 @@ class ApiEndpointController {
     private $rootScope: ng.IRootScopeService,
     private $state: StateService,
     private $stateParams: StateParams,
-    private resolvedTenants) {
+    private resolvedTenants,
+  ) {
     'ngInject';
 
     this.api = this.$scope.$parent.apiCtrl.api;
@@ -44,15 +44,15 @@ class ApiEndpointController {
     this.$scope.groupName = $stateParams.groupName;
     this.$scope.duplicateEndpointNames = false;
 
-    this.group = _.find(this.api.proxy.groups, { 'name': $stateParams.groupName});
-    this.endpoint = _.find(this.group.endpoints, { 'name': $stateParams.endpointName});
+    this.group = _.find(this.api.proxy.groups, { name: $stateParams.groupName });
+    this.endpoint = _.find(this.group.endpoints, { name: $stateParams.endpointName });
     this.initialEndpoints = _.cloneDeep(this.group.endpoints);
 
     // Creation mode
     if (!this.endpoint) {
       this.endpoint = {
         weight: 1,
-        inherit: true
+        inherit: true,
       };
 
       this.creation = true;
@@ -82,7 +82,7 @@ class ApiEndpointController {
       }
     }
 
-    let group: any = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
+    let group: any = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
 
     if (!_.includes(group.endpoints, this.endpoint)) {
       group.endpoints = group.endpoints || [];
@@ -98,7 +98,7 @@ class ApiEndpointController {
   }
 
   onApiUpdate() {
-    this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
+    this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
     this.NotificationService.show('Endpoint saved');
     this.$state.go('management.apis.detail.proxy.endpoints');
   }
@@ -109,7 +109,7 @@ class ApiEndpointController {
   }
 
   backToEndpointsConfiguration() {
-    let group: any = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
+    let group: any = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
     group.endpoints = _.cloneDeep(this.initialEndpoints);
     this.$state.go('management.apis.detail.proxy.endpoints');
   }

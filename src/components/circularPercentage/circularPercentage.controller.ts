@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 class CircularPercentageController {
-    private score: number = 0;
-    private percentage: number = 0;
-    private percentageCircle: number = 100;
-    private qualityMetricCssClass: string;
+  private score: number = 0;
+  private percentage: number = 0;
+  private percentageCircle: number = 100;
+  private qualityMetricCssClass: string;
 
-    getScore() {
-        if (this.score > 0) {
-            this.percentage = parseInt((this.score * 100).toFixed(0), 10);
-            this.percentageCircle = this.percentage;
-        }
-
-        if ( this.percentage < 50 ) {
-        this.qualityMetricCssClass = 'gravitee-qm-score-bad';
-        } else if (this.percentage >= 50 && this.percentage < 80) {
-        this.qualityMetricCssClass = 'gravitee-qm-score-medium';
-        } else {
-        this.qualityMetricCssClass =  'gravitee-qm-score-good';
-        }
-        return this.percentage;
+  getScore() {
+    if (this.score > 0) {
+      this.percentage = parseInt((this.score * 100).toFixed(0), 10);
+      this.percentageCircle = this.percentage;
     }
+
+    if (this.percentage < 50) {
+      this.qualityMetricCssClass = 'gravitee-qm-score-bad';
+    } else if (this.percentage >= 50 && this.percentage < 80) {
+      this.qualityMetricCssClass = 'gravitee-qm-score-medium';
+    } else {
+      this.qualityMetricCssClass = 'gravitee-qm-score-good';
+    }
+    return this.percentage;
+  }
 }
 
 export default CircularPercentageController;

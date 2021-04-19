@@ -16,11 +16,10 @@
 
 const IdentityProviderOIDCComponent: ng.IComponentOptions = {
   bindings: {
-    identityProvider: '<'
+    identityProvider: '<',
   },
   template: require('./identity-provider-oidc.html'),
-  controller: function(
-  ) {
+  controller: function () {
     'ngInject';
 
     this.buttonConfig = {};
@@ -34,9 +33,9 @@ const IdentityProviderOIDCComponent: ng.IComponentOptions = {
       openOnInput: true,
       alphaChannel: false,
       genericPalette: false,
-      history: false
+      history: false,
     };
-  }
+  },
 };
 
 export default IdentityProviderOIDCComponent;

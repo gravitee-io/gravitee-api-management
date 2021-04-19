@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ApiMetrics} from '../../../../entities/alerts/api.metrics';
-import {NodeHealthcheckMetrics, NodeLifecycleMetrics, NodeMetrics} from '../../../../entities/alerts/node.metrics';
-import {HealthcheckMetrics} from '../../../../entities/alerts/healthcheck.metrics';
-import {Metrics} from '../../../../entities/alert';
-
+import { ApiMetrics } from '../../../../entities/alerts/api.metrics';
+import { NodeHealthcheckMetrics, NodeLifecycleMetrics, NodeMetrics } from '../../../../entities/alerts/node.metrics';
+import { HealthcheckMetrics } from '../../../../entities/alerts/healthcheck.metrics';
+import { Metrics } from '../../../../entities/alert';
 
 const AlertTriggerFilterComponent: ng.IComponentOptions = {
   bindings: {
     condition: '<',
     alert: '<',
-    onFilterRemove: '&'
+    onFilterRemove: '&',
   },
   template: require('./trigger-filter.html'),
   controller: function () {
@@ -47,7 +46,7 @@ const AlertTriggerFilterComponent: ng.IComponentOptions = {
     this.deleteFilter = () => {
       this.onFilterRemove();
     };
-  }
+  },
 };
 
 export default AlertTriggerFilterComponent;

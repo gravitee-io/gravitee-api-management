@@ -16,7 +16,6 @@
 import ReCaptchaService from '../../../services/reCaptcha.service';
 
 class ConfirmController {
-
   constructor(jwtHelper, $state, $scope, UserService, NotificationService, ReCaptchaService: ReCaptchaService) {
     'ngInject';
 
@@ -29,10 +28,10 @@ class ConfirmController {
       if (jwtHelper.isTokenExpired($state.params.token)) {
         $scope.error = 'Your registration is expired!';
       } else {
-          $scope.user = jwtHelper.decodeToken($state.params.token);
-          if ($scope.user.firstname) {
-            $scope.registrationMode = true;
-          }
+        $scope.user = jwtHelper.decodeToken($state.params.token);
+        if ($scope.user.firstname) {
+          $scope.registrationMode = true;
+        }
       }
     } catch (e) {
       $scope.error = e.toString();
@@ -41,8 +40,10 @@ class ConfirmController {
     $scope.confirmRegistration = function () {
       ReCaptchaService.execute('finalizeRegistration').then(() => {
         UserService.finalizeRegistration({
-          token: $state.params.token, password: $scope.confirmPassword,
-          firstname: $scope.user.firstname, lastname: $scope.user.lastname
+          token: $state.params.token,
+          password: $scope.confirmPassword,
+          firstname: $scope.user.firstname,
+          lastname: $scope.user.lastname,
         }).then(function () {
           $scope.formConfirm.$setPristine();
           NotificationService.show('Your account has been created successfully, you can now login...');

@@ -19,26 +19,25 @@ export default apisMessagesRouterConfig;
 
 function apisMessagesRouterConfig($stateProvider) {
   'ngInject';
-  $stateProvider
-    .state('management.apis.detail.messages', {
-      url: '/messages',
-      component: 'messages',
-      resolve: {
-        resolvedScope: () => 'APPLICATION',
-        resolvedApiId: ($stateParams) => $stateParams.apiId,
-        resolvedRoles: (RoleService: RoleService) => RoleService.list('APPLICATION')
+  $stateProvider.state('management.apis.detail.messages', {
+    url: '/messages',
+    component: 'messages',
+    resolve: {
+      resolvedScope: () => 'APPLICATION',
+      resolvedApiId: ($stateParams) => $stateParams.apiId,
+      resolvedRoles: (RoleService: RoleService) => RoleService.list('APPLICATION'),
+    },
+    data: {
+      menu: {
+        label: 'Messages',
+        icon: 'message',
       },
-      data: {
-        menu: {
-          label: 'Messages',
-          icon: 'message'
-        },
-        perms: {
-          only: ['api-message-c']
-        },
-        docs: {
-          page: 'management-messages'
-        }
-      }
-    });
+      perms: {
+        only: ['api-message-c'],
+      },
+      docs: {
+        page: 'management-messages',
+      },
+    },
+  });
 }
