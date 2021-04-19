@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
+import io.gravitee.rest.api.management.rest.resource.EntrypointsResource;
+import io.gravitee.rest.api.management.rest.resource.TagsResource;
+import io.gravitee.rest.api.management.rest.resource.TenantsResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
 import io.swagger.annotations.Api;
 import javax.ws.rs.Path;
@@ -49,5 +52,20 @@ public class OrganizationConfigurationResource {
     @Path("notification-templates")
     public NotificationTemplatesResource getNotificationTemplatesResource() {
         return resourceContext.getResource(NotificationTemplatesResource.class);
+    }
+
+    @Path("tags")
+    public TagsResource getTagResource() {
+        return resourceContext.getResource(TagsResource.class);
+    }
+
+    @Path("tenants")
+    public TenantsResource getTenantsResource() {
+        return resourceContext.getResource(TenantsResource.class);
+    }
+
+    @Path("entrypoints")
+    public EntrypointsResource getEntryPointsResource() {
+        return resourceContext.getResource(EntrypointsResource.class);
     }
 }

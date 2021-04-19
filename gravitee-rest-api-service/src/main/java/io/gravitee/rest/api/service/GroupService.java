@@ -31,6 +31,7 @@ public interface GroupService {
     void delete(String groupId);
     void deleteUserFromGroup(String groupId, String username);
     List<GroupEntity> findAll();
+    List<GroupSimpleEntity> findAllByOrganization(String organizationId);
     GroupEntity findById(String groupId);
     Set<GroupEntity> findByIds(Set<String> groupIds);
     void associate(String groupId, String associationType);

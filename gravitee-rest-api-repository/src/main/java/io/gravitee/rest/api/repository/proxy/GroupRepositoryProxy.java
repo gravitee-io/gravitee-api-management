@@ -63,4 +63,9 @@ public class GroupRepositoryProxy extends AbstractProxy<GroupRepository> impleme
     public Set<Group> findAllByEnvironment(String environment) throws TechnicalException {
         return target.findAllByEnvironment(environment);
     }
+
+    @Override
+    public Set<Group> findAllByOrganization(String organization) throws TechnicalException {
+        return target.findAllByOrganization(organization);
+    }
 }

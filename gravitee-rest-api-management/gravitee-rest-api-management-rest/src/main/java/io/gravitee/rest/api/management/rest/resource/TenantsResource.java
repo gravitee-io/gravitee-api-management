@@ -20,10 +20,12 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewTenantEntity;
 import io.gravitee.rest.api.model.TenantEntity;
+import io.gravitee.rest.api.model.TenantReferenceType;
 import io.gravitee.rest.api.model.UpdateTenantEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.TenantService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -57,7 +59,7 @@ public class TenantsResource extends AbstractResource {
     )
     public List<TenantEntity> getTenants() {
         return tenantService
-            .findAll()
+            .findByReference(GraviteeContext.getCurrentOrganization(), TenantReferenceType.ORGANIZATION)
             .stream()
             .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
             .collect(Collectors.toList());
@@ -73,9 +75,14 @@ public class TenantsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.CREATE) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.CREATE),
+        }
+    )
     public List<TenantEntity> createTenants(@Valid @NotNull final List<NewTenantEntity> tenant) {
-        return tenantService.create(tenant);
+        return tenantService.create(tenant, GraviteeContext.getCurrentOrganization(), TenantReferenceType.ORGANIZATION);
     }
 
     @PUT
@@ -88,9 +95,14 @@ public class TenantsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.UPDATE) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.UPDATE),
+        }
+    )
     public List<TenantEntity> updateTenants(@Valid @NotNull final List<UpdateTenantEntity> tenant) {
-        return tenantService.update(tenant);
+        return tenantService.update(tenant, GraviteeContext.getCurrentOrganization(), TenantReferenceType.ORGANIZATION);
     }
 
     @Path("{tenant}")
@@ -103,8 +115,13 @@ public class TenantsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.DELETE) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.DELETE),
+            @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.DELETE),
+        }
+    )
     public void deleteTenant(@PathParam("tenant") String tenant) {
-        tenantService.delete(tenant);
+        tenantService.delete(tenant, GraviteeContext.getCurrentOrganization(), TenantReferenceType.ORGANIZATION);
     }
 }

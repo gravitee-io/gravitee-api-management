@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
 import io.gravitee.rest.api.model.EntrypointEntity;
+import io.gravitee.rest.api.model.EntrypointReferenceType;
 import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
 import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
@@ -58,6 +59,9 @@ public class EntrypointServiceTest {
 
     private static final String UNKNOWN_ID = "unknown";
 
+    private static final String REFERENCE_ID = "DEFAULT";
+    private static final EntrypointReferenceType REFERENCE_TYPE = EntrypointReferenceType.ORGANIZATION;
+
     @InjectMocks
     private EntrypointService entrypointService = new EntrypointServiceImpl();
 
@@ -76,14 +80,19 @@ public class EntrypointServiceTest {
         entrypointCreated.setValue(VALUE);
         entrypointCreated.setTags(TAG);
         when(entrypointRepository.create(any())).thenReturn(entrypointCreated);
-        when(entrypointRepository.findById(ID)).thenReturn(of(entrypointCreated));
+        when(
+            entrypointRepository.findByIdAndReference(
+                ID,
+                REFERENCE_ID,
+                io.gravitee.repository.management.model.EntrypointReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(of(entrypointCreated));
 
         entrypointUpdated.setId(ID);
         entrypointUpdated.setValue(NEW_VALUE);
         entrypointUpdated.setTags(NEW_TAG);
         when(entrypointRepository.update(any())).thenReturn(entrypointUpdated);
-
-        when(entrypointRepository.findById(UNKNOWN_ID)).thenReturn(empty());
     }
 
     @Test
@@ -91,7 +100,7 @@ public class EntrypointServiceTest {
         final NewEntryPointEntity entrypoint = new NewEntryPointEntity();
         entrypoint.setValue(VALUE);
         entrypoint.setTags(TAGS);
-        final EntrypointEntity entrypointEntity = entrypointService.create(entrypoint);
+        final EntrypointEntity entrypointEntity = entrypointService.create(entrypoint, REFERENCE_ID, REFERENCE_TYPE);
         assertEquals(ID, entrypointEntity.getId());
         assertEquals(VALUE, entrypointEntity.getValue());
         assertNotNull(entrypointEntity.getTags());
@@ -104,7 +113,7 @@ public class EntrypointServiceTest {
         entrypoint.setId(ID);
         entrypoint.setValue(NEW_VALUE);
         entrypoint.setTags(NEW_TAGS);
-        final EntrypointEntity entrypointEntity = entrypointService.update(entrypoint);
+        final EntrypointEntity entrypointEntity = entrypointService.update(entrypoint, REFERENCE_ID, REFERENCE_TYPE);
         assertEquals(ID, entrypointEntity.getId());
         assertEquals(NEW_VALUE, entrypointEntity.getValue());
         assertNotNull(entrypointEntity.getTags());
@@ -117,7 +126,7 @@ public class EntrypointServiceTest {
         entrypoint.setId(ID);
         entrypoint.setValue(NEW_VALUE);
         entrypoint.setTags(TAGS);
-        final EntrypointEntity entrypointEntity = entrypointService.update(entrypoint);
+        final EntrypointEntity entrypointEntity = entrypointService.update(entrypoint, REFERENCE_ID, REFERENCE_TYPE);
         assertEquals(ID, entrypointEntity.getId());
         assertEquals(NEW_VALUE, entrypointEntity.getValue());
         assertNotNull(entrypointEntity.getTags());
@@ -126,14 +135,14 @@ public class EntrypointServiceTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        entrypointService.delete(ID);
+        entrypointService.delete(ID, REFERENCE_ID, REFERENCE_TYPE);
         verify(entrypointRepository).delete(ID);
     }
 
     @Test
-    public void shouldFindAll() throws Exception {
-        when(entrypointRepository.findAllByEnvironment(any())).thenReturn(newHashSet(singletonList(entrypointCreated)));
-        final List<EntrypointEntity> entrypoints = entrypointService.findAll();
+    public void shouldFindByReference() throws Exception {
+        when(entrypointRepository.findByReference(any(), any())).thenReturn(newHashSet(singletonList(entrypointCreated)));
+        final List<EntrypointEntity> entrypoints = entrypointService.findByReference(REFERENCE_ID, REFERENCE_TYPE);
         assertNotNull(entrypoints);
         assertEquals(1, entrypoints.size());
     }
@@ -142,11 +151,11 @@ public class EntrypointServiceTest {
     public void shouldNotUpdate() {
         final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
         entrypoint.setId(UNKNOWN_ID);
-        entrypointService.update(entrypoint);
+        entrypointService.update(entrypoint, REFERENCE_ID, REFERENCE_TYPE);
     }
 
     @Test(expected = EntrypointNotFoundException.class)
     public void shouldNotDelete() {
-        entrypointService.delete(UNKNOWN_ID);
+        entrypointService.delete(UNKNOWN_ID, REFERENCE_ID, REFERENCE_TYPE);
     }
 }

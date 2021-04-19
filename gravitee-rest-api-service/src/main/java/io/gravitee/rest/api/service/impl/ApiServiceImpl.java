@@ -57,11 +57,13 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.EntrypointReferenceType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.*;
@@ -906,7 +908,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             String defaultEntrypoint = parameterService.find(Key.PORTAL_ENTRYPOINT, environmentId, ParameterReferenceType.ENVIRONMENT);
             final String scheme = getScheme(defaultEntrypoint);
             if (api.getTags() != null && !api.getTags().isEmpty()) {
-                List<EntrypointEntity> entrypoints = entrypointService.findAll();
+                List<EntrypointEntity> entrypoints = entrypointService.findByReference(
+                    GraviteeContext.getCurrentOrganization(),
+                    EntrypointReferenceType.ORGANIZATION
+                );
                 entrypoints.forEach(
                     entrypoint -> {
                         Set<String> tagEntrypoints = new HashSet<>(Arrays.asList(entrypoint.getTags()));
@@ -1598,7 +1603,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             updatedTags.addAll(tagsToUpdate.stream().filter(tag -> !existingAPITags.contains(tag)).collect(toSet()));
         }
         if (updatedTags != null && !updatedTags.isEmpty()) {
-            final Set<String> userTags = tagService.findByUser(getAuthenticatedUsername());
+            final Set<String> userTags = tagService.findByUser(
+                getAuthenticatedUsername(),
+                GraviteeContext.getCurrentOrganization(),
+                TagReferenceType.ORGANIZATION
+            );
             if (!userTags.containsAll(updatedTags)) {
                 final String[] notAllowedTags = updatedTags.stream().filter(tag -> !userTags.contains(tag)).toArray(String[]::new);
                 throw new TagNotAllowedException(notAllowedTags);
@@ -3095,9 +3104,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void removeTag(String apiId, String tagId) throws TechnicalManagementException {
         try {
-            ApiEntity apiEntity = this.findById(apiId);
-            apiEntity.getTags().remove(tagId);
-            update(apiId, ApiService.convert(apiEntity));
+            Api api = this.findApiById(apiId);
+            Api previousApi = new Api(api);
+            final io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                api.getDefinition(),
+                io.gravitee.definition.model.Api.class
+            );
+            if (apiDefinition.getTags().remove(tagId)) {
+                api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+                Api updated = apiRepository.update(api);
+
+                auditService.createApiAuditLog(api.getId(), Collections.emptyMap(), API_UPDATED, api.getUpdatedAt(), previousApi, updated);
+            }
         } catch (Exception ex) {
             LOGGER.error("An error occurs while removing tag from API: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while removing tag from API: " + apiId, ex);

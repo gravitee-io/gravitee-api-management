@@ -18,6 +18,7 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
+import io.gravitee.repository.management.model.TenantReferenceType;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -35,6 +36,12 @@ public class TenantRepositoryProxy extends AbstractProxy<TenantRepository> imple
     }
 
     @Override
+    public Optional<Tenant> findByIdAndReference(String s, String referenceId, TenantReferenceType referenceType)
+        throws TechnicalException {
+        return target.findByIdAndReference(s, referenceId, referenceType);
+    }
+
+    @Override
     public Tenant create(Tenant item) throws TechnicalException {
         return target.create(item);
     }
@@ -45,8 +52,8 @@ public class TenantRepositoryProxy extends AbstractProxy<TenantRepository> imple
     }
 
     @Override
-    public Set<Tenant> findAll() throws TechnicalException {
-        return target.findAll();
+    public Set<Tenant> findByReference(String referenceId, TenantReferenceType referenceType) throws TechnicalException {
+        return target.findByReference(referenceId, referenceType);
     }
 
     @Override

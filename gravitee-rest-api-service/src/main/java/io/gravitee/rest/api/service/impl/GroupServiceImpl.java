@@ -139,6 +139,23 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         }
     }
 
+    @Override
+    public List<GroupSimpleEntity> findAllByOrganization(String organizationId) {
+        try {
+            logger.debug("Find all groups for organization {}", organizationId);
+            Set<Group> groups = groupRepository.findAllByOrganization(organizationId);
+            logger.debug("Find all groups for organization {} - DONE", organizationId);
+            return groups
+                .stream()
+                .map(this::mapToSimple)
+                .sorted(Comparator.comparing(GroupSimpleEntity::getName))
+                .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to find all groups", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
+        }
+    }
+
     private void populateGroupFlags(final List<GroupEntity> groups) {
         RoleEntity apiPORole = roleService
             .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
@@ -770,6 +787,18 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         group.setEmailInvitation(entity.isEmailInvitation());
         group.setDisableMembershipNotifications(entity.isDisableMembershipNotifications());
         return group;
+    }
+
+    private GroupSimpleEntity mapToSimple(Group group) {
+        if (group == null) {
+            return null;
+        }
+
+        GroupSimpleEntity entity = new GroupSimpleEntity();
+        entity.setId(group.getId());
+        entity.setName(group.getName());
+
+        return entity;
     }
 
     private GroupEntity map(Group group) {

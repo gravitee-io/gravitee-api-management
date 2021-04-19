@@ -18,6 +18,7 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.model.Tag;
+import io.gravitee.repository.management.model.TagReferenceType;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -35,6 +36,11 @@ public class TagRepositoryProxy extends AbstractProxy<TagRepository> implements 
     }
 
     @Override
+    public Optional<Tag> findByIdAndReference(String s, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+        return target.findByIdAndReference(s, referenceId, referenceType);
+    }
+
+    @Override
     public Tag create(Tag item) throws TechnicalException {
         return target.create(item);
     }
@@ -45,8 +51,8 @@ public class TagRepositoryProxy extends AbstractProxy<TagRepository> implements 
     }
 
     @Override
-    public Set<Tag> findAll() throws TechnicalException {
-        return target.findAll();
+    public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
+        return target.findByReference(referenceId, referenceType);
     }
 
     @Override

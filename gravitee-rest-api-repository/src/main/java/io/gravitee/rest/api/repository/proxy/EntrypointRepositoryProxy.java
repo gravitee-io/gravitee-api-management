@@ -18,6 +18,7 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
+import io.gravitee.repository.management.model.EntrypointReferenceType;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,12 @@ public class EntrypointRepositoryProxy extends AbstractProxy<EntrypointRepositor
     @Override
     public Optional<Entrypoint> findById(String s) throws TechnicalException {
         return target.findById(s);
+    }
+
+    @Override
+    public Optional<Entrypoint> findByIdAndReference(String s, String referenceId, EntrypointReferenceType referenceType)
+        throws TechnicalException {
+        return target.findByIdAndReference(s, referenceId, referenceType);
     }
 
     @Override
@@ -50,12 +57,7 @@ public class EntrypointRepositoryProxy extends AbstractProxy<EntrypointRepositor
     }
 
     @Override
-    public Set<Entrypoint> findAll() throws TechnicalException {
-        return target.findAll();
-    }
-
-    @Override
-    public Set<Entrypoint> findAllByEnvironment(String environment) throws TechnicalException {
-        return target.findAllByEnvironment(environment);
+    public Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) throws TechnicalException {
+        return target.findByReference(referenceId, referenceType);
     }
 }

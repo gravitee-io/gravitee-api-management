@@ -29,12 +29,14 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.TenantEntity;
+import io.gravitee.rest.api.model.TenantReferenceType;
 import io.gravitee.rest.api.model.analytics.*;
 import io.gravitee.rest.api.model.analytics.query.*;
 import io.gravitee.rest.api.model.analytics.query.DateHistogramQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -417,7 +419,11 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Map<String, String> metadata = new HashMap<>();
 
         try {
-            TenantEntity tenantEntity = tenantService.findById(tenant);
+            TenantEntity tenantEntity = tenantService.findByIdAndReference(
+                tenant,
+                GraviteeContext.getCurrentOrganization(),
+                TenantReferenceType.ORGANIZATION
+            );
             metadata.put(METADATA_NAME, tenantEntity.getName());
         } catch (TenantNotFoundException tnfe) {
             metadata.put(METADATA_DELETED, Boolean.TRUE.toString());

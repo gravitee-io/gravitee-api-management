@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.NewTenantEntity;
 import io.gravitee.rest.api.model.TenantEntity;
+import io.gravitee.rest.api.model.TenantReferenceType;
 import io.gravitee.rest.api.model.UpdateTenantEntity;
 import java.util.List;
 
@@ -25,13 +26,13 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface TenantService {
-    List<TenantEntity> findAll();
+    List<TenantEntity> findByReference(String referenceId, TenantReferenceType referenceType);
 
-    TenantEntity findById(String tenantId);
+    TenantEntity findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType);
 
-    List<TenantEntity> create(List<NewTenantEntity> tenants);
+    List<TenantEntity> create(List<NewTenantEntity> tenants, String referenceId, TenantReferenceType referenceType);
 
-    List<TenantEntity> update(List<UpdateTenantEntity> tenants);
+    List<TenantEntity> update(List<UpdateTenantEntity> tenants, String referenceId, TenantReferenceType referenceType);
 
-    void delete(String tenantId);
+    void delete(String tenantId, String referenceId, TenantReferenceType referenceType);
 }

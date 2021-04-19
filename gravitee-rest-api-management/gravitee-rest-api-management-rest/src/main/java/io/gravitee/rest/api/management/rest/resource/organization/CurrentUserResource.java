@@ -447,7 +447,9 @@ public class CurrentUserResource extends AbstractResource {
     )
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserShardingTags() {
-        return Response.ok(tagService.findByUser(getAuthenticatedUser())).build();
+        return Response
+            .ok(tagService.findByUser(getAuthenticatedUser(), GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION))
+            .build();
     }
 
     @Path("/notifications")

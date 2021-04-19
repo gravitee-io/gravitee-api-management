@@ -35,6 +35,9 @@ public interface DefaultRoleEntityDefinition {
             .<String, char[]>builder()
             .put(OrganizationPermission.ENVIRONMENT.getName(), new char[] { READ.getId() })
             .put(OrganizationPermission.ROLE.getName(), new char[] { READ.getId() })
+            .put(OrganizationPermission.TAG.getName(), new char[] { READ.getId() })
+            .put(OrganizationPermission.TENANT.getName(), new char[] { READ.getId() })
+            .put(OrganizationPermission.ENTRYPOINT.getName(), new char[] { READ.getId() })
             .build()
     );
 

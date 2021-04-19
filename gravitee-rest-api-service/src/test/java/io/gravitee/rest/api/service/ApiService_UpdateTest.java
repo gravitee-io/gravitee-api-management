@@ -460,7 +460,7 @@ public class ApiService_UpdateTest {
                 API_NAME +
                 "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
             );
-        when(tagService.findByUser(any())).thenReturn(Sets.newSet("public", "private"));
+        when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
@@ -485,7 +485,7 @@ public class ApiService_UpdateTest {
                 API_NAME +
                 "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
             );
-        when(tagService.findByUser(any())).thenReturn(Sets.newSet("public", "private"));
+        when(tagService.findByUser(any(), any(), any())).thenReturn(Sets.newSet("public", "private"));
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
@@ -529,7 +529,7 @@ public class ApiService_UpdateTest {
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
-        when(tagService.findByUser(any())).thenReturn(emptySet());
+        when(tagService.findByUser(any(), any(), any())).thenReturn(emptySet());
         apiService.update(API_ID, existingApi);
     }
 
@@ -552,7 +552,7 @@ public class ApiService_UpdateTest {
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
-        when(tagService.findByUser(any())).thenReturn(singleton("public"));
+        when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("public"));
         apiService.update(API_ID, existingApi);
     }
 
@@ -575,7 +575,7 @@ public class ApiService_UpdateTest {
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
-        when(tagService.findByUser(any())).thenReturn(singleton("private"));
+        when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("private"));
         apiService.update(API_ID, existingApi);
     }
 

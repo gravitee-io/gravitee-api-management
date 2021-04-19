@@ -107,11 +107,13 @@ public class EnvironmentConfigurationResource {
     }
 
     @Path("tags")
+    @Deprecated
     public TagsResource getTagResource() {
         return resourceContext.getResource(TagsResource.class);
     }
 
     @Path("tenants")
+    @Deprecated
     public TenantsResource getTenantsResource() {
         return resourceContext.getResource(TenantsResource.class);
     }
@@ -173,6 +175,7 @@ public class EnvironmentConfigurationResource {
     }
 
     @Path("entrypoints")
+    @Deprecated
     public EntrypointsResource getEntryPointsResource() {
         return resourceContext.getResource(EntrypointsResource.class);
     }

@@ -21,11 +21,13 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EntrypointEntity;
+import io.gravitee.rest.api.model.EntrypointReferenceType;
 import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EntrypointService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -60,9 +62,18 @@ public class EntrypointsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
+        }
+    )
     public EntrypointEntity getEntrypoint(final @PathParam("entrypoint") String entrypointId) {
-        return entrypointService.findById(entrypointId);
+        return entrypointService.findByIdAndReference(
+            entrypointId,
+            GraviteeContext.getCurrentOrganization(),
+            EntrypointReferenceType.ORGANIZATION
+        );
     }
 
     @GET
@@ -82,10 +93,15 @@ public class EntrypointsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
+        }
+    )
     public List<EntrypointEntity> getEntrypoints() {
         return entrypointService
-            .findAll()
+            .findByReference(GraviteeContext.getCurrentOrganization(), EntrypointReferenceType.ORGANIZATION)
             .stream()
             .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getValue(), o2.getValue()))
             .collect(toList());
@@ -104,9 +120,14 @@ public class EntrypointsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.CREATE),
+        }
+    )
     public EntrypointEntity createEntrypoint(@Valid @NotNull final NewEntryPointEntity entrypoint) {
-        return entrypointService.create(entrypoint);
+        return entrypointService.create(entrypoint, GraviteeContext.getCurrentOrganization(), EntrypointReferenceType.ORGANIZATION);
     }
 
     @PUT
@@ -122,9 +143,14 @@ public class EntrypointsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
+        }
+    )
     public EntrypointEntity updateEntrypoint(@Valid @NotNull final UpdateEntryPointEntity entrypoint) {
-        return entrypointService.update(entrypoint);
+        return entrypointService.update(entrypoint, GraviteeContext.getCurrentOrganization(), EntrypointReferenceType.ORGANIZATION);
     }
 
     @Path("{entrypoint}")
@@ -140,8 +166,13 @@ public class EntrypointsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE),
+            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.DELETE),
+        }
+    )
     public void deleteEntrypoint(@PathParam("entrypoint") String entrypoint) {
-        entrypointService.delete(entrypoint);
+        entrypointService.delete(entrypoint, GraviteeContext.getCurrentOrganization(), EntrypointReferenceType.ORGANIZATION);
     }
 }

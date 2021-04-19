@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIDescriptorVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
@@ -231,7 +232,10 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
             // Tags
             if (xGraviteeIODefinition.getTags() != null && !xGraviteeIODefinition.getTags().isEmpty()) {
-                final Map<String, String> tagMap = tagService.findAll().stream().collect(toMap(TagEntity::getId, TagEntity::getName));
+                final Map<String, String> tagMap = tagService
+                    .findByReference(GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION)
+                    .stream()
+                    .collect(toMap(TagEntity::getId, TagEntity::getName));
                 final Set<String> tagIdToAdd = xGraviteeIODefinition
                     .getTags()
                     .stream()

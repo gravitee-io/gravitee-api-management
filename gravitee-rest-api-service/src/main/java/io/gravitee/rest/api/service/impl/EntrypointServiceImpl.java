@@ -23,14 +23,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
 import io.gravitee.rest.api.model.EntrypointEntity;
+import io.gravitee.rest.api.model.EntrypointReferenceType;
 import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EntrypointService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
-import io.gravitee.rest.api.service.exceptions.EntrypointTagsAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -56,10 +55,14 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     private EntrypointRepository entrypointRepository;
 
     @Override
-    public EntrypointEntity findById(final String entrypointId) {
+    public EntrypointEntity findByIdAndReference(final String entrypointId, String referenceId, EntrypointReferenceType referenceType) {
         try {
             LOGGER.debug("Find by id {}", entrypointId);
-            final Optional<Entrypoint> optionalEntryPoint = entrypointRepository.findById(entrypointId);
+            final Optional<Entrypoint> optionalEntryPoint = entrypointRepository.findByIdAndReference(
+                entrypointId,
+                referenceId,
+                repoEntrypointReferenceType(referenceType)
+            );
             if (!optionalEntryPoint.isPresent()) {
                 throw new EntrypointNotFoundException(entrypointId);
             }
@@ -71,11 +74,11 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     }
 
     @Override
-    public List<EntrypointEntity> findAll() {
+    public List<EntrypointEntity> findByReference(String referenceId, EntrypointReferenceType referenceType) {
         try {
             LOGGER.debug("Find all APIs");
             return entrypointRepository
-                .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
+                .findByReference(referenceId, repoEntrypointReferenceType(referenceType))
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toList());
@@ -86,10 +89,9 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     }
 
     @Override
-    public EntrypointEntity create(final NewEntryPointEntity entrypointEntity) {
+    public EntrypointEntity create(final NewEntryPointEntity entrypointEntity, String referenceId, EntrypointReferenceType referenceType) {
         try {
-            final Entrypoint entrypoint = convert(entrypointEntity);
-            entrypoint.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+            final Entrypoint entrypoint = convert(entrypointEntity, referenceId, referenceType);
             final EntrypointEntity savedEntryPoint = convert(entrypointRepository.create(entrypoint));
             auditService.createEnvironmentAuditLog(
                 Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
@@ -106,12 +108,22 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
     }
 
     @Override
-    public EntrypointEntity update(final UpdateEntryPointEntity entrypointEntity) {
+    public EntrypointEntity update(
+        final UpdateEntryPointEntity entrypointEntity,
+        String referenceId,
+        EntrypointReferenceType referenceType
+    ) {
         try {
-            final Optional<Entrypoint> entrypointOptional = entrypointRepository.findById(entrypointEntity.getId());
+            final Optional<Entrypoint> entrypointOptional = entrypointRepository.findByIdAndReference(
+                entrypointEntity.getId(),
+                referenceId,
+                repoEntrypointReferenceType(referenceType)
+            );
             if (entrypointOptional.isPresent()) {
                 final Entrypoint entrypoint = convert(entrypointEntity);
-                entrypoint.setEnvironmentId(entrypointOptional.get().getEnvironmentId());
+                Entrypoint existingEntrypoint = entrypointOptional.get();
+                entrypoint.setReferenceId(existingEntrypoint.getReferenceId());
+                entrypoint.setReferenceType(existingEntrypoint.getReferenceType());
                 final EntrypointEntity savedEntryPoint = convert(entrypointRepository.update(entrypoint));
                 auditService.createEnvironmentAuditLog(
                     Collections.singletonMap(ENTRYPOINT, entrypoint.getId()),
@@ -130,29 +142,14 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         }
     }
 
-    private void checkTagsOnExistingEntryPoints(final String[] tags, final String entrypointIdToIgnore) throws TechnicalException {
-        // first check for existing entry point with same tags
-        final boolean tagsAlreadyDefined = entrypointRepository
-            .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
-            .stream()
-            .filter(entrypoint -> entrypointIdToIgnore == null || !entrypoint.getId().equals(entrypointIdToIgnore))
-            .anyMatch(
-                entrypoint -> {
-                    final String[] entrypointTags = entrypoint.getTags().split(SEPARATOR);
-                    sort(entrypointTags);
-                    sort(tags);
-                    return Arrays.equals(entrypointTags, tags);
-                }
-            );
-        if (tagsAlreadyDefined) {
-            throw new EntrypointTagsAlreadyExistsException();
-        }
-    }
-
     @Override
-    public void delete(final String entrypointId) {
+    public void delete(final String entrypointId, String referenceId, EntrypointReferenceType referenceType) {
         try {
-            Optional<Entrypoint> entrypointOptional = entrypointRepository.findById(entrypointId);
+            Optional<Entrypoint> entrypointOptional = entrypointRepository.findByIdAndReference(
+                entrypointId,
+                referenceId,
+                repoEntrypointReferenceType(referenceType)
+            );
             if (entrypointOptional.isPresent()) {
                 entrypointRepository.delete(entrypointId);
                 auditService.createEnvironmentAuditLog(
@@ -171,11 +168,13 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         }
     }
 
-    private Entrypoint convert(final NewEntryPointEntity entrypointEntity) {
+    private Entrypoint convert(final NewEntryPointEntity entrypointEntity, String referenceId, EntrypointReferenceType referenceType) {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setId(RandomString.generate());
         entrypoint.setValue(entrypointEntity.getValue());
         entrypoint.setTags(String.join(SEPARATOR, entrypointEntity.getTags()));
+        entrypoint.setReferenceId(referenceId);
+        entrypoint.setReferenceType(repoEntrypointReferenceType(referenceType));
         return entrypoint;
     }
 
@@ -193,5 +192,11 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
         entrypointEntity.setValue(entrypoint.getValue());
         entrypointEntity.setTags(entrypoint.getTags().split(SEPARATOR));
         return entrypointEntity;
+    }
+
+    private io.gravitee.repository.management.model.EntrypointReferenceType repoEntrypointReferenceType(
+        EntrypointReferenceType referenceType
+    ) {
+        return io.gravitee.repository.management.model.EntrypointReferenceType.valueOf(referenceType.name());
     }
 }

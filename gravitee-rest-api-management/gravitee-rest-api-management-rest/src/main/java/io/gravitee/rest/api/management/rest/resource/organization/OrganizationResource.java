@@ -169,4 +169,9 @@ public class OrganizationResource extends AbstractResource {
     public InstallationResource getInstallationResource() {
         return resourceContext.getResource(InstallationResource.class);
     }
+
+    @Path("groups")
+    public GroupsResource getGroupsResource() {
+        return resourceContext.getResource(GroupsResource.class);
+    }
 }

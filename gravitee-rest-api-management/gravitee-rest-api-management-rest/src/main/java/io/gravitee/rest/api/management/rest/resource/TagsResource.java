@@ -20,10 +20,12 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagEntity;
+import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.UpdateTagEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -57,7 +59,7 @@ public class TagsResource extends AbstractResource {
     )
     public List<TagEntity> getTags() {
         return tagService
-            .findAll()
+            .findByReference(GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION)
             .stream()
             .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
             .collect(Collectors.toList());
@@ -73,9 +75,14 @@ public class TagsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.READ) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.READ),
+        }
+    )
     public TagEntity getTag(@PathParam("tag") String tag) {
-        return tagService.findById(tag);
+        return tagService.findByIdAndReference(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
     }
 
     @POST
@@ -88,9 +95,14 @@ public class TagsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.CREATE) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.CREATE),
+            @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.CREATE),
+        }
+    )
     public TagEntity createTag(@Valid @NotNull final NewTagEntity tag) {
-        return tagService.create(tag);
+        return tagService.create(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
     }
 
     @PUT
@@ -107,9 +119,14 @@ public class TagsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.UPDATE) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.UPDATE),
+            @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.UPDATE),
+        }
+    )
     public TagEntity updateTag(@PathParam("tag") String tagId, @Valid @NotNull final UpdateTagEntity tag) {
-        return tagService.update(tag);
+        return tagService.update(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
     }
 
     @Path("{tag}")
@@ -125,8 +142,13 @@ public class TagsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.DELETE) })
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.DELETE),
+            @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.DELETE),
+        }
+    )
     public void deleteTag(@PathParam("tag") String tag) {
-        tagService.delete(tag);
+        tagService.delete(tag, GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION);
     }
 }

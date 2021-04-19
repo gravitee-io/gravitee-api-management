@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagEntity;
+import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.UpdateTagEntity;
 import java.util.List;
 import java.util.Set;
@@ -26,12 +27,12 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface TagService {
-    List<TagEntity> findAll();
-    TagEntity findById(String tagId);
-    TagEntity create(NewTagEntity tag);
-    TagEntity update(UpdateTagEntity tag);
-    List<TagEntity> create(List<NewTagEntity> tags);
-    List<TagEntity> update(List<UpdateTagEntity> tags);
-    void delete(String tagId);
-    Set<String> findByUser(String user);
+    List<TagEntity> findByReference(String referenceId, TagReferenceType referenceType);
+    TagEntity findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType);
+    TagEntity create(NewTagEntity tag, String referenceId, TagReferenceType referenceType);
+    TagEntity update(UpdateTagEntity tag, String referenceId, TagReferenceType referenceType);
+    List<TagEntity> create(List<NewTagEntity> tags, String referenceId, TagReferenceType referenceType);
+    List<TagEntity> update(List<UpdateTagEntity> tags, String referenceId, TagReferenceType referenceType);
+    void delete(String tagId, String referenceId, TagReferenceType referenceType);
+    Set<String> findByUser(String user, String referenceId, TagReferenceType referenceType);
 }

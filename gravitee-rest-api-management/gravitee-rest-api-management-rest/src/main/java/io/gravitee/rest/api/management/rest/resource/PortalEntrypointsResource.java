@@ -19,7 +19,9 @@ import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.EntrypointEntity;
+import io.gravitee.rest.api.model.EntrypointReferenceType;
 import io.gravitee.rest.api.service.EntrypointService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import java.util.List;
 import javax.inject.Inject;
@@ -39,6 +41,10 @@ public class PortalEntrypointsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<EntrypointEntity> getPortalEntrypoints() {
-        return entrypointService.findAll().stream().peek(entrypointEntity -> entrypointEntity.setId(null)).collect(toList());
+        return entrypointService
+            .findByReference(GraviteeContext.getCurrentOrganization(), EntrypointReferenceType.ORGANIZATION)
+            .stream()
+            .peek(entrypointEntity -> entrypointEntity.setId(null))
+            .collect(toList());
     }
 }

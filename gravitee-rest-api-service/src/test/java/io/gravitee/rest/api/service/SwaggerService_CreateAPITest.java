@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -86,7 +87,7 @@ public class SwaggerService_CreateAPITest {
             .thenReturn(asList(swaggerPolicyOperationVisitor, oaiPolicyOperationVisitor));
 
         OAIOperationVisitor op = mock(OAIPolicyOperationVisitor.class);
-        when(op.visit(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(Optional.of(new Policy()));
+        when(op.visit(any(), any())).thenReturn(Optional.of(new Policy()));
         when(policyOperationVisitorManager.getOAIOperationVisitor(anyString())).thenReturn(op);
 
         GroupEntity grp1 = new GroupEntity();
@@ -102,7 +103,7 @@ public class SwaggerService_CreateAPITest {
         TagEntity tag2 = new TagEntity();
         tag2.setId("tagId2");
         tag2.setName("tag2");
-        when(tagService.findAll()).thenReturn(Arrays.asList(tag1, tag2));
+        when(tagService.findByReference(any(), any())).thenReturn(Arrays.asList(tag1, tag2));
     }
 
     // Swagger v1

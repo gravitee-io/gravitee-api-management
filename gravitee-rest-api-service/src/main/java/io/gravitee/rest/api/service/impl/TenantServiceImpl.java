@@ -25,10 +25,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.rest.api.model.NewTenantEntity;
+import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.TenantEntity;
+import io.gravitee.rest.api.model.TenantReferenceType;
 import io.gravitee.rest.api.model.UpdateTenantEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.TenantService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateTenantNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TenantNotFoundException;
@@ -55,10 +58,14 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     private AuditService auditService;
 
     @Override
-    public TenantEntity findById(String tenantId) {
+    public TenantEntity findByIdAndReference(String tenantId, String referenceId, TenantReferenceType tenantReferenceType) {
         try {
             LOGGER.debug("Find tenant by ID: {}", tenantId);
-            Optional<Tenant> optTenant = tenantRepository.findById(tenantId);
+            Optional<Tenant> optTenant = tenantRepository.findByIdAndReference(
+                tenantId,
+                referenceId,
+                repoTenantReferenceType(tenantReferenceType)
+            );
 
             if (!optTenant.isPresent()) {
                 throw new TenantNotFoundException(tenantId);
@@ -72,10 +79,14 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     }
 
     @Override
-    public List<TenantEntity> findAll() {
+    public List<TenantEntity> findByReference(String referenceId, TenantReferenceType referenceType) {
         try {
             LOGGER.debug("Find all tenants");
-            return tenantRepository.findAll().stream().map(this::convert).collect(Collectors.toList());
+            return tenantRepository
+                .findByReference(referenceId, repoTenantReferenceType(referenceType))
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all tenants", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all tenants", ex);
@@ -83,11 +94,14 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     }
 
     @Override
-    public List<TenantEntity> create(final List<NewTenantEntity> tenantEntities) {
+    public List<TenantEntity> create(final List<NewTenantEntity> tenantEntities, String referenceId, TenantReferenceType referenceType) {
         // First we prevent the duplicate tenant name
         final List<String> tenantNames = tenantEntities.stream().map(NewTenantEntity::getName).collect(Collectors.toList());
 
-        final Optional<TenantEntity> optionalTenant = findAll().stream().filter(tenant -> tenantNames.contains(tenant.getName())).findAny();
+        final Optional<TenantEntity> optionalTenant = findByReference(referenceId, referenceType)
+            .stream()
+            .filter(tenant -> tenantNames.contains(tenant.getName()))
+            .findAny();
 
         if (optionalTenant.isPresent()) {
             throw new DuplicateTenantNameException(optionalTenant.get().getName());
@@ -97,7 +111,7 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         tenantEntities.forEach(
             tenantEntity -> {
                 try {
-                    Tenant tenant = convert(tenantEntity);
+                    Tenant tenant = convert(tenantEntity, referenceId, referenceType);
                     savedTenants.add(convert(tenantRepository.create(tenant)));
                     auditService.createEnvironmentAuditLog(
                         Collections.singletonMap(TENANT, tenant.getId()),
@@ -116,14 +130,21 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     }
 
     @Override
-    public List<TenantEntity> update(final List<UpdateTenantEntity> tenantEntities) {
+    public List<TenantEntity> update(final List<UpdateTenantEntity> tenantEntities, String referenceId, TenantReferenceType referenceType) {
         final List<TenantEntity> savedTenants = new ArrayList<>(tenantEntities.size());
         tenantEntities.forEach(
             tenantEntity -> {
                 try {
                     Tenant tenant = convert(tenantEntity);
-                    Optional<Tenant> tenantOptional = tenantRepository.findById(tenant.getId());
+                    Optional<Tenant> tenantOptional = tenantRepository.findByIdAndReference(
+                        tenant.getId(),
+                        referenceId,
+                        repoTenantReferenceType(referenceType)
+                    );
                     if (tenantOptional.isPresent()) {
+                        Tenant existingTenant = tenantOptional.get();
+                        tenant.setReferenceId(existingTenant.getReferenceId());
+                        tenant.setReferenceType(existingTenant.getReferenceType());
                         savedTenants.add(convert(tenantRepository.update(tenant)));
                         auditService.createEnvironmentAuditLog(
                             Collections.singletonMap(TENANT, tenant.getId()),
@@ -143,9 +164,13 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
     }
 
     @Override
-    public void delete(final String tenantId) {
+    public void delete(final String tenantId, String referenceId, TenantReferenceType referenceType) {
         try {
-            Optional<Tenant> tenantOptional = tenantRepository.findById(tenantId);
+            Optional<Tenant> tenantOptional = tenantRepository.findByIdAndReference(
+                tenantId,
+                referenceId,
+                repoTenantReferenceType(referenceType)
+            );
             if (tenantOptional.isPresent()) {
                 tenantRepository.delete(tenantId);
                 auditService.createEnvironmentAuditLog(
@@ -163,11 +188,13 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         }
     }
 
-    private Tenant convert(final NewTenantEntity tenantEntity) {
+    private Tenant convert(final NewTenantEntity tenantEntity, String referenceId, TenantReferenceType referenceType) {
         final Tenant tenant = new Tenant();
         tenant.setId(IdGenerator.generate(tenantEntity.getName()));
         tenant.setName(tenantEntity.getName());
         tenant.setDescription(tenantEntity.getDescription());
+        tenant.setReferenceId(referenceId);
+        tenant.setReferenceType(io.gravitee.repository.management.model.TenantReferenceType.valueOf(referenceType.name()));
         return tenant;
     }
 
@@ -185,5 +212,9 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         tenantEntity.setName(tenant.getName());
         tenantEntity.setDescription(tenant.getDescription());
         return tenantEntity;
+    }
+
+    private io.gravitee.repository.management.model.TenantReferenceType repoTenantReferenceType(TenantReferenceType referenceType) {
+        return io.gravitee.repository.management.model.TenantReferenceType.valueOf(referenceType.name());
     }
 }
