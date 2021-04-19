@@ -16,7 +16,10 @@
 package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.Tag;
+import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.Tenant;
+import io.gravitee.repository.management.model.TenantReferenceType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,8 +36,8 @@ public class TenantRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldFindAll() throws Exception {
-        final Set<Tenant> tenants = tenantRepository.findAll();
+    public void shouldFindByReference() throws Exception {
+        final Set<Tenant> tenants = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION);
 
         assertNotNull(tenants);
         assertEquals(3, tenants.size());
@@ -46,10 +49,12 @@ public class TenantRepositoryTest extends AbstractRepositoryTest {
         tenant.setId("new-tenant");
         tenant.setName("Tenant name");
         tenant.setDescription("Description for the new tenant");
+        tenant.setReferenceId("DEFAULT");
+        tenant.setReferenceType(TenantReferenceType.ORGANIZATION);
 
-        int nbTenantsBeforeCreation = tenantRepository.findAll().size();
+        int nbTenantsBeforeCreation = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
         tenantRepository.create(tenant);
-        int nbTenantsAfterCreation = tenantRepository.findAll().size();
+        int nbTenantsAfterCreation = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbTenantsBeforeCreation + 1, nbTenantsAfterCreation);
 
@@ -70,10 +75,12 @@ public class TenantRepositoryTest extends AbstractRepositoryTest {
         final Tenant tenant = optional.get();
         tenant.setName("New tenant");
         tenant.setDescription("New description");
+        tenant.setReferenceId("DEFAULT");
+        tenant.setReferenceType(TenantReferenceType.ORGANIZATION);
 
-        int nbTenantsBeforeUpdate = tenantRepository.findAll().size();
+        int nbTenantsBeforeUpdate = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
         tenantRepository.update(tenant);
-        int nbTenantsAfterUpdate = tenantRepository.findAll().size();
+        int nbTenantsAfterUpdate = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbTenantsBeforeUpdate, nbTenantsAfterUpdate);
 
@@ -87,9 +94,9 @@ public class TenantRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbTenantsBeforeDeletion = tenantRepository.findAll().size();
+        int nbTenantsBeforeDeletion = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
         tenantRepository.delete("us");
-        int nbTenantsAfterDeletion = tenantRepository.findAll().size();
+        int nbTenantsAfterDeletion = tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbTenantsBeforeDeletion - 1, nbTenantsAfterDeletion);
     }
@@ -106,5 +113,14 @@ public class TenantRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         tenantRepository.update(null);
         fail("A null tenant should not be updated");
+    }
+
+    @Test
+    public void shouldFindByIdAndReference() throws Exception {
+        final Optional<Tenant> tenant = tenantRepository.findByIdAndReference("other-us","OTHER", TenantReferenceType.ORGANIZATION);
+
+        assertTrue(tenant.isPresent());
+        assertEquals("US", tenant.get().getName());
+        assertEquals("Description for other US tenant", tenant.get().getDescription());
     }
 }

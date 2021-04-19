@@ -90,8 +90,24 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
         group_updated.setMaxInvitation(99);
         group_updated.setApiPrimaryOwner("new-po-user-id");
 
-        when(groupRepository.findAll()).thenReturn(newSet(group_application_1, group_api_to_delete));
+        final Group group_env_1_org_1 = new Group();
+        group_env_1_org_1.setId("group_env_1_org_1");
+        group_env_1_org_1.setName("group env 1 org 1");
+        group_env_1_org_1.setEnvironmentId("ENV_ORG_1");
+
+        final Group group_env_2_org_1 = new Group();
+        group_env_2_org_1.setId("group_env_2_org_1");
+        group_env_2_org_1.setName("group env 2 org 1");
+        group_env_2_org_1.setEnvironmentId("SECOND_ENV_ORG_1");
+
+        final Group group_env_org_2 = new Group();
+        group_env_org_2.setId("group_env_org_2");
+        group_env_org_2.setName("group env org 1");
+        group_env_org_2.setEnvironmentId("ENV_ORG_2");
+
+        when(groupRepository.findAll()).thenReturn(newSet(group_application_1, group_api_to_delete, group_env_1_org_1, group_env_2_org_1, group_env_org_2));
         when(groupRepository.findAllByEnvironment("DEFAULT")).thenReturn(newSet(createGroup));
+        when(groupRepository.findAllByOrganization("ORGANIZATION_1")).thenReturn(newSet(group_env_1_org_1, group_env_2_org_1));
         when(groupRepository.findById("group-application-1")).thenReturn(of(group_application_1));
         when(groupRepository.findById("unknown")).thenReturn(empty());
         when(groupRepository.findById("group-api-to-delete")).thenReturn(empty());

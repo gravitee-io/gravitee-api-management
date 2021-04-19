@@ -130,7 +130,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(groups);
         assertFalse("not empty", groups.isEmpty());
-        assertEquals(2, groups.size());
+        assertEquals(5, groups.size());
     }
 
     @Test
@@ -140,6 +140,15 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(groups);
         assertFalse("not empty", groups.isEmpty());
         assertEquals(1, groups.size());
+    }
+
+    @Test
+    public void shouldFindAllByOrganization() throws TechnicalException {
+        Set<Group> groups = groupRepository.findAllByOrganization("ORGANIZATION_1");
+
+        assertNotNull(groups);
+        assertFalse("not empty", groups.isEmpty());
+        assertEquals(2, groups.size());
     }
     
     @Test

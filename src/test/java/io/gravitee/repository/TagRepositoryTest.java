@@ -17,6 +17,7 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Tag;
+import io.gravitee.repository.management.model.TagReferenceType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,8 +36,8 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldFindAll() throws Exception {
-        final Set<Tag> tags = tagRepository.findAll();
+    public void shouldFindByReference() throws Exception {
+        final Set<Tag> tags = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION);
 
         assertNotNull(tags);
         assertEquals(3, tags.size());
@@ -53,10 +54,12 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
         tag.setName("Tag name");
         tag.setDescription("Description for the new tag");
         tag.setRestrictedGroups(asList("g1", "groupNew"));
+        tag.setReferenceId("DEFAULT");
+        tag.setReferenceType(TagReferenceType.ORGANIZATION);
 
-        int nbTagsBeforeCreation = tagRepository.findAll().size();
+        int nbTagsBeforeCreation = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
         tagRepository.create(tag);
-        int nbTagsAfterCreation = tagRepository.findAll().size();
+        int nbTagsAfterCreation = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbTagsBeforeCreation + 1, nbTagsAfterCreation);
 
@@ -80,9 +83,9 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
         tag.setDescription("New description");
         tag.setRestrictedGroups(singletonList("group"));
 
-        int nbTagsBeforeUpdate = tagRepository.findAll().size();
+        int nbTagsBeforeUpdate = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
         tagRepository.update(tag);
-        int nbTagsAfterUpdate = tagRepository.findAll().size();
+        int nbTagsAfterUpdate = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbTagsBeforeUpdate, nbTagsAfterUpdate);
 
@@ -97,9 +100,9 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbTagsBeforeDeletion = tagRepository.findAll().size();
+        int nbTagsBeforeDeletion = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
         tagRepository.delete("international");
-        int nbTagsAfterDeletion = tagRepository.findAll().size();
+        int nbTagsAfterDeletion = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbTagsBeforeDeletion - 1, nbTagsAfterDeletion);
     }
@@ -116,5 +119,14 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         tagRepository.update(null);
         fail("A null tag should not be updated");
+    }
+
+    @Test
+    public void shouldFindByIdAndReference() throws Exception {
+        final Optional<Tag> tag = tagRepository.findByIdAndReference("other","OTHER", TagReferenceType.ORGANIZATION);
+
+        assertTrue(tag.isPresent());
+        assertEquals("Other", tag.get().getName());
+        assertEquals("Description for other tag", tag.get().getDescription());
     }
 }

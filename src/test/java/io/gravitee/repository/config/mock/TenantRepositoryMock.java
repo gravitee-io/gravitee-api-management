@@ -16,10 +16,15 @@
 package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.TenantRepository;
+import io.gravitee.repository.management.model.Tag;
+import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.Tenant;
+import io.gravitee.repository.management.model.TenantReferenceType;
 
+import java.util.Optional;
 import java.util.Set;
 
+import static java.util.Collections.emptyList;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
@@ -40,20 +45,26 @@ public class TenantRepositoryMock extends AbstractRepositoryMock<TenantRepositor
         final Tenant tenant = mock(Tenant.class);
         when(tenant.getName()).thenReturn("Tenant name");
         when(tenant.getDescription()).thenReturn("Description for the new tenant");
+        when(tenant.getReferenceId()).thenReturn("DEFAULT");
+        when(tenant.getReferenceType()).thenReturn(TenantReferenceType.ORGANIZATION);
 
         final Tenant tenant2 = mock(Tenant.class);
         when(tenant2.getId()).thenReturn("tenant");
         when(tenant2.getName()).thenReturn("Asia");
+        when(tenant.getReferenceId()).thenReturn("DEFAULT");
+        when(tenant.getReferenceType()).thenReturn(TenantReferenceType.ORGANIZATION);
 
         final Tenant tenant2Updated = mock(Tenant.class);
         when(tenant2Updated.getName()).thenReturn("New tenant");
         when(tenant2Updated.getDescription()).thenReturn("New description");
+        when(tenant.getReferenceId()).thenReturn("DEFAULT");
+        when(tenant.getReferenceType()).thenReturn(TenantReferenceType.ORGANIZATION);
 
         final Set<Tenant> tenants = newSet(tenant, tenant2, mock(Tenant.class));
         final Set<Tenant> tenantsAfterDelete = newSet(tenant, tenant2);
         final Set<Tenant> tenantsAfterAdd = newSet(tenant, tenant2, mock(Tenant.class), mock(Tenant.class));
 
-        when(tenantRepository.findAll()).thenReturn(tenants, tenantsAfterAdd, tenants, tenantsAfterDelete, tenants);
+        when(tenantRepository.findByReference("DEFAULT", TenantReferenceType.ORGANIZATION)).thenReturn(tenants, tenantsAfterAdd, tenants, tenantsAfterDelete, tenants);
 
         when(tenantRepository.create(any(Tenant.class))).thenReturn(tenant);
 
@@ -61,5 +72,12 @@ public class TenantRepositoryMock extends AbstractRepositoryMock<TenantRepositor
         when(tenantRepository.findById("asia")).thenReturn(of(tenant2), of(tenant2Updated));
 
         when(tenantRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+
+        final Tenant tenant3 = mock(Tenant.class);
+        when(tenant3.getName()).thenReturn("US");
+        when(tenant3.getDescription()).thenReturn("Description for other US tenant");
+
+        when(tenantRepository.findByIdAndReference("other-us", "OTHER", TenantReferenceType.ORGANIZATION))
+                .thenReturn(Optional.of(tenant3));
     }
 }

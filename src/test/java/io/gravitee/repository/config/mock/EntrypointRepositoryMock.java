@@ -17,6 +17,7 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
+import io.gravitee.repository.management.model.EntrypointReferenceType;
 
 import java.util.Set;
 
@@ -39,18 +40,21 @@ public class EntrypointRepositoryMock extends AbstractRepositoryMock<EntrypointR
     void prepare(EntrypointRepository entrypointRepository) throws Exception {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setId("new-entrypoint");
-        entrypoint.setEnvironmentId("DEFAULT");
+        entrypoint.setReferenceId("DEFAULT");
+        entrypoint.setReferenceType(EntrypointReferenceType.ORGANIZATION);
         entrypoint.setValue("Entry point value");
         entrypoint.setTags("internal;product");
 
         final Entrypoint entrypoint2 = new Entrypoint();
         entrypoint2.setId("entrypoint");
-        entrypoint.setEnvironmentId("DEFAULT");
+        entrypoint2.setReferenceId("DEFAULT");
+        entrypoint2.setReferenceType(EntrypointReferenceType.ORGANIZATION);
         entrypoint2.setValue("https://public-api.company.com");
 
         final Entrypoint entrypoint2Updated = new Entrypoint();
         entrypoint2Updated.setId("entrypoint");
-        entrypoint2Updated.setEnvironmentId("new_DEFAULT");
+        entrypoint2Updated.setReferenceId("DEFAULT");
+        entrypoint2Updated.setReferenceType(EntrypointReferenceType.ORGANIZATION);
         entrypoint2Updated.setValue("New value");
         entrypoint2Updated.setTags("New tags");
 
@@ -58,8 +62,7 @@ public class EntrypointRepositoryMock extends AbstractRepositoryMock<EntrypointR
         final Set<Entrypoint> entrypointsAfterDelete = newSet(entrypoint, entrypoint2);
         final Set<Entrypoint> entrypointsAfterAdd = newSet(entrypoint, entrypoint2, mock(Entrypoint.class), mock(Entrypoint.class));
 
-        when(entrypointRepository.findAll()).thenReturn(entrypoints, entrypointsAfterAdd, entrypoints, entrypointsAfterDelete, entrypoints);
-        when(entrypointRepository.findAllByEnvironment("DEFAULT")).thenReturn(entrypoints);
+        when(entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION)).thenReturn(entrypoints, entrypointsAfterAdd, entrypoints, entrypointsAfterDelete, entrypoints);
 
         when(entrypointRepository.create(any(Entrypoint.class))).thenReturn(entrypoint);
 

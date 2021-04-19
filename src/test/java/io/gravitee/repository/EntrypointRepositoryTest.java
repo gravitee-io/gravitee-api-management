@@ -17,6 +17,7 @@ package io.gravitee.repository;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Entrypoint;
+import io.gravitee.repository.management.model.EntrypointReferenceType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,32 +34,25 @@ public class EntrypointRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldFindAll() throws Exception {
-        final Set<Entrypoint> entrypoints = entrypointRepository.findAll();
+    public void shouldFindAllByReference() throws Exception {
+        final Set<Entrypoint> entrypoints = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION);
 
         assertNotNull(entrypoints);
         assertEquals(3, entrypoints.size());
     }
 
-    @Test
-    public void shouldFindAllByuEnvironment() throws Exception {
-        final Set<Entrypoint> entrypoints = entrypointRepository.findAllByEnvironment("DEFAULT");
-
-        assertNotNull(entrypoints);
-        assertEquals(3, entrypoints.size());
-    }
-    
     @Test
     public void shouldCreate() throws Exception {
         final Entrypoint entrypoint = new Entrypoint();
         entrypoint.setId("new-entrypoint");
-        entrypoint.setEnvironmentId("DEFAULT");
+        entrypoint.setReferenceId("DEFAULT");
+        entrypoint.setReferenceType(EntrypointReferenceType.ORGANIZATION);
         entrypoint.setValue("Entrypoint value");
         entrypoint.setTags("internal;product");
 
-        int nbEntryPointsBeforeCreation = entrypointRepository.findAll().size();
+        int nbEntryPointsBeforeCreation = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
         entrypointRepository.create(entrypoint);
-        int nbEntryPointsAfterCreation = entrypointRepository.findAll().size();
+        int nbEntryPointsAfterCreation = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbEntryPointsBeforeCreation + 1, nbEntryPointsAfterCreation);
 
@@ -75,12 +69,13 @@ public class EntrypointRepositoryTest extends AbstractRepositoryTest {
 
         final Entrypoint entrypoint = optional.get();
         entrypoint.setValue("New value");
-        entrypoint.setEnvironmentId("new_DEFAULT");
+        entrypoint.setReferenceId("DEFAULT");
+        entrypoint.setReferenceType(EntrypointReferenceType.ORGANIZATION);
         entrypoint.setTags("New tags");
 
-        int nbEntryPointsBeforeUpdate = entrypointRepository.findAll().size();
+        int nbEntryPointsBeforeUpdate = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
         entrypointRepository.update(entrypoint);
-        int nbEntryPointsAfterUpdate = entrypointRepository.findAll().size();
+        int nbEntryPointsAfterUpdate = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbEntryPointsBeforeUpdate, nbEntryPointsAfterUpdate);
 
@@ -89,15 +84,14 @@ public class EntrypointRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved entrypoint.", entrypoint, optionalUpdated.get());
         assertEquals("Invalid saved value.", "New value", optionalUpdated.get().getValue());
         assertEquals("Invalid saved tags.", "New tags", optionalUpdated.get().getTags());
-        assertEquals("Invalid saved environment.", "new_DEFAULT", optionalUpdated.get().getEnvironmentId());
-        
+
     }
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbEntryPointsBeforeDeletion = entrypointRepository.findAll().size();
+        int nbEntryPointsBeforeDeletion = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
         entrypointRepository.delete("fa29c012-a0d2-4721-a9c0-12a0d26721db");
-        int nbEntryPointsAfterDeletion = entrypointRepository.findAll().size();
+        int nbEntryPointsAfterDeletion = entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION).size();
 
         Assert.assertEquals(nbEntryPointsBeforeDeletion - 1, nbEntryPointsAfterDeletion);
     }
