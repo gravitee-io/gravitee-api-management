@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import CategoryService from '../../services/category.service';
-import TenantService from '../../services/tenant.service';
 import TagService from '../../services/tag.service';
 import MetadataService from '../../services/metadata.service';
 import RoleService from '../../services/role.service';
@@ -27,7 +26,6 @@ import IdentityProviderService from '../../services/identityProvider.service';
 import DocumentationService, { DocumentationQuery } from '../../services/documentation.service';
 import FetcherService from '../../services/fetcher.service';
 import { StateParams } from '@uirouter/core';
-import EntrypointService from '../../services/entrypoint.service';
 import ClientRegistrationProviderService from '../../services/clientRegistrationProvider.service';
 import QualityRuleService from '../../services/qualityRule.service';
 import DashboardService from '../../services/dashboard.service';
@@ -36,7 +34,6 @@ import EnvironmentService from '../../services/environment.service';
 import PortalSettingsService from '../../services/portalSettings.service';
 import ConsoleSettingsService from '../../services/consoleSettings.service';
 import _ = require('lodash');
-import PortalConfigService from '../../services/portalConfig.service';
 
 export default configurationRouterConfig;
 
@@ -140,12 +137,12 @@ function configurationRouterConfig($stateProvider) {
     })
     .state('management.settings.tags', {
       url: '/tags',
-      component: 'tags',
+      component: 'moved',
       resolve: {
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
-        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.list().then((response) => response.data),
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
-        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+        destinationName: () => 'Organization settings > Tags',
+        permissions: () => ['organization-tag-r'],
+        goTo: () => 'organization.settings.tags',
+        destinationIcon: () => 'settings_applications',
       },
       data: {
         menu: null,
@@ -157,59 +154,14 @@ function configurationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.settings.newEntrypoint', {
-      url: '/tags/entrypoint/new',
-      component: 'entrypoint',
-      resolve: {
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-entrypoint',
-        },
-        perms: {
-          only: ['environment-entrypoint-c'],
-        },
-      },
-    })
-    .state('management.settings.entrypoint', {
-      url: '/tags/entrypoint/:entrypointId',
-      component: 'entrypoint',
-      resolve: {
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-entrypoint',
-        },
-        perms: {
-          only: ['environment-entrypoint-u'],
-        },
-      },
-    })
-    .state('management.settings.tag', {
-      url: '/tags/:tagId',
-      component: 'tag',
-      resolve: {
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-sharding-tag',
-        },
-        perms: {
-          only: ['environment-tag-r', 'environment-tag-c', 'environment-tag-u'],
-        },
-      },
-    })
     .state('management.settings.tenants', {
       url: '/tenants',
-      component: 'tenants',
+      component: 'moved',
       resolve: {
-        tenants: (TenantService: TenantService) => TenantService.list().then((response) => response.data),
+        destinationName: () => 'Organization settings > Tenants',
+        permissions: () => ['organization-tenant-r'],
+        goTo: () => 'organization.settings.tenants',
+        destinationIcon: () => 'settings_applications',
       },
       data: {
         menu: null,

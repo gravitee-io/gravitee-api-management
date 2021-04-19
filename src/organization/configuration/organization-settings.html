@@ -79,6 +79,26 @@
       </ul>
 
       <div class="aui-nav-heading" ng-if="$ctrl.settingsMenu.notificationTemplates.perm">
+        <strong>Gateway</strong>
+      </div>
+      <ul class="aui-nav">
+        <li
+          class="iterable-item"
+          ng-class="{'aui-nav-selected': $ctrl.$state.includes('organization.settings.tags') || $ctrl.$state.includes('organization.settings.tag') }"
+          ng-if="$ctrl.settingsMenu.tags.perm"
+        >
+          <a class="execute" ui-sref="{{$ctrl.settingsMenu.tags.goTo}}">Sharding tags</a>
+        </li>
+        <li
+          class="iterable-item"
+          ng-class="{'aui-nav-selected': $ctrl.$state.includes('organization.settings.tenants') || $ctrl.$state.includes('organization.settings.tenant') }"
+          ng-if="$ctrl.settingsMenu.tenants.perm"
+        >
+          <a class="execute" ui-sref="{{$ctrl.settingsMenu.tenants.goTo}}">Tenants</a>
+        </li>
+      </ul>
+
+      <div class="aui-nav-heading" ng-if="$ctrl.settingsMenu.notificationTemplates.perm">
         <strong>Notifications</strong>
       </div>
       <ul class="aui-nav">

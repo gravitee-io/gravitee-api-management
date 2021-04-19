@@ -110,6 +110,10 @@ const RoleComponent: ng.IComponentOptions = {
       this.updateCheckedAll = _.every(this.permissions, (permission) => this.role.permissions[permission].U);
       this.deleteCheckedAll = _.every(this.permissions, (permission) => this.role.permissions[permission].D);
     };
+
+    this.isEnvironmentTagOrTenant = (permission: string): boolean => {
+      return this.role?.scope === 'ENVIRONMENT' && (permission === 'TAG' || permission === 'TENANT' || permission === 'ENTRYPOINT');
+    };
   },
 };
 

@@ -84,9 +84,15 @@
             </thead>
             <tbody md-body>
               <tr md-row ng-repeat="permission in $ctrl.permissions">
-                <td md-cell><b>{{permission}}</b></td>
+                <td md-cell>
+                  <b>{{permission}}</b>
+                  <md-tooltip md-direction="right" ng-if="$ctrl.isEnvironmentTagOrTenant(permission)">
+                    <span>This permission has been moved to ORGANIZATION scope</span>
+                  </md-tooltip>
+                </td>
                 <td md-cell>
                   <md-checkbox
+                    ng-disabled="$ctrl.isEnvironmentTagOrTenant(permission)"
                     aria-label="{{permission}} create"
                     ng-model="$ctrl.role.permissions[permission].C"
                     ng-change="$ctrl.checkSelectAll()"
@@ -94,6 +100,7 @@
                 </td>
                 <td md-cell>
                   <md-checkbox
+                    ng-disabled="$ctrl.isEnvironmentTagOrTenant(permission)"
                     aria-label="{{permission}} read"
                     ng-model="$ctrl.role.permissions[permission].R"
                     ng-change="$ctrl.checkSelectAll()"
@@ -101,6 +108,7 @@
                 </td>
                 <td md-cell>
                   <md-checkbox
+                    ng-disabled="$ctrl.isEnvironmentTagOrTenant(permission)"
                     aria-label="{{permission}} update"
                     ng-model="$ctrl.role.permissions[permission].U"
                     ng-change="$ctrl.checkSelectAll()"
@@ -108,6 +116,7 @@
                 </td>
                 <td md-cell>
                   <md-checkbox
+                    ng-disabled="$ctrl.isEnvironmentTagOrTenant(permission)"
                     aria-label="{{permission}} delete"
                     ng-model="$ctrl.role.permissions[permission].D"
                     ng-change="$ctrl.checkSelectAll()"

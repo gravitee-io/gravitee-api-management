@@ -21,6 +21,10 @@ import GroupService from '../services/group.service';
 import OrganizationService from '../services/organization.service';
 import NotificationTemplatesService from '../services/notificationTemplates.service';
 import ConsoleSettingsService from '../services/consoleSettings.service';
+import TenantService from '../services/tenant.service';
+import EntrypointService from '../services/entrypoint.service';
+import TagService from '../services/tag.service';
+import PortalSettingsService from '../services/portalSettings.service';
 
 export default organizationRouterConfig;
 
@@ -278,6 +282,89 @@ function organizationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d'],
+        },
+      },
+    })
+    .state('organization.settings.tags', {
+      url: '/tags',
+      component: 'tags',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+        entrypoints: (EntrypointService: EntrypointService) => EntrypointService.list().then((response) => response.data),
+        groups: (GroupService: GroupService) => GroupService.listByOrganization().then((response) => response.data),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-sharding-tags',
+        },
+        perms: {
+          only: ['organization-tag-r'],
+        },
+      },
+    })
+    .state('organization.settings.newEntrypoint', {
+      url: '/tags/entrypoint/new',
+      component: 'entrypoint',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-entrypoint',
+        },
+        perms: {
+          only: ['organization-entrypoint-c'],
+        },
+      },
+    })
+    .state('organization.settings.entrypoint', {
+      url: '/tags/entrypoint/:entrypointId',
+      component: 'entrypoint',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-entrypoint',
+        },
+        perms: {
+          only: ['organization-entrypoint-u'],
+        },
+      },
+    })
+    .state('organization.settings.tag', {
+      url: '/tags/:tagId',
+      component: 'tag',
+      resolve: {
+        groups: (GroupService: GroupService) => GroupService.listByOrganization().then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-sharding-tag',
+        },
+        perms: {
+          only: ['organization-tag-r', 'organization-tag-c', 'organization-tag-u'],
+        },
+      },
+    })
+    .state('organization.settings.tenants', {
+      url: '/tenants',
+      component: 'tenants',
+      resolve: {
+        tenants: (TenantService: TenantService) => TenantService.list().then((response) => response.data),
+      },
+      data: {
+        menu: null,
+        docs: {
+          page: 'management-configuration-tenants',
+        },
+        perms: {
+          only: ['organization-tenant-r'],
         },
       },
     })

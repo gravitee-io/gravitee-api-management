@@ -19,7 +19,7 @@
   <div class="gv-forms" layout="column">
     <form name="$ctrl.formEntrypoint" ng-submit="$ctrl.save($ctrl.entrypoint)" novalidate>
       <h1>Entrypoint configuration</h1>
-      <a ui-sref="management.settings.tags">Back to sharding tags configuration</a>
+      <a ui-sref="organization.settings.tags">Back to sharding tags configuration</a>
       <div class="gv-form">
         <div class="gv-form-content" layout="column">
           <md-input-container style="margin: 0">
@@ -47,7 +47,7 @@
           class="md-raised"
           type="submit"
           permission
-          permission-only="['environment-entrypoint-c', 'environment-entrypoint-u']"
+          permission-only="['organization-entrypoint-c', 'organization-entrypoint-u']"
           ng-disabled="$ctrl.formEntrypoint.$pristine || $ctrl.formEntrypoint.$invalid"
         >
           Save

@@ -43,6 +43,10 @@ class GroupService {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/groups`);
   }
 
+  listByOrganization(): ng.IPromise<any> {
+    return this.$http.get(`${this.Constants.org.baseURL}/groups`);
+  }
+
   getMembers(groupId: string, page?: PageQuery, opts?: any): ng.IPromise<any> {
     let url = `${this.Constants.env.baseURL}/configuration/groups/${groupId}/members`;
     if (page != null) {

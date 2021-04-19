@@ -208,11 +208,11 @@ import DialogSubscriptionChangeEndDateController from './api/portal/subscription
 import DialogSubscriptionRenewController from './api/portal/subscriptions/dialog/subscription.renew.dialog.controller';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import DialogPublishPlanController from '../management/api/portal/plans/publishPlanDialog.controller';
-import TagsController from '../management/configuration/tags/tags.controller';
+import TagsController from '../organization/configuration/tags/tags.controller';
 import TagService from '../services/tag.service';
 import MetadataController from '../components/metadata/metadata.controller';
 import MetadataService from '../services/metadata.service';
-import DeleteTagDialogController from '../management/configuration/tags/delete.tag.dialog.controller';
+import DeleteTagDialogController from '../organization/configuration/tags/delete.tag.dialog.controller';
 import DeleteMetadataDialogController from '../components/metadata/dialog/delete.metadata.dialog.controller';
 import NewMetadataDialogController from '../components/metadata/dialog/new.metadata.dialog.controller';
 import UpdateMetadataDialogController from '../components/metadata/dialog/update.metadata.dialog.controller';
@@ -222,14 +222,14 @@ import FileChooserDialogController from '../components/dialog/fileChooserDialog.
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from '../components/dialog/confirmAndValidateDialog.controller';
 import DialogDynamicProviderHttpController from '../management/api/design/properties/dynamic-provider-http-dialog.controller';
-import TenantsController from '../management/configuration/tenants/tenants.controller';
+import TenantsController from '../organization/configuration/tenants/tenants.controller';
 import TenantService from '../services/tenant.service';
-import DeleteTenantDialogController from '../management/configuration/tenants/delete.tenant.dialog.controller';
+import DeleteTenantDialogController from '../organization/configuration/tenants/delete.tenant.dialog.controller';
 
 import CategoriesComponent from '../management/configuration/categories/categories.component';
 import CategoryComponent from './configuration/categories/category/category.component';
-import TenantsComponent from '../management/configuration/tenants/tenants.component';
-import TagsComponent from '../management/configuration/tags/tags.component';
+import TenantsComponent from '../organization/configuration/tenants/tenants.component';
+import TagsComponent from '../organization/configuration/tags/tags.component';
 import MetadataComponent from '../management/configuration/metadata/metadata.component';
 import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
 
@@ -403,12 +403,12 @@ import CircularPercentageComponent from '../components/circularPercentage/circul
 import CircularPercentageController from '../components/circularPercentage/circularPercentage.controller';
 
 import EntrypointService from '../services/entrypoint.service';
-import EntrypointComponent from './configuration/tags/entrypoint/entrypoint.component';
-import EntrypointController from './configuration/tags/entrypoint/entrypoint.controller';
-import DeleteEntrypointDialogController from './configuration/tags/entrypoint/delete.entrypoint.dialog.controller';
+import EntrypointComponent from '../organization/configuration/tags/entrypoint/entrypoint.component';
+import EntrypointController from '../organization/configuration/tags/entrypoint/entrypoint.controller';
+import DeleteEntrypointDialogController from '../organization/configuration/tags/entrypoint/delete.entrypoint.dialog.controller';
 
-import TagComponent from './configuration/tags/tag/tag.component';
-import TagController from './configuration/tags/tag/tag.controller';
+import TagComponent from '../organization/configuration/tags/tag/tag.component';
+import TagController from '../organization/configuration/tags/tag/tag.controller';
 
 import SelectFolderDialogController from '../components/documentation/dialog/selectfolder.controller';
 import SelectPageDialogController from '../components/documentation/dialog/selectpage.controller';
@@ -484,6 +484,7 @@ import angular = require('angular');
 
 import ngInfiniteScroll = require('ng-infinite-scroll');
 import ApiAlertsDashboardController from './api/analytics/alerts/api-alerts-dashboard.controller';
+import MovedComponent from './configuration/moved/moved.component';
 
 (<any>window).traverse = traverse;
 
@@ -835,6 +836,7 @@ graviteeManagementModule.controller('errorCtrl', ErrorController);
 
 graviteeManagementModule.component('categories', CategoriesComponent);
 graviteeManagementModule.component('category', CategoryComponent);
+graviteeManagementModule.component('moved', MovedComponent);
 graviteeManagementModule.component('tenants', TenantsComponent);
 graviteeManagementModule.component('tags', TagsComponent);
 graviteeManagementModule.component('metadata', MetadataComponent);

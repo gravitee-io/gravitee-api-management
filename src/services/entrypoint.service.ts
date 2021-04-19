@@ -19,28 +19,28 @@ class EntrypointService {
   }
 
   findById(entrypoint) {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/entrypoints/` + entrypoint);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/entrypoints/` + entrypoint);
   }
 
   list() {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/entrypoints/`);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/entrypoints/`);
   }
 
   create(entrypoint) {
     if (entrypoint) {
-      return this.$http.post(`${this.Constants.env.baseURL}/configuration/entrypoints/`, entrypoint);
+      return this.$http.post(`${this.Constants.org.baseURL}/configuration/entrypoints/`, entrypoint);
     }
   }
 
   update(entrypoint) {
     if (entrypoint) {
-      return this.$http.put(`${this.Constants.env.baseURL}/configuration/entrypoints/`, entrypoint);
+      return this.$http.put(`${this.Constants.org.baseURL}/configuration/entrypoints/`, entrypoint);
     }
   }
 
   delete(entrypoint) {
     if (entrypoint) {
-      return this.$http.delete(`${this.Constants.env.baseURL}/configuration/entrypoints/` + entrypoint.id);
+      return this.$http.delete(`${this.Constants.org.baseURL}/configuration/entrypoints/` + entrypoint.id);
     }
   }
 }

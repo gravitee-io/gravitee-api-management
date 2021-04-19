@@ -19,24 +19,24 @@ class TenantService {
   }
 
   list() {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/tenants/`);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/tenants/`);
   }
 
   create(tenants) {
     if (tenants && tenants.length) {
-      return this.$http.post(`${this.Constants.env.baseURL}/configuration/tenants/`, tenants);
+      return this.$http.post(`${this.Constants.org.baseURL}/configuration/tenants/`, tenants);
     }
   }
 
   update(tenants) {
     if (tenants && tenants.length) {
-      return this.$http.put(`${this.Constants.env.baseURL}/configuration/tenants/`, tenants);
+      return this.$http.put(`${this.Constants.org.baseURL}/configuration/tenants/`, tenants);
     }
   }
 
   delete(tenant) {
     if (tenant) {
-      return this.$http.delete(`${this.Constants.env.baseURL}/configuration/tenants/` + tenant.id);
+      return this.$http.delete(`${this.Constants.org.baseURL}/configuration/tenants/` + tenant.id);
     }
   }
 }

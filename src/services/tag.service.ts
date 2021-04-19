@@ -19,28 +19,28 @@ class TagService {
   }
 
   list() {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/tags/`);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/tags/`);
   }
 
   get(tagId: string) {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/tags/` + tagId);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/tags/` + tagId);
   }
 
   create(tag) {
     if (tag) {
-      return this.$http.post(`${this.Constants.env.baseURL}/configuration/tags/`, tag);
+      return this.$http.post(`${this.Constants.org.baseURL}/configuration/tags/`, tag);
     }
   }
 
   update(tag) {
     if (tag && tag.id) {
-      return this.$http.put(`${this.Constants.env.baseURL}/configuration/tags/` + tag.id, tag);
+      return this.$http.put(`${this.Constants.org.baseURL}/configuration/tags/` + tag.id, tag);
     }
   }
 
   delete(tag) {
     if (tag) {
-      return this.$http.delete(`${this.Constants.env.baseURL}/configuration/tags/` + tag.id);
+      return this.$http.delete(`${this.Constants.org.baseURL}/configuration/tags/` + tag.id);
     }
   }
 }
