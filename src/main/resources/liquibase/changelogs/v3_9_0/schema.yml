@@ -1,0 +1,66 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.9.0
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}tags
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  defaultValue: DEFAULT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reference_type
+                  type: nvarchar(64)
+                  defaultValue: ORGANIZATION
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: ${gravitee_prefix}tenants
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  defaultValue: DEFAULT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reference_type
+                  type: nvarchar(64)
+                  defaultValue: ORGANIZATION
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: ${gravitee_prefix}entrypoints
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  defaultValue: DEFAULT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reference_type
+                  type: nvarchar(64)
+                  defaultValue: ORGANIZATION
+                  constraints:
+                    nullable: false
+        - sql:
+            dbms: postgresql
+            sql: update ${gravitee_prefix}entrypoints set reference_type = 'ORGANIZATION', reference_id = (SELECT organization_id from ${gravitee_prefix}environments env where ${gravitee_prefix}entrypoints.environment_id = env.id) from ${gravitee_prefix}entrypoints ent where ent.environment_id IS NOT NULL OR ent.environment_id <> '';
+        # dbms: mssql
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}entrypoints set reference_type = 'ORGANIZATION', reference_id = ${gravitee_prefix}environments.organization_id from ${gravitee_prefix}entrypoints inner join ${gravitee_prefix}environments on ${gravitee_prefix}environments.id = ${gravitee_prefix}entrypoints.environment_id where ${gravitee_prefix}entrypoints.environment_id IS NOT NULL OR ${gravitee_prefix}entrypoints.environment_id <> '';
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}entrypoints inner join ${gravitee_prefix}environments on ${gravitee_prefix}environments.id = ${gravitee_prefix}entrypoints.environment_id set reference_type = 'ORGANIZATION', reference_id = ${gravitee_prefix}environments.organization_id where ${gravitee_prefix}entrypoints.environment_id IS NOT NULL OR ${gravitee_prefix}entrypoints.environment_id <> '';
+
+        - dropColumn:
+            cascadeConstraints: true
+            columnName: environment_id
+            tableName: ${gravitee_prefix}entrypoints

@@ -18,7 +18,12 @@ package io.gravitee.repository.jdbc.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TagRepository;
+import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.management.model.Tag;
+import io.gravitee.repository.management.model.TagReferenceType;
+import io.gravitee.repository.management.model.TenantReferenceType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -36,6 +41,8 @@ import static java.util.stream.Collectors.toSet;
 @Repository
 public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> implements TagRepository {
 
+    private final Logger LOGGER = LoggerFactory.getLogger(JdbcTagRepository.class);
+
     private final String TAG_GROUPS;
 
     JdbcTagRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
@@ -49,6 +56,8 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
                 .addColumn("id", Types.NVARCHAR, String.class)
                 .addColumn("name", Types.NVARCHAR, String.class)
                 .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("reference_id", Types.NVARCHAR, String.class)
+                .addColumn("reference_type", Types.NVARCHAR, TagReferenceType.class)
                 .build();
     }
 
@@ -65,8 +74,38 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     }
 
     @Override
-    public Set<Tag> findAll() throws TechnicalException {
-        return super.findAll().stream().peek(this::addGroups).collect(toSet());
+    public Optional<Tag> findByIdAndReference(final String id, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+        try {
+            Optional<Tag> tag = jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " t where id = ? and reference_id = ? and reference_type = ? "
+                    , getOrm().getRowMapper()
+                    , id, referenceId, referenceType.name()
+            )
+                    .stream()
+                    .findFirst();
+            tag.ifPresent(this::addGroups);
+            return tag;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find {} tags by id, referenceId and referenceType:", getOrm().getTableName(), ex);
+            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by id, referenceId and referenceType", ex);
+        }
+    }
+
+    @Override
+    public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
+        try {
+            return jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? "
+                    , getOrm().getRowMapper()
+                    , referenceId, referenceType.name()
+            )
+                    .stream()
+                    .peek(this::addGroups)
+                    .collect(toSet());
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find {} tags referenceId and referenceType:", getOrm().getTableName(), ex);
+            throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by referenceId and referenceType", ex);
+        }
     }
 
     @Override

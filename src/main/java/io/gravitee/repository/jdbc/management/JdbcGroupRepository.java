@@ -42,10 +42,12 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcGroupRepository.class);
     private final String GROUP_EVENT_RULES;
+    private final String ENVIRONMENTS;
 
     JdbcGroupRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "groups");
         GROUP_EVENT_RULES = getTableNameFor("group_event_rules");
+        ENVIRONMENTS = getTableNameFor("environments");
     }
 
     @Override
@@ -61,7 +63,8 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
                 .addColumn("lock_application_role", Types.BIT, boolean.class)
                 .addColumn("system_invitation", Types.BIT, boolean.class)
                 .addColumn("email_invitation", Types.BIT, boolean.class)
-                .addColumn("disable_membership_notifications", Types.BIT, boolean.class)                .addColumn("api_primary_owner", Types.NVARCHAR, String.class)
+                .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
+                .addColumn("api_primary_owner", Types.NVARCHAR, String.class)
                 .build();
     }
 
@@ -209,6 +212,25 @@ public class JdbcGroupRepository extends JdbcAbstractCrudRepository<Group, Strin
         } catch (final Exception ex) {
             LOGGER.error("Failed to find group by ids", ex);
             throw new TechnicalException("Failed to find group by ids", ex);
+        }
+    }
+
+    @Override
+    public Set<Group> findAllByOrganization(String organizationId) throws TechnicalException {
+        LOGGER.debug("JdbcGroupRepository.findAllByOrganization({})", organizationId);
+
+        final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
+        .append(" grp")
+        .append(" join ").append(ENVIRONMENTS).append(" env on env.id = grp.environment_id")
+        .append(" where env.organization_id = ?");
+        try {
+            return new HashSet<>(jdbcTemplate.query(query.toString()
+                    , getOrm().getRowMapper()
+                    , organizationId
+            ));
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find group by organization", ex);
+            throw new TechnicalException("Failed to find group by organization", ex);
         }
     }
 
