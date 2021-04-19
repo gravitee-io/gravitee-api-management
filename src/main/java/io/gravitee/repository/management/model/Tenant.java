@@ -31,6 +31,10 @@ public class Tenant {
 
     private String description;
 
+    private String referenceId;
+
+    private TenantReferenceType referenceType;
+
     public String getId() {
         return id;
     }
@@ -55,6 +59,22 @@ public class Tenant {
         this.description = description;
     }
 
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public TenantReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(TenantReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -62,12 +82,14 @@ public class Tenant {
         Tenant view = (Tenant) o;
         return Objects.equals(id, view.id) &&
                 Objects.equals(name, view.name) &&
-                Objects.equals(description, view.description);
+                Objects.equals(description, view.description) &&
+                Objects.equals(referenceId, view.referenceId) &&
+                Objects.equals(referenceType, view.referenceType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description);
+        return Objects.hash(id, name, description, referenceId, referenceType);
     }
 
     @Override
@@ -76,6 +98,8 @@ public class Tenant {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
                 '}';
     }
 }

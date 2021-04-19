@@ -31,6 +31,8 @@ public class Tag {
     private String name;
     private String description;
     private List<String> restrictedGroups;
+    private String referenceId;
+    private TagReferenceType referenceType;
 
     public String getId() {
         return id;
@@ -64,6 +66,22 @@ public class Tag {
         this.restrictedGroups = restrictedGroups;
     }
 
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public TagReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(TagReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -72,7 +90,8 @@ public class Tag {
         return Objects.equals(id, tag.id) &&
                 Objects.equals(name, tag.name) &&
                 Objects.equals(description, tag.description) &&
-                Objects.equals(restrictedGroups, tag.restrictedGroups);
+                Objects.equals(referenceId, tag.referenceId) &&
+                Objects.equals(referenceType, tag.referenceType);
     }
 
     @Override
@@ -87,6 +106,8 @@ public class Tag {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", restrictedGroups=" + restrictedGroups +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType='" + referenceType + '\'' +
                 '}';
     }
 }

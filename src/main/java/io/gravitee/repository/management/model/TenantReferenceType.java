@@ -13,22 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
-
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Tag;
-import io.gravitee.repository.management.model.TagReferenceType;
-
-import java.util.Optional;
-import java.util.Set;
+package io.gravitee.repository.management.model;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TagRepository extends CrudRepository<Tag, String>{
-
-    Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException;
-
-    Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) throws TechnicalException;
+public enum TenantReferenceType {
+    ORGANIZATION
 }

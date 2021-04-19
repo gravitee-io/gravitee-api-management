@@ -27,17 +27,10 @@ public class Entrypoint {
     }
 
     private String id;
-    private String environmentId;
     private String value;
     private String tags;
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
+    private String referenceId;
+    private EntrypointReferenceType referenceType;
 
     public String getId() {
         return id;
@@ -63,6 +56,22 @@ public class Entrypoint {
         this.tags = tags;
     }
 
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
+
+    public EntrypointReferenceType getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(EntrypointReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -80,9 +89,10 @@ public class Entrypoint {
     public String toString() {
         return "Entrypoint{" +
                 "id='" + id + '\'' +
-                ", environmentId='" + environmentId + '\'' +
                 ", value='" + value + '\'' +
                 ", tags='" + tags + '\'' +
+                ", referenceId='" + referenceId + '\'' +
+                ", referenceType=" + referenceType +
                 '}';
     }
 }

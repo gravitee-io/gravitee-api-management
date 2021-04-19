@@ -17,7 +17,10 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Entrypoint;
+import io.gravitee.repository.management.model.EntrypointReferenceType;
 
+import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -25,7 +28,8 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface EntrypointRepository extends CrudRepository<Entrypoint, String>{
-    Set<Entrypoint> findAll() throws TechnicalException;
-    
-    Set<Entrypoint> findAllByEnvironment(String environmentId) throws TechnicalException;
+
+    Optional<Entrypoint> findByIdAndReference(String entrypointId, String referenceId, EntrypointReferenceType referenceType) throws TechnicalException;
+
+    Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) throws TechnicalException;
 }
