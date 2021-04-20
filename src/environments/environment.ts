@@ -19,7 +19,7 @@
 
 export const environment = {
   locales: ['en', 'fr', 'cs'],
-  production: false
+  production: false,
 };
 
 /*

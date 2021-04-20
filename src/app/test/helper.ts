@@ -21,8 +21,7 @@ export function getTokenServiceMock() {
   tokenService = TestBed.inject(TokenService);
   tokenService.isParsedTokenExpired = jest.fn(() => true);
   tokenService.parseToken = jest.fn(() => ({
-    firstname: 'foobar'
+    firstname: 'foobar',
   }));
   return tokenService;
 }
-

@@ -24,10 +24,9 @@ import '@gravitee/ui-components/wc/gv-table';
 @Component({
   selector: 'app-gv-analytics-dashboard',
   templateUrl: './gv-analytics-dashboard.component.html',
-  styleUrls: ['./gv-analytics-dashboard.component.css']
+  styleUrls: ['./gv-analytics-dashboard.component.css'],
 })
 export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
-
   @Input() dashboard: Dashboard;
   @Output() searching = new EventEmitter<boolean>();
 
@@ -41,11 +40,10 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
     private applicationService: ApplicationService,
     private analyticsService: AnalyticsService,
     private navRouteService: NavRouteService,
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
-    this.subscription = this.route.queryParams.subscribe(queryParams => {
+    this.subscription = this.route.queryParams.subscribe((queryParams) => {
       if (queryParams && !queryParams.skipRefresh) {
         this.refresh(queryParams);
       }
@@ -106,7 +104,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
         const requestParameters = {
           ...{ applicationId: this.application.id, from: timeSlot.from, to: timeSlot.to, interval: timeSlot.interval },
           ...widget.chart.request,
-          ...this.analyticsService.getQueryFromPath(widget.chart.request.field, widget.chart.request.ranges)
+          ...this.analyticsService.getQueryFromPath(widget.chart.request.field, widget.chart.request.ranges),
         };
 
         if (widget.chart.percent) {
@@ -123,60 +121,62 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
       });
 
       this.searching.emit(true);
-      Promise.all(promises).then((response: any) => {
-        this.definition.forEach((widget, i) => {
-          let items;
-          let itemsPercent;
-          if (Array.isArray(response[i])) {
-            items = response[i][0];
-            itemsPercent = response[i][1];
-          } else {
-            items = response[i];
-          }
-          if (widget.chart.type === 'table') {
-            const style = () => 'justify-content: flex-end; text-align: right;';
-            widget.chart.data[0].field = 'key';
-            widget.chart.data[1].field = 'value';
-            widget.chart.data[1].headerStyle = style;
-            widget.chart.data[1].style = style;
-            if (itemsPercent) {
-              widget.chart.data[2].field = 'percent';
-              widget.chart.data[2].headerStyle = style;
-              widget.chart.data[2].style = style;
-            }
-
-            const keys = Object.keys(items.values);
-            if (itemsPercent) {
-              widget.items = keys.map((key) => {
-                const value = items.values[key];
-                return {
-                  id: key,
-                  key: items.metadata[key].name,
-                  value,
-                  percent: `${parseFloat(value / itemsPercent.hits * 100 + '').toFixed(2)}%`
-                };
-              });
+      Promise.all(promises)
+        .then((response: any) => {
+          this.definition.forEach((widget, i) => {
+            let items;
+            let itemsPercent;
+            if (Array.isArray(response[i])) {
+              items = response[i][0];
+              itemsPercent = response[i][1];
             } else {
-              widget.items = keys.map((key) => {
-                return { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
-              });
+              items = response[i];
             }
-          } else {
-            const values = items.values;
-            if (Array.isArray(values)) {
-              values.forEach((item) => {
-                const visible = queryParams[item.field];
-                if (visible) {
-                  item.buckets.forEach((bucket) => {
-                    bucket.visible = !visible.length || visible.includes(bucket.name);
-                  });
-                }
-              });
+            if (widget.chart.type === 'table') {
+              const style = () => 'justify-content: flex-end; text-align: right;';
+              widget.chart.data[0].field = 'key';
+              widget.chart.data[1].field = 'value';
+              widget.chart.data[1].headerStyle = style;
+              widget.chart.data[1].style = style;
+              if (itemsPercent) {
+                widget.chart.data[2].field = 'percent';
+                widget.chart.data[2].headerStyle = style;
+                widget.chart.data[2].style = style;
+              }
+
+              const keys = Object.keys(items.values);
+              if (itemsPercent) {
+                widget.items = keys.map((key) => {
+                  const value = items.values[key];
+                  return {
+                    id: key,
+                    key: items.metadata[key].name,
+                    value,
+                    percent: `${parseFloat((value / itemsPercent.hits) * 100 + '').toFixed(2)}%`,
+                  };
+                });
+              } else {
+                widget.items = keys.map((key) => {
+                  return { id: key, key: items.metadata[key].name, value: items.values[key], percent: undefined };
+                });
+              }
+            } else {
+              const values = items.values;
+              if (Array.isArray(values)) {
+                values.forEach((item) => {
+                  const visible = queryParams[item.field];
+                  if (visible) {
+                    item.buckets.forEach((bucket) => {
+                      bucket.visible = !visible.length || visible.includes(bucket.name);
+                    });
+                  }
+                });
+              }
+              widget.items = items;
             }
-            widget.items = items;
-          }
-        });
-      }).finally(() => this.searching.emit(false));
+          });
+        })
+        .finally(() => this.searching.emit(false));
     }
   }
 
@@ -186,7 +186,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
     this.router.navigate([], {
       queryParams,
       queryParamsHandling: 'merge',
-      fragment: this.analyticsService.fragment
+      fragment: this.analyticsService.fragment,
     });
   }
 
@@ -196,7 +196,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
     this.router.navigate([], {
       queryParams: e,
       queryParamsHandling: 'merge',
-      fragment: this.analyticsService.fragment
+      fragment: this.analyticsService.fragment,
     });
   }
 

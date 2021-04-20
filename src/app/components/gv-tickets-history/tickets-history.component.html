@@ -22,54 +22,56 @@
     </div>
 
     <div class="page__box-content">
-      <gv-table *ngIf="tickets"
-                [options]="options"
-                [items]="tickets"
-                [format]="format"
-                [order]="getOrder()"
-                [compareFn]="compareFn"
-                [selected]="selectedTicketIds"
-                rowheight="40px"></gv-table>
+      <gv-table
+        *ngIf="tickets"
+        [options]="options"
+        [items]="tickets"
+        [format]="format"
+        [order]="getOrder()"
+        [compareFn]="compareFn"
+        [selected]="selectedTicketIds"
+        rowheight="40px"
+      ></gv-table>
     </div>
 
     <div class="page__box-footer pagination__block" *ngIf="tickets && tickets.length">
-      <gv-select class="pagination__size__block"
-                 [options]="pageSizes"
-                 [value]="size"
-                 small
-                 (:gv-select:select)="onSelectSize($event.detail)"></gv-select>
+      <gv-select
+        class="pagination__size__block"
+        [options]="pageSizes"
+        [value]="size"
+        small
+        (:gv-select:select)="onSelectSize($event.detail)"
+      ></gv-select>
       <gv-pagination class="pagination__pagination__block" [data]="paginationData"></gv-pagination>
     </div>
 
     <section id="ticket" *ngIf="selectedTicket" class="ticket__section">
-
       <div class="ticket__section-container">
         <div *ngIf="!api" class="ticket__section-row">
           <label>{{ 'tickets.api' | translate }}</label>
-          <p>{{selectedTicket.api}}</p>
+          <p>{{ selectedTicket.api }}</p>
         </div>
 
         <div class="ticket__section-row">
           <label>{{ 'tickets.application' | translate }}</label>
-          <p>{{selectedTicket.application}}</p>
+          <p>{{ selectedTicket.application }}</p>
         </div>
 
         <div class="ticket__section-row">
           <label>{{ 'tickets.subject' | translate }}</label>
-          <p>{{selectedTicket.subject}}</p>
+          <p>{{ selectedTicket.subject }}</p>
         </div>
 
         <div class="ticket__section-row">
           <label>{{ 'tickets.date' | translate }}</label>
-          <p>{{selectedTicket.created_at | date: 'medium' }}</p>
+          <p>{{ selectedTicket.created_at | date: 'medium' }}</p>
         </div>
 
         <div class="ticket__section-row">
           <label>{{ 'tickets.content' | translate }}</label>
-          <p class="pre-wrap">{{selectedTicket.content}}</p>
+          <p class="pre-wrap">{{ selectedTicket.content }}</p>
         </div>
       </div>
     </section>
-
   </div>
 </div>

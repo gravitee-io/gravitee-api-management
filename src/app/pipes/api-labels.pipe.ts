@@ -17,10 +17,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { Api } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Pipe({
-  name: 'apiLabels'
+  name: 'apiLabels',
 })
 export class ApiLabelsPipe implements PipeTransform {
-
   transform(api: Api, ...args: any[]): any {
     return api.labels;
   }

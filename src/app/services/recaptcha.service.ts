@@ -21,10 +21,9 @@ import { filter } from 'rxjs/operators';
 declare var grecaptcha: any;
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ReCaptchaService {
-
   private readonly headerName: string = 'X-Recaptcha-Token';
   private readonly scriptId: string = 'reCaptcha';
   private siteKey: string;
@@ -33,19 +32,15 @@ export class ReCaptchaService {
   private reCaptchaToken: string;
   private display = false;
 
-  constructor(
-    private configurationService: ConfigurationService,
-    private router: Router,
-  ) {
-    this.router.events.pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(event => {
-        // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
-        this.hideBadge();
-      });
+  constructor(private configurationService: ConfigurationService, private router: Router) {
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event) => {
+      // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
+      this.hideBadge();
+    });
   }
 
   load(): Promise<any> {
-    const self = this
+    const self = this;
     this.enabled = this.configurationService.get('recaptcha.enabled');
     this.siteKey = this.configurationService.get('recaptcha.siteKey');
 
@@ -58,11 +53,12 @@ export class ReCaptchaService {
           script.id = this.scriptId;
           script.src = `https://www.google.com/recaptcha/api.js?render=${this.siteKey}`;
           script.async = true;
-          script.onload = () => grecaptcha.ready(() => {
-            resolve();
-            self.loaded = true;
-            self.displayOrHideBadge();
-          });
+          script.onload = () =>
+            grecaptcha.ready(() => {
+              resolve();
+              self.loaded = true;
+              self.displayOrHideBadge();
+            });
 
           document.head.appendChild(script);
         }
@@ -93,7 +89,6 @@ export class ReCaptchaService {
   }
 
   isEnabled(): boolean {
-
     return this.enabled;
   }
 

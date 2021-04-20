@@ -25,7 +25,6 @@ import { RegistrationConfirmationComponent } from './registration-confirmation.c
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('RegistrationConfirmationComponent', () => {
-
   const createComponent = createComponentFactory({
     component: RegistrationConfirmationComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -36,10 +35,10 @@ describe('RegistrationConfirmationComponent', () => {
         parseToken: (token) => ({
           firstName: 'foo',
           lastName: 'bar',
-          email: 'foo@bar'
-        })
-      })
-    ]
+          email: 'foo@bar',
+        }),
+      }),
+    ],
   });
 
   let spectator: Spectator<RegistrationConfirmationComponent>;
@@ -53,5 +52,4 @@ describe('RegistrationConfirmationComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

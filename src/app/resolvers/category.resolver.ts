@@ -19,10 +19,7 @@ import { Category, PortalService } from '../../../projects/portal-webclient-sdk/
 
 @Injectable({ providedIn: 'root' })
 export class CategoryResolver implements Resolve<Category> {
-
-  constructor(
-    private portalService: PortalService,
-  ) {}
+  constructor(private portalService: PortalService) {}
 
   resolve(route: ActivatedRouteSnapshot) {
     const categoryId = route.params.categoryId;

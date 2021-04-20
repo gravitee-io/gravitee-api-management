@@ -21,7 +21,7 @@ import {
   Category,
   FilterApiQuery,
   Page,
-  PortalService
+  PortalService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-promote';
 import '@gravitee/ui-components/wc/gv-card-list';
@@ -42,10 +42,9 @@ import { createPromiseList } from 'src/app/utils/utils';
 @Component({
   selector: 'app-all',
   templateUrl: './filtered-catalog.component.html',
-  styleUrls: ['./filtered-catalog.component.css']
+  styleUrls: ['./filtered-catalog.component.css'],
 })
 export class FilteredCatalogComponent implements OnInit {
-
   static readonly RANDOM_MAX_SIZE = 4;
   static readonly DEFAULT_DISPLAY = 'cards';
 
@@ -68,39 +67,47 @@ export class FilteredCatalogComponent implements OnInit {
   category: Category;
   fragments: any = {
     pagination: 'pagination',
-    filter: 'filter'
+    filter: 'filter',
   };
-  private defaultCategory: { value, label };
+  private defaultCategory: { value; label };
   emptyIcon: string;
   emptyMessage: any;
   isDocHidden = true;
 
-  constructor(private apiService: ApiService,
-              private translateService: TranslateService,
-              private activatedRoute: ActivatedRoute,
-              private router: Router,
-              private apiStates: ApiStatesPipe,
-              private apiLabels: ApiLabelsPipe,
-              private config: ConfigurationService,
-              private portalService: PortalService,
+  constructor(
+    private apiService: ApiService,
+    private translateService: TranslateService,
+    private activatedRoute: ActivatedRoute,
+    private router: Router,
+    private apiStates: ApiStatesPipe,
+    private apiLabels: ApiLabelsPipe,
+    private config: ConfigurationService,
+    private portalService: PortalService,
   ) {
     this.allApis = [];
   }
 
   ngOnInit() {
     this.emptyIcon = this.activatedRoute.snapshot.data.icon || 'general:sad';
-    this.translateService.get(i18n('catalog.defaultCategory')).toPromise()
-      .then((label) => this.defaultCategory = {
-        value: '',
-        label
-      });
-    this.currentDisplay = this.activatedRoute.snapshot.queryParamMap.get('display') ||
-      localStorage.getItem('user-display-mode') || FilteredCatalogComponent.DEFAULT_DISPLAY;
+    this.translateService
+      .get(i18n('catalog.defaultCategory'))
+      .toPromise()
+      .then(
+        (label) =>
+          (this.defaultCategory = {
+            value: '',
+            label,
+          }),
+      );
+    this.currentDisplay =
+      this.activatedRoute.snapshot.queryParamMap.get('display') ||
+      localStorage.getItem('user-display-mode') ||
+      FilteredCatalogComponent.DEFAULT_DISPLAY;
     this._initDisplayOptions();
 
     this.filterApiQuery = this.activatedRoute.snapshot.data.filterApiQuery;
 
-    this.activatedRoute.queryParamMap.subscribe(params => {
+    this.activatedRoute.queryParamMap.subscribe((params) => {
       const page = parseInt(params.get(SearchQueryParam.PAGE), 10) || 1;
       const size = parseInt(params.get(SearchQueryParam.SIZE), 10) || 6;
       const categoryPath = this._getCategoryPath();
@@ -123,8 +130,10 @@ export class FilteredCatalogComponent implements OnInit {
       }
 
       if (this.category && this.category.page) {
-        this.portalService.getPageByPageId({ pageId: this.category.page }).toPromise()
-          .then(docPage => this.currentCategoryDocumentationPage = docPage);
+        this.portalService
+          .getPageByPageId({ pageId: this.category.page })
+          .toPromise()
+          .then((docPage) => (this.currentCategoryDocumentationPage = docPage));
       }
     });
   }
@@ -136,9 +145,9 @@ export class FilteredCatalogComponent implements OnInit {
         icon: 'layout:layout-4-blocks',
         title: i18n('catalog.display.cards'),
       },
-      { id: 'list', icon: 'layout:layout-horizontal', title: i18n('catalog.display.list') }
+      { id: 'list', icon: 'layout:layout-horizontal', title: i18n('catalog.display.list') },
     ].map((option) => {
-      this.translateService.get(option.title).subscribe((title) => option.title = title);
+      this.translateService.get(option.title).subscribe((title) => (option.title = title));
       // @ts-ignore
       option.title = '';
       return option;
@@ -156,7 +165,8 @@ export class FilteredCatalogComponent implements OnInit {
     const { list, deferredList } = createPromiseList(FilteredCatalogComponent.RANDOM_MAX_SIZE);
     this.randomList = list;
 
-    return this.apiService.getApis({ size: FilteredCatalogComponent.RANDOM_MAX_SIZE, _filter: this.filterApiQuery })
+    return this.apiService
+      .getApis({ size: FilteredCatalogComponent.RANDOM_MAX_SIZE, _filter: this.filterApiQuery })
       .toPromise()
       .then((apiResponse) => {
         apiResponse.data.forEach((a, index) => {
@@ -173,7 +183,8 @@ export class FilteredCatalogComponent implements OnInit {
 
   async _loadPromotedApi(requestParams) {
     this.empty = false;
-    return this.apiService.getApis(requestParams)
+    return this.apiService
+      .getApis(requestParams)
       .toPromise()
       .then(async (response) => {
         const promoted = response.data[0];
@@ -181,12 +192,14 @@ export class FilteredCatalogComponent implements OnInit {
           this.promotedMetrics = await this.apiService.getApiMetricsByApiId({ apiId: promoted.id }).toPromise();
           this.promotedApiPath = `/catalog/api/${promoted.id}`;
         } else {
-          const key = this.inCategory() ?
-            i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery}.emptyMessage`;
-          this.translateService.get(key).toPromise().then((translation) => {
-            this.emptyMessage = translation;
-            this.empty = true;
-          });
+          const key = this.inCategory() ? i18n('catalog.categories.emptyMessage') : `catalog.${this.filterApiQuery}.emptyMessage`;
+          this.translateService
+            .get(key)
+            .toPromise()
+            .then((translation) => {
+              this.emptyMessage = translation;
+              this.empty = true;
+            });
         }
         return promoted;
       });
@@ -199,13 +212,14 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   async _loadCards() {
-    return this.apiService.getApis({
-      page: this.page,
-      size: this.size,
-      filter: this.filterApiQuery,
-      category: this.currentCategory,
-      promoted: false
-    })
+    return this.apiService
+      .getApis({
+        page: this.page,
+        size: this.size,
+        filter: this.filterApiQuery,
+        category: this.currentCategory,
+        promoted: false,
+      })
       .toPromise()
       .then(async ({ data, metadata }) => {
         this.paginationData = metadata.pagination;
@@ -224,17 +238,16 @@ export class FilteredCatalogComponent implements OnInit {
         });
 
         if (this.hasCategoryMode() && this.categories == null) {
-          this.apiService.getApis({ size: -1, filter: this.filterApiQuery })
-            .subscribe((apisResponse) => {
+          this.apiService.getApis({ size: -1, filter: this.filterApiQuery }).subscribe((apisResponse) => {
+            // @ts-ignore
+            const categories = this._getCategories(apisResponse.data.slice(1));
+            if (categories.length > 0) {
               // @ts-ignore
-              const categories = this._getCategories(apisResponse.data.slice(1));
-              if (categories.length > 0) {
-                // @ts-ignore
-                this.categories = [this.defaultCategory].concat(categories);
-              } else {
-                this.categories = [];
-              }
-            });
+              this.categories = [this.defaultCategory].concat(categories);
+            } else {
+              this.categories = [];
+            }
+          });
         }
         return this.allApis;
       })
@@ -244,9 +257,17 @@ export class FilteredCatalogComponent implements OnInit {
   }
 
   private _getCategories(allPage) {
-    return [].concat(...new Set([].concat(...allPage.map((api) => {
-      return api.categories;
-    }))).values()).sort((a: string, b:string) => a.localeCompare(b));
+    return []
+      .concat(
+        ...new Set(
+          [].concat(
+            ...allPage.map((api) => {
+              return api.categories;
+            }),
+          ),
+        ).values(),
+      )
+      .sort((a: string, b: string) => a.localeCompare(b));
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
@@ -258,41 +279,41 @@ export class FilteredCatalogComponent implements OnInit {
         relativeTo: this.activatedRoute,
         queryParams,
         queryParamsHandling: 'merge',
-        fragment: this.fragments.pagination
+        fragment: this.fragments.pagination,
       });
     }
   }
 
   @HostListener(':gv-option:select', ['$event.detail'])
   _onChangeDisplay({ id }) {
-    this.router.navigate([], {
-      relativeTo: this.activatedRoute,
-      queryParams: { display: id },
-      queryParamsHandling: 'merge',
-      fragment: this.fragments.filter
-    }).then(() => {
-      this.currentDisplay = id;
-      localStorage.setItem('user-display-mode', id);
-    });
+    this.router
+      .navigate([], {
+        relativeTo: this.activatedRoute,
+        queryParams: { display: id },
+        queryParamsHandling: 'merge',
+        fragment: this.fragments.filter,
+      })
+      .then(() => {
+        this.currentDisplay = id;
+        localStorage.setItem('user-display-mode', id);
+      });
   }
 
   onSelectCategory({ target }) {
     if (target.value !== '') {
       const queryParams = { category: target.value };
       queryParams[SearchQueryParam.PAGE] = 1;
-      this.router.navigate([],
-        {
-          relativeTo: this.activatedRoute,
-          queryParams,
-          queryParamsHandling: 'merge',
-          fragment: this.fragments.filter
-        });
+      this.router.navigate([], {
+        relativeTo: this.activatedRoute,
+        queryParams,
+        queryParamsHandling: 'merge',
+        fragment: this.fragments.filter,
+      });
     } else {
-      this.router.navigate([],
-        {
-          relativeTo: this.activatedRoute,
-          fragment: this.fragments.filter
-        });
+      this.router.navigate([], {
+        relativeTo: this.activatedRoute,
+        fragment: this.fragments.filter,
+      });
     }
   }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@import "../../../../src/css/form.css";
+@import '../../../../src/css/form.css';
 
 .timeframe gv-option {
   --gv-option-button--maw: 75px;

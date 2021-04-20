@@ -18,7 +18,7 @@ import { Event } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EventService {
   private eventSource = new BehaviorSubject<GvEvent>(new GvEvent(undefined));
@@ -35,7 +35,6 @@ export class EventService {
   unsubscribe() {
     this.eventSource.complete();
   }
-
 }
 
 export class GvEvent {
@@ -46,5 +45,4 @@ export class GvEvent {
     this.type = type;
     this.details = details;
   }
-
 }

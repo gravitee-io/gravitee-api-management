@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@import "../../../../../src/css/form.css";
+@import '../../../../../src/css/form.css';
 
 .grid {
   display: grid;

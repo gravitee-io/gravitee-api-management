@@ -20,12 +20,10 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { NotificationService } from './notification.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SubscribeGuardService {
-
-  constructor(private currentUserService: CurrentUserService, private router: Router, private notificationService: NotificationService) {
-  }
+  constructor(private currentUserService: CurrentUserService, private router: Router, private notificationService: NotificationService) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     const user = this.currentUserService.get().getValue();
@@ -38,5 +36,4 @@ export class SubscribeGuardService {
     }
     return true;
   }
-
 }

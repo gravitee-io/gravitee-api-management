@@ -43,7 +43,7 @@ import {
   Router,
   RouterOutlet,
   UrlSegmentGroup,
-  UrlTree
+  UrlTree,
 } from '@angular/router';
 import { INavRoute, NavRouteService } from './services/nav-route.service';
 import { animation } from './route-animation';
@@ -64,12 +64,9 @@ import { PreviewService } from './services/preview.service';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  animations: [
-    animation,
-  ]
+  animations: [animation],
 })
 export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
-
   static UPDATE_USER_AVATAR: ':gv-user:avatar';
   public mainRoutes: Promise<INavRoute[]>;
   public userRoutes: Promise<INavRoute[]>;
@@ -109,8 +106,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private googleAnalyticsService: GoogleAnalyticsService,
     private previewService: PreviewService,
   ) {
-
-    this.activatedRoute.queryParamMap.subscribe(params => {
+    this.activatedRoute.queryParamMap.subscribe((params) => {
       if (params.has('preview') && params.get('preview') === 'on') {
         this.previewService.activate();
       }
@@ -134,7 +130,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnInit() {
     this.googleAnalyticsService.load();
-    this.currentUserService.get().subscribe(newCurrentUser => {
+    this.currentUserService.get().subscribe((newCurrentUser) => {
       this.currentUser = newCurrentUser;
       this.userRoutes = this.navRouteService.getUserNav();
       if (this.currentUser) {
@@ -142,18 +138,15 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
           this.userPicture = this.currentUser._links ? this.currentUser._links.avatar : null;
         });
         this.loadNotifications();
-        this.interval = setInterval(
-          () => {
-            this.loadNotifications();
-          },
-          this.configurationService.get('scheduler.notificationsInSeconds') * 1000
-        );
+        this.interval = setInterval(() => {
+          this.loadNotifications();
+        }, this.configurationService.get('scheduler.notificationsInSeconds') * 1000);
       } else {
         this.userPicture = null;
         clearInterval(this.interval);
       }
     });
-    this.notificationService.notification.subscribe(notification => {
+    this.notificationService.notification.subscribe((notification) => {
       if (notification) {
         this.translateService.get(notification.code, notification.parameters).subscribe((translatedMessage) => {
           if (notification.code !== translatedMessage || !notification.message) {
@@ -169,28 +162,30 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   private loadNotifications() {
-    this.userService.getCurrentUserNotifications({ size: 1 }).toPromise().then((response) => {
-      if (response.data && response.data[0]) {
-        const portalNotification = response.data[0];
-        const total = response.metadata.pagination ? response.metadata.pagination.total : 0;
-        if (this.numberOfPortalNotifications !== null && (total > this.numberOfPortalNotifications)) {
-          this.eventService.dispatch(new GvEvent(UserNotificationComponent.NEW));
-          const windowNotification = (window as any).Notification;
-          if (windowNotification) {
-            windowNotification.requestPermission()
-              .then((permission) => {
+    this.userService
+      .getCurrentUserNotifications({ size: 1 })
+      .toPromise()
+      .then((response) => {
+        if (response.data && response.data[0]) {
+          const portalNotification = response.data[0];
+          const total = response.metadata.pagination ? response.metadata.pagination.total : 0;
+          if (this.numberOfPortalNotifications !== null && total > this.numberOfPortalNotifications) {
+            this.eventService.dispatch(new GvEvent(UserNotificationComponent.NEW));
+            const windowNotification = (window as any).Notification;
+            if (windowNotification) {
+              windowNotification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
                   const n = new windowNotification(portalNotification.title, {
-                    body: portalNotification.message
+                    body: portalNotification.message,
                   });
                 }
               });
+            }
           }
+          this.numberOfPortalNotifications = total;
+          this.ref.detectChanges();
         }
-        this.numberOfPortalNotifications = total;
-        this.ref.detectChanges();
-      }
-    });
+      });
   }
 
   ngAfterViewInit() {
@@ -269,7 +264,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   _buildLinks(links: Link[]): INavRoute[] {
-    return links.map(element => {
+    return links.map((element) => {
       let path: string;
       let target: string;
       switch (element.resourceType) {
@@ -301,7 +296,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
         active: this.router.isActive(path, false),
         path,
         target,
-        title: element.name
+        title: element.name,
       };
       return navRoute;
     });
@@ -345,20 +340,17 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.isHomepage = this.isHomepageUrl(event.url);
     this.portalService.getPortalLinks().subscribe((portalLinks) => {
       if (portalLinks.slots) {
-
-        this.mainRoutes = this.navRouteService.getChildrenNav(
-          {
-            data: { menu: true },
-            children: this.router.config.filter((route) => (route.data && route.data.menu))
-          }
-        );
+        this.mainRoutes = this.navRouteService.getChildrenNav({
+          data: { menu: true },
+          children: this.router.config.filter((route) => route.data && route.data.menu),
+        });
 
         if (portalLinks.slots.header) {
-          const headerLinks = portalLinks.slots.header.find(catLinks => catLinks.root);
+          const headerLinks = portalLinks.slots.header.find((catLinks) => catLinks.root);
           if (headerLinks) {
             const dynamicRoutes = this._buildLinks(headerLinks.links);
             const hasDynamicRouteActive = dynamicRoutes.find((r) => r.active);
-            this.mainRoutes = this.mainRoutes.then(navRoutes => {
+            this.mainRoutes = this.mainRoutes.then((navRoutes) => {
               if (hasDynamicRouteActive) {
                 const activeRoute = navRoutes.find((r) => r.active);
                 if (activeRoute) {
@@ -366,12 +358,11 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
                 }
               }
               return [...navRoutes, ...dynamicRoutes];
-
             });
           }
         }
         if (portalLinks.slots.footer) {
-          const footerLinks = portalLinks.slots.footer.find(catLinks => catLinks.root);
+          const footerLinks = portalLinks.slots.footer.find((catLinks) => catLinks.root);
           if (footerLinks) {
             this.links.footer = this._buildLinks(footerLinks.links);
           }
@@ -379,11 +370,11 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
         if (portalLinks.slots.topfooter) {
           this.links.topfooter = portalLinks.slots.topfooter
-            .filter(catLinks => !catLinks.root)
-            .map(catLinks => {
+            .filter((catLinks) => !catLinks.root)
+            .map((catLinks) => {
               return {
                 title: catLinks.category,
-                links: this._buildLinks(catLinks.links)
+                links: this._buildLinks(catLinks.links),
               };
             });
         }
@@ -451,9 +442,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
 
   isInLoginOrRegistration(): boolean {
     const url = this.router.routerState.snapshot.url;
-    return url.startsWith('/user/login')
-      || url.startsWith('/user/registration')
-      || url.startsWith('/user/resetPassword');
+    return url.startsWith('/user/login') || url.startsWith('/user/registration') || url.startsWith('/user/resetPassword');
   }
 
   forceLogin(): boolean {

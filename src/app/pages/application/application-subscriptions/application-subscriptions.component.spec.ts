@@ -28,7 +28,7 @@ describe('ApplicationSubscriptionsComponent', () => {
     component: ApplicationSubscriptionsComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-    declarations:[LocalizedDatePipe]
+    declarations: [LocalizedDatePipe],
   });
 
   let spectator: Spectator<ApplicationSubscriptionsComponent>;
@@ -42,5 +42,4 @@ describe('ApplicationSubscriptionsComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

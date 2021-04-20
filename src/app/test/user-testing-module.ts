@@ -19,31 +19,24 @@ import { BehaviorSubject } from 'rxjs';
 import { CurrentUserService } from '../services/current-user.service';
 
 @Injectable()
-export class UserServiceStub {
-}
+export class UserServiceStub {}
 
 @Injectable()
-export class UsersServiceStub {
-}
+export class UsersServiceStub {}
 
 @Injectable()
 export class CurrentUserServiceStub {
   get(): BehaviorSubject<User> {
-    return new BehaviorSubject<User>({
-
-    });
+    return new BehaviorSubject<User>({});
   }
 }
 
 @NgModule({
-  declarations: [
-  ],
+  declarations: [],
   providers: [
     { provide: UserService, useClass: UserServiceStub },
     { provide: UsersService, useClass: UsersServiceStub },
     { provide: CurrentUserService, useClass: CurrentUserServiceStub },
   ],
 })
-export class UserTestingModule {
-
-}
+export class UserTestingModule {}

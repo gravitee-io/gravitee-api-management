@@ -19,9 +19,7 @@ import { CurrentUserService } from './current-user.service';
 
 @Injectable({ providedIn: 'root' })
 export class PermissionGuardService implements CanActivate {
-
-  constructor(private router: Router, private currentUserService: CurrentUserService,) {
-  }
+  constructor(private router: Router, private currentUserService: CurrentUserService) {}
 
   canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
     let canActivate: boolean | UrlTree = true;
@@ -29,11 +27,11 @@ export class PermissionGuardService implements CanActivate {
     const userPermissions = (this.currentUserService.get().getValue() && this.currentUserService.get().getValue().permissions) || {};
     // concat permission permission related to the current page with the user permission
     // otherwise some permission validations may fails.
-    const permissions = { ...routePermissions, ...userPermissions }
+    const permissions = { ...routePermissions, ...userPermissions };
     if (permissions && route.data && route.data.expectedPermissions) {
       const expectedPermissions = route.data.expectedPermissions;
       const expectedPermissionsObject = {};
-      expectedPermissions.map(perm => {
+      expectedPermissions.map((perm) => {
         const splittedPerms = perm.split('-');
         if (expectedPermissionsObject[splittedPerms[0]]) {
           expectedPermissionsObject[splittedPerms[0]].push(splittedPerms[1]);
@@ -41,10 +39,9 @@ export class PermissionGuardService implements CanActivate {
           expectedPermissionsObject[splittedPerms[0]] = [splittedPerms[1]];
         }
       });
-      Object.keys(expectedPermissionsObject).forEach(perm => {
+      Object.keys(expectedPermissionsObject).forEach((perm) => {
         const applicationRights = permissions[perm];
-        if (!applicationRights ||
-          (applicationRights && !this.includesAll(applicationRights, expectedPermissionsObject[perm]))) {
+        if (!applicationRights || (applicationRights && !this.includesAll(applicationRights, expectedPermissionsObject[perm]))) {
           canActivate = this.router.parseUrl('/');
         }
       });
@@ -54,11 +51,11 @@ export class PermissionGuardService implements CanActivate {
 
   includesAll(applicationRights, expectedRights): boolean {
     let includesAll = true;
-    expectedRights.forEach(r => {
+    expectedRights.forEach((r) => {
       if (!applicationRights.includes(r)) {
         includesAll = false;
       }
-    })
+    });
     return includesAll;
   }
 }

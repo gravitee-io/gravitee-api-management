@@ -26,11 +26,9 @@ import { NotificationService } from '../../../services/notification.service';
 @Component({
   selector: 'app-user-account',
   templateUrl: './user-account.component.html',
-  styleUrls: ['./user-account.component.css']
+  styleUrls: ['./user-account.component.css'],
 })
-
 export class UserAccountComponent implements OnInit, OnDestroy {
-
   private subscription: any;
   public currentUser: User;
   public userForm: FormGroup;
@@ -50,23 +48,24 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     private usersService: UsersService,
     private notificationService: NotificationService,
     private formBuilder: FormBuilder,
-    private eventService: EventService
-  ) {
-  }
+    private eventService: EventService,
+  ) {}
 
   ngOnInit() {
-
     this.subscription = this.currentUserService.get().subscribe((user) => {
       this.currentUser = user;
       const formDescriptor: any = {
-        last_name: new FormControl( { value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
-        first_name: new FormControl( { value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
+        last_name: new FormControl({ value: this.lastName, disabled: !this.isProfileEditable }, Validators.required),
+        first_name: new FormControl({ value: this.firstName, disabled: !this.isProfileEditable }, Validators.required),
         email: new FormControl({ value: this.email, disabled: !this.isProfileEditable }, Validators.email),
-        avatar: new FormControl(this.avatar)
+        avatar: new FormControl(this.avatar),
       };
 
       if (this.currentUser.customFields) {
-        this.usersService.listCustomUserFields().toPromise().then((respo) => {
+        this.usersService
+          .listCustomUserFields()
+          .toPromise()
+          .then((respo) => {
             this.customUserFields = respo;
 
             if (this.customUserFields) {
@@ -85,11 +84,8 @@ export class UserAccountComponent implements OnInit, OnDestroy {
             });
 
             this.canDisplayForm = true;
-
-          }
-        );
+          });
       } else {
-
         this.userForm = this.formBuilder.group(formDescriptor);
 
         this.userForm.get('avatar').valueChanges.subscribe((avatar) => {
@@ -156,10 +152,10 @@ export class UserAccountComponent implements OnInit, OnDestroy {
 
   submit() {
     const UserInput: any = {
-      id:  this.currentUser.id,
+      id: this.currentUser.id,
       first_name: this.userForm.get('first_name').value,
       last_name: this.userForm.get('last_name').value,
-      email: this.userForm.get('email').value
+      email: this.userForm.get('email').value,
     };
 
     if (this.avatarHasChanged) {
@@ -167,11 +163,11 @@ export class UserAccountComponent implements OnInit, OnDestroy {
       const avatarValue = this.userForm.get(avatarProp).value;
       // if avatar start with "http", the avatar doesn't changed, do not
       // send it to the REST API to avoid reset user avatar
-      UserInput[avatarProp] =  avatarValue && avatarValue.startsWith('http') ? null : avatarValue;
+      UserInput[avatarProp] = avatarValue && avatarValue.startsWith('http') ? null : avatarValue;
     }
 
-    if (this.customUserFields && this.customUserFields.length >0 ) {
-      const customFields : any = {}
+    if (this.customUserFields && this.customUserFields.length > 0) {
+      const customFields: any = {};
       this.customUserFields.forEach((field) => {
         customFields[field.key] = this.userForm.get(field.key).value;
       });
@@ -180,12 +176,13 @@ export class UserAccountComponent implements OnInit, OnDestroy {
     }
 
     this.isSaving = true;
-    this.userService.updateCurrentUser({ UserInput })
+    this.userService
+      .updateCurrentUser({ UserInput })
       .toPromise()
       .then((user) => {
         this.currentUserService.set(user);
         this.notificationService.success(i18n('user.account.success'));
       })
-      .finally(() => this.isSaving = false);
+      .finally(() => (this.isSaving = false));
   }
 }

@@ -19,14 +19,12 @@ import { FeatureEnum } from '../model/feature.enum';
 import { applyTheme } from '@gravitee/ui-components/src/lib/theme';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ConfigurationService {
-
   private config: any;
 
-  constructor(private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
   public get(key: string) {
     return key.split('.').reduce((prev, curr) => prev && prev[curr], this.config);
@@ -41,15 +39,20 @@ export class ConfigurationService {
           configJson.baseURL = configJson.baseURL.slice(0, -1);
         }
 
-        this.http.get(configJson.baseURL + '/theme').toPromise()
+        this.http
+          .get(configJson.baseURL + '/theme')
+          .toPromise()
           .then((theme) => {
             applyTheme(theme);
           });
 
-        this.http.get(configJson.baseURL + '/configuration').subscribe((configPortal) => {
-          this.config = this._deepMerge(configJson, configPortal);
-          resolve(true);
-        }, () => resolve(false));
+        this.http.get(configJson.baseURL + '/configuration').subscribe(
+          (configPortal) => {
+            this.config = this._deepMerge(configJson, configPortal);
+            resolve(true);
+          },
+          () => resolve(false),
+        );
       });
     });
   }

@@ -30,7 +30,6 @@
   grid-template-columns: minmax(66%, auto) auto;
 }
 
-
 .content.one-card {
   grid-template-columns: minmax(33%, auto) auto;
 }

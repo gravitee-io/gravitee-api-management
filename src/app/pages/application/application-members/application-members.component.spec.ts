@@ -22,11 +22,10 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApplicationMembersComponent', () => {
-
   const createComponent = createComponentFactory({
     component: ApplicationMembersComponent,
     imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 
   let spectator: Spectator<ApplicationMembersComponent>;

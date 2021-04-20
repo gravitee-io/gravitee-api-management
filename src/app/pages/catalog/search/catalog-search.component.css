@@ -56,7 +56,7 @@
 
 .catalog-search__header .catalog-search__bar {
   flex: 1;
-  margin: 0 1rem 0 5rem ;
+  margin: 0 1rem 0 5rem;
 }
 .catalog-search__header gv-input {
   --gv-icon--c: var(--gv-theme-color-dark);

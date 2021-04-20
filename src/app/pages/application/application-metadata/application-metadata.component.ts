@@ -19,7 +19,7 @@ import {
   ApplicationService,
   PermissionsService,
   ReferenceMetadata,
-  ReferenceMetadataFormatType
+  ReferenceMetadataFormatType,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -32,10 +32,9 @@ import '@gravitee/ui-components/wc/gv-table';
 @Component({
   selector: 'app-application-metadata',
   templateUrl: './application-metadata.component.html',
-  styleUrls: ['./application-metadata.component.css']
+  styleUrls: ['./application-metadata.component.css'],
 })
 export class ApplicationMetadataComponent implements OnInit {
-
   constructor(
     private applicationService: ApplicationService,
     private formBuilder: FormBuilder,
@@ -65,21 +64,21 @@ export class ApplicationMetadataComponent implements OnInit {
   async ngOnInit() {
     this.application = this.route.snapshot.data.application;
     if (this.application) {
-
       await this.initPermissions();
 
       this.formats = Object.values(ReferenceMetadataFormatType);
 
-      this.translateService.get([
-        i18n('application.metadata.key'),
-        i18n('application.metadata.name'),
-        i18n('application.metadata.format'),
-        i18n('application.metadata.value'),
-        i18n('application.metadata.list.remove.title'),
-        i18n('application.metadata.list.add.title'),
-      ])
+      this.translateService
+        .get([
+          i18n('application.metadata.key'),
+          i18n('application.metadata.name'),
+          i18n('application.metadata.format'),
+          i18n('application.metadata.value'),
+          i18n('application.metadata.list.remove.title'),
+          i18n('application.metadata.list.add.title'),
+        ])
         .toPromise()
-        .then(translations => {
+        .then((translations) => {
           this.tableTranslations = Object.values(translations);
           this.metadataOptions = this._buildMetadataOptions();
           this.loadMetadataTable();
@@ -90,19 +89,20 @@ export class ApplicationMetadataComponent implements OnInit {
   _buildMetadataOptions() {
     let data: any[] = [];
     if (this.canUpdate) {
-      data = [...data,
+      data = [
+        ...data,
         this._renderKey(this.tableTranslations[0]),
         this._renderName(this.tableTranslations[1]),
         this._renderFormat(this.tableTranslations[2]),
         this._renderValue(this.tableTranslations[3]),
-        this._renderAction(this.tableTranslations[4], this.tableTranslations[5])
+        this._renderAction(this.tableTranslations[4], this.tableTranslations[5]),
       ];
     } else {
       data = [
         { field: 'key', label: this.tableTranslations[0] },
         { field: 'name', label: this.tableTranslations[1] },
         { field: 'format', label: this.tableTranslations[2] },
-        { field: 'value', label: this.tableTranslations[3] }
+        { field: 'value', label: this.tableTranslations[3] },
       ];
     }
 
@@ -124,14 +124,14 @@ export class ApplicationMetadataComponent implements OnInit {
       type: 'gv-button',
       width: '140px',
       attributes: {
-        onClick: (item, event, target) => this._isAddFormLine(item) ? this.addMetadata(item, target) : this.removeMetadata(item, target),
+        onClick: (item, event, target) => (this._isAddFormLine(item) ? this.addMetadata(item, target) : this.removeMetadata(item, target)),
         innerHTML: (item) => {
           return this._isAddFormLine(item) ? addLabel : removeLabel;
         },
         danger: (item) => !this._isAddFormLine(item),
         outlined: true,
         disabled: (item) => this._isAddFormLine(item) && this._disabledNewLine(item),
-        icon: (item) => this._isAddFormLine(item) ? 'code:plus' : 'home:trash'
+        icon: (item) => (this._isAddFormLine(item) ? 'code:plus' : 'home:trash'),
       },
     };
   }
@@ -145,7 +145,7 @@ export class ApplicationMetadataComponent implements OnInit {
           return 'visibility: hidden;';
         }
         return '';
-      }
+      },
     };
   }
 
@@ -153,17 +153,22 @@ export class ApplicationMetadataComponent implements OnInit {
     return {
       field: 'name',
       label: nameLabel,
-      type: (item) => this._isAddFormLine(item) ? 'gv-input' : 'div',
+      type: (item) => (this._isAddFormLine(item) ? 'gv-input' : 'div'),
       attributes: {
-        placeholder: 'Nom de la donnée', required: true, innerHTML: (item) => this._isAddFormLine(item) ? '' : item.name,
+        placeholder: 'Nom de la donnée',
+        required: true,
+        innerHTML: (item) => (this._isAddFormLine(item) ? '' : item.name),
         'ongv-input:input': this._onInput.bind(this),
-      }
+      },
     };
   }
 
   _renderFormat(formatLabel: any) {
     return {
-      field: 'format', label: formatLabel, type: 'gv-select', format: (v: string) => v.toUpperCase(),
+      field: 'format',
+      label: formatLabel,
+      type: 'gv-select',
+      format: (v: string) => v.toUpperCase(),
       attributes: {
         options: this.formats,
         'ongv-select:select': (item) => {
@@ -180,7 +185,7 @@ export class ApplicationMetadataComponent implements OnInit {
           this.metadataOptions = this._buildMetadataOptions();
           this.ref.detectChanges();
         },
-      }
+      },
     };
   }
 
@@ -250,7 +255,6 @@ export class ApplicationMetadataComponent implements OnInit {
     return validators;
   }
 
-
   private _getDefaultValue(item: any) {
     if (item.format.toUpperCase() === 'BOOLEAN') {
       return false;
@@ -262,17 +266,16 @@ export class ApplicationMetadataComponent implements OnInit {
     return {
       field: 'value',
       label: valueLabel,
-      type:
-        (item) => {
-          switch (item.format.toUpperCase()) {
-            case 'BOOLEAN':
-              return 'gv-checkbox';
-            case 'DATE':
-              return 'gv-date-picker';
-            default:
-              return 'gv-input';
-          }
-        },
+      type: (item) => {
+        switch (item.format.toUpperCase()) {
+          case 'BOOLEAN':
+            return 'gv-checkbox';
+          case 'DATE':
+            return 'gv-date-picker';
+          default:
+            return 'gv-input';
+        }
+      },
       attributes: {
         value: (item) => {
           if (item.format.toUpperCase() === 'DATE' && item.value != null) {
@@ -301,8 +304,8 @@ export class ApplicationMetadataComponent implements OnInit {
             return 'text';
           }
           return null;
-        }
-      }
+        },
+      },
     };
   }
 
@@ -319,7 +322,9 @@ export class ApplicationMetadataComponent implements OnInit {
   }
 
   loadMetadataTable() {
-    return this.applicationService.getMetadataByApplicationId({ applicationId: this.application.id, size: -1 }).toPromise()
+    return this.applicationService
+      .getMetadataByApplicationId({ applicationId: this.application.id, size: -1 })
+      .toPromise()
       .then((metadataResponse) => {
         this.updateMetadataForms = {};
         if (this.hasCreatePermission) {
@@ -348,7 +353,6 @@ export class ApplicationMetadataComponent implements OnInit {
     }
     this.ref.detectChanges();
     target.removeAttribute('loading');
-
   }
 
   addMetadata(metadata: ReferenceMetadata, target: Element) {
@@ -374,7 +378,6 @@ export class ApplicationMetadataComponent implements OnInit {
   }
 
   updateMetadata(event) {
-
     if (this.canUpdate()) {
       event.target.loading = true;
       const formKeys = Object.keys(this.updateMetadataForms);
@@ -384,24 +387,30 @@ export class ApplicationMetadataComponent implements OnInit {
 
         if (form.get('new')) {
           form.removeControl('new');
-          return this.applicationService.createApplicationMetadata({
-            applicationId: this.application.id,
-            ReferenceMetadataInput: this.updateMetadataForms[metadataId].getRawValue()
-          }).toPromise();
+          return this.applicationService
+            .createApplicationMetadata({
+              applicationId: this.application.id,
+              ReferenceMetadataInput: this.updateMetadataForms[metadataId].getRawValue(),
+            })
+            .toPromise();
         } else {
-          return this.applicationService.updateApplicationMetadataByApplicationIdAndMetadataId({
-            applicationId: this.application.id,
-            metadataId,
-            ReferenceMetadataInput: this.updateMetadataForms[metadataId].getRawValue()
-          }).toPromise();
+          return this.applicationService
+            .updateApplicationMetadataByApplicationIdAndMetadataId({
+              applicationId: this.application.id,
+              metadataId,
+              ReferenceMetadataInput: this.updateMetadataForms[metadataId].getRawValue(),
+            })
+            .toPromise();
         }
       });
 
       const deletePromises: Promise<any>[] = this.metadataToDelete.map((metadata) => {
-        return this.applicationService.deleteApplicationMetadata({
-          applicationId: this.application.id,
-          metadataId: metadata.key
-        }).toPromise();
+        return this.applicationService
+          .deleteApplicationMetadata({
+            applicationId: this.application.id,
+            metadataId: metadata.key,
+          })
+          .toPromise();
       });
 
       Promise.all([...updatePromises, ...deletePromises])
@@ -451,5 +460,4 @@ export class ApplicationMetadataComponent implements OnInit {
   reset() {
     return this.loadMetadataTable();
   }
-
 }

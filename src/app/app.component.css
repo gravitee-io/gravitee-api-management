@@ -180,7 +180,8 @@
   padding-top: 70px;
 }
 
-.layout__footer__top__category__title, .layout__footer__top__category__title_border {
+.layout__footer__top__category__title,
+.layout__footer__top__category__title_border {
   margin: 0.3rem 0.5rem;
 }
 
@@ -220,7 +221,6 @@
   flex-direction: row-reverse;
   justify-content: space-between;
 }
-
 
 .layout__footer__bottom li {
   display: inline;

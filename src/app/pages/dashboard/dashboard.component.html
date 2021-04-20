@@ -17,16 +17,15 @@
 -->
 <div class="page__content">
   <div class="main">
-
-    <h1 *ngIf="currentUser"
-        class="title">{{'dashboard.welcome' | translate : { username: currentUser.first_name || currentUser.display_name } }}</h1>
+    <h1 *ngIf="currentUser" class="title">
+      {{ 'dashboard.welcome' | translate: { username: currentUser.first_name || currentUser.display_name } }}
+    </h1>
 
     <section *ngIf="empty">
       <gv-message class="message-empty">
         <gv-icon shape="code:plus"></gv-icon>
         <div class="title" [innerHTML]="'dashboard.empty' | translate"></div>
-        <gv-button primary *ngIf="applicationCreationEnabled()" [routerLink]="'/applications/creation/'"
-                   href="/applications/creation/" >
+        <gv-button primary *ngIf="applicationCreationEnabled()" [routerLink]="'/applications/creation/'" href="/applications/creation/">
           {{ 'dashboard.applications.createFirst' | translate }}
         </gv-button>
       </gv-message>
@@ -41,20 +40,18 @@
 
     <section *ngIf="applications && applications.length">
       <h3 class="title" translate="dashboard.applications.title"></h3>
-      <div class="content" [ngClass]="{'one-card': applications.length === 1, 'two-cards': applications.length === 2}">
+      <div class="content" [ngClass]="{ 'one-card': applications.length === 1, 'two-cards': applications.length === 2 }">
         <gv-card-list [items]="applications" [style]="cardListGridTemplate"></gv-card-list>
 
         <div class="buttons">
-          <gv-button primary *ngIf="applicationCreationEnabled()" [routerLink]="'/applications/creation/'"
-                     href="/applications/creation/">
+          <gv-button primary *ngIf="applicationCreationEnabled()" [routerLink]="'/applications/creation/'" href="/applications/creation/">
             <div>
               <gv-icon shape="code:plus"></gv-icon>
               <h4 translate="dashboard.applications.create"></h4>
             </div>
           </gv-button>
 
-          <gv-button *ngIf="applications && applications.length" [routerLink]="'/applications/'"
-                     href="/applications/">
+          <gv-button *ngIf="applications && applications.length" [routerLink]="'/applications/'" href="/applications/">
             <div>
               <gv-icon shape="general:other#2"></gv-icon>
               <h4 translate="dashboard.applications.list"></h4>
@@ -64,14 +61,19 @@
       </div>
     </section>
 
-
     <section>
       <div *ngIf="subscriptions && subscriptions.length">
-        <h3 class="title">{{"dashboard.subscriptions.title" | translate}}</h3>
+        <h3 class="title">{{ 'dashboard.subscriptions.title' | translate }}</h3>
         <div class="subscriptions">
-          <gv-table [format]="format" [emptymessage]="'dashboard.subscriptions.list.empty' | translate" order="api.name"
-                    (:gv-table:select)="onSubscriptionClick($event)"
-                    [items]="subscriptions" [options]="optionsSubscriptions" nosort></gv-table>
+          <gv-table
+            [format]="format"
+            [emptymessage]="'dashboard.subscriptions.list.empty' | translate"
+            order="api.name"
+            (:gv-table:select)="onSubscriptionClick($event)"
+            [items]="subscriptions"
+            [options]="optionsSubscriptions"
+            nosort
+          ></gv-table>
           <div>
             <div class="empty" *ngIf="!stats" translate="dashboard.subscriptions.subtitle"></div>
             <gv-stats *ngIf="stats" [stats]="stats" [options]="optionsStats"></gv-stats>
@@ -79,6 +81,5 @@
         </div>
       </div>
     </section>
-
   </div>
 </div>

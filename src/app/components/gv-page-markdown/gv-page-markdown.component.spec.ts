@@ -32,9 +32,9 @@ describe('GvPageMarkdownComponent', () => {
     imports: [RouterTestingModule],
     providers: [
       mockProvider(ConfigurationService, {
-        get: () => BASE_URL
-      })
-    ]
+        get: () => BASE_URL,
+      }),
+    ],
   });
 
   let spectator: Spectator<GvPageMarkdownComponent>;
@@ -52,14 +52,22 @@ describe('GvPageMarkdownComponent', () => {
   });
 
   it('should use correct portal media url', () => {
-    const renderer = component.renderer.image('https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789', 'title', 'text');
+    const renderer = component.renderer.image(
+      'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789',
+      'title',
+      'text',
+    );
 
     expect(renderer).not.toBeNull();
     expect(renderer).toEqual(`<img alt="text" title="title" src="${BASE_URL}/media/123456789" />`);
   });
 
   it('should use correct api media url', () => {
-    const renderer = component.renderer.image('https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789', 'title', 'text');
+    const renderer = component.renderer.image(
+      'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789',
+      'title',
+      'text',
+    );
 
     expect(renderer).not.toBeNull();
     expect(renderer).toEqual(`<img alt="text" title="title" src="${BASE_URL}/apis/1A2Z3E4R5T6Y/media/123456789" />`);
@@ -97,7 +105,7 @@ describe('GvPageMarkdownComponent', () => {
     const renderer = component.renderer.link('#anchor', 'Anchor', '');
 
     expect(renderer).not.toBeNull();
-    expect(renderer).toEqual('<gv-button link href=\"#anchor\"></gv-button>');
+    expect(renderer).toEqual('<gv-button link href="#anchor"></gv-button>');
   });
 
   it('should call onAnchorClick when click to gv-button[href]', () => {
@@ -112,6 +120,4 @@ describe('GvPageMarkdownComponent', () => {
     expect(component.onAnchorClick).toBeCalledTimes(1);
     expect(component.onAnchorClick).toBeCalledWith(anchor);
   });
-
 });
-

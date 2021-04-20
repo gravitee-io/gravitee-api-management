@@ -31,10 +31,9 @@ import { ConfigurationService } from '../../../services/configuration.service';
 @Component({
   selector: 'app-application-logs',
   templateUrl: './application-logs.component.html',
-  styleUrls: ['./application-logs.component.css']
+  styleUrls: ['./application-logs.component.css'],
 })
 export class ApplicationLogsComponent implements OnInit, OnDestroy {
-
   private subscription: any;
   logs: Array<Log>;
   selectedLogIds: string[];
@@ -46,7 +45,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   size: number;
   requestHeaders: Array<any>;
   responseHeaders: Array<any>;
-  link: { label: string, relativePath: string, icon: string };
+  link: { label: string; relativePath: string; icon: string };
   isExporting: boolean;
   isSearching: boolean;
 
@@ -61,19 +60,19 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     private router: Router,
     private config: ConfigurationService,
     private scrollService: ScrollService,
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.pageSizes = this.config.get('pagination.size.values');
-    this.size = this.route.snapshot.queryParams[SearchQueryParam.SIZE] ?
-      parseInt(this.route.snapshot.queryParams[SearchQueryParam.SIZE], 10) : this.config.get('pagination.size.default');
-    this.subscription = this.route.queryParams.subscribe(queryParams => {
+    this.size = this.route.snapshot.queryParams[SearchQueryParam.SIZE]
+      ? parseInt(this.route.snapshot.queryParams[SearchQueryParam.SIZE], 10)
+      : this.config.get('pagination.size.default');
+    this.subscription = this.route.queryParams.subscribe((queryParams) => {
       if (queryParams && !queryParams.skipRefresh) {
         this.refresh(queryParams);
       }
     });
-    this.translateService.get('application.logs.displayAnalytics').subscribe(displayAnalytics => {
+    this.translateService.get('application.logs.displayAnalytics').subscribe((displayAnalytics) => {
       this.link = { label: displayAnalytics, relativePath: '../analytics', icon: 'shopping:chart-line#1' };
     });
   }
@@ -98,27 +97,33 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
         data: [
           { field: 'timestamp', type: 'datetime', label: i18n('application.logs.date'), style: 'color: #40A9FF', width: '200px' },
           {
-            tag: 'status', label: i18n('application.logs.status'),
+            tag: 'status',
+            label: i18n('application.logs.status'),
             style: ({ status }) => {
               const color = this.getStatusColor(status);
               return `--gv-tag--bdc: ${color}; --gv-tag--c: ${color};`;
-            }
+            },
           },
           { field: 'api', label: i18n('application.logs.api'), format: (item) => metadata[item].name },
           { field: 'plan', label: i18n('application.logs.plan'), format: (item) => metadata[item].name },
           {
-            field: 'method', label: i18n('application.logs.method'), format: (item) => item.toUpperCase(),
-            style: ({ method }) => 'color:' + this.getMethodColor(method)
+            field: 'method',
+            label: i18n('application.logs.method'),
+            format: (item) => item.toUpperCase(),
+            style: ({ method }) => 'color:' + this.getMethodColor(method),
           },
           { field: 'path', label: i18n('application.logs.path'), width: '350px' },
           {
-            field: 'responseTime', label: i18n('application.logs.responseTime'), headerStyle: () => 'justify-content: flex-end',
-            format: (item) => item + ' ms', style: () => 'text-align: right'
+            field: 'responseTime',
+            label: i18n('application.logs.responseTime'),
+            headerStyle: () => 'justify-content: flex-end',
+            format: (item) => item + ' ms',
+            style: () => 'text-align: right',
           },
-        ]
+        ],
       };
       if (queryParams.log && queryParams.timestamp) {
-        this.selectedLogIds = this.logs.filter(l => l.id === queryParams.log).map((log) => log.id);
+        this.selectedLogIds = this.logs.filter((l) => l.id === queryParams.log).map((log) => log.id);
         this._loadLog({ id: queryParams.log, timestamp: queryParams.timestamp });
       } else {
         this.selectedLogIds = [];
@@ -133,12 +138,13 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     field = field === 'responseTime' ? 'response-time' : field;
     return {
       applicationId: application.id,
-      from: timeSlot.from, to: timeSlot.to,
+      from: timeSlot.from,
+      to: timeSlot.to,
       size: this.size,
       page: queryParams[SearchQueryParam.PAGE] || 1,
       field,
       order: queryParams[SearchQueryParam.ORDER] || 'DESC',
-      query: this.analyticsService.getQueryFromPath().query
+      query: this.analyticsService.getQueryFromPath().query,
     };
   }
 
@@ -179,7 +185,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
       last: totalPages,
       current_page: this.route.snapshot.queryParams[SearchQueryParam.PAGE] || 1,
       total_pages: totalPages,
-      total
+      total,
     };
   }
 
@@ -199,7 +205,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
   }
 
   getLang(headers) {
-    const contentTypeHeaderKey = Object.keys(headers).find(header => 'content-type' === header.toLowerCase());
+    const contentTypeHeaderKey = Object.keys(headers).find((header) => 'content-type' === header.toLowerCase());
     const contentTypeHeader = headers[contentTypeHeaderKey];
     if (contentTypeHeader) {
       const contentType = contentTypeHeader[0];
@@ -218,7 +224,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
       this.router.navigate([], {
         queryParams,
         queryParamsHandling: 'merge',
-        fragment: this.analyticsService.fragment
+        fragment: this.analyticsService.fragment,
       });
     }
   }
@@ -233,7 +239,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     this.router.navigate([], {
       queryParams,
       queryParamsHandling: 'merge',
-      fragment: this.analyticsService.fragment
+      fragment: this.analyticsService.fragment,
     });
   }
 
@@ -242,7 +248,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     this.router.navigate([], {
       queryParams: { size, page: null, log: null },
       queryParamsHandling: 'merge',
-      fragment: this.analyticsService.fragment
+      fragment: this.analyticsService.fragment,
     });
   }
 
@@ -252,21 +258,22 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
       this.router.navigate([], {
         queryParams: { log: log ? log.id : null, timestamp: log ? log.timestamp : null },
         queryParamsHandling: 'merge',
-        fragment: this.analyticsService.fragment
+        fragment: this.analyticsService.fragment,
       });
     } else {
       this.selectedLog = null;
       this.selectedLogIds = [];
     }
-
   }
 
   async _loadLog({ id, timestamp }) {
-    this.selectedLog = await this.applicationService.getApplicationLogByApplicationIdAndLogId({
-      applicationId: this.route.snapshot.data.application.id,
-      logId: id,
-      timestamp,
-    }).toPromise();
+    this.selectedLog = await this.applicationService
+      .getApplicationLogByApplicationIdAndLogId({
+        applicationId: this.route.snapshot.data.application.id,
+        logId: id,
+        timestamp,
+      })
+      .toPromise();
 
     if (this.selectedLog.request) {
       this.requestHeaders = Object.keys(this.selectedLog.request.headers).map((key) => [key, this.selectedLog.request.headers[key]]);
@@ -284,7 +291,9 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
     const logsQuery = this.getRequestParameters(queryParams, application);
     logsQuery.page = 1;
     logsQuery.size = 10000;
-    this.applicationService.exportApplicationLogsByApplicationId(logsQuery).toPromise()
+    this.applicationService
+      .exportApplicationLogsByApplicationId(logsQuery)
+      .toPromise()
       .then((response) => {
         const hiddenElement = document.createElement('a');
         hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response);
@@ -296,6 +305,7 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
         document.getElementById('hidden-export-container').appendChild(hiddenElement);
         hiddenElement.click();
         document.getElementById('hidden-export-container').removeChild(hiddenElement);
-    }).finally(() => this.isExporting = false);
+      })
+      .finally(() => (this.isExporting = false));
   }
 }

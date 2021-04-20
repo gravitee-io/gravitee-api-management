@@ -27,7 +27,7 @@ import {
   Plan,
   Page,
   Subscription,
-  SubscriptionService
+  SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -42,10 +42,9 @@ import StatusEnum = Subscription.StatusEnum;
 @Component({
   selector: 'app-api-subscribe',
   templateUrl: './api-subscribe.component.html',
-  styleUrls: ['./api-subscribe.component.css']
+  styleUrls: ['./api-subscribe.component.css'],
 })
 export class ApiSubscribeComponent implements OnInit {
-
   private _applications: Array<Application>;
   private _allSteps: any;
   private _currentPlan: Plan;
@@ -75,17 +74,16 @@ export class ApiSubscribeComponent implements OnInit {
   subscriptionError: string;
   private _canSubscribe: boolean;
 
-  constructor(private apiService: ApiService,
-              private router: Router,
-              private route: ActivatedRoute,
-              private translateService: TranslateService,
-              private applicationService: ApplicationService,
-              private subscriptionService: SubscriptionService,
-              private formBuilder: FormBuilder,
-              private configurationService: ConfigurationService
-  ) {
-
-  }
+  constructor(
+    private apiService: ApiService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private translateService: TranslateService,
+    private applicationService: ApplicationService,
+    private subscriptionService: SubscriptionService,
+    private formBuilder: FormBuilder,
+    private configurationService: ConfigurationService,
+  ) {}
 
   async ngOnInit() {
     this.currentStep = 1;
@@ -103,11 +101,8 @@ export class ApiSubscribeComponent implements OnInit {
       general_conditions_accepted: new FormControl(null),
       general_conditions_content_revision: new FormControl(null),
     });
-    this.translateService.get([
-      i18n('apiSubscribe.apps.comment'),
-      i18n('apiSubscribe.plan'),
-      i18n('apiSubscribe.apps.missingClientId')
-    ])
+    this.translateService
+      .get([i18n('apiSubscribe.apps.comment'), i18n('apiSubscribe.plan'), i18n('apiSubscribe.apps.missingClientId')])
       .toPromise()
       .then((_translations) => {
         const translations = Object.values(_translations);
@@ -125,17 +120,16 @@ export class ApiSubscribeComponent implements OnInit {
       this.applicationService.getApplications({ size: -1, forSubscription: true }).toPromise(),
       this.apiService.getApiPlansByApiId({ apiId: this.apiId, size: -1 }).toPromise(),
       this.getSubscriptions(),
-    ]).then(([allAppsResponse, apiPlansResponse]) => {
-      this.plans = apiPlansResponse.data;
-      this._applications = allAppsResponse.data;
+    ])
+      .then(([allAppsResponse, apiPlansResponse]) => {
+        this.plans = apiPlansResponse.data;
+        this._applications = allAppsResponse.data;
 
-      this.subscribeForm.valueChanges
-        .pipe(distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)))
-        .subscribe(() => this.updateSteps());
+        this.subscribeForm.valueChanges
+          .pipe(distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)))
+          .subscribe(() => this.updateSteps());
 
-      this.subscribeForm.valueChanges
-        .pipe(distinctUntilChanged((prev, curr) => prev.plan === curr.plan))
-        .subscribe(() => {
+        this.subscribeForm.valueChanges.pipe(distinctUntilChanged((prev, curr) => prev.plan === curr.plan)).subscribe(() => {
           this.subscribeForm.controls.application.setValue(null);
           this.updateApplications();
           if (this.planHasGeneralConditions()) {
@@ -146,33 +140,34 @@ export class ApiSubscribeComponent implements OnInit {
 
           this.subscribeForm.get('general_conditions_accepted').setValue(false);
           this.subscribeForm.get('general_conditions_content_revision').setValue(null);
-
         });
 
-      this.subscribeForm.valueChanges
-        .pipe(distinctUntilChanged((prev, curr) => prev.general_conditions_accepted === curr.general_conditions_accepted))
-        .subscribe(() => {
-          if (this.subscribeForm.get('general_conditions_accepted').value === true) {
-            this.subscribeForm.get('general_conditions_content_revision').setValue(this._currentGeneralConditions.contentRevisionId);
-          } else {
-            this.subscribeForm.get('general_conditions_content_revision').setValue(null);
-          }
-        });
+        this.subscribeForm.valueChanges
+          .pipe(distinctUntilChanged((prev, curr) => prev.general_conditions_accepted === curr.general_conditions_accepted))
+          .subscribe(() => {
+            if (this.subscribeForm.get('general_conditions_accepted').value === true) {
+              this.subscribeForm.get('general_conditions_content_revision').setValue(this._currentGeneralConditions.contentRevisionId);
+            } else {
+              this.subscribeForm.get('general_conditions_content_revision').setValue(null);
+            }
+          });
 
-      const plan = this.hasPlans() ? this.plans[0].id : null;
-      this.subscribeForm.controls.plan.setValue(plan);
-      this.skeleton = false;
-    }).catch(() => (this.connectedApps = []));
+        const plan = this.hasPlans() ? this.plans[0].id : null;
+        this.subscribeForm.controls.plan.setValue(plan);
+        this.skeleton = false;
+      })
+      .catch(() => (this.connectedApps = []));
 
-    this._allSteps = await Promise.all([
-      i18n('apiSubscribe.choosePlan.title'),
-      i18n('apiSubscribe.chooseApp.title'),
-      i18n('apiSubscribe.validate.title')
-    ].map((title) => {
-      return this.translateService.get(title).toPromise().then((_title) => {
-        return { title: _title };
-      });
-    }));
+    this._allSteps = await Promise.all(
+      [i18n('apiSubscribe.choosePlan.title'), i18n('apiSubscribe.chooseApp.title'), i18n('apiSubscribe.validate.title')].map((title) => {
+        return this.translateService
+          .get(title)
+          .toPromise()
+          .then((_title) => {
+            return { title: _title };
+          });
+      }),
+    );
     this.steps = this._allSteps;
   }
 
@@ -181,13 +176,15 @@ export class ApiSubscribeComponent implements OnInit {
     this.steps = [
       { description: this.getPlanName() },
       { description: this.getApplicationName(), valid: isValid },
-      { description: this.getCreatedAt(), valid: this._subscription != null }
-    ].map(({ description, valid }, index) => {
-      const step = this._allSteps[index];
-      step.description = description;
-      step.valid = !!description && (typeof valid === 'boolean' ? valid : true);
-      return step;
-    }).slice(0, this.isKeyLess() ? 1 : this._allSteps.length);
+      { description: this.getCreatedAt(), valid: this._subscription != null },
+    ]
+      .map(({ description, valid }, index) => {
+        const step = this._allSteps[index];
+        step.description = description;
+        step.valid = !!description && (typeof valid === 'boolean' ? valid : true);
+        return step;
+      })
+      .slice(0, this.isKeyLess() ? 1 : this._allSteps.length);
   }
 
   onChangeStep({ detail: { current } }) {
@@ -211,11 +208,13 @@ export class ApiSubscribeComponent implements OnInit {
         this._currentPlan = this.findPlanById(planId);
         if (this.planHasGeneralConditions()) {
           if (this._generalConditions.get(this._currentPlan.general_conditions) == null) {
-            this.apiService.getPageByApiIdAndPageId({
-              apiId: this.apiId,
-              pageId: this._currentPlan.general_conditions,
-              include: ['content']
-            }).toPromise()
+            this.apiService
+              .getPageByApiIdAndPageId({
+                apiId: this.apiId,
+                pageId: this._currentPlan.general_conditions,
+                include: ['content'],
+              })
+              .toPromise()
               .then((p) => {
                 this._generalConditions.set(p.id, p);
                 this._currentGeneralConditions = p;
@@ -338,21 +337,27 @@ export class ApiSubscribeComponent implements OnInit {
     if (this.subscribeForm.valid) {
       try {
         this.showValidateLoader = true;
-        let subscription = await this.subscriptionService.createSubscription({
-          SubscriptionInput: this.subscribeForm.value
-        }).toPromise();
+        let subscription = await this.subscriptionService
+          .createSubscription({
+            SubscriptionInput: this.subscribeForm.value,
+          })
+          .toPromise();
 
         if (this.hasAutoValidation()) {
-          subscription = await this.subscriptionService.getSubscriptionById({
-            subscriptionId: subscription.id,
-            include: ['keys']
-          }).toPromise();
+          subscription = await this.subscriptionService
+            .getSubscriptionById({
+              subscriptionId: subscription.id,
+              include: ['keys'],
+            })
+            .toPromise();
           const currentPlan = this.getCurrentPlan();
           if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.APIKEY) {
             const apikeyHeader = this.configurationService.get('portal.apikeyHeader');
             this.apiSample += ` -H "${apikeyHeader}:${subscription.keys[0].id}"`;
-          } else if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 ||
-            currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT) {
+          } else if (
+            currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 ||
+            currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT
+          ) {
             this.apiSample += ` -H "Authorization: Bearer xxxx-xxxx-xxxx-xxxx"`;
           } else {
             this.apiSample = null;
@@ -361,7 +366,6 @@ export class ApiSubscribeComponent implements OnInit {
           this.apiSample = null;
         }
         this._subscription = subscription;
-
       } catch (exception) {
         if (exception.error && exception.error.errors) {
           const error = exception.error.errors[0];
@@ -447,33 +451,35 @@ export class ApiSubscribeComponent implements OnInit {
       if (plan) {
         let disabled = false;
         let title;
-        this.availableApplications = this._applications.map(application => {
-          disabled = false;
-          title = undefined;
-          const label = `${application.name} (${application.owner.display_name})`;
-          const appSubscriptions = this._allSubscriptions.filter((sub) => sub.application === application.id);
-          if (appSubscriptions.length > 0) {
-            const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
-            if (appPlansSubscriptions.length > 0) {
-              subscribedApps.push({
-                item: application,
-                subscriptions: appPlansSubscriptions,
-                type: ItemResourceTypeEnum.APPLICATION,
-              });
-              if (!this.canSubscribe(appPlansSubscriptions, plan)) {
-                return null;
+        this.availableApplications = this._applications
+          .map((application) => {
+            disabled = false;
+            title = undefined;
+            const label = `${application.name} (${application.owner.display_name})`;
+            const appSubscriptions = this._allSubscriptions.filter((sub) => sub.application === application.id);
+            if (appSubscriptions.length > 0) {
+              const appPlansSubscriptions = appSubscriptions.filter((subscription) => subscription.plan === plan.id);
+              if (appPlansSubscriptions.length > 0) {
+                subscribedApps.push({
+                  item: application,
+                  subscriptions: appPlansSubscriptions,
+                  type: ItemResourceTypeEnum.APPLICATION,
+                });
+                if (!this.canSubscribe(appPlansSubscriptions, plan)) {
+                  return null;
+                }
               }
             }
-          }
-          if (!disabled) {
-            disabled = !this.isSecure(application, plan);
-            if (disabled) {
-              title = this._missingClientIdLabel;
+            if (!disabled) {
+              disabled = !this.isSecure(application, plan);
+              if (disabled) {
+                title = this._missingClientIdLabel;
+              }
             }
-          }
 
-          return { label, value: application.id, disabled, title };
-        }).filter((app) => app !== null);
+            return { label, value: application.id, disabled, title };
+          })
+          .filter((app) => app !== null);
         this.connectedApps = subscribedApps;
       }
     }
@@ -507,13 +513,14 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   private getSubscriptions() {
-    return this.subscriptionService.getSubscriptions({
-      apiId: this.apiId,
-      size: -1,
-      statuses: [StatusEnum.ACCEPTED, StatusEnum.PENDING, StatusEnum.PAUSED]
-    })
+    return this.subscriptionService
+      .getSubscriptions({
+        apiId: this.apiId,
+        size: -1,
+        statuses: [StatusEnum.ACCEPTED, StatusEnum.PENDING, StatusEnum.PAUSED],
+      })
       .toPromise()
-      .then(response => {
+      .then((response) => {
         this._allSubscriptions = response.data;
       })
       .catch((err) => {

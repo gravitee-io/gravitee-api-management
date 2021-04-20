@@ -21,7 +21,6 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { CookiesComponent } from './cookies.component';
 
 describe('CookiesComponent', () => {
-
   const createComponent = createComponentFactory({
     component: CookiesComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -39,5 +38,4 @@ describe('CookiesComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

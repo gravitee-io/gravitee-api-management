@@ -24,7 +24,7 @@ import {
   PortalService,
   Subscription,
   User,
-  UsersService
+  UsersService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -48,10 +48,9 @@ import StatusEnum = Subscription.StatusEnum;
 @Component({
   selector: 'app-application-members',
   templateUrl: './application-members.component.html',
-  styleUrls: ['./application-members.component.css']
+  styleUrls: ['./application-members.component.css'],
 })
 export class ApplicationMembersComponent implements OnInit {
-
   constructor(
     private applicationService: ApplicationService,
     private groupService: GroupService,
@@ -91,10 +90,10 @@ export class ApplicationMembersComponent implements OnInit {
   connectedApis: Promise<any[]>;
   members: Array<Member>;
   membersOptions: any;
-  roles: Array<{ label: string, value: string }>;
+  roles: Array<{ label: string; value: string }>;
   tableTranslations: any[];
 
-  groups: Array<{ groupId: string, groupName: string, groupMembers: Array<Member>, nbGroupMembers: any }>;
+  groups: Array<{ groupId: string; groupName: string; groupMembers: Array<Member>; nbGroupMembers: any }>;
   groupMembersOptions: any;
 
   addMemberForm: FormGroup;
@@ -108,22 +107,23 @@ export class ApplicationMembersComponent implements OnInit {
   async ngOnInit() {
     this.application = this.route.snapshot.data.application;
     if (this.application) {
-
-      this.canSearchUser = this.currentUser.get().getValue()
-        && this.currentUser.get().getValue().permissions.USER
-        && this.currentUser.get().getValue().permissions.USER.includes('R');
+      this.canSearchUser =
+        this.currentUser.get().getValue() &&
+        this.currentUser.get().getValue().permissions.USER &&
+        this.currentUser.get().getValue().permissions.USER.includes('R');
 
       this.readonly = await this.isReadOnly(true);
 
-      this.portalService.getApplicationRoles()
+      this.portalService
+        .getApplicationRoles()
         .toPromise()
-        .then(appRoles => {
+        .then((appRoles) => {
           this.roles = [];
           appRoles.data.forEach((appRole) => {
             if (appRole.name !== 'PRIMARY_OWNER') {
               this.roles.push({
                 label: appRole.name,
-                value: appRole.id
+                value: appRole.id,
               });
             }
           });
@@ -131,8 +131,9 @@ export class ApplicationMembersComponent implements OnInit {
 
       if (this.application.groups && this.application.groups.length > 0) {
         this.groups = [];
-        this.application.groups.forEach(grp => {
-          this.groupService.getMembersByGroupId({ groupId: grp.id, size: -1 })
+        this.application.groups.forEach((grp) => {
+          this.groupService
+            .getMembersByGroupId({ groupId: grp.id, size: -1 })
             .toPromise()
             .then((membersResponse) => {
               this.groups.push({
@@ -145,14 +146,15 @@ export class ApplicationMembersComponent implements OnInit {
         });
       }
 
-      this.translateService.get([
-        i18n('application.members.list.member'),
-        i18n('application.members.list.role'),
-        i18n('application.members.list.remove.message'),
-        i18n('application.members.list.remove.title'),
-      ])
+      this.translateService
+        .get([
+          i18n('application.members.list.member'),
+          i18n('application.members.list.role'),
+          i18n('application.members.list.remove.message'),
+          i18n('application.members.list.remove.title'),
+        ])
         .toPromise()
-        .then(translations => {
+        .then((translations) => {
           this.tableTranslations = Object.values(translations);
           this.membersOptions = this._buildMemberOptions();
 
@@ -169,20 +171,20 @@ export class ApplicationMembersComponent implements OnInit {
           this.loadMembersTable();
         });
 
-      this.connectedApis = this.applicationService.getSubscriberApisByApplicationId({
-        applicationId: this.application.id,
-        statuses: [StatusEnum.ACCEPTED],
-      })
+      this.connectedApis = this.applicationService
+        .getSubscriberApisByApplicationId({
+          applicationId: this.application.id,
+          statuses: [StatusEnum.ACCEPTED],
+        })
         .toPromise()
         .then((response) => response.data.map((api) => ({ item: api, type: ItemResourceTypeEnum.API })));
-
     }
   }
 
   _buildMemberOptions() {
     const data: any[] = [
       { field: 'user._links.avatar', type: 'image', alt: 'user.display_name' },
-      { field: 'user.display_name', label: this.tableTranslations[0] }
+      { field: 'user.display_name', label: this.tableTranslations[0] },
     ];
     if (this.readonly) {
       data.push({ field: 'role', label: this.tableTranslations[1] });
@@ -198,12 +200,14 @@ export class ApplicationMembersComponent implements OnInit {
 
   _renderRole(roleLabel: any) {
     return {
-      field: 'role', label: roleLabel, type: 'gv-select',
+      field: 'role',
+      label: roleLabel,
+      type: 'gv-select',
       attributes: {
-        options: (item) => item.role === 'PRIMARY_OWNER' ? ['PRIMARY_OWNER'] : this.roles,
+        options: (item) => (item.role === 'PRIMARY_OWNER' ? ['PRIMARY_OWNER'] : this.roles),
         disabled: (item) => item.role === 'PRIMARY_OWNER',
         'ongv-select:select': (item, e) => this.updateMember(item, e),
-      }
+      },
     };
   }
 
@@ -217,12 +221,12 @@ export class ApplicationMembersComponent implements OnInit {
         onClick: (item) => this.removeMember(item),
         shape: 'general:trash',
         title: iconTitle,
-      }
+      },
     };
   }
 
   async isReadOnly(init?: boolean) {
-    let permissions : PermissionsResponse;
+    let permissions: PermissionsResponse;
     if (init) {
       permissions = this.route.snapshot.data.permissions;
     } else {
@@ -238,7 +242,9 @@ export class ApplicationMembersComponent implements OnInit {
   }
 
   loadMembersTable() {
-    return this.applicationService.getMembersByApplicationId({ applicationId: this.application.id }).toPromise()
+    return this.applicationService
+      .getMembersByApplicationId({ applicationId: this.application.id })
+      .toPromise()
       .then((membersResponse) => {
         this.members = membersResponse.data;
       });
@@ -248,7 +254,7 @@ export class ApplicationMembersComponent implements OnInit {
     this.selectedUserToAdd = null;
     this.userListForAddMember = [];
     this.addMemberForm = new FormGroup({
-      newMemberRole: new FormControl('USER')
+      newMemberRole: new FormControl('USER'),
     });
   }
 
@@ -256,21 +262,20 @@ export class ApplicationMembersComponent implements OnInit {
     this.selectedUserForTransferOwnership = null;
     this.userListForTransferOwnership = [];
     this.transferOwnershipForm = new FormGroup({
-      primaryOwnerNewRole: new FormControl('USER')
+      primaryOwnerNewRole: new FormControl('USER'),
     });
   }
 
   onSearchUserToAdd({ detail }) {
-    this.searchUser(detail).then(users =>
-      this.userListForAddMember = users.filter(user =>
-        this.members.findIndex(member => member.user.id === user.id) === -1
-      )
+    this.searchUser(detail).then(
+      (users) =>
+        (this.userListForAddMember = users.filter((user) => this.members.findIndex((member) => member.user.id === user.id) === -1)),
     );
   }
 
   onSearchUserForTransferOwnership({ detail }) {
-    this.searchUser(detail).then(users =>
-      this.userListForTransferOwnership = users.filter(user => this.application.owner.id !== user.id)
+    this.searchUser(detail).then(
+      (users) => (this.userListForTransferOwnership = users.filter((user) => this.application.owner.id !== user.id)),
     );
   }
 
@@ -283,9 +288,10 @@ export class ApplicationMembersComponent implements OnInit {
   }
 
   searchUser(query: string): Promise<User[]> {
-    return this.usersService.getUsers({ q: query })
+    return this.usersService
+      .getUsers({ q: query })
       .toPromise()
-      .then(usersResponse => {
+      .then((usersResponse) => {
         let result: User[] = [];
         if (usersResponse.data.length) {
           result = usersResponse.data.map((u) => {
@@ -300,30 +306,32 @@ export class ApplicationMembersComponent implements OnInit {
   }
 
   removeMember(member: Member) {
-    this.applicationService.deleteApplicationMember({
-      applicationId: this.application.id,
-      memberId: member.user.id
-    })
+    this.applicationService
+      .deleteApplicationMember({
+        applicationId: this.application.id,
+        memberId: member.user.id,
+      })
       .toPromise()
       .then(() => this.loadMembersTable())
       .then(() => this.notificationService.success(i18n('application.members.list.remove.success')));
   }
 
   addMember() {
-    this.applicationService.createApplicationMember({
-      applicationId: this.application.id,
-      MemberInput: {
-        user: this.selectedUserToAdd.id,
-        reference: this.selectedUserToAdd.reference,
-        role: this.addMemberForm.controls.newMemberRole.value
-      }
-    }).toPromise().then(
-      () => {
+    this.applicationService
+      .createApplicationMember({
+        applicationId: this.application.id,
+        MemberInput: {
+          user: this.selectedUserToAdd.id,
+          reference: this.selectedUserToAdd.reference,
+          role: this.addMemberForm.controls.newMemberRole.value,
+        },
+      })
+      .toPromise()
+      .then(() => {
         this.notificationService.success(i18n('application.members.add.success'));
         this.loadMembersTable();
         this.resetAddMember();
-      }
-    );
+      });
   }
 
   toggleGroupMembers($event: any) {
@@ -331,14 +339,14 @@ export class ApplicationMembersComponent implements OnInit {
   }
 
   transferOwnership() {
-    this.applicationService.transferMemberOwnership(
-      {
+    this.applicationService
+      .transferMemberOwnership({
         applicationId: this.application.id,
         TransferOwnershipInput: {
           new_primary_owner_id: this.selectedUserForTransferOwnership.id,
           new_primary_owner_reference: this.selectedUserForTransferOwnership.reference,
-          primary_owner_newrole: this.transferOwnershipForm.controls.primaryOwnerNewRole.value
-        }
+          primary_owner_newrole: this.transferOwnershipForm.controls.primaryOwnerNewRole.value,
+        },
       })
       .toPromise()
       .then(() => this.router.navigate(['applications']))
@@ -346,24 +354,26 @@ export class ApplicationMembersComponent implements OnInit {
   }
 
   updateMember(member: Member, { detail }) {
-    this.applicationService.updateApplicationMemberByApplicationIdAndMemberId({
-      applicationId: this.application.id,
-      memberId: member.user.id,
-      MemberInput: {
-        user: member.user.id,
-        role: detail,
-      }
-    }).toPromise().then(() => {
-      this.notificationService.success(i18n('application.members.list.success'));
-      if (this.currentUser.exist() && this.currentUser.getUser().id === member.user.id) {
-        this.isReadOnly()
-          .then(isReadOnly => {
+    this.applicationService
+      .updateApplicationMemberByApplicationIdAndMemberId({
+        applicationId: this.application.id,
+        memberId: member.user.id,
+        MemberInput: {
+          user: member.user.id,
+          role: detail,
+        },
+      })
+      .toPromise()
+      .then(() => {
+        this.notificationService.success(i18n('application.members.list.success'));
+        if (this.currentUser.exist() && this.currentUser.getUser().id === member.user.id) {
+          this.isReadOnly().then((isReadOnly) => {
             this.readonly = isReadOnly;
             this.membersOptions = this._buildMemberOptions();
             this.ref.detectChanges();
           });
-      }
-    });
+        }
+      });
   }
 
   toLocaleDateString(date: string) {

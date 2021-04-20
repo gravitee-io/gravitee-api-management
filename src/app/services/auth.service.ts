@@ -23,10 +23,9 @@ import { AuthenticationService, PortalService } from '../../../projects/portal-w
 import { Router } from '@angular/router';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-
   private authenticationService: AuthenticationService;
   private portalService: PortalService;
   private router: Router;
@@ -68,7 +67,7 @@ export class AuthService {
           this.notificationService.error(i18n('login.notification.error'));
           resolve(false);
         },
-        () => resolve(true)
+        () => resolve(true),
       );
     });
   }
@@ -94,14 +93,17 @@ export class AuthService {
   }
 
   private _logout(resolve) {
-    this.authenticationService.logout().toPromise().then(() => {
-      this.currentUserService.revokeUser();
-      if (this.getProviderId()) {
-        this.oauthService.logOut();
-        this.removeProviderId();
-      }
-      this.router.navigate(['']);
-    })
+    this.authenticationService
+      .logout()
+      .toPromise()
+      .then(() => {
+        this.currentUserService.revokeUser();
+        if (this.getProviderId()) {
+          this.oauthService.logOut();
+          this.removeProviderId();
+        }
+        this.router.navigate(['']);
+      })
       .catch(() => resolve(false))
       .finally(() => resolve(true));
   }
@@ -135,17 +137,20 @@ export class AuthService {
 
   private _fetchProviderAndConfigure(): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
-      this.portalService.getPortalIdentityProvider({ identityProviderId: this.getProviderId() }).toPromise().then(
-        (identityProvider) => {
-          if (identityProvider) {
-            this._configure(identityProvider);
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        },
-        () => resolve(false)
-      );
+      this.portalService
+        .getPortalIdentityProvider({ identityProviderId: this.getProviderId() })
+        .toPromise()
+        .then(
+          (identityProvider) => {
+            if (identityProvider) {
+              this._configure(identityProvider);
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          },
+          () => resolve(false),
+        );
     });
   }
 

@@ -24,12 +24,7 @@ describe('ApplicationCreationStep1Component', () => {
   const createComponent = createComponentFactory({
     component: ApplicationCreationStep1Component,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      HttpClientTestingModule,
-      RouterTestingModule,
-      FormsModule,
-      ReactiveFormsModule
-    ],
+    imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
   });
 
   let spectator: Spectator<ApplicationCreationStep1Component>;
@@ -43,5 +38,4 @@ describe('ApplicationCreationStep1Component', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

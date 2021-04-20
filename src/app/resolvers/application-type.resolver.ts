@@ -19,15 +19,10 @@ import { ApplicationService, ApplicationType } from '../../../projects/portal-we
 
 @Injectable({ providedIn: 'root' })
 export class ApplicationTypeResolver implements Resolve<ApplicationType> {
-
-  constructor(
-    private applicationService: ApplicationService,
-  ) {
-  }
+  constructor(private applicationService: ApplicationService) {}
 
   resolve(route: ActivatedRouteSnapshot) {
     const applicationId = route.params.applicationId;
     return this.applicationService.getApplicationType({ applicationId });
   }
-
 }

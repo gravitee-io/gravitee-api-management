@@ -34,7 +34,7 @@ import {
   ApplicationType,
   Plan,
   PortalService,
-  SubscriptionService
+  SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../../services/notification.service';
 
@@ -45,9 +45,9 @@ export interface ApplicationTypeOption extends ApplicationType {
 }
 
 interface StepState {
-  description: string,
-  valid: boolean,
-  invalid: boolean
+  description: string;
+  valid: boolean;
+  invalid: boolean;
 }
 
 @Component({
@@ -56,7 +56,6 @@ interface StepState {
   styleUrls: ['./application-creation.component.css'],
 })
 export class ApplicationCreationComponent implements OnInit {
-
   private _allSteps: any;
   steps: any;
   currentStep: number;
@@ -74,36 +73,46 @@ export class ApplicationCreationComponent implements OnInit {
   applicationType: ApplicationTypeOption;
   private stepOneForm: FormGroup;
   private stepTwoForm: FormGroup;
-  subscriptionErrors: { api: Api, message: string }[];
+  subscriptionErrors: { api: Api; message: string }[];
 
-  constructor(private translateService: TranslateService,
-              private configurationService: ConfigurationService,
-              private formBuilder: FormBuilder,
-              private router: Router,
-              private route: ActivatedRoute,
-              private portalService: PortalService,
-              private notificationService: NotificationService,
-              private apiService: ApiService,
-              private activatedRoute: ActivatedRoute,
-              private subscriptionService: SubscriptionService,
-              private applicationService: ApplicationService,
-              private ref: ChangeDetectorRef) {
+  constructor(
+    private translateService: TranslateService,
+    private configurationService: ConfigurationService,
+    private formBuilder: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute,
+    private portalService: PortalService,
+    private notificationService: NotificationService,
+    private apiService: ApiService,
+    private activatedRoute: ActivatedRoute,
+    private subscriptionService: SubscriptionService,
+    private applicationService: ApplicationService,
+    private ref: ChangeDetectorRef,
+  ) {
     this.currentStep = 1;
     this.readSteps = [1];
     this.subscriptionErrors = [];
   }
 
   async ngOnInit() {
-    this._allSteps = await Promise.all([
-      i18n('applicationCreation.step.general'),
-      i18n('applicationCreation.step.security'),
-      i18n('applicationCreation.step.subscription'),
-      i18n('applicationCreation.step.validate')
-    ].map((_title) => this.translateService.get(_title).toPromise().then((title) => ({ title }))));
+    this._allSteps = await Promise.all(
+      [
+        i18n('applicationCreation.step.general'),
+        i18n('applicationCreation.step.security'),
+        i18n('applicationCreation.step.subscription'),
+        i18n('applicationCreation.step.validate'),
+      ].map((_title) =>
+        this.translateService
+          .get(_title)
+          .toPromise()
+          .then((title) => ({ title })),
+      ),
+    );
     this.steps = this._allSteps;
-    this.allowedTypes = await Promise.all(this.route.snapshot.data.enabledApplicationTypes
-      .map((type, index) => {
-        return this.translateService.get([`applicationType.${type.id}.title`, `applicationType.${type.id}.description`])
+    this.allowedTypes = await Promise.all(
+      this.route.snapshot.data.enabledApplicationTypes.map((type, index) => {
+        return this.translateService
+          .get([`applicationType.${type.id}.title`, `applicationType.${type.id}.description`])
           .toPromise()
           .then((translations) => {
             const [title, description] = Object.values(translations);
@@ -114,7 +123,8 @@ export class ApplicationCreationComponent implements OnInit {
               description,
             };
           });
-      }));
+      }),
+    );
 
     this.applicationForm = this.formBuilder.group({
       name: new FormControl(null, [Validators.required]),
@@ -125,7 +135,7 @@ export class ApplicationCreationComponent implements OnInit {
   }
 
   setCurrentStep(step) {
-    if (!(this.creationSuccess)) {
+    if (!this.creationSuccess) {
       if (!this.readSteps.includes(step)) {
         this.readSteps.push(step);
         if (step === 3) {
@@ -155,8 +165,10 @@ export class ApplicationCreationComponent implements OnInit {
   }
 
   hasValidClientId(plan) {
-    if (this.isSimpleApp
-      && (plan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 || plan.security.toUpperCase() === Plan.SecurityEnum.JWT)) {
+    if (
+      this.isSimpleApp &&
+      (plan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 || plan.security.toUpperCase() === Plan.SecurityEnum.JWT)
+    ) {
       const { settings } = this.applicationForm.getRawValue();
       if (settings.app) {
         if (settings.app.client_id == null || settings.app.client_id.trim() === '') {
@@ -168,8 +180,10 @@ export class ApplicationCreationComponent implements OnInit {
   }
 
   hasValidSubscriptions() {
-    return this.readSteps.includes(3)
-      && this.subscribeList.find((s) => this.hasRequireComment(s.plan) && (s.request == null || s.request.trim() === '')) == null;
+    return (
+      this.readSteps.includes(3) &&
+      this.subscribeList.find((s) => this.hasRequireComment(s.plan) && (s.request == null || s.request.trim() === '')) == null
+    );
   }
 
   hasRequireComment(plan) {
@@ -187,7 +201,7 @@ export class ApplicationCreationComponent implements OnInit {
       return {
         description: this.stepOneForm.get('name').value,
         valid: this.stepOneForm.valid,
-        invalid: this.readSteps.includes(2) && this.stepOneForm.invalid
+        invalid: this.readSteps.includes(2) && this.stepOneForm.invalid,
       };
     }
     return { description: '', valid: false, invalid: false };
@@ -214,8 +228,9 @@ export class ApplicationCreationComponent implements OnInit {
 
   async stepThreeState(): Promise<StepState> {
     if (this.subscribeList) {
-      const description = await this.translateService.get(
-        i18n('applicationCreation.subscription.description'), { count: this.subscribeList.length }).toPromise();
+      const description = await this.translateService
+        .get(i18n('applicationCreation.subscription.description'), { count: this.subscribeList.length })
+        .toPromise();
       const valid = this.hasValidSubscriptions();
       return { description, valid, invalid: !valid };
     }
@@ -223,15 +238,16 @@ export class ApplicationCreationComponent implements OnInit {
   }
 
   private async updateSteps() {
-    const createdAt = this.createdApplication ?
-      new Date(this.createdApplication.created_at).toLocaleString(this.translateService.currentLang) : '';
+    const createdAt = this.createdApplication
+      ? new Date(this.createdApplication.created_at).toLocaleString(this.translateService.currentLang)
+      : '';
 
     const stepThreeStep = await this.stepThreeState();
     this.steps = [
       this.stepOneState,
       this.stepTwoState,
       stepThreeStep,
-      { description: createdAt, valid: this.creationSuccess, invalid: false }
+      { description: createdAt, valid: this.creationSuccess, invalid: false },
     ].map(({ description, valid, invalid }, index) => {
       const step = this._allSteps[index];
       step.description = description;
@@ -267,7 +283,7 @@ export class ApplicationCreationComponent implements OnInit {
 
   canValidate() {
     if (this.steps && !this.creationSuccess) {
-      const firstThree = this.steps.filter((step, index) => (index <= 2 && step.valid));
+      const firstThree = this.steps.filter((step, index) => index <= 2 && step.valid);
       if (firstThree.length === 3) {
         return this.applicationForm.valid && this.hasValidSubscriptions();
       }
@@ -290,36 +306,38 @@ export class ApplicationCreationComponent implements OnInit {
     this.subscriptionErrors = [];
     const applicationInput = this.applicationForm.getRawValue() as ApplicationInput;
 
-    this.applicationService.createApplication({ ApplicationInput: applicationInput })
+    this.applicationService
+      .createApplication({ ApplicationInput: applicationInput })
       .toPromise()
       .then((application) => {
         this.createdApplication = application;
-        this.subscribeList
-          .forEach(async (subscription) => {
-            const subscriptionInput: any = {
-              application: application.id,
-              plan: subscription.plan.id,
-              request: subscription.request
-            };
+        this.subscribeList.forEach(async (subscription) => {
+          const subscriptionInput: any = {
+            application: application.id,
+            plan: subscription.plan.id,
+            request: subscription.request,
+          };
 
-            if (subscription.general_conditions_accepted) {
-              subscriptionInput.general_conditions_accepted = subscription.general_conditions_accepted;
-              subscriptionInput.general_conditions_content_revision = subscription.general_conditions_content_revision;
-            }
+          if (subscription.general_conditions_accepted) {
+            subscriptionInput.general_conditions_accepted = subscription.general_conditions_accepted;
+            subscriptionInput.general_conditions_content_revision = subscription.general_conditions_content_revision;
+          }
 
-            try {
-              await this.subscriptionService.createSubscription({
-                SubscriptionInput: subscriptionInput
-              }).toPromise();
-            } catch (exception) {
-              let message = null;
-              if (exception.error && exception.error.errors) {
-                const error = exception.error.errors[0];
-                message = await this.translateService.get(error.code, error.parameters).toPromise();
-              }
-              this.subscriptionErrors.push({ api: subscription.api, message });
+          try {
+            await this.subscriptionService
+              .createSubscription({
+                SubscriptionInput: subscriptionInput,
+              })
+              .toPromise();
+          } catch (exception) {
+            let message = null;
+            if (exception.error && exception.error.errors) {
+              const error = exception.error.errors[0];
+              message = await this.translateService.get(error.code, error.parameters).toPromise();
             }
-          });
+            this.subscriptionErrors.push({ api: subscription.api, message });
+          }
+        });
         this.creationSuccess = true;
         this.creationInProgress = false;
         setTimeout(this.updateSteps.bind(this), 200);
@@ -329,7 +347,6 @@ export class ApplicationCreationComponent implements OnInit {
         this.creationInProgress = false;
       });
   }
-
 
   onApplicationTypeSelected(applicationTypeOption: ApplicationTypeOption) {
     setTimeout(() => {
@@ -342,7 +359,7 @@ export class ApplicationCreationComponent implements OnInit {
     return this.applicationType.id.toLowerCase() === 'simple';
   }
 
-  onRequireChangeStep($event: { step, fragment }) {
+  onRequireChangeStep($event: { step; fragment }) {
     this.setCurrentStep($event.step);
     if ($event.fragment) {
       setTimeout(() => {
@@ -353,5 +370,4 @@ export class ApplicationCreationComponent implements OnInit {
       });
     }
   }
-
 }

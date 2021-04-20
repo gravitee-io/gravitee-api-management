@@ -23,10 +23,9 @@ import '@gravitee/ui-components/wc/gv-card-list';
 @Component({
   selector: 'app-homepage',
   templateUrl: './homepage.component.html',
-  styleUrls: ['./homepage.component.css']
+  styleUrls: ['./homepage.component.css'],
 })
 export class HomepageComponent implements OnInit {
-
   public homepage: Page;
   public topApis: { item: Api; metric: Promise<ApiMetrics> }[] = [];
 
@@ -36,14 +35,13 @@ export class HomepageComponent implements OnInit {
     private router: Router,
     private apiStates: ApiStatesPipe,
     private apiLabels: ApiLabelsPipe,
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
-    this.portalService.getPages({ homepage: true }).subscribe(response => {
+    this.portalService.getPages({ homepage: true }).subscribe((response) => {
       this.homepage = response.data[0];
     });
-    this.apiService.getApis({ filter: 'FEATURED', size: -1 }).subscribe(response => {
+    this.apiService.getApis({ filter: 'FEATURED', size: -1 }).subscribe((response) => {
       this.topApis = response.data.map((a) => {
         const metric = this.apiService.getApiMetricsByApiId({ apiId: a.id }).toPromise();
         // @ts-ignore
