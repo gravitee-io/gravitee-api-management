@@ -34,6 +34,7 @@ import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.netty.channel.ConnectTimeoutException;
+import io.netty.handler.timeout.TimeoutException;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
@@ -241,7 +242,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                         request.setHeaders(reqHeaders);
                     }
 
-                    if (event instanceof ConnectTimeoutException) {
+                    if (event instanceof ConnectTimeoutException || event instanceof TimeoutException) {
                         stepBuilder.fail(event.getMessage());
                         healthResponse.setStatus(HttpStatusCode.GATEWAY_TIMEOUT_504);
                     } else {
