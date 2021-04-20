@@ -1826,15 +1826,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         // Delete existing memberships
         userMemberships.forEach(
             membership -> {
-                // Consider only membership "created by" the identity provider
-                if (identityProviderId.equals(membership.getSource())) {
-                    membershipService.deleteReferenceMember(
-                        MembershipReferenceType.valueOf(membership.getType()),
-                        membership.getReference(),
-                        MembershipMemberType.USER,
-                        userId
-                    );
-                }
+                membershipService.deleteReferenceMember(
+                    MembershipReferenceType.valueOf(membership.getType()),
+                    membership.getReference(),
+                    MembershipMemberType.USER,
+                    userId
+                );
             }
         );
 
