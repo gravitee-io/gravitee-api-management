@@ -19,7 +19,10 @@ import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersUR
 
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.application.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.OAuthClientSettings;
+import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationLinks;
 import io.gravitee.rest.api.portal.rest.model.Group;

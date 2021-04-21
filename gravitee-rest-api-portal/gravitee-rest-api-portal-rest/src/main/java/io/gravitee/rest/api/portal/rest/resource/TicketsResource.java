@@ -29,7 +29,6 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.resource.param.TicketsParam;
 import io.gravitee.rest.api.service.TicketService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;

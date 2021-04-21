@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class UpdatePlanEntity {
     private PlanValidationType validation;
 
     @JsonProperty(value = "paths", required = true)
-    private Map<String, Path> paths = new HashMap<>();
+    private Map<String, List<Rule>> paths = new HashMap<>();
 
     private List<String> characteristics;
 
@@ -91,11 +91,11 @@ public class UpdatePlanEntity {
         this.validation = validation;
     }
 
-    public Map<String, Path> getPaths() {
+    public Map<String, List<Rule>> getPaths() {
         return paths;
     }
 
-    public void setPaths(Map<String, Path> paths) {
+    public void setPaths(Map<String, List<Rule>> paths) {
         this.paths = paths;
     }
 

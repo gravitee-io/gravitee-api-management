@@ -43,6 +43,31 @@
             </resource>
         </resources>
 		<plugins>
+			<!--Plugin used to replace version on several files -->
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>replacer</artifactId>
+				<version>1.5.3</version>
+				<executions>
+					<execution>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>${project.basedir}/src/main/resources/openapi.yaml</include>
+							</includes>
+							<replacements>
+								<replacement>
+									<token>version: "(.*)"</token>
+									<value>version: "${project.version}"</value>
+								</replacement>
+							</replacements>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
               <groupId>org.openapitools</groupId>
               <artifactId>openapi-generator-maven-plugin</artifactId>

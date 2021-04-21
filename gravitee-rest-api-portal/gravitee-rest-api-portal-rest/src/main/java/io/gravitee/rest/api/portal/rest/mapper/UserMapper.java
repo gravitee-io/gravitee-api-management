@@ -18,11 +18,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
-import io.gravitee.rest.api.model.NewExternalUserEntity;
-import io.gravitee.rest.api.model.RegisterUserEntity;
-import io.gravitee.rest.api.model.ResetPasswordUserEntity;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.UserRoleEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.*;
 import java.util.Date;
@@ -30,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 /**

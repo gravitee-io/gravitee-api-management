@@ -213,9 +213,7 @@ public class ApiService_gRPC_ExportAsJsonTestSetup {
         publishedPlan.setSecurity(PlanSecurityType.API_KEY);
         publishedPlan.setValidation(PlanValidationType.AUTO);
         publishedPlan.setStatus(PlanStatus.PUBLISHED);
-        Map<String, Path> paths = new HashMap<>();
-        Path path = new Path();
-        path.setPath("/");
+        Map<String, List<Rule>> paths = new HashMap<>();
         Rule rule = new Rule();
         rule.setEnabled(true);
         rule.setMethods(Sets.newSet(HttpMethod.GET));
@@ -238,8 +236,7 @@ public class ApiService_gRPC_ExportAsJsonTestSetup {
             "        }"
         );
         rule.setPolicy(policy);
-        path.setRules(Collections.singletonList(rule));
-        paths.put("/", path);
+        paths.put("/", Collections.singletonList(rule));
         publishedPlan.setPaths(paths);
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closedPlan-id");
@@ -290,17 +287,15 @@ public class ApiService_gRPC_ExportAsJsonTestSetup {
         LoadBalancer loadBalancer = new LoadBalancer();
         loadBalancer.setType(LoadBalancerType.ROUND_ROBIN);
         endpointGroup.setLoadBalancer(loadBalancer);
-        endpointGroup.setLoadBalancer(loadBalancer);
         proxy.setGroups(Collections.singleton(endpointGroup));
         io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
-        apiDefinition.setPaths(Collections.emptyMap());
         apiDefinition.setProxy(proxy);
-        ResponseTemplates responseTemplates = new ResponseTemplates();
+        apiDefinition.setDefinitionVersion(DefinitionVersion.V1);
+        Map<String, ResponseTemplate> responseTemplates = new HashMap<>();
         ResponseTemplate responseTemplate = new ResponseTemplate();
         responseTemplate.setStatusCode(400);
         responseTemplate.setBody("{\"bad\":\"news\"}");
-        responseTemplates.setTemplates(Collections.singletonMap("*/*", responseTemplate));
-        apiDefinition.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", responseTemplates));
+        apiDefinition.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", Collections.singletonMap("*/*", responseTemplate)));
         return apiDefinition;
     }
 
@@ -315,6 +310,6 @@ public class ApiService_gRPC_ExportAsJsonTestSetup {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
     }
 }

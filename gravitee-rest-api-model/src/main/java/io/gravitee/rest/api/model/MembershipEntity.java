@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)

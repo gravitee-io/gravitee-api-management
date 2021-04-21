@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.common.http.HttpStatusCode.*;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,8 +25,10 @@ import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.portal.rest.model.Rating;
+import io.gravitee.rest.api.portal.rest.model.RatingInput;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;

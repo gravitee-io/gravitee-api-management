@@ -27,7 +27,6 @@ import com.google.common.base.Function;
 import com.google.common.io.Resources;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.policy.api.swagger.Policy;
@@ -247,12 +246,11 @@ public class SwaggerService_CreateAPITest {
             .values()
             .stream()
             .map(
-                new Function<Path, Set<HttpMethod>>() {
+                new Function<List<Rule>, Set<HttpMethod>>() {
                     @Nullable
                     @Override
-                    public Set<HttpMethod> apply(@Nullable Path path) {
-                        Set<HttpMethod> collect = path
-                            .getRules()
+                    public Set<HttpMethod> apply(@Nullable List<Rule> rules) {
+                        Set<HttpMethod> collect = rules
                             .stream()
                             .map(
                                 new Function<Rule, List<HttpMethod>>() {
@@ -325,9 +323,9 @@ public class SwaggerService_CreateAPITest {
         List<HttpMethod> firstRuleMethods,
         String firstRuleDescription
     ) {
-        Path p = api.getPaths().get(path);
-        assertEquals(expectedRuleSize, p.getRules().size());
-        Rule rule = p.getRules().get(0);
+        List<Rule> rules = api.getPaths().get(path);
+        assertEquals(expectedRuleSize, rules.size());
+        Rule rule = rules.get(0);
         assertTrue(rule.getMethods().containsAll(firstRuleMethods));
         assertEquals(firstRuleDescription, rule.getDescription());
     }

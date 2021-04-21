@@ -21,15 +21,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.flow.Step;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PolicyEntity;
@@ -175,7 +171,7 @@ public class PolicyServiceTest {
     public void shouldAcceptNoConfiguration() {
         Policy policy = new Policy();
         policy.setName("my-policy");
-        policy.setConfiguration(null);
+        policy.setConfiguration((String) null);
         policyService.validatePolicyConfiguration(policy);
     }
 
@@ -183,7 +179,7 @@ public class PolicyServiceTest {
     public void shouldAcceptNoConfigurationStep() {
         Step step = new Step();
         step.setPolicy("my-policy");
-        step.setConfiguration(null);
+        step.setConfiguration((String) null);
         policyService.validatePolicyConfiguration(step);
     }
 

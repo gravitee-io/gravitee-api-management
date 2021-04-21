@@ -20,16 +20,16 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static java.util.Collections.emptyList;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
-import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.Collection;
@@ -38,9 +38,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

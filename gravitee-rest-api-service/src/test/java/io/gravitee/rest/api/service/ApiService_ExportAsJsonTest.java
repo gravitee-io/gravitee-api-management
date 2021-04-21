@@ -25,8 +25,6 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.jackson.ser.api.*;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.io.IOException;
 import java.net.URL;
@@ -34,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -179,8 +176,7 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
         failover.setRetryTimeout(2000);
         proxy.setFailover(failover);
 
-        Cors cors = new Cors();
-        cors.setEnabled(true);
+        Cors cors = new Cors(true);
         cors.setAccessControlAllowOrigin(Collections.singleton("*"));
         cors.setAccessControlAllowHeaders(Collections.singleton("content-type"));
         cors.setAccessControlAllowMethods(Collections.singleton("GET"));
@@ -188,7 +184,7 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
 
         try {
             io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
-            apiDefinition.setPaths(Collections.emptyMap());
+            apiDefinition.setDefinitionVersion(null);
             apiDefinition.setProxy(proxy);
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);

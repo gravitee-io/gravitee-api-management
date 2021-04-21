@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import java.util.*;
 import javax.validation.constraints.NotNull;
@@ -50,7 +50,7 @@ public class NewPlanEntity {
     private String api;
 
     @JsonProperty(value = "paths", required = true)
-    private Map<String, Path> paths = new HashMap<>();
+    private Map<String, List<Rule>> paths = new HashMap<>();
 
     @JsonProperty(value = "flows", required = true)
     private List<Flow> flows = new ArrayList<>();
@@ -122,11 +122,11 @@ public class NewPlanEntity {
         this.api = api;
     }
 
-    public Map<String, Path> getPaths() {
+    public Map<String, List<Rule>> getPaths() {
         return paths;
     }
 
-    public void setPaths(Map<String, Path> paths) {
+    public void setPaths(Map<String, List<Rule>> paths) {
         this.paths = paths;
     }
 

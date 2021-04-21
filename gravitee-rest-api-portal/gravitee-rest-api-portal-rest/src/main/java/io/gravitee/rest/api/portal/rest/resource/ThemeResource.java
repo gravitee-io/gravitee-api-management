@@ -25,7 +25,10 @@ import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ThemeService;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.*;
 import org.springframework.beans.factory.annotation.Autowired;
 

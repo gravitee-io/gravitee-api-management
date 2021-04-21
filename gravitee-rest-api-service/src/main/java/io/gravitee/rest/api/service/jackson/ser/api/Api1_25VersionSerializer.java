@@ -17,13 +17,15 @@ package io.gravitee.rest.api.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.EndpointType;
+import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer.Member;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -118,9 +120,9 @@ public class Api1_25VersionSerializer extends ApiSerializer {
         // response templates
         if (apiEntity.getResponseTemplates() != null) {
             jsonGenerator.writeObjectFieldStart("response_templates");
-            for (Map.Entry<String, ResponseTemplates> rt : apiEntity.getResponseTemplates().entrySet()) {
+            for (Map.Entry<String, Map<String, ResponseTemplate>> rt : apiEntity.getResponseTemplates().entrySet()) {
                 jsonGenerator.writeObjectFieldStart(rt.getKey());
-                for (Map.Entry<String, ResponseTemplate> entry : rt.getValue().getTemplates().entrySet()) {
+                for (Map.Entry<String, ResponseTemplate> entry : rt.getValue().entrySet()) {
                     jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
                 }
                 jsonGenerator.writeEndObject();

@@ -29,7 +29,7 @@ public class DynamicProperty extends Property {
     }
 
     @Override
-    public boolean isDynamic() {
+    public Boolean isDynamic() {
         return dynamic;
     }
 

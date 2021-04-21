@@ -15,15 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-import io.gravitee.rest.api.model.analytics.Bucket;
-import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
-import io.gravitee.rest.api.model.analytics.HitsAnalytics;
-import io.gravitee.rest.api.model.analytics.Timestamp;
-import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
+import io.gravitee.rest.api.model.analytics.*;
 import io.gravitee.rest.api.portal.rest.model.CountAnalytics;
 import io.gravitee.rest.api.portal.rest.model.DateHistoAnalytics;
 import io.gravitee.rest.api.portal.rest.model.GroupByAnalytics;

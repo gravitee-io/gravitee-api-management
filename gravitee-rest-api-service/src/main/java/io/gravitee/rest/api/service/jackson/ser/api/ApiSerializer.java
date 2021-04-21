@@ -20,7 +20,7 @@ import static java.util.Collections.emptyList;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -82,7 +82,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         }
         if (apiEntity.getPaths() != null) {
             jsonGenerator.writeObjectFieldStart("paths");
-            for (Map.Entry<String, Path> entry : apiEntity.getPaths().entrySet()) {
+            for (Map.Entry<String, List<Rule>> entry : apiEntity.getPaths().entrySet()) {
                 jsonGenerator.writeObjectField(entry.getKey(), entry.getValue());
             }
             jsonGenerator.writeEndObject();
@@ -113,7 +113,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         }
 
         if (apiEntity.getProperties() != null && apiEntity.getProperties().getValues() != null) {
-            jsonGenerator.writeObjectField("properties", apiEntity.getProperties());
+            jsonGenerator.writeObjectField("properties", apiEntity.getProperties().getProperties());
         } else {
             jsonGenerator.writeObjectField("properties", emptyList());
         }

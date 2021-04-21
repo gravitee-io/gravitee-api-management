@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.repository.management.model.MembershipReferenceType.GROUP;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.MediaType;
@@ -30,7 +29,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.*;

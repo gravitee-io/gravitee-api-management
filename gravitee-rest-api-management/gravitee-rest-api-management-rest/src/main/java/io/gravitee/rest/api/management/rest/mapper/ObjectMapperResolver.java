@@ -48,37 +48,6 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
 
         // register filter provider
         registerFilterProvider();
-
-        SimpleModule module = new SimpleModule();
-        module.setDeserializerModifier(
-            new BeanDeserializerModifier() {
-                @Override
-                public JsonDeserializer<Enum> modifyEnumDeserializer(
-                    DeserializationConfig config,
-                    final JavaType type,
-                    BeanDescription beanDesc,
-                    final JsonDeserializer<?> deserializer
-                ) {
-                    return new JsonDeserializer<Enum>() {
-                        @Override
-                        public Enum deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-                            Class<? extends Enum> rawClass = (Class<Enum<?>>) type.getRawClass();
-                            return Enum.valueOf(rawClass, jp.getValueAsString().toUpperCase());
-                        }
-                    };
-                }
-            }
-        );
-        module.addSerializer(
-            Enum.class,
-            new StdSerializer<Enum>(Enum.class) {
-                @Override
-                public void serialize(Enum value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-                    jgen.writeString(value.name().toLowerCase());
-                }
-            }
-        );
-        mapper.registerModule(module);
     }
 
     @Override

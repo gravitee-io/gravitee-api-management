@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -269,13 +270,14 @@ public class ApiService_UpdateTest {
         when(existingApi.getName()).thenReturn(API_NAME);
         when(existingApi.getVersion()).thenReturn("v1");
         when(existingApi.getDescription()).thenReturn("Ma description");
-        final Proxy proxy = mock(Proxy.class);
+        final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setName("endpointGroupName");
+        Endpoint endpoint = new HttpEndpoint("endpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
-        when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
+        proxy.setGroups(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
-        when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
@@ -325,17 +327,14 @@ public class ApiService_UpdateTest {
     public void shouldNotUpdateWithInvalidPolicyConfiguration() throws TechnicalException {
         prepareUpdate();
 
-        HashMap<String, Path> paths = new HashMap<>();
-        Path path = new Path();
-        path.setPath("/");
+        HashMap<String, List<Rule>> paths = new HashMap<>();
         ArrayList<Rule> rules = new ArrayList<>();
         Rule rule = new Rule();
         Policy policy = new Policy();
         rule.setPolicy(policy);
         rule.setEnabled(true);
         rules.add(rule);
-        path.setRules(rules);
-        paths.put("/", path);
+        paths.put("/", rules);
 
         when(existingApi.getPaths()).thenReturn(paths);
         doThrow(new InvalidDataException()).when(policyService).validatePolicyConfiguration(any(Policy.class));
@@ -373,25 +372,17 @@ public class ApiService_UpdateTest {
         when(existingApi.getName()).thenReturn(API_NAME);
         when(existingApi.getVersion()).thenReturn("v1");
         when(existingApi.getDescription()).thenReturn("Ma description");
-        final Proxy proxy = mock(Proxy.class);
+        final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setName("endpointGroupName");
+        Endpoint endpoint = new HttpEndpoint("endpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
-        when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
-        Cors cors = mock(Cors.class);
-        when(cors.getAccessControlAllowOrigin())
-            .thenReturn(
-                Sets.newSet(
-                    "http://example.com",
-                    "ionic://localhost",
-                    "https://10.140.238.25:8080",
-                    "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}"
-                )
-            );
-        when(proxy.getCors()).thenReturn(cors);
+        proxy.setGroups(singleton(endpointGroup));
+        Cors cors = new Cors(false);
+        proxy.setCors(cors);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
-        when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
+        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setName(SystemRole.PRIMARY_OWNER.name());
@@ -427,6 +418,8 @@ public class ApiService_UpdateTest {
     @Test
     public void shouldNotDuplicateLabels() throws TechnicalException {
         prepareUpdate();
+        // must deactivate this, since "labels" is not in the "gravitee-definition" API
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         when(existingApi.getLabels()).thenReturn(Arrays.asList("label1", "label1"));
         when(api.getDefinition())
             .thenReturn(
@@ -448,7 +441,8 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(singleton("private"));
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setName("endpointGroupName");
+        Endpoint endpoint = new HttpEndpoint("EndpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -473,7 +467,8 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(newSet("public", "private"));
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint(null, null);
+        endpointGroup.setName("endpointGroupName");
+        Endpoint endpoint = new HttpEndpoint("endpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -524,7 +519,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(singleton("private"));
         final Proxy proxy = mock(Proxy.class);
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint(null, null);
+        Endpoint endpoint = new HttpEndpoint("default", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -547,7 +542,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(singleton("private"));
         final Proxy proxy = mock(Proxy.class);
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint(null, null);
+        Endpoint endpoint = new HttpEndpoint("default", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -570,7 +565,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(emptySet());
         final Proxy proxy = mock(Proxy.class);
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint(null, null);
+        Endpoint endpoint = new HttpEndpoint("default", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -597,9 +592,8 @@ public class ApiService_UpdateTest {
     public void shouldUpdateWithValidSchedule() throws TechnicalException {
         prepareUpdate();
         Services services = new Services();
-        HealthCheckService healthCheckService = mock(HealthCheckService.class);
-        when(healthCheckService.getName()).thenReturn("health-check");
-        when(healthCheckService.getSchedule()).thenReturn("1,2 */100 5-8 * * *");
+        HealthCheckService healthCheckService = new HealthCheckService();
+        healthCheckService.setSchedule("1,2 */100 5-8 * * *");
         services.put(HealthCheckService.class, healthCheckService);
         when(existingApi.getServices()).thenReturn(services);
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
@@ -779,23 +773,35 @@ public class ApiService_UpdateTest {
     @Test(expected = AllowOriginNotAllowedException.class)
     public void shouldHaveAllowOriginNotAllowed() throws TechnicalException {
         prepareUpdate();
-        existingApi.getProxy().getCors().getAccessControlAllowOrigin().add("/test^");
+        existingApi.getProxy().getCors().setEnabled(true);
+        existingApi
+            .getProxy()
+            .getCors()
+            .setAccessControlAllowOrigin(
+                Sets.newSet(
+                    "http://example.com",
+                    "localhost",
+                    "https://10.140.238.25:8080",
+                    "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}",
+                    "/test^"
+                )
+            );
         apiService.update(API_ID, existingApi);
     }
 
     @Test
     public void shouldHaveAllowOriginWildcardAllowed() throws TechnicalException {
         prepareUpdate();
-        existingApi.getProxy().getCors().getAccessControlAllowOrigin().clear();
-        existingApi.getProxy().getCors().getAccessControlAllowOrigin().add("*");
+        existingApi.getProxy().getCors().setEnabled(true);
+        existingApi.getProxy().getCors().setAccessControlAllowOrigin(Collections.singleton("*"));
         apiService.update(API_ID, existingApi);
     }
 
     @Test
     public void shouldHaveAllowOriginNullAllowed() throws TechnicalException {
         prepareUpdate();
-        existingApi.getProxy().getCors().getAccessControlAllowOrigin().clear();
-        existingApi.getProxy().getCors().getAccessControlAllowOrigin().add("null");
+        existingApi.getProxy().getCors().setEnabled(true);
+        existingApi.getProxy().getCors().setAccessControlAllowOrigin(Collections.singleton("null"));
         apiService.update(API_ID, existingApi);
     }
 

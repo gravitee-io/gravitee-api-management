@@ -212,9 +212,7 @@ public class ApiService_ExportAsJsonTestSetup {
         publishedPlan.setSecurity(PlanSecurityType.API_KEY);
         publishedPlan.setValidation(PlanValidationType.AUTO);
         publishedPlan.setStatus(PlanStatus.PUBLISHED);
-        Map<String, Path> paths = new HashMap<>();
-        Path path = new Path();
-        path.setPath("/");
+        Map<String, List<Rule>> paths = new HashMap<>();
         io.gravitee.definition.model.Rule rule = new io.gravitee.definition.model.Rule();
         rule.setEnabled(true);
         rule.setMethods(Sets.newSet(HttpMethod.GET));
@@ -237,8 +235,7 @@ public class ApiService_ExportAsJsonTestSetup {
             "        }"
         );
         rule.setPolicy(policy);
-        path.setRules(Collections.singletonList(rule));
-        paths.put("/", path);
+        paths.put("/", Collections.singletonList(rule));
         publishedPlan.setPaths(paths);
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closedPlan-id");
@@ -289,14 +286,13 @@ public class ApiService_ExportAsJsonTestSetup {
         proxy.setGroups(Collections.singleton(endpointGroup));
 
         io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
-        apiDefinition.setPaths(Collections.emptyMap());
+        apiDefinition.setDefinitionVersion(null);
         apiDefinition.setProxy(proxy);
-        ResponseTemplates responseTemplates = new ResponseTemplates();
+
         ResponseTemplate responseTemplate = new ResponseTemplate();
         responseTemplate.setStatusCode(400);
         responseTemplate.setBody("{\"bad\":\"news\"}");
-        responseTemplates.setTemplates(Collections.singletonMap("*/*", responseTemplate));
-        apiDefinition.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", responseTemplates));
+        apiDefinition.setResponseTemplates(Collections.singletonMap("API_KEY_MISSING", Collections.singletonMap("*/*", responseTemplate)));
         return apiDefinition;
     }
 
@@ -309,7 +305,7 @@ public class ApiService_ExportAsJsonTestSetup {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
     }
 
     protected void shouldConvertAsJsonWithoutMembers(ApiSerializer.Version version, String filename) throws IOException {
@@ -323,7 +319,7 @@ public class ApiService_ExportAsJsonTestSetup {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
     }
 
     protected void shouldConvertAsJsonWithoutPages(ApiSerializer.Version version, String filename) throws IOException {
@@ -337,7 +333,7 @@ public class ApiService_ExportAsJsonTestSetup {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
     }
 
     protected void shouldConvertAsJsonWithoutPlans(ApiSerializer.Version version, String filename) throws IOException {
@@ -351,7 +347,7 @@ public class ApiService_ExportAsJsonTestSetup {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
     }
 
     protected void shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version version, String filename) throws IOException {
@@ -365,6 +361,6 @@ public class ApiService_ExportAsJsonTestSetup {
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
     }
 }

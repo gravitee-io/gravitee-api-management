@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import io.gravitee.rest.api.model.NewTicketEntity;
 import io.gravitee.rest.api.portal.rest.model.TicketInput;

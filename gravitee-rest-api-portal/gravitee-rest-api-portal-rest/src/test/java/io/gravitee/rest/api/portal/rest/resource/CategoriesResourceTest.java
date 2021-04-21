@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.CategoryEntity;

@@ -16,17 +16,9 @@
 package io.gravitee.rest.api.service.jackson.ser.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.Path;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.PlanSecurityType;
-import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.model.PlanType;
-import io.gravitee.rest.api.model.PlanValidationType;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.rest.api.model.*;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -58,7 +50,7 @@ public class PlanEntityBefore_3_00 {
     @JsonProperty("closed_at")
     private Date closedAt;
 
-    private Map<String, Path> paths = new HashMap<>();
+    private Map<String, List<Rule>> paths = new HashMap<>();
 
     private List<String> characteristics;
 
@@ -170,11 +162,11 @@ public class PlanEntityBefore_3_00 {
         this.updatedAt = updatedAt;
     }
 
-    public Map<String, Path> getPaths() {
+    public Map<String, List<Rule>> getPaths() {
         return paths;
     }
 
-    public void setPaths(Map<String, Path> paths) {
+    public void setPaths(Map<String, List<Rule>> paths) {
         this.paths = paths;
     }
 

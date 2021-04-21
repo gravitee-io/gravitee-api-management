@@ -26,11 +26,8 @@ import static org.mockito.Mockito.doThrow;
 
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Rating;
-import io.gravitee.rest.api.portal.rest.model.RatingInput;
-import io.gravitee.rest.api.portal.rest.model.RatingsResponse;
 import io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException;
 import java.io.IOException;
 import java.util.Arrays;

@@ -32,7 +32,6 @@ import com.github.fge.jackson.JsonLoader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
@@ -89,7 +88,7 @@ public class APIV1toAPIV2Converter {
      * @param policies, the list of available policies, containing available scopes
      * @return the list of Flows
      */
-    private List<Flow> migratePathsToFlows(Map<String, Path> paths, Set<PolicyEntity> policies) {
+    private List<Flow> migratePathsToFlows(Map<String, List<Rule>> paths, Set<PolicyEntity> policies) {
         List<Flow> flows = new ArrayList<>();
         if (!CollectionUtils.isEmpty(paths)) {
             paths.forEach(
@@ -98,7 +97,6 @@ public class APIV1toAPIV2Converter {
                     // else, we have a flow per rule in the path.
                     boolean oneFlowPerPathMode =
                         pathValue
-                            .getRules()
                             .stream()
                             .map(
                                 rule -> {
@@ -113,31 +111,27 @@ public class APIV1toAPIV2Converter {
 
                     if (oneFlowPerPathMode) {
                         // since, all HttpMethods are the same in this case, we can use `pathValue.getRules().get(0).getMethods()`
-                        final Flow flow = createFlow(pathKey, pathValue.getRules().get(0).getMethods());
-                        pathValue
-                            .getRules()
-                            .forEach(
-                                rule -> {
-                                    configurePolicies(policies, rule, flow);
-                                }
-                            );
+                        final Flow flow = createFlow(pathKey, pathValue.get(0).getMethods());
+                        pathValue.forEach(
+                            rule -> {
+                                configurePolicies(policies, rule, flow);
+                            }
+                        );
 
                         // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
                         Collections.reverse(flow.getPost());
                         flows.add(flow);
                     } else {
-                        pathValue
-                            .getRules()
-                            .forEach(
-                                rule -> {
-                                    final Flow flow = createFlow(pathKey, rule.getMethods());
-                                    configurePolicies(policies, rule, flow);
+                        pathValue.forEach(
+                            rule -> {
+                                final Flow flow = createFlow(pathKey, rule.getMethods());
+                                configurePolicies(policies, rule, flow);
 
-                                    // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
-                                    Collections.reverse(flow.getPost());
-                                    flows.add(flow);
-                                }
-                            );
+                                // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
+                                Collections.reverse(flow.getPost());
+                                flows.add(flow);
+                            }
+                        );
                     }
                 }
             );
@@ -258,8 +252,8 @@ public class APIV1toAPIV2Converter {
      * @param pathsMap from ApiEntity
      * @return a NavigableMap with keys in reverse order
      */
-    private NavigableMap<String, Path> reversePathsOrder(Map<String, Path> pathsMap) {
-        TreeMap<String, Path> reversedPaths = new TreeMap<>(reverseOrder());
+    private NavigableMap<String, List<Rule>> reversePathsOrder(Map<String, List<Rule>> pathsMap) {
+        TreeMap<String, List<Rule>> reversedPaths = new TreeMap<>(reverseOrder());
         reversedPaths.putAll(pathsMap);
         return reversedPaths.descendingMap();
     }

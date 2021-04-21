@@ -17,8 +17,6 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.RatingAnswerEntity;

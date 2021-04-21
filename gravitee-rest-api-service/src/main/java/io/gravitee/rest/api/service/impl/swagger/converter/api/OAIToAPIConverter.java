@@ -259,64 +259,60 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
 
         // Paths
-        apiEntity.setPaths(
-            oai
-                .getPaths()
-                .entrySet()
-                .stream()
-                .map(
-                    entry -> {
-                        final io.gravitee.definition.model.Path path = new Path();
-                        path.setPath(entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1"));
+        Map<String, List<Rule>> paths = new HashMap<>();
 
-                        Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
-                        List<Rule> rules = new ArrayList<>();
+        oai
+            .getPaths()
+            .entrySet()
+            .forEach(
+                entry -> {
+                    String path = entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
 
-                        operations.forEach(
-                            new BiConsumer<PathItem.HttpMethod, Operation>() {
-                                @Override
-                                public void accept(PathItem.HttpMethod httpMethod, Operation operation) {
-                                    visitors.forEach(
-                                        new Consumer<OAIOperationVisitor>() {
-                                            @Override
-                                            public void accept(OAIOperationVisitor oaiOperationVisitor) {
-                                                // Consider only policy visitor for now
-                                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                    Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
+                    List<Rule> rules = new ArrayList<>();
 
-                                                if (policy.isPresent()) {
-                                                    final Rule rule = new Rule();
-                                                    rule.setEnabled(true);
-                                                    rule.setDescription(
-                                                        operation.getSummary() == null
-                                                            ? (
-                                                                operation.getOperationId() == null
-                                                                    ? operation.getDescription()
-                                                                    : operation.getOperationId()
-                                                            )
-                                                            : operation.getSummary()
-                                                    );
-                                                    rule.setMethods(singleton(HttpMethod.valueOf(httpMethod.name())));
+                    operations.forEach(
+                        new BiConsumer<PathItem.HttpMethod, Operation>() {
+                            @Override
+                            public void accept(PathItem.HttpMethod httpMethod, Operation operation) {
+                                visitors.forEach(
+                                    new Consumer<OAIOperationVisitor>() {
+                                        @Override
+                                        public void accept(OAIOperationVisitor oaiOperationVisitor) {
+                                            // Consider only policy visitor for now
+                                            Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
 
-                                                    io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
-                                                    defPolicy.setName(policy.get().getName());
-                                                    defPolicy.setConfiguration(clearNullValues(policy.get().getConfiguration()));
-                                                    rule.setPolicy(defPolicy);
-                                                    rules.add(rule);
-                                                }
+                                            if (policy.isPresent()) {
+                                                final Rule rule = new Rule();
+                                                rule.setEnabled(true);
+                                                rule.setDescription(
+                                                    operation.getSummary() == null
+                                                        ? (
+                                                            operation.getOperationId() == null
+                                                                ? operation.getDescription()
+                                                                : operation.getOperationId()
+                                                        )
+                                                        : operation.getSummary()
+                                                );
+                                                rule.setMethods(singleton(HttpMethod.valueOf(httpMethod.name())));
+
+                                                io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
+                                                defPolicy.setName(policy.get().getName());
+                                                defPolicy.setConfiguration(clearNullValues(policy.get().getConfiguration()));
+                                                rule.setPolicy(defPolicy);
+                                                rules.add(rule);
                                             }
                                         }
-                                    );
-                                }
+                                    }
+                                );
                             }
-                        );
+                        }
+                    );
+                    paths.put(path, rules);
+                }
+            );
 
-                        path.setRules(rules);
-
-                        return path;
-                    }
-                )
-                .collect(toMap(Path::getPath, path -> path))
-        );
+        apiEntity.setPaths(paths);
 
         // Path Mappings
         if (apiEntity.getPaths() != null) {

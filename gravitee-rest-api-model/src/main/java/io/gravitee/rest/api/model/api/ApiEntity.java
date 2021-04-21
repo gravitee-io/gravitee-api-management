@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.model.api;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
@@ -85,12 +84,8 @@ public class ApiEntity implements Indexable, FilterableItem {
 
     @DeploymentRequired
     @JsonProperty(value = "paths", required = true)
-    @ApiModelProperty(
-        // specify a type here because jackson der/ser for Path handle only array of rules
-        dataType = "io.gravitee.rest.api.model.api.PathsSwaggerDef",
-        value = "a map where you can associate a path to a configuration (the policies configuration)"
-    )
-    private Map<String, Path> paths = new HashMap<>();
+    @ApiModelProperty(value = "a map where you can associate a path to a configuration (the policies configuration)")
+    private Map<String, List<Rule>> paths = new HashMap<>();
 
     @DeploymentRequired
     @JsonProperty(value = "flows", required = true)
@@ -184,7 +179,7 @@ public class ApiEntity implements Indexable, FilterableItem {
     @ApiModelProperty(
         value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
     )
-    private Map<String, ResponseTemplates> responseTemplates;
+    private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
     @JsonProperty(value = "lifecycle_state")
     private ApiLifecycleState lifecycleState;
@@ -307,11 +302,11 @@ public class ApiEntity implements Indexable, FilterableItem {
         this.proxy = proxy;
     }
 
-    public Map<String, Path> getPaths() {
+    public Map<String, List<Rule>> getPaths() {
         return paths;
     }
 
-    public void setPaths(Map<String, Path> paths) {
+    public void setPaths(Map<String, List<Rule>> paths) {
         this.paths = paths;
     }
 
@@ -335,8 +330,24 @@ public class ApiEntity implements Indexable, FilterableItem {
         return properties;
     }
 
+    @JsonIgnore
     public void setProperties(Properties properties) {
         this.properties = properties;
+    }
+
+    @JsonSetter("properties")
+    @JsonDeserialize(using = PropertiesDeserializer.class)
+    public void setPropertyList(List<Property> properties) {
+        this.properties = new Properties();
+        this.properties.setProperties(properties);
+    }
+
+    @JsonGetter("properties")
+    public List<Property> getPropertyList() {
+        if (properties != null) {
+            return properties.getProperties();
+        }
+        return Collections.emptyList();
     }
 
     public Set<String> getTags() {
@@ -419,11 +430,11 @@ public class ApiEntity implements Indexable, FilterableItem {
         this.metadata = metadata;
     }
 
-    public Map<String, ResponseTemplates> getResponseTemplates() {
+    public Map<String, Map<String, ResponseTemplate>> getResponseTemplates() {
         return responseTemplates;
     }
 
-    public void setResponseTemplates(Map<String, ResponseTemplates> responseTemplates) {
+    public void setResponseTemplates(Map<String, Map<String, ResponseTemplate>> responseTemplates) {
         this.responseTemplates = responseTemplates;
     }
 

@@ -68,8 +68,8 @@
 									"tests[\"Status code is 201\"] = responseCode.code === 201;",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
-									"tests[\"API is stopped\"] = jsonData.state === \"stopped\";",
-									"tests[\"API is private\"] = jsonData.visibility === \"private\";",
+									"tests[\"API is stopped\"] = jsonData.state === \"STOPPED\";",
+									"tests[\"API is private\"] = jsonData.visibility === \"PRIVATE\";",
 									"",
 									"",
 									"postman.setGlobalVariable(\"API_ID\", jsonData.id);",
@@ -174,8 +174,8 @@
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
-									"tests[\"API is stopped\"] = jsonData.state === \"stopped\";",
-									"tests[\"API is private\"] = jsonData.visibility === \"private\";"
+									"tests[\"API is stopped\"] = jsonData.state === \"STOPPED\";",
+									"tests[\"API is private\"] = jsonData.visibility === \"PRIVATE\";"
 								],
 								"id": "1677952e-c845-45da-ac82-3fea5e519d6f"
 							}
@@ -240,8 +240,8 @@
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
-									"tests[\"API is stopped\"] = jsonData.state === \"stopped\";",
-									"tests[\"API is private\"] = jsonData.visibility === \"public\";"
+									"tests[\"API is stopped\"] = jsonData.state === \"STOPPED\";",
+									"tests[\"API is private\"] = jsonData.visibility === \"PUBLIC\";"
 								],
 								"id": "6cbe3f97-9dd1-4ed9-a9a0-a48fec163857"
 							}
@@ -288,7 +288,7 @@
 									"",
 									"var plan = JSON.parse(responseBody);",
 									"tests[\"Plan has ID\"] = plan.id !== undefined;",
-									"tests[\"Plan with type API\"] = plan.type === \"api\";",
+									"tests[\"Plan with type API\"] = plan.type === \"API\";",
 									"",
 									"",
 									"postman.setGlobalVariable(\"PLAN_ID\", plan.id);"
@@ -422,8 +422,8 @@
 									"tests[\"Status code is 200\"] = responseCode.code === 200;",
 									"",
 									"var jsonData = JSON.parse(responseBody);",
-									"tests[\"API is stopped\"] = jsonData.state === \"stopped\";",
-									"tests[\"API is public\"] = jsonData.visibility === \"public\";"
+									"tests[\"API is stopped\"] = jsonData.state === \"STOPPED\";",
+									"tests[\"API is public\"] = jsonData.visibility === \"PUBLIC\";"
 								],
 								"id": "0b4fb1d4-0d60-4747-9eb1-d9fb219c7e60"
 							}

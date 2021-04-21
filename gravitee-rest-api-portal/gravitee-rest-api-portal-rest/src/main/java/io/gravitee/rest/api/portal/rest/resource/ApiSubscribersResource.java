@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.rest.api.model.SubscriptionStatus.*;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;

@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.theme.ThemeEntity;
-import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.ThemeLinks;
+import io.gravitee.rest.api.portal.rest.model.ThemeResponse;
 import org.springframework.stereotype.Component;
 
 /**

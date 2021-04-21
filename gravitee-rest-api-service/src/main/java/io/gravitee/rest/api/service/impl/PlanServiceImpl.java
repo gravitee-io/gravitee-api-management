@@ -23,7 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -677,7 +677,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
         if (plan.getDefinition() != null && !plan.getDefinition().isEmpty()) {
             try {
-                HashMap<String, Path> rules = objectMapper.readValue(plan.getDefinition(), new TypeReference<HashMap<String, Path>>() {});
+                HashMap<String, List<Rule>> rules = objectMapper.readValue(
+                    plan.getDefinition(),
+                    new TypeReference<HashMap<String, List<Rule>>>() {}
+                );
                 entity.setPaths(rules);
             } catch (IOException ioe) {
                 logger.error("Unexpected error while generating policy definition", ioe);

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Flow;
@@ -56,12 +57,8 @@ public class UpdateApiEntity {
     private Proxy proxy;
 
     @JsonProperty(value = "paths", required = true)
-    @ApiModelProperty(
-        // specify a type here because jackson der/ser for Path handle only array of rules
-        dataType = "io.gravitee.rest.api.model.api.PathsSwaggerDef",
-        value = "a map where you can associate a path to a configuration (the policies configuration)"
-    )
-    private Map<String, Path> paths = new HashMap<>();
+    @ApiModelProperty(value = "a map where you can associate a path to a configuration (the policies configuration)")
+    private Map<String, List<Rule>> paths = new HashMap<>();
 
     @JsonProperty(value = "flows", required = true)
     @ApiModelProperty(value = "a list of flows (the policies configuration)")
@@ -125,7 +122,7 @@ public class UpdateApiEntity {
     @ApiModelProperty(
         value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
     )
-    private Map<String, ResponseTemplates> responseTemplates;
+    private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
     private List<ApiMetadataEntity> metadata;
 
@@ -178,11 +175,11 @@ public class UpdateApiEntity {
         this.proxy = proxy;
     }
 
-    public Map<String, Path> getPaths() {
+    public Map<String, List<Rule>> getPaths() {
         return paths;
     }
 
-    public void setPaths(Map<String, Path> paths) {
+    public void setPaths(Map<String, List<Rule>> paths) {
         this.paths = paths;
     }
 
@@ -200,6 +197,13 @@ public class UpdateApiEntity {
 
     public void setProperties(Properties properties) {
         this.properties = properties;
+    }
+
+    @JsonProperty(value = "properties")
+    @JsonDeserialize(using = PropertiesDeserializer.class)
+    public void setPropertyList(List<Property> properties) {
+        this.properties = new Properties();
+        this.properties.setProperties(properties);
     }
 
     public Set<String> getTags() {
@@ -258,11 +262,11 @@ public class UpdateApiEntity {
         this.pathMappings = pathMappings;
     }
 
-    public Map<String, ResponseTemplates> getResponseTemplates() {
+    public Map<String, Map<String, ResponseTemplate>> getResponseTemplates() {
         return responseTemplates;
     }
 
-    public void setResponseTemplates(Map<String, ResponseTemplates> responseTemplates) {
+    public void setResponseTemplates(Map<String, Map<String, ResponseTemplate>> responseTemplates) {
         this.responseTemplates = responseTemplates;
     }
 

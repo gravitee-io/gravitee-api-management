@@ -269,11 +269,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 swaggerApiEntity.getGraviteeDefinitionVersion() == null
             ) {
                 final String defaultDeclaredPath = "/";
-                Map<String, Path> paths = new HashMap<>();
+                Map<String, List<Rule>> paths = new HashMap<>();
 
-                final Path defaultPath = new Path();
-                defaultPath.setPath(defaultDeclaredPath);
-                paths.put(defaultDeclaredPath, defaultPath);
+                paths.put(defaultDeclaredPath, new ArrayList<>());
 
                 if (!swaggerDescriptor.isWithPolicyPaths()) {
                     swaggerApiEntity.setPaths(paths);
@@ -1424,9 +1422,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 updateApiEntity.setGroups(groups);
             }
 
-            // add a default path
-            if ((updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty())) {
-                updateApiEntity.setPaths(singletonMap("/", new Path()));
+            // add a default path, if version is v1
+            if (
+                (
+                    updateApiEntity.getGraviteeDefinitionVersion() == null ||
+                    updateApiEntity.getGraviteeDefinitionVersion().equals(DefinitionVersion.V1.getLabel())
+                ) &&
+                (updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty())
+            ) {
+                updateApiEntity.setPaths(singletonMap("/", new ArrayList<>()));
             }
 
             if (updateApiEntity.getPlans() == null) {
@@ -1620,9 +1624,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             updateApiEntity
                 .getPaths()
                 .forEach(
-                    (s, path) ->
-                        path
-                            .getRules()
+                    (s, rules) ->
+                        rules
                             .stream()
                             .filter(Rule::isEnabled)
                             .map(Rule::getPolicy)
@@ -1882,9 +1885,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api
                 .getPaths()
                 .forEach(
-                    (s, path) -> {
-                        if (path.getRules() != null) {
-                            path.getRules().forEach(rule -> rule.setDescription(""));
+                    (s, rules) -> {
+                        if (rules != null) {
+                            rules.forEach(rule -> rule.setDescription(""));
                         }
                     }
                 );
@@ -2099,10 +2102,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .readValue(apiDefinition, UpdateApiEntity.class);
 
         // Initialize with a default path
-        if (importedApi.getPaths() == null || importedApi.getPaths().isEmpty()) {
-            Path path = new Path();
-            path.setPath("/");
-            importedApi.setPaths(Collections.singletonMap("/", path));
+        if (
+            (
+                importedApi.getGraviteeDefinitionVersion() == null ||
+                importedApi.getGraviteeDefinitionVersion().equals(DefinitionVersion.V1.getLabel())
+            ) &&
+            (importedApi.getPaths() == null || importedApi.getPaths().isEmpty())
+        ) {
+            importedApi.setPaths(Collections.singletonMap("/", new ArrayList<>()));
         }
 
         //create group if not exist & replace groupName by groupId

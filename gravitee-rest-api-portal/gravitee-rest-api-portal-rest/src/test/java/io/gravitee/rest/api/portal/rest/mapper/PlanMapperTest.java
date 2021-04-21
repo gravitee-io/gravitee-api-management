@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.rest.api.model.*;
@@ -89,11 +88,8 @@ public class PlanMapperTest {
         rule.setEnabled(true);
         rule.setMethods(new HashSet<HttpMethod>(Arrays.asList(HttpMethod.GET)));
         rule.setPolicy(policy);
-        Path path = new Path();
-        path.setPath(PLAN_PATH);
-        path.setRules(Arrays.asList(rule));
-        Map<String, Path> paths = new HashMap<>();
-        paths.put(PLAN_ID, path);
+        Map<String, List<Rule>> paths = new HashMap<>();
+        paths.put(PLAN_PATH, Arrays.asList(rule));
         planEntity.setPaths(paths);
 
         planEntity.setPublishedAt(nowDate);
