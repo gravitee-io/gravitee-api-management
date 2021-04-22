@@ -54,6 +54,11 @@ module.exports = {
         ]
       },
       {
+        test: /\.html$/i,
+        loader: 'ignore-loader',
+        include: /node_modules\/codemirror/,
+      },
+      {
         test: /\.html$/,
         exclude: /node_modules/,
         loader: 'html-loader',
