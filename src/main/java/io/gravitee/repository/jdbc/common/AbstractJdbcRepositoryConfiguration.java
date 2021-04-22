@@ -71,8 +71,6 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     private static final String POSTGRESQL_DRIVER_TYPE = "postgresql";
     private static final String SQLSERVER_DRIVER_TYPE = "sqlserver";
     
-    private static final String DEFAULT_SCHEMA = "public";
-
     private static final String DEFAULT_PAGING_QUERY = "LIMIT %d OFFSET %d ";
     private static final String MSSQL_PAGING_QUERY = "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY ";
 
@@ -119,7 +117,10 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         dsConfig.setJdbcUrl(jdbcUrl);
         dsConfig.setUsername(readPropertyValue("jdbc.username"));
         dsConfig.setPassword(readPropertyValue("jdbc.password", false));
-        dsConfig.setSchema(readPropertyValue("jdbc.schema", String.class, DEFAULT_SCHEMA));
+        final String schema = env.getProperty(getScope() + "." + "jdbc.schema", String.class);
+        if (schema != null) {
+            dsConfig.setSchema(schema);
+        }
         // Pooling
         dsConfig.setAutoCommit(readPropertyValue("jdbc.pool.autoCommit", Boolean.class, DEFAULT_AUTO_COMMIT));
         dsConfig.setConnectionTimeout(readPropertyValue("jdbc.pool.connectionTimeout", Long.class, DEFAULT_CONNECTION_TIMEOUT));
