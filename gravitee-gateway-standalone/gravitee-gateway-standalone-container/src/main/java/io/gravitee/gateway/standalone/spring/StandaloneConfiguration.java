@@ -75,25 +75,6 @@ public class StandaloneConfiguration {
         ObjectMapper mapper = new GraviteeMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        SimpleModule module = new SimpleModule();
-        module.setDeserializerModifier(new BeanDeserializerModifier() {
-            @Override
-            public JsonDeserializer<Enum> modifyEnumDeserializer(DeserializationConfig config,
-                                                                 final JavaType type,
-                                                                 BeanDescription beanDesc,
-                                                                 final JsonDeserializer<?> deserializer) {
-                return new JsonDeserializer<Enum>() {
-                    @Override
-                    public Enum deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-                        Class<? extends Enum> rawClass = (Class<Enum<?>>) type.getRawClass();
-                        return Enum.valueOf(rawClass, jp.getValueAsString().toUpperCase());
-                    }
-                };
-            }
-        });
-
-        mapper.registerModule(module);
-
         return mapper;
     }
 

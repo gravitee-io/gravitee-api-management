@@ -18,7 +18,7 @@ package io.gravitee.gateway.services.sync;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
@@ -375,8 +375,8 @@ public class SyncManager {
 
         try {
             if (repoPlan.getDefinition() != null && !repoPlan.getDefinition().trim().isEmpty()) {
-                HashMap<String, Path> paths = objectMapper.readValue(repoPlan.getDefinition(),
-                        new TypeReference<HashMap<String, Path>>() {
+                HashMap<String, List<Rule>> paths = objectMapper.readValue(repoPlan.getDefinition(),
+                        new TypeReference<HashMap<String, List<Rule>>>() {
                         });
 
                 plan.setPaths(paths);

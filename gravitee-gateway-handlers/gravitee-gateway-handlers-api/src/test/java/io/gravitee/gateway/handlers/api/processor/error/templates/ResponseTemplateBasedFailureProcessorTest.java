@@ -19,7 +19,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -81,11 +80,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
         Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
         mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
 
-        ResponseTemplates responseTemplates = new ResponseTemplates();
-        responseTemplates.setTemplates(mapTemplates);
-
-        Map<String, ResponseTemplates> templates = new HashMap<>();
-        templates.put("POLICY_ERROR_KEY", responseTemplates);
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
         processor.handler(next);
@@ -108,11 +104,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
         Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
         mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
 
-        ResponseTemplates responseTemplates = new ResponseTemplates();
-        responseTemplates.setTemplates(mapTemplates);
-
-        Map<String, ResponseTemplates> templates = new HashMap<>();
-        templates.put("POLICY_ERROR_KEY", responseTemplates);
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
         processor.handler(next);
@@ -137,11 +130,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
         Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
         mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
 
-        ResponseTemplates responseTemplates = new ResponseTemplates();
-        responseTemplates.setTemplates(mapTemplates);
-
-        Map<String, ResponseTemplates> templates = new HashMap<>();
-        templates.put("DEFAULT", responseTemplates);
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("DEFAULT", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
         processor.handler(next);
@@ -166,11 +156,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
         Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
         mapTemplates.put(MediaType.APPLICATION_JSON, template);
 
-        ResponseTemplates responseTemplates = new ResponseTemplates();
-        responseTemplates.setTemplates(mapTemplates);
-
-        Map<String, ResponseTemplates> templates = new HashMap<>();
-        templates.put("POLICY_ERROR_KEY", responseTemplates);
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
         processor.handler(next);
@@ -200,11 +187,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
         mapTemplates.put(MediaType.APPLICATION_JSON, template);
         mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, wildcardTemplate);
 
-        ResponseTemplates responseTemplates = new ResponseTemplates();
-        responseTemplates.setTemplates(mapTemplates);
-
-        Map<String, ResponseTemplates> templates = new HashMap<>();
-        templates.put("POLICY_ERROR_KEY", responseTemplates);
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
         processor.handler(next);
@@ -230,11 +214,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
         Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
         mapTemplates.put(MediaType.APPLICATION_JSON, jsonTemplate);
 
-        ResponseTemplates responseTemplates = new ResponseTemplates();
-        responseTemplates.setTemplates(mapTemplates);
-
-        Map<String, ResponseTemplates> templates = new HashMap<>();
-        templates.put("POLICY_ERROR_KEY", responseTemplates);
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
         processor.handler(next);
@@ -260,11 +241,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
         Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
         mapTemplates.put(MediaType.APPLICATION_JSON, jsonTemplate);
 
-        ResponseTemplates responseTemplates = new ResponseTemplates();
-        responseTemplates.setTemplates(mapTemplates);
-
-        Map<String, ResponseTemplates> templates = new HashMap<>();
-        templates.put("POLICY_ERROR_KEY", responseTemplates);
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
 
         processor = new ResponseTemplateBasedFailureProcessor(templates);
         processor.handler(next);

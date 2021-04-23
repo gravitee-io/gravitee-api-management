@@ -22,6 +22,7 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.map.impl.MapListenerAdapter;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.validator.DefinitionValidator;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -87,6 +88,9 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
     private boolean register(Api api, boolean force) {
         // Get deployed API
         Api deployedApi = get(api.getId());
+
+        // Validate API definition
+        DefinitionValidator.validate(api);
 
         // Does the API have a matching sharding tags ?
         if (hasMatchingTags(api.getTags())) {

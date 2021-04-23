@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.policy.plan;
 
-import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.policy.RuleBasedPolicyResolver;
@@ -55,14 +55,14 @@ public class PlanPolicyResolver extends RuleBasedPolicyResolver {
         // No plan is matching the plan associated to the secured request
         // The call is probably not relative to the same API.
         if (planRequired(api) && apiPlan != null) {
-            Map<String, io.gravitee.definition.model.Path> paths = apiPlan.getPaths();
+            Map<String, List<Rule>> paths = apiPlan.getPaths();
 
             if (paths != null && ! paths.isEmpty()) {
                 // For 1.0.0, there is only a single root path defined
                 // Must be reconsidered when user will be able to manage policies at the plan level by himself
-                Path rootPath = paths.get(DEFAULT_PLAN_PATH);
+                List<Rule> rootPath = paths.get(DEFAULT_PLAN_PATH);
 
-                return resolve(context, rootPath.getRules());
+                return resolve(context, rootPath);
             }
         } else if (planRequired(api)) { // for CRD definition plan is optional
             logger.warn("No plan has been selected to process request {}. Returning an unauthorized HTTP status (401)",

@@ -33,12 +33,12 @@ public class ApiPathResolverImpl extends AbstractPathResolver {
 
         // Paths may be empty with definition v2
         if (api.getPaths() != null) {
-            api.getPaths().forEach((key, value) -> {
+            api.getPaths().forEach((key, rules) -> {
                 io.gravitee.gateway.handlers.api.path.Path path = new io.gravitee.gateway.handlers.api.path.Path();
                 path.setPath(key);
 
                 // Keeping only enabled rules
-                path.setRules(value.getRules().stream().filter(Rule::isEnabled).collect(Collectors.toList()));
+                path.setRules(rules.stream().filter(Rule::isEnabled).collect(Collectors.toList()));
 
                 register(path);
             });
