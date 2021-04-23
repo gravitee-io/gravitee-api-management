@@ -30,7 +30,7 @@
 
     <groupId>io.gravitee.gateway</groupId>
     <artifactId>gravitee-gateway</artifactId>
-    <version>3.7.2-SNAPSHOT</version>
+    <version>3.7.2</version>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway</name>
 
