@@ -61,12 +61,12 @@ import { GvMarkdownTocComponent } from '../components/gv-markdown-toc/gv-markdow
       loader: {
         provide: TranslateLoader,
         useFactory: (http: HttpClient) => new TranslateHttpLoader(http, './assets/i18n/'),
-        deps: [HttpClient]
+        deps: [HttpClient],
       },
       compiler: {
         provide: TranslateCompiler,
-        useClass: TranslateMessageFormatCompiler
-      }
+        useClass: TranslateMessageFormatCompiler,
+      },
     }),
   ],
   exports: [
@@ -77,16 +77,9 @@ import { GvMarkdownTocComponent } from '../components/gv-markdown-toc/gv-markdow
     SafePipe,
     LocalizedDatePipe,
     GvCheckboxControlValueAccessorDirective,
-    GvPageComponent
+    GvPageComponent,
   ],
-  schemas: [
-    CUSTOM_ELEMENTS_SCHEMA
-  ],
-  providers: [
-    ApiLabelsPipe,
-    ApiStatesPipe,
-    LocalizedDatePipe
-  ]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  providers: [ApiLabelsPipe, ApiStatesPipe, LocalizedDatePipe],
 })
-export class SharedModule {
-}
+export class SharedModule {}

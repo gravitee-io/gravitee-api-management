@@ -18,13 +18,12 @@ import { BehaviorSubject } from 'rxjs';
 import { Page } from '../../../projects/portal-webclient-sdk/src/lib';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PageService {
   private readonly currentPageSource: BehaviorSubject<Page>;
 
-  constructor(
-  ) {
+  constructor() {
     this.currentPageSource = new BehaviorSubject<Page>(null);
   }
 

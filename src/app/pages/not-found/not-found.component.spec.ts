@@ -34,16 +34,14 @@ import { OAuthService } from 'angular-oauth2-oidc';
 describe('NotFoundComponent', () => {
   const createComponent = createComponentFactory({
     component: NotFoundComponent,
-    imports: [
-      RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule
-    ],
+    imports: [RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [
       mockProvider(NotificationService),
       mockProvider(FeatureGuardService),
       mockProvider(ConfigurationService),
       mockProvider(OAuthService),
-    ]
+    ],
   });
 
   let spectator: Spectator<NotFoundComponent>;
@@ -57,5 +55,4 @@ describe('NotFoundComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

@@ -19,10 +19,9 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('GvMarkdownTocComponent', () => {
-
   const createComponent = createComponentFactory({
     component: GvMarkdownTocComponent,
-    imports: [ HttpClientTestingModule, RouterTestingModule ],
+    imports: [HttpClientTestingModule, RouterTestingModule],
   });
 
   let spectator: Spectator<GvMarkdownTocComponent>;

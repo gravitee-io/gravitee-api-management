@@ -16,8 +16,9 @@
 
 -->
 <div class="page__content categories">
-
-  <h1 class="title" *ngIf="!empty">{{'categories.title' | translate}} <span *ngIf="nbCategories">({{ nbCategories }})</span></h1>
+  <h1 class="title" *ngIf="!empty">
+    {{ 'categories.title' | translate }} <span *ngIf="nbCategories">({{ nbCategories }})</span>
+  </h1>
 
   <section *ngIf="empty">
     <gv-message class="message-empty">
@@ -29,5 +30,4 @@
   <section>
     <gv-category-list [items]="categories"></gv-category-list>
   </section>
-
 </div>

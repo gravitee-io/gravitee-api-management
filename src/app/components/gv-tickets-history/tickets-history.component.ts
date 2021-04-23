@@ -28,10 +28,9 @@ import { GetTicketsRequestParams, PortalService, Ticket } from '../../../../proj
 @Component({
   selector: 'app-gv-tickets-history',
   templateUrl: './tickets-history.component.html',
-  styleUrls: ['./tickets-history.component.css']
+  styleUrls: ['./tickets-history.component.css'],
 })
 export class TicketsHistoryComponent implements OnInit, OnDestroy {
-
   queryParamSubscription: Subscription;
   tickets: Ticket[] = [];
   selectedTicket: Ticket;
@@ -44,22 +43,25 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
   selectedTicketIds: string[];
   compareFn: any;
 
-  constructor(private config: ConfigurationService,
-              private portalService: PortalService,
-              private translateService: TranslateService,
-              private scrollService: ScrollService,
-              private router: Router,
-              private route: ActivatedRoute) { }
+  constructor(
+    private config: ConfigurationService,
+    private portalService: PortalService,
+    private translateService: TranslateService,
+    private scrollService: ScrollService,
+    private router: Router,
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit(): void {
     this.pageSizes = this.config.get('pagination.size.values');
-    this.size = this.route.snapshot.queryParams[SearchQueryParam.SIZE] ?
-      parseInt(this.route.snapshot.queryParams[SearchQueryParam.SIZE], 10) : this.config.get('pagination.size.default');
+    this.size = this.route.snapshot.queryParams[SearchQueryParam.SIZE]
+      ? parseInt(this.route.snapshot.queryParams[SearchQueryParam.SIZE], 10)
+      : this.config.get('pagination.size.default');
 
     // since the content of the table is already sorted by the backend, we don't need to sort the table again
     this.compareFn = () => {};
 
-    this.queryParamSubscription = this.route.queryParams.subscribe(queryParams => {
+    this.queryParamSubscription = this.route.queryParams.subscribe((queryParams) => {
       if (queryParams && !queryParams.skipRefresh) {
         this.refresh(queryParams);
       }
@@ -81,7 +83,7 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
     this.initTableOptions();
 
     if (queryParams.ticket) {
-      this.selectedTicketIds = this.tickets.filter(t => t.id === queryParams.ticket).map((ticket) => ticket.id);
+      this.selectedTicketIds = this.tickets.filter((t) => t.id === queryParams.ticket).map((ticket) => ticket.id);
       this.loadTicket(queryParams.ticket);
     } else {
       this.selectedTicket = null;
@@ -97,12 +99,14 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
     const queryParams: any = {};
     queryParams[SearchQueryParam.SIZE] = size;
     queryParams.ticket = null;
-    this.router.navigate([], {
-      queryParams: { size, page: null, ticket: null },
-      queryParamsHandling: 'merge',
-    }).then(() => {
-      this.size = size;
-    });
+    this.router
+      .navigate([], {
+        queryParams: { size, page: null, ticket: null },
+        queryParamsHandling: 'merge',
+      })
+      .then(() => {
+        this.size = size;
+      });
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
@@ -144,7 +148,7 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
   }
 
   private loadTicket(ticketId) {
-    this.selectedTicket = this.tickets.find( t => t.id === ticketId);
+    this.selectedTicket = this.tickets.find((t) => t.id === ticketId);
     this.scrollService.scrollToAnchor('ticket');
   }
 
@@ -164,7 +168,7 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
       last: totalPages,
       current_page: this.route.snapshot.queryParams[SearchQueryParam.PAGE] || 1,
       total_pages: totalPages,
-      total
+      total,
     };
   }
 
@@ -181,7 +185,7 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
 
     this.options = {
       selectable: true,
-      data
+      data,
     };
   }
 }

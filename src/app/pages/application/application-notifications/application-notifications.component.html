@@ -16,21 +16,24 @@
 
 -->
 <div class="page__content">
-
-    <div class="page__box">
-      <div class="page__box-title">
-        <h3 class="title">{{'application.notifications.title' | translate}}</h3>
-        <div class="notifications__header">{{'application.notifications.header' | translate}}</div>
-      </div>
-      <div class="page__box-content">
-        <div *ngFor="let category of categories">
-          <h4>{{('application.notifications.' + category + '.title') | translate}}</h4>
-          <div class="notifications">
-            <gv-switch *ngFor="let hook of hooksByCategory[category]" [label]="('application.notifications.' + hook.id + '.label') | translate"
-                       [description]="('application.notifications.' + hook.id + '.description') | translate"
-                       (:gv-switch:input)="onSwitch(hook, $event.detail)" [value]="hooks.includes(hook.id)"></gv-switch>
-          </div>
+  <div class="page__box">
+    <div class="page__box-title">
+      <h3 class="title">{{ 'application.notifications.title' | translate }}</h3>
+      <div class="notifications__header">{{ 'application.notifications.header' | translate }}</div>
+    </div>
+    <div class="page__box-content">
+      <div *ngFor="let category of categories">
+        <h4>{{ 'application.notifications.' + category + '.title' | translate }}</h4>
+        <div class="notifications">
+          <gv-switch
+            *ngFor="let hook of hooksByCategory[category]"
+            [label]="'application.notifications.' + hook.id + '.label' | translate"
+            [description]="'application.notifications.' + hook.id + '.description' | translate"
+            (:gv-switch:input)="onSwitch(hook, $event.detail)"
+            [value]="hooks.includes(hook.id)"
+          ></gv-switch>
+        </div>
       </div>
     </div>
-
+  </div>
 </div>

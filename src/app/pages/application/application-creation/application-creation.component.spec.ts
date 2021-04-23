@@ -23,18 +23,12 @@ import { ApplicationCreationComponent } from './application-creation.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('ApplicationCreationComponent', () => {
-
   const createComponent = createComponentFactory({
     component: ApplicationCreationComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      HttpClientTestingModule,
-      RouterTestingModule,
-      FormsModule,
-      ReactiveFormsModule
-    ],
+    imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
     declarations: [ApiStatesPipe, ApiLabelsPipe],
-    providers: [ApiStatesPipe, ApiLabelsPipe]
+    providers: [ApiStatesPipe, ApiLabelsPipe],
   });
 
   let spectator: Spectator<ApplicationCreationComponent>;
@@ -48,5 +42,4 @@ describe('ApplicationCreationComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

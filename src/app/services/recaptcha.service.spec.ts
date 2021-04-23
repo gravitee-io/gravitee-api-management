@@ -23,9 +23,7 @@ describe('ReCaptchaService', () => {
   const createService = createServiceFactory({
     service: ReCaptchaService,
     imports: [RouterTestingModule],
-    providers: [
-      mockProvider(HttpClient),
-    ]
+    providers: [mockProvider(HttpClient)],
   });
 
   beforeEach(() => {
@@ -35,5 +33,4 @@ describe('ReCaptchaService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
 });

@@ -19,9 +19,9 @@ export class TreeItem {
   children: Array<any>;
   expanded: boolean;
   constructor(name, value, children) {
-      this.name = name;
-      this.value = value;
-      this.children = children;
-      this.expanded = false;
+    this.name = name;
+    this.value = value;
+    this.children = children;
+    this.expanded = false;
   }
 }

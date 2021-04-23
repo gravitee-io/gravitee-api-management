@@ -29,26 +29,23 @@ describe('UserNotificationComponent', () => {
     component: UserNotificationComponent,
     imports: [UserTestingModule, HttpClientTestingModule, RouterTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    declarations: [
-      SafePipe
-    ],
+    declarations: [SafePipe],
     providers: [
       mockProvider(UserService, {
-        getCurrentUserNotifications: () => new Observable()
+        getCurrentUserNotifications: () => new Observable(),
       }),
-    ]
+    ],
   });
 
   let spectator: Spectator<UserNotificationComponent>;
   let component;
 
   beforeEach(() => {
-    spectator = createComponent( );
+    spectator = createComponent();
     component = spectator.component;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

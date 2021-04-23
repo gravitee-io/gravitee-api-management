@@ -21,14 +21,10 @@ import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TranslationService {
-
-  constructor(
-    private translateService: TranslateService,
-    private titleService: Title,
-  ) {}
+  constructor(private translateService: TranslateService, private titleService: Title) {}
 
   load() {
     return new Promise((resolve) => {
@@ -39,10 +35,9 @@ export class TranslationService {
       this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe((translations) => {
         setLanguage(this.translateService.currentLang);
         addTranslations(this.translateService.currentLang, translations);
-        this.translateService.get(i18n('site.title')).subscribe(title => this.titleService.setTitle(title));
+        this.translateService.get(i18n('site.title')).subscribe((title) => this.titleService.setTitle(title));
         resolve(true);
       });
     });
   }
-
 }

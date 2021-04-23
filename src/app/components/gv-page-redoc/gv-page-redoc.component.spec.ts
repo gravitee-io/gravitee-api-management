@@ -20,7 +20,7 @@ import { GvPageRedocComponent } from './gv-page-redoc.component';
 describe('GvPageRedocComponent', () => {
   const createComponent = createComponentFactory({
     component: GvPageRedocComponent,
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 
   let spectator: Spectator<GvPageRedocComponent>;

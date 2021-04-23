@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 .layout {
-  min-height:100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -95,7 +95,6 @@
   height: var(--gv-theme-layout-footer-top--h);
   padding-top: 55px;
   padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pl);
-
 }
 
 .layout__footer__top__category {
@@ -105,7 +104,8 @@
   width: 200px;
 }
 
-.layout__footer__top__category__title, .layout__footer__top__category__title_border {
+.layout__footer__top__category__title,
+.layout__footer__top__category__title_border {
   margin: 0.3rem 0.5rem;
 }
 
@@ -175,7 +175,9 @@
   padding-right: 20px;
 }
 
-.layout__header__links li, .layout__footer__bottom__links li, .layout__footer__bottom__rights li {
+.layout__header__links li,
+.layout__footer__bottom__links li,
+.layout__footer__bottom__rights li {
   display: inline;
   padding-right: 30px;
 }

@@ -15,5 +15,5 @@
  */
 export enum Role {
   GUEST = 'guest',
-  AUTH_USER = 'auth-user'
+  AUTH_USER = 'auth-user',
 }

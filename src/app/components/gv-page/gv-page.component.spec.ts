@@ -27,29 +27,21 @@ import { GvPageContentSlotDirective } from 'src/app/directives/gv-page-content-s
 import { GvPageMarkdownComponent } from '../gv-page-markdown/gv-page-markdown.component';
 
 describe('GvPageComponent', () => {
-
   const createComponent = createComponentFactory({
     component: GvPageComponent,
-    declarations: [
-      GvPageMarkdownComponent,
-      GvPageRedocComponent,
-      GvPageSwaggerUIComponent,
-      GvPageContentSlotDirective,
-      SafePipe
-    ],
+    declarations: [GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent, GvPageContentSlotDirective, SafePipe],
     imports: [HttpClientTestingModule, RouterTestingModule],
-    schemas: [
-      CUSTOM_ELEMENTS_SCHEMA,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    overrideModules: [
+      [
+        BrowserDynamicTestingModule,
+        {
+          set: {
+            entryComponents: [GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
+          },
+        },
+      ],
     ],
-    overrideModules: [[BrowserDynamicTestingModule, {
-      set: {
-        entryComponents: [
-          GvPageMarkdownComponent,
-          GvPageRedocComponent,
-          GvPageSwaggerUIComponent
-        ]
-      }
-    }]]
   });
 
   let spectator: Spectator<GvPageComponent>;
@@ -64,5 +56,4 @@ describe('GvPageComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

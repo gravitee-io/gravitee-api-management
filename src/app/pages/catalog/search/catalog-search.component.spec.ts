@@ -30,21 +30,10 @@ import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 describe('CatalogSearchComponent', () => {
   const createComponent = createComponentFactory({
     component: CatalogSearchComponent,
-    imports: [
-      RouterTestingModule,
-      TranslateTestingModule,
-      FormsModule,
-      ReactiveFormsModule,
-      HttpClientTestingModule
-    ],
+    imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    declarations: [
-      ApiStatesPipe, ApiLabelsPipe
-    ],
-    providers: [
-      mockProvider(NotificationService),
-      mockProvider(ConfigurationService),
-    ]
+    declarations: [ApiStatesPipe, ApiLabelsPipe],
+    providers: [mockProvider(NotificationService), mockProvider(ConfigurationService)],
   });
 
   let spectator: Spectator<CatalogSearchComponent>;
@@ -60,5 +49,4 @@ describe('CatalogSearchComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

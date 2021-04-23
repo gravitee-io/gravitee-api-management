@@ -16,88 +16,97 @@
 
 -->
 <form *ngIf="canDisplayForm" class="page__content form" [formGroup]="registrationForm" (ngSubmit)="onSubmitRegistration()">
-
   <ng-container *ngIf="!isSubmitted">
     <div class="page__box">
       <div class="page__box-title">
         <h3>{{ 'registration.title' | translate }}</h3>
       </div>
 
-      <div class="page__box-content" >
+      <div class="page__box-content">
         <gv-input
-            large
-            class="form__control"
-            required
-            label="{{ 'registration.firstname' | translate }}"
-            formControlName="firstname"
-            name="firstname"
-            autocomplete="on"
-            autofocus
-            ngDefaultControl
-            gvControl>
+          large
+          class="form__control"
+          required
+          label="{{ 'registration.firstname' | translate }}"
+          formControlName="firstname"
+          name="firstname"
+          autocomplete="on"
+          autofocus
+          ngDefaultControl
+          gvControl
+        >
         </gv-input>
         <gv-input
-            large
-            class="form__control"
-            label="{{ 'registration.lastname' | translate }}"
-            formControlName="lastname"
-            autocomplete="on"
-            name="lastname"
-            ngDefaultControl
-            gvControl>
+          large
+          class="form__control"
+          label="{{ 'registration.lastname' | translate }}"
+          formControlName="lastname"
+          autocomplete="on"
+          name="lastname"
+          ngDefaultControl
+          gvControl
+        >
         </gv-input>
         <gv-input
-            large
-            class="form__control"
-            type="email"
-            label="{{ 'registration.email' | translate }}"
-            formControlName="email"
-            autocomplete="on"
-            name="email"
-            ngDefaultControl
-            gvControl>
+          large
+          class="form__control"
+          type="email"
+          label="{{ 'registration.email' | translate }}"
+          formControlName="email"
+          autocomplete="on"
+          name="email"
+          ngDefaultControl
+          gvControl
+        >
         </gv-input>
         <div *ngFor="let field of customUserFields">
-
-          <gv-input *ngIf="!field.values"
+          <gv-input
+            *ngIf="!field.values"
             large
             class="form__control"
             type="text"
-            label="{{ ('register.field.'+field.key | translate) === 'register.field.'+field.key ? field.label : ('register.field.'+field.key | translate)}}"
+            label="{{
+              ('register.field.' + field.key | translate) === 'register.field.' + field.key
+                ? field.label
+                : ('register.field.' + field.key | translate)
+            }}"
             [formControlName]="field.key"
             [name]="field.key"
             autocomplete="on"
             [required]="field.required"
             ngDefaultControl
-            gvControl>
+            gvControl
+          >
           </gv-input>
 
-          <gv-select *ngIf="field.values"
+          <gv-select
+            *ngIf="field.values"
             large
             [options]="field.values"
             class="form__control"
             type="text"
-            label="{{ ('register.field.'+field.key | translate) === 'register.field.'+field.key ? field.label : ('register.field.'+field.key | translate)}}"
+            label="{{
+              ('register.field.' + field.key | translate) === 'register.field.' + field.key
+                ? field.label
+                : ('register.field.' + field.key | translate)
+            }}"
             [formControlName]="field.key"
             [name]="field.key"
             [required]="field.required"
             ngDefaultControl
-            gvControl>
+            gvControl
+          >
           </gv-select>
         </div>
       </div>
 
       <div class="page__box-footer form__actions form__actions-column">
-        <gv-button
-            [disabled]="this.registrationForm.pristine || this.registrationForm.invalid"
-            primary
-            class="form__control"
-            type="submit">
+        <gv-button [disabled]="this.registrationForm.pristine || this.registrationForm.invalid" primary class="form__control" type="submit">
           {{ 'registration.button' | translate }}
         </gv-button>
 
         <p class="text-center">
-          <gv-button link routerLink="/user/login">{{ "registration.backLogin" | translate }}</gv-button>
+          <gv-button link routerLink="/user/login">{{ 'registration.backLogin' | translate }}</gv-button>
         </p>
       </div>
     </div>
@@ -109,13 +118,11 @@
         <h3>{{ 'registration.success.title' | translate }}</h3>
       </div>
 
-      <div class="page__box-content" >
+      <div class="page__box-content">
         <div class="form__message">
           <gv-icon shape="communication:sending-mail"></gv-icon>
           <h2>{{ 'registration.success.message' | translate: { email: this.registrationForm.value.email } }}</h2>
-          <gv-button link
-                     routerLink="/"
-                     [innerHTML]="'registration.backHome' | translate"></gv-button>
+          <gv-button link routerLink="/" [innerHTML]="'registration.backHome' | translate"></gv-button>
         </div>
       </div>
     </div>

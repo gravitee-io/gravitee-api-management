@@ -24,13 +24,9 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 describe('GvButtonCreateApplicationComponent', () => {
   const createComponent = createComponentFactory({
     component: GvButtonCreateApplicationComponent,
-    imports: [
-      RouterTestingModule, HttpClientTestingModule
-    ],
+    imports: [RouterTestingModule, HttpClientTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [
-      mockProvider(PortalService),
-    ]
+    providers: [mockProvider(PortalService)],
   });
 
   let spectator: Spectator<GvButtonCreateApplicationComponent>;
@@ -44,5 +40,4 @@ describe('GvButtonCreateApplicationComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

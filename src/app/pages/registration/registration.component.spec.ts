@@ -25,15 +25,11 @@ import { NotificationService } from '../../services/notification.service';
 import { ConfigurationService } from '../../services/configuration.service';
 
 describe('RegistrationComponent', () => {
-
   const createComponent = createComponentFactory({
     component: RegistrationComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
-    providers: [
-      mockProvider(NotificationService),
-      mockProvider(ConfigurationService),
-    ]
+    providers: [mockProvider(NotificationService), mockProvider(ConfigurationService)],
   });
 
   let spectator: Spectator<RegistrationComponent>;
@@ -48,4 +44,3 @@ describe('RegistrationComponent', () => {
     expect(component).toBeTruthy();
   });
 });
-

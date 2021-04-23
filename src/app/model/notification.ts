@@ -20,4 +20,3 @@ export class Notification {
   parameters?: object;
   closable?: boolean;
 }
-

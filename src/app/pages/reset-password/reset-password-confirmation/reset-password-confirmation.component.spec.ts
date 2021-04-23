@@ -26,9 +26,7 @@ import { TokenService } from '../../../services/token.service';
 describe('ResetPasswordConfirmationComponent', () => {
   const createComponent = createComponentFactory({
     component: ResetPasswordConfirmationComponent,
-    imports: [
-      RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule
-    ],
+    imports: [RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [
       mockProvider(NotificationService),
@@ -36,10 +34,10 @@ describe('ResetPasswordConfirmationComponent', () => {
         parseToken: (token) => ({
           firstName: 'foo',
           lastName: 'bar',
-          email: 'foo@bar'
-        })
-      })
-    ]
+          email: 'foo@bar',
+        }),
+      }),
+    ],
   });
 
   let spectator: Spectator<ResetPasswordConfirmationComponent>;
@@ -53,5 +51,4 @@ describe('ResetPasswordConfirmationComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

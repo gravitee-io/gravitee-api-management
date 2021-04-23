@@ -27,9 +27,7 @@ describe('ApplicationLogsComponent', () => {
     component: ApplicationLogsComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
-    providers: [
-      mockProvider(AnalyticsService)
-    ]
+    providers: [mockProvider(AnalyticsService)],
   });
 
   let spectator: Spectator<ApplicationLogsComponent>;
@@ -43,5 +41,4 @@ describe('ApplicationLogsComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

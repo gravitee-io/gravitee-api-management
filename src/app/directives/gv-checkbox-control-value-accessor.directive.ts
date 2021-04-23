@@ -19,17 +19,15 @@ import { CheckboxControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms'
 const GV_CHECKBOX_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
   useExisting: forwardRef(() => GvCheckboxControlValueAccessorDirective),
-  multi: true
+  multi: true,
 };
 
 @Directive({
   selector: 'gv-checkbox[formControlName],gv-checkbox[formControl],gv-checkbox[ngModel],gv-checkbox[gvControl]',
-  providers: [GV_CHECKBOX_ACCESSOR]
+  providers: [GV_CHECKBOX_ACCESSOR],
 })
 export class GvCheckboxControlValueAccessorDirective extends CheckboxControlValueAccessor {
-
   constructor(_renderer: Renderer2, _elementRef: ElementRef) {
     super(_renderer, _elementRef);
   }
-
 }

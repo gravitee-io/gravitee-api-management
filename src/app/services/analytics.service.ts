@@ -20,19 +20,12 @@ import { ActivatedRoute } from '@angular/router';
 import { SearchQueryParam } from '../utils/search-query-param.enum';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AnalyticsService {
-
-  removableQueryParams = [
-    'from', 'to', 'log', 'timestamp', ...Object.values(SearchQueryParam)
-  ];
-  queryParams = [
-    'dashboard', 'timeframe', ...Object.values(this.removableQueryParams)
-  ];
-  advancedQueryParams = [
-    '_id', 'transaction', 'method', 'uri', 'response-time', 'status', 'api', 'body',
-  ];
+  removableQueryParams = ['from', 'to', 'log', 'timestamp', ...Object.values(SearchQueryParam)];
+  queryParams = ['dashboard', 'timeframe', ...Object.values(this.removableQueryParams)];
+  advancedQueryParams = ['_id', 'transaction', 'method', 'uri', 'response-time', 'status', 'api', 'body'];
   timeframes: any;
   fragment = 'h';
   methods = [
@@ -108,18 +101,17 @@ export class AnalyticsService {
     { value: '507', label: '507 - INSUFFICIENT STORAGE' },
   ];
 
-  constructor(
-    private translateService: TranslateService,
-    private route: ActivatedRoute,
-  ) {
-    translateService.get([
-      i18n('analytics.timeframes.minutes'),
-      i18n('analytics.timeframes.hour'),
-      i18n('analytics.timeframes.hours'),
-      i18n('analytics.timeframes.day'),
-      i18n('analytics.timeframes.days'),
-    ]).toPromise()
-      .then(translatedTimeframes => {
+  constructor(private translateService: TranslateService, private route: ActivatedRoute) {
+    translateService
+      .get([
+        i18n('analytics.timeframes.minutes'),
+        i18n('analytics.timeframes.hour'),
+        i18n('analytics.timeframes.hours'),
+        i18n('analytics.timeframes.day'),
+        i18n('analytics.timeframes.days'),
+      ])
+      .toPromise()
+      .then((translatedTimeframes) => {
         const values = Object.values(translatedTimeframes);
         const minutes = values[0];
         const hour = values[1];
@@ -133,80 +125,91 @@ export class AnalyticsService {
             description: minutes,
             range: 1000 * 60 * 5,
             interval: 1000 * 10,
-          }, {
+          },
+          {
             id: '30m',
             title: '30',
             description: minutes,
             range: 1000 * 60 * 30,
             interval: 1000 * 15,
-          }, {
+          },
+          {
             id: '1h',
             title: '1',
             description: hour,
             range: 1000 * 60 * 60,
             interval: 1000 * 30,
-          }, {
+          },
+          {
             id: '3h',
             title: '3',
             description: hours,
             range: 1000 * 60 * 60 * 3,
             interval: 1000 * 60,
-          }, {
+          },
+          {
             id: '6h',
             title: '6',
             description: hours,
             range: 1000 * 60 * 60 * 6,
             interval: 1000 * 60 * 2,
-          }, {
+          },
+          {
             id: '12h',
             title: '12',
             description: hours,
             range: 1000 * 60 * 60 * 12,
             interval: 1000 * 60 * 5,
-          }, {
+          },
+          {
             id: '1d',
             title: '1',
             description: day,
             range: 1000 * 60 * 60 * 24,
             interval: 1000 * 60 * 10,
-          }, {
+          },
+          {
             id: '3d',
             title: '3',
             description: days,
             range: 1000 * 60 * 60 * 24 * 3,
             interval: 1000 * 60 * 30,
-          }, {
+          },
+          {
             id: '7d',
             title: '7',
             description: days,
             range: 1000 * 60 * 60 * 24 * 7,
             interval: 1000 * 60 * 60,
-          }, {
+          },
+          {
             id: '14d',
             title: '14',
             description: days,
             range: 1000 * 60 * 60 * 24 * 14,
             interval: 1000 * 60 * 60 * 3,
-          }, {
+          },
+          {
             id: '30d',
             title: '30',
             description: days,
             range: 1000 * 60 * 60 * 24 * 30,
             interval: 1000 * 60 * 60 * 6,
-          }, {
+          },
+          {
             id: '90d',
             title: '90',
             description: days,
             range: 1000 * 60 * 60 * 24 * 90,
             interval: 1000 * 60 * 60 * 12,
-          }
+          },
         ];
       });
   }
 
   private static buildQueryParam(queryParam, q: string) {
-    queryParam = (q === 'body') ? ('*' + queryParam + '*') : queryParam;
-    queryParam = (q === 'uri') ? (queryParam + '*') : queryParam;
+    queryParam = q === 'body' ? '*' + queryParam + '*' : queryParam;
+    queryParam = q === 'uri' ? queryParam + '*' : queryParam;
     if (queryParam !== '?') {
       queryParam = '\\"' + queryParam + '\\"';
       queryParam = queryParam.replace(/\//g, '\\\\/');
@@ -216,15 +219,15 @@ export class AnalyticsService {
 
   getQueryFromPath(field?, ranges?) {
     const params = Object.keys(this.route.snapshot.queryParams)
-      .filter(q => !this.queryParams.includes(q))
-      .filter(q => this.route.snapshot.queryParams[q].length)
-      .filter(q => (ranges && ranges.length) || (!field || q !== field))
+      .filter((q) => !this.queryParams.includes(q))
+      .filter((q) => this.route.snapshot.queryParams[q].length)
+      .filter((q) => (ranges && ranges.length) || !field || q !== field)
       .map((q) => {
         const queryParam = this.route.snapshot.queryParams[q];
         if (typeof queryParam === 'string') {
           return q + ':' + AnalyticsService.buildQueryParam(queryParam, q);
         }
-        return '(' + q + ':' + queryParam.map(qp => AnalyticsService.buildQueryParam(qp, q)).join(' OR ') + ')';
+        return '(' + q + ':' + queryParam.map((qp) => AnalyticsService.buildQueryParam(qp, q)).join(' OR ') + ')';
       });
     if (params && params.length) {
       return { query: params.join(' AND ') };
@@ -264,42 +267,48 @@ export class AnalyticsService {
   }
 
   getRemovableQueryParams() {
-    return this.removableQueryParams.reduce(((acc, val) => {
+    return this.removableQueryParams.reduce((acc, val) => {
       acc[val] = null;
       return acc;
-    }), {});
+    }, {});
   }
 
   getDefaultStatsOptions(): Promise<Array<any>> {
-    return this.translateService.get([
-      'dashboard.stats.min',
-      'dashboard.stats.max',
-      'dashboard.stats.avg',
-      'dashboard.stats.rps',
-      'dashboard.stats.rpm',
-      'dashboard.stats.rph',
-      'dashboard.stats.total',
-      'dashboard.stats.ms',
-    ]).toPromise().then((translated) => {
-      const translatedValues = Object.values(translated);
-      return [
-        { key: 'min', label: translatedValues[0], unit: translatedValues[7], color: '#66bb6a' },
-        { key: 'max', label: translatedValues[1], unit: translatedValues[7], color: '#ef5350' },
-        { key: 'avg', label: translatedValues[2], unit: translatedValues[7], color: '#42a5f5' },
-        {
-          key: 'rps',
-          label: translatedValues[3],
-          color: '#ff8f2d',
-          fallback: [{
-            key: 'rpm',
-            label: translatedValues[4],
-          }, {
-            key: 'rph',
-            label: translatedValues[5],
-          }],
-        },
-        { key: 'count', label: translatedValues[6] },
-      ];
-    });
+    return this.translateService
+      .get([
+        'dashboard.stats.min',
+        'dashboard.stats.max',
+        'dashboard.stats.avg',
+        'dashboard.stats.rps',
+        'dashboard.stats.rpm',
+        'dashboard.stats.rph',
+        'dashboard.stats.total',
+        'dashboard.stats.ms',
+      ])
+      .toPromise()
+      .then((translated) => {
+        const translatedValues = Object.values(translated);
+        return [
+          { key: 'min', label: translatedValues[0], unit: translatedValues[7], color: '#66bb6a' },
+          { key: 'max', label: translatedValues[1], unit: translatedValues[7], color: '#ef5350' },
+          { key: 'avg', label: translatedValues[2], unit: translatedValues[7], color: '#42a5f5' },
+          {
+            key: 'rps',
+            label: translatedValues[3],
+            color: '#ff8f2d',
+            fallback: [
+              {
+                key: 'rpm',
+                label: translatedValues[4],
+              },
+              {
+                key: 'rph',
+                label: translatedValues[5],
+              },
+            ],
+          },
+          { key: 'count', label: translatedValues[6] },
+        ];
+      });
   }
 }

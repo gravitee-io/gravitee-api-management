@@ -22,13 +22,11 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
   styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep1Component implements OnInit {
-
   form: FormGroup;
 
   @Output() updated = new EventEmitter<FormGroup>();
 
-  constructor(private formBuilder: FormBuilder) {
-  }
+  constructor(private formBuilder: FormBuilder) {}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
@@ -40,9 +38,8 @@ export class ApplicationCreationStep1Component implements OnInit {
     this.form.valueChanges.subscribe(() => {
       this.updated.emit(this.form);
     });
-    setTimeout(()=>{
+    setTimeout(() => {
       this.updated.emit(this.form);
     });
   }
-
 }

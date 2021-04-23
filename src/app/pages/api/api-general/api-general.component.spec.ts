@@ -21,7 +21,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('ApiGeneralComponent', () => {
-
   const createComponent = createComponentFactory({
     component: ApiGeneralComponent,
     imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],

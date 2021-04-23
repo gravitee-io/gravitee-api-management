@@ -18,7 +18,7 @@
 }
 
 .markdown-toc {
-  overflow-y: auto
+  overflow-y: auto;
 }
 
 .page__box-title {
@@ -28,12 +28,12 @@
   padding: 2rem 1rem;
 }
 
-.markdown-toc>.toc-list {
+.markdown-toc > .toc-list {
   overflow: hidden;
-  position: relative
+  position: relative;
 }
 
-.markdown-toc>.toc-list li {
+.markdown-toc > .toc-list li {
   list-style: none;
   line-height: 25px;
 }
@@ -59,14 +59,14 @@ a.toc-link {
 }
 
 a.toc-link::before {
-  background-color: #EEE;
+  background-color: #eee;
   content: ' ';
   display: inline-block;
   height: inherit;
   left: 0;
   margin-top: -1px;
   position: absolute;
-  width: 2px
+  width: 2px;
 }
 
 a.toc-link:hover {

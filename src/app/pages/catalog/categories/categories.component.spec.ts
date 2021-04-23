@@ -24,7 +24,6 @@ import { SafePipe } from '../../../pipes/safe.pipe';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CategoriesComponent', () => {
-
   const createComponent = createComponentFactory({
     component: CategoriesComponent,
     declarations: [SafePipe],
@@ -43,5 +42,4 @@ describe('CategoriesComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

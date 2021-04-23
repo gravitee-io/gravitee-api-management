@@ -21,7 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-categories',
-  templateUrl: './categories.component.html'
+  templateUrl: './categories.component.html',
 })
 export class CategoriesComponent implements OnInit {
   nbCategories: object;
@@ -29,29 +29,26 @@ export class CategoriesComponent implements OnInit {
   empty: boolean;
   emptyIcon: any;
 
-  constructor(
-    private portalService: PortalService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-  ) {
-  }
+  constructor(private portalService: PortalService, private router: Router, private activatedRoute: ActivatedRoute) {}
 
   ngOnInit() {
     this.empty = false;
     this.categories = new Array(6).fill(null);
-    this.portalService.getCategories({ size: -1 }).toPromise().then((response) => {
-      this.nbCategories = response.metadata.data.total;
-      this.categories = response.data;
-      if(response.data.length === 0){
-        this.empty = true;
-        this.emptyIcon = this.activatedRoute.snapshot.data.icon;
-      }
-    });
+    this.portalService
+      .getCategories({ size: -1 })
+      .toPromise()
+      .then((response) => {
+        this.nbCategories = response.metadata.data.total;
+        this.categories = response.data;
+        if (response.data.length === 0) {
+          this.empty = true;
+          this.emptyIcon = this.activatedRoute.snapshot.data.icon;
+        }
+      });
   }
 
   @HostListener(':gv-category:click', ['$event.detail'])
   onCardClick(category: Category) {
     this.router.navigate([`/catalog/categories/${category.id}`]);
   }
-
 }

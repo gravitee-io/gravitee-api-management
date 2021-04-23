@@ -21,10 +21,9 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('SubscriptionsComponent', () => {
-
   const createComponent = createComponentFactory({
     component: SubscriptionsComponent,
-    imports: [ HttpClientTestingModule, RouterTestingModule],
+    imports: [HttpClientTestingModule, RouterTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 
@@ -40,5 +39,4 @@ describe('SubscriptionsComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

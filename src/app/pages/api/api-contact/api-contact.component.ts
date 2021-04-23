@@ -21,12 +21,9 @@ import { ActivatedRoute } from '@angular/router';
   templateUrl: './api-contact.component.html',
 })
 export class ApiContactComponent implements OnInit {
-
   apiId: string;
 
-  constructor(
-    private route: ActivatedRoute,
-  ) { }
+  constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
     this.apiId = this.route.snapshot.params.apiId;

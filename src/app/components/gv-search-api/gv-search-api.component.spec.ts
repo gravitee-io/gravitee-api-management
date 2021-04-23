@@ -26,14 +26,8 @@ describe('GvSearchApiComponent', () => {
   const createComponent = createComponentFactory({
     component: GvSearchApiComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      RouterTestingModule,
-      TranslateTestingModule,
-      HttpClientTestingModule,
-    ],
-    providers: [
-      mockProvider(CurrentUserService),
-    ]
+    imports: [RouterTestingModule, TranslateTestingModule, HttpClientTestingModule],
+    providers: [mockProvider(CurrentUserService)],
   });
 
   let spectator: Spectator<GvSearchApiComponent>;
@@ -47,5 +41,4 @@ describe('GvSearchApiComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

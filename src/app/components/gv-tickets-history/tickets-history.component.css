@@ -19,13 +19,12 @@
   flex-direction: column;
   flex: 1 1 auto;
   padding: 2rem 4rem;
-
 }
 
 .ticket__section-container {
   padding: 1rem;
-  background-color: var(--gv-theme-neutral-color-lighter, #FAFAFA);
-  border: 1px solid var(--gv-theme-neutral-color-darker, #BFBFBF);
+  background-color: var(--gv-theme-neutral-color-lighter, #fafafa);
+  border: 1px solid var(--gv-theme-neutral-color-darker, #bfbfbf);
   border-radius: 4px;
 }
 

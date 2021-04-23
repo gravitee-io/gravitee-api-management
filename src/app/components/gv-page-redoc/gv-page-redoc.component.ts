@@ -27,10 +27,9 @@ declare let Redoc: any;
 @Component({
   selector: 'app-gv-page-redoc',
   templateUrl: './gv-page-redoc.component.html',
-  styleUrls: ['./gv-page-redoc.component.css']
+  styleUrls: ['./gv-page-redoc.component.css'],
 })
 export class GvPageRedocComponent implements OnInit, OnDestroy {
-
   isLoaded = false;
 
   @ViewChild('redoc', { static: true }) redocContainer;
@@ -38,17 +37,11 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
   @Input() fragment: string;
   private lastTop: number;
 
-  constructor(
-    private notificationService: NotificationService,
-    private pageService: PageService,
-  ) {
-
-  }
+  constructor(private notificationService: NotificationService, private pageService: PageService) {}
 
   ngOnInit() {
     const page = this.pageService.getCurrentPage();
-    this.loadScript()
-      .then(() => this.refresh(page));
+    this.loadScript().then(() => this.refresh(page));
   }
 
   @HostListener('window:resize')
@@ -63,7 +56,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
   }
 
   loadScript() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const scriptId = 'redoc-standalone';
       if (document.getElementById(scriptId) == null) {
         const scriptElement = document.createElement('script');
@@ -107,7 +100,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
             fontSize,
             fontFamily,
             headings: {
-              fontFamily
+              fontFamily,
             },
           },
           sidebar: {
@@ -118,7 +111,6 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
             backgroundColor: color,
             textColor: textColorLight,
           },
-
         },
       };
 
@@ -143,7 +135,6 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
     }
     this.isLoaded = true;
     setTimeout(() => {
-
       const top = ScrollService.getHeaderHeight() + GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM;
 
       const wrap = document.querySelector('.redoc-wrap');
@@ -161,7 +152,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       // @ts-ignore
       this.redocMenu.style.position = 'fixed';
       // @ts-ignore
-      this.redocMenu.style.height = ` ${(window.innerHeight - top - GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM)}px`;
+      this.redocMenu.style.height = ` ${window.innerHeight - top - GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM}px`;
       // @ts-ignore
       this.redocMenu.style.top = `${top}px`;
       // @ts-ignore
@@ -184,7 +175,6 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-
   ngOnDestroy() {
     ['.layout__content', '.page__content', GvDocumentationComponent.PAGE_COMPONENT].forEach((xpath) => {
       const element = document.querySelector(xpath);
@@ -196,5 +186,4 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       }
     });
   }
-
 }

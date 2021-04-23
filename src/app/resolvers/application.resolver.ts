@@ -19,14 +19,10 @@ import { Application, ApplicationService } from '../../../projects/portal-webcli
 
 @Injectable({ providedIn: 'root' })
 export class ApplicationResolver implements Resolve<Application> {
+  constructor(private applicationService: ApplicationService) {}
 
-  constructor(
-    private applicationService: ApplicationService,
-  ) {}
-
-  resolve(route: ActivatedRouteSnapshot|ActivatedRoute) {
+  resolve(route: ActivatedRouteSnapshot | ActivatedRoute) {
     const applicationId = route instanceof ActivatedRouteSnapshot ? route.params.applicationId : route.snapshot.params.applicationId;
     return this.applicationService.getApplicationByApplicationId({ applicationId });
   }
-
 }

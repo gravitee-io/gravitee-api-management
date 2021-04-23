@@ -27,14 +27,9 @@ import { ConfigurationService } from '../../services/configuration.service';
 describe('ResetPasswordComponent', () => {
   const createComponent = createComponentFactory({
     component: ResetPasswordComponent,
-    imports: [
-      RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule
-    ],
+    imports: [RouterTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [
-      mockProvider(NotificationService),
-      mockProvider(ConfigurationService)
-    ]
+    providers: [mockProvider(NotificationService), mockProvider(ConfigurationService)],
   });
 
   let spectator: Spectator<ResetPasswordComponent>;
@@ -49,5 +44,4 @@ describe('ResetPasswordComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

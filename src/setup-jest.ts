@@ -22,5 +22,5 @@ import { TranslateTestingModule } from './app/test/translate-testing-module'; //
 
 defineGlobalsInjections({
   imports: [TranslateTestingModule],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 });

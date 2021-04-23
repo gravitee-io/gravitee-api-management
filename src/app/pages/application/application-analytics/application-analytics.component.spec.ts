@@ -21,7 +21,6 @@ import { ApplicationAnalyticsComponent } from './application-analytics.component
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('ApplicationAnalyticsComponent', () => {
-
   const createComponent = createComponentFactory({
     component: ApplicationAnalyticsComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -39,5 +38,4 @@ describe('ApplicationAnalyticsComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

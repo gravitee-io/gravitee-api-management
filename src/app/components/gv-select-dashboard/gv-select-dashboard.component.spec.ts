@@ -23,14 +23,10 @@ import { GvSelectDashboardComponent } from './gv-select-dashboard.component';
 import { AnalyticsService } from '../../services/analytics.service';
 
 describe('GvSelectDashboardComponent', () => {
-
   const createComponent = createComponentFactory({
     component: GvSelectDashboardComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      RouterTestingModule,
-      HttpClientTestingModule,
-    ],
+    imports: [RouterTestingModule, HttpClientTestingModule],
     providers: [
       mockProvider(AnalyticsService),
       mockProvider(ActivatedRoute, {
@@ -38,13 +34,13 @@ describe('GvSelectDashboardComponent', () => {
           firstChild: {
             firstChild: {
               snapshot: {
-                data: {}
-              }
-            }
-          }
-        }
+                data: {},
+              },
+            },
+          },
+        },
       }),
-    ]
+    ],
   });
 
   let spectator: Spectator<GvSelectDashboardComponent>;
@@ -58,5 +54,4 @@ describe('GvSelectDashboardComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

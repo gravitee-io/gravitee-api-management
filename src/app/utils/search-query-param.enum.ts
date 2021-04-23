@@ -36,5 +36,4 @@ export class SearchRequestParams implements SearchApisRequestParams {
     this.page = page;
     this.size = size;
   }
-
 }

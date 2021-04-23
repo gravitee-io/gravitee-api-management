@@ -18,10 +18,9 @@ import { BehaviorSubject } from 'rxjs';
 import { NotificationService } from './notification.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PreviewService {
-
   private readonly previewSource: BehaviorSubject<boolean>;
 
   constructor(private notificationService: NotificationService) {
@@ -30,7 +29,7 @@ export class PreviewService {
 
   isActive(): boolean {
     const state = this.previewSource.getValue();
-    if(state === true){
+    if (state === true) {
       this.notificationService.info('On preview mode');
     }
     return state;
@@ -43,5 +42,4 @@ export class PreviewService {
   deactivate() {
     this.previewSource.next(false);
   }
-
 }
