@@ -33,7 +33,8 @@ class ApiHealthCheckConfigureController {
     private $scope,
     private $state,
     private $stateParams,
-    private $rootScope
+    private $rootScope,
+    private $window
   ) {
     'ngInject';
 
@@ -174,7 +175,8 @@ class ApiHealthCheckConfigureController {
   }
 
   backToHealthcheck() {
-    this.$state.go('management.apis.detail.proxy.healthcheck.visualize');
+    let query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
+    this.$state.go('management.apis.detail.proxy.healthcheck.visualize', {page: query.page, size: query.size, from: query.from, to: query.to});
   }
 
   updateSchedule(event) {

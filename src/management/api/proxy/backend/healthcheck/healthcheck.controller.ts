@@ -35,8 +35,10 @@ class ApiHealthCheckController {
     private $scope: IScope,
     private $rootScope: IRootScopeService,
     private $state: StateService,
+    private ChartService,
     private $q: IQService,
     private UserService: UserService,
+    private $window,
   ) {
     'ngInject';
     this.api = (this.$scope.$parent as any).apiCtrl.api;
@@ -46,12 +48,16 @@ class ApiHealthCheckController {
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new LogsQuery();
-    this.query.size = 10;
-    this.query.page = 1;
+    this.query.size = this.$state.params.size ? this.$state.params.size : 10;
+    this.query.page = this.$state.params.page ? this.$state.params.page : 1;
 
     this.query.from = this.$state.params.from;
     this.query.to = this.$state.params.to;
+
+    $window.localStorage.lastHealthCheckQuery = JSON.stringify(this.query);
+
     this.updateChart();
+
   }
 
   timeframeChange(timeframe: {
@@ -89,6 +95,7 @@ class ApiHealthCheckController {
   }
 
   refresh() {
+    this.$window.localStorage.lastHealthCheckQuery = JSON.stringify(this.query);
     this.$state.transitionTo(
       this.$state.current,
       {
@@ -99,6 +106,7 @@ class ApiHealthCheckController {
         to: this.query.to
       },
       { notify: false });
+
 
     this.ApiService.apiHealthLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
@@ -208,6 +216,7 @@ class ApiHealthCheckController {
         }
       };
     });
+
   }
 
   getEndpointStatus(state: number): string {
