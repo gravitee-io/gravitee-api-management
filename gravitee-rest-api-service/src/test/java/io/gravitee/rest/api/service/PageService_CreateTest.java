@@ -497,6 +497,7 @@ public class PageService_CreateTest {
         when(page1.getId()).thenReturn(PAGE_ID);
         when(page1.getName()).thenReturn(name);
         when(page1.getReferenceId()).thenReturn(API_ID);
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
         when(page1.getType()).thenReturn("MARKDOWN");
         when(page1.getLastContributor()).thenReturn(contrib);
         when(page1.getOrder()).thenReturn(1);
