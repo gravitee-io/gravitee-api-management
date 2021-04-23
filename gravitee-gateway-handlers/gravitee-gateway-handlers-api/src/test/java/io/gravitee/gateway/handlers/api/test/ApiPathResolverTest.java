@@ -16,7 +16,7 @@
 package io.gravitee.gateway.handlers.api.test;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Path;
+import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.handlers.api.path.PathParam;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
@@ -56,37 +56,17 @@ public class ApiPathResolverTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        final Map<String, Path> paths = new HashMap<>();
+        final Map<String, List<Rule>> paths = new HashMap<>();
 
-        paths.putAll(new HashMap<String, Path>() {
+        paths.putAll(new HashMap<String, List<Rule>>() {
             {
-                Path p1 = new Path();
-                p1.setPath("/");
-                put(p1.getPath(), p1);
-
-                Path p2 = new Path();
-                p2.setPath("/products");
-                put(p2.getPath(), p2);
-
-                Path p3 = new Path();
-                p3.setPath("/stores");
-                put(p3.getPath(), p3);
-
-                Path p4 = new Path();
-                p4.setPath("/stores/:storeId");
-                put(p4.getPath(), p4);
-
-                Path p5 = new Path();
-                p5.setPath("/[0-9,;]+");
-                put(p5.getPath(), p5);
-
-                Path p6 = new Path();
-                p6.setPath("/Stores/:storeId");
-                put(p6.getPath(), p6);
-
-                Path p7 = new Path();
-                p7.setPath("/stores/:storeId/order/:orderId");
-                put(p7.getPath(), p7);
+                put("/", new ArrayList<Rule>());
+                put("/products", new ArrayList<Rule>());
+                put("/stores", new ArrayList<Rule>());
+                put("/stores/:storeId", new ArrayList<Rule>());
+                put("/[0-9,;]+", new ArrayList<Rule>());
+                put("/Stores/:storeId", new ArrayList<Rule>());
+                put("/stores/:storeId/order/:orderId", new ArrayList<Rule>());
             }
         });
 
@@ -95,7 +75,7 @@ public class ApiPathResolverTest {
         pathResolver = new ApiPathResolverImpl(api);
 
         // API 2
-        Map<String, Path> api2Paths = new HashMap<>(paths);
+        Map<String, List<Rule>> api2Paths = new HashMap<>(paths);
         api2Paths.remove("/");
         when(api2.getPaths()).thenReturn(api2Paths);
         pathResolver2 = new ApiPathResolverImpl(api2);

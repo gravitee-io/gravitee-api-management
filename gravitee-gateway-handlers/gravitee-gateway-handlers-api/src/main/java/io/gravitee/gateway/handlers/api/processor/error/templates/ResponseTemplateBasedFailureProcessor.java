@@ -19,7 +19,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
-import io.gravitee.definition.model.ResponseTemplates;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.el.EvaluableRequest;
@@ -38,22 +37,22 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
     static final String WILDCARD_CONTENT_TYPE = "*/*";
     static final String DEFAULT_RESPONSE_TEMPLATE = "DEFAULT";
 
-    private final Map<String, ResponseTemplates> templates;
+    private final Map<String, Map<String, ResponseTemplate>> templates;
 
-    public ResponseTemplateBasedFailureProcessor(final Map<String, ResponseTemplates> templates) {
+    public ResponseTemplateBasedFailureProcessor(final Map<String, Map<String, ResponseTemplate>> templates) {
         this.templates = templates;
     }
 
     @Override
     protected void handleFailure(ExecutionContext context, ProcessorFailure failure) {
         if (failure.key() != null) {
-            ResponseTemplates responseTemplates = templates.get(failure.key());
+            Map<String, ResponseTemplate> responseTemplates = templates.get(failure.key());
 
             // No template associated to the error key, process the error message as usual
             if (responseTemplates == null) {
                 // Try to fallback to default response template
 
-                ResponseTemplates defaultResponseTemplate = templates.get(DEFAULT_RESPONSE_TEMPLATE);
+                Map<String, ResponseTemplate> defaultResponseTemplate = templates.get(DEFAULT_RESPONSE_TEMPLATE);
                 if (defaultResponseTemplate != null) {
                     handleAcceptHeader(context, defaultResponseTemplate, failure);
                 } else {
@@ -68,7 +67,7 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
         }
     }
 
-    private void handleAcceptHeader(final ExecutionContext context, final ResponseTemplates templates, final ProcessorFailure failure) {
+    private void handleAcceptHeader(final ExecutionContext context, final Map<String, ResponseTemplate> templates, final ProcessorFailure failure) {
         // Extract the content-type from the request
         List<MediaType> acceptMediaTypes = context.request().headers().getAccept();
 
@@ -80,7 +79,7 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
             MediaType.sortByQualityValue(acceptMediaTypes);
 
             for (MediaType type : acceptMediaTypes) {
-                ResponseTemplate template = templates.getTemplates().get(type.toMediaString());
+                ResponseTemplate template = templates.get(type.toMediaString());
 
                 if (template != null) {
                     handleTemplate(context, template, failure);
@@ -93,8 +92,8 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
         }
     }
 
-    private void handleWildcardTemplate(final ExecutionContext context, final ResponseTemplates templates, final ProcessorFailure failure) {
-        ResponseTemplate template = templates.getTemplates().get(WILDCARD_CONTENT_TYPE);
+    private void handleWildcardTemplate(final ExecutionContext context, final Map<String, ResponseTemplate> templates, final ProcessorFailure failure) {
+        ResponseTemplate template = templates.get(WILDCARD_CONTENT_TYPE);
         if (template == null) {
             // No template associated to the error key, process the error message as usual
             super.handleFailure(context, failure);

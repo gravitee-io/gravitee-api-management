@@ -138,8 +138,8 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
         // Load policies from the API
         if (getPaths() != null) {
             getPaths().values()
-                    .forEach(path -> policies.addAll(
-                            path.getRules()
+                    .forEach(rules -> policies.addAll(
+                            rules
                                     .stream()
                                     .filter(Rule::isEnabled)
                                     .map(Rule::getPolicy)
@@ -158,8 +158,8 @@ public class Api extends io.gravitee.definition.model.Api implements Reactable, 
 
             if (plan.getPaths() != null) {
                 plan.getPaths().values()
-                        .forEach(path -> policies.addAll(
-                                path.getRules()
+                        .forEach(rules -> policies.addAll(
+                                rules
                                         .stream()
                                         .filter(Rule::isEnabled)
                                         .map(Rule::getPolicy)

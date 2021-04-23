@@ -18,6 +18,8 @@ package io.gravitee.gateway.handlers.api.manager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
@@ -65,7 +67,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldNotDeployDisableApi() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         api.setEnabled(false);
 
         apiManager.register(api);
@@ -75,7 +77,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldNotDeployApiWithoutPlan() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
 
         apiManager.register(api);
 
@@ -85,7 +87,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldDeployApiWithPlan() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
         api.setPlans(Collections.singletonList(mockedPlan));
@@ -102,7 +104,7 @@ public class ApiManagerTest {
     }
 
     private void shouldDeployApiWithTags(final String tags, final String[] apiTags) throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
         api.setPlans(Collections.singletonList(mockedPlan));
@@ -117,7 +119,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldDeployApiWithPlanMatchingTag() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         api.setTags(new HashSet<>(Collections.singletonList("test")));
 
         final Plan mockedPlan = mock(Plan.class);
@@ -133,7 +135,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldNotDeployApiWithoutPlanMatchingTag() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         api.setTags(new HashSet<>(Collections.singletonList("test")));
 
         final Plan mockedPlan = mock(Plan.class);
@@ -194,7 +196,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldUpdateApi() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
         api.setPlans(Collections.singletonList(mockedPlan));
@@ -203,9 +205,10 @@ public class ApiManagerTest {
 
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
-        final Api api2 = new Api(api);
+        final Api api2 = buildTestApi();
         Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
         api2.setDeployedAt(Date.from(deployDateInst));
+        api2.setPlans(Collections.singletonList(mockedPlan));
 
         apiManager.register(api2);
 
@@ -214,7 +217,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldNotUpdateApi() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
         api.setPlans(Collections.singletonList(mockedPlan));
@@ -223,7 +226,7 @@ public class ApiManagerTest {
 
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
-        final Api api2 = new Api(api);
+        final Api api2 = buildTestApi();
         Instant deployDateInst = api.getDeployedAt().toInstant().minus(Duration.ofHours(1));
         api2.setDeployedAt(Date.from(deployDateInst));
 
@@ -234,7 +237,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldUndeployApi_noMoreMatchingTag() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
         api.setPlans(Collections.singletonList(mockedPlan));
@@ -244,7 +247,7 @@ public class ApiManagerTest {
 
         apiManager.register(api);
 
-        final Api api2 = new Api(api);
+        final Api api2 = buildTestApi();
         api2.setDeployedAt(new Date());
         api2.setTags(new HashSet<>(Collections.singletonList("other-tag")));
 
@@ -256,7 +259,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldUndeployApi() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
         api.setPlans(Collections.singletonList(mockedPlan));
@@ -272,7 +275,7 @@ public class ApiManagerTest {
 
     @Test
     public void shouldNotUndeployUnknownApi() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
         api.setPlans(Collections.singletonList(mockedPlan));
@@ -289,7 +292,7 @@ public class ApiManagerTest {
     @Test
     @Ignore
     public void shouldUndeployApi_noMorePlan() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
         api.setPlans(Collections.singletonList(mockedPlan));
@@ -298,7 +301,7 @@ public class ApiManagerTest {
 
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
-        final Api api2 = new Api(api);
+        final Api api2 = buildTestApi();
         api2.setDeployedAt(new Date());
         api2.setPlans(Collections.<Plan>emptyList());
 
@@ -696,9 +699,21 @@ public class ApiManagerTest {
     private Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags) throws Exception {
         final Api mockApi = new Api();
         mockApi.setId(api.getId());
+        mockApi.setName(api.getName());
         mockApi.setTags(new HashSet<>(Arrays.asList(tags)));
         when(objectMapper.readValue(api.getDefinition(), Api.class)).thenReturn(mockApi);
         return mockApi;
+    }
+
+    private Api buildTestApi() {
+        Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(Collections.singletonList(mock(VirtualHost.class)));
+        return new ApiBuilder()
+                .id("api-test")
+                .name("api-name-test")
+                .proxy(proxy)
+                .deployedAt(new Date())
+                .build();
     }
 
     class ApiBuilder {
@@ -707,6 +722,16 @@ public class ApiManagerTest {
 
         public ApiBuilder id(String id) {
             this.api.setId(id);
+            return this;
+        }
+
+        public ApiBuilder name(String name) {
+            this.api.setName(name);
+            return this;
+        }
+
+        public ApiBuilder proxy(Proxy proxy) {
+            this.api.setProxy(proxy);
             return this;
         }
 

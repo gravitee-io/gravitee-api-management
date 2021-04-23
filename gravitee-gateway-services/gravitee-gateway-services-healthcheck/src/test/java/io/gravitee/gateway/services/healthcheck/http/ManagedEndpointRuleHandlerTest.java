@@ -69,9 +69,7 @@ public class ManagedEndpointRuleHandlerTest {
         when(rule.endpoint()).thenReturn(createEndpoint());
 
         io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
-        Request request = new Request();
-        request.setPath("/");
-        request.setMethod(HttpMethod.GET);
+        Request request = new Request("/", HttpMethod.GET);
 
         step.setRequest(request);
         Response response = new Response();
@@ -111,9 +109,7 @@ public class ManagedEndpointRuleHandlerTest {
         when(rule.endpoint()).thenReturn(createEndpoint());
 
         io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
-        Request request = new Request();
-        request.setPath("/");
-        request.setMethod(HttpMethod.GET);
+        Request request = new Request("/", HttpMethod.GET);
 
         step.setRequest(request);
         Response response = new Response();
@@ -153,9 +149,7 @@ public class ManagedEndpointRuleHandlerTest {
         when(rule.endpoint()).thenReturn(createEndpoint());
 
         io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
-        Request request = new Request();
-        request.setPath("/");
-        request.setMethod(HttpMethod.GET);
+        Request request = new Request("/", HttpMethod.GET);
 
         step.setRequest(request);
         Response response = new Response();
@@ -203,10 +197,8 @@ public class ManagedEndpointRuleHandlerTest {
         when(rule.endpoint()).thenReturn(endpoint);
 
         io.gravitee.definition.model.services.healthcheck.Step step = new io.gravitee.definition.model.services.healthcheck.Step();
-        Request request = new Request();
-        request.setPath("/");
+        Request request = new Request("/", HttpMethod.GET);
         request.setFromRoot(true);
-        request.setMethod(HttpMethod.GET);
 
         step.setRequest(request);
         Response response = new Response();
