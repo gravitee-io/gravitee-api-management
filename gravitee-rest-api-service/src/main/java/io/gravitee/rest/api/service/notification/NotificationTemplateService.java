@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.notification;
 
+import freemarker.template.TemplateException;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateType;
 
@@ -41,7 +42,45 @@ public interface NotificationTemplateService {
 
     String resolveTemplateWithParam(String templateName, Object params);
 
-    String resolveInlineTemplateWithParam(String name, String inlineTemplate, Object params);
+    /**
+     * call {@link #resolveInlineTemplateWithParam(String, String, Object, boolean)} with ignoreTplException set to true
+     * @param name
+     * @param inlineTemplate
+     * @param params
+     * @return
+     */
+    default String resolveInlineTemplateWithParam(String name, String inlineTemplate, Object params) {
+        return resolveInlineTemplateWithParam(name, inlineTemplate, params, true);
+    }
 
-    String resolveInlineTemplateWithParam(String name, Reader inlineTemplateReader, Object params);
+    /**
+     *
+     * @param name
+     * @param inlineTemplate
+     * @param params
+     * @param ignoreTplException if true, this method return empty string incase of TemplateException, otherwise a {@link io.gravitee.rest.api.service.exceptions.TemplateProcessingException} is thrown
+     * @return
+     */
+    String resolveInlineTemplateWithParam(String name, String inlineTemplate, Object params, boolean ignoreTplException);
+
+    /**
+     * call {@link #resolveInlineTemplateWithParam(String, Reader, Object, boolean)} with ignoreTplException set to true
+     * @param name
+     * @param inlineTemplateReader
+     * @param params
+     * @return
+     */
+    default String resolveInlineTemplateWithParam(String name, Reader inlineTemplateReader, Object params) {
+        return resolveInlineTemplateWithParam(name, inlineTemplateReader, params, true);
+    }
+
+    /**
+     *
+     * @param name
+     * @param inlineTemplateReader
+     * @param params
+     * @param ignoreTplException if true, this method return empty string incase of TemplateException, otherwise a {@link io.gravitee.rest.api.service.exceptions.TemplateProcessingException} is thrown
+     * @return
+     */
+    String resolveInlineTemplateWithParam(String name, Reader inlineTemplateReader, Object params, boolean ignoreTplException);
 }

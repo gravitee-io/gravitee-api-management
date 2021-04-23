@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import freemarker.template.TemplateException;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;

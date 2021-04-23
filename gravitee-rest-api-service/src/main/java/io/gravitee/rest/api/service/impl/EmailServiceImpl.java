@@ -39,6 +39,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.activation.MimetypesFileTypeMap;
+import javax.mail.internet.InternetAddress;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -94,10 +95,15 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                         ? mailParameters.get(EMAIL_FROM)
                         : emailNotification.getFrom();
 
-                if (isEmpty(emailNotification.getFromName())) {
-                    mailMessage.setFrom(from);
+                InternetAddress configuredFrom = new InternetAddress(from);
+                if (isEmpty(configuredFrom.getPersonal())) {
+                    if (isEmpty(emailNotification.getFromName())) {
+                        mailMessage.setFrom(from);
+                    } else {
+                        mailMessage.setFrom(from, emailNotification.getFromName());
+                    }
                 } else {
-                    mailMessage.setFrom(from, emailNotification.getFromName());
+                    mailMessage.setFrom(configuredFrom);
                 }
 
                 String sender = emailNotification.getFrom();
