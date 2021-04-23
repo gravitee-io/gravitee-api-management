@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import freemarker.template.TemplateException;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpMethod;
@@ -61,7 +60,6 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
-import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
 import io.gravitee.rest.api.model.api.*;
@@ -2072,32 +2070,47 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final JsonNode plansDefinition = jsonNode.path("plans");
         if (plansDefinition != null && plansDefinition.isArray()) {
             for (JsonNode planNode : plansDefinition) {
-                PlanQuery query = new PlanQuery.Builder()
-                    .api(createdOrUpdatedApiEntity.getId())
-                    .name(planNode.get("name").asText())
-                    .security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase()))
-                    .build();
-                List<PlanEntity> planEntities = planService
-                    .search(query)
-                    .stream()
-                    .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
-                    .collect(toList());
-                if (planEntities.isEmpty()) {
-                    NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
-                    newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
-                    planService.create(newPlanEntity);
-                } else if (planEntities.size() == 1) {
-                    UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
-                    updatePlanEntity.setId(planEntities.iterator().next().getId());
-                    planService.update(updatePlanEntity);
+                if (planNode.has("id")) {
+                    try {
+                        PlanEntity plan = planService.findById(planNode.get("id").asText());
+                        UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
+                        updatePlanEntity.setId(plan.getId());
+                        planService.update(updatePlanEntity);
+                    } catch (PlanNotFoundException npe) {
+                        NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
+                        newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
+                        planService.create(newPlanEntity);
+                    }
                 } else {
-                    LOGGER.error(
-                        "Not able to identify the plan to update: {}. Too much plan with the same name",
-                        planNode.get("name").asText()
-                    );
-                    throw new TechnicalManagementException(
-                        "Not able to identify the plan to update: " + planNode.get("name").asText() + ". Too much plan with the same name"
-                    );
+                    PlanQuery query = new PlanQuery.Builder()
+                        .api(createdOrUpdatedApiEntity.getId())
+                        .name(planNode.get("name").asText())
+                        .security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase()))
+                        .build();
+                    List<PlanEntity> planEntities = planService
+                        .search(query)
+                        .stream()
+                        .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
+                        .collect(toList());
+                    if (planEntities.isEmpty()) {
+                        NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
+                        newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
+                        planService.create(newPlanEntity);
+                    } else if (planEntities.size() == 1) {
+                        UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
+                        updatePlanEntity.setId(planEntities.iterator().next().getId());
+                        planService.update(updatePlanEntity);
+                    } else {
+                        LOGGER.error(
+                            "Not able to identify the plan to update: {}. Too much plan with the same name",
+                            planNode.get("name").asText()
+                        );
+                        throw new TechnicalManagementException(
+                            "Not able to identify the plan to update: " +
+                            planNode.get("name").asText() +
+                            ". Too much plan with the same name"
+                        );
+                    }
                 }
             }
         }

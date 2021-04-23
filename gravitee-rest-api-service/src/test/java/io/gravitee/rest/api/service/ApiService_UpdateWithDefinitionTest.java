@@ -438,13 +438,16 @@ public class ApiService_UpdateWithDefinitionTest {
         UserEntity admin = new UserEntity();
         UserEntity user = new UserEntity();
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
-        PlanEntity existingPlan = new PlanEntity();
-        when(planService.search(any())).thenReturn(Collections.singletonList(existingPlan), Collections.emptyList());
+        PlanEntity plan1 = new PlanEntity();
+        plan1.setId("plan-id");
+        when(planService.findById(plan1.getId())).thenReturn(plan1);
+        PlanEntity plan2 = new PlanEntity();
+        plan2.setId("plan-id2");
+        when(planService.findById(plan2.getId())).thenReturn(plan2);
 
         apiService.updateWithImportedDefinition(apiEntity, toBeImport, "import");
 
-        verify(planService, times(1)).create(any(NewPlanEntity.class));
-        verify(planService, times(1)).update(any(UpdatePlanEntity.class));
+        verify(planService, times(2)).update(any(UpdatePlanEntity.class));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
     }

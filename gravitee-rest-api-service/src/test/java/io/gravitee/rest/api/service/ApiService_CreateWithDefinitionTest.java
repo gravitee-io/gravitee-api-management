@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -30,6 +29,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
@@ -363,6 +363,7 @@ public class ApiService_CreateWithDefinitionTest {
         admin.setSource(SOURCE);
         admin.setSourceId(API_ID);
         when(userService.findById(admin.getId())).thenReturn(admin);
+        when(planService.findById(anyString())).thenThrow(PlanNotFoundException.class);
 
         apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
@@ -396,6 +397,7 @@ public class ApiService_CreateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId(API_ID);
         when(userService.findById(admin.getId())).thenReturn(admin);
+        when(planService.findById(anyString())).thenThrow(PlanNotFoundException.class);
 
         apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
