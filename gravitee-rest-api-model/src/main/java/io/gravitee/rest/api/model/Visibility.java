@@ -20,7 +20,6 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public enum Visibility {
-
     PUBLIC,
-    PRIVATE
+    PRIVATE,
 }

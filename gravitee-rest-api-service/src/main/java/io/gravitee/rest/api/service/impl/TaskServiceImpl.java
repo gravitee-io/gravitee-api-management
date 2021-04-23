@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.SubscriptionStatus.PENDING;
+import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
+import static io.gravitee.rest.api.model.permissions.ApiPermission.*;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.UserCriteria;
@@ -30,19 +36,12 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.SubscriptionStatus.PENDING;
-import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
-import static io.gravitee.rest.api.model.permissions.ApiPermission.*;
-import static java.util.Collections.singleton;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
@@ -56,20 +55,28 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
     @Autowired
     private ApiService apiService;
+
     @Autowired
     private SubscriptionService subscriptionService;
+
     @Autowired
     private ApplicationService applicationService;
+
     @Autowired
     private MembershipService membershipService;
+
     @Autowired
     private GroupService groupService;
+
     @Autowired
     private RoleService roleService;
+
     @Autowired
     private PlanService planService;
+
     @Autowired
     private UserService userService;
+
     @Autowired
     private WorkflowService workflowService;
 
@@ -92,49 +99,48 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 SubscriptionQuery query = new SubscriptionQuery();
                 query.setStatuses(singleton(PENDING));
                 query.setApis(apiIds);
-                tasks = subscriptionService.search(query)
-                        .stream()
-                        .map(this::convert)
-                        .collect(toList());
+                tasks = subscriptionService.search(query).stream().map(this::convert).collect(toList());
             }
 
             // search for PENDING user registration
-            final Page<UserEntity> pendingUsers = userService.search(new UserCriteria.Builder().statuses(UserStatus.PENDING).build(), new PageableImpl(1, NUMBER_OF_PENDING_USERS_TO_SEARCH));
+            final Page<UserEntity> pendingUsers = userService.search(
+                new UserCriteria.Builder().statuses(UserStatus.PENDING).build(),
+                new PageableImpl(1, NUMBER_OF_PENDING_USERS_TO_SEARCH)
+            );
             if (pendingUsers.getContent() != null && !pendingUsers.getContent().isEmpty()) {
-                tasks.addAll(pendingUsers.getContent()
-                        .stream()
-                        .map(this::convert)
-                        .collect(toList()));
+                tasks.addAll(pendingUsers.getContent().stream().map(this::convert).collect(toList()));
             }
 
             // search for IN_REVIEW apis
             apiIds = getApisForAPermission(userId, REVIEWS.getName());
             if (!apiIds.isEmpty()) {
-                apiIds.forEach(apiId -> {
-                    final List<Workflow> workflows = workflowService
-                            .findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
-                    if (workflows != null && !workflows.isEmpty()) {
-                        final Workflow currentWorkflow = workflows.get(0);
-                        if (WorkflowState.IN_REVIEW.name().equals(currentWorkflow.getState())) {
-                            tasks.add(convert(currentWorkflow));
+                apiIds.forEach(
+                    apiId -> {
+                        final List<Workflow> workflows = workflowService.findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
+                        if (workflows != null && !workflows.isEmpty()) {
+                            final Workflow currentWorkflow = workflows.get(0);
+                            if (WorkflowState.IN_REVIEW.name().equals(currentWorkflow.getState())) {
+                                tasks.add(convert(currentWorkflow));
+                            }
                         }
                     }
-                });
+                );
             }
 
             // search for REQUEST_FOR_CHANGES apis
             apiIds = getApisForAPermission(userId, DEFINITION.getName());
             if (!apiIds.isEmpty()) {
-                apiIds.forEach(apiId -> {
-                    final List<Workflow> workflows = workflowService
-                            .findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
-                    if (workflows != null && !workflows.isEmpty()) {
-                        final Workflow currentWorkflow = workflows.get(0);
-                        if (WorkflowState.REQUEST_FOR_CHANGES.name().equals(currentWorkflow.getState())) {
-                            tasks.add(convert(currentWorkflow));
+                apiIds.forEach(
+                    apiId -> {
+                        final List<Workflow> workflows = workflowService.findByReferenceAndType(API, apiId, WorkflowType.REVIEW);
+                        if (workflows != null && !workflows.isEmpty()) {
+                            final Workflow currentWorkflow = workflows.get(0);
+                            if (WorkflowState.REQUEST_FOR_CHANGES.name().equals(currentWorkflow.getState())) {
+                                tasks.add(convert(currentWorkflow));
+                            }
                         }
                     }
-                });
+                );
             }
             return tasks;
         } catch (TechnicalException e) {
@@ -145,8 +151,18 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
     private Set<String> getApisForAPermission(final String userId, final String permission) throws TechnicalException {
         // 1. find apis and group memberships
-        Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, io.gravitee.rest.api.model.MembershipReferenceType.API);
-        memberships.addAll(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, io.gravitee.rest.api.model.MembershipReferenceType.GROUP));
+        Set<MembershipEntity> memberships = membershipService.getMembershipsByMemberAndReference(
+            MembershipMemberType.USER,
+            userId,
+            io.gravitee.rest.api.model.MembershipReferenceType.API
+        );
+        memberships.addAll(
+            membershipService.getMembershipsByMemberAndReference(
+                MembershipMemberType.USER,
+                userId,
+                io.gravitee.rest.api.model.MembershipReferenceType.GROUP
+            )
+        );
 
         Map<String, RoleEntity> roleNameToEntity = new HashMap<>();
         Set<String> apiIds = new HashSet<>();
@@ -196,32 +212,34 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     @Override
     public Metadata getMetadata(List<TaskEntity> tasks) {
         final Metadata metadata = new Metadata();
-        tasks.forEach(task -> {
-            final Object data = task.getData();
-            if (data instanceof SubscriptionEntity) {
-                final SubscriptionEntity subscription = (SubscriptionEntity) data;
+        tasks.forEach(
+            task -> {
+                final Object data = task.getData();
+                if (data instanceof SubscriptionEntity) {
+                    final SubscriptionEntity subscription = (SubscriptionEntity) data;
 
-                if (!metadata.containsKey(subscription.getApplication())) {
-                    ApplicationEntity applicationEntity = applicationService.findById(subscription.getApplication());
-                    metadata.put(subscription.getApplication(), "name", applicationEntity.getName());
-                }
+                    if (!metadata.containsKey(subscription.getApplication())) {
+                        ApplicationEntity applicationEntity = applicationService.findById(subscription.getApplication());
+                        metadata.put(subscription.getApplication(), "name", applicationEntity.getName());
+                    }
 
-                if (!metadata.containsKey(subscription.getPlan())) {
-                    PlanEntity planEntity = planService.findById(subscription.getPlan());
-                    String apiId = planEntity.getApi();
-                    ApiEntity api = apiService.findById(apiId);
-                    metadata.put(subscription.getPlan(), "name", planEntity.getName());
-                    metadata.put(subscription.getPlan(), "api", apiId);
-                    metadata.put(apiId, "name", api.getName());
-                }
-            } else if (data instanceof Workflow) {
-                final Workflow workflow = (Workflow) data;
-                if (API.name().equals(workflow.getReferenceType()) && !metadata.containsKey(workflow.getReferenceId())) {
-                    ApiEntity api = apiService.findById(workflow.getReferenceId());
-                    metadata.put(api.getId(), "name", api.getName());
+                    if (!metadata.containsKey(subscription.getPlan())) {
+                        PlanEntity planEntity = planService.findById(subscription.getPlan());
+                        String apiId = planEntity.getApi();
+                        ApiEntity api = apiService.findById(apiId);
+                        metadata.put(subscription.getPlan(), "name", planEntity.getName());
+                        metadata.put(subscription.getPlan(), "api", apiId);
+                        metadata.put(apiId, "name", api.getName());
+                    }
+                } else if (data instanceof Workflow) {
+                    final Workflow workflow = (Workflow) data;
+                    if (API.name().equals(workflow.getReferenceType()) && !metadata.containsKey(workflow.getReferenceId())) {
+                        ApiEntity api = apiService.findById(workflow.getReferenceId());
+                        metadata.put(api.getId(), "name", api.getName());
+                    }
                 }
             }
-        });
+        );
         return metadata;
     }
 

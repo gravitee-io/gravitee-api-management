@@ -37,14 +37,13 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -65,34 +64,58 @@ public class OrganizationResource extends AbstractResource {
     @GET
     @Path("/identities")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION, acls = RolePermissionAction.READ))
-    @ApiOperation(value = "Get the list of identity provider activations for current organization",
-            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "List identity provider activations for current organization", response = IdentityProviderActivationEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(
+        value = "Get the list of identity provider activations for current organization",
+        notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "List identity provider activations for current organization",
+                response = IdentityProviderActivationEntity.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Set<IdentityProviderActivationEntity> listIdentityProviderActivations() {
-        return identityProviderActivationService.findAllByTarget(new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION));
+        return identityProviderActivationService.findAllByTarget(
+            new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION)
+        );
     }
 
     @PUT
     @Path("/identities")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION, acls = {RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE}))
-    @ApiOperation(value = "Update available organization identities", tags = {"Organization"})
-    @ApiResponses({
+    @Permissions(
+        @Permission(
+            value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION,
+            acls = { RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
+        )
+    )
+    @ApiOperation(value = "Update available organization identities", tags = { "Organization" })
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Organization successfully updated"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response updateOrganizationIdentities(Set<IdentityProviderActivationEntity> identityProviderActivations) {
         this.identityProviderActivationService.updateTargetIdp(
                 new ActivationTarget(GraviteeContext.getCurrentOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION),
-                identityProviderActivations.stream()
-                        .filter(ipa -> {
+                identityProviderActivations
+                    .stream()
+                    .filter(
+                        ipa -> {
                             final IdentityProviderEntity idp = this.identityProviderService.findById(ipa.getIdentityProvider());
                             return GraviteeContext.getCurrentOrganization().equals(idp.getOrganization());
-                        })
-                        .map(IdentityProviderActivationEntity::getIdentityProvider)
-                        .collect(Collectors.toList()));
+                        }
+                    )
+                    .map(IdentityProviderActivationEntity::getIdentityProvider)
+                    .collect(Collectors.toList())
+            );
         return Response.noContent().build();
     }
 

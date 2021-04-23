@@ -32,22 +32,6 @@ import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
@@ -56,6 +40,21 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Set;
+import javax.annotation.PostConstruct;
+import javax.inject.Singleton;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Singleton
 @Path("/auth/cockpit")
@@ -89,15 +88,16 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
     @PostConstruct
     public void afterPropertiesSet() {
-
         enabled = environment.getProperty("cockpit.enabled", Boolean.class, false);
 
         if (enabled) {
             try {
                 // Initialize the JWT processor which will handle JWT signature verification and assertions such as expiration time.
                 final RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) getPublicKey()).keyID(KID).build();
-                final JWSAlgorithmFamilyJWSKeySelector<SecurityContext> jwsKeySelector =
-                        new JWSAlgorithmFamilyJWSKeySelector<>(JWSAlgorithm.Family.RSA, new ImmutableJWKSet<>(new JWKSet(rsaKey)));
+                final JWSAlgorithmFamilyJWSKeySelector<SecurityContext> jwsKeySelector = new JWSAlgorithmFamilyJWSKeySelector<>(
+                    JWSAlgorithm.Family.RSA,
+                    new ImmutableJWKSet<>(new JWKSet(rsaKey))
+                );
 
                 // Note that the JWT processor can be configured with custom verifiers if we want more assertions (ex: validate iss, check org claims is defined, ...)
                 final ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
@@ -111,7 +111,6 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
     @GET
     public Response tokenExchange(@QueryParam(value = "token") final String token, @Context final HttpServletResponse httpResponse) {
-
         if (!enabled) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -139,7 +138,17 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             super.connectUser(user, httpResponse);
 
             // Redirect the user.
-            return Response.temporaryRedirect(new URI(jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM) + "?organization=" + jwtClaimsSet.getStringClaim(ORG_CLAIM) + "/#!/environments/" + jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM))).build();
+            return Response
+                .temporaryRedirect(
+                    new URI(
+                        jwtClaimsSet.getStringClaim(REDIRECT_URI_CLAIM) +
+                        "?organization=" +
+                        jwtClaimsSet.getStringClaim(ORG_CLAIM) +
+                        "/#!/environments/" +
+                        jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM)
+                    )
+                )
+                .build();
         } catch (Exception e) {
             LOGGER.error("Error occurred when trying to log user using cockpit.", e);
             return Response.serverError().build();
@@ -149,7 +158,6 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     }
 
     private Key getPublicKey() throws Exception {
-
         final KeyStore trustStore = loadTrustStore();
         final Certificate cert = trustStore.getCertificate(environment.getProperty("cockpit.keystore.key.alias", "cockpit-client"));
 
@@ -157,7 +165,6 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     }
 
     private KeyStore loadTrustStore() throws Exception {
-
         final KeyStore keystore = KeyStore.getInstance(environment.getProperty("cockpit.keystore.type"));
 
         try (InputStream is = new File(environment.getProperty("cockpit.keystore.path")).toURI().toURL().openStream()) {

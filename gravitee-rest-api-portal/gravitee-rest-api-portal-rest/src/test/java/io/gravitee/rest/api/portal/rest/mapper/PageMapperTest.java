@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
@@ -27,19 +31,14 @@ import io.gravitee.rest.api.portal.rest.model.PageConfiguration.DocExpansionEnum
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.ViewerEnum;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.service.MediaService;
+import java.time.Instant;
+import java.util.*;
+import javax.ws.rs.core.UriBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import javax.ws.rs.core.UriBuilder;
-import java.time.Instant;
-import java.util.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -77,9 +76,9 @@ public class PageMapperTest {
     public void testConvert() {
         //init
         pageEntity = new PageEntity();
-       
+
         pageEntity.setLastContributor(PAGE_CONTRIBUTOR);
-        
+
         Map<String, String> configuration = new HashMap<>();
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_DISPLAY_OPERATION_ID, PAGE_CONFIGURATION_DISPLAY_OPERATION_ID);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_DOC_EXPANSION, PAGE_CONFIGURATION_DOC_EXPANSION);
@@ -94,11 +93,11 @@ public class PageMapperTest {
         configuration.put(PageConfigurationKeys.SWAGGER_VIEWER, PAGE_CONFIGURATION_VIEWER);
         pageEntity.setConfiguration(configuration);
         pageEntity.setId(PAGE_ID);
-        
+
         Map<String, String> metadata = new HashMap<>();
         metadata.put("meta", PAGE_ID);
         pageEntity.setMetadata(metadata);
-        
+
         pageEntity.setName(PAGE_NAME);
         pageEntity.setOrder(1);
         pageEntity.setParentId(PAGE_PARENT);
@@ -113,14 +112,15 @@ public class PageMapperTest {
         pageEntity.setAttachedMedia(attachedMedia);
         Instant now = Instant.now();
         pageEntity.setLastModificationDate(Date.from(now));
-        
-        when(mediaService.findAllWithoutContent(attachedMedia, null)).thenReturn(Arrays.asList(mock(MediaEntity.class),mock(MediaEntity.class)));
+
+        when(mediaService.findAllWithoutContent(attachedMedia, null))
+            .thenReturn(Arrays.asList(mock(MediaEntity.class), mock(MediaEntity.class)));
 
         //Test
         Page responsePage = pageMapper.convert(UriBuilder.fromPath("/"), null, pageEntity);
         assertNotNull(responsePage);
-        
-        PageConfiguration pageConfiguration = responsePage.getConfiguration(); 
+
+        PageConfiguration pageConfiguration = responsePage.getConfiguration();
         assertNotNull(pageConfiguration);
         assertFalse(pageConfiguration.getDisplayOperationId());
         assertEquals(DocExpansionEnum.LIST, pageConfiguration.getDocExpansion());
@@ -138,12 +138,12 @@ public class PageMapperTest {
 
         List<Metadata> metadatas = responsePage.getMetadata();
         assertNotNull(metadatas);
-        assertEquals(1,metadatas.size());
+        assertEquals(1, metadatas.size());
         Metadata m = metadatas.get(0);
-        assertEquals("0",  m.getOrder());
+        assertEquals("0", m.getOrder());
         assertEquals("meta", m.getName());
-        assertEquals(PAGE_ID,  m.getValue());
-        
+        assertEquals(PAGE_ID, m.getValue());
+
         assertEquals(PAGE_NAME, responsePage.getName());
         assertEquals(Integer.valueOf(1), responsePage.getOrder());
         assertEquals(PAGE_PARENT, responsePage.getParent());
@@ -154,23 +154,23 @@ public class PageMapperTest {
         assertEquals(TypeEnum.SWAGGER, responsePage.getType());
         assertEquals(now.toEpochMilli(), responsePage.getUpdatedAt().toInstant().toEpochMilli());
     }
- 
+
     @Test
     public void testMinimalConvert() {
         //init
         pageEntity = new PageEntity();
         pageEntity.setType(PAGE_TYPE);
-        
+
         Instant now = Instant.now();
         pageEntity.setLastModificationDate(Date.from(now));
-        
+
         //Test
         Page responsePage = pageMapper.convert(pageEntity);
         assertNotNull(responsePage);
-        
-        PageConfiguration pageConfiguration = responsePage.getConfiguration(); 
+
+        PageConfiguration pageConfiguration = responsePage.getConfiguration();
         assertNull(pageConfiguration);
-        
+
         List<Metadata> metadatas = responsePage.getMetadata();
         assertNull(metadatas);
         assertEquals(TypeEnum.SWAGGER, responsePage.getType());
@@ -179,15 +179,15 @@ public class PageMapperTest {
 
     @Test
     public void testPageLinks() {
-        String basePath = "/"+PAGE_ID;
-        String parentPath = "/"+PAGE_PARENT;
-        
+        String basePath = "/" + PAGE_ID;
+        String parentPath = "/" + PAGE_PARENT;
+
         PageLinks links = pageMapper.computePageLinks(basePath, parentPath);
-        
+
         assertNotNull(links);
-        
+
         assertEquals(basePath, links.getSelf());
-        assertEquals(basePath+"/content", links.getContent());
+        assertEquals(basePath + "/content", links.getContent());
         assertEquals(parentPath, links.getParent());
     }
 }

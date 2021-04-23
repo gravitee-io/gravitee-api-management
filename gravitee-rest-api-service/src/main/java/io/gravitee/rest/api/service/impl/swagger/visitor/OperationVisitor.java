@@ -20,6 +20,5 @@ package io.gravitee.rest.api.service.impl.swagger.visitor;
  * @author GraviteeSource Team
  */
 public interface OperationVisitor<T, D, O> extends Visitor {
-
     T visit(D descriptor, O operation);
 }

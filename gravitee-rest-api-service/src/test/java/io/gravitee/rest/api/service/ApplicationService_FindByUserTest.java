@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -25,7 +29,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-
+import java.util.*;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,12 +37,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -92,21 +90,16 @@ public class ApplicationService_FindByUserTest {
     @Test
     public void shouldFindByUser() throws Exception {
         GraviteeContext.setCurrentEnvironment("envId");
-        when(appMembership.getReferenceId()).
-                thenReturn(APPLICATION_ID);
-        when(application.getId()).
-                thenReturn(APPLICATION_ID);
-        when(application.getStatus()).
-                thenReturn(ApplicationStatus.ACTIVE);
-        when(application.getType()).
-                thenReturn(ApplicationType.SIMPLE);
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)).
-                thenReturn(Collections.singleton(appMembership));
-        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
-                thenReturn(Collections.singleton(application));
+        when(appMembership.getReferenceId()).thenReturn(APPLICATION_ID);
+        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+            .thenReturn(Collections.singleton(appMembership));
+        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).thenReturn(Collections.singleton(application));
         when(application.getEnvironmentId()).thenReturn("envId");
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
-        
+
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USERNAME);
         po.setMemberType(MembershipMemberType.USER);
@@ -124,14 +117,11 @@ public class ApplicationService_FindByUserTest {
 
     @Test
     public void shouldNotFindByUserBecauseOfArchived() throws Exception {
-        when(appMembership.getReferenceId()).
-                thenReturn(APPLICATION_ID);
-        when(application.getStatus()).
-                thenReturn(ApplicationStatus.ARCHIVED);
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)).
-                thenReturn(Collections.singleton(appMembership));
-        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).
-                thenReturn(Collections.singleton(application));
+        when(appMembership.getReferenceId()).thenReturn(APPLICATION_ID);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+            .thenReturn(Collections.singleton(appMembership));
+        when(applicationRepository.findByIds(Collections.singletonList(APPLICATION_ID))).thenReturn(Collections.singleton(application));
 
         Set<ApplicationListItem> apps = applicationService.findByUser(USERNAME);
 
@@ -142,43 +132,31 @@ public class ApplicationService_FindByUserTest {
     @Test
     public void shouldFindByUserAndGroup() throws Exception {
         GraviteeContext.setCurrentEnvironment("envId");
-        when(appMembership.getReferenceId()).
-                thenReturn(APPLICATION_ID);
-        when(groupAppMembership.getReferenceId()).
-                thenReturn(GROUP_APPLICATION_ID);
-        when(groupAppMembership.getRoleId()).
-            thenReturn("APPLICATION_PRIMARY_OWNER");
+        when(appMembership.getReferenceId()).thenReturn(APPLICATION_ID);
+        when(groupAppMembership.getReferenceId()).thenReturn(GROUP_APPLICATION_ID);
+        when(groupAppMembership.getRoleId()).thenReturn("APPLICATION_PRIMARY_OWNER");
 
-        when(application.getId()).
-                thenReturn(APPLICATION_ID);
-        when(application.getStatus()).
-                thenReturn(ApplicationStatus.ACTIVE);
-        when(application.getType()).
-                thenReturn(ApplicationType.SIMPLE);
-        when(application.getEnvironmentId()).
-                thenReturn("envId");
-        when(groupApplication.getId()).
-                thenReturn(GROUP_APPLICATION_ID);
-        when(groupApplication.getStatus()).
-                thenReturn(ApplicationStatus.ACTIVE);
-        when(groupApplication.getType()).
-                thenReturn(ApplicationType.SIMPLE);
-        when(groupApplication.getEnvironmentId()).
-                thenReturn("envId");
+        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getEnvironmentId()).thenReturn("envId");
+        when(groupApplication.getId()).thenReturn(GROUP_APPLICATION_ID);
+        when(groupApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(groupApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(groupApplication.getEnvironmentId()).thenReturn("envId");
 
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION)).
-                thenReturn(Collections.singleton(appMembership));
-        
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.GROUP)).
-                thenReturn(Collections.singleton(groupAppMembership));
-        
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.APPLICATION))
+            .thenReturn(Collections.singleton(appMembership));
+
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USERNAME, MembershipReferenceType.GROUP))
+            .thenReturn(Collections.singleton(groupAppMembership));
+
         RoleEntity role = mock(RoleEntity.class);
         when(role.getScope()).thenReturn(RoleScope.APPLICATION);
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(role);
         when(roleService.findById(any())).thenReturn(role);
 
-        when(applicationRepository.findByIds(any())).
-                thenReturn(new HashSet(Arrays.asList(application, groupApplication)));
+        when(applicationRepository.findByIds(any())).thenReturn(new HashSet(Arrays.asList(application, groupApplication)));
 
         MembershipEntity poApp = new MembershipEntity();
         poApp.setId("poApp-id");

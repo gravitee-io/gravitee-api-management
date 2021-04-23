@@ -17,7 +17,6 @@ package io.gravitee.rest.api.portal.rest.provider;
 
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.MediaType;
@@ -32,24 +31,18 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
     @Override
     public Response toResponse(ConstraintViolationException cve) {
         final Response.Status error = Response.Status.BAD_REQUEST;
-        return Response
-                .status(error)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(buildErrorList(cve))
-                .build();
+        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(buildErrorList(cve)).build();
     }
 
     private ErrorResponse buildErrorList(ConstraintViolationException cve) {
         ErrorResponse response = new ErrorResponse();
-        for(ConstraintViolation<?> violation:cve.getConstraintViolations()) {
+        for (ConstraintViolation<?> violation : cve.getConstraintViolations()) {
             String detail = violation.getMessage();
             Object invalidValue = violation.getInvalidValue();
-            if(invalidValue != null) {
-                detail += "\n"+invalidValue;
+            if (invalidValue != null) {
+                detail += "\n" + invalidValue;
             }
-            Error error = new Error()
-                    .code(violation.getPropertyPath().toString())
-                    .message(detail);
+            Error error = new Error().code(violation.getPropertyPath().toString()).message(detail);
             response.addErrorsItem(error);
         }
         return response;

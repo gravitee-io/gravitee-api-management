@@ -15,16 +15,15 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.common.http.HttpStatusCode;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -46,10 +45,7 @@ public class ApiKeysResourceTest extends AbstractResourceTest {
     public void shouldReturnApiKeyAvailability() {
         when(apiKeyService.exists(anyString())).thenReturn(true);
 
-        Response response = envTarget("_verify")
-                .queryParam("apiKey", "atLeast10CharsButLessThan64")
-                .request()
-                .post(null);
+        Response response = envTarget("_verify").queryParam("apiKey", "atLeast10CharsButLessThan64").request().post(null);
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertEquals(false, response.readEntity(Boolean.class));
@@ -59,31 +55,21 @@ public class ApiKeysResourceTest extends AbstractResourceTest {
     public void shouldReturn500IfInternalError() {
         when(apiKeyService.exists(anyString())).thenThrow(new InternalError());
 
-        Response response = envTarget("_verify")
-                .queryParam("apiKey", "atLeast10CharsButLessThan64")
-                .request()
-                .post(null);
+        Response response = envTarget("_verify").queryParam("apiKey", "atLeast10CharsButLessThan64").request().post(null);
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
     }
 
     @Test
     public void shouldReturn400IfBadParameter() {
-
-        Response response = envTarget("_verify")
-                .queryParam("apiKey", "short/\\;")
-                .request()
-                .post(null);
+        Response response = envTarget("_verify").queryParam("apiKey", "short/\\;").request().post(null);
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void shouldReturn400IfNoApiKeyParam() {
-
-        Response response = envTarget("_verify")
-                .request()
-                .post(null);
+        Response response = envTarget("_verify").request().post(null);
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }

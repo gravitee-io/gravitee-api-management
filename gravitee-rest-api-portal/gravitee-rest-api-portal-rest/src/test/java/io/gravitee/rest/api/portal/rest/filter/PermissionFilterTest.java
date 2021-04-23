@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.filter;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -27,24 +32,17 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-
+import java.security.Principal;
+import java.util.Collections;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.security.Principal;
-import java.util.Collections;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -76,7 +74,7 @@ public class PermissionFilterTest {
     @Mock
     protected ContainerRequestContext containerRequestContext;
 
-    private final static String USERNAME = "USERNAME";
+    private static final String USERNAME = "USERNAME";
 
     public static final String API_ID = "API_ID";
 
@@ -221,8 +219,7 @@ public class PermissionFilterTest {
             verify(roleService, times(1)).hasPermission(any(), any(), any());
             verify(membershipService, never()).getUserMemberPermissions(any(ApiEntity.class), any());
             verify(membershipService, never()).getUserMemberPermissions(any(ApplicationEntity.class), any());
-            verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ENVIRONMENT), any(),
-                    any());
+            verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ENVIRONMENT), any(), any());
             throw e;
         }
 
@@ -241,10 +238,9 @@ public class PermissionFilterTest {
         verify(roleService, times(1)).hasPermission(any(), any(), any());
         verify(membershipService, never()).getUserMemberPermissions(any(ApiEntity.class), any());
         verify(membershipService, never()).getUserMemberPermissions(any(ApplicationEntity.class), any());
-        verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ENVIRONMENT), any(),
-                any());
+        verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ENVIRONMENT), any(), any());
     }
-    
+
     /**
      * ORGANIZATION Tests
      */
@@ -273,8 +269,7 @@ public class PermissionFilterTest {
             verify(roleService, times(1)).hasPermission(any(), any(), any());
             verify(membershipService, never()).getUserMemberPermissions(any(ApiEntity.class), any());
             verify(membershipService, never()).getUserMemberPermissions(any(ApplicationEntity.class), any());
-            verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ORGANIZATION), any(),
-                    any());
+            verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ORGANIZATION), any(), any());
             throw e;
         }
 
@@ -293,7 +288,6 @@ public class PermissionFilterTest {
         verify(roleService, times(1)).hasPermission(any(), any(), any());
         verify(membershipService, never()).getUserMemberPermissions(any(ApiEntity.class), any());
         verify(membershipService, never()).getUserMemberPermissions(any(ApplicationEntity.class), any());
-        verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ORGANIZATION), any(),
-                any());
+        verify(membershipService, times(1)).getUserMemberPermissions(eq(MembershipReferenceType.ORGANIZATION), any(), any());
     }
 }

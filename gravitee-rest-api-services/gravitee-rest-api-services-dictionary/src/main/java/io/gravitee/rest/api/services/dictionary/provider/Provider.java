@@ -15,17 +15,15 @@
  */
 package io.gravitee.rest.api.services.dictionary.provider;
 
+import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-
-import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface Provider {
-
     CompletableFuture<Collection<DynamicProperty>> get();
 
     String name();

@@ -15,20 +15,19 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.InlinePictureEntity;
+import static io.gravitee.common.http.HttpStatusCode.*;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+
 import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
-import org.eclipse.jetty.http.HttpHeader;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -38,12 +37,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static io.gravitee.common.http.HttpStatusCode.*;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import org.eclipse.jetty.http.HttpHeader;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -65,15 +64,15 @@ public class CategoryResourceTest extends AbstractResourceTest {
     @Before
     public void init() throws IOException, URISyntaxException {
         resetAllMocks();
-        
+
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setId(CATEGORY_ID);
         categoryEntity.setHidden(false);
         doReturn(categoryEntity).when(categoryService).findNotHiddenById(CATEGORY_ID);
-        
+
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
+
         Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
 
         mockImage = new InlinePictureEntity();
@@ -81,7 +80,6 @@ public class CategoryResourceTest extends AbstractResourceTest {
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
         doReturn(mockImage).when(categoryService).getPicture(CATEGORY_ID);
-
     }
 
     @Test
@@ -96,7 +94,6 @@ public class CategoryResourceTest extends AbstractResourceTest {
 
         final Category responseCategory = response.readEntity(Category.class);
         assertNotNull(responseCategory);
-        
     }
 
     @Test
@@ -105,7 +102,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
 
         final Response response = target(UNKNOWN_CATEGORY).request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
@@ -114,9 +111,9 @@ public class CategoryResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.category.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Category ["+UNKNOWN_CATEGORY+"] can not be found.", error.getMessage());
+        assertEquals("Category [" + UNKNOWN_CATEGORY + "] can not be found.", error.getMessage());
     }
-    
+
     @Test
     public void shouldGetCategoryPicture() throws IOException {
         final Response response = target(CATEGORY_ID).path("picture").request().get();
@@ -131,14 +128,16 @@ public class CategoryResourceTest extends AbstractResourceTest {
         File result = response.readEntity(File.class);
         byte[] fileContent = Files.readAllBytes(Paths.get(result.getAbsolutePath()));
         assertTrue(Arrays.equals(fileContent, apiLogoContent));
-        
-        String expectedTag = '"'+Integer.toString(new String(fileContent).hashCode())+'"';
+
+        String expectedTag = '"' + Integer.toString(new String(fileContent).hashCode()) + '"';
         assertEquals(expectedTag, etag);
-        
-        
+
         // test Cache
-        final Response cachedResponse = target(CATEGORY_ID).path("picture").request().header(HttpHeader.IF_NONE_MATCH.asString(), etag).get();
+        final Response cachedResponse = target(CATEGORY_ID)
+            .path("picture")
+            .request()
+            .header(HttpHeader.IF_NONE_MATCH.asString(), etag)
+            .get();
         assertEquals(NOT_MODIFIED_304, cachedResponse.getStatus());
     }
-    
 }

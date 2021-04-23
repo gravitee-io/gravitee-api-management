@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class IdentityProviderMapper {
-    
+
     public IdentityProvider convert(SocialIdentityProviderEntity socialIdentityProviderEntity) {
         IdentityProvider idpItem = new IdentityProvider();
         idpItem.setAuthorizationEndpoint(socialIdentityProviderEntity.getAuthorizationEndpoint());
@@ -43,7 +43,7 @@ public class IdentityProviderMapper {
         idpItem.setTokenIntrospectionEndpoint(socialIdentityProviderEntity.getTokenIntrospectionEndpoint());
         idpItem.setType(IdentityProviderType.fromValue(socialIdentityProviderEntity.getType().name()));
         idpItem.setUserLogoutEndpoint(socialIdentityProviderEntity.getUserLogoutEndpoint());
-        
+
         return idpItem;
     }
 }

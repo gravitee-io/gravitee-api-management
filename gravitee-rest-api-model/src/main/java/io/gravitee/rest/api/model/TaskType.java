@@ -16,9 +16,12 @@
 package io.gravitee.rest.api.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum TaskType {
-    SUBSCRIPTION_APPROVAL, IN_REVIEW, REQUEST_FOR_CHANGES, USER_REGISTRATION_APPROVAL
+    SUBSCRIPTION_APPROVAL,
+    IN_REVIEW,
+    REQUEST_FOR_CHANGES,
+    USER_REGISTRATION_APPROVAL,
 }

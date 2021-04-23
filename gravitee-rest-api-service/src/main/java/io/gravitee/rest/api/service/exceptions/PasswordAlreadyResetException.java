@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.common.http.HttpStatusCode;
-
-import java.util.Map;
-
 import static java.util.Collections.emptyMap;
+
+import io.gravitee.common.http.HttpStatusCode;
+import java.util.Map;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -27,9 +26,7 @@ import static java.util.Collections.emptyMap;
  */
 public class PasswordAlreadyResetException extends AbstractManagementException {
 
-    public PasswordAlreadyResetException() {
-
-    }
+    public PasswordAlreadyResetException() {}
 
     @Override
     public int getHttpStatusCode() {

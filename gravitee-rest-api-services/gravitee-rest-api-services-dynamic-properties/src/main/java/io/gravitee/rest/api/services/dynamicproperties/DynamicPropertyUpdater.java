@@ -27,7 +27,8 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import io.vertx.core.Handler;
-
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -35,9 +36,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,52 +54,50 @@ public class DynamicPropertyUpdater implements Handler<Long> {
     }
 
     private void authenticateAsAdmin() {
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return new Authentication() {
-                    @Override
-                    public Collection<? extends GrantedAuthority> getAuthorities() {
-                        return AuthorityUtils.createAuthorityList(RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name());
-                    }
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return new Authentication() {
+                        @Override
+                        public Collection<? extends GrantedAuthority> getAuthorities() {
+                            return AuthorityUtils.createAuthorityList(RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name());
+                        }
 
-                    @Override
-                    public Object getCredentials() {
-                        return null;
-                    }
+                        @Override
+                        public Object getCredentials() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getDetails() {
-                        return null;
-                    }
+                        @Override
+                        public Object getDetails() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getPrincipal() {
-                        return new UserDetails("DynamicPropertyUpdater", "*****", Collections.emptyList());
-                    }
+                        @Override
+                        public Object getPrincipal() {
+                            return new UserDetails("DynamicPropertyUpdater", "*****", Collections.emptyList());
+                        }
 
-                    @Override
-                    public boolean isAuthenticated() {
-                        return true;
-                    }
+                        @Override
+                        public boolean isAuthenticated() {
+                            return true;
+                        }
 
-                    @Override
-                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                        @Override
+                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
 
-                    }
+                        @Override
+                        public String getName() {
+                            return null;
+                        }
+                    };
+                }
 
-                    @Override
-                    public String getName() {
-                        return null;
-                    }
-                };
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-
-            @Override
-            public void setAuthentication(Authentication authentication) {
-
-            }
-        });
+        );
     }
 
     @Override
@@ -109,23 +105,31 @@ public class DynamicPropertyUpdater implements Handler<Long> {
         logger.debug("Running dynamic-properties poller for {}", api);
         authenticateAsAdmin();
 
-        provider.get()
-                .whenComplete((dynamicProperties, throwable) -> {
+        provider
+            .get()
+            .whenComplete(
+                (dynamicProperties, throwable) -> {
                     if (throwable != null) {
-                        logger.error("[{}] Unexpected error while getting dynamic properties from provider: {}",
-                                api.getId(), provider.name(),
-                                throwable);
+                        logger.error(
+                            "[{}] Unexpected error while getting dynamic properties from provider: {}",
+                            api.getId(),
+                            provider.name(),
+                            throwable
+                        );
                     } else if (dynamicProperties != null) {
                         update(dynamicProperties);
                     }
-                });
+                }
+            );
     }
 
     private void update(Collection<DynamicProperty> dynamicProperties) {
         // Get latest changes
         ApiEntity latestApi = apiService.findById(api.getId());
 
-        List<Property> properties = (latestApi.getProperties() != null) ? latestApi.getProperties().getProperties() : Collections.emptyList();
+        List<Property> properties = (latestApi.getProperties() != null)
+            ? latestApi.getProperties().getProperties()
+            : Collections.emptyList();
         List<Property> userDefinedProperties = properties.stream().filter(property -> !property.isDynamic()).collect(Collectors.toList());
 
         Map<String, Property> propertyMap = properties.stream().collect(Collectors.toMap(Property::getKey, property -> property));
@@ -143,15 +147,15 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             }
         }
 
-        if(needToBeSaved) {
+        if (needToBeSaved) {
             // Add previous user-defined properties
             updatedProperties.addAll(userDefinedProperties);
 
             // Sort properties alphabetically to avoid redeploy if just the order has changed.
-            List<Property> sortedUpdatedProperties = updatedProperties.
-                    stream().
-                    sorted(Comparator.comparing(Property::getKey)).
-                    collect(Collectors.toList());
+            List<Property> sortedUpdatedProperties = updatedProperties
+                .stream()
+                .sorted(Comparator.comparing(Property::getKey))
+                .collect(Collectors.toList());
             // Create properties container
             Properties apiProperties = new Properties();
             try {

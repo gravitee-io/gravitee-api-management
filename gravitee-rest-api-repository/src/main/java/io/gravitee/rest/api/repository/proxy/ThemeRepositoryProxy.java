@@ -20,11 +20,10 @@ import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.Theme;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)

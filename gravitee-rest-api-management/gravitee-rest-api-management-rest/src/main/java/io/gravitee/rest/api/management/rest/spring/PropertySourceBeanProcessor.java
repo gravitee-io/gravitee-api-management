@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.spring;
 
+import java.util.Properties;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -22,8 +23,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
-
-import java.util.Properties;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,7 +46,7 @@ public class PropertySourceBeanProcessor implements BeanFactoryPostProcessor, Or
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        ((ConfigurableEnvironment) environment).getPropertySources().addLast(
-                new PropertiesPropertySource("graviteeConfiguration", properties));
+        ((ConfigurableEnvironment) environment).getPropertySources()
+            .addLast(new PropertiesPropertySource("graviteeConfiguration", properties));
     }
 }

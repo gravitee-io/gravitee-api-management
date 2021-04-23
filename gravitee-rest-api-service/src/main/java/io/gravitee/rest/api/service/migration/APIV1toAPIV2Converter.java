@@ -15,6 +15,18 @@
  */
 package io.gravitee.rest.api.service.migration;
 
+import static io.gravitee.common.http.HttpMethod.CONNECT;
+import static io.gravitee.common.http.HttpMethod.DELETE;
+import static io.gravitee.common.http.HttpMethod.GET;
+import static io.gravitee.common.http.HttpMethod.HEAD;
+import static io.gravitee.common.http.HttpMethod.OPTIONS;
+import static io.gravitee.common.http.HttpMethod.PATCH;
+import static io.gravitee.common.http.HttpMethod.POST;
+import static io.gravitee.common.http.HttpMethod.PUT;
+import static io.gravitee.common.http.HttpMethod.TRACE;
+import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
+import static java.util.Collections.reverseOrder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import io.gravitee.common.http.HttpMethod;
@@ -31,10 +43,6 @@ import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,18 +55,9 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
-import static io.gravitee.common.http.HttpMethod.CONNECT;
-import static io.gravitee.common.http.HttpMethod.DELETE;
-import static io.gravitee.common.http.HttpMethod.GET;
-import static io.gravitee.common.http.HttpMethod.HEAD;
-import static io.gravitee.common.http.HttpMethod.OPTIONS;
-import static io.gravitee.common.http.HttpMethod.PATCH;
-import static io.gravitee.common.http.HttpMethod.POST;
-import static io.gravitee.common.http.HttpMethod.PUT;
-import static io.gravitee.common.http.HttpMethod.TRACE;
-import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
-import static java.util.Collections.reverseOrder;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -67,10 +66,11 @@ import static java.util.Collections.reverseOrder;
 @Component
 public class APIV1toAPIV2Converter {
 
-    private static final Set<HttpMethod> HTTP_METHODS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE)));
+    private static final Set<HttpMethod> HTTP_METHODS = Collections.unmodifiableSet(
+        new HashSet<>(Arrays.asList(CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE))
+    );
 
     public ApiEntity migrateToV2(final ApiEntity apiEntity, final Set<PolicyEntity> policies, Set<PlanEntity> plans) {
-
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         apiEntity.setFlowMode(FlowMode.BEST_MATCH);
 
@@ -92,42 +92,55 @@ public class APIV1toAPIV2Converter {
     private List<Flow> migratePathsToFlows(Map<String, Path> paths, Set<PolicyEntity> policies) {
         List<Flow> flows = new ArrayList<>();
         if (!CollectionUtils.isEmpty(paths)) {
-            paths.forEach((pathKey, pathValue) -> {
-
-                // if all rules for a path have the same set of HttpMethods, then we have a unique flow for this path.
-                // else, we have a flow per rule in the path.
-                boolean oneFlowPerPathMode =
+            paths.forEach(
+                (pathKey, pathValue) -> {
+                    // if all rules for a path have the same set of HttpMethods, then we have a unique flow for this path.
+                    // else, we have a flow per rule in the path.
+                    boolean oneFlowPerPathMode =
                         pathValue
-                        .getRules()
-                        .stream()
-                        .map(rule -> {
-                            Set<HttpMethod> methods = new HashSet<>(rule.getMethods());
-                            methods.retainAll(HTTP_METHODS);
-                            return methods;
-                        })
-                        .distinct().count() == 1;
+                            .getRules()
+                            .stream()
+                            .map(
+                                rule -> {
+                                    Set<HttpMethod> methods = new HashSet<>(rule.getMethods());
+                                    methods.retainAll(HTTP_METHODS);
+                                    return methods;
+                                }
+                            )
+                            .distinct()
+                            .count() ==
+                        1;
 
-                if (oneFlowPerPathMode) {
-                    // since, all HttpMethods are the same in this case, we can use `pathValue.getRules().get(0).getMethods()`
-                    final Flow flow = createFlow(pathKey, pathValue.getRules().get(0).getMethods());
-                    pathValue.getRules().forEach(rule -> {
-                        configurePolicies(policies, rule, flow);
-                    });
-
-                    // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
-                    Collections.reverse(flow.getPost());
-                    flows.add(flow);
-                } else {
-                    pathValue.getRules().forEach(rule -> {
-                        final Flow flow = createFlow(pathKey, rule.getMethods());
-                        configurePolicies(policies, rule, flow);
+                    if (oneFlowPerPathMode) {
+                        // since, all HttpMethods are the same in this case, we can use `pathValue.getRules().get(0).getMethods()`
+                        final Flow flow = createFlow(pathKey, pathValue.getRules().get(0).getMethods());
+                        pathValue
+                            .getRules()
+                            .forEach(
+                                rule -> {
+                                    configurePolicies(policies, rule, flow);
+                                }
+                            );
 
                         // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
                         Collections.reverse(flow.getPost());
                         flows.add(flow);
-                    });
+                    } else {
+                        pathValue
+                            .getRules()
+                            .forEach(
+                                rule -> {
+                                    final Flow flow = createFlow(pathKey, rule.getMethods());
+                                    configurePolicies(policies, rule, flow);
+
+                                    // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
+                                    Collections.reverse(flow.getPost());
+                                    flows.add(flow);
+                                }
+                            );
+                    }
                 }
-            });
+            );
         }
 
         return flows;
@@ -141,9 +154,10 @@ public class APIV1toAPIV2Converter {
      */
     private List<Plan> migratePlans(Set<PlanEntity> plans, Set<PolicyEntity> policies) {
         return plans
-                .stream()
-                .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
-                .map(planEntity -> {
+            .stream()
+            .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
+            .map(
+                planEntity -> {
                     final Plan plan = new Plan();
                     plan.setId(planEntity.getId());
                     plan.setApi(planEntity.getApi());
@@ -156,8 +170,9 @@ public class APIV1toAPIV2Converter {
                         plan.setTags(new HashSet<>(planEntity.getTags()));
                     }
                     return plan;
-                })
-                .collect(Collectors.toList());
+                }
+            )
+            .collect(Collectors.toList());
     }
 
     /**
@@ -167,33 +182,35 @@ public class APIV1toAPIV2Converter {
      * @param flow, the current Flow
      */
     private void configurePolicies(Set<PolicyEntity> policies, Rule rule, Flow flow) {
-        policies.stream()
-                .filter(policy -> policy.getId().equals(rule.getPolicy().getName()))
-                .findFirst()
-                .ifPresent(policy -> {
+        policies
+            .stream()
+            .filter(policy -> policy.getId().equals(rule.getPolicy().getName()))
+            .findFirst()
+            .ifPresent(
+                policy -> {
                     String rulePolicyConfiguration = rule.getPolicy().getConfiguration();
                     String safeRulePolicyConfiguration = clearNullValues(rulePolicyConfiguration);
 
-                    if (policy.getDevelopment().getOnRequestMethod() != null
-                            && policy.getDevelopment().getOnResponseMethod() != null) {
-
+                    if (policy.getDevelopment().getOnRequestMethod() != null && policy.getDevelopment().getOnResponseMethod() != null) {
                         try {
                             JsonNode jsonRulePolicyConfiguration = JsonLoader.fromString(safeRulePolicyConfiguration);
                             JsonNode scope = jsonRulePolicyConfiguration.get("scope");
                             if (scope != null) {
                                 switch (scope.asText()) {
                                     case "REQUEST":
-                                    case "REQUEST_CONTENT": {
-                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
-                                        flow.getPre().add(step);
-                                        break;
-                                    }
+                                    case "REQUEST_CONTENT":
+                                        {
+                                            final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
+                                            flow.getPre().add(step);
+                                            break;
+                                        }
                                     case "RESPONSE":
-                                    case "RESPONSE_CONTENT": {
-                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
-                                        flow.getPost().add(step);
-                                        break;
-                                    }
+                                    case "RESPONSE_CONTENT":
+                                        {
+                                            final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
+                                            flow.getPost().add(step);
+                                            break;
+                                        }
                                 }
                             }
                         } catch (IOException e) {
@@ -206,7 +223,8 @@ public class APIV1toAPIV2Converter {
                         final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
                         flow.getPost().add(step);
                     }
-                });
+                }
+            );
     }
 
     @NotNull

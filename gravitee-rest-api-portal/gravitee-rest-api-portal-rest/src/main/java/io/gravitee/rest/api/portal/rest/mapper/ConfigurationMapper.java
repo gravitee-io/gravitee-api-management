@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.rest.api.model.settings.*;
 import io.gravitee.rest.api.model.settings.Application;
 import io.gravitee.rest.api.model.settings.Plan;
-import io.gravitee.rest.api.model.settings.*;
-import io.gravitee.rest.api.portal.rest.model.Enabled;
 import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Enabled;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,7 +47,6 @@ public class ConfigurationMapper {
         ConfigurationAnalytics configuration = new ConfigurationAnalytics();
         configuration.setClientTimeout(analytics.getClientTimeout());
         return configuration;
-
     }
 
     private ConfigurationScheduler convert(PortalScheduler scheduler) {
@@ -68,12 +67,14 @@ public class ConfigurationMapper {
         configuration.setUserCreation(convert(portal.getUserCreation().getEnabled()));
 
         Application.ApplicationTypes types = application.getTypes();
-        if (!application.getRegistration().getEnabled() && !types.getSimpleType().isEnabled()
-                || !types.getSimpleType().isEnabled() &&
-                !types.getWebType().isEnabled() &&
-                !types.getNativeType().isEnabled() &&
-                !types.getBackendToBackendType().isEnabled() &&
-                !types.getBrowserType().isEnabled()
+        if (
+            !application.getRegistration().getEnabled() &&
+            !types.getSimpleType().isEnabled() ||
+            !types.getSimpleType().isEnabled() &&
+            !types.getWebType().isEnabled() &&
+            !types.getNativeType().isEnabled() &&
+            !types.getBackendToBackendType().isEnabled() &&
+            !types.getBrowserType().isEnabled()
         ) {
             configuration.setApplicationCreation(convert(false));
         } else {

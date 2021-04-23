@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.*;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
@@ -28,16 +30,13 @@ import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
+import java.io.IOException;
+import java.net.URL;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.net.URL;
-
-import static org.junit.Assert.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

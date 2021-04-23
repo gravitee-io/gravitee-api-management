@@ -19,10 +19,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
-
 import io.gravitee.rest.api.model.NewTicketEntity;
 import io.gravitee.rest.api.portal.rest.model.TicketInput;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -35,20 +34,19 @@ public class TicketMapperTest {
     private static final String TICKET_API = "my-ticket-api";
     private static final String TICKET_APPLICATION = "my-ticket-application";
 
-    
     @Test
     public void testConvert() {
         TicketMapper ticketMapper = new TicketMapper();
-        
+
         TicketInput input = new TicketInput()
-                .api(TICKET_API)
-                .application(TICKET_APPLICATION)
-                .content(TICKET_CONTENT)
-                .subject(TICKET_SUBJECT)
-                .copyToSender(Boolean.TRUE);
-        
+            .api(TICKET_API)
+            .application(TICKET_APPLICATION)
+            .content(TICKET_CONTENT)
+            .subject(TICKET_SUBJECT)
+            .copyToSender(Boolean.TRUE);
+
         NewTicketEntity ticketEntity = ticketMapper.convert(input);
-        
+
         assertNotNull(ticketEntity);
         assertEquals(TICKET_API, ticketEntity.getApi());
         assertEquals(TICKET_APPLICATION, ticketEntity.getApplication());

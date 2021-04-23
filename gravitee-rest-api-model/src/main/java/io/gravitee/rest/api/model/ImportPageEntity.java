@@ -16,12 +16,11 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -29,64 +28,66 @@ import java.util.Map;
  */
 public class ImportPageEntity {
 
-	@NotNull
-	private PageType type;
-	private boolean published;
-	private String lastContributor;
-	private PageSourceEntity source;
-	private Map<String, String> configuration;
-	@JsonProperty("excluded_groups")
-	private List<String> excludedGroups;
+    @NotNull
+    private PageType type;
 
-	public PageType getType() {
-		return type;
-	}
+    private boolean published;
+    private String lastContributor;
+    private PageSourceEntity source;
+    private Map<String, String> configuration;
 
-	public void setType(PageType type) {
-		this.type = type;
-	}
+    @JsonProperty("excluded_groups")
+    private List<String> excludedGroups;
 
-	public boolean isPublished() {
-		return published;
-	}
+    public PageType getType() {
+        return type;
+    }
 
-	public void setPublished(boolean published) {
-		this.published = published;
-	}
+    public void setType(PageType type) {
+        this.type = type;
+    }
 
-	public String getLastContributor() {
-		return lastContributor;
-	}
+    public boolean isPublished() {
+        return published;
+    }
 
-	public void setLastContributor(String lastContributor) {
-		this.lastContributor = lastContributor;
-	}
+    public void setPublished(boolean published) {
+        this.published = published;
+    }
 
-	public PageSourceEntity getSource() {
-		return source;
-	}
+    public String getLastContributor() {
+        return lastContributor;
+    }
 
-	public void setSource(PageSourceEntity source) {
-		this.source = source;
-	}
+    public void setLastContributor(String lastContributor) {
+        this.lastContributor = lastContributor;
+    }
 
-	public Map<String, String> getConfiguration() {
-		return configuration;
-	}
+    public PageSourceEntity getSource() {
+        return source;
+    }
 
-	public void setConfiguration(Map<String, String> configuration) {
-		this.configuration = configuration;
-	}
+    public void setSource(PageSourceEntity source) {
+        this.source = source;
+    }
 
-	public List<String> getExcludedGroups() {
-		return excludedGroups;
-	}
+    public Map<String, String> getConfiguration() {
+        return configuration;
+    }
 
-	public void setExcludedGroups(List<String> excludedGroups) {
-		this.excludedGroups = excludedGroups;
-	}
+    public void setConfiguration(Map<String, String> configuration) {
+        this.configuration = configuration;
+    }
 
-	@Override
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
         sb.append("type='").append(type).append('\'');
@@ -95,5 +96,4 @@ public class ImportPageEntity {
         sb.append('}');
         return sb.toString();
     }
-	
 }

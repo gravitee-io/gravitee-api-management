@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -22,21 +28,13 @@ import io.gravitee.repository.management.model.PortalNotificationConfig;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.impl.PortalNotificationConfigServiceImpl;
-
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -57,10 +55,13 @@ public class PortalNotificationConfigService_FindByIdTest {
         when(cfg.getReferenceId()).thenReturn("123");
         when(cfg.getUser()).thenReturn("user");
         when(cfg.getHooks()).thenReturn(Arrays.asList("A", "B", "C"));
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).
-                thenReturn(of(cfg));
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(of(cfg));
 
-        final PortalNotificationConfigEntity entity = portalNotificationConfigService.findById("user", NotificationReferenceType.API, "123");
+        final PortalNotificationConfigEntity entity = portalNotificationConfigService.findById(
+            "user",
+            NotificationReferenceType.API,
+            "123"
+        );
 
         assertNotNull(entity);
         assertEquals("referenceId", cfg.getReferenceId(), entity.getReferenceId());
@@ -72,10 +73,13 @@ public class PortalNotificationConfigService_FindByIdTest {
 
     @Test
     public void shouldNotFindConfig() throws TechnicalException {
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).
-                thenReturn(empty());
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(empty());
 
-        final PortalNotificationConfigEntity entity = portalNotificationConfigService.findById("user", NotificationReferenceType.API, "123");
+        final PortalNotificationConfigEntity entity = portalNotificationConfigService.findById(
+            "user",
+            NotificationReferenceType.API,
+            "123"
+        );
 
         assertNotNull(entity);
         assertEquals("referenceId", "123", entity.getReferenceId());

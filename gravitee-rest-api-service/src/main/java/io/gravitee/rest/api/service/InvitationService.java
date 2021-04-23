@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-
 import io.gravitee.rest.api.model.InvitationEntity;
 import io.gravitee.rest.api.model.InvitationReferenceType;
 import io.gravitee.rest.api.model.NewInvitationEntity;
 import io.gravitee.rest.api.model.UpdateInvitationEntity;
+import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)

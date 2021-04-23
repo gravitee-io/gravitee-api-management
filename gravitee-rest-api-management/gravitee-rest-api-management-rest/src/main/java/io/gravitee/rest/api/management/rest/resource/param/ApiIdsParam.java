@@ -31,7 +31,7 @@ public class ApiIdsParam {
         ids = new ArrayList<>();
 
         if (param != null) {
-            String[] params = param.replaceAll("\\s","").split(SEPARATOR);
+            String[] params = param.replaceAll("\\s", "").split(SEPARATOR);
             for (String _param : params) {
                 try {
                     if (!_param.isEmpty()) {

@@ -29,17 +29,15 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.Message2RecipientNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -89,20 +87,14 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         //convert tags
         String[] tags = null;
         if (query.getTags() != null) {
-            tags = query.getTags()
-                    .stream()
-                    .map(Enum::name)
-                    .toArray(String[]::new);
+            tags = query.getTags().stream().map(Enum::name).toArray(String[]::new);
         }
         CommandCriteria criteria = new CommandCriteria.Builder()
-                .to(query.getTo())
-                .tags(tags)
-                .environmentId(GraviteeContext.getCurrentEnvironment())
-                .build();
-        return commandRepository.search(criteria)
-                .stream()
-                .map(this::map)
-                .collect(Collectors.toList());
+            .to(query.getTo())
+            .tags(tags)
+            .environmentId(GraviteeContext.getCurrentEnvironment())
+            .build();
+        return commandRepository.search(criteria).stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override
@@ -114,7 +106,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
                 Command msg = optMsg.get();
                 if (msg.getAcknowledgments() == null) {
                     msg.setAcknowledgments(Collections.singletonList(node.id()));
-                } else if (!msg.getAcknowledgments().contains(node.id())){
+                } else if (!msg.getAcknowledgments().contains(node.id())) {
                     msg.getAcknowledgments().add(node.id());
                 }
                 commandRepository.update(msg);
@@ -143,10 +135,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
             return Collections.emptyList();
         }
 
-        return tags
-                .stream()
-                .map(Enum::name)
-                .collect(Collectors.toList());
+        return tags.stream().map(Enum::name).collect(Collectors.toList());
     }
 
     private CommandEntity map(Command command) {
@@ -159,11 +148,7 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         commandEntity.setTo(command.getTo());
         commandEntity.setContent(command.getContent());
         if (command.getTags() != null && !command.getTags().isEmpty()) {
-            commandEntity.setTags(
-                    command.getTags()
-                            .stream()
-                            .map(CommandTags::valueOf)
-                            .collect(Collectors.toList()));
+            commandEntity.setTags(command.getTags().stream().map(CommandTags::valueOf).collect(Collectors.toList()));
         }
         commandEntity.setExpired(command.getExpiredAt().before(new Date()));
         final List<String> acknowledgments = command.getAcknowledgments();

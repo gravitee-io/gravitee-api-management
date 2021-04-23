@@ -18,16 +18,16 @@ package io.gravitee.rest.api.service.validator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PolicyHelper {
+
     private static Logger LOGGER = LoggerFactory.getLogger(PolicyHelper.class);
 
     private static ObjectMapper objectMapper = new ObjectMapper();
@@ -65,5 +65,4 @@ public class PolicyHelper {
         }
         return null;
     }
-
 }

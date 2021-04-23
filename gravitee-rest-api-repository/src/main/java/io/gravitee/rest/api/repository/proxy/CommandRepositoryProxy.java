@@ -19,17 +19,17 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class CommandRepositoryProxy extends AbstractProxy<CommandRepository> implements CommandRepository {
+
     @Override
     public Optional<Command> findById(String id) throws TechnicalException {
         return target.findById(id);
@@ -42,7 +42,8 @@ public class CommandRepositoryProxy extends AbstractProxy<CommandRepository> imp
 
     @Override
     public Command update(Command command) throws TechnicalException {
-        return target.update(command);    }
+        return target.update(command);
+    }
 
     @Override
     public void delete(String id) throws TechnicalException {

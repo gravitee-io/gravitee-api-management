@@ -15,30 +15,28 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_CREATED;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
+import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.NewCategoryEntity;
-import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
-
+import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-
-import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_CREATED;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -72,7 +70,7 @@ public class CategoryService_CreateTest {
         verify(mockAuditService, times(1)).createEnvironmentAuditLog(any(), eq(CATEGORY_CREATED), any(), isNull(), any());
         verify(mockCategoryRepository, times(1)).create(argThat(arg -> arg != null && arg.getName().equals("v1")));
     }
-    
+
     @Test(expected = EnvironmentNotFoundException.class)
     public void shouldNotCreateCategoryBecauseEnvironmentDoesNotExist() throws TechnicalException {
         when(mockEnvironmentService.findById(any())).thenThrow(EnvironmentNotFoundException.class);
@@ -92,7 +90,7 @@ public class CategoryService_CreateTest {
 
         try {
             categoryService.create(nv1);
-        } catch(DuplicateCategoryNameException e) {
+        } catch (DuplicateCategoryNameException e) {
             verify(mockCategoryRepository, never()).create(any());
             throw e;
         }

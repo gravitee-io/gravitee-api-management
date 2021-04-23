@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +34,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface UserService {
-
     UserEntity connect(String userId);
 
     UserEntity findById(String id, boolean defaultValue);
@@ -92,5 +90,11 @@ public interface UserService {
 
     void updateUserRoles(String userId, MembershipReferenceType referenceType, String referenceId, List<String> roleIds);
 
-    void computeRolesToAddUser(String username, List<RoleMappingEntity> mappings, String userInfo, Set<RoleEntity> rolesToAddToOrganization, Map<String, Set<RoleEntity>> rolesToAddToEnvironments);
+    void computeRolesToAddUser(
+        String username,
+        List<RoleMappingEntity> mappings,
+        String userInfo,
+        Set<RoleEntity> rolesToAddToOrganization,
+        Map<String, Set<RoleEntity>> rolesToAddToEnvironments
+    );
 }

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.model.alert;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.rest.api.model.AlertEventRuleEntity;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -164,12 +163,21 @@ public class AlertTriggerEntity extends Trigger {
 
     @Override
     public String toString() {
-        return "AlertTriggerEntity{" +
-                "description='" + description + '\'' +
-                ", referenceType=" + referenceType +
-                ", referenceId='" + referenceId + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "AlertTriggerEntity{" +
+            "description='" +
+            description +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

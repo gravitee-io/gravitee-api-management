@@ -19,8 +19,8 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
@@ -31,9 +31,8 @@ import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.swagger.annotations.ApiModelProperty;
-
-import javax.validation.constraints.NotNull;
 import java.util.*;
+import javax.validation.constraints.NotNull;
 
 /**
  * --------------------------------------------------------------------------------------------------------------
@@ -50,161 +49,131 @@ import java.util.*;
  */
 @JsonFilter("apiMembershipTypeFilter")
 public class ApiEntity implements Indexable, FilterableItem {
-    @ApiModelProperty(
-            value = "API's uuid.",
-            example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
+
+    @ApiModelProperty(value = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
 
-    @ApiModelProperty(
-            value = "API's name. Duplicate names can exists.",
-            example = "My Api")
+    @ApiModelProperty(value = "API's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
-    @ApiModelProperty(
-            value = "Api's version. It's a simple string only used in the portal.",
-            example = "v1.0")
+    @ApiModelProperty(value = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
     private String version;
 
     @ApiModelProperty(
-            value = "API's description. A short description of your API.",
-            example = "I can use a hundred characters to describe this API.")
+        value = "API's description. A short description of your API.",
+        example = "I can use a hundred characters to describe this API."
+    )
     private String description;
 
-    @ApiModelProperty(
-            value = "API's groups. Used to add team in your API.",
-            example = "['MY_GROUP1', 'MY_GROUP2']")
+    @ApiModelProperty(value = "API's groups. Used to add team in your API.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
     @JsonProperty(value = "context_path")
-    @ApiModelProperty(
-            value = "API's context path.",
-            example = "/my-awesome-api")
+    @ApiModelProperty(value = "API's context path.", example = "/my-awesome-api")
     private String contextPath;
 
     @NotNull
     @DeploymentRequired
     @JsonProperty(value = "proxy", required = true)
-    @ApiModelProperty(
-            value = "API's definition.")
+    @ApiModelProperty(value = "API's definition.")
     private Proxy proxy;
 
     @DeploymentRequired
     @JsonProperty(value = "flow_mode")
-    @ApiModelProperty(
-            value = "API's flow mode.",
-            example = "BEST_MATCH")
+    @ApiModelProperty(value = "API's flow mode.", example = "BEST_MATCH")
     private FlowMode flowMode;
 
     @DeploymentRequired
     @JsonProperty(value = "paths", required = true)
     @ApiModelProperty(
-            // specify a type here because jackson der/ser for Path handle only array of rules
-            dataType = "io.gravitee.rest.api.model.api.PathsSwaggerDef",
-            value = "a map where you can associate a path to a configuration (the policies configuration)")
+        // specify a type here because jackson der/ser for Path handle only array of rules
+        dataType = "io.gravitee.rest.api.model.api.PathsSwaggerDef",
+        value = "a map where you can associate a path to a configuration (the policies configuration)"
+    )
     private Map<String, Path> paths = new HashMap<>();
 
     @DeploymentRequired
     @JsonProperty(value = "flows", required = true)
-    @ApiModelProperty(
-        value = "a list of flows (the policies configuration)")
+    @ApiModelProperty(value = "a list of flows (the policies configuration)")
     private List<Flow> flows = new ArrayList<>();
 
     @DeploymentRequired
     @JsonProperty(value = "plans", required = true)
-    @ApiModelProperty(
-        value = "a list of plans with flows (the policies configuration)")
+    @ApiModelProperty(value = "a list of plans with flows (the policies configuration)")
     private List<Plan> plans = new ArrayList<>();
 
     @DeploymentRequired
     @JsonProperty(value = "gravitee", required = false)
-    @ApiModelProperty(
-        value = "API's gravitee definition version")
+    @ApiModelProperty(value = "API's gravitee definition version")
     private String graviteeDefinitionVersion;
 
     @JsonProperty("deployed_at")
-    @ApiModelProperty(
-            value = "The last date (as timestamp) when the API was deployed.",
-            example = "1581256457163")
+    @ApiModelProperty(value = "The last date (as timestamp) when the API was deployed.", example = "1581256457163")
     private Date deployedAt;
 
     @JsonProperty("created_at")
-    @ApiModelProperty(
-            value = "The date (as a timestamp) when the API was created.",
-            example = "1581256457163")
+    @ApiModelProperty(value = "The date (as a timestamp) when the API was created.", example = "1581256457163")
     private Date createdAt;
 
     @JsonProperty("updated_at")
-    @ApiModelProperty(
-            value = "The last date (as a timestamp) when the API was updated.",
-            example = "1581256457163")
+    @ApiModelProperty(value = "The last date (as a timestamp) when the API was updated.", example = "1581256457163")
     private Date updatedAt;
 
-    @ApiModelProperty(
-            value = "The visibility of the API regarding the portal.",
-            example = "PUBLIC",
-            allowableValues = "PUBLIC, PRIVATE")
+    @ApiModelProperty(value = "The visibility of the API regarding the portal.", example = "PUBLIC", allowableValues = "PUBLIC, PRIVATE")
     private Visibility visibility;
 
     @ApiModelProperty(
-            value = "The status of the API regarding the gateway.",
-            example = "STARTED",
-            allowableValues = "INITIALIZED, STOPPED, STARTED, CLOSED")
+        value = "The status of the API regarding the gateway.",
+        example = "STARTED",
+        allowableValues = "INITIALIZED, STOPPED, STARTED, CLOSED"
+    )
     private Lifecycle.State state;
 
     @JsonProperty("owner")
-    @ApiModelProperty(
-            value = "The user with role PRIMARY_OWNER on this API.")
+    @ApiModelProperty(value = "The user with role PRIMARY_OWNER on this API.")
     private PrimaryOwnerEntity primaryOwner;
 
     @DeploymentRequired
     @JsonProperty(value = "properties")
-    @ApiModelProperty(
-            value = "A dictionary (could be dynamic) of properties available in the API context.")
+    @ApiModelProperty(value = "A dictionary (could be dynamic) of properties available in the API context.")
     private io.gravitee.definition.model.Properties properties;
 
     @DeploymentRequired
     @JsonProperty(value = "services")
-    @ApiModelProperty(
-            value = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
+    @ApiModelProperty(value = "The configuration of API services like the dynamic properties, the endpoint discovery or the healthcheck.")
     private Services services;
 
     @DeploymentRequired
-    @ApiModelProperty(
-            value = "the list of sharding tags associated with this API.",
-            example = "public, private")
+    @ApiModelProperty(value = "the list of sharding tags associated with this API.", example = "public, private")
     private Set<String> tags;
 
-    @ApiModelProperty(
-            value = "the API logo encoded in base64")
+    @ApiModelProperty(value = "the API logo encoded in base64")
     private String picture;
 
     @JsonProperty(value = "picture_url")
     @ApiModelProperty(
-            value = "the API logo url.",
-            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture")
+        value = "the API logo url.",
+        example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture"
+    )
     private String pictureUrl;
 
     @DeploymentRequired
     @JsonProperty(value = "resources")
-    @ApiModelProperty(
-            value = "The list of API resources used by policies like cache resources or oauth2")
+    @ApiModelProperty(value = "The list of API resources used by policies like cache resources or oauth2")
     private List<Resource> resources = new ArrayList<>();
 
-    @ApiModelProperty(
-            value = "the list of categories associated with this API",
-            example = "Product, Customer, Misc")
+    @ApiModelProperty(value = "the list of categories associated with this API", example = "Product, Customer, Misc")
     private Set<String> categories;
 
-    @ApiModelProperty(
-            value = "the free list of labels associated with this API",
-            example = "json, read_only, awesome")
+    @ApiModelProperty(value = "the free list of labels associated with this API", example = "json, read_only, awesome")
     private List<String> labels;
 
     @DeploymentRequired
     @JsonProperty(value = "path_mappings")
     @ApiModelProperty(
-            value = "A list of paths used to aggregate data in analytics",
-            example = "/products/:productId, /products/:productId/media")
+        value = "A list of paths used to aggregate data in analytics",
+        example = "/products/:productId, /products/:productId/media"
+    )
     private Set<String> pathMappings = new HashSet<>();
 
     @JsonIgnore
@@ -213,7 +182,8 @@ public class ApiEntity implements Indexable, FilterableItem {
     @DeploymentRequired
     @JsonProperty(value = "response_templates")
     @ApiModelProperty(
-            value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ...")
+        value = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-ky is missing, ..."
+    )
     private Map<String, ResponseTemplates> responseTemplates;
 
     @JsonProperty(value = "lifecycle_state")
@@ -227,14 +197,14 @@ public class ApiEntity implements Indexable, FilterableItem {
 
     private List<ApiEntrypointEntity> entrypoints;
 
-    @ApiModelProperty(
-            value = "the API background encoded in base64")
+    @ApiModelProperty(value = "the API background encoded in base64")
     private String background;
 
     @JsonProperty(value = "background_url")
     @ApiModelProperty(
-            value = "the API background url.",
-            example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background")
+        value = "the API background url.",
+        example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background"
+    )
     private String backgroundUrl;
 
     @JsonIgnore
@@ -550,8 +520,7 @@ public class ApiEntity implements Indexable, FilterableItem {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiEntity api = (ApiEntity) o;
-        return Objects.equals(id, api.id) &&
-                Objects.equals(version, api.version);
+        return Objects.equals(id, api.id) && Objects.equals(version, api.version);
     }
 
     @Override
@@ -560,27 +529,53 @@ public class ApiEntity implements Indexable, FilterableItem {
     }
 
     public String toString() {
-        return "ApiEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", version='" + version + '\'' +
-                ", description='" + description + '\'' +
-                ", proxy=" + proxy +
-                ", paths=" + paths +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", visibility=" + visibility +
-                ", state=" + state +
-                ", primaryOwner=" + primaryOwner +
-                ", tags=" + tags +
-                ", category=" + categories +
-                ", groups=" + groups +
-                ", pathMappings=" + pathMappings +
-                ", lifecycleState=" + lifecycleState +
-                ", workflowState=" + workflowState +
-                ", disableMembershipNotifications=" + disableMembershipNotifications +
-                ", graviteeDefinitionVersion=" + graviteeDefinitionVersion +
-                ", flowMode=" + flowMode +
-                '}';
+        return (
+            "ApiEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", version='" +
+            version +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", proxy=" +
+            proxy +
+            ", paths=" +
+            paths +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            ", visibility=" +
+            visibility +
+            ", state=" +
+            state +
+            ", primaryOwner=" +
+            primaryOwner +
+            ", tags=" +
+            tags +
+            ", category=" +
+            categories +
+            ", groups=" +
+            groups +
+            ", pathMappings=" +
+            pathMappings +
+            ", lifecycleState=" +
+            lifecycleState +
+            ", workflowState=" +
+            workflowState +
+            ", disableMembershipNotifications=" +
+            disableMembershipNotifications +
+            ", graviteeDefinitionVersion=" +
+            graviteeDefinitionVersion +
+            ", flowMode=" +
+            flowMode +
+            '}'
+        );
     }
 }

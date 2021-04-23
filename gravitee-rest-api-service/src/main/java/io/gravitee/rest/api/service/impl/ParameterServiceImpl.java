@@ -15,6 +15,16 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
+import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
+import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
+import static java.lang.String.join;
+import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
@@ -27,27 +37,16 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
-import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
-import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
-import static java.lang.String.join;
-import static java.util.Arrays.stream;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -64,12 +63,16 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Inject
     private ParameterRepository parameterRepository;
+
     @Inject
     private AuditService auditService;
+
     @Inject
     private ConfigurableEnvironment environment;
+
     @Inject
     private EventManager eventManager;
+
     @Inject
     @Lazy
     private EnvironmentService environmentService;
@@ -91,87 +94,157 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
-    public Map<String, List<String>> findAll(final List<Key> keys, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public Map<String, List<String>> findAll(
+        final List<Key> keys,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return findAll(keys, Function.identity(), null, null, referenceType);
     }
 
     @Override
-    public <T> List<T> findAll(final Key key, final Function<String, T> mapper, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public <T> List<T> findAll(
+        final Key key,
+        final Function<String, T> mapper,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return findAll(key, mapper, null, null, referenceType);
     }
 
     @Override
-    public <T> Map<String, List<T>> findAll(final List<Key> keys, final Function<String, T> mapper, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public <T> Map<String, List<T>> findAll(
+        final List<Key> keys,
+        final Function<String, T> mapper,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return findAll(keys, mapper, null, null, referenceType);
     }
 
     @Override
-    public <T> List<T> findAll(final Key key, final Function<String, T> mapper, final Predicate<String> filter, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public <T> List<T> findAll(
+        final Key key,
+        final Function<String, T> mapper,
+        final Predicate<String> filter,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return findAll(key, mapper, filter, null, referenceType);
     }
 
     @Override
-    public <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public <T> Map<String, List<T>> findAll(
+        List<Key> keys,
+        Function<String, T> mapper,
+        Predicate<String> filter,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return findAll(keys, mapper, filter, null, referenceType);
     }
 
     @Override
-    public Parameter save(final Key key, final String value, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public Parameter save(
+        final Key key,
+        final String value,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return save(key, value, null, referenceType);
     }
 
     @Override
-    public Parameter save(final Key key, final List<String> values, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public Parameter save(
+        final Key key,
+        final List<String> values,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return save(key, values, null, referenceType);
     }
 
     @Override
-    public Parameter save(final Key key, final Map<String, String> values, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public Parameter save(
+        final Key key,
+        final Map<String, String> values,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return save(key, values, null, referenceType);
     }
 
     // Specific context
     @Override
-    public String find(final Key key, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
-        return GraviteeContext.getCurrentParameters().computeIfAbsent(key, k -> {
-            final List<String> values = findAll(k, referenceId, referenceType);
-            final String value;
-            if (values == null || values.isEmpty()) {
-                value = k.defaultValue();
-            } else {
-                value = String.join(SEPARATOR, values);
-            }
-            return value;
-        });
+    public String find(
+        final Key key,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
+        return GraviteeContext
+            .getCurrentParameters()
+            .computeIfAbsent(
+                key,
+                k -> {
+                    final List<String> values = findAll(k, referenceId, referenceType);
+                    final String value;
+                    if (values == null || values.isEmpty()) {
+                        value = k.defaultValue();
+                    } else {
+                        value = String.join(SEPARATOR, values);
+                    }
+                    return value;
+                }
+            );
     }
 
     @Override
-    public boolean findAsBoolean(final Key key, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public boolean findAsBoolean(
+        final Key key,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return Boolean.parseBoolean(find(key, referenceId, referenceType));
     }
 
     @Override
-    public List<String> findAll(final Key key, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public List<String> findAll(
+        final Key key,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return findAll(key, Function.identity(), null, referenceId, referenceType);
     }
 
     @Override
-    public Map<String, List<String>> findAll(final List<Key> keys, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public Map<String, List<String>> findAll(
+        final List<Key> keys,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return findAll(keys, Function.identity(), null, referenceId, referenceType);
     }
 
     @Override
-    public <T> List<T> findAll(final Key key, final Function<String, T> mapper, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public <T> List<T> findAll(
+        final Key key,
+        final Function<String, T> mapper,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return findAll(key, mapper, null, referenceId, referenceType);
     }
 
     @Override
-    public <T> Map<String, List<T>> findAll(final List<Key> keys, final Function<String, T> mapper, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public <T> Map<String, List<T>> findAll(
+        final List<Key> keys,
+        final Function<String, T> mapper,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return findAll(keys, mapper, null, referenceId, referenceType);
     }
 
     @Override
-    public <T> List<T> findAll(final Key key, final Function<String, T> mapper, final Predicate<String> filter, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public <T> List<T> findAll(
+        final Key key,
+        final Function<String, T> mapper,
+        final Predicate<String> filter,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         String refIdToUse = getEffectiveReferenceId(referenceId, referenceType);
         try {
             Optional<Parameter> optionalParameter = this.getSystemParameter(key);
@@ -197,7 +270,6 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                     }
             }
             return splitValue(this.getDefaultParameterValue(key), mapper, filter);
-
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to find parameter values with key: " + key;
             LOGGER.error(message, ex);
@@ -206,7 +278,13 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
-    public <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public <T> Map<String, List<T>> findAll(
+        List<Key> keys,
+        Function<String, T> mapper,
+        Predicate<String> filter,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         String refIdToUse = getEffectiveReferenceId(referenceId, referenceType);
         try {
             List<Key> keysToFind = new ArrayList<>(keys);
@@ -214,36 +292,48 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
             // Get System parameters
             for (Key keyToFind : keys) {
-                this.getSystemParameter(keyToFind).ifPresent(p -> {
-                    result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                    keysToFind.remove(keyToFind);
-                });
+                this.getSystemParameter(keyToFind)
+                    .ifPresent(
+                        p -> {
+                            result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                            keysToFind.remove(keyToFind);
+                        }
+                    );
             }
 
             if (!keysToFind.isEmpty()) {
                 switch (referenceType) {
                     case ENVIRONMENT:
-                        this.getEnvParameters(keysToFind, refIdToUse).forEach(p -> {
-                            result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                            keysToFind.remove(Key.findByKey(p.getKey()));
-                        });
+                        this.getEnvParameters(keysToFind, refIdToUse)
+                            .forEach(
+                                p -> {
+                                    result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                                    keysToFind.remove(Key.findByKey(p.getKey()));
+                                }
+                            );
                         if (!keysToFind.isEmpty()) {
                             //String organizationId = "DEFAULT";//environmentService.findById(referenceId).getOrganizationId();
                             String organizationId = environmentService.findById(refIdToUse).getOrganizationId();
-                            this.getOrgParameters(keysToFind, organizationId).forEach(p -> {
-                                result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                                keysToFind.remove(Key.findByKey(p.getKey()));
-                            });
+                            this.getOrgParameters(keysToFind, organizationId)
+                                .forEach(
+                                    p -> {
+                                        result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                                        keysToFind.remove(Key.findByKey(p.getKey()));
+                                    }
+                                );
                             if (!keysToFind.isEmpty()) {
                                 keysToFind.forEach(k -> result.put(k.key(), splitValue(k.defaultValue(), mapper, filter)));
                             }
                         }
                         break;
                     case ORGANIZATION:
-                        this.getOrgParameters(keysToFind, refIdToUse).forEach(p -> {
-                            result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
-                            keysToFind.remove(Key.findByKey(p.getKey()));
-                        });
+                        this.getOrgParameters(keysToFind, refIdToUse)
+                            .forEach(
+                                p -> {
+                                    result.put(p.getKey(), splitValue(p.getValue(), mapper, filter));
+                                    keysToFind.remove(Key.findByKey(p.getKey()));
+                                }
+                            );
                         if (!keysToFind.isEmpty()) {
                             keysToFind.forEach(k -> result.put(k.key(), splitValue(k.defaultValue(), mapper, filter)));
                         }
@@ -286,10 +376,19 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
-    public Parameter save(final Key key, final String value, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public Parameter save(
+        final Key key,
+        final String value,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         String refIdToUse = getEffectiveReferenceId(referenceId, referenceType);
         try {
-            Optional<Parameter> optionalParameter = parameterRepository.findById(key.key(), refIdToUse, ParameterReferenceType.valueOf(referenceType.name()));
+            Optional<Parameter> optionalParameter = parameterRepository.findById(
+                key.key(),
+                refIdToUse,
+                ParameterReferenceType.valueOf(referenceType.name())
+            );
             final boolean updateMode = optionalParameter.isPresent();
 
             final Parameter parameter = new Parameter();
@@ -310,11 +409,12 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 } else if (!value.equals(optionalParameter.get().getValue())) {
                     final Parameter updatedParameter = parameterRepository.update(parameter);
                     auditService.createEnvironmentAuditLog(
-                            singletonMap(PARAMETER, updatedParameter.getKey()),
-                            PARAMETER_UPDATED,
-                            new Date(),
-                            optionalParameter.get(),
-                            updatedParameter);
+                        singletonMap(PARAMETER, updatedParameter.getKey()),
+                        PARAMETER_UPDATED,
+                        new Date(),
+                        optionalParameter.get(),
+                        updatedParameter
+                    );
                     eventManager.publishEvent(key, parameter);
                     return updatedParameter;
                 } else {
@@ -326,15 +426,15 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 }
                 final Parameter savedParameter = parameterRepository.create(parameter);
                 auditService.createEnvironmentAuditLog(
-                        singletonMap(PARAMETER, savedParameter.getKey()),
-                        PARAMETER_CREATED,
-                        new Date(),
-                        null,
-                        savedParameter);
+                    singletonMap(PARAMETER, savedParameter.getKey()),
+                    PARAMETER_CREATED,
+                    new Date(),
+                    null,
+                    savedParameter
+                );
                 eventManager.publishEvent(key, parameter);
                 return savedParameter;
             }
-
         } catch (final TechnicalException ex) {
             final String message = "An error occurs while trying to create parameter for key/value: " + key + '/' + value;
             LOGGER.error(message, ex);
@@ -343,16 +443,30 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     @Override
-    public Parameter save(final Key key, final List<String> values, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+    public Parameter save(
+        final Key key,
+        final List<String> values,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
         return save(key, values == null ? null : join(SEPARATOR, values), referenceId, referenceType);
     }
 
     @Override
-    public Parameter save(final Key key, final Map<String, String> values, final String referenceId, final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
-        return save(key, values == null ? null : values.entrySet()
-                .stream()
-                .map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue())
-                .collect(joining(SEPARATOR)), referenceId, referenceType);
+    public Parameter save(
+        final Key key,
+        final Map<String, String> values,
+        final String referenceId,
+        final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
+        return save(
+            key,
+            values == null
+                ? null
+                : values.entrySet().stream().map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue()).collect(joining(SEPARATOR)),
+            referenceId,
+            referenceType
+        );
     }
 
     private String toSemicolonSeparatedString(Key key, String value) {
@@ -361,7 +475,6 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         }
         return value;
     }
-
 
     private Optional<Parameter> getEnvParameter(Key key, String environmentId) throws TechnicalException {
         if (key.scopes().contains(KeyScope.ENVIRONMENT)) {
@@ -373,10 +486,11 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     private List<Parameter> getEnvParameters(List<Key> keys, String environmentId) throws TechnicalException {
         List<Key> keysToFind = keys.stream().filter(k -> k.scopes().contains(KeyScope.ENVIRONMENT)).collect(toList());
         if (!keysToFind.isEmpty()) {
-            return parameterRepository.findByKeys(
-                    keysToFind.stream().map(Key::key).collect(toList()),
-                    environmentId,
-                    ParameterReferenceType.ENVIRONMENT).stream().filter(Objects::nonNull).collect(toList());
+            return parameterRepository
+                .findByKeys(keysToFind.stream().map(Key::key).collect(toList()), environmentId, ParameterReferenceType.ENVIRONMENT)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(toList());
         }
         return Collections.emptyList();
     }
@@ -391,10 +505,11 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     private List<Parameter> getOrgParameters(List<Key> keys, String organizationId) throws TechnicalException {
         List<Key> keysToFind = keys.stream().filter(k -> k.scopes().contains(KeyScope.ORGANIZATION)).collect(toList());
         if (!keysToFind.isEmpty()) {
-            return parameterRepository.findByKeys(
-                    keysToFind.stream().map(Key::key).collect(toList()),
-                    organizationId,
-                    ParameterReferenceType.ORGANIZATION).stream().filter(Objects::nonNull).collect(toList());
+            return parameterRepository
+                .findByKeys(keysToFind.stream().map(Key::key).collect(toList()), organizationId, ParameterReferenceType.ORGANIZATION)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(toList());
         }
         return Collections.emptyList();
     }

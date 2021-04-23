@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl.alert;
 
 import io.gravitee.notifier.api.NotifierConfiguration;
-
 import java.io.Serializable;
 
 /**

@@ -33,12 +33,13 @@ public class OrderModeParam extends AbstractParam<OrderModeParam.OrderMode> {
         }
 
         public static OrderMode fromString(String value) {
-
             try {
                 return OrderMode.valueOf(value.toUpperCase());
             } catch (Exception e) {
-                throw new IllegalArgumentException(String.format(
-                        "Invalid value '%s' for order mode given! Has to be 'avg' (case insensitive).", value), e);
+                throw new IllegalArgumentException(
+                    String.format("Invalid value '%s' for order mode given! Has to be 'avg' (case insensitive).", value),
+                    e
+                );
             }
         }
     }
@@ -53,8 +54,7 @@ public class OrderModeParam extends AbstractParam<OrderModeParam.OrderMode> {
             if (param != null) {
                 return OrderModeParam.OrderMode.fromString(param);
             }
-        } catch (IllegalArgumentException iae) {
-        }
+        } catch (IllegalArgumentException iae) {}
 
         return OrderMode.AVG;
     }

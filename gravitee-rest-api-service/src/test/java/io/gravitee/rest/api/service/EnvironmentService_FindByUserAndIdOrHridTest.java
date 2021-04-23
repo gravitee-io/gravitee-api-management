@@ -15,12 +15,21 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.EnvironmentServiceImpl;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Test;
@@ -28,16 +37,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -68,7 +67,6 @@ public class EnvironmentService_FindByUserAndIdOrHridTest {
 
     @Test
     public void shouldFindByUserFilteredByEnvId() throws TechnicalException {
-
         when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
 
         List<EnvironmentEntity> environments = environmentService.findByUserAndIdOrHrid(null, "envId");
@@ -76,10 +74,8 @@ public class EnvironmentService_FindByUserAndIdOrHridTest {
         assertThat(environments).hasSize(1);
     }
 
-
     @Test
     public void shouldFindByUserFilteredByEnvHrid() throws TechnicalException {
-
         when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
 
         List<EnvironmentEntity> environments = environmentService.findByUserAndIdOrHrid(null, "2env");
@@ -89,7 +85,6 @@ public class EnvironmentService_FindByUserAndIdOrHridTest {
 
     @Test
     public void shouldFindByUserFilteredByEnvHridAndId_noResult() throws TechnicalException {
-
         when(mockEnvironmentRepository.findByOrganization(any())).thenReturn(getEnvironments());
 
         List<EnvironmentEntity> environments = environmentService.findByUserAndIdOrHrid(null, "fake-env");

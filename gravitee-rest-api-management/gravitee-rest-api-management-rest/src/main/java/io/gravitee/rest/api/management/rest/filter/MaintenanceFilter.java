@@ -15,21 +15,20 @@
  */
 package io.gravitee.rest.api.management.rest.filter;
 
+import static io.gravitee.rest.api.model.parameters.Key.MAINTENANCE_MODE_ENABLED;
+
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.exceptions.MaintenanceModeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.io.IOException;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-
-import static io.gravitee.rest.api.model.parameters.Key.MAINTENANCE_MODE_ENABLED;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -47,9 +46,11 @@ public class MaintenanceFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (parameterService.findAsBoolean(MAINTENANCE_MODE_ENABLED, ParameterReferenceType.ORGANIZATION)
-                && !requestContext.getUriInfo().getPath().equals("portal")
-                && !requestContext.getUriInfo().getPath().equals("portal/")) {
+        if (
+            parameterService.findAsBoolean(MAINTENANCE_MODE_ENABLED, ParameterReferenceType.ORGANIZATION) &&
+            !requestContext.getUriInfo().getPath().equals("portal") &&
+            !requestContext.getUriInfo().getPath().equals("portal/")
+        ) {
             throw new MaintenanceModeException();
         }
     }

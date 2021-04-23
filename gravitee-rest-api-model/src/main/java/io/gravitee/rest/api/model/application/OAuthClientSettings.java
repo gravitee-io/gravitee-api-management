@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 public class OAuthClientSettings {

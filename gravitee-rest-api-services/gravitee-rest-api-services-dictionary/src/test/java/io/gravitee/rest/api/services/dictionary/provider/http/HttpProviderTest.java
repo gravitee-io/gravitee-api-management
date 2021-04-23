@@ -15,27 +15,6 @@
  */
 package io.gravitee.rest.api.services.dictionary.provider.http;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import io.gravitee.node.api.Node;
-import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
-import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
-import io.gravitee.rest.api.services.dictionary.provider.http.mapper.JoltMapper;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -44,6 +23,26 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.node.api.Node;
+import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
+import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
+import io.gravitee.rest.api.services.dictionary.provider.http.mapper.JoltMapper;
+import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

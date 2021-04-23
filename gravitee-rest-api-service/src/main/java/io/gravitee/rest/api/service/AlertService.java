@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.AlertEventQuery;
 import io.gravitee.rest.api.model.alert.*;
-
 import java.util.List;
 
 /**

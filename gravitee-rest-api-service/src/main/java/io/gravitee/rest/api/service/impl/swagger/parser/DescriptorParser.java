@@ -20,6 +20,5 @@ package io.gravitee.rest.api.service.impl.swagger.parser;
  * @author GraviteeSource Team
  */
 public interface DescriptorParser<T> {
-
     T parse(String content);
 }

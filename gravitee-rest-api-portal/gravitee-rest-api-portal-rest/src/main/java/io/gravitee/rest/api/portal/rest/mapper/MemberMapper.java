@@ -15,20 +15,17 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import java.time.ZoneOffset;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.ws.rs.core.UriInfo;
+import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersURL;
 
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.UserService;
-
-import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersURL;
+import java.time.ZoneOffset;
+import javax.ws.rs.core.UriInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -36,28 +33,29 @@ import static io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper.usersUR
  */
 @Component
 public class MemberMapper {
-    
+
     @Autowired
     private UserMapper userMapper;
 
     @Autowired
     private UserService userService;
-    
+
     public Member convert(MemberEntity member, UriInfo uriInfo) {
         final Member memberItem = new Member();
-        
+
         memberItem.setCreatedAt(member.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        
+
         UserEntity userEntity = userService.findById(member.getId());
         User memberUser = userMapper.convert(userEntity);
-        memberUser.setLinks(userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt()));
-        
+        memberUser.setLinks(
+            userMapper.computeUserLinks(usersURL(uriInfo.getBaseUriBuilder(), userEntity.getId()), userEntity.getUpdatedAt())
+        );
+
         memberItem.setUser(memberUser);
-        if(member.getRoles() != null && !member.getRoles().isEmpty()) {
+        if (member.getRoles() != null && !member.getRoles().isEmpty()) {
             memberItem.setRole(member.getRoles().get(0).getName());
         }
         memberItem.setUpdatedAt(member.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         return memberItem;
     }
-
 }

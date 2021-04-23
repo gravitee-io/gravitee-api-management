@@ -20,9 +20,8 @@ package io.gravitee.rest.api.model.configuration.identity;
  * @author GraviteeSource Team
  */
 public enum IdentityProviderType {
-
-	GOOGLE,
-	GITHUB,
-	GRAVITEEIO_AM,
-	OIDC
+    GOOGLE,
+    GITHUB,
+    GRAVITEEIO_AM,
+    OIDC,
 }

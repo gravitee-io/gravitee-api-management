@@ -20,7 +20,6 @@ package io.gravitee.rest.api.model.common;
  * @author GraviteeSource Team
  */
 public interface Pageable {
-
     int getPageNumber();
 
     int getPageSize();

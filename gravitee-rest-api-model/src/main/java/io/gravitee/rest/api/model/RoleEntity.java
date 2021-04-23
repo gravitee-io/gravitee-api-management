@@ -16,14 +16,12 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.gravitee.rest.api.model.permissions.RoleScope;
-
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RoleEntity {
@@ -32,14 +30,17 @@ public class RoleEntity {
     private String name;
     private String description;
     private RoleScope scope;
+
     @JsonProperty(value = "default")
     private boolean defaultRole;
+
     private boolean system;
     private Map<String, char[]> permissions;
 
     public String getId() {
         return id;
     }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -47,6 +48,7 @@ public class RoleEntity {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -62,6 +64,7 @@ public class RoleEntity {
     public RoleScope getScope() {
         return scope;
     }
+
     public void setScope(RoleScope scope) {
         this.scope = scope;
     }
@@ -69,6 +72,7 @@ public class RoleEntity {
     public Map<String, char[]> getPermissions() {
         return permissions;
     }
+
     public void setPermissions(Map<String, char[]> permissions) {
         this.permissions = permissions;
     }
@@ -76,6 +80,7 @@ public class RoleEntity {
     public boolean isDefaultRole() {
         return defaultRole;
     }
+
     public void setDefaultRole(boolean defaultRole) {
         this.defaultRole = defaultRole;
     }
@@ -83,6 +88,7 @@ public class RoleEntity {
     public boolean isSystem() {
         return system;
     }
+
     public void setSystem(boolean system) {
         this.system = system;
     }

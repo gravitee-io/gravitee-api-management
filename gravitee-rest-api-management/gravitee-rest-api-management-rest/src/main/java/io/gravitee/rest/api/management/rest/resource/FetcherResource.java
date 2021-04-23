@@ -22,7 +22,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -36,7 +35,7 @@ import javax.ws.rs.core.Context;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugins"})
+@Api(tags = { "Plugins" })
 public class FetcherResource {
 
     @Context
@@ -48,12 +47,14 @@ public class FetcherResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a fetcher plugin")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Fetcher", response = FetcherEntity.class),
             @ApiResponse(code = 404, message = "Fetcher not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public FetcherEntity getFetcher(
-            @PathParam("fetcher") String fetcher) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public FetcherEntity getFetcher(@PathParam("fetcher") String fetcher) {
         return fetcherService.findById(fetcher);
     }
 
@@ -61,12 +62,14 @@ public class FetcherResource {
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get a fetcher plugin's schema")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Fetcher's schema"),
             @ApiResponse(code = 404, message = "Fetcher not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public String getFetcherSchema(
-            @PathParam("fetcher") String fetcher) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public String getFetcherSchema(@PathParam("fetcher") String fetcher) {
         // Check that the fetcher exists
         fetcherService.findById(fetcher);
 

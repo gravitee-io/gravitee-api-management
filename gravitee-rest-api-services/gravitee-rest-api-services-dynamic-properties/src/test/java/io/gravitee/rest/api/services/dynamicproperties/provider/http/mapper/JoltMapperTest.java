@@ -15,18 +15,16 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper;
 
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import static org.junit.Assert.assertFalse;
 
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper.JoltMapper;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collection;
-
-import static org.junit.Assert.assertFalse;
+import org.apache.commons.io.IOUtils;
+import org.junit.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

@@ -35,13 +35,13 @@ public class ApiPermissionFilter extends SimpleBeanPropertyFilter {
     }
 
     private boolean includeField(Object pojo, PropertyWriter writer) {
-//        if (writer.getAnnotation(ApiPermissionsAllowed.class)  == null) {
-//            return true;
-//        }
-//
-//        return Arrays.asList(writer.getAnnotation(ApiPermissionsAllowed.class).value())
-//                .stream()
-//                .anyMatch(apiPermission -> apiPermission.equals(((ApiEntity) pojo).getrgetPermission()));
+        //        if (writer.getAnnotation(ApiPermissionsAllowed.class)  == null) {
+        //            return true;
+        //        }
+        //
+        //        return Arrays.asList(writer.getAnnotation(ApiPermissionsAllowed.class).value())
+        //                .stream()
+        //                .anyMatch(apiPermission -> apiPermission.equals(((ApiEntity) pojo).getrgetPermission()));
         return true;
     }
 }

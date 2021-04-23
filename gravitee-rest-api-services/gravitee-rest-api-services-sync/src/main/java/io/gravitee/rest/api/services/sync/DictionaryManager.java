@@ -19,13 +19,12 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.event.DictionaryEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -49,7 +48,6 @@ public class DictionaryManager {
      * @param dictionaryId the id of the dictionary to start.
      */
     public void start(String dictionaryId) {
-
         try {
             final DictionaryEntity dictionary = dictionaryService.findById(dictionaryId);
             final DictionaryEntity startedDictionary = dictionaries.get(dictionary.getId());
@@ -68,13 +66,11 @@ public class DictionaryManager {
         }
     }
 
-
     /**
      * Stop the dictionary.
      * @param dictionaryId the id of the dictionary.
      */
     public void stop(String dictionaryId) {
-
         try {
             DictionaryEntity dictionary = new DictionaryEntity();
             dictionary.setId(dictionaryId);
@@ -88,9 +84,12 @@ public class DictionaryManager {
 
     private boolean needRestart(DictionaryEntity dictionary, DictionaryEntity startedDictionary) {
         // A dictionary needs to be restarted if its configuration or trigger has changed.
-        return (dictionary.getUpdatedAt() != null && dictionary.getUpdatedAt().after(startedDictionary.getUpdatedAt()))
-                && (!Objects.equals(dictionary.getProvider().getConfiguration(), startedDictionary.getProvider().getConfiguration())
-                || !Objects.equals(dictionary.getTrigger(), startedDictionary.getTrigger()));
+        return (
+            (dictionary.getUpdatedAt() != null && dictionary.getUpdatedAt().after(startedDictionary.getUpdatedAt())) &&
+            (
+                !Objects.equals(dictionary.getProvider().getConfiguration(), startedDictionary.getProvider().getConfiguration()) ||
+                !Objects.equals(dictionary.getTrigger(), startedDictionary.getTrigger())
+            )
+        );
     }
-
 }

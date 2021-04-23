@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
+import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.PagedResult;
@@ -27,17 +31,12 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.CustomUserFieldService;
 import io.gravitee.rest.api.service.UserService;
 import io.swagger.annotations.*;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
-import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 /**
  * Defines the REST resources to manage Users.
@@ -47,7 +46,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Users"})
+@Api(tags = { "Users" })
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
 public class UsersResource extends AbstractResource {
@@ -61,36 +60,33 @@ public class UsersResource extends AbstractResource {
     @GET
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ))
     @ApiOperation(
-            value = "Search for users using the search engine",
-            notes = "User must have the ORGANIZATION_USERS[READ] permission to use this service"
+        value = "Search for users using the search engine",
+        notes = "User must have the ORGANIZATION_USERS[READ] permission to use this service"
     )
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List users matching the query criteria", response = PagedResult.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public PagedResult<UserEntity> getAllUsers(
-            @ApiParam(name = "q")
-            @QueryParam("q") String query,
-            @Valid @BeanParam Pageable pageable) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public PagedResult<UserEntity> getAllUsers(@ApiParam(name = "q") @QueryParam("q") String query, @Valid @BeanParam Pageable pageable) {
         Page<UserEntity> users = userService.search(query, pageable.toPageable());
         return new PagedResult<>(users, pageable.getSize());
     }
 
     @POST
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = CREATE))
-    @ApiOperation(
-            value = "Create a user",
-            notes = "User must have the ORGANIZATION_USERS[CREATE] permission to use this service"
-    )
-    @ApiResponses({
+    @ApiOperation(value = "Create a user", notes = "User must have the ORGANIZATION_USERS[CREATE] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List users matching the query criteria", response = UserEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response createUser(@Valid NewExternalUserEntity newExternalUserEntity) {
         UserEntity newUser = userService.create(newExternalUserEntity);
         if (newUser != null) {
-            return Response
-                    .ok()
-                    .entity(newUser)
-                    .build();
+            return Response.ok().entity(newUser).build();
         }
 
         return Response.serverError().build();
@@ -105,5 +101,4 @@ public class UsersResource extends AbstractResource {
     public UsersRegistrationResource getUsersRegistrationResource() {
         return resourceContext.getResource(UsersRegistrationResource.class);
     }
-
 }

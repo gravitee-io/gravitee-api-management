@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.annotations;
 
 import io.gravitee.rest.api.model.parameters.Key;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -26,10 +25,10 @@ import java.lang.annotation.Target;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Target({ElementType.FIELD})
+@Target({ ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ParameterKey {
-   Key value();
+    Key value();
 
-   boolean sensitive() default false;
+    boolean sensitive() default false;
 }

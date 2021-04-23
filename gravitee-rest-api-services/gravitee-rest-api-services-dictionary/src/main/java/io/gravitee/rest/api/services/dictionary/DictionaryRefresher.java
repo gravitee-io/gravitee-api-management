@@ -21,13 +21,11 @@ import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntit
 import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.Provider;
 import io.vertx.core.Handler;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -49,28 +47,36 @@ public class DictionaryRefresher implements Handler<Long> {
     public void handle(Long event) {
         logger.debug("Running dictionary refresher task for {}", dictionary);
 
-        provider.get()
-                .whenComplete((dynamicProperties, throwable) -> {
+        provider
+            .get()
+            .whenComplete(
+                (dynamicProperties, throwable) -> {
                     if (throwable != null) {
-                        logger.error("[{}] Unexpected error while getting dictionary's properties from provider: {}",
-                                dictionary.getId(), provider.name(),
-                                throwable);
+                        logger.error(
+                            "[{}] Unexpected error while getting dictionary's properties from provider: {}",
+                            dictionary.getId(),
+                            provider.name(),
+                            throwable
+                        );
                     } else if (dynamicProperties != null) {
                         updateDictionary(dynamicProperties);
                     }
-                });
+                }
+            );
     }
 
     private void updateDictionary(Collection<DynamicProperty> dynProperties) {
         Map<String, String> properties = dynProperties
-                .stream()
-                .collect(Collectors.toMap(
-                        Property::getKey,
-                        dynamicProperty -> (dynamicProperty.getValue() == null) ? "" : dynamicProperty.getValue()));
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    Property::getKey,
+                    dynamicProperty -> (dynamicProperty.getValue() == null) ? "" : dynamicProperty.getValue()
+                )
+            );
 
         // Compare properties with latest values
         if (!properties.equals(dictionary.getProperties())) {
-
             try {
                 // Get a fresh version of the dictionary before updating its properties.
                 dictionary = dictionaryService.findById(dictionary.getId());

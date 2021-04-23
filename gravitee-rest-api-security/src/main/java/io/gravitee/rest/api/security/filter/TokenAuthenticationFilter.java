@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.security.filter;
 
+import static java.net.URLDecoder.decode;
+import static java.nio.charset.Charset.defaultCharset;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -30,13 +34,10 @@ import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.GenericFilterBean;
-
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Set;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -44,14 +45,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Set;
-
-import static java.net.URLDecoder.decode;
-import static java.nio.charset.Charset.defaultCharset;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.GenericFilterBean;
 
 /**
  * @author Azize Elamrani (azize at gravitee.io)
@@ -70,9 +69,13 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
     private TokenService tokenService;
     private AuthoritiesProvider authoritiesProvider;
 
-    public TokenAuthenticationFilter(final String jwtSecret, final CookieGenerator cookieGenerator,
-                                     final UserService userService, final TokenService tokenService,
-                                     final AuthoritiesProvider authoritiesProvider) {
+    public TokenAuthenticationFilter(
+        final String jwtSecret,
+        final CookieGenerator cookieGenerator,
+        final UserService userService,
+        final TokenService tokenService,
+        final AuthoritiesProvider authoritiesProvider
+    ) {
         Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
         jwtVerifier = JWT.require(algorithm).build();
         this.cookieGenerator = cookieGenerator;
@@ -83,17 +86,18 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
 
     @Override
     @SuppressWarnings(value = "unchecked")
-    public void doFilter(final ServletRequest request, final ServletResponse response,
-                         final FilterChain chain) throws IOException, ServletException {
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
+        throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
 
         String stringToken = req.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (isEmpty(stringToken) && req.getCookies() != null) {
-            final Optional<Cookie> optionalStringToken = Arrays.stream(req.getCookies())
-                    .filter(cookie -> AUTH_COOKIE_NAME.equals(cookie.getName()))
-                    .findAny();
+            final Optional<Cookie> optionalStringToken = Arrays
+                .stream(req.getCookies())
+                .filter(cookie -> AUTH_COOKIE_NAME.equals(cookie.getName()))
+                .findAny();
             if (optionalStringToken.isPresent()) {
                 stringToken = decode(optionalStringToken.get().getValue(), defaultCharset().name());
             }
@@ -109,15 +113,16 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         final DecodedJWT jwt = jwtVerifier.verify(tokenValue);
 
                         final Set<GrantedAuthority> authorities =
-                                this.authoritiesProvider.retrieveAuthorities(jwt.getClaim(Claims.SUBJECT).asString());
+                            this.authoritiesProvider.retrieveAuthorities(jwt.getClaim(Claims.SUBJECT).asString());
 
-                        final UserDetails userDetails = new UserDetails(getStringValue(jwt.getSubject()), "",
-                                authorities);
+                        final UserDetails userDetails = new UserDetails(getStringValue(jwt.getSubject()), "", authorities);
                         userDetails.setEmail(jwt.getClaim(Claims.EMAIL).asString());
                         userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
                         userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
 
-                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
+                        SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     } else if (tokenService != null && userService != null) {
                         final Token token = tokenService.findByToken(tokenValue);
                         final UserEntity user = userService.findById(token.getReferenceId());
@@ -131,7 +136,9 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         userDetails.setSource("token");
                         userDetails.setSourceId(token.getName());
 
-                        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
+                        SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
                     }
                 } else {
                     LOGGER.debug("Authorization schema not found");
@@ -161,5 +168,4 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
         }
         return object.toString();
     }
-
 }

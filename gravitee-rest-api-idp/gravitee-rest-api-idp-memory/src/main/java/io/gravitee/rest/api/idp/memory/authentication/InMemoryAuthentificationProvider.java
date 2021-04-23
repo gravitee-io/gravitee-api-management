@@ -18,8 +18,8 @@ package io.gravitee.rest.api.idp.memory.authentication;
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
 import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryAuthenticationProviderConfiguration;
-
 import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,16 +36,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
-import java.util.List;
-
 /**
  * @author David Brassely (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Import(InMemoryAuthenticationProviderConfiguration.class)
-public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthenticationProvider
-        implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
+public class InMemoryAuthentificationProvider
+    extends AbstractUserDetailsAuthenticationProvider
+    implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryAuthentificationProvider.class);
 
@@ -57,11 +56,9 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
 
     @Autowired
     private Environment environment;
-    
-    @Override
-    public org.springframework.security.authentication.AuthenticationProvider
-        configure() throws Exception {
 
+    @Override
+    public org.springframework.security.authentication.AuthenticationProvider configure() throws Exception {
         boolean found = true;
         int userIdx = 0;
 
@@ -79,7 +76,12 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
                 List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
                 userIdx++;
 
-                io.gravitee.rest.api.idp.api.authentication.UserDetails newUser = new io.gravitee.rest.api.idp.api.authentication.UserDetails(username, password, email, authorities);
+                io.gravitee.rest.api.idp.api.authentication.UserDetails newUser = new io.gravitee.rest.api.idp.api.authentication.UserDetails(
+                    username,
+                    password,
+                    email,
+                    authorities
+                );
 
                 newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
                 newUser.setSourceId(username);
@@ -94,17 +96,22 @@ public class InMemoryAuthentificationProvider extends AbstractUserDetailsAuthent
     }
 
     @Override
-    protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
+    protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication)
+        throws AuthenticationException {
         if (authentication.getCredentials() == null) {
             LOGGER.debug("Authentication failed: no credentials provided");
-            throw new BadCredentialsException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+            throw new BadCredentialsException(
+                messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
+            );
         }
 
         String presentedPassword = authentication.getCredentials().toString();
 
         if (!passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
             LOGGER.debug("Authentication failed: password does not match stored value");
-            throw new BadCredentialsException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+            throw new BadCredentialsException(
+                messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials")
+            );
         }
     }
 

@@ -19,10 +19,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.model.CustomUserField;
 import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -30,6 +29,7 @@ import java.util.Optional;
  */
 @Component
 public class CustomUserFieldsRespositoryProxy extends AbstractProxy<CustomUserFieldsRepository> implements CustomUserFieldsRepository {
+
     @Override
     public CustomUserField create(CustomUserField field) throws TechnicalException {
         return target.create(field);
@@ -51,7 +51,8 @@ public class CustomUserFieldsRespositoryProxy extends AbstractProxy<CustomUserFi
     }
 
     @Override
-    public List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType refType) throws TechnicalException {
+    public List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType refType)
+        throws TechnicalException {
         return target.findByReferenceIdAndReferenceType(refId, refType);
     }
 }

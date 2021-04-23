@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl.configuration.identity;
 
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,11 +25,16 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class IdentityProviderActivationNotFoundException extends AbstractNotFoundException {
+
     private final String identityProviderId;
     private final String referenceId;
     private final IdentityProviderActivationReferenceType referenceType;
 
-    public IdentityProviderActivationNotFoundException(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) {
+    public IdentityProviderActivationNotFoundException(
+        String identityProviderId,
+        String referenceId,
+        IdentityProviderActivationReferenceType referenceType
+    ) {
         this.identityProviderId = identityProviderId;
         this.referenceId = referenceId;
         this.referenceType = referenceType;

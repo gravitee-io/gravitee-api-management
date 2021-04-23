@@ -23,7 +23,6 @@ import java.util.List;
  */
 public class PlansConfigurationEntity {
 
-
     List<PlanSecurityEntity> security;
 
     public List<PlanSecurityEntity> getSecurity() {
@@ -36,8 +35,6 @@ public class PlansConfigurationEntity {
 
     @Override
     public String toString() {
-        return "PlansConfigurationEntity{" +
-                "security='" + security + '\'' +
-                '}';
+        return "PlansConfigurationEntity{" + "security='" + security + '\'' + '}';
     }
 }

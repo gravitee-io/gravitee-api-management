@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
-import javax.ws.rs.QueryParam;
 import java.util.List;
+import javax.ws.rs.QueryParam;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -26,6 +26,7 @@ public class FetchersParam {
 
     @QueryParam("expand")
     List<String> expand;
+
     @QueryParam("import")
     private boolean onlyFilesFetchers;
 

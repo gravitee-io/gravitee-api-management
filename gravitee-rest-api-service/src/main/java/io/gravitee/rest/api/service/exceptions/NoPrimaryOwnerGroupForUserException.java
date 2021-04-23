@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -51,5 +50,4 @@ public class NoPrimaryOwnerGroupForUserException extends AbstractManagementExcep
     public String getMessage() {
         return "User " + username + " must belongs to at least one group with a primary owner member.";
     }
-
 }

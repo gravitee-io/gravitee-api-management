@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl.commands;
 
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.installation.InstallationCommand;
@@ -24,17 +27,13 @@ import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.observers.TestObserver;
+import java.util.HashMap;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.HashMap;
-
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -88,7 +87,6 @@ public class InstallationCommandHandlerTest extends TestCase {
 
     @Test
     public void handleWithException() {
-
         final InstallationEntity installation = new InstallationEntity();
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);

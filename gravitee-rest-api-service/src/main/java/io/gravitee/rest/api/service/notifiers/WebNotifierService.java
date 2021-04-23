@@ -18,11 +18,10 @@ package io.gravitee.rest.api.service.notifiers;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.service.notification.Hook;
-
 import java.util.Map;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface WebNotifierService {

@@ -15,23 +15,23 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl.soap;
 
-import io.gravitee.rest.api.spec.converter.wsdl.utils.SampleXmlUtil;
-import io.gravitee.rest.api.spec.converter.wsdl.binding.HeaderDef;
-import org.apache.xmlbeans.XmlCursor;
+import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.formatQName;
 
+import io.gravitee.rest.api.spec.converter.wsdl.binding.HeaderDef;
+import io.gravitee.rest.api.spec.converter.wsdl.utils.SampleXmlUtil;
+import java.util.List;
 import javax.wsdl.Definition;
 import javax.wsdl.Message;
 import javax.wsdl.Part;
 import javax.xml.namespace.QName;
-import java.util.List;
-
-import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.formatQName;
+import org.apache.xmlbeans.XmlCursor;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class SoapHeadersBuilder extends AbstractSoapBuilder {
+
     private Definition wsdlDef;
 
     public SoapHeadersBuilder withWsdlDef(Definition wsdlDef) {
@@ -65,18 +65,17 @@ public class SoapHeadersBuilder extends AbstractSoapBuilder {
         QName mustUnderstandQName = version.buildAttribute("mustUnderstand");
         Object mustUnderstand = part.getExtensionAttribute(mustUnderstandQName);
         if (mustUnderstand != null && mustUnderstand instanceof String) {
-            xmlCursor.insertAttributeWithValue(mustUnderstandQName, (String)mustUnderstand);
+            xmlCursor.insertAttributeWithValue(mustUnderstandQName, (String) mustUnderstand);
         }
 
         QName actorQName = version.buildAttribute("actor");
         Object actor = part.getExtensionAttribute(actorQName);
         if (actor != null && actor instanceof String) {
-            xmlCursor.insertAttributeWithValue(actorQName, (String)actor);
+            xmlCursor.insertAttributeWithValue(actorQName, (String) actor);
         }
 
         generateXml(part, xmlCursor, header.useEncoded());
         xmlCursor.toParent();
         xmlCursor.toParent();
     }
-
 }

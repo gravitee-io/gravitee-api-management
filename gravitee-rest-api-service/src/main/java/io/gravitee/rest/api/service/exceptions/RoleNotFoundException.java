@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.rest.api.model.permissions.RoleScope;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +34,7 @@ public class RoleNotFoundException extends AbstractNotFoundException {
         this.roleScope = null;
         this.roleName = null;
     }
-    
+
     public RoleNotFoundException(RoleScope roleScope, String roleName) {
         this.id = null;
         this.roleScope = roleScope;

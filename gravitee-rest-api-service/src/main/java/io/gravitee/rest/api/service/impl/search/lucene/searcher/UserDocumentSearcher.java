@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
-
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -36,18 +35,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserDocumentSearcher extends AbstractDocumentSearcher {
 
-    protected final static String FIELD_TYPE_VALUE = "user";
+    protected static final String FIELD_TYPE_VALUE = "user";
 
     @Override
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
-        QueryParser parser = new MultiFieldQueryParser(new String[]{
-                "firstname",
-                "lastname",
-                "displayname",
-                "displayname_split",
-                "email",
-                "reference"
-        }, analyzer);
+        QueryParser parser = new MultiFieldQueryParser(
+            new String[] { "firstname", "lastname", "displayname", "displayname_split", "email", "reference" },
+            analyzer
+        );
         parser.setFuzzyMinSim(0.6f);
         parser.setAllowLeadingWildcard(true);
 
@@ -68,8 +63,14 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
             userQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
 
             BooleanQuery.Builder orgCriteria = new BooleanQuery.Builder();
-            orgCriteria.add(new TermQuery(new Term(FIELD_REFERENCE_TYPE, GraviteeContext.ReferenceContextType.ORGANIZATION.name())), BooleanClause.Occur.MUST);
-            orgCriteria.add(new TermQuery(new Term(FIELD_REFERENCE_ID, GraviteeContext.getCurrentOrganization())), BooleanClause.Occur.MUST);
+            orgCriteria.add(
+                new TermQuery(new Term(FIELD_REFERENCE_TYPE, GraviteeContext.ReferenceContextType.ORGANIZATION.name())),
+                BooleanClause.Occur.MUST
+            );
+            orgCriteria.add(
+                new TermQuery(new Term(FIELD_REFERENCE_ID, GraviteeContext.getCurrentOrganization())),
+                BooleanClause.Occur.MUST
+            );
 
             userQuery.add(orgCriteria.build(), BooleanClause.Occur.FILTER);
 

@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
@@ -26,23 +32,16 @@ import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserConfig;
 import io.gravitee.rest.api.portal.rest.model.UserInput;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -73,7 +72,7 @@ public class UserResourceTest extends AbstractResourceTest {
     public void shouldGetCurrentUserWithoutConfig() {
         when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.FALSE);
-        
+
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -93,7 +92,7 @@ public class UserResourceTest extends AbstractResourceTest {
         when(userService.findByIdWithRoles(USER_NAME)).thenReturn(new UserEntity());
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
         when(configService.getConsoleSettings()).thenReturn(new ConsoleSettingsEntity());
-        
+
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -114,7 +113,7 @@ public class UserResourceTest extends AbstractResourceTest {
         when(permissionService.hasManagementRights(USER_NAME)).thenReturn(Boolean.TRUE);
         ConsoleSettingsEntity consoleConfigEntity = new ConsoleSettingsEntity();
         when(configService.getConsoleSettings()).thenReturn(consoleConfigEntity);
-        
+
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -138,7 +137,7 @@ public class UserResourceTest extends AbstractResourceTest {
         managementConfig.setUrl("URL");
         consoleConfigEntity.setManagement(managementConfig);
         when(configService.getConsoleSettings()).thenReturn(consoleConfigEntity);
-        
+
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -170,11 +169,12 @@ public class UserResourceTest extends AbstractResourceTest {
         UserInput userInput = new UserInput();
         final String newAvatar = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-        final String expectedAvatar = "data:image/gif;base64,R0lGODlhyADIAPAAAAAAAP///ywAAAAAyADIAEAC/4SPqcvtD6OctNqL"
-                + "s968+w+G4kiW5omm6sq27gvH8kzX9o3n+s73/g8MCofEovGITCqXzKbzCY1Kp9Sq9YrNarfcrvcLDovH5LL5jE6r1+y2+w2Py+"
-                + "f0uv2Oz+v3/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tba3uLm6u7y9vr"
-                + "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj"
-                + "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
+        final String expectedAvatar =
+            "data:image/gif;base64,R0lGODlhyADIAPAAAAAAAP///ywAAAAAyADIAEAC/4SPqcvtD6OctNqL" +
+            "s968+w+G4kiW5omm6sq27gvH8kzX9o3n+s73/g8MCofEovGITCqXzKbzCY1Kp9Sq9YrNarfcrvcLDovH5LL5jE6r1+y2+w2Py+" +
+            "f0uv2Oz+v3/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tba3uLm6u7y9vr" +
+            "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj" +
+            "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
 
         userInput.setAvatar(newAvatar);
         userInput.setId(USER_NAME);

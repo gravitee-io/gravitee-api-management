@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource.portal;
 
+import static io.gravitee.rest.api.model.Visibility.PUBLIC;
+import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -28,7 +34,10 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.RatingService;
 import io.swagger.annotations.*;
-
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.POST;
@@ -39,16 +48,6 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.Visibility.PUBLIC;
-import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Defines the API to retrieve APIS from the portal.
@@ -56,7 +55,7 @@ import static java.util.stream.Collectors.toList;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Portal APIs"})
+@Api(tags = { "Portal APIs" })
 public class PortalApisResource extends AbstractResource {
 
     @Inject
@@ -75,12 +74,18 @@ public class PortalApisResource extends AbstractResource {
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Search for API using the search engine")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "List accessible APIs for current user", response = ApiListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Response searchPortalApis(
-            @ApiParam(name = "q", required = true)
-            @NotNull @QueryParam("q") String query) {
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "List accessible APIs for current user",
+                response = ApiListItem.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public Response searchPortalApis(@ApiParam(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
             final Collection<ApiEntity> apis;
             final ApiQuery apiQuery = new ApiQuery();
@@ -102,10 +107,7 @@ public class PortalApisResource extends AbstractResource {
             Map<String, Object> filters = new HashMap<>();
             filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
-            return Response.ok().entity(apiService.search(query, filters)
-                    .stream()
-                    .map(this::convert)
-                    .collect(toList())).build();
+            return Response.ok().entity(apiService.search(query, filters).stream().map(this::convert).collect(toList())).build();
         } catch (TechnicalException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
         }

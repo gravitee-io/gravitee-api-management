@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.commands;
 
+import static io.gravitee.rest.api.service.impl.commands.GoodbyeCommandHandler.DELETED_STATUS;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.goodbye.GoodbyeCommand;
@@ -23,17 +27,12 @@ import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.observers.TestObserver;
+import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.HashMap;
-
-import static io.gravitee.rest.api.service.impl.commands.GoodbyeCommandHandler.DELETED_STATUS;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

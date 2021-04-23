@@ -15,11 +15,16 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.converter.api;
 
+import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toMap;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.IdGenerator;
-import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.model.*;
@@ -36,9 +41,6 @@ import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.servers.ServerVariable;
 import io.swagger.v3.oas.models.servers.ServerVariables;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
-
 import java.net.URI;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -46,11 +48,8 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toMap;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -58,9 +57,9 @@ import static java.util.stream.Collectors.toMap;
  */
 public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, OAIDescriptorVisitor<SwaggerApiEntity> {
 
-    public final static String X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION = "x-graviteeio-definition";
+    public static final String X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION = "x-graviteeio-definition";
 
-    private final static String PICTURE_REGEX = "^data:image/[\\w]+;base64,.*$";
+    private static final String PICTURE_REGEX = "^data:image/[\\w]+;base64,.*$";
 
     protected final Collection<? extends OAIOperationVisitor> visitors;
 
@@ -91,7 +90,9 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
         apiEntity.setName(oai.getInfo().getTitle());
 
         // Description
-        apiEntity.setDescription(oai.getInfo().getDescription() == null ? "Description of " + apiEntity.getName() : oai.getInfo().getDescription());
+        apiEntity.setDescription(
+            oai.getInfo().getDescription() == null ? "Description of " + apiEntity.getName() : oai.getInfo().getDescription()
+        );
 
         // Version
         apiEntity.setVersion(oai.getInfo().getVersion());
@@ -101,7 +102,9 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
         // Use X-Gravitee to add information in API
         XGraviteeIODefinition xGraviteeIODefinition = null;
         if (oai.getExtensions() != null && oai.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION) != null) {
-            xGraviteeIODefinition = new ObjectMapper().convertValue(oai.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION), XGraviteeIODefinition.class);
+            xGraviteeIODefinition =
+                new ObjectMapper()
+                .convertValue(oai.getExtensions().get(X_GRAVITEEIO_DEFINITION_VENDOR_EXTENSION), XGraviteeIODefinition.class);
         }
 
         // Proxy
@@ -134,9 +137,20 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
         // Proxy - Context Path / Virtual Host
         if (xGraviteeIODefinition != null && xGraviteeIODefinition.getVirtualHosts() != null) {
-            proxy.setVirtualHosts(xGraviteeIODefinition.getVirtualHosts().stream()
-                    .map(vHost -> new VirtualHost(vHost.getHost(), vHost.getPath(), (vHost.getOverrideEntrypoint() != null ? vHost.getOverrideEntrypoint() : false)))
-                    .collect(Collectors.toList()));
+            proxy.setVirtualHosts(
+                xGraviteeIODefinition
+                    .getVirtualHosts()
+                    .stream()
+                    .map(
+                        vHost ->
+                            new VirtualHost(
+                                vHost.getHost(),
+                                vHost.getPath(),
+                                (vHost.getOverrideEntrypoint() != null ? vHost.getOverrideEntrypoint() : false)
+                            )
+                    )
+                    .collect(Collectors.toList())
+            );
         } else {
             String contextPath = null;
             if (defaultEndpoint != null) {
@@ -159,10 +173,12 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
             // Groups
             if (xGraviteeIODefinition.getGroups() != null && !xGraviteeIODefinition.getGroups().isEmpty()) {
                 // Groups in schema are group name. Replace them by id
-                Set<String> groupIdsToImport= xGraviteeIODefinition.getGroups().stream()
-                        .flatMap(group -> groupService.findByName(group).stream())
-                        .map(GroupEntity::getId)
-                        .collect(Collectors.toSet());
+                Set<String> groupIdsToImport = xGraviteeIODefinition
+                    .getGroups()
+                    .stream()
+                    .flatMap(group -> groupService.findByName(group).stream())
+                    .map(GroupEntity::getId)
+                    .collect(Collectors.toSet());
                 apiEntity.setGroups(groupIdsToImport);
             }
 
@@ -173,16 +189,22 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
             // Metadata
             if (xGraviteeIODefinition.getMetadata() != null && !xGraviteeIODefinition.getMetadata().isEmpty()) {
-                final List<ApiMetadataEntity> apiMetadataEntities = xGraviteeIODefinition.getMetadata().stream()
-                        .map(metadata -> {
+                final List<ApiMetadataEntity> apiMetadataEntities = xGraviteeIODefinition
+                    .getMetadata()
+                    .stream()
+                    .map(
+                        metadata -> {
                             ApiMetadataEntity apiMetadata = new ApiMetadataEntity();
                             apiMetadata.setKey(IdGenerator.generate(metadata.getName()));
                             apiMetadata.setName(metadata.getName());
                             apiMetadata.setValue(metadata.getValue());
-                            apiMetadata.setFormat(metadata.getFormat() != null ? MetadataFormat.valueOf(metadata.getFormat().name()) : MetadataFormat.STRING);
+                            apiMetadata.setFormat(
+                                metadata.getFormat() != null ? MetadataFormat.valueOf(metadata.getFormat().name()) : MetadataFormat.STRING
+                            );
                             return apiMetadata;
-                        })
-                        .collect(Collectors.toList());
+                        }
+                    )
+                    .collect(Collectors.toList());
                 apiEntity.setMetadata(apiMetadataEntities);
             }
 
@@ -197,9 +219,11 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
             if (xGraviteeIODefinition.getProperties() != null && !xGraviteeIODefinition.getProperties().isEmpty()) {
                 Properties properties = new Properties();
                 properties.setProperties(
-                        xGraviteeIODefinition.getProperties().stream()
-                                .map(prop -> new Property(prop.getKey(), prop.getValue()))
-                                .collect(Collectors.toList())
+                    xGraviteeIODefinition
+                        .getProperties()
+                        .stream()
+                        .map(prop -> new Property(prop.getKey(), prop.getValue()))
+                        .collect(Collectors.toList())
                 );
 
                 apiEntity.setProperties(properties);
@@ -208,10 +232,12 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
             // Tags
             if (xGraviteeIODefinition.getTags() != null && !xGraviteeIODefinition.getTags().isEmpty()) {
                 final Map<String, String> tagMap = tagService.findAll().stream().collect(toMap(TagEntity::getId, TagEntity::getName));
-                final Set<String> tagIdToAdd = xGraviteeIODefinition.getTags().stream()
-                        .map(tag -> findTagIdByName(tagMap, tag))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
+                final Set<String> tagIdToAdd = xGraviteeIODefinition
+                    .getTags()
+                    .stream()
+                    .map(tag -> findTagIdByName(tagMap, tag))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
                 if (tagIdToAdd != null && !tagIdToAdd.isEmpty()) {
                     apiEntity.setTags(tagIdToAdd);
                 }
@@ -229,47 +255,64 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
 
         // Paths
-        apiEntity.setPaths(oai.getPaths().entrySet().stream()
-            .map(entry -> {
-                final io.gravitee.definition.model.Path path = new Path();
-                path.setPath(entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1"));
+        apiEntity.setPaths(
+            oai
+                .getPaths()
+                .entrySet()
+                .stream()
+                .map(
+                    entry -> {
+                        final io.gravitee.definition.model.Path path = new Path();
+                        path.setPath(entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1"));
 
-                Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
-                List<Rule> rules = new ArrayList<>();
+                        Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
+                        List<Rule> rules = new ArrayList<>();
 
-                operations.forEach(new BiConsumer<PathItem.HttpMethod, Operation>() {
-                    @Override
-                    public void accept(PathItem.HttpMethod httpMethod, Operation operation) {
-                        visitors.forEach(new Consumer<OAIOperationVisitor>() {
-                            @Override
-                            public void accept(OAIOperationVisitor oaiOperationVisitor) {
-                                // Consider only policy visitor for now
-                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                        operations.forEach(
+                            new BiConsumer<PathItem.HttpMethod, Operation>() {
+                                @Override
+                                public void accept(PathItem.HttpMethod httpMethod, Operation operation) {
+                                    visitors.forEach(
+                                        new Consumer<OAIOperationVisitor>() {
+                                            @Override
+                                            public void accept(OAIOperationVisitor oaiOperationVisitor) {
+                                                // Consider only policy visitor for now
+                                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
 
-                                if (policy.isPresent()) {
-                                    final Rule rule = new Rule();
-                                    rule.setEnabled(true);
-                                    rule.setDescription(operation.getSummary() == null ?
-                                        (operation.getOperationId() == null ? operation.getDescription() : operation.getOperationId()) :
-                                        operation.getSummary());
-                                    rule.setMethods(singleton(HttpMethod.valueOf(httpMethod.name())));
+                                                if (policy.isPresent()) {
+                                                    final Rule rule = new Rule();
+                                                    rule.setEnabled(true);
+                                                    rule.setDescription(
+                                                        operation.getSummary() == null
+                                                            ? (
+                                                                operation.getOperationId() == null
+                                                                    ? operation.getDescription()
+                                                                    : operation.getOperationId()
+                                                            )
+                                                            : operation.getSummary()
+                                                    );
+                                                    rule.setMethods(singleton(HttpMethod.valueOf(httpMethod.name())));
 
-                                    io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
-                                    defPolicy.setName(policy.get().getName());
-                                    defPolicy.setConfiguration(clearNullValues(policy.get().getConfiguration()));
-                                    rule.setPolicy(defPolicy);
-                                    rules.add(rule);
+                                                    io.gravitee.definition.model.Policy defPolicy = new io.gravitee.definition.model.Policy();
+                                                    defPolicy.setName(policy.get().getName());
+                                                    defPolicy.setConfiguration(clearNullValues(policy.get().getConfiguration()));
+                                                    rule.setPolicy(defPolicy);
+                                                    rules.add(rule);
+                                                }
+                                            }
+                                        }
+                                    );
                                 }
                             }
-                        });
+                        );
+
+                        path.setRules(rules);
+
+                        return path;
                     }
-                });
-
-                path.setRules(rules);
-
-                return path;
-            })
-            .collect(toMap(Path::getPath, path -> path)));
+                )
+                .collect(toMap(Path::getPath, path -> path))
+        );
 
         // Path Mappings
         if (apiEntity.getPaths() != null) {
@@ -298,8 +341,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
             } else {
                 List<String> evaluatedUrls = Collections.singletonList(serverUrl);
                 for (Map.Entry<String, ServerVariable> serverVar : serverVariables.entrySet()) {
-                    evaluatedUrls = evaluateServerUrlsForOneVar(serverVar.getKey(), serverVar.getValue(),
-                            evaluatedUrls);
+                    evaluatedUrls = evaluateServerUrlsForOneVar(serverVar.getKey(), serverVar.getValue(), evaluatedUrls);
                 }
                 endpoints.addAll(evaluatedUrls);
             }
@@ -307,8 +349,7 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
         return endpoints;
     }
 
-    private List<String> evaluateServerUrlsForOneVar(String varName, ServerVariable serverVar,
-                                                     List<String> templateUrls) {
+    private List<String> evaluateServerUrlsForOneVar(String varName, ServerVariable serverVar, List<String> templateUrls) {
         List<String> evaluatedUrls = new ArrayList<>();
         for (String templateUrl : templateUrls) {
             Matcher matcher = Pattern.compile("\\{" + varName + "\\}").matcher(templateUrl);

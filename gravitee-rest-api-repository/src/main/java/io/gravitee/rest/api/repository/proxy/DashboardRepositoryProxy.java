@@ -18,11 +18,10 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.model.Dashboard;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -30,6 +29,7 @@ import java.util.Set;
  */
 @Component
 public class DashboardRepositoryProxy extends AbstractProxy<DashboardRepository> implements DashboardRepository {
+
     @Override
     public Set<Dashboard> findAll() throws TechnicalException {
         return target.findAll();

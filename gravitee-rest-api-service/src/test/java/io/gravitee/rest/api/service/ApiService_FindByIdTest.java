@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -31,6 +35,8 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,13 +45,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -61,25 +60,34 @@ public class ApiService_FindByIdTest {
 
     @Mock
     private ApiRepository apiRepository;
+
     @Mock
     private MembershipService membershipService;
+
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
+
     @Mock
     private Api api;
+
     @Mock
     private UserService userService;
+
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private EntrypointService entrypointService;
+
     @Mock
     private CategoryService categoryService;
 
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        objectMapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter)));
+        objectMapper.setFilterProvider(
+            new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
+        );
         GraviteeContext.setCurrentEnvironment("DEFAULT");
     }
 
@@ -93,7 +101,7 @@ public class ApiService_FindByIdTest {
         api = new Api();
         api.setId(API_ID);
         api.setEnvironmentId("DEFAULT");
-        
+
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);

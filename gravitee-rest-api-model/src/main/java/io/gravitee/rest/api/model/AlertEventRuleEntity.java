@@ -20,13 +20,14 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public class AlertEventRuleEntity {
+
     private String event;
 
     public AlertEventRuleEntity() {}
 
     public AlertEventRuleEntity(String event) {
         this.event = event;
-    };
+    }
 
     public String getEvent() {
         return event;
@@ -38,8 +39,6 @@ public class AlertEventRuleEntity {
 
     @Override
     public String toString() {
-        return "AlertEventRuleEntity{" +
-                ", event='" + event + '\'' +
-                "}";
+        return "AlertEventRuleEntity{" + ", event='" + event + '\'' + "}";
     }
 }

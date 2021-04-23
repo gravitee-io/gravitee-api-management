@@ -18,7 +18,6 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
-
 import java.util.List;
 
 /**
@@ -136,6 +135,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     //Classes
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ConsoleCors {
+
         @ParameterKey(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN)
         private List<String> allowOrigin;
 
@@ -191,5 +191,4 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
             this.maxAge = maxAge;
         }
     }
-
 }

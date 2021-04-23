@@ -16,10 +16,9 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -28,20 +27,26 @@ import java.util.Objects;
 public class UpdateDashboardEntity {
 
     private String id;
+
     @NotNull
     @JsonProperty("reference_type")
     private DashboardReferenceType referenceType;
+
     @NotNull
     @Size(max = 64)
     @JsonProperty("reference_id")
     private String referenceId;
+
     @NotNull
     @Size(max = 64)
     private String name;
+
     @JsonProperty("query_filter")
     private String queryFilter;
+
     @NotNull
     private int order;
+
     private boolean enabled;
     private String definition;
 
@@ -124,15 +129,30 @@ public class UpdateDashboardEntity {
 
     @Override
     public String toString() {
-        return "UpdateDashboardEntity{" +
-                "id='" + id + '\'' +
-                ", referenceType=" + referenceType +
-                ", referenceId='" + referenceId + '\'' +
-                ", name='" + name + '\'' +
-                ", queryFilter='" + queryFilter + '\'' +
-                ", order=" + order +
-                ", enabled=" + enabled +
-                ", definition='" + definition + '\'' +
-                '}';
+        return (
+            "UpdateDashboardEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", queryFilter='" +
+            queryFilter +
+            '\'' +
+            ", order=" +
+            order +
+            ", enabled=" +
+            enabled +
+            ", definition='" +
+            definition +
+            '\'' +
+            '}'
+        );
     }
 }

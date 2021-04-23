@@ -25,11 +25,10 @@ import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.Single;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -62,7 +61,6 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
 
     @Override
     public Single<HelloCommand> prepare(HelloCommand command) {
-
         final InstallationEntity installation = installationService.getOrInitialize();
 
         command.getPayload().getNode().setInstallationId(installation.getId());
@@ -78,7 +76,6 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
 
     @Override
     public Single<HelloReply> handleReply(HelloReply reply) {
-
         if (reply.getCommandStatus() == CommandStatus.SUCCEEDED) {
             final Map<String, String> additionalInformation = new HashMap<>();
             additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_ID, reply.getInstallationId());

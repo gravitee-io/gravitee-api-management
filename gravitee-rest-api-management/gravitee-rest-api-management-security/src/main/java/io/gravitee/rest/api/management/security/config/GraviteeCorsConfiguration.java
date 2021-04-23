@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.management.security.config;
 
+import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
+import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
+import static java.util.Arrays.asList;
+
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
@@ -22,13 +26,8 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
-import org.springframework.web.cors.CorsConfiguration;
-
 import java.util.List;
-
-import static io.gravitee.rest.api.security.csrf.CookieCsrfSignedTokenRepository.DEFAULT_CSRF_HEADER_NAME;
-import static io.gravitee.rest.api.security.filter.RecaptchaFilter.DEFAULT_RECAPTCHA_HEADER_NAME;
-import static java.util.Arrays.asList;
+import org.springframework.web.cors.CorsConfiguration;
 
 public class GraviteeCorsConfiguration extends CorsConfiguration implements EventListener<Key, Parameter> {
 
@@ -42,10 +41,20 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
 
         this.setAllowCredentials(true);
         this.setAllowedOrigins(getPropertiesAsList(Key.CONSOLE_HTTP_CORS_ALLOW_ORIGIN, "*"));
-        this.setAllowedHeaders(getPropertiesAsList(Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS, "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, " + DEFAULT_CSRF_HEADER_NAME + ", " + DEFAULT_RECAPTCHA_HEADER_NAME));
+        this.setAllowedHeaders(
+                getPropertiesAsList(
+                    Key.CONSOLE_HTTP_CORS_ALLOW_HEADERS,
+                    "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With, If-Match, " +
+                    DEFAULT_CSRF_HEADER_NAME +
+                    ", " +
+                    DEFAULT_RECAPTCHA_HEADER_NAME
+                )
+            );
         this.setAllowedMethods(getPropertiesAsList(Key.CONSOLE_HTTP_CORS_ALLOW_METHODS, "OPTIONS, GET, POST, PUT, DELETE, PATCH"));
         this.setExposedHeaders(getPropertiesAsList(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS, "ETag, " + DEFAULT_CSRF_HEADER_NAME));
-        this.setMaxAge(Long.valueOf(parameterService.find(Key.CONSOLE_HTTP_CORS_MAX_AGE, organizationId, ParameterReferenceType.ORGANIZATION)));
+        this.setMaxAge(
+                Long.valueOf(parameterService.find(Key.CONSOLE_HTTP_CORS_MAX_AGE, organizationId, ParameterReferenceType.ORGANIZATION))
+            );
     }
 
     @Override

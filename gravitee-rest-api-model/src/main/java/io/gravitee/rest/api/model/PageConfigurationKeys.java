@@ -39,10 +39,9 @@ public final class PageConfigurationKeys {
     public static final String SWAGGER_VIEWER = "viewer";
     public static final String TRANSLATION_LANG = "lang";
     public static final String TRANSLATION_INHERIT_CONTENT = "inheritContent";
-    
+
     // Possibles Values
     public static final String LINK_RESOURCE_TYPE_EXTERNAL = "external";
     public static final String LINK_RESOURCE_TYPE_PAGE = "page";
     public static final String LINK_RESOURCE_TYPE_CATEGORY = "category";
-
 }

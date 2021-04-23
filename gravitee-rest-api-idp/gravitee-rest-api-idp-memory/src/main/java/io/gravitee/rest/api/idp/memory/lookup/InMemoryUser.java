@@ -17,7 +17,6 @@ package io.gravitee.rest.api.idp.memory.lookup;
 
 import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
-
 import java.util.Map;
 
 /**
@@ -79,7 +78,7 @@ public class InMemoryUser implements User {
     public String getSource() {
         return InMemoryIdentityProvider.PROVIDER_TYPE;
     }
-    
+
     @Override
     public String getPicture() {
         return picture;

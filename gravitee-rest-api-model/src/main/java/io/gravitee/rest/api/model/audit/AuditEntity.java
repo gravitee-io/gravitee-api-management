@@ -20,17 +20,18 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class AuditEntity {
+
     private String id;
     private String referenceId;
     private String referenceType;
     private String user;
     private Date createdAt;
     private String event;
-    private Map<String,String> properties;
+    private Map<String, String> properties;
     private String patch;
 
     public String getId() {
@@ -96,6 +97,7 @@ public class AuditEntity {
     public void setPatch(String patch) {
         this.patch = patch;
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -110,15 +112,33 @@ public class AuditEntity {
     }
 
     public String toString() {
-        return "AuditEntity{" +
-                "id='" + id + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", event='" + event + '\'' +
-                ", properties='" + properties + '\'' +
-                ", user='" + user + '\'' +
-                ", createdAt='" + createdAt + '\'' +
-                ", patch='" + patch + '\'' +
-                '}';
+        return (
+            "AuditEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", event='" +
+            event +
+            '\'' +
+            ", properties='" +
+            properties +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            ", createdAt='" +
+            createdAt +
+            '\'' +
+            ", patch='" +
+            patch +
+            '\'' +
+            '}'
+        );
     }
 }

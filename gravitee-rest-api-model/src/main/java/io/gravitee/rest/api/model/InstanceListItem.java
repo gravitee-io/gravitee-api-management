@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -61,8 +60,7 @@ public class InstanceListItem {
         this.id = id;
     }
 
-    public InstanceListItem() {
-    }
+    public InstanceListItem() {}
 
     public String getHostname() {
         return hostname;

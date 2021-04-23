@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.alert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 
 /**

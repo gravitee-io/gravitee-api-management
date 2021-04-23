@@ -23,16 +23,14 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
+import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -51,7 +49,11 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
 
     @Override
     public void trigger(final Hook hook, GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
-        if (genericNotificationConfig == null || genericNotificationConfig.getConfig() == null || genericNotificationConfig.getConfig().isEmpty()) {
+        if (
+            genericNotificationConfig == null ||
+            genericNotificationConfig.getConfig() == null ||
+            genericNotificationConfig.getConfig().isEmpty()
+        ) {
             LOGGER.error("Email Notifier configuration is empty");
             return;
         }
@@ -62,16 +64,18 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
 
         String[] mails = getMails(genericNotificationConfig, params).toArray(new String[0]);
-        emailService.sendAsyncEmailNotification(new EmailNotificationBuilder()
-                .to(mails)
-                .template(emailTemplate)
-                .params(params)
-                .build(),
-                GraviteeContext.getCurrentContext());
+        emailService.sendAsyncEmailNotification(
+            new EmailNotificationBuilder().to(mails).template(emailTemplate).params(params).build(),
+            GraviteeContext.getCurrentContext()
+        );
     }
 
     public List<String> getMails(final GenericNotificationConfig genericNotificationConfig, final Map<String, Object> params) {
-        if (genericNotificationConfig == null || genericNotificationConfig.getConfig() == null || genericNotificationConfig.getConfig().isEmpty()) {
+        if (
+            genericNotificationConfig == null ||
+            genericNotificationConfig.getConfig() == null ||
+            genericNotificationConfig.getConfig().isEmpty()
+        ) {
             LOGGER.error("Email Notifier configuration is empty");
             return Collections.emptyList();
         }

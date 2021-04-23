@@ -20,7 +20,6 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public enum PlanSecurityType {
-
     /**
      * Plan which is using a key_less (ie. public) security authentication type for incoming HTTP requests.
      */
@@ -39,5 +38,5 @@ public enum PlanSecurityType {
     /**
      * Plan which is using a JWT security authentication type for incoming HTTP requests.
      */
-    JWT
+    JWT,
 }

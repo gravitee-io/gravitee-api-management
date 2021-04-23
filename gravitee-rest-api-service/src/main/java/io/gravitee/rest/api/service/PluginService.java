@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
-
 import java.util.Set;
 
 /**
@@ -24,7 +23,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface PluginService<T extends PluginEntity> {
-
     Set<T> findAll();
 
     T findById(String plugin);

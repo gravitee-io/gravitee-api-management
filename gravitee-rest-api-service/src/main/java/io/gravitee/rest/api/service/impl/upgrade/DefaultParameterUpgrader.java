@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,14 +31,13 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class DefaultParameterUpgrader implements Upgrader, Ordered {
+
     /**
      * Logger.
      */
@@ -45,6 +45,7 @@ public class DefaultParameterUpgrader implements Upgrader, Ordered {
 
     @Autowired
     private ParameterRepository parameterRepository;
+
     @Autowired
     private ConfigurableEnvironment environment;
 
@@ -53,7 +54,11 @@ public class DefaultParameterUpgrader implements Upgrader, Ordered {
         try {
             String envPortalURL = environment.getProperty("portalURL", Key.MANAGEMENT_URL.defaultValue());
             if (envPortalURL != null) {
-                final Optional<Parameter> optionalParameter = parameterRepository.findById(Key.MANAGEMENT_URL.key(), GraviteeContext.getDefaultOrganization(), ParameterReferenceType.ORGANIZATION);
+                final Optional<Parameter> optionalParameter = parameterRepository.findById(
+                    Key.MANAGEMENT_URL.key(),
+                    GraviteeContext.getDefaultOrganization(),
+                    ParameterReferenceType.ORGANIZATION
+                );
                 if (!optionalParameter.isPresent()) {
                     Parameter managementURLParam = new Parameter();
                     managementURLParam.setKey(Key.MANAGEMENT_URL.key());

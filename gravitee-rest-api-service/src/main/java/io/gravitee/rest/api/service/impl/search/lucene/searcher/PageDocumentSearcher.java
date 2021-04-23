@@ -35,15 +35,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PageDocumentSearcher extends AbstractDocumentSearcher {
 
-    protected final static String FIELD_TYPE_VALUE = "page";
+    protected static final String FIELD_TYPE_VALUE = "page";
 
     @Override
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
-        QueryParser parser = new MultiFieldQueryParser(new String[]{
-                "name",
-                "name_lowercase",
-                "content"
-        }, analyzer);
+        QueryParser parser = new MultiFieldQueryParser(new String[] { "name", "name_lowercase", "content" }, analyzer);
         parser.setFuzzyMinSim(0.6f);
 
         try {
@@ -54,7 +50,10 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
 
             pageFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
             pageFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-            pageFieldsQuery.add(new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(
+                new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')),
+                BooleanClause.Occur.SHOULD
+            );
             pageFieldsQuery.add(new WildcardQuery(new Term("content", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
 
             pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);

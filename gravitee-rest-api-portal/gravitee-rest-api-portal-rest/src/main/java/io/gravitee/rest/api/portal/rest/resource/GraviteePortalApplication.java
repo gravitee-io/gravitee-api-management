@@ -19,12 +19,11 @@ import io.gravitee.rest.api.portal.rest.filter.*;
 import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.*;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
+import javax.inject.Inject;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
-
-import javax.inject.Inject;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -41,9 +40,9 @@ public class GraviteePortalApplication extends ResourceConfig {
         //Main resource
         register(EnvironmentsResource.class);
         register(OpenApiResource.class);
-        
+
         register(MultiPartFeature.class);
-        
+
         register(ObjectMapperResolver.class);
         register(ManagementExceptionMapper.class);
         register(ConstraintValidationExceptionMapper.class);

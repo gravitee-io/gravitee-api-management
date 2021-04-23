@@ -18,10 +18,9 @@ package io.gravitee.rest.api.model.alert;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.rest.api.model.AlertEventRuleEntity;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -125,12 +124,23 @@ public class UpdateAlertTriggerEntity extends Trigger {
 
     @Override
     public String toString() {
-        return "UpdateAlertEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", referenceType=" + referenceType +
-                ", referenceId='" + referenceId + '\'' +
-                '}';
+        return (
+            "UpdateAlertEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            '}'
+        );
     }
 }

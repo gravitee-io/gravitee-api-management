@@ -25,8 +25,10 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ConsoleReCaptcha {
+
     @ParameterKey(Key.CONSOLE_RECAPTCHA_ENABLED)
     private Boolean enabled;
+
     @ParameterKey(Key.CONSOLE_RECAPTCHA_SITE_KEY)
     private String siteKey;
 

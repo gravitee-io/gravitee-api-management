@@ -24,14 +24,12 @@ import io.gravitee.rest.api.model.WorkflowType;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
+import java.util.Date;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -46,8 +44,14 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
     private WorkflowRepository workflowRepository;
 
     @Override
-    public Workflow create(final WorkflowReferenceType referenceType, final String referenceId, final WorkflowType type,
-                           final String user, final WorkflowState state, final String comment) {
+    public Workflow create(
+        final WorkflowReferenceType referenceType,
+        final String referenceId,
+        final WorkflowType type,
+        final String user,
+        final WorkflowState state,
+        final String comment
+    ) {
         final Workflow workflow = new Workflow();
         workflow.setId(RandomString.generate());
         workflow.setReferenceType(referenceType.name());
@@ -67,13 +71,16 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
     }
 
     @Override
-    public List<Workflow> findByReferenceAndType(final WorkflowReferenceType referenceType, final String referenceId,
-                                                 final WorkflowType type) {
+    public List<Workflow> findByReferenceAndType(
+        final WorkflowReferenceType referenceType,
+        final String referenceId,
+        final WorkflowType type
+    ) {
         try {
             return workflowRepository.findByReferenceAndType(referenceType.name(), referenceId, type.name());
         } catch (TechnicalException ex) {
-            final String message = "An error occurs while trying to find workflow by ref " +
-                    referenceType + "/" + referenceId + " and type " + type;
+            final String message =
+                "An error occurs while trying to find workflow by ref " + referenceType + "/" + referenceId + " and type " + type;
             LOGGER.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }

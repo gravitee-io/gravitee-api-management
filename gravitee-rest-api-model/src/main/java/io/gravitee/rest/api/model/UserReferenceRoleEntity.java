@@ -66,10 +66,12 @@ public class UserReferenceRoleEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserReferenceRoleEntity that = (UserReferenceRoleEntity) o;
-        return Objects.equals(user, that.user) &&
-                Objects.equals(referenceId, that.referenceId) &&
-                referenceType == that.referenceType &&
-                Objects.equals(roles, that.roles);
+        return (
+            Objects.equals(user, that.user) &&
+            Objects.equals(referenceId, that.referenceId) &&
+            referenceType == that.referenceType &&
+            Objects.equals(roles, that.roles)
+        );
     }
 
     @Override

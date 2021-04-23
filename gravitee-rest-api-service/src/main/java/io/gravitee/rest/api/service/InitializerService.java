@@ -18,8 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.common.component.LifecycleComponent;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface InitializerService<T> extends LifecycleComponent<T> {
-}
+public interface InitializerService<T> extends LifecycleComponent<T> {}

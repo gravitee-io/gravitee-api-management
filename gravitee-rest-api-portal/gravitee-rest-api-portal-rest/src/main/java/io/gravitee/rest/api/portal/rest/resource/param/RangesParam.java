@@ -32,13 +32,11 @@ public class RangesParam extends AbstractParam<List<Range>> {
     @Override
     protected List<Range> parse(String param) {
         if (param != null) {
-            String [] inputRanges = param.split(";");
+            String[] inputRanges = param.split(";");
             List<Range> ranges = new ArrayList<>(inputRanges.length);
-            for(String inputRange : inputRanges) {
-                String [] inputRangeValues = inputRange.trim().split(":");
-                ranges.add(new Range(
-                        Double.parseDouble(inputRangeValues[0]),
-                        Double.parseDouble(inputRangeValues[1])));
+            for (String inputRange : inputRanges) {
+                String[] inputRangeValues = inputRange.trim().split(":");
+                ranges.add(new Range(Double.parseDouble(inputRangeValues[0]), Double.parseDouble(inputRangeValues[1])));
             }
 
             return ranges;

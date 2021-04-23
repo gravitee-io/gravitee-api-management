@@ -20,5 +20,7 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public enum InvitationReferenceType {
-    API, APPLICATION, GROUP
+    API,
+    APPLICATION,
+    GROUP,
 }

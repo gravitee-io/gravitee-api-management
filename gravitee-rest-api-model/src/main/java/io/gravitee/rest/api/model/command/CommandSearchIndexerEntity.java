@@ -51,10 +51,6 @@ public class CommandSearchIndexerEntity {
 
     @Override
     public String toString() {
-        return "CommandSearchIndexerEntity{" +
-                "id='" + id + '\'' +
-                ", clazz='" + clazz + '\'' +
-                ", action='" + action + '\'' +
-                '}';
+        return "CommandSearchIndexerEntity{" + "id='" + id + '\'' + ", clazz='" + clazz + '\'' + ", action='" + action + '\'' + '}';
     }
 }

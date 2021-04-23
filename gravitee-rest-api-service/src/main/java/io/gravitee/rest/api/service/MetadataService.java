@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.MetadataEntity;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewMetadataEntity;
 import io.gravitee.rest.api.model.UpdateMetadataEntity;
-
 import java.util.List;
 
 /**
@@ -28,7 +27,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface MetadataService {
-
     List<MetadataEntity> findAllDefault();
 
     MetadataEntity create(NewMetadataEntity metadata);

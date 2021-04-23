@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.MetadataReferenceType.APPLICATION;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
@@ -24,13 +27,9 @@ import io.gravitee.rest.api.model.ReferenceMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.service.ApplicationMetadataService;
 import io.gravitee.rest.api.service.ApplicationService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static io.gravitee.repository.management.model.MetadataReferenceType.APPLICATION;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -45,9 +44,7 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
     @Override
     public List<ApplicationMetadataEntity> findAllByApplication(final String applicationId) {
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(APPLICATION, applicationId, false);
-        return allMetadata.stream()
-                .map(m -> convert(m, applicationId))
-                .collect(toList());
+        return allMetadata.stream().map(m -> convert(m, applicationId)).collect(toList());
     }
 
     @Override
@@ -71,7 +68,12 @@ public class ApplicationMetadataServiceImpl extends AbstractReferenceMetadataSer
     }
 
     @Override
-    protected void checkReferenceMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, String referenceId) {
+    protected void checkReferenceMetadataFormat(
+        MetadataFormat format,
+        String value,
+        MetadataReferenceType referenceType,
+        String referenceId
+    ) {
         final ApplicationEntity applicationEntity = applicationService.findById(referenceId);
         metadataService.checkMetadataFormat(format, value, referenceType, applicationEntity);
     }

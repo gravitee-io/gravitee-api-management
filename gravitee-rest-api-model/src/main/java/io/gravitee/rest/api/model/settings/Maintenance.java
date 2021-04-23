@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Maintenance {
+
     @ParameterKey(Key.MAINTENANCE_MODE_ENABLED)
     private Boolean enabled;
 

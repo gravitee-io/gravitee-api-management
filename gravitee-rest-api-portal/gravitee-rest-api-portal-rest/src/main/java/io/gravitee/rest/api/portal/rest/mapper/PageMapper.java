@@ -23,15 +23,14 @@ import io.gravitee.rest.api.portal.rest.model.PageConfiguration.DocExpansionEnum
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.ViewerEnum;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.MediaService;
-import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
-import javax.ws.rs.core.UriBuilder;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.ws.rs.core.UriBuilder;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -58,12 +57,12 @@ public class PageMapper {
 
         if (page.getMetadata() != null) {
             AtomicInteger counter = new AtomicInteger(0);
-            List<Metadata> metadataList = page.getMetadata().entrySet().stream()
-                    .map(e -> new Metadata()
-                            .name(e.getKey())
-                            .value(e.getValue())
-                            .order(Integer.toString(counter.getAndIncrement())))
-                    .collect(Collectors.toList());
+            List<Metadata> metadataList = page
+                .getMetadata()
+                .entrySet()
+                .stream()
+                .map(e -> new Metadata().name(e.getKey()).value(e.getValue()).order(Integer.toString(counter.getAndIncrement())))
+                .collect(Collectors.toList());
             pageItem.setMetadata(metadataList);
         }
         pageItem.setName(page.getName());
@@ -78,13 +77,11 @@ public class PageMapper {
 
         if (page.getAttachedMedia() != null && !page.getAttachedMedia().isEmpty() && baseUriBuilder != null) {
             final String mediaUrl = PortalApiLinkHelper.mediaURL(baseUriBuilder, apiId);
-            final List<PageMedia> pageMedia = mediaService.findAllWithoutContent(page.getAttachedMedia(), apiId).stream()
-                    .map(media -> new PageMedia()
-                            .name(media.getFileName())
-                            .link(mediaUrl + "/" + media.getHash())
-                            .type(media.getType())
-                    )
-                    .collect(Collectors.toList());
+            final List<PageMedia> pageMedia = mediaService
+                .findAllWithoutContent(page.getAttachedMedia(), apiId)
+                .stream()
+                .map(media -> new PageMedia().name(media.getFileName()).link(mediaUrl + "/" + media.getHash()).type(media.getType()))
+                .collect(Collectors.toList());
             pageItem.setMedia(pageMedia);
         }
 

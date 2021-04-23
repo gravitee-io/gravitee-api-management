@@ -17,12 +17,11 @@ package io.gravitee.rest.api.model.notification;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.Objects;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com) 
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class NotificationTemplateEntity {
@@ -54,10 +53,18 @@ public class NotificationTemplateEntity {
     @JsonIgnore
     private String templateName;
 
-    public NotificationTemplateEntity() {
-    }
+    public NotificationTemplateEntity() {}
 
-    public NotificationTemplateEntity(String hook, String scope, String templateName, String name, String description, String title, String content, NotificationTemplateType type) {
+    public NotificationTemplateEntity(
+        String hook,
+        String scope,
+        String templateName,
+        String name,
+        String description,
+        String title,
+        String content,
+        NotificationTemplateType type
+    ) {
         this.hook = hook;
         this.scope = scope;
         this.templateName = templateName;
@@ -180,10 +187,7 @@ public class NotificationTemplateEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NotificationTemplateEntity that = (NotificationTemplateEntity) o;
-        return Objects.equals(hook, that.hook) &&
-                Objects.equals(name, that.name) &&
-                scope.equals(that.scope) &&
-                type == that.type;
+        return Objects.equals(hook, that.hook) && Objects.equals(name, that.name) && scope.equals(that.scope) && type == that.type;
     }
 
     @Override

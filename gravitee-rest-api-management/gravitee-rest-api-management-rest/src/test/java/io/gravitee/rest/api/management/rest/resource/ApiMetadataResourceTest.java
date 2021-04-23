@@ -15,16 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.ApiMetadataEntity;
-import io.gravitee.rest.api.model.NewApiMetadataEntity;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static org.junit.Assert.assertEquals;
@@ -33,6 +23,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.rest.api.model.ApiMetadataEntity;
+import io.gravitee.rest.api.model.NewApiMetadataEntity;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -63,22 +62,18 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
 
         final Response response = envTarget().path(API).path("metadata").request().post(Entity.json(newMetadata));
         assertEquals(CREATED_201, response.getStatus());
-        assertEquals(envTarget().path(API).path("metadata").path("my-metadata-id").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+            envTarget().path(API).path("metadata").path("my-metadata-id").getUri().toString(),
+            response.getHeaders().getFirst(HttpHeaders.LOCATION)
+        );
         verify(searchEngineService, times(1)).index(any(), eq(false));
     }
 
     @Test
     public void shouldDeleteMetadata() {
-
         String metadata = "my-metadata";
 
-        Response response =
-                envTarget()
-                .path(API)
-                .path("metadata")
-                .path(metadata)
-                .request()
-                .delete();
+        Response response = envTarget().path(API).path("metadata").path(metadata).request().delete();
         assertEquals(NO_CONTENT_204, response.getStatus());
         verify(searchEngineService, times(1)).index(any(), eq(false));
     }

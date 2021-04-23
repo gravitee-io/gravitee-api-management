@@ -84,5 +84,4 @@ public class LdapUser implements User {
     public void setPicture(String picture) {
         this.picture = picture;
     }
-    
 }

@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.commands;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.hello.HelloCommand;
 import io.gravitee.cockpit.api.command.hello.HelloPayload;
@@ -30,10 +34,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
@@ -45,6 +45,7 @@ public class HelloCommandProducerTest {
     private static final String CUSTOM_VALUE = "customValue";
     private static final String CUSTOM_KEY = "customKey";
     private static final String INSTALLATION_ID = "installation#1";
+
     @Mock
     private InstallationService installationService;
 
@@ -79,19 +80,21 @@ public class HelloCommandProducerTest {
         final TestObserver<HelloCommand> obs = cut.prepare(command).test();
 
         obs.awaitTerminalEvent();
-        obs.assertValue(helloCommand -> {
-            assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("UI_URL"));
-            assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("API_URL"));
+        obs.assertValue(
+            helloCommand -> {
+                assertEquals(CUSTOM_VALUE, helloCommand.getPayload().getAdditionalInformation().get(CUSTOM_KEY));
+                assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("UI_URL"));
+                assertTrue(helloCommand.getPayload().getAdditionalInformation().containsKey("API_URL"));
 
-            assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
-            assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());
-            assertEquals(GraviteeContext.getDefaultEnvironment(), helloCommand.getPayload().getDefaultEnvironmentId());
-            assertEquals(INSTALLATION_ID, helloCommand.getPayload().getNode().getInstallationId());
-            assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
+                assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
+                assertEquals(GraviteeContext.getDefaultOrganization(), helloCommand.getPayload().getDefaultOrganizationId());
+                assertEquals(GraviteeContext.getDefaultEnvironment(), helloCommand.getPayload().getDefaultEnvironmentId());
+                assertEquals(INSTALLATION_ID, helloCommand.getPayload().getNode().getInstallationId());
+                assertEquals(HOSTNAME, helloCommand.getPayload().getNode().getHostname());
 
-            return true;
-        });
+                return true;
+            }
+        );
     }
 
     @Test(expected = TechnicalManagementException.class)

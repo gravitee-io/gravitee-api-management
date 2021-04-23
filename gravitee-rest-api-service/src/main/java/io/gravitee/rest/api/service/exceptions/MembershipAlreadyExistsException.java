@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,8 +32,12 @@ public class MembershipAlreadyExistsException extends AbstractManagementExceptio
     private final String referenceId;
     private final MembershipReferenceType referenceType;
 
-    public MembershipAlreadyExistsException(String memberId, MembershipMemberType memberType, String referenceId,
-            MembershipReferenceType referenceType) {
+    public MembershipAlreadyExistsException(
+        String memberId,
+        MembershipMemberType memberType,
+        String referenceId,
+        MembershipReferenceType referenceType
+    ) {
         super();
         this.memberId = memberId;
         this.memberType = memberType;
@@ -49,7 +52,17 @@ public class MembershipAlreadyExistsException extends AbstractManagementExceptio
 
     @Override
     public String getMessage() {
-        return "A Membership for member : " + memberType + " " + memberId + " and ref : " + referenceType + " " + referenceId + " already exists.";
+        return (
+            "A Membership for member : " +
+            memberType +
+            " " +
+            memberId +
+            " and ref : " +
+            referenceType +
+            " " +
+            referenceId +
+            " already exists."
+        );
     }
 
     @Override

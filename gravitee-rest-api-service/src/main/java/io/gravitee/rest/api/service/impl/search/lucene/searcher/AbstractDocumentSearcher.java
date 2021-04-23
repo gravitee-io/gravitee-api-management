@@ -20,7 +20,10 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.analyzer.CustomWhitespaceAnalyzer;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -29,11 +32,6 @@ import org.apache.lucene.search.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,8 +44,8 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
      */
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    protected final static String FIELD_ID = "id";
-    protected final static String FIELD_TYPE = "type";
+    protected static final String FIELD_ID = "id";
+    protected static final String FIELD_TYPE = "type";
 
     protected Analyzer analyzer = new CustomWhitespaceAnalyzer();
 

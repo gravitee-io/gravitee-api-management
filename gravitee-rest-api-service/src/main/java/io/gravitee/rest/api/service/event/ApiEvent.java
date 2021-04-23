@@ -20,6 +20,7 @@ package io.gravitee.rest.api.service.event;
  * @author GraviteeSource Team
  */
 public enum ApiEvent {
-
-    DEPLOY, UPDATE, UNDEPLOY;
+    DEPLOY,
+    UPDATE,
+    UNDEPLOY,
 }

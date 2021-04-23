@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -23,17 +26,12 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
-
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Optional;
-
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,10 +49,13 @@ public class PlanService_FindByIdTest {
 
     @Mock
     private ApiService apiService;
+
     @Mock
     private PlanRepository planRepository;
+
     @Mock
     private Plan plan;
+
     @Mock
     private ApiEntity api;
 

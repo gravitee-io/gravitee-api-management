@@ -131,16 +131,32 @@ public class RatingEntity {
 
     @Override
     public String toString() {
-        return "RatingEntity{" +
-                "id='" + id + '\'' +
-                ", api='" + api + '\'' +
-                ", user='" + user + '\'' +
-                ", rate=" + rate +
-                ", title='" + title + '\'' +
-                ", comment='" + comment + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", answers=" + answers +
-                '}';
+        return (
+            "RatingEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", api='" +
+            api +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            ", rate=" +
+            rate +
+            ", title='" +
+            title +
+            '\'' +
+            ", comment='" +
+            comment +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            ", answers=" +
+            answers +
+            '}'
+        );
     }
 }

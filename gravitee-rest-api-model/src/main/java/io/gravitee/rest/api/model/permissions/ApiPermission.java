@@ -17,31 +17,31 @@ package io.gravitee.rest.api.model.permissions;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum ApiPermission implements Permission {
-    DEFINITION(         "DEFINITION",           1000),
-    PLAN(               "PLAN",                 1100),
-    SUBSCRIPTION(       "SUBSCRIPTION",         1200),
-    MEMBER(             "MEMBER",               1300),
-    METADATA(           "METADATA",             1400),
-    ANALYTICS(          "ANALYTICS",            1500),
-    EVENT(              "EVENT",                1600),
-    HEALTH(             "HEALTH",               1700),
-    LOG(                "LOG",                  1800),
-    DOCUMENTATION(      "DOCUMENTATION",        1900),
-    GATEWAY_DEFINITION( "GATEWAY_DEFINITION",   2000),
-    RATING(             "RATING",               2100),
-    RATING_ANSWER(      "RATING_ANSWER",        2200),
-    AUDIT(              "AUDIT",                2300),
-    DISCOVERY(          "DISCOVERY",            2400),
-    NOTIFICATION(       "NOTIFICATION",         2500),
-    MESSAGE(            "MESSAGE",              2600),
-    ALERT(              "ALERT",                2700),
-    RESPONSE_TEMPLATES( "RESPONSE_TEMPLATES",   2800),
-    REVIEWS(            "REVIEWS",              2900),
-    QUALITY_RULE(       "QUALITY_RULE",         3000);
+    DEFINITION("DEFINITION", 1000),
+    PLAN("PLAN", 1100),
+    SUBSCRIPTION("SUBSCRIPTION", 1200),
+    MEMBER("MEMBER", 1300),
+    METADATA("METADATA", 1400),
+    ANALYTICS("ANALYTICS", 1500),
+    EVENT("EVENT", 1600),
+    HEALTH("HEALTH", 1700),
+    LOG("LOG", 1800),
+    DOCUMENTATION("DOCUMENTATION", 1900),
+    GATEWAY_DEFINITION("GATEWAY_DEFINITION", 2000),
+    RATING("RATING", 2100),
+    RATING_ANSWER("RATING_ANSWER", 2200),
+    AUDIT("AUDIT", 2300),
+    DISCOVERY("DISCOVERY", 2400),
+    NOTIFICATION("NOTIFICATION", 2500),
+    MESSAGE("MESSAGE", 2600),
+    ALERT("ALERT", 2700),
+    RESPONSE_TEMPLATES("RESPONSE_TEMPLATES", 2800),
+    REVIEWS("REVIEWS", 2900),
+    QUALITY_RULE("QUALITY_RULE", 3000);
 
     String name;
     int mask;

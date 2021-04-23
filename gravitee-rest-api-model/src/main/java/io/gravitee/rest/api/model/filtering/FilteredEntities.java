@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 public class FilteredEntities<FilterableItem> {
+
     List<FilterableItem> filteredItems;
     Map<String, Map<String, Object>> metadata;
 

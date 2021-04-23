@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
+import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
@@ -24,7 +26,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -35,21 +36,20 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
-
 /**
  * Defines the REST resources to manage users registration.
  *
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"User Registration"})
+@Api(tags = { "User Registration" })
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
 public class UsersRegistrationResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
+
     @Inject
     private UserService userService;
 
@@ -58,20 +58,17 @@ public class UsersRegistrationResource extends AbstractResource {
      * Generate a token and send it in an email to allow a user to create an account.
      */
     @POST
-    @ApiOperation(
-            value = "Register a user",
-            notes = "User registration must be enabled"
-    )
-    @ApiResponses({
+    @ApiOperation(value = "Register a user", notes = "User registration must be enabled")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "User successfully registered", response = UserEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response registerUser(@Valid NewExternalUserEntity newExternalUserEntity) {
         UserEntity newUser = userService.register(newExternalUserEntity);
         if (newUser != null) {
-            return Response
-                    .ok()
-                    .entity(newUser)
-                    .build();
+            return Response.ok().entity(newUser).build();
         }
 
         return Response.serverError().build();
@@ -79,20 +76,17 @@ public class UsersRegistrationResource extends AbstractResource {
 
     @POST
     @Path("/finalize")
-    @ApiOperation(
-            value = "Finalize user registration",
-            notes = "User registration must be enabled"
-    )
-    @ApiResponses({
+    @ApiOperation(value = "Finalize user registration", notes = "User registration must be enabled")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "User successfully created", response = UserEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response finalizeUserRegistration(@Valid RegisterUserEntity registerUserEntity) {
         UserEntity newUser = userService.finalizeRegistration(registerUserEntity);
         if (newUser != null) {
-            return Response
-                    .ok()
-                    .entity(newUser)
-                    .build();
+            return Response.ok().entity(newUser).build();
         }
 
         return Response.serverError().build();

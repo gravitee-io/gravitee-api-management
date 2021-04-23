@@ -23,7 +23,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface AuthenticationProviderManager {
-
     List<AuthenticationProvider> getIdentityProviders();
 
     Optional<AuthenticationProvider> findIdentityProviderByType(String type);

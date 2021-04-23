@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.model.quality;
 
+import java.util.Objects;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -28,15 +28,19 @@ import java.util.Objects;
 public class UpdateQualityRuleEntity {
 
     private String id;
+
     @NotNull
     @Size(max = 64)
     private String name;
+
     @NotNull
     @Size(max = 256)
     private String description;
+
     @Min(0)
     @Max(99999)
     private int weight;
+
     private boolean enabled;
 
     public String getId() {

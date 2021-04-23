@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
@@ -27,20 +32,14 @@ import io.gravitee.rest.api.model.NewEventEntity;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.EventServiceImpl;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -128,7 +127,7 @@ public class EventServiceTest {
 
         eventService.findById(EVENT_ID);
     }
-    
+
     @Test
     public void shouldDelete() throws TechnicalException {
         eventService.delete(EVENT_ID);
@@ -141,18 +140,27 @@ public class EventServiceTest {
         when(eventPage.getTotalElements()).thenReturn(0L);
         when(eventPage.getContent()).thenReturn(Collections.emptyList());
 
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1420070400000L).to(1422748800000L)
-                        .types(EventType.START_API)
-                        .environmentId("DEFAULT")
-                        .build(),
+                    .from(1420070400000L)
+                    .to(1422748800000L)
+                    .types(EventType.START_API)
+                    .environmentId("DEFAULT")
+                    .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
-        )).thenReturn(eventPage);
+            )
+        )
+            .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
-                Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
-                null, 1420070400000L, 1422748800000L, 0, 10);
+            Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
+            null,
+            1420070400000L,
+            1422748800000L,
+            0,
+            10
+        );
         assertTrue(0L == eventPageEntity.getTotalElements());
     }
 
@@ -174,18 +182,27 @@ public class EventServiceTest {
         when(eventPage.getTotalElements()).thenReturn(2L);
         when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
 
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1420070400000L).to(1422748800000L)
-                        .types(EventType.START_API)
-                        .environmentId("DEFAULT")
-                        .build(),
+                    .from(1420070400000L)
+                    .to(1422748800000L)
+                    .types(EventType.START_API)
+                    .environmentId("DEFAULT")
+                    .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
-        )).thenReturn(eventPage);
+            )
+        )
+            .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
-                Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
-                null, 1420070400000L, 1422748800000L, 0, 10);
+            Collections.singletonList(io.gravitee.rest.api.model.EventType.START_API),
+            null,
+            1420070400000L,
+            1422748800000L,
+            0,
+            10
+        );
 
         assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
@@ -206,20 +223,27 @@ public class EventServiceTest {
         when(eventPage.getTotalElements()).thenReturn(2l);
         when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
 
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1420070400000L).to(1422748800000L)
-                        .types(EventType.START_API, EventType.STOP_API)
-                        .environmentId("DEFAULT")
-                        .build(),
+                    .from(1420070400000L)
+                    .to(1422748800000L)
+                    .types(EventType.START_API, EventType.STOP_API)
+                    .environmentId("DEFAULT")
+                    .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
-        )).thenReturn(eventPage);
+            )
+        )
+            .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
-                Arrays.asList(
-                        io.gravitee.rest.api.model.EventType.START_API,
-                        io.gravitee.rest.api.model.EventType.STOP_API),
-                null, 1420070400000L, 1422748800000L, 0, 10);
+            Arrays.asList(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
+            null,
+            1420070400000L,
+            1422748800000L,
+            0,
+            10
+        );
 
         assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
@@ -243,17 +267,20 @@ public class EventServiceTest {
         when(eventPage.getTotalElements()).thenReturn(2L);
         when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
 
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1420070400000L).to(1422748800000L)
-                        .property(Event.EventProperties.API_ID.getValue(), "id-api")
-                        .environmentId("DEFAULT")
-                        .build(),
+                    .from(1420070400000L)
+                    .to(1422748800000L)
+                    .property(Event.EventProperties.API_ID.getValue(), "id-api")
+                    .environmentId("DEFAULT")
+                    .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
-        )).thenReturn(eventPage);
+            )
+        )
+            .thenReturn(eventPage);
 
-        Page<EventEntity> eventPageEntity = eventService.search(
-                null, values, 1420070400000L, 1422748800000L, 0, 10);
+        Page<EventEntity> eventPageEntity = eventService.search(null, values, 1420070400000L, 1422748800000L, 0, 10);
 
         assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
@@ -277,54 +304,87 @@ public class EventServiceTest {
         when(eventPage.getTotalElements()).thenReturn(2L);
         when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
 
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1420070400000L).to(1422748800000L)
-                        .property(Event.EventProperties.API_ID.getValue(), "id-api")
-                        .types(EventType.START_API, EventType.STOP_API)
-                        .environmentId("DEFAULT")
-                        .build(),
+                    .from(1420070400000L)
+                    .to(1422748800000L)
+                    .property(Event.EventProperties.API_ID.getValue(), "id-api")
+                    .types(EventType.START_API, EventType.STOP_API)
+                    .environmentId("DEFAULT")
+                    .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
-        )).thenReturn(eventPage);
+            )
+        )
+            .thenReturn(eventPage);
 
         Page<EventEntity> eventPageEntity = eventService.search(
-                Arrays.asList(
-                        io.gravitee.rest.api.model.EventType.START_API,
-                        io.gravitee.rest.api.model.EventType.STOP_API),
-                values, 1420070400000L, 1422748800000L, 0, 10);
+            Arrays.asList(io.gravitee.rest.api.model.EventType.START_API, io.gravitee.rest.api.model.EventType.STOP_API),
+            values,
+            1420070400000L,
+            1422748800000L,
+            0,
+            10
+        );
 
         assertTrue(2L == eventPageEntity.getTotalElements());
         assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
     }
+
     @Test
     public void shouldFilterEvent() throws TechnicalException {
-
-        when(eventRepository.search(any(), any())).thenReturn(new Page<>(Arrays.asList(generateInstanceEvent("evt1", false),
-                generateInstanceEvent("evt2", true),
-                generateInstanceEvent("evt3", true),
-                generateInstanceEvent("evt4", false),
-                generateInstanceEvent("evt5", true)), 1,5,5));
+        when(eventRepository.search(any(), any()))
+            .thenReturn(
+                new Page<>(
+                    Arrays.asList(
+                        generateInstanceEvent("evt1", false),
+                        generateInstanceEvent("evt2", true),
+                        generateInstanceEvent("evt3", true),
+                        generateInstanceEvent("evt4", false),
+                        generateInstanceEvent("evt5", true)
+                    ),
+                    1,
+                    5,
+                    5
+                )
+            );
 
         // test without predicate
-        Page<Map<String, String>> page = eventService.search(Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
-                Collections.EMPTY_MAP, 0,0,1,10, (evt) -> {
-                    Map<String, String> map = new HashMap<>();
-                    map.put("id", evt.getId());
-                    map.put("state", evt.getType().name());
-                    return map;
-                });
+        Page<Map<String, String>> page = eventService.search(
+            Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
+            Collections.EMPTY_MAP,
+            0,
+            0,
+            1,
+            10,
+            evt -> {
+                Map<String, String> map = new HashMap<>();
+                map.put("id", evt.getId());
+                map.put("state", evt.getType().name());
+                return map;
+            }
+        );
         assertNotNull(page);
         assertNotNull(page.getContent());
         assertEquals(5, page.getContent().size());
 
         // test with predicate
-        page = eventService.search(Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
-                Collections.EMPTY_MAP, 0,0,1,10, (evt) -> {
+        page =
+            eventService.search(
+                Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
+                Collections.EMPTY_MAP,
+                0,
+                0,
+                1,
+                10,
+                evt -> {
                     Map<String, String> map = new HashMap<>();
                     map.put("id", evt.getId());
                     map.put("state", evt.getType().name());
                     return map;
-                }, (map) -> !map.get("state").equals(io.gravitee.rest.api.model.EventType.GATEWAY_STOPPED.name()));
+                },
+                map -> !map.get("state").equals(io.gravitee.rest.api.model.EventType.GATEWAY_STOPPED.name())
+            );
         assertNotNull(page);
         assertNotNull(page.getContent());
         assertEquals(3, page.getContent().size());
@@ -336,14 +396,14 @@ public class EventServiceTest {
         event.setCreatedAt(new Date(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli()));
         event.setUpdatedAt(new Date(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
         Map<String, String> properties = new HashMap<>();
-        properties.put("started_at", ""+Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli());
+        properties.put("started_at", "" + Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli());
         if (isUnknown) {
             event.setType(EventType.GATEWAY_STARTED);
-            properties.put("last_heartbeat_at", ""+Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
+            properties.put("last_heartbeat_at", "" + Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
         } else {
             event.setType(EventType.GATEWAY_STOPPED);
-            properties.put("last_heartbeat_at", ""+Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
-            properties.put("stopped_at", ""+Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
+            properties.put("last_heartbeat_at", "" + Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
+            properties.put("stopped_at", "" + Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
         }
         event.setProperties(properties);
         return event;

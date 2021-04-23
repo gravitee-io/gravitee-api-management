@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.management.model.DashboardReferenceType;
 import io.gravitee.rest.api.model.DashboardEntity;
 import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
-import io.gravitee.repository.management.model.DashboardReferenceType;
-
 import java.util.List;
 
 /**

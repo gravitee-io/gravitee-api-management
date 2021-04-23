@@ -20,6 +20,7 @@ import io.gravitee.plugin.core.internal.AnnotationBasedPluginContextConfigurer;
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
 import io.gravitee.rest.api.repository.proxy.AbstractProxy;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -32,17 +33,15 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.util.Assert;
 
-import java.util.*;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RepositoryPluginHandler implements PluginHandler, InitializingBean {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(RepositoryPluginHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryPluginHandler.class);
 
-    private final static String PLUGIN_TYPE = "repository";
+    private static final String PLUGIN_TYPE = "repository";
 
     @Autowired
     private Environment environment;
@@ -88,12 +87,12 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
             Repository repository = createInstance((Class<Repository>) repositoryClass);
             Collection<Scope> scopes = scopeByRepositoryType.getOrDefault(repository.type(), Collections.EMPTY_LIST);
 
-            for(Scope scope : scopes) {
-                if (! repositories.containsKey(scope)) {
+            for (Scope scope : scopes) {
+                if (!repositories.containsKey(scope)) {
                     boolean loaded = false;
                     int tries = 0;
 
-                    while (! loaded) {
+                    while (!loaded) {
                         if (tries > 0) {
                             // Wait for 5 seconds before giving an other try
                             Thread.sleep(5000);
@@ -101,14 +100,12 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
                         loaded = loadRepository(scope, repository, plugin);
                         tries++;
 
-
-                        if (! loaded) {
+                        if (!loaded) {
                             LOGGER.error("Unable to load repository {} for scope {}. Retry in 5 seconds...", scope, plugin.id());
                         }
                     }
                 } else {
-                    LOGGER.warn("Repository scope {} already loaded by {}", scope,
-                            repositories.get(scope));
+                    LOGGER.warn("Repository scope {} already loaded by {}", scope, repositories.get(scope));
                 }
             }
         } catch (Exception iae) {
@@ -122,12 +119,13 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
         // Not yet loaded, let's mount the repository in application context
         try {
             ApplicationContext repoApplicationContext = pluginContextFactory.create(
-                    new AnnotationBasedPluginContextConfigurer(plugin) {
-                        @Override
-                        public Set<Class<?>> configurations() {
-                            return Collections.singleton(repository.configuration(scope));
-                        }
-                    });
+                new AnnotationBasedPluginContextConfigurer(plugin) {
+                    @Override
+                    public Set<Class<?>> configurations() {
+                        return Collections.singleton(repository.configuration(scope));
+                    }
+                }
+            );
 
             registerRepositoryDefinitions(repository, repoApplicationContext);
             repositories.put(scope, repository);
@@ -141,16 +139,18 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
     }
 
     private void registerRepositoryDefinitions(Repository repository, ApplicationContext repoApplicationContext) {
-        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory)
-                ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
+            (ConfigurableApplicationContext) applicationContext
+        ).getBeanFactory();
 
-        String [] beanNames = repoApplicationContext.getBeanDefinitionNames();
-        for(String beanName : beanNames) {
+        String[] beanNames = repoApplicationContext.getBeanDefinitionNames();
+        for (String beanName : beanNames) {
             Object repositoryClassInstance = repoApplicationContext.getBean(beanName);
             Class<?> repositoryObjectClass = repositoryClassInstance.getClass();
-            if ((beanName.endsWith("Repository") ||
-                    (beanName.endsWith("Manager") && ! beanName.endsWith("TransactionManager")) )
-                            && ! repository.getClass().equals(repositoryClassInstance.getClass())) {
+            if (
+                (beanName.endsWith("Repository") || (beanName.endsWith("Manager") && !beanName.endsWith("TransactionManager"))) &&
+                !repository.getClass().equals(repositoryClassInstance.getClass())
+            ) {
                 if (repositoryObjectClass.getInterfaces().length > 0) {
                     Class<?> repositoryItfClass = repositoryObjectClass.getInterfaces()[0];
                     LOGGER.debug("Set proxy target for {} [{}]", beanName, repositoryItfClass);

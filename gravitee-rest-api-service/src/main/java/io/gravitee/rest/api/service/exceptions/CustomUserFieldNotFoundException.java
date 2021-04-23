@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.Maps;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -25,7 +24,8 @@ import java.util.Map;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CustomUserFieldNotFoundException extends AbstractNotFoundException  {
+public class CustomUserFieldNotFoundException extends AbstractNotFoundException {
+
     private String key;
 
     public CustomUserFieldNotFoundException(String key) {

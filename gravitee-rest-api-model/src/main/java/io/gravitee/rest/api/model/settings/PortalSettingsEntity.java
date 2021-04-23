@@ -18,7 +18,6 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
-
 import java.util.List;
 
 /**
@@ -26,6 +25,7 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
+
     private Analytics analytics;
     private Api api;
     private ApiQualityMetrics apiQualityMetrics;
@@ -40,7 +40,6 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private Portal portal;
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
-
 
     public PortalSettingsEntity() {
         super();
@@ -60,10 +59,10 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         scheduler = new PortalScheduler();
     }
 
-     // Getters & Setters
-     public Analytics getAnalytics() {
-         return analytics;
-     }
+    // Getters & Setters
+    public Analytics getAnalytics() {
+        return analytics;
+    }
 
     public void setAnalytics(Analytics analytics) {
         this.analytics = analytics;
@@ -176,6 +175,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     // Classes
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PortalCors {
+
         @ParameterKey(Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN)
         private List<String> allowOrigin;
 
@@ -231,6 +231,4 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
             this.maxAge = maxAge;
         }
     }
-
-
 }

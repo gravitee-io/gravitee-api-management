@@ -15,18 +15,16 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-
 import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
+import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface EntrypointService {
-
     EntrypointEntity findById(String entrypointId);
     List<EntrypointEntity> findAll();
     EntrypointEntity create(NewEntryPointEntity entrypoint);

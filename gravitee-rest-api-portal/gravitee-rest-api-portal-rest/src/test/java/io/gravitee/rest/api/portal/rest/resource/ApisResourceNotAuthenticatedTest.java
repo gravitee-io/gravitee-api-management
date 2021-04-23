@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doReturn;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -22,27 +27,21 @@ import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApisResponse;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -61,29 +60,32 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return null;
-                }
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return null;
+                    }
 
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
 
-                @Override
-                public boolean isSecure() {
-                    return false;
-                }
+                    @Override
+                    public boolean isSecure() {
+                        return false;
+                    }
 
-                @Override
-                public String getAuthenticationScheme() {
-                    return "BASIC";
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-            });
+            );
         }
     }
 
@@ -106,19 +108,16 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         anotherPublishedApi.setName("C");
         anotherPublishedApi.setId("C");
 
-
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi, anotherPublishedApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(isNull(), any(ApiQuery.class));
 
         doReturn(new FilteredEntities<ApiEntity>(new ArrayList<>(mockApis), null)).when(filteringService).filterApis(any(), any(), any());
 
-        
         doReturn(false).when(ratingService).isEnabled();
 
         doReturn(new Api().name("A").id("A")).when(apiMapper).convert(publishedApi);
         doReturn(new Api().name("B").id("B")).when(apiMapper).convert(unpublishedApi);
         doReturn(new Api().name("C").id("C")).when(apiMapper).convert(anotherPublishedApi);
-
     }
 
     @Test

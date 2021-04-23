@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.plan.PlanQuery;
-
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +29,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface PlanService {
-
     PlanEntity findById(String plan);
 
     Set<PlanEntity> findByApi(String api);

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.IdGenerator;
@@ -31,17 +33,13 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
-
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -68,14 +66,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     public Set<DictionaryEntity> findAll() {
         try {
             return dictionaryRepository
-                    .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
-                    .stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet());
+                .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to retrieve dictionaries", ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to retrieve dictionaries", ex);
+            throw new TechnicalManagementException("An error occurs while trying to retrieve dictionaries", ex);
         }
     }
 
@@ -160,11 +157,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             eventService.create(EventType.START_DICTIONARY, null, properties);
 
             // Audit
-            createAuditLog(
-                    Dictionary.AuditEvent.DICTIONARY_UPDATED,
-                    dictionary.getCreatedAt(),
-                    optDictionary.get(),
-                    dictionary);
+            createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getCreatedAt(), optDictionary.get(), dictionary);
 
             return convert(dictionary);
         } catch (Exception ex) {
@@ -197,11 +190,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             eventService.create(EventType.STOP_DICTIONARY, null, properties);
 
             // Audit
-            createAuditLog(
-                    Dictionary.AuditEvent.DICTIONARY_UPDATED,
-                    dictionary.getCreatedAt(),
-                    optDictionary.get(),
-                    dictionary);
+            createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getCreatedAt(), optDictionary.get(), dictionary);
 
             return convert(dictionary);
         } catch (Exception ex) {
@@ -215,16 +204,15 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Create dictionary {}", newDictionaryEntity);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(
-                    IdGenerator.generate(newDictionaryEntity.getName()));
+            Optional<Dictionary> optDictionary = dictionaryRepository.findById(IdGenerator.generate(newDictionaryEntity.getName()));
             if (optDictionary.isPresent()) {
                 throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
             }
 
             Dictionary dictionary = convert(newDictionaryEntity);
-            
+
             dictionary.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
-            
+
             // Set date fields
             dictionary.setCreatedAt(new Date());
             dictionary.setState(LifecycleState.STOPPED);
@@ -269,11 +257,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             }
 
             // Audit
-            createAuditLog(
-                    Dictionary.AuditEvent.DICTIONARY_UPDATED,
-                    dictionary.getCreatedAt(),
-                    optDictionary.get(),
-                    updatedDictionary);
+            createAuditLog(Dictionary.AuditEvent.DICTIONARY_UPDATED, dictionary.getCreatedAt(), optDictionary.get(), updatedDictionary);
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
@@ -296,8 +280,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             throw new DictionaryNotFoundException(id);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to delete a dictionary using its ID " + id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
     }
 
@@ -322,21 +305,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             dictionaryRepository.delete(id);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to delete a dictionary using its ID " + id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
     }
 
     private void createAuditLog(Audit.AuditEvent event, Date createdAt, Dictionary oldValue, Dictionary newValue) {
         String dictionaryName = oldValue != null ? oldValue.getName() : newValue.getName();
 
-            auditService.createEnvironmentAuditLog(
-                    Collections.singletonMap(DICTIONARY, dictionaryName),
-                    event,
-                    createdAt,
-                    oldValue,
-                    newValue
-            );
+        auditService.createEnvironmentAuditLog(Collections.singletonMap(DICTIONARY, dictionaryName), event, createdAt, oldValue, newValue);
     }
 
     private DictionaryEntity convert(Dictionary dictionary) {

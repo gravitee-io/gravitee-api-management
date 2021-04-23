@@ -33,5 +33,4 @@ public class ApplicationRedirectUrisNotFound extends AbstractNotFoundException {
     public Map<String, String> getParameters() {
         return null;
     }
-
 }

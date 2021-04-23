@@ -27,13 +27,12 @@ import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.BadNotificationConfigException;
 import io.gravitee.rest.api.service.exceptions.NotificationConfigNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -49,8 +48,7 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
 
     @Override
     public GenericNotificationConfigEntity create(GenericNotificationConfigEntity entity) {
-        if (entity.getNotifier() == null || entity.getNotifier().isEmpty()
-                || entity.getName() == null || entity.getName().isEmpty()) {
+        if (entity.getNotifier() == null || entity.getNotifier().isEmpty() || entity.getName() == null || entity.getName().isEmpty()) {
             throw new BadNotificationConfigException();
         }
         try {
@@ -68,12 +66,11 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
     @Override
     public GenericNotificationConfigEntity update(GenericNotificationConfigEntity entity) {
         try {
-            if (entity.getNotifier() == null || entity.getNotifier().isEmpty()
-                    || entity.getName() == null || entity.getName().isEmpty()) {
+            if (entity.getNotifier() == null || entity.getNotifier().isEmpty() || entity.getName() == null || entity.getName().isEmpty()) {
                 throw new BadNotificationConfigException();
             }
 
-            if( entity.getId() == null || entity.getId().isEmpty()) {
+            if (entity.getId() == null || entity.getId().isEmpty()) {
                 throw new NotificationConfigNotFoundException();
             }
             Optional<GenericNotificationConfig> optionalConfig = genericNotificationConfigRepository.findById(entity.getId());
@@ -105,18 +102,31 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
     public void deleteReference(NotificationReferenceType referenceType, String referenceId) {
         try {
             genericNotificationConfigRepository
-                    .findByReference(referenceType, referenceId)
-                    .forEach(cfg -> {
+                .findByReference(referenceType, referenceId)
+                .forEach(
+                    cfg -> {
                         try {
                             genericNotificationConfigRepository.delete(cfg.getId());
                         } catch (TechnicalException e) {
-                            LOGGER.error("An error occurs while trying to delete the generic notifications {} / {}", referenceType, referenceId, e);
-                            throw new TechnicalManagementException("An error occurs while trying to delete the generic notifications " + referenceType + " / " + referenceId, e);
+                            LOGGER.error(
+                                "An error occurs while trying to delete the generic notifications {} / {}",
+                                referenceType,
+                                referenceId,
+                                e
+                            );
+                            throw new TechnicalManagementException(
+                                "An error occurs while trying to delete the generic notifications " + referenceType + " / " + referenceId,
+                                e
+                            );
                         }
-                    });
+                    }
+                );
         } catch (TechnicalException te) {
             LOGGER.error("An error occurs while trying to delete the generic notifications {} / {}", referenceType, referenceId, te);
-            throw new TechnicalManagementException("An error occurs while trying to delete the generic notifications " + referenceType + " / " + referenceId, te);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to delete the generic notifications " + referenceType + " / " + referenceId,
+                te
+            );
         }
     }
 
@@ -138,13 +148,16 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
     public List<GenericNotificationConfigEntity> findByReference(NotificationReferenceType referenceType, String referenceId) {
         try {
             return genericNotificationConfigRepository
-                    .findByReference(referenceType, referenceId)
-                    .stream()
-                    .map(this::convert)
-                    .collect(Collectors.toList());
+                .findByReference(referenceType, referenceId)
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to get the notification config {}/{}", referenceType, referenceId);
-            throw new TechnicalManagementException("An error occurs while trying to get the notification config " + referenceType + "/" + referenceId, e);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to get the notification config " + referenceType + "/" + referenceId,
+                e
+            );
         }
     }
 
@@ -157,7 +170,10 @@ public class GenericNotificationConfigServiceImpl extends AbstractService implem
             }
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to delete the notification config for user {}", user.getId(), e);
-            throw new TechnicalManagementException("An error occurs while trying to delete the notification config for user " +  user.getId(), e);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to delete the notification config for user " + user.getId(),
+                e
+            );
         }
     }
 

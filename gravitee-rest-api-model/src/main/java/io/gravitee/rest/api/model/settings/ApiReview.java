@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ApiReview {
+
     @ParameterKey(Key.API_REVIEW_ENABLED)
     private Boolean enabled;
 

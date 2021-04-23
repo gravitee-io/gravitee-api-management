@@ -16,9 +16,8 @@
 package io.gravitee.rest.api.model.alert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -27,13 +26,18 @@ import java.util.Objects;
 public class UpdateAlertEntity {
 
     private String id;
+
     @NotNull
     private String name;
+
     private String description;
+
     @JsonProperty("reference_type")
     private AlertReferenceType referenceType;
+
     @JsonProperty("reference_id")
     private String referenceId;
+
     private AlertType type;
     private boolean enabled;
     private MetricType metricType;
@@ -153,19 +157,38 @@ public class UpdateAlertEntity {
 
     @Override
     public String toString() {
-        return "UpdateAlertEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", referenceType=" + referenceType +
-                ", referenceId='" + referenceId + '\'' +
-                ", type=" + type +
-                ", enabled=" + enabled +
-                ", metricType=" + metricType +
-                ", metric=" + metric +
-                ", thresholdType=" + thresholdType +
-                ", threshold=" + threshold +
-                ", plan='" + plan + '\'' +
-                '}';
+        return (
+            "UpdateAlertEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", type=" +
+            type +
+            ", enabled=" +
+            enabled +
+            ", metricType=" +
+            metricType +
+            ", metric=" +
+            metric +
+            ", thresholdType=" +
+            thresholdType +
+            ", threshold=" +
+            threshold +
+            ", plan='" +
+            plan +
+            '\'' +
+            '}'
+        );
     }
 }

@@ -22,7 +22,5 @@ import net.minidev.json.JSONObject;
  * @author GraviteeSource Team
  */
 public interface SpelService {
-
     JSONObject getGrammar();
-
 }

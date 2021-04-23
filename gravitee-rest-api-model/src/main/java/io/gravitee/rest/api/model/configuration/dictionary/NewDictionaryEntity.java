@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.configuration.dictionary;
 
+import java.util.Map;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,81 +25,81 @@ import java.util.Map;
  */
 public class NewDictionaryEntity {
 
-	@NotNull
-	@Size(min = 3)
-	private String name;
+    @NotNull
+    @Size(min = 3)
+    private String name;
 
-	private String description;
+    private String description;
 
-	@NotNull
-	private DictionaryType type;
+    @NotNull
+    private DictionaryType type;
 
-	private DictionaryProviderEntity provider;
+    private DictionaryProviderEntity provider;
 
-	private DictionaryTriggerEntity trigger;
+    private DictionaryTriggerEntity trigger;
 
-	private Map<String, String> properties;
+    private Map<String, String> properties;
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public DictionaryType getType() {
-		return type;
-	}
+    public DictionaryType getType() {
+        return type;
+    }
 
-	public void setType(DictionaryType type) {
-		this.type = type;
-	}
+    public void setType(DictionaryType type) {
+        this.type = type;
+    }
 
-	public DictionaryProviderEntity getProvider() {
-		return provider;
-	}
+    public DictionaryProviderEntity getProvider() {
+        return provider;
+    }
 
-	public void setProvider(DictionaryProviderEntity provider) {
-		this.provider = provider;
-	}
+    public void setProvider(DictionaryProviderEntity provider) {
+        this.provider = provider;
+    }
 
-	public DictionaryTriggerEntity getTrigger() {
-		return trigger;
-	}
+    public DictionaryTriggerEntity getTrigger() {
+        return trigger;
+    }
 
-	public void setTrigger(DictionaryTriggerEntity trigger) {
-		this.trigger = trigger;
-	}
+    public void setTrigger(DictionaryTriggerEntity trigger) {
+        this.trigger = trigger;
+    }
 
-	public Map<String, String> getProperties() {
-		return properties;
-	}
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 
-	public void setProperties(Map<String, String> properties) {
-		this.properties = properties;
-	}
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		NewDictionaryEntity that = (NewDictionaryEntity) o;
+        NewDictionaryEntity that = (NewDictionaryEntity) o;
 
-		return name.equals(that.name);
-	}
+        return name.equals(that.name);
+    }
 
-	@Override
-	public int hashCode() {
-		return name.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
 }

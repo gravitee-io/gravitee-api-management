@@ -16,10 +16,9 @@
 package io.gravitee.rest.api.model.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -30,8 +29,10 @@ public class DuplicateApiEntity {
     @NotNull
     @JsonProperty("context_path")
     private String contextPath;
+
     @JsonProperty("filtered_fields")
     private List<String> filteredFields;
+
     private String version;
 
     public String getContextPath() {
@@ -63,9 +64,11 @@ public class DuplicateApiEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DuplicateApiEntity that = (DuplicateApiEntity) o;
-        return Objects.equals(contextPath, that.contextPath) &&
-                Objects.equals(filteredFields, that.filteredFields) &&
-                Objects.equals(version, that.version);
+        return (
+            Objects.equals(contextPath, that.contextPath) &&
+            Objects.equals(filteredFields, that.filteredFields) &&
+            Objects.equals(version, that.version)
+        );
     }
 
     @Override
@@ -75,10 +78,17 @@ public class DuplicateApiEntity {
 
     @Override
     public String toString() {
-        return "DuplicateApiEntity{" +
-                "contextPath='" + contextPath + '\'' +
-                ", filteredFields=" + filteredFields +
-                ", version='" + version + '\'' +
-                '}';
+        return (
+            "DuplicateApiEntity{" +
+            "contextPath='" +
+            contextPath +
+            '\'' +
+            ", filteredFields=" +
+            filteredFields +
+            ", version='" +
+            version +
+            '\'' +
+            '}'
+        );
     }
 }

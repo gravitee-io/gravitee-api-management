@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl.swagger.policy;
 
 import io.gravitee.rest.api.service.impl.swagger.visitor.v2.SwaggerOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
-
 import java.util.List;
 
 /**
@@ -25,7 +24,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface PolicyOperationVisitorManager {
-
     void add(PolicyOperationVisitor operationVisitor);
 
     List<PolicyOperationVisitor> getPolicyVisitors();

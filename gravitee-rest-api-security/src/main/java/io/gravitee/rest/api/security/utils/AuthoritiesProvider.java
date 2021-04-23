@@ -15,18 +15,17 @@
  */
 package io.gravitee.rest.api.security.utils;
 
+import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
+
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import org.springframework.security.core.GrantedAuthority;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -42,20 +41,31 @@ public class AuthoritiesProvider {
 
     public Set<GrantedAuthority> retrieveAuthorities(String userId) {
         final String currentEnvironment = GraviteeContext.getCurrentEnvironment();
-        return this.retrieveAuthorities(userId, GraviteeContext.getCurrentOrganization(), currentEnvironment == null ? GraviteeContext.getDefaultEnvironment() : currentEnvironment);
+        return this.retrieveAuthorities(
+                userId,
+                GraviteeContext.getCurrentOrganization(),
+                currentEnvironment == null ? GraviteeContext.getDefaultEnvironment() : currentEnvironment
+            );
     }
 
     public Set<GrantedAuthority> retrieveAuthorities(String userId, String organizationId, String environmentId) {
         final Set<GrantedAuthority> authorities = new HashSet<>();
 
-        final Set<RoleEntity> roles =
-                membershipService.getRoles(MembershipReferenceType.PLATFORM, "DEFAULT", MembershipMemberType.USER, userId);
+        final Set<RoleEntity> roles = membershipService.getRoles(
+            MembershipReferenceType.PLATFORM,
+            "DEFAULT",
+            MembershipMemberType.USER,
+            userId
+        );
         roles.addAll(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, organizationId, MembershipMemberType.USER, userId));
         roles.addAll(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, environmentId, MembershipMemberType.USER, userId));
 
         if (!roles.isEmpty()) {
-            authorities.addAll(commaSeparatedStringToAuthorityList(roles.stream()
-                    .map(r -> r.getScope().name() + ':' + r.getName()).collect(Collectors.joining(","))));
+            authorities.addAll(
+                commaSeparatedStringToAuthorityList(
+                    roles.stream().map(r -> r.getScope().name() + ':' + r.getName()).collect(Collectors.joining(","))
+                )
+            );
         }
 
         return authorities;

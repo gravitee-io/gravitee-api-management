@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Plan {
+
     private PlanSecurity security;
 
     public Plan() {
@@ -40,6 +41,7 @@ public class Plan {
     }
 
     public static class PlanSecurity {
+
         @ParameterKey(Key.PLAN_SECURITY_APIKEY_ENABLED)
         private Enabled apikey;
 

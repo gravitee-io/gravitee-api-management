@@ -23,7 +23,7 @@ public class LifecycleActionParam {
 
     public enum LifecycleAction {
         START,
-        STOP
+        STOP,
     }
 
     private LifecycleAction action;

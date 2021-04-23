@@ -15,15 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.flow;
 
+import static java.nio.charset.Charset.defaultCharset;
+
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import org.apache.commons.io.IOUtils;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.InputStream;
-
-import static java.nio.charset.Charset.defaultCharset;
+import org.apache.commons.io.IOUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -44,5 +43,3 @@ public class FlowServiceImpl implements FlowService {
         }
     }
 }
-
-

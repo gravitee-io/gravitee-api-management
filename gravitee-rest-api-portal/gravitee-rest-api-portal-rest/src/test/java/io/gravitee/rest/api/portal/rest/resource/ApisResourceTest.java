@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doReturn;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -22,21 +26,16 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
-import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -83,8 +82,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         publishedApi5.setName("6");
         publishedApi5.setId("6");
 
-        Set<ApiEntity> mockApis = new HashSet<>(
-                Arrays.asList(publishedApi5, publishedApi2, publishedApi1, publishedApi3, publishedApi4));
+        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(publishedApi5, publishedApi2, publishedApi1, publishedApi3, publishedApi4));
         doReturn(mockApis).when(apiService).findPublishedByUser(any(), any());
 
         doReturn(false).when(ratingService).isEnabled();
@@ -97,13 +95,18 @@ public class ApisResourceTest extends AbstractResourceTest {
         doReturn(new Api().name("4").id("4")).when(apiMapper).convert(publishedApi3);
         doReturn(new Api().name("5").id("5")).when(apiMapper).convert(publishedApi4);
         doReturn(new Api().name("6").id("6")).when(apiMapper).convert(publishedApi5);
-
     }
 
     @Test
     public void shouldGetPublishedApi() {
-        final Response response = target().queryParam("context-path", "context-path").queryParam("label", "label")
-                .queryParam("version", "version").queryParam("name", "name").queryParam("tag", "tag").request().get();
+        final Response response = target()
+            .queryParam("context-path", "context-path")
+            .queryParam("label", "label")
+            .queryParam("version", "version")
+            .queryParam("name", "name")
+            .queryParam("tag", "tag")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiQuery> queryCaptor = ArgumentCaptor.forClass(ApiQuery.class);
@@ -116,8 +119,9 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals("tag", query.getTag());
 
         ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).computeApiLinks(basePathCaptor.capture(),
-                ArgumentCaptor.forClass(Date.class).capture());
+        Mockito
+            .verify(apiMapper, Mockito.times(5))
+            .computeApiLinks(basePathCaptor.capture(), ArgumentCaptor.forClass(Date.class).capture());
         final String expectedBasePath = target().getUri().toString();
         final List<String> bastPathList = basePathCaptor.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath + "/1"));
@@ -128,16 +132,13 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
         assertEquals(5, apiResponse.getData().size());
-
     }
-
 
     @Test
     public void shouldGetPublishedApiWithPaginatedLink() {
@@ -146,8 +147,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
 
@@ -165,8 +165,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
 
@@ -181,8 +180,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "4", "5", "6")));
 
@@ -210,7 +208,6 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
-
         doReturn(Collections.emptySet()).when(apiService).findPublishedByUser(any(), any());
         doReturn(new FilteredEntities<ApiEntity>(Collections.emptyList(), null)).when(filteringService).filterApis(any(), any(), any());
 
@@ -233,7 +230,6 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         links = apiResponse.getLinks();
         assertNull(links);
-
     }
 
     @Test
@@ -257,8 +253,9 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertNull(query.getTag());
 
         ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(basePathCaptor.capture(),
-                ArgumentCaptor.forClass(Date.class).capture());
+        Mockito
+            .verify(apiMapper, Mockito.times(1))
+            .computeApiLinks(basePathCaptor.capture(), ArgumentCaptor.forClass(Date.class).capture());
         final String expectedBasePath = target().getUri().toString();
         final List<String> bastPathList = basePathCaptor.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath + "/3"));
@@ -278,8 +275,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(4)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(4, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5", "6")));
 
@@ -291,13 +287,17 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldHaveAllButPromotedApiIfCategoryWithoutHighLightedApi() throws TechnicalException {
         doReturn(new CategoryEntity()).when(categoryService).findById("myCat");
 
-        final Response response = target().queryParam("size", 3).queryParam("promoted", false).queryParam("category", "myCat").request().get();
+        final Response response = target()
+            .queryParam("size", 3)
+            .queryParam("promoted", false)
+            .queryParam("category", "myCat")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(4)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(4, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5", "6")));
 
@@ -311,13 +311,17 @@ public class ApisResourceTest extends AbstractResourceTest {
         myCatEntity.setHighlightApi("4");
         doReturn(myCatEntity).when(categoryService).findById("myCat");
 
-        final Response response = target().queryParam("size", 3).queryParam("promoted", false).queryParam("category", "myCat").request().get();
+        final Response response = target()
+            .queryParam("size", 3)
+            .queryParam("promoted", false)
+            .queryParam("category", "myCat")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(4)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(4, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1", "3", "5", "6")));
 
@@ -331,13 +335,17 @@ public class ApisResourceTest extends AbstractResourceTest {
         myCatEntity.setHighlightApi("7");
         doReturn(myCatEntity).when(categoryService).findById("myCat");
 
-        final Response response = target().queryParam("size", 3).queryParam("promoted", false).queryParam("category", "myCat").request().get();
+        final Response response = target()
+            .queryParam("size", 3)
+            .queryParam("promoted", false)
+            .queryParam("category", "myCat")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(4)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(4, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("3", "4", "5", "6")));
 
@@ -352,8 +360,7 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1")));
 
@@ -365,13 +372,17 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void shouldHavePromotedApiIfCategoryWithoutHighLightedApi() throws TechnicalException {
         doReturn(new CategoryEntity()).when(categoryService).findById("myCat");
 
-        final Response response = target().queryParam("size", 3).queryParam("promoted", true).queryParam("category", "myCat").request().get();
+        final Response response = target()
+            .queryParam("size", 3)
+            .queryParam("promoted", true)
+            .queryParam("category", "myCat")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1")));
 
@@ -385,13 +396,17 @@ public class ApisResourceTest extends AbstractResourceTest {
         myCatEntity.setHighlightApi("4");
         doReturn(myCatEntity).when(categoryService).findById("myCat");
 
-        final Response response = target().queryParam("size", 3).queryParam("promoted", true).queryParam("category", "myCat").request().get();
+        final Response response = target()
+            .queryParam("size", 3)
+            .queryParam("promoted", true)
+            .queryParam("category", "myCat")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("4")));
 
@@ -405,13 +420,17 @@ public class ApisResourceTest extends AbstractResourceTest {
         myCatEntity.setHighlightApi("7");
         doReturn(myCatEntity).when(categoryService).findById("myCat");
 
-        final Response response = target().queryParam("size", 3).queryParam("promoted", true).queryParam("category", "myCat").request().get();
+        final Response response = target()
+            .queryParam("size", 3)
+            .queryParam("promoted", true)
+            .queryParam("category", "myCat")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
         Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
-        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
-                .collect(Collectors.toList());
+        final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName()).collect(Collectors.toList());
         assertEquals(1, allNameValues.size());
         assertTrue(allNameValues.containsAll(Arrays.asList("1")));
 

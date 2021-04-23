@@ -18,16 +18,16 @@ package io.gravitee.rest.api.service.notification;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class NotificationParamsBuilder {
+
     private final Map<String, Object> params = new HashMap<>();
 
     public static final String PARAM_APPLICATION = "application";

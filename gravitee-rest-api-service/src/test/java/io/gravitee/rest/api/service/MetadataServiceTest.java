@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.repository.management.model.MetadataReferenceType.API;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import freemarker.template.TemplateException;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -23,18 +28,12 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.MetadataServiceImpl;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import java.io.Reader;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.io.Reader;
-
-import static io.gravitee.repository.management.model.MetadataReferenceType.API;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -82,8 +81,7 @@ public class MetadataServiceTest {
 
     @Test
     public void checkMetadataFormat_userWithoutEmail() throws TemplateException {
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any()))
-                .thenReturn("");
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any())).thenReturn("");
         UserEntity userEntity = new UserEntity();
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         ApiEntity apiEntity = new ApiEntity();

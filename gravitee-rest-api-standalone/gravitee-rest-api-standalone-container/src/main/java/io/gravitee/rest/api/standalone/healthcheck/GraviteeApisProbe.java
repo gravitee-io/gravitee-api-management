@@ -22,10 +22,9 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * HTTP Probe used to check the Management API itself.
@@ -56,15 +55,19 @@ public class GraviteeApisProbe implements Probe {
         NetClientOptions options = new NetClientOptions().setConnectTimeout(500);
         NetClient client = vertx.createNetClient(options);
 
-        client.connect(port, host, res -> {
-            if (res.succeeded()) {
-                future.complete(Result.healthy());
-            } else {
-                future.complete(Result.unhealthy(res.cause()));
-            }
+        client.connect(
+            port,
+            host,
+            res -> {
+                if (res.succeeded()) {
+                    future.complete(Result.healthy());
+                } else {
+                    future.complete(Result.unhealthy(res.cause()));
+                }
 
-            client.close();
-        });
+                client.close();
+            }
+        );
 
         return VertxCompletableFuture.from(vertx, future);
     }

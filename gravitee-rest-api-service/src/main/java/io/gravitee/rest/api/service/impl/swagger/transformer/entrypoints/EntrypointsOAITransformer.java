@@ -22,7 +22,6 @@ import io.gravitee.rest.api.service.impl.swagger.SwaggerProperties;
 import io.gravitee.rest.api.service.impl.swagger.transformer.page.AbstractPageConfigurationSwaggerTransformer;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.oas.models.servers.Server;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -50,36 +49,48 @@ public class EntrypointsOAITransformer extends AbstractPageConfigurationSwaggerT
             List<Server> servers = new ArrayList<>();
 
             // Add server according to entrypoints
-            entrypoints.forEach(entrypoint -> {
-                Server server = new Server();
+            entrypoints.forEach(
+                entrypoint -> {
+                    Server server = new Server();
 
-                if (asBoolean(SwaggerProperties.ENTRYPOINT_AS_BASEPATH)) {
-                    server.setUrl(entrypoint.getTarget());
-                } else {
-                    URI target = URI.create(entrypoint.getTarget());
-                    server.setUrl(entrypoint.getTarget().substring(0, entrypoint.getTarget().indexOf(target.getRawPath())));
+                    if (asBoolean(SwaggerProperties.ENTRYPOINT_AS_BASEPATH)) {
+                        server.setUrl(entrypoint.getTarget());
+                    } else {
+                        URI target = URI.create(entrypoint.getTarget());
+                        server.setUrl(entrypoint.getTarget().substring(0, entrypoint.getTarget().indexOf(target.getRawPath())));
+                    }
+
+                    servers.add(server);
                 }
-
-                servers.add(server);
-            });
+            );
 
             descriptor.getSpecification().setServers(servers);
         } else if (asBoolean(SwaggerProperties.ENTRYPOINT_AS_BASEPATH) && descriptor.getSpecification().getServers() != null) {
             // Replace the server path with the api context-path.
-            descriptor.getSpecification().getServers().forEach(server -> {
-                final URI newURI = URI.create(server.getUrl());
-                try {
-                    server.setUrl(new URI(newURI.getScheme(),
-                            newURI.getUserInfo(),
-                            newURI.getHost(),
-                            newURI.getPort(),
-                            this.contextPath,
-                            newURI.getQuery(),
-                            newURI.getFragment()).toString());
-                } catch (URISyntaxException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            });
+            descriptor
+                .getSpecification()
+                .getServers()
+                .forEach(
+                    server -> {
+                        final URI newURI = URI.create(server.getUrl());
+                        try {
+                            server.setUrl(
+                                new URI(
+                                    newURI.getScheme(),
+                                    newURI.getUserInfo(),
+                                    newURI.getHost(),
+                                    newURI.getPort(),
+                                    this.contextPath,
+                                    newURI.getQuery(),
+                                    newURI.getFragment()
+                                )
+                                    .toString()
+                            );
+                        } catch (URISyntaxException e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                    }
+                );
         }
     }
 }

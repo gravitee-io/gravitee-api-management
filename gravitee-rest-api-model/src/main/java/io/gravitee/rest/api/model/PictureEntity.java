@@ -19,5 +19,4 @@ package io.gravitee.rest.api.model;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PictureEntity {
-}
+public interface PictureEntity {}

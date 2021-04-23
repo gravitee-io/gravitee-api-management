@@ -19,13 +19,12 @@ import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.HitsAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.portal.rest.model.*;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -34,33 +33,37 @@ import java.util.stream.Collectors;
 
 @Component
 public class AnalyticsMapper {
-    public DateHistoAnalytics convert(HistogramAnalytics analytics) {
-       DateHistoAnalytics analyticsItem = new DateHistoAnalytics();
-       if (analytics != null && analytics.getTimestamp() != null) {
-           analyticsItem.setTimestamp(new Timerange()
-                   .from(analytics.getTimestamp().getFrom())
-                   .to(analytics.getTimestamp().getTo())
-                   .interval(analytics.getTimestamp().getInterval())
-                   );
-           List<Bucket> buckets = convertBucketList(analytics.getValues());
-           analyticsItem.setValues(buckets);
-       }
 
-       return analyticsItem;
+    public DateHistoAnalytics convert(HistogramAnalytics analytics) {
+        DateHistoAnalytics analyticsItem = new DateHistoAnalytics();
+        if (analytics != null && analytics.getTimestamp() != null) {
+            analyticsItem.setTimestamp(
+                new Timerange()
+                    .from(analytics.getTimestamp().getFrom())
+                    .to(analytics.getTimestamp().getTo())
+                    .interval(analytics.getTimestamp().getInterval())
+            );
+            List<Bucket> buckets = convertBucketList(analytics.getValues());
+            analyticsItem.setValues(buckets);
+        }
+
+        return analyticsItem;
     }
 
     private List<Bucket> convertBucketList(List<io.gravitee.rest.api.model.analytics.Bucket> buckets) {
-        if(buckets != null && !buckets.isEmpty()) {
-            return buckets.stream()
-                    .map(b-> new Bucket()
-                            .data(b.getData() == null? null : Arrays.asList(b.getData()))
+        if (buckets != null && !buckets.isEmpty()) {
+            return buckets
+                .stream()
+                .map(
+                    b ->
+                        new Bucket()
+                            .data(b.getData() == null ? null : Arrays.asList(b.getData()))
                             .field(b.getField())
                             .metadata(b.getMetadata() == null ? null : new HashMap(b.getMetadata()))
                             .name(b.getName())
                             .buckets(this.convertBucketList(b.getBuckets()))
-                        )
-                    .collect(Collectors.toList())
-                    ;
+                )
+                .collect(Collectors.toList());
         }
         return Collections.emptyList();
     }

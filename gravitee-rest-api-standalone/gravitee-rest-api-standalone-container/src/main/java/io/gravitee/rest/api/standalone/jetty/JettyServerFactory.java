@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.standalone.jetty;
 
+import java.lang.management.ManagementFactory;
+import java.util.concurrent.ArrayBlockingQueue;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.*;
@@ -24,30 +26,26 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.management.ManagementFactory;
-import java.util.concurrent.ArrayBlockingQueue;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class JettyServerFactory implements FactoryBean<Server> {
 
-    private final static String KEYSTORE_TYPE_PKCS12 = "pkcs12";
-    private final static String KEYSTORE_TYPE_JKS = "jks";
+    private static final String KEYSTORE_TYPE_PKCS12 = "pkcs12";
+    private static final String KEYSTORE_TYPE_JKS = "jks";
 
     @Autowired
     private JettyConfiguration jettyConfiguration;
 
     @Override
     public Server getObject() throws Exception {
-
         // Setup ThreadPool
         QueuedThreadPool threadPool = new QueuedThreadPool(
-                jettyConfiguration.getPoolMaxThreads(),
-                jettyConfiguration.getPoolMinThreads(),
-                jettyConfiguration.getPoolIdleTimeout(),
-                new ArrayBlockingQueue<Runnable>(jettyConfiguration.getPoolQueueSize())
+            jettyConfiguration.getPoolMaxThreads(),
+            jettyConfiguration.getPoolMinThreads(),
+            jettyConfiguration.getPoolIdleTimeout(),
+            new ArrayBlockingQueue<Runnable>(jettyConfiguration.getPoolQueueSize())
         );
         threadPool.setName("gravitee-listener");
 
@@ -60,8 +58,7 @@ public class JettyServerFactory implements FactoryBean<Server> {
 
         // Setup JMX
         if (jettyConfiguration.isJmxEnabled()) {
-            MBeanContainer mbContainer = new MBeanContainer(
-                    ManagementFactory.getPlatformMBeanServer());
+            MBeanContainer mbContainer = new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
             server.addBean(mbContainer);
         }
 
@@ -102,17 +99,21 @@ public class JettyServerFactory implements FactoryBean<Server> {
             HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
             httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
-            ServerConnector https = new ServerConnector(server,
-                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                    new HttpConnectionFactory(httpsConfig));
+            ServerConnector https = new ServerConnector(
+                server,
+                new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                new HttpConnectionFactory(httpsConfig)
+            );
             https.setHost(jettyConfiguration.getHttpHost());
             https.setPort(jettyConfiguration.getHttpPort());
             server.addConnector(https);
         } else {
-            ServerConnector http = new ServerConnector(server,
-                    jettyConfiguration.getAcceptors(),
-                    jettyConfiguration.getSelectors(),
-                    new HttpConnectionFactory(httpConfig));
+            ServerConnector http = new ServerConnector(
+                server,
+                jettyConfiguration.getAcceptors(),
+                jettyConfiguration.getSelectors(),
+                new HttpConnectionFactory(httpConfig)
+            );
             http.setHost(jettyConfiguration.getHttpHost());
             http.setPort(jettyConfiguration.getHttpPort());
             http.setIdleTimeout(jettyConfiguration.getIdleTimeout());
@@ -129,8 +130,9 @@ public class JettyServerFactory implements FactoryBean<Server> {
 
         if (jettyConfiguration.isAccessLogEnabled()) {
             CustomRequestLog requestLog = new CustomRequestLog(
-                    new AsyncRequestLogWriter(jettyConfiguration.getAccessLogPath()),
-                    CustomRequestLog.EXTENDED_NCSA_FORMAT);
+                new AsyncRequestLogWriter(jettyConfiguration.getAccessLogPath()),
+                CustomRequestLog.EXTENDED_NCSA_FORMAT
+            );
 
             server.setRequestLog(requestLog);
         }

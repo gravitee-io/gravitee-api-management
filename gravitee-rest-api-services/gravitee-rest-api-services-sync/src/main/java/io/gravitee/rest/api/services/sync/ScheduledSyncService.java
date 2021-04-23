@@ -16,15 +16,14 @@
 package io.gravitee.rest.api.services.sync;
 
 import io.gravitee.common.service.AbstractService;
+import java.time.Instant;
+import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
-
-import java.time.Instant;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,7 +55,7 @@ public class ScheduledSyncService extends AbstractService implements Runnable {
 
     @Override
     protected void doStart() throws Exception {
-        if (! localRegistryEnabled) {
+        if (!localRegistryEnabled) {
             if (enabled) {
                 super.doStart();
                 logger.info("Sync service has been initialized with cron [{}]", cronTrigger);

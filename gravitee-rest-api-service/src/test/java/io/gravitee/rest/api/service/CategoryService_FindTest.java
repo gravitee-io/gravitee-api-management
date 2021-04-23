@@ -15,25 +15,23 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
-
+import java.util.Date;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Date;
-import java.util.List;
-
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

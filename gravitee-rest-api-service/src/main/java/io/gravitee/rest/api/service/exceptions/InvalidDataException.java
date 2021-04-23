@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Map;
 
 /**
@@ -25,8 +24,7 @@ import java.util.Map;
  */
 public class InvalidDataException extends AbstractManagementException {
 
-    public InvalidDataException() {
-    }
+    public InvalidDataException() {}
 
     public InvalidDataException(Throwable cause) {
         super(cause);

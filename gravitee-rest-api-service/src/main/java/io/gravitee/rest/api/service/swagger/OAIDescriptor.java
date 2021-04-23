@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.swagger;
 
 import io.swagger.v3.oas.models.OpenAPI;
-
 import java.util.List;
 
 /**

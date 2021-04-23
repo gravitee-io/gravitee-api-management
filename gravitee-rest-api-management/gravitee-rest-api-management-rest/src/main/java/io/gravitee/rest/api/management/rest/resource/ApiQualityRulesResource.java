@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_QUALITY_RULE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -27,21 +30,17 @@ import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import java.util.List;
-
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_QUALITY_RULE;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Quality"})
+@Api(tags = { "API Quality" })
 public class ApiQualityRulesResource extends AbstractResource {
 
     @Inject
@@ -53,12 +52,12 @@ public class ApiQualityRulesResource extends AbstractResource {
     private String api;
 
     @GET
-    @ApiOperation(value = "List quality rules for an API",
-            notes = "User must have the API_QUALITY_RULE[READ] permission to use this service")
+    @ApiOperation(
+        value = "List quality rules for an API",
+        notes = "User must have the API_QUALITY_RULE[READ] permission to use this service"
+    )
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = API_QUALITY_RULE, acls = READ)
-    })
+    @Permissions({ @Permission(value = API_QUALITY_RULE, acls = READ) })
     public List<ApiQualityRuleEntity> getApiQualityRules() {
         return apiQualityRuleService.findByApi(api);
     }
@@ -66,11 +65,11 @@ public class ApiQualityRulesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create a new quality rules for an API",
-            notes = "User must have the API_QUALITY_RULE[CREATE] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.CREATE)
-    })
+    @ApiOperation(
+        value = "Create a new quality rules for an API",
+        notes = "User must have the API_QUALITY_RULE[CREATE] permission to use this service"
+    )
+    @Permissions({ @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.CREATE) })
     public ApiQualityRuleEntity createApiQualityRule(@Valid @NotNull final NewApiQualityRuleEntity apiQualityRuleEntity) {
         apiQualityRuleEntity.setApi(api);
         return apiQualityRuleService.create(apiQualityRuleEntity);
@@ -80,12 +79,15 @@ public class ApiQualityRulesResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update an existing quality rules for an API",
-            notes = "User must have the API_QUALITY_RULE[UPDATE] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.UPDATE)
-    })
-    public ApiQualityRuleEntity updateApiQualityRule(@PathParam("qualityRule") String qualityRule, @Valid @NotNull final UpdateApiQualityRuleEntity apiQualityRuleEntity) {
+    @ApiOperation(
+        value = "Update an existing quality rules for an API",
+        notes = "User must have the API_QUALITY_RULE[UPDATE] permission to use this service"
+    )
+    @Permissions({ @Permission(value = RolePermission.API_QUALITY_RULE, acls = RolePermissionAction.UPDATE) })
+    public ApiQualityRuleEntity updateApiQualityRule(
+        @PathParam("qualityRule") String qualityRule,
+        @Valid @NotNull final UpdateApiQualityRuleEntity apiQualityRuleEntity
+    ) {
         apiQualityRuleEntity.setApi(api);
         apiQualityRuleEntity.setQualityRule(qualityRule);
         return apiQualityRuleService.update(apiQualityRuleEntity);

@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.Size;
 import java.util.Objects;
+import javax.validation.constraints.Size;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -50,8 +50,6 @@ public class ReviewEntity {
 
     @Override
     public String toString() {
-        return "ReviewEntity{" +
-                "message='" + message + '\'' +
-                '}';
+        return "ReviewEntity{" + "message='" + message + '\'' + '}';
     }
 }

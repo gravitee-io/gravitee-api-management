@@ -19,5 +19,4 @@ package io.gravitee.rest.api.model.analytics;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Analytics {
-}
+public interface Analytics {}

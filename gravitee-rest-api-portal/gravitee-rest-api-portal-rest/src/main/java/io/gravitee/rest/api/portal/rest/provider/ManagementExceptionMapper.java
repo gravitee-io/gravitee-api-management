@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.provider;
 
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-
-import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -29,10 +28,6 @@ public class ManagementExceptionMapper extends AbstractExceptionMapper<AbstractM
 
     @Override
     public Response toResponse(AbstractManagementException mex) {
-        return Response
-                .status(mex.getHttpStatusCode())
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(convert(mex))
-                .build();
+        return Response.status(mex.getHttpStatusCode()).type(MediaType.APPLICATION_JSON_TYPE).entity(convert(mex)).build();
     }
 }

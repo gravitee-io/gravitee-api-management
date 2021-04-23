@@ -49,8 +49,6 @@ public class NewUserMetadataEntity extends NewReferenceMetadataEntity {
 
     @Override
     public String toString() {
-        return "UserMetadataEntity{" +
-                "userId='" + userId + '\'' +
-                ", metadata= " + super.toString() + '}';
+        return "UserMetadataEntity{" + "userId='" + userId + '\'' + ", metadata= " + super.toString() + '}';
     }
 }

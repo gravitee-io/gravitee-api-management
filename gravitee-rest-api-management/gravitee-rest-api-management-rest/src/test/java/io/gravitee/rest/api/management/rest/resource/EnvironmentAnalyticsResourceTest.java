@@ -15,6 +15,18 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.analytics.query.DateHistogramQuery;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -27,34 +39,20 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-
+import java.io.IOException;
+import java.security.Principal;
+import java.util.Collections;
+import java.util.HashSet;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
-import java.io.IOException;
-import java.security.Principal;
-import java.util.Collections;
-import java.util.HashSet;
-
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
-import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -79,16 +77,15 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApp() {
-
         when(applicationService.findByUser(any())).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-                .queryParam("type", "date_histo")
-                .queryParam("field", "application")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "date_histo")
+            .queryParam("field", "application")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -99,16 +96,15 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApp() {
-
         when(applicationService.findByUser(any())).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-                .queryParam("type", "group_by")
-                .queryParam("field", "application")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "group_by")
+            .queryParam("field", "application")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -119,16 +115,15 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApp() {
-
         when(applicationService.findByUser(any())).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-                .queryParam("type", "count")
-                .queryParam("field", "application")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "count")
+            .queryParam("field", "application")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -138,16 +133,15 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApp() {
-
         when(applicationService.findByUser(any())).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-                .queryParam("type", "stats")
-                .queryParam("field", "application")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "stats")
+            .queryParam("field", "application")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -158,16 +152,15 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApi() {
-
         when(apiService.findByUser(any(), eq(null), eq(false))).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-                .queryParam("type", "date_histo")
-                .queryParam("field", "api")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "date_histo")
+            .queryParam("field", "api")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -178,16 +171,15 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApi() {
-
         when(apiService.findByUser(any(), eq(null), eq(false))).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-                .queryParam("type", "group_by")
-                .queryParam("field", "api")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "group_by")
+            .queryParam("field", "api")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -198,16 +190,15 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApi() {
-
         when(apiService.findByUser(any(), eq(null), eq(false))).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-                .queryParam("type", "count")
-                .queryParam("field", "api")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "count")
+            .queryParam("field", "api")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -217,16 +208,15 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApi() {
-
         when(apiService.findByUser(any(), eq(null), eq(false))).thenReturn(Collections.emptySet());
 
         Response response = envTarget()
-                .queryParam("type", "stats")
-                .queryParam("field", "api")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "stats")
+            .queryParam("field", "api")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -237,7 +227,6 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCountAnalyticsWhenNotAdminAndApi() {
-
         ApiEntity api = new ApiEntity();
         api.setId("apiId");
 
@@ -245,12 +234,12 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         when(permissionService.hasPermission(API_ANALYTICS, api.getId(), READ)).thenReturn(true);
 
         Response response = envTarget()
-                .queryParam("type", "count")
-                .queryParam("field", "api")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "count")
+            .queryParam("field", "api")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -261,7 +250,6 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCountAnalyticsWhenNotAdminAndApp() {
-
         ApplicationListItem app = new ApplicationListItem();
         app.setId("appId");
 
@@ -269,12 +257,12 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         when(permissionService.hasPermission(APPLICATION_ANALYTICS, app.getId(), READ)).thenReturn(true);
 
         Response response = envTarget()
-                .queryParam("type", "count")
-                .queryParam("field", "application")
-                .queryParam("interval", 1000)
-                .queryParam("to", 1000)
-                .request()
-                .get();
+            .queryParam("type", "count")
+            .queryParam("field", "application")
+            .queryParam("interval", 1000)
+            .queryParam("to", 1000)
+            .request()
+            .get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -285,29 +273,32 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return () -> USER_NAME;
-                }
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return () -> USER_NAME;
+                    }
 
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
 
-                @Override
-                public boolean isSecure() {
-                    return true;
-                }
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
 
-                @Override
-                public String getAuthenticationScheme() {
-                    return "BASIC";
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-            });
+            );
         }
     }
 }

@@ -43,5 +43,4 @@ public class ApiEntity {
     public void setIsSynchronized(boolean isSynchronized) {
         this.isSynchronized = isSynchronized;
     }
-
 }

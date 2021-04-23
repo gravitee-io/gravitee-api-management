@@ -19,17 +19,18 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class PortalNotificationConfigRepositoryProxy extends AbstractProxy<PortalNotificationConfigRepository> implements PortalNotificationConfigRepository {
+public class PortalNotificationConfigRepositoryProxy
+    extends AbstractProxy<PortalNotificationConfigRepository>
+    implements PortalNotificationConfigRepository {
 
     @Override
     public PortalNotificationConfig create(PortalNotificationConfig portalNotificationConfig) throws TechnicalException {
@@ -47,12 +48,14 @@ public class PortalNotificationConfigRepositoryProxy extends AbstractProxy<Porta
     }
 
     @Override
-    public Optional<PortalNotificationConfig> findById(String user, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public Optional<PortalNotificationConfig> findById(String user, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         return target.findById(user, referenceType, referenceId);
     }
 
     @Override
-    public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         return target.findByReferenceAndHook(hook, referenceType, referenceId);
     }
 

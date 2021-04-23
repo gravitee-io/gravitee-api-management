@@ -16,10 +16,9 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -30,15 +29,19 @@ public class NewDashboardEntity {
     @NotNull
     @JsonProperty("reference_type")
     private DashboardReferenceType referenceType;
+
     @NotNull
     @Size(max = 64)
     @JsonProperty("reference_id")
     private String referenceId;
+
     @NotNull
     @Size(max = 64)
     private String name;
+
     @JsonProperty("query_filter")
     private String queryFilter;
+
     private boolean enabled;
     private String definition;
 
@@ -95,12 +98,14 @@ public class NewDashboardEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NewDashboardEntity that = (NewDashboardEntity) o;
-        return enabled == that.enabled &&
-                referenceType == that.referenceType &&
-                Objects.equals(referenceId, that.referenceId) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(queryFilter, that.queryFilter) &&
-                Objects.equals(definition, that.definition);
+        return (
+            enabled == that.enabled &&
+            referenceType == that.referenceType &&
+            Objects.equals(referenceId, that.referenceId) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(queryFilter, that.queryFilter) &&
+            Objects.equals(definition, that.definition)
+        );
     }
 
     @Override
@@ -110,13 +115,25 @@ public class NewDashboardEntity {
 
     @Override
     public String toString() {
-        return "NewDashboardEntity{" +
-                "referenceType=" + referenceType +
-                ", referenceId='" + referenceId + '\'' +
-                ", name='" + name + '\'' +
-                ", queryFilter='" + queryFilter + '\'' +
-                ", enabled=" + enabled +
-                ", definition='" + definition + '\'' +
-                '}';
+        return (
+            "NewDashboardEntity{" +
+            "referenceType=" +
+            referenceType +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", queryFilter='" +
+            queryFilter +
+            '\'' +
+            ", enabled=" +
+            enabled +
+            ", definition='" +
+            definition +
+            '\'' +
+            '}'
+        );
     }
 }

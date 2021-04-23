@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,7 @@ public class MemberEntity {
     private MembershipReferenceType referenceType;
 
     private String referenceId;
-    
+
     private List<RoleEntity> roles;
 
     private Map<String, char[]> permissions;
@@ -138,7 +137,9 @@ public class MemberEntity {
 
         MemberEntity that = (MemberEntity) o;
 
-        return id.equals(that.id) && type.equals(that.type) && referenceType.equals(that.referenceType) && referenceId.equals(that.referenceId);
+        return (
+            id.equals(that.id) && type.equals(that.type) && referenceType.equals(that.referenceType) && referenceId.equals(that.referenceId)
+        );
     }
 
     @Override

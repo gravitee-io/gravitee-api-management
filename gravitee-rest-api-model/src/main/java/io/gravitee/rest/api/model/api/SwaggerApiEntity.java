@@ -19,7 +19,4 @@ package io.gravitee.rest.api.model.api;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SwaggerApiEntity extends UpdateApiEntity {
-
-
-}
+public class SwaggerApiEntity extends UpdateApiEntity {}

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.commands;
 
+import static io.gravitee.rest.api.service.impl.commands.UserCommandHandler.COCKPIT_SOURCE;
 
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
@@ -33,14 +34,11 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.reactivex.Single;
+import java.util.Collections;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static io.gravitee.rest.api.service.impl.commands.UserCommandHandler.COCKPIT_SOURCE;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -55,9 +53,7 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
     private final RoleService roleService;
     private final MembershipService membershipService;
 
-    public MembershipCommandHandler(UserService userService,
-                                    RoleService roleService,
-                                    MembershipService membershipService) {
+    public MembershipCommandHandler(UserService userService, RoleService roleService, MembershipService membershipService) {
         this.userService = userService;
         this.roleService = roleService;
         this.membershipService = membershipService;
@@ -70,7 +66,6 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
 
     @Override
     public Single<MembershipReply> handle(MembershipCommand command) {
-
         MembershipPayload membershipPayload = command.getPayload();
         GraviteeContext.setCurrentOrganization(membershipPayload.getOrganizationId());
 
@@ -88,30 +83,59 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
 
             final UserEntity userEntity = userService.findBySource(COCKPIT_SOURCE, membershipPayload.getUserId(), false);
             final RoleEntity roleEntity = findRole(roleScope, membershipPayload.getRole());
-            final MembershipService.MembershipReference membershipReference = new MembershipService.MembershipReference(membershipReferenceType, membershipPayload.getReferenceId());
-            final MembershipService.MembershipMember membershipMember = new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER);
-            final MembershipService.MembershipRole membershipRole = new MembershipService.MembershipRole(roleEntity.getScope(), roleEntity.getName());
+            final MembershipService.MembershipReference membershipReference = new MembershipService.MembershipReference(
+                membershipReferenceType,
+                membershipPayload.getReferenceId()
+            );
+            final MembershipService.MembershipMember membershipMember = new MembershipService.MembershipMember(
+                userEntity.getId(),
+                null,
+                MembershipMemberType.USER
+            );
+            final MembershipService.MembershipRole membershipRole = new MembershipService.MembershipRole(
+                roleEntity.getScope(),
+                roleEntity.getName()
+            );
 
-            membershipService.updateRolesToMemberOnReference(membershipReference, membershipMember, Collections.singletonList(membershipRole), COCKPIT_SOURCE, false);
+            membershipService.updateRolesToMemberOnReference(
+                membershipReference,
+                membershipMember,
+                Collections.singletonList(membershipRole),
+                COCKPIT_SOURCE,
+                false
+            );
 
-            logger.info("Role [{}] assigned on {} [{}] for user [{}] and organization [{}].", membershipPayload.getRole(), membershipPayload.getReferenceType(), membershipPayload.getReferenceId(), userEntity.getId(), membershipPayload.getOrganizationId());
+            logger.info(
+                "Role [{}] assigned on {} [{}] for user [{}] and organization [{}].",
+                membershipPayload.getRole(),
+                membershipPayload.getReferenceType(),
+                membershipPayload.getReferenceId(),
+                userEntity.getId(),
+                membershipPayload.getOrganizationId()
+            );
             return Single.just(new MembershipReply(command.getId(), CommandStatus.SUCCEEDED));
         } catch (Exception e) {
-            logger.error("Error occurred when trying to assign role [{}] on {} [{}] for cockpit user [{}] and organization [{}].", membershipPayload.getRole(), membershipPayload.getReferenceType(), membershipPayload.getReferenceId(), membershipPayload.getUserId(), membershipPayload.getOrganizationId(), e);
+            logger.error(
+                "Error occurred when trying to assign role [{}] on {} [{}] for cockpit user [{}] and organization [{}].",
+                membershipPayload.getRole(),
+                membershipPayload.getReferenceType(),
+                membershipPayload.getReferenceId(),
+                membershipPayload.getUserId(),
+                membershipPayload.getOrganizationId(),
+                e
+            );
             return Single.just(new MembershipReply(command.getId(), CommandStatus.ERROR));
         } finally {
             GraviteeContext.cleanContext();
         }
     }
 
-
     private RoleEntity findRole(RoleScope roleScope, String roleName) {
-
         // Need to map cockpit role to apim role (ORGANIZATION_PRIMARY_OWNER | ORGANIZATION_OWNER -> ADMIN, ENVIRONMENT_PRIMARY_OWNER | ENVIRONMENT_OWNER -> ADMIN).
         final String mappedRoleName = roleName
-                .replace(roleScope.name() + "_", "")
-                .replace("PRIMARY_OWNER", "ADMIN")
-                .replace("OWNER", "ADMIN");
+            .replace(roleScope.name() + "_", "")
+            .replace("PRIMARY_OWNER", "ADMIN")
+            .replace("OWNER", "ADMIN");
 
         final Optional<RoleEntity> role = roleService.findByScopeAndName(roleScope, mappedRoleName);
 

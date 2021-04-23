@@ -76,38 +76,33 @@ public class AlertEventSearchParam {
 
     public void validate() throws WebApplicationException {
         if (from == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'from' is not valid")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'from' is not valid").build()
+            );
         }
 
         if (to == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'to' is not valid")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'to' is not valid").build()
+            );
         }
 
         if (page == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'page' is not valid")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'page' is not valid").build()
+            );
         }
 
         if (size < 0 || size > 100) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'size' must be >= 0 and <= 100")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'size' must be >= 0 and <= 100").build()
+            );
         }
 
         if (from >= to) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'from' query parameter value must be greater than 'to'")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("'from' query parameter value must be greater than 'to'").build()
+            );
         }
     }
 }

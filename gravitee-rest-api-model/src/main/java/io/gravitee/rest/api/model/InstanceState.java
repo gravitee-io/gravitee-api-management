@@ -20,8 +20,7 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public enum InstanceState {
-
     STARTED,
     UNKNOWN,
-    STOPPED
+    STOPPED,
 }

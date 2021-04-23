@@ -15,16 +15,14 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.Map;
-
 import io.gravitee.common.http.HttpMethod;
 import io.vertx.core.buffer.Buffer;
+import java.util.Map;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface HttpClientService {
-
     Buffer request(HttpMethod method, final String uri, final Map<String, String> headers, String body, Boolean useSystemProxy);
 }

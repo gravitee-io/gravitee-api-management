@@ -15,22 +15,20 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

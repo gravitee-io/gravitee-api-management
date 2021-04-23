@@ -24,5 +24,4 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan(basePackages = "io.gravitee.rest.api.repository.proxy")
-public class RepositoryConfiguration {
-}
+public class RepositoryConfiguration {}

@@ -15,22 +15,21 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl;
 
+import static org.junit.Assert.*;
+
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
 public class WSDLToOpenAPIConverterTest {
@@ -39,12 +38,15 @@ public class WSDLToOpenAPIConverterTest {
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                { "/calculator.asmx", 8, 8, 1},
+        return Arrays.asList(
+            new Object[][] {
+                { "/calculator.asmx", 8, 8, 1 },
                 { "/example.wsdl", 1, 1, 1 },
                 { "/rpc_style.wsdl", 1, 1, 1 },
                 { "/rpc_style_2args.wsdl", 1, 1, 1 },
-                { "/tempconvert.wsdl", 6, 4, 3 } });
+                { "/tempconvert.wsdl", 6, 4, 3 },
+            }
+        );
     }
 
     @Parameterized.Parameter(0)
@@ -79,12 +81,16 @@ public class WSDLToOpenAPIConverterTest {
         assertEquals("Not enough paths", expectedPaths, paths.size());
         int soapEnvelopes = 0;
         for (PathItem path : paths.values()) {
-            Optional<State> optState = Arrays.asList(checkOperation(path.getPost()),
+            Optional<State> optState = Arrays
+                .asList(
+                    checkOperation(path.getPost()),
                     checkOperation(path.getGet()),
                     checkOperation(path.getPut()),
-                    checkOperation(path.getDelete()))
-                    .stream()
-                    .filter(state -> state != State.NO_OP).findFirst();
+                    checkOperation(path.getDelete())
+                )
+                .stream()
+                .filter(state -> state != State.NO_OP)
+                .findFirst();
             if (optState.isPresent()) {
                 if (optState.get().equals(State.ENVELOPE)) {
                     ++soapEnvelopes;
@@ -94,7 +100,6 @@ public class WSDLToOpenAPIConverterTest {
             }
         }
         assertEquals("Not enough SoapEnvelopes", expectedSoapEnvelopes, soapEnvelopes);
-
     }
 
     private State checkOperation(Operation operation) {
@@ -120,6 +125,6 @@ public class WSDLToOpenAPIConverterTest {
     private static enum State {
         NO_OP,
         ENVELOPE,
-        NO_ENVELOPE;
+        NO_ENVELOPE,
     }
 }

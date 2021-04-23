@@ -15,19 +15,18 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.MetadataReferenceType.API;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static io.gravitee.repository.management.model.MetadataReferenceType.API;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -38,15 +37,14 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Autowired
     private ApiService apiService;
+
     @Autowired
     private SearchEngineService searchEngineService;
 
     @Override
     public List<ApiMetadataEntity> findAllByApi(final String apiId) {
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, true);
-        return allMetadata.stream()
-                .map(m -> convert(m, apiId))
-                .collect(toList());
+        return allMetadata.stream().map(m -> convert(m, apiId)).collect(toList());
     }
 
     @Override
@@ -72,14 +70,22 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
 
     @Override
     public ApiMetadataEntity update(final UpdateApiMetadataEntity metadataEntity) {
-        ApiMetadataEntity apiMetadataEntity = convert(update(metadataEntity, API, metadataEntity.getApiId(), true), metadataEntity.getApiId());
+        ApiMetadataEntity apiMetadataEntity = convert(
+            update(metadataEntity, API, metadataEntity.getApiId(), true),
+            metadataEntity.getApiId()
+        );
         ApiEntity apiEntity = apiService.fetchMetadataForApi(apiService.findById(apiMetadataEntity.getApiId()));
         searchEngineService.index(apiEntity, false);
         return apiMetadataEntity;
     }
 
     @Override
-    protected void checkReferenceMetadataFormat(MetadataFormat format, String value, MetadataReferenceType referenceType, String referenceId) {
+    protected void checkReferenceMetadataFormat(
+        MetadataFormat format,
+        String value,
+        MetadataReferenceType referenceType,
+        String referenceId
+    ) {
         final ApiEntity apiEntity = apiService.findById(referenceId);
         metadataService.checkMetadataFormat(format, value, referenceType, apiEntity);
     }

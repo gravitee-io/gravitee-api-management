@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.CustomUserFieldEntity;
-
 import java.util.List;
 
 /**

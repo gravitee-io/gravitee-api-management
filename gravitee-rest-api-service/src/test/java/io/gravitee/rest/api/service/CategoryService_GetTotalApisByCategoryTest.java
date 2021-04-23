@@ -15,21 +15,19 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
-
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -42,7 +40,7 @@ public class CategoryService_GetTotalApisByCategoryTest {
     private CategoryServiceImpl categoryService = new CategoryServiceImpl();
 
     private static Set<ApiEntity> apis;
-    
+
     @BeforeClass
     public static void init() {
         ApiEntity apiA = new ApiEntity();
@@ -57,21 +55,21 @@ public class CategoryService_GetTotalApisByCategoryTest {
         ApiEntity apiD = new ApiEntity();
         apiD.setId("D");
         apiD.setCategories(null);
-        
+
         apis = new HashSet<>();
         apis.add(apiA);
         apis.add(apiB);
         apis.add(apiC);
         apis.add(apiD);
     }
-    
+
     @Test
     public void testEnhanceForOneCategory() {
         CategoryEntity v = new CategoryEntity();
         v.setKey("1");
-        
+
         long totalApisByCategory = categoryService.getTotalApisByCategory(apis, v);
-       
+
         assertEquals(2, totalApisByCategory);
     }
 }

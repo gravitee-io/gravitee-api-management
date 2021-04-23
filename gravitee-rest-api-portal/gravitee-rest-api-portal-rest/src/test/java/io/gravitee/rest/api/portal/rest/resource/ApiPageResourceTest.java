@@ -15,21 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Page;
-import io.gravitee.rest.api.portal.rest.model.PageLinks;
-import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.*;
-
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -38,6 +23,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import java.io.IOException;
+import java.util.*;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -97,7 +96,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
 
     @Test
@@ -138,7 +137,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         assertEquals(PAGE_CONTENT, pageResponse.getContent());
         assertNotNull(pageResponse.getLinks());
     }
-    
+
     @Test
     public void shouldNotGetApiPage() {
         final Builder request = target(API).path("pages").path(PAGE).request();
@@ -186,7 +185,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
 
     @Test

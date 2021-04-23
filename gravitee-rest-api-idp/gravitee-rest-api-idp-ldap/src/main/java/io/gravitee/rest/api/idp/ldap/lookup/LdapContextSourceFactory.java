@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.idp.ldap.lookup;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.core.env.Environment;
@@ -22,9 +24,6 @@ import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.server.ApacheDSContainer;
-
-import java.io.IOException;
-import java.net.ServerSocket;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,17 +47,16 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
     protected LdapContextSource createInstance() throws Exception {
         ContextSourceBuilder contextSourceBuilder = new ContextSourceBuilder();
 
-        contextSourceBuilder
-                .root(environment.getProperty("context.base"));
+        contextSourceBuilder.root(environment.getProperty("context.base"));
 
         // set up embedded mode
         if (environment.getProperty("embedded", boolean.class, false)) {
             contextSourceBuilder.ldif("classpath:/ldap/gravitee-io-management-rest-api-ldap-test.ldif");
         } else {
             contextSourceBuilder
-                    .managerDn(environment.getProperty("context.username"))
-                    .managerPassword(environment.getProperty("context.password"))
-                    .url(environment.getProperty("context.url"));
+                .managerDn(environment.getProperty("context.username"))
+                .managerPassword(environment.getProperty("context.password"))
+                .url(environment.getProperty("context.url"));
         }
 
         ldapContextSource = contextSourceBuilder.build();
@@ -73,6 +71,7 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
      * @since 3.2
      */
     public final class ContextSourceBuilder {
+
         private String ldif = "classpath*:*.ldif";
         private String managerPassword;
         private String managerDn;
@@ -154,24 +153,22 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
         }
 
         private DefaultSpringSecurityContextSource build() throws Exception {
-            DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(
-                    getProviderUrl());
+            DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(getProviderUrl());
             if (managerDn != null) {
                 contextSource.setUserDn(managerDn);
                 if (managerPassword == null) {
-                    throw new IllegalStateException(
-                            "managerPassword is required if managerDn is supplied");
+                    throw new IllegalStateException("managerPassword is required if managerDn is supplied");
                 }
                 contextSource.setPassword(managerPassword);
             }
-//            contextSource = postProcess(contextSource);
+            //            contextSource = postProcess(contextSource);
             if (url != null) {
                 return contextSource;
             }
             ApacheDSContainer embeddedApacheContainer = new ApacheDSContainer(root, ldif);
             embeddedApacheContainer.setPort(getPort());
             apacheDsContainer = embeddedApacheContainer;
-//            postProcess(apacheDsContainer);
+            //            postProcess(apacheDsContainer);
             return contextSource;
         }
 
@@ -187,24 +184,19 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
             try {
                 try {
                     serverSocket = new ServerSocket(DEFAULT_PORT);
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     try {
                         serverSocket = new ServerSocket(0);
-                    }
-                    catch (IOException e2) {
+                    } catch (IOException e2) {
                         return DEFAULT_PORT;
                     }
                 }
                 return serverSocket.getLocalPort();
-            }
-            finally {
+            } finally {
                 if (serverSocket != null) {
                     try {
                         serverSocket.close();
-                    }
-                    catch (IOException e) {
-                    }
+                    } catch (IOException e) {}
                 }
             }
         }
@@ -216,8 +208,7 @@ public class LdapContextSourceFactory extends AbstractFactoryBean<LdapContextSou
             return url;
         }
 
-        private ContextSourceBuilder() {
-        }
+        private ContextSourceBuilder() {}
     }
 
     @Override

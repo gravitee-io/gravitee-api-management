@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.GroupEntity;
@@ -30,6 +36,13 @@ import io.gravitee.rest.api.portal.rest.model.Group;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.UserService;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,21 +51,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -83,7 +81,6 @@ public class ApplicationMapperTest {
     private static final String APPLICATION_OAUTH_REDIRECT_URI = "my-application-oauth-redirect-uri";
     private static final String APPLICATION_OAUTH_RESPONSE_TYPE = "my-application-oauth-response-type";
 
-
     @InjectMocks
     private ApplicationMapper applicationMapper;
 
@@ -104,7 +101,9 @@ public class ApplicationMapperTest {
     Instant now;
 
     private enum AppSettingsEnum {
-        NO_SETTINGS, SIMPLE_SETTINGS, OAUTH_SETTINGS;
+        NO_SETTINGS,
+        SIMPLE_SETTINGS,
+        OAUTH_SETTINGS,
     }
 
     @Before
@@ -156,7 +155,6 @@ public class ApplicationMapperTest {
         applicationListItem.setStatus(APPLICATION_STATUS);
         applicationListItem.setType(APPLICATION_TYPE);
         applicationListItem.setUpdatedAt(nowDate);
-
     }
 
     @Test
@@ -231,58 +229,58 @@ public class ApplicationMapperTest {
         assertEquals("environments/DEFAULT/users/" + APPLICATION_USER_ID + "/avatar?", owner.getLinks().getAvatar());
 
         io.gravitee.rest.api.portal.rest.model.ApplicationSettings applicationSettings = responseApplication.getSettings();
-        if(AppSettingsEnum.NO_SETTINGS == appSettingsType) {
+        if (AppSettingsEnum.NO_SETTINGS == appSettingsType) {
             assertNull(applicationSettings);
         } else {
             io.gravitee.rest.api.portal.rest.model.SimpleApplicationSettings sas = applicationSettings.getApp();
             io.gravitee.rest.api.portal.rest.model.OAuthClientSettings oacs = applicationSettings.getOauth();
 
-            if(AppSettingsEnum.OAUTH_SETTINGS == appSettingsType) {
-                    assertNull(sas);
-                    assertNotNull(oacs);
-                    assertEquals(APPLICATION_OAUTH_APPLICATION_TYPE, oacs.getApplicationType());
-                    assertEquals(APPLICATION_OAUTH_CLIENT_ID, oacs.getClientId());
-                    assertEquals(APPLICATION_OAUTH_CLIENT_SECRET, oacs.getClientSecret());
-                    assertEquals(APPLICATION_OAUTH_CLIENT_URI, oacs.getClientUri());
-                    assertEquals(APPLICATION_OAUTH_LOGO_URI, oacs.getLogoUri());
-                    assertEquals(Boolean.TRUE, oacs.getRenewClientSecretSupported());
+            if (AppSettingsEnum.OAUTH_SETTINGS == appSettingsType) {
+                assertNull(sas);
+                assertNotNull(oacs);
+                assertEquals(APPLICATION_OAUTH_APPLICATION_TYPE, oacs.getApplicationType());
+                assertEquals(APPLICATION_OAUTH_CLIENT_ID, oacs.getClientId());
+                assertEquals(APPLICATION_OAUTH_CLIENT_SECRET, oacs.getClientSecret());
+                assertEquals(APPLICATION_OAUTH_CLIENT_URI, oacs.getClientUri());
+                assertEquals(APPLICATION_OAUTH_LOGO_URI, oacs.getLogoUri());
+                assertEquals(Boolean.TRUE, oacs.getRenewClientSecretSupported());
 
-                    final List<String> grantTypes = oacs.getGrantTypes();
-                    assertNotNull(grantTypes);
-                    assertFalse(grantTypes.isEmpty());
-                    assertEquals(APPLICATION_OAUTH_GRANT_TYPE, grantTypes.get(0));
+                final List<String> grantTypes = oacs.getGrantTypes();
+                assertNotNull(grantTypes);
+                assertFalse(grantTypes.isEmpty());
+                assertEquals(APPLICATION_OAUTH_GRANT_TYPE, grantTypes.get(0));
 
-                    final List<String> redirectUris = oacs.getRedirectUris();
-                    assertNotNull(redirectUris);
-                    assertFalse(redirectUris.isEmpty());
-                    assertEquals(APPLICATION_OAUTH_REDIRECT_URI, redirectUris.get(0));
+                final List<String> redirectUris = oacs.getRedirectUris();
+                assertNotNull(redirectUris);
+                assertFalse(redirectUris.isEmpty());
+                assertEquals(APPLICATION_OAUTH_REDIRECT_URI, redirectUris.get(0));
 
-                    final List<String> responseTypes = oacs.getResponseTypes();
-                    assertNotNull(responseTypes);
-                    assertFalse(responseTypes.isEmpty());
-                    assertEquals(APPLICATION_OAUTH_RESPONSE_TYPE, responseTypes.get(0));
-                    assertEquals(responseApplication.getHasClientId(), true);
-            } else if(AppSettingsEnum.SIMPLE_SETTINGS == appSettingsType) {
-                    assertNotNull(sas);
-                    assertNull(oacs);
-                    assertEquals(APPLICATION_SIMPLE_CLIENT_ID, sas.getClientId());
-                    assertEquals(APPLICATION_SIMPLE_TYPE, sas.getType());
-                    assertEquals(responseApplication.getHasClientId(), true);
+                final List<String> responseTypes = oacs.getResponseTypes();
+                assertNotNull(responseTypes);
+                assertFalse(responseTypes.isEmpty());
+                assertEquals(APPLICATION_OAUTH_RESPONSE_TYPE, responseTypes.get(0));
+                assertEquals(responseApplication.getHasClientId(), true);
+            } else if (AppSettingsEnum.SIMPLE_SETTINGS == appSettingsType) {
+                assertNotNull(sas);
+                assertNull(oacs);
+                assertEquals(APPLICATION_SIMPLE_CLIENT_ID, sas.getClientId());
+                assertEquals(APPLICATION_SIMPLE_TYPE, sas.getType());
+                assertEquals(responseApplication.getHasClientId(), true);
             }
         }
     }
 
     @Test
     public void testApplicationLinks() {
-        String basePath = "/"+APPLICATION;
+        String basePath = "/" + APPLICATION;
 
         ApplicationLinks links = applicationMapper.computeApplicationLinks(basePath, null);
 
         assertNotNull(links);
 
         assertEquals(basePath, links.getSelf());
-        assertEquals(basePath+"/members", links.getMembers());
-        assertEquals(basePath+"/notifications", links.getNotifications());
-        assertEquals(basePath+"/picture", links.getPicture());
+        assertEquals(basePath + "/members", links.getMembers());
+        assertEquals(basePath + "/notifications", links.getNotifications());
+        assertEquals(basePath + "/picture", links.getPicture());
     }
 }

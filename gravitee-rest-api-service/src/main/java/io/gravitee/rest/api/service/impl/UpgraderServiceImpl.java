@@ -18,21 +18,18 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.rest.api.service.InitializerService;
 import io.gravitee.rest.api.service.Upgrader;
-
+import java.util.Comparator;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Comparator;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class UpgraderServiceImpl extends AbstractService<UpgraderServiceImpl> implements
-        InitializerService<UpgraderServiceImpl> {
+public class UpgraderServiceImpl extends AbstractService<UpgraderServiceImpl> implements InitializerService<UpgraderServiceImpl> {
 
     /**
      * Logger.
@@ -49,9 +46,15 @@ public class UpgraderServiceImpl extends AbstractService<UpgraderServiceImpl> im
         super.doStart();
 
         Map<String, Upgrader> upgraderBeans = applicationContext.getBeansOfType(Upgrader.class);
-        upgraderBeans.values().stream().sorted(Comparator.comparing(Upgrader::getOrder)).forEach(upgrader -> {
-            logger.info("Running upgrader {}", upgrader.getClass().getName());
-            upgrader.upgrade();
-        });
+        upgraderBeans
+            .values()
+            .stream()
+            .sorted(Comparator.comparing(Upgrader::getOrder))
+            .forEach(
+                upgrader -> {
+                    logger.info("Running upgrader {}", upgrader.getClass().getName());
+                    upgrader.upgrade();
+                }
+            );
     }
 }

@@ -17,16 +17,13 @@ package io.gravitee.rest.api.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-
 import io.gravitee.rest.api.model.api.ApiEntity;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -36,6 +33,7 @@ public class ApiCompositeSerializer extends ApiSerializer implements Initializin
 
     @Autowired
     private ApplicationContext applicationContext;
+
     private List<ApiSerializer> serializers = new LinkedList<>();
 
     public ApiCompositeSerializer() {
@@ -50,12 +48,12 @@ public class ApiCompositeSerializer extends ApiSerializer implements Initializin
     @Override
     public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         serializers
-                .stream()
-                .filter(serializer -> serializer.canHandle(apiEntity))
-                .findFirst()
-                // fall back to default
-                .orElse(serializers.get(0))
-                .serialize(apiEntity, jsonGenerator, serializerProvider);
+            .stream()
+            .filter(serializer -> serializer.canHandle(apiEntity))
+            .findFirst()
+            // fall back to default
+            .orElse(serializers.get(0))
+            .serialize(apiEntity, jsonGenerator, serializerProvider);
     }
 
     @Override

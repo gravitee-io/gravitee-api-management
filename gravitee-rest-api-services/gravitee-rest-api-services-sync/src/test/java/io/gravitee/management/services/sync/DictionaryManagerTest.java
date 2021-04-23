@@ -15,6 +15,9 @@
  */
 package io.gravitee.management.services.sync;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
@@ -23,6 +26,9 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEnti
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.event.DictionaryEvent;
 import io.gravitee.rest.api.services.sync.DictionaryManager;
+import java.time.ZonedDateTime;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,13 +36,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.time.ZonedDateTime;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -46,6 +45,7 @@ import static org.mockito.Mockito.*;
 public class DictionaryManagerTest {
 
     private static final String DICTIONARY_ID = "dictionary#1";
+
     @Mock
     private DictionaryService dictionaryService;
 
@@ -63,7 +63,6 @@ public class DictionaryManagerTest {
 
     @Test
     public void shouldStart() {
-
         final DictionaryEntity dictionary = new DictionaryEntity();
         dictionary.setId(DICTIONARY_ID);
 
@@ -75,7 +74,6 @@ public class DictionaryManagerTest {
 
     @Test
     public void shouldNotStartAlreadyStarted() {
-
         final DictionaryProviderEntity provider = new DictionaryProviderEntity();
         provider.setConfiguration(JsonNodeFactory.instance.nullNode());
 
@@ -95,7 +93,6 @@ public class DictionaryManagerTest {
 
     @Test
     public void shouldRestartTriggerChanged() {
-
         final DictionaryProviderEntity provider = new DictionaryProviderEntity();
         provider.setConfiguration(JsonNodeFactory.instance.nullNode());
 
@@ -119,9 +116,7 @@ public class DictionaryManagerTest {
         dictionaryUpdated.setId(DICTIONARY_ID);
         dictionaryUpdated.setTrigger(triggerUpdated);
 
-        when(dictionaryService.findById(DICTIONARY_ID))
-                .thenReturn(dictionary)
-                .thenReturn(dictionaryUpdated);
+        when(dictionaryService.findById(DICTIONARY_ID)).thenReturn(dictionary).thenReturn(dictionaryUpdated);
 
         cut.start(DICTIONARY_ID);
         cut.start(DICTIONARY_ID);
@@ -131,10 +126,8 @@ public class DictionaryManagerTest {
         verifyNoMoreInteractions(eventManager);
     }
 
-
     @Test
     public void shouldRestartProviderConfigChanged() {
-
         final DictionaryProviderEntity provider = new DictionaryProviderEntity();
         provider.setConfiguration(JsonNodeFactory.instance.nullNode());
 
@@ -157,9 +150,7 @@ public class DictionaryManagerTest {
         dictionaryUpdated.setId(DICTIONARY_ID);
         dictionaryUpdated.setTrigger(trigger);
 
-        when(dictionaryService.findById(DICTIONARY_ID))
-                .thenReturn(dictionary)
-                .thenReturn(dictionaryUpdated);
+        when(dictionaryService.findById(DICTIONARY_ID)).thenReturn(dictionary).thenReturn(dictionaryUpdated);
 
         cut.start(DICTIONARY_ID);
         cut.start(DICTIONARY_ID);
@@ -171,8 +162,8 @@ public class DictionaryManagerTest {
 
     @Test
     public void shouldStop() {
-
         cut.stop(DICTIONARY_ID);
-        verify(eventManager, times(1)).publishEvent(eq(DictionaryEvent.STOP), argThat(dictionary -> (((DictionaryEntity) dictionary).getId().equals(DICTIONARY_ID))));
+        verify(eventManager, times(1))
+            .publishEvent(eq(DictionaryEvent.STOP), argThat(dictionary -> (((DictionaryEntity) dictionary).getId().equals(DICTIONARY_ID))));
     }
 }

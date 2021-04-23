@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.GROUP_INVITATION;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
@@ -32,22 +38,15 @@ import io.gravitee.rest.api.service.exceptions.InvitationEmailAlreadyExistsExcep
 import io.gravitee.rest.api.service.exceptions.InvitationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.MemberEmailAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
-import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.GROUP_INVITATION;
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -60,17 +59,24 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
 
     @Autowired
     private InvitationRepository invitationRepository;
+
     @Autowired
     private EmailService emailService;
+
     @Autowired
     private UserService userService;
+
     @Autowired
     private MembershipService membershipService;
+
     @Autowired
     private RoleService roleService;
+
     @Autowired
     private GroupService groupService;
-    @Autowired PermissionService permissionService;
+
+    @Autowired
+    PermissionService permissionService;
 
     @Override
     public InvitationEntity create(final NewInvitationEntity invitation) {
@@ -80,18 +86,28 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         }
         try {
             // First check if user exists
-            final Optional<UserEntity> existingUser =  userService.findByEmail(invitation.getEmail());
+            final Optional<UserEntity> existingUser = userService.findByEmail(invitation.getEmail());
             if (existingUser.isPresent()) {
                 final UserEntity user = existingUser.get();
 
-                Set<String> groupUsers = membershipService.getMembershipsByReference(MembershipReferenceType.GROUP, invitation.getReferenceId()).stream().map(MembershipEntity::getMemberId).collect(Collectors.toSet());
+                Set<String> groupUsers = membershipService
+                    .getMembershipsByReference(MembershipReferenceType.GROUP, invitation.getReferenceId())
+                    .stream()
+                    .map(MembershipEntity::getMemberId)
+                    .collect(Collectors.toSet());
                 final GroupEntity group = groupService.findById(invitation.getReferenceId());
                 if (groupUsers.contains(user.getId())) {
                     throw new MemberEmailAlreadyExistsException(invitation.getEmail());
                 }
 
                 // override permission if not allowed
-                final boolean hasPermission = permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, GraviteeContext.getCurrentEnvironment(), CREATE, UPDATE, DELETE);
+                final boolean hasPermission = permissionService.hasPermission(
+                    RolePermission.ENVIRONMENT_GROUP,
+                    GraviteeContext.getCurrentEnvironment(),
+                    CREATE,
+                    UPDATE,
+                    DELETE
+                );
                 if (!hasPermission && group.isLockApiRole()) {
                     invitation.setApiRole(null);
                 }
@@ -99,8 +115,13 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
                     invitation.setApplicationRole(null);
                 }
 
-                addMember(invitation.getReferenceType().name(), invitation.getReferenceId(), user.getId(),
-                        invitation.getApiRole(), invitation.getApplicationRole());
+                addMember(
+                    invitation.getReferenceType().name(),
+                    invitation.getReferenceId(),
+                    user.getId(),
+                    invitation.getApiRole(),
+                    invitation.getApplicationRole()
+                );
                 return null;
             } else {
                 sendGroupInvitationEmail(invitation);
@@ -139,15 +160,25 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
     }
 
     @Override
-    public void addMember(final String referenceType, final String referenceId, final String userId,
-                          final String apiRole, final String applicationRole) {
+    public void addMember(
+        final String referenceType,
+        final String referenceId,
+        final String userId,
+        final String apiRole,
+        final String applicationRole
+    ) {
         addOrUpdateMemberByScope(referenceType, referenceId, userId, RoleScope.API, apiRole);
         addOrUpdateMemberByScope(referenceType, referenceId, userId, RoleScope.APPLICATION, applicationRole);
         addOrUpdateMemberByScope(referenceType, referenceId, userId, RoleScope.GROUP, null);
     }
 
-    private void addOrUpdateMemberByScope(final String referenceType, final String referenceId, final String userId,
-                                          final RoleScope roleScope, final String defaultRole) {
+    private void addOrUpdateMemberByScope(
+        final String referenceType,
+        final String referenceId,
+        final String userId,
+        final RoleScope roleScope,
+        final String defaultRole
+    ) {
         String defaultRoleName = null;
         if (defaultRole == null) {
             final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(roleScope);
@@ -159,9 +190,9 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         }
         if (defaultRoleName != null) {
             membershipService.addRoleToMemberOnReference(
-                    new MembershipReference(MembershipReferenceType.valueOf(referenceType), referenceId),
-                    new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-                    new MembershipService.MembershipRole(roleScope, defaultRoleName)
+                new MembershipReference(MembershipReferenceType.valueOf(referenceType), referenceId),
+                new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(roleScope, defaultRoleName)
             );
         }
     }
@@ -170,7 +201,8 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
         final UserEntity userEntity = new UserEntity();
         userEntity.setEmail(invitation.getEmail());
         final GroupEntity group = groupService.findById(invitation.getReferenceId());
-        emailService.sendEmailNotification(new EmailNotificationBuilder()
+        emailService.sendEmailNotification(
+            new EmailNotificationBuilder()
                 .to(invitation.getEmail())
                 .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_GROUP_INVITATION)
                 .params(userService.getTokenRegistrationParams(userEntity, REGISTRATION_PATH, GROUP_INVITATION))
@@ -197,8 +229,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
             final List<Invitation> invitations = invitationRepository.findByReference(referenceType.name(), referenceId);
             return invitations.stream().map(this::convert).sorted(comparing(InvitationEntity::getEmail)).collect(toList());
         } catch (TechnicalException ex) {
-            final String message = "An error occurs while trying to list invitations by reference " + referenceType
-                    + '/' + referenceId;
+            final String message = "An error occurs while trying to list invitations by reference " + referenceType + '/' + referenceId;
             LOGGER.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }

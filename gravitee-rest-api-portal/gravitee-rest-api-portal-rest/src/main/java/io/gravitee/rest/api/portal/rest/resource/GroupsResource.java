@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.repository.management.model.MembershipReferenceType.GROUP;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -27,18 +30,13 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.GroupService;
-
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.MembershipReferenceType.GROUP;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -54,37 +52,38 @@ public class GroupsResource extends AbstractResource {
 
     @Inject
     private MemberMapper memberMapper;
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
-    })
-    public Response findAll(@BeanParam PaginationParam paginationParam){
-        List<Group> groups = groupService.findAll().stream()
-                .map(group -> new Group().id(group.getId()).name(group.getName()))
-                .collect(Collectors.toList());
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
+    public Response findAll(@BeanParam PaginationParam paginationParam) {
+        List<Group> groups = groupService
+            .findAll()
+            .stream()
+            .map(group -> new Group().id(group.getId()).name(group.getName()))
+            .collect(Collectors.toList());
         return createListResponse(groups, paginationParam);
     }
 
     @GET
     @Path("/{groupId}/members")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-        @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getMembersByGroupId(@PathParam("groupId") String groupId, @BeanParam PaginationParam paginationParam) {
         //check that group exists
         groupService.findById(groupId);
 
-        List<Member> groupsMembers = membershipService.getMembersByReference(MembershipReferenceType.GROUP, groupId).stream()
-                .filter(groupMemberEntity ->
+        List<Member> groupsMembers = membershipService
+            .getMembersByReference(MembershipReferenceType.GROUP, groupId)
+            .stream()
+            .filter(
+                groupMemberEntity ->
                     groupMemberEntity != null &&
                     groupMemberEntity.getRoles().stream().anyMatch(role -> role.getScope().equals(RoleScope.APPLICATION))
-                )
-                .map(groupMemberEntity -> memberMapper.convert(groupMemberEntity, uriInfo))
-                .collect(toList());
-        
+            )
+            .map(groupMemberEntity -> memberMapper.convert(groupMemberEntity, uriInfo))
+            .collect(toList());
+
         return createListResponse(groupsMembers, paginationParam);
     }
 }

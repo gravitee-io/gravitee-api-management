@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
  * @author GraviteeSource Team
  */
 public class HeaderDef {
+
     private QName message;
     private String use;
     private boolean required;

@@ -18,7 +18,7 @@ package io.gravitee.rest.api.model.plan;
 import io.gravitee.rest.api.model.PlanSecurityType;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PlanQuery {
@@ -46,6 +46,7 @@ public class PlanQuery {
     }
 
     public static class Builder {
+
         private String api;
         private String name;
         private PlanSecurityType security;

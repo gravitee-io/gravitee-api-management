@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.Objects;
 
@@ -29,6 +28,7 @@ public class PortalNotificationEntity {
     private String id;
     private String title;
     private String message;
+
     @JsonProperty("created_at")
     private Date createdAt;
 
@@ -79,11 +79,21 @@ public class PortalNotificationEntity {
 
     @Override
     public String toString() {
-        return "PortalNotificationEntity{" +
-                "id='" + id + '\'' +
-                ", title='" + title + '\'' +
-                ", message='" + message + '\'' +
-                ", createAt='" + createdAt + '\'' +
-                '}';
+        return (
+            "PortalNotificationEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", title='" +
+            title +
+            '\'' +
+            ", message='" +
+            message +
+            '\'' +
+            ", createAt='" +
+            createdAt +
+            '\'' +
+            '}'
+        );
     }
 }

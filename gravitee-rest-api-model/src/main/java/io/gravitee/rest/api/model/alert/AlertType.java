@@ -15,19 +15,20 @@
  */
 package io.gravitee.rest.api.model.alert;
 
-import java.util.List;
-
 import static io.gravitee.rest.api.model.alert.AlertReferenceType.API;
 import static io.gravitee.rest.api.model.alert.AlertReferenceType.APPLICATION;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+
+import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum AlertType {
-    HEALTH_CHECK(singletonList(API)), REQUEST(asList(API, APPLICATION));
+    HEALTH_CHECK(singletonList(API)),
+    REQUEST(asList(API, APPLICATION));
 
     private List<AlertReferenceType> referenceTypes;
 

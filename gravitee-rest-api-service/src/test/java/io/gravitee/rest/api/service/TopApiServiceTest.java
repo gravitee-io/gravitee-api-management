@@ -15,22 +15,6 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.rest.api.model.NewTopApiEntity;
-import io.gravitee.rest.api.model.TopApiEntity;
-import io.gravitee.rest.api.model.UpdateTopApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.impl.TopApiServiceImpl;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_TOP_APIS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -39,6 +23,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.rest.api.model.NewTopApiEntity;
+import io.gravitee.rest.api.model.TopApiEntity;
+import io.gravitee.rest.api.model.UpdateTopApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.impl.TopApiServiceImpl;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -52,6 +51,7 @@ public class TopApiServiceTest {
 
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private ApiService apiService;
 
@@ -65,7 +65,8 @@ public class TopApiServiceTest {
         final ApiEntity api2 = new ApiEntity();
         api2.setId("2");
 
-        when(parameterService.findAll(eq(PORTAL_TOP_APIS), any(Function.class), any(Predicate.class), any(ParameterReferenceType.class))).thenReturn(asList(api1, api2, api1));
+        when(parameterService.findAll(eq(PORTAL_TOP_APIS), any(Function.class), any(Predicate.class), any(ParameterReferenceType.class)))
+            .thenReturn(asList(api1, api2, api1));
 
         final List<TopApiEntity> topApis = topApiService.findAll();
 
@@ -142,7 +143,8 @@ public class TopApiServiceTest {
         final ApiEntity api2 = new ApiEntity();
         api2.setId("2");
 
-        when(parameterService.findAll(eq(PORTAL_TOP_APIS), any(Function.class), any(Predicate.class), any(ParameterReferenceType.class))).thenReturn(asList(api1, api2));
+        when(parameterService.findAll(eq(PORTAL_TOP_APIS), any(Function.class), any(Predicate.class), any(ParameterReferenceType.class)))
+            .thenReturn(asList(api1, api2));
 
         topApiService.delete("1");
 

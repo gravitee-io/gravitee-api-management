@@ -15,16 +15,16 @@
  */
 package io.gravitee.rest.api.validator;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -34,12 +34,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Pattern(regexp = "[^#%@/;=?|^~, \\\\]*", message = "Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)")
 @Target({ ElementType.PARAMETER, ElementType.FIELD })
 @Retention(RUNTIME)
-@Constraint(validatedBy = { })
+@Constraint(validatedBy = {})
 @Documented
 public @interface CustomApiKey {
     String message() default "Bad format for custom API key";
 
-    Class<?>[] groups() default { };
+    Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default { };
+    Class<? extends Payload>[] payload() default {};
 }

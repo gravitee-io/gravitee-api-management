@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ConsoleScheduler {
+
     @JsonProperty("tasks")
     @ParameterKey(Key.CONSOLE_SCHEDULER_TASKS)
     private Integer tasksInSeconds;

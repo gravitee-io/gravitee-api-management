@@ -25,18 +25,17 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EventService;
 import io.swagger.annotations.*;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.ws.rs.*;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Events"})
+@Api(tags = { "API Events" })
 public class ApiEventsResource extends AbstractResource {
 
     @Inject
@@ -49,21 +48,17 @@ public class ApiEventsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get API's events",
-            notes = "User must have the MANAGE_LIFECYCLE permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "API's events"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ)
-    })
+    @ApiOperation(value = "Get API's events", notes = "User must have the MANAGE_LIFECYCLE permission to use this service")
+    @ApiResponses({ @ApiResponse(code = 200, message = "API's events"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
     public List<EventEntity> getApiEventsEvents(@ApiParam @DefaultValue("all") @QueryParam("type") EventTypeListParam eventTypeListParam) {
         final EventQuery query = new EventQuery();
         query.setApi(api);
-        return eventService.search(query).stream()
-                .filter(event -> eventTypeListParam.getEventTypes().contains(event.getType()))
-                .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
-                .collect(Collectors.toList());
+        return eventService
+            .search(query)
+            .stream()
+            .filter(event -> eventTypeListParam.getEventTypes().contains(event.getType()))
+            .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
+            .collect(Collectors.toList());
     }
-
 }

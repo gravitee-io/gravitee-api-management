@@ -20,7 +20,6 @@ package io.gravitee.rest.api.service.impl.swagger;
  * @author GraviteeSource Team
  */
 public interface SwaggerProperties {
-
     String TRY_IT = "tryItURL";
 
     String ENTRYPOINTS_AS_SERVERS = "entrypointsAsServers";

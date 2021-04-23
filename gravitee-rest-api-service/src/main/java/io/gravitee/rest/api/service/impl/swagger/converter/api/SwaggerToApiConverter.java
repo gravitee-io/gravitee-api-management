@@ -24,6 +24,5 @@ import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
  * @author GraviteeSource Team
  */
 public interface SwaggerToApiConverter<S extends SwaggerDescriptor> extends SwaggerConverter<S, SwaggerApiEntity> {
-
     SwaggerApiEntity convert(S descriptor);
 }

@@ -15,28 +15,27 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Page;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.io.IOException;
-import java.security.Principal;
-import java.util.*;
-
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
+
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.Page;
+import java.io.IOException;
+import java.security.Principal;
+import java.util.*;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,31 +46,40 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     protected String contextPath() {
         return "apis/";
     }
-    
+
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
     }
-    
+
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return null;
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return null;
+                    }
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return false;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
-                @Override
-                public boolean isSecure() { return false; }
-                
-                @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
-            });
+            );
         }
     }
 
@@ -83,22 +91,21 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     private PageEntity mockPage;
     private PageEntity mockAnotherPage;
 
-    
     @Before
     public void init() {
         resetAllMocks();
-        
+
         mockApi = new ApiEntity();
         mockApi.setId(API);
         doReturn(mockApi).when(apiService).findById(API);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(isNull(), argThat(q -> singletonList(API).equals(q.getIds())));
-        
+
         mockPage = new PageEntity();
         mockPage.setPublished(true);
         mockPage.setExcludedGroups(new ArrayList<String>());
         doReturn(mockPage).when(pageService).findById(PAGE, null);
-        
+
         mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);
         mockAnotherPage.setExcludedGroups(new ArrayList<String>());
@@ -112,13 +119,11 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveMetadataCleared() {
-        
         doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
-        
+
         Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());
 
         assertTrue(mockAnotherPage.getMetadata().isEmpty());
-
     }
 }

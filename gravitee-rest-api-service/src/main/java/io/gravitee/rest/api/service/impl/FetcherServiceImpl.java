@@ -22,10 +22,9 @@ import io.gravitee.rest.api.model.FetcherEntity;
 import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.service.FetcherService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import org.springframework.stereotype.Component;
-
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,15 +46,14 @@ public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin, Fet
 
             if (onlyFilesFetchers) {
                 Class<?> filesFetcherClass = FilesFetcher.class;
-                fetcherDefinitions = fetcherDefinitions.stream()
-                        .filter(fetcherPlugin ->
-                                filesFetcherClass.isAssignableFrom(fetcherPlugin.fetcher()))
+                fetcherDefinitions =
+                    fetcherDefinitions
+                        .stream()
+                        .filter(fetcherPlugin -> filesFetcherClass.isAssignableFrom(fetcherPlugin.fetcher()))
                         .collect(Collectors.toSet());
             }
 
-            return fetcherDefinitions.stream()
-                    .map(fetcherDefinition -> convert(fetcherDefinition, false))
-                    .collect(Collectors.toSet());
+            return fetcherDefinitions.stream().map(fetcherDefinition -> convert(fetcherDefinition, false)).collect(Collectors.toSet());
         } catch (Exception ex) {
             logger.error("An error occurs while trying to list all fetchers", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all fetchers", ex);
@@ -85,7 +83,6 @@ public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin, Fet
             pluginEntity.setPath(plugin.path().toString());
             pluginEntity.setType(plugin.type().toString().toLowerCase());
             pluginEntity.setDependencies(plugin.dependencies());
-
             // TODO: check the purpose of this
             //entity.setPlugin(pluginEntity);
         }

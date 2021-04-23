@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.impl.swagger.SwaggerProperties;
 import io.gravitee.rest.api.service.impl.swagger.transformer.OAITransformer;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -42,22 +41,34 @@ public class PageConfigurationOAITransformer extends AbstractPageConfigurationSw
         String tryItUrl = asString(SwaggerProperties.TRY_IT);
         if (tryItUrl != null && !tryItUrl.isEmpty()) {
             URI newURI = URI.create(tryItUrl);
-            descriptor.getSpecification().getServers().forEach(server -> {
-                try {
-                    server.setUrl(new URI(newURI.getScheme(),
-                            newURI.getUserInfo(),
-                            newURI.getHost(),
-                            newURI.getPort(),
-                            newURI.getPath(),
-                            newURI.getQuery(),
-                            newURI.getFragment()).toString());
-                } catch (URISyntaxException e) {
-                    logger.error(e.getMessage(), e);
-                }
-            });
+            descriptor
+                .getSpecification()
+                .getServers()
+                .forEach(
+                    server -> {
+                        try {
+                            server.setUrl(
+                                new URI(
+                                    newURI.getScheme(),
+                                    newURI.getUserInfo(),
+                                    newURI.getHost(),
+                                    newURI.getPort(),
+                                    newURI.getPath(),
+                                    newURI.getQuery(),
+                                    newURI.getFragment()
+                                )
+                                    .toString()
+                            );
+                        } catch (URISyntaxException e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                    }
+                );
 
             // Remove possible server duplicates.
-            descriptor.getSpecification().servers(descriptor.getSpecification().getServers().stream().distinct().collect(Collectors.toList()));
+            descriptor
+                .getSpecification()
+                .servers(descriptor.getSpecification().getServers().stream().distinct().collect(Collectors.toList()));
         }
     }
 }

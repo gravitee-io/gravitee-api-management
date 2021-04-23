@@ -15,6 +15,14 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doReturn;
+
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -29,23 +37,13 @@ import io.gravitee.rest.api.portal.rest.model.Application;
 import io.gravitee.rest.api.portal.rest.model.ApplicationsResponse;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import java.io.IOException;
+import java.util.*;
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-
-import javax.ws.rs.core.Response;
-
-import java.io.IOException;
-import java.util.*;
-
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -202,7 +200,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         mockApi.setPrimaryOwner(primaryOwner);
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(mockApis).when(apiService).findPublishedByUser(any(), argThat(q -> singletonList(API).equals(q.getIds())));
-        
+
         TopHitsAnalytics mockAnalytics = new TopHitsAnalytics();
         Map<String, Long> mockedValues = new HashMap<>();
         mockedValues.put("A", 10L);
@@ -235,7 +233,6 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         appLIC.setId("C");
         doReturn(new HashSet<>(Arrays.asList(appLIA, appLIC))).when(applicationService).findByUser(USER_NAME);
 
-        
         final Response response = target(API).path("subscribers").request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -246,14 +243,14 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         assertEquals(2, value.getApplications().size());
         assertTrue(value.getApplications().contains("A"));
         assertTrue(value.getApplications().contains("C"));
-        
+
         final ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
         assertNotNull(applicationsResponse);
         assertEquals(2, applicationsResponse.getData().size());
         assertEquals("C", applicationsResponse.getData().get(0).getId());
         assertEquals("A", applicationsResponse.getData().get(1).getId());
     }
-    
+
     @Test
     public void shouldGetNoSubscribers() {
         doReturn(Collections.emptyList()).when(subscriptionService).search(any());
