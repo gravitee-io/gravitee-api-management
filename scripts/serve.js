@@ -15,15 +15,15 @@
  */
 const compression = require('compression');
 const express = require('express');
-const {createProxyMiddleware} = require('http-proxy-middleware');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 
 app.use(compression());
 app.use(express.static('dist/'));
-app.use('/management', createProxyMiddleware({target: 'http://localhost:8083', changeOrigin: true}));
+app.use('/management', createProxyMiddleware({ target: 'http://localhost:8083', changeOrigin: true }));
 
 app.all('/*', (req, res) => {
-  res.sendFile('index.html', {root: 'dist/'});
+  res.sendFile('index.html', { root: 'dist/' });
 });
 
 app.listen(3000, () => {

@@ -31,7 +31,7 @@ class DashboardService {
 
   list(referenceType: string, silent: boolean = false) {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + '?reference_type=' + referenceType, {
-      silentCall: silent
+      silentCall: silent,
     });
   }
 
@@ -48,7 +48,7 @@ class DashboardService {
       query_filter: dashboard.query_filter,
       order: dashboard.order,
       enabled: dashboard.enabled,
-      definition: dashboard.definition
+      definition: dashboard.definition,
     });
   }
 
@@ -61,95 +61,121 @@ class DashboardService {
       chart: {
         service: {
           caller: this.AnalyticsService,
-          function: this.AnalyticsService.analytics
-        }
-      }
+          function: this.AnalyticsService.analytics,
+        },
+      },
     };
   }
 
   getAverageableFields() {
-    return [{
-      label: 'Global latency (ms)',
-      value: 'response-time'
-    }, {
-      label: 'API latency (ms)',
-      value: 'api-response-time'
-    }, {
-      label: 'Proxy latency (ms)',
-      value: 'proxy-latency'
-    }, {
-      label: 'Request content length (byte)',
-      value: 'request-content-length'
-    }, {
-      label: 'Response content length (byte)',
-      value: 'response-content-length'
-    }];
+    return [
+      {
+        label: 'Global latency (ms)',
+        value: 'response-time',
+      },
+      {
+        label: 'API latency (ms)',
+        value: 'api-response-time',
+      },
+      {
+        label: 'Proxy latency (ms)',
+        value: 'proxy-latency',
+      },
+      {
+        label: 'Request content length (byte)',
+        value: 'request-content-length',
+      },
+      {
+        label: 'Response content length (byte)',
+        value: 'response-content-length',
+      },
+    ];
   }
 
   getProjectionAggregates() {
-    return [{
-      label: 'Average',
-      value: 'avg'
-    }, {
-      label: 'Minimum',
-      value: 'min'
-    }, {
-      label: 'Maximum',
-      value: 'max'
-    }];
+    return [
+      {
+        label: 'Average',
+        value: 'avg',
+      },
+      {
+        label: 'Minimum',
+        value: 'min',
+      },
+      {
+        label: 'Maximum',
+        value: 'max',
+      },
+    ];
   }
 
   getHttpStatusField() {
     return {
       label: 'HTTP Status',
-      value: 'status'
+      value: 'status',
     };
   }
 
   getIndexedFields() {
-    return [{
-      label: 'API',
-      value: 'api'
-    }, {
-      label: 'Application',
-      value: 'application'
-    }, {
-      label: 'Plan',
-      value: 'plan'
-    }, {
-      label: 'Path',
-      value: 'path'
-    }, {
-      label: 'Mapped path',
-      value: 'mapped-path'
-    }, this.getHttpStatusField(), {
-      label: 'Tenant',
-      value: 'tenant'
-    }, {
-      label: 'Host',
-      value: 'host'
-    }, {
-      label: 'Consumer IP',
-      value: 'remote-address'
-    }, {
-      label: 'Country',
-      value: 'geoip.country_iso_code'
-    }, {
-      label: 'City',
-      value: 'geoip.city_name'
-    }, {
-      label: 'User',
-      value: 'user'
-    }, {
-      label: 'User agent',
-      value: 'user_agent.name'
-    }, {
-      label: 'Operating system',
-      value: 'user_agent.os_name'
-    }, {
-      label: 'Zone',
-      value: 'zone'
-    }];
+    return [
+      {
+        label: 'API',
+        value: 'api',
+      },
+      {
+        label: 'Application',
+        value: 'application',
+      },
+      {
+        label: 'Plan',
+        value: 'plan',
+      },
+      {
+        label: 'Path',
+        value: 'path',
+      },
+      {
+        label: 'Mapped path',
+        value: 'mapped-path',
+      },
+      this.getHttpStatusField(),
+      {
+        label: 'Tenant',
+        value: 'tenant',
+      },
+      {
+        label: 'Host',
+        value: 'host',
+      },
+      {
+        label: 'Consumer IP',
+        value: 'remote-address',
+      },
+      {
+        label: 'Country',
+        value: 'geoip.country_iso_code',
+      },
+      {
+        label: 'City',
+        value: 'geoip.city_name',
+      },
+      {
+        label: 'User',
+        value: 'user',
+      },
+      {
+        label: 'User agent',
+        value: 'user_agent.name',
+      },
+      {
+        label: 'Operating system',
+        value: 'user_agent.os_name',
+      },
+      {
+        label: 'Zone',
+        value: 'zone',
+      },
+    ];
   }
 
   getNumericFields() {
@@ -167,7 +193,7 @@ class DashboardService {
         field.aggLabel = 'By ' + _.lowerCase(field.label);
         field.aggValue = 'field:' + field.value;
         return field;
-      })
+      }),
     );
   }
 }

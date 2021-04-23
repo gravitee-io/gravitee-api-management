@@ -33,7 +33,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
   $stateProvider
     .state('management.apis', {
       abstract: true,
-      url: '/apis'
+      url: '/apis',
     })
     .state('management.apis.detail', {
       abstract: true,
@@ -45,37 +45,37 @@ function apisRouterConfig($stateProvider: StateProvider) {
         resolvedApiState: function ($stateParams, ApiService) {
           return ApiService.isAPISynchronized($stateParams.apiId);
         },
-        resolvedApi: function ($stateParams: StateParams,
-                               ApiService: ApiService,
-                               $state: StateService,
-                               Constants: any,
-                               EnvironmentService: EnvironmentService) {
-          return ApiService.get($stateParams.apiId)
-            .catch((err) => {
-              if (err && err.interceptorFuture) {
-                $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id)});
-              }
-            });
+        resolvedApi: function (
+          $stateParams: StateParams,
+          ApiService: ApiService,
+          $state: StateService,
+          Constants: any,
+          EnvironmentService: EnvironmentService,
+        ) {
+          return ApiService.get($stateParams.apiId).catch((err) => {
+            if (err && err.interceptorFuture) {
+              $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id) });
+            }
+          });
         },
         resolvedCategories: (CategoryService: CategoryService) => {
-          return CategoryService.list().then(response => {
+          return CategoryService.list().then((response) => {
             return response.data;
           });
         },
         resolvedGroups: (GroupService: GroupService) => {
-          return GroupService.list().then(response => {
+          return GroupService.list().then((response) => {
             return response.data;
           });
         },
         resolvedTags: (TagService: TagService) => {
-          return TagService.list().then(response => {
+          return TagService.list().then((response) => {
             return response.data;
           });
         },
         resolvedTenants: () => [],
         resolvedApiPermissions: (ApiService: ApiService, $stateParams: StateParams) =>
-          ApiService.getPermissions($stateParams.apiId)
-          .catch(err => {
+          ApiService.getPermissions($stateParams.apiId).catch((err) => {
             if (err && err.interceptorFuture) {
               err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
             }
@@ -92,8 +92,8 @@ function apisRouterConfig($stateProvider: StateProvider) {
           }
           UserService.reloadPermissions();
         },
-        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then(response => response.data)
-      }
+        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then((response) => response.data),
+      },
     })
     .state('management.apis.new', {
       url: '/new',
@@ -101,33 +101,33 @@ function apisRouterConfig($stateProvider: StateProvider) {
       controller: 'NewApiController',
       controllerAs: '$ctrl',
       resolve: {
-        policies: (PolicyService: PolicyService) => PolicyService.listSwaggerPolicies().then(response => response.data)
+        policies: (PolicyService: PolicyService) => PolicyService.listSwaggerPolicies().then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['environment-api-c']
+          only: ['environment-api-c'],
         },
         docs: {
-          page: 'management-apis-create'
-        }
-      }
+          page: 'management-apis-create',
+        },
+      },
     })
     .state('management.apis.create', {
       url: '/new/create/:definitionVersion',
       component: 'apiCreation',
       resolve: {
-        groups: (GroupService: GroupService) => GroupService.list().then(response => response.data),
-        tenants: (TenantService: TenantService) => TenantService.list().then(response => response.data),
-        tags: (TagService: TagService) => TagService.list().then(response => response.data)
+        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
+        tenants: (TenantService: TenantService) => TenantService.list().then((response) => response.data),
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['environment-api-c']
+          only: ['environment-api-c'],
         },
         docs: {
-          page: 'management-apis-create-steps'
-        }
-      }
+          page: 'management-apis-create-steps',
+        },
+      },
     })
     .state('management.apis.list', {
       url: '/?q',
@@ -141,26 +141,26 @@ function apisRouterConfig($stateProvider: StateProvider) {
           }
 
           return ApiService.list(null, false, 1);
-        }
+        },
       },
       data: {
         menu: {
           label: 'APIs',
           icon: 'dashboard',
           firstLevel: true,
-          order: 10
+          order: 10,
         },
         docs: {
-          page: 'management-apis'
+          page: 'management-apis',
         },
         ncyBreadcrumb: {
-          label: 'APIs'
-        }
+          label: 'APIs',
+        },
       },
       params: {
         q: {
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     });
 }

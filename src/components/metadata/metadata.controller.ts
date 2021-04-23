@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 import MetadataService from '../../services/metadata.service';
 import NotificationService from '../../services/notification.service';
 import UserService from '../../services/user.service';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 
 class MetadataController {
@@ -34,7 +34,8 @@ class MetadataController {
     private $mdDialog: angular.material.IDialogService,
     private UserService: UserService,
     private $rootScope: IScope,
-    private $state: StateService) {
+    private $state: StateService,
+  ) {
     'ngInject';
     this.$rootScope = $rootScope;
 
@@ -50,54 +51,63 @@ class MetadataController {
   }
 
   newMetadata() {
-    this.$mdDialog.show({
-      controller: 'NewMetadataDialogController',
-      controllerAs: '$ctrl',
-      template: require('./dialog/save.metadata.dialog.html'),
-      locals: {
-        metadataFormats: this.metadataFormats
-      }
-    }).then(savedMetadata => {
-      this.NotificationService.show(`Metadata '${savedMetadata.name}' created with success`);
-      this.$state.reload();
-    }).catch(() => {
-      // don't display error in console
-    });
+    this.$mdDialog
+      .show({
+        controller: 'NewMetadataDialogController',
+        controllerAs: '$ctrl',
+        template: require('./dialog/save.metadata.dialog.html'),
+        locals: {
+          metadataFormats: this.metadataFormats,
+        },
+      })
+      .then((savedMetadata) => {
+        this.NotificationService.show(`Metadata '${savedMetadata.name}' created with success`);
+        this.$state.reload();
+      })
+      .catch(() => {
+        // don't display error in console
+      });
   }
 
   updateMetadata(metadata) {
-    this.$mdDialog.show({
-      controller: 'UpdateMetadataDialogController',
-      controllerAs: '$ctrl',
-      template: require('./dialog/save.metadata.dialog.html'),
-      locals: {
-        metadata: _.clone(metadata),
-        metadataFormats: this.metadataFormats
-      }
-    }).then(savedMetadata => {
-      this.NotificationService.show(`Metadata '${savedMetadata.name}' updated with success`);
-      this.$state.reload();
-    }).catch(() => {
-      // don't display error in console
-    });
+    this.$mdDialog
+      .show({
+        controller: 'UpdateMetadataDialogController',
+        controllerAs: '$ctrl',
+        template: require('./dialog/save.metadata.dialog.html'),
+        locals: {
+          metadata: _.clone(metadata),
+          metadataFormats: this.metadataFormats,
+        },
+      })
+      .then((savedMetadata) => {
+        this.NotificationService.show(`Metadata '${savedMetadata.name}' updated with success`);
+        this.$state.reload();
+      })
+      .catch(() => {
+        // don't display error in console
+      });
   }
 
   deleteMetadata(metadata) {
-    this.$mdDialog.show({
-      controller: 'DeleteMetadataDialogController',
-      controllerAs: '$ctrl',
-      template: require('./dialog/delete.metadata.dialog.html'),
-      locals: {
-        metadata: metadata
-      }
-    }).then(deleteMetadata => {
-      if (deleteMetadata) {
-        this.NotificationService.show('Metadata \'' + metadata.name + '\' deleted with success');
-        this.$state.reload();
-      }
-    }).catch(() => {
-      // don't display error in console
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DeleteMetadataDialogController',
+        controllerAs: '$ctrl',
+        template: require('./dialog/delete.metadata.dialog.html'),
+        locals: {
+          metadata: metadata,
+        },
+      })
+      .then((deleteMetadata) => {
+        if (deleteMetadata) {
+          this.NotificationService.show("Metadata '" + metadata.name + "' deleted with success");
+          this.$state.reload();
+        }
+      })
+      .catch(() => {
+        // don't display error in console
+      });
   }
 
   metadataDeletable(metadata) {

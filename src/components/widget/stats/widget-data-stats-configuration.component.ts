@@ -18,42 +18,51 @@ import * as _ from 'lodash';
 const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats-configuration.html'),
   bindings: {
-    chart: '<'
+    chart: '<',
   },
   controller: function (DashboardService: DashboardService) {
     'ngInject';
     this.fields = DashboardService.getAverageableFields();
-    this.stats = [{
-      'key': 'min',
-      'label': 'min',
-      'unit': 'ms',
-      'color': '#66bb6a'
-    }, {
-      'key': 'max',
-      'label': 'max',
-      'unit': 'ms',
-      'color': '#ef5350'
-    }, {
-      'key': 'avg',
-      'label': 'avg',
-      'unit': 'ms',
-      'color': '#42a5f5'
-    }, {
-      'key': 'rps',
-      'label': 'requests per second',
-      'color': '#ff8f2d',
-      'fallback': [{
-        'key': 'rpm',
-        'label': 'requests per minute'
-      }, {
-        'key': 'rph',
-        'label': 'requests per hour'
-      }]
-    }, {
-      'key': 'count',
-      'label': 'total',
-      'color': 'black'
-    }];
+    this.stats = [
+      {
+        key: 'min',
+        label: 'min',
+        unit: 'ms',
+        color: '#66bb6a',
+      },
+      {
+        key: 'max',
+        label: 'max',
+        unit: 'ms',
+        color: '#ef5350',
+      },
+      {
+        key: 'avg',
+        label: 'avg',
+        unit: 'ms',
+        color: '#42a5f5',
+      },
+      {
+        key: 'rps',
+        label: 'requests per second',
+        color: '#ff8f2d',
+        fallback: [
+          {
+            key: 'rpm',
+            label: 'requests per minute',
+          },
+          {
+            key: 'rph',
+            label: 'requests per hour',
+          },
+        ],
+      },
+      {
+        key: 'count',
+        label: 'total',
+        color: 'black',
+      },
+    ];
     this.statKeys = _.map(this.stats, 'key');
 
     this.$onInit = () => {
@@ -61,9 +70,9 @@ const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
         _.merge(this.chart, {
           request: {
             type: 'stats',
-            field: this.fields[0].value
+            field: this.fields[0].value,
           },
-          data: this.stats
+          data: this.stats,
         });
       }
       this.selectedStats = _.map(this.chart.data, 'key');
@@ -72,7 +81,7 @@ const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
     this.onStatsChanged = () => {
       this.chart.data = _.filter(this.stats, (stat) => _.includes(this.selectedStats, stat.key));
     };
-  }
+  },
 };
 
 export default WidgetDataStatsConfigurationComponent;

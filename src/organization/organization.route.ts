@@ -30,23 +30,26 @@ function organizationRouterConfig($stateProvider) {
     .state('organization', {
       url: '/organization',
       redirectTo: 'organization.settings',
-      parent: 'withoutSidenav'
+      parent: 'withoutSidenav',
     })
     .state('organization.settings', {
       url: '/settings',
       component: 'organizationSettings',
       resolve: {
-        settings: (ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then(response => response.data)
+        settings: (ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then((response) => response.data),
       },
       data: {
         menu: null,
         perms: {
           only: [
             // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
-            'organization-role-c', 'organization-role-u', 'organization-role-d', 'environment-documentation-d'
-          ]
-        }
-      }
+            'organization-role-c',
+            'organization-role-u',
+            'organization-role-d',
+            'environment-documentation-d',
+          ],
+        },
+      },
     })
     .state('organization.settings.cockpit', {
       url: '/cockpit',
@@ -54,12 +57,12 @@ function organizationRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-cockpit'
+          page: 'organization-configuration-cockpit',
         },
         perms: {
-          only: ['organization-installation-r']
-        }
-      }
+          only: ['organization-installation-r'],
+        },
+      },
     })
     .state('organization.settings.console', {
       url: '/console',
@@ -67,12 +70,12 @@ function organizationRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-console'
+          page: 'organization-configuration-console',
         },
         perms: {
-          only: ['organization-settings-r']
-        }
-      }
+          only: ['organization-settings-r'],
+        },
+      },
     })
     .state('organization.settings.roles', {
       url: '/roles',
@@ -82,56 +85,56 @@ function organizationRouterConfig($stateProvider) {
         organizationRoles: (RoleService: RoleService) => RoleService.list('ORGANIZATION'),
         environmentRoles: (RoleService: RoleService) => RoleService.list('ENVIRONMENT'),
         apiRoles: (RoleService: RoleService) => RoleService.list('API'),
-        applicationRoles: (RoleService: RoleService) => RoleService.list('APPLICATION')
+        applicationRoles: (RoleService: RoleService) => RoleService.list('APPLICATION'),
       },
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-roles'
+          page: 'organization-configuration-roles',
         },
         perms: {
-          only: ['organization-role-r']
-        }
+          only: ['organization-role-r'],
+        },
       },
       params: {
         roleScope: {
           type: 'string',
           value: 'ORGANIZATION',
-          squash: false
-        }
-      }
+          squash: false,
+        },
+      },
     })
     .state('organization.settings.rolenew', {
       url: '/role/:roleScope/new',
       component: 'role',
       resolve: {
-        roleScopes: (RoleService: RoleService) => RoleService.listScopes()
+        roleScopes: (RoleService: RoleService) => RoleService.listScopes(),
       },
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-roles'
+          page: 'organization-configuration-roles',
         },
         perms: {
-          only: ['organization-role-c']
-        }
-      }
+          only: ['organization-role-c'],
+        },
+      },
     })
     .state('organization.settings.roleedit', {
       url: '/role/:roleScope/:role',
       component: 'role',
       resolve: {
-        roleScopes: (RoleService: RoleService) => RoleService.listScopes()
+        roleScopes: (RoleService: RoleService) => RoleService.listScopes(),
       },
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-roles'
+          page: 'organization-configuration-roles',
         },
         perms: {
-          only: ['organization-role-u']
-        }
-      }
+          only: ['organization-role-u'],
+        },
+      },
     })
     .state('organization.settings.rolemembers', {
       url: '/role/:roleScope/:role/members',
@@ -139,102 +142,84 @@ function organizationRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-roles'
+          page: 'organization-configuration-roles',
         },
         perms: {
-          only: ['organization-role-u']
-        }
+          only: ['organization-role-u'],
+        },
       },
       resolve: {
         members: (RoleService: RoleService, $stateParams) =>
-          RoleService.listUsers($stateParams.roleScope, $stateParams.role).then((response) => response
-          )
-      }
+          RoleService.listUsers($stateParams.roleScope, $stateParams.role).then((response) => response),
+      },
     })
     .state('organization.settings.users', {
       url: '/users?q&page',
       component: 'users',
       resolve: {
         usersPage: (UserService: UserService, $state, $stateParams) =>
-          UserService.list($stateParams.q, $stateParams.page).then(response => response.data)
+          UserService.list($stateParams.q, $stateParams.page).then((response) => response.data),
       },
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-users'
+          page: 'organization-configuration-users',
         },
         perms: {
-          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d']
-        }
+          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
+        },
       },
       params: {
         page: {
           value: '1',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('organization.settings.user', {
       url: '/users/:userId',
       component: 'userDetail',
       resolve: {
-        selectedUser: (UserService: UserService, $stateParams) =>
-          UserService.get($stateParams.userId).then(response =>
-            response
-          ),
+        selectedUser: (UserService: UserService, $stateParams) => UserService.get($stateParams.userId).then((response) => response),
         groups: (UserService: UserService, $stateParams) =>
-          UserService.getUserGroups($stateParams.userId).then(response =>
-            response.data
-          ),
-        organizationRoles: (RoleService: RoleService) =>
-          RoleService.list('ORGANIZATION').then((roles) =>
-            roles
-          ),
-        environments: (EnvironmentService: EnvironmentService) =>
-          EnvironmentService.list().then(response => response.data
-          ),
-        environmentRoles: (RoleService: RoleService) =>
-          RoleService.list('ENVIRONMENT').then((roles) =>
-            roles
-          ),
+          UserService.getUserGroups($stateParams.userId).then((response) => response.data),
+        organizationRoles: (RoleService: RoleService) => RoleService.list('ORGANIZATION').then((roles) => roles),
+        environments: (EnvironmentService: EnvironmentService) => EnvironmentService.list().then((response) => response.data),
+        environmentRoles: (RoleService: RoleService) => RoleService.list('ENVIRONMENT').then((roles) => roles),
         apiRoles: (RoleService: RoleService) =>
-          RoleService.list('API').then((roles) =>
-            [{ 'scope': 'API', 'name': '', 'system': false }].concat(roles)
-          ),
+          RoleService.list('API').then((roles) => [{ scope: 'API', name: '', system: false }].concat(roles)),
         applicationRoles: (RoleService: RoleService) =>
-          RoleService.list('APPLICATION').then((roles) =>
-            [{ 'scope': 'APPLICATION', 'name': '', 'system': false }].concat(roles)
-          )
+          RoleService.list('APPLICATION').then((roles) => [{ scope: 'APPLICATION', name: '', system: false }].concat(roles)),
       },
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-user'
+          page: 'organization-configuration-user',
         },
         perms: {
-          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d']
-        }
-      }
+          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
+        },
+      },
     })
     .state('organization.settings.newuser', {
       url: '/users/new',
       component: 'newUser',
       resolve: {
-        identityProviders: (IdentityProviderService: IdentityProviderService) => IdentityProviderService.list()
+        identityProviders: (IdentityProviderService: IdentityProviderService) => IdentityProviderService.list(),
       },
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-create-user'
+          page: 'organization-configuration-create-user',
         },
         perms: {
-          only: ['organization-user-c']
-        }
-      }
+          only: ['organization-user-c'],
+        },
+      },
     })
     .state('organization.settings.identityproviders', {
       abstract: true,
-      url: '/identities'
+      url: '/identities',
     })
     .state('organization.settings.identityproviders.list', {
       url: '/',
@@ -243,21 +228,20 @@ function organizationRouterConfig($stateProvider) {
         target: () => 'ORGANIZATION',
         targetId: () => 'DEFAULT',
         identityProviders: (IdentityProviderService: IdentityProviderService) =>
-          IdentityProviderService.list().then(response => response),
+          IdentityProviderService.list().then((response) => response),
         identities: (OrganizationService: OrganizationService) =>
-          OrganizationService.listOrganizationIdentities().then(response => response.data),
-        settings: (ConsoleSettingsService: ConsoleSettingsService) =>
-          ConsoleSettingsService.get().then(response => response.data)
+          OrganizationService.listOrganizationIdentities().then((response) => response.data),
+        settings: (ConsoleSettingsService: ConsoleSettingsService) => ConsoleSettingsService.get().then((response) => response.data),
       },
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-identityproviders'
+          page: 'organization-configuration-identityproviders',
         },
         perms: {
-          only: ['organization-identity_provider-r']
-        }
-      }
+          only: ['organization-identity_provider-r'],
+        },
+      },
     })
     .state('organization.settings.identityproviders.new', {
       url: '/new?:type',
@@ -265,47 +249,37 @@ function organizationRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-identityprovider'
+          page: 'organization-configuration-identityprovider',
         },
         perms: {
-          only: ['organization-identity_provider-c']
-        }
-      }
+          only: ['organization-identity_provider-c'],
+        },
+      },
     })
     .state('organization.settings.identityproviders.identityprovider', {
       url: '/:id',
       component: 'identityProvider',
       resolve: {
         identityProvider: (IdentityProviderService: IdentityProviderService, $stateParams) =>
-          IdentityProviderService.get($stateParams.id).then(response => response),
+          IdentityProviderService.get($stateParams.id).then((response) => response),
 
-        groups: (GroupService: GroupService) =>
-          GroupService.list().then(response => response.data),
+        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
 
-        environmentRoles: (RoleService: RoleService) =>
-          RoleService.list('ENVIRONMENT').then((roles) =>
-            roles
-          ),
+        environmentRoles: (RoleService: RoleService) => RoleService.list('ENVIRONMENT').then((roles) => roles),
 
-        organizationRoles: (RoleService: RoleService) =>
-          RoleService.list('ORGANIZATION').then((roles) =>
-            roles
-          ),
+        organizationRoles: (RoleService: RoleService) => RoleService.list('ORGANIZATION').then((roles) => roles),
 
-        environments: (EnvironmentService: EnvironmentService) =>
-          EnvironmentService.list().then((response) =>
-            response.data
-          ),
+        environments: (EnvironmentService: EnvironmentService) => EnvironmentService.list().then((response) => response.data),
       },
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-identityprovider'
+          page: 'organization-configuration-identityprovider',
         },
         perms: {
-          only: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d']
-        }
-      }
+          only: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d'],
+        },
+      },
     })
     .state('organization.settings.notificationTemplates', {
       url: '/notification-templates',
@@ -313,17 +287,16 @@ function organizationRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-notification-templates'
+          page: 'organization-configuration-notification-templates',
         },
         perms: {
-          only: ['organization-notification_templates-r']
-        }
+          only: ['organization-notification_templates-r'],
+        },
       },
       resolve: {
-        notificationTemplates:
-          (NotificationTemplatesService: NotificationTemplatesService) => NotificationTemplatesService.getNotificationTemplates()
-            .then(response => response.data),
-      }
+        notificationTemplates: (NotificationTemplatesService: NotificationTemplatesService) =>
+          NotificationTemplatesService.getNotificationTemplates().then((response) => response.data),
+      },
     })
     .state('organization.settings.notificationTemplate', {
       url: '/notification-templates/:scope/:hook',
@@ -331,24 +304,22 @@ function organizationRouterConfig($stateProvider) {
       data: {
         menu: null,
         docs: {
-          page: 'organization-configuration-notification-template'
+          page: 'organization-configuration-notification-template',
         },
         perms: {
-          only: ['organization-notification_templates-r']
-        }
+          only: ['organization-notification_templates-r'],
+        },
       },
       resolve: {
-        notifTemplates:
-          (NotificationTemplatesService: NotificationTemplatesService, $stateParams) => {
-            if ($stateParams.scope.toUpperCase() === 'TEMPLATES_TO_INCLUDE') {
-              return NotificationTemplatesService.getNotificationTemplates('', $stateParams.scope)
-                .then(response => response.data);
-            } else {
-              return NotificationTemplatesService.getNotificationTemplates($stateParams.hook, $stateParams.scope)
-                .then(response => response.data);
-            }
+        notifTemplates: (NotificationTemplatesService: NotificationTemplatesService, $stateParams) => {
+          if ($stateParams.scope.toUpperCase() === 'TEMPLATES_TO_INCLUDE') {
+            return NotificationTemplatesService.getNotificationTemplates('', $stateParams.scope).then((response) => response.data);
+          } else {
+            return NotificationTemplatesService.getNotificationTemplates($stateParams.hook, $stateParams.scope).then(
+              (response) => response.data,
+            );
           }
-      }
-    })
-  ;
+        },
+      },
+    });
 }

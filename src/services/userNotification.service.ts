@@ -20,7 +20,6 @@ import { UserNotification } from '../entities/userNotification';
 import { IHttpPromise } from 'angular';
 
 class UserNotificationService {
-
   constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
   }

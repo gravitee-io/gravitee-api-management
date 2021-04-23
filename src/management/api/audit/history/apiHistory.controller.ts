@@ -75,7 +75,10 @@ class ApiHistoryController {
     this.mode = this.hasDesign() ? Modes.Design : Modes.Payload;
     this.eventToCompareRequired = false;
     this.eventTypes = 'PUBLISH_API';
-    this.modeOptions = [{title: Modes.Design, id: Modes.Design}, {title: Modes.Payload, id: Modes.Payload}];
+    this.modeOptions = [
+      { title: Modes.Design, id: Modes.Design },
+      { title: Modes.Payload, id: Modes.Payload },
+    ];
   }
 
   $onInit() {
@@ -106,7 +109,7 @@ class ApiHistoryController {
         // reload API
         this.api = JSON.parse(angular.toJson(_.cloneDeep(args.api)));
         // reload API events
-        this.ApiService.getApiEvents(this.api.id, this.eventTypes).then(response => {
+        this.ApiService.getApiEvents(this.api.id, this.eventTypes).then((response) => {
           this.events = response.data;
           this.reloadEventsTimeline(this.events);
         });
@@ -119,12 +122,12 @@ class ApiHistoryController {
 
   setEventToStudio(eventTimeline, api) {
     this.studio.definition = {
-      'version': api.version,
-      'flows': api.flows != null ? api.flows : [],
-      'resources': api.resources,
-      'plans': api.plans != null ? api.plans : [],
-      'properties': api.properties,
-      'flow-mode': api.flow_mode
+      version: api.version,
+      flows: api.flows != null ? api.flows : [],
+      resources: api.resources,
+      plans: api.plans != null ? api.plans : [],
+      properties: api.properties,
+      'flow-mode': api.flow_mode,
     };
     this.studio.services = api.services || {};
   }
@@ -138,7 +141,7 @@ class ApiHistoryController {
       when: event.created_at,
       user: event.user,
       deploymentLabel: event.properties.deployment_label,
-      deploymentNumber: event.properties.deployment_number
+      deploymentNumber: event.properties.deployment_number,
     }));
   }
 
@@ -254,7 +257,7 @@ class ApiHistoryController {
     }, 1000);
   }
 
-  toggleMode({detail}) {
+  toggleMode({ detail }) {
     if (detail === false) {
       this.clearDataToCompare();
       this.eventToCompareRequired = false;
@@ -304,8 +307,8 @@ class ApiHistoryController {
     that.ApiService.rollback(this.api.id, _apiDefinition).then(() => {
       that.NotificationService.show('Api rollback !');
 
-      that.ApiService.get(that.api.id).then(function(response) {
-        that.$rootScope.$broadcast('apiChangeSuccess', {api: response.data});
+      that.ApiService.get(that.api.id).then(function (response) {
+        that.$rootScope.$broadcast('apiChangeSuccess', { api: response.data });
       });
     });
   }
@@ -313,20 +316,22 @@ class ApiHistoryController {
   showRollbackAPIConfirm(ev, api) {
     ev.stopPropagation();
     let self = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirm.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Would you like to rollback your API?',
-        confirmButton: 'Rollback'
-      }
-    }).then(function(response) {
-      if (response) {
-        self.rollback(api);
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirm.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Would you like to rollback your API?',
+          confirmButton: 'Rollback',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          self.rollback(api);
+        }
+      });
   }
 
   stringifyCurrentApi() {
@@ -360,7 +365,7 @@ class ApiHistoryController {
     delete payload.workflow_state;
     delete payload.response_templates;
 
-    return JSON.stringify({definition: JSON.stringify(payload)});
+    return JSON.stringify({ definition: JSON.stringify(payload) });
   }
 
   reloadEventsTimeline(events) {
@@ -374,7 +379,7 @@ class ApiHistoryController {
         badgeClass: 'warning',
         badgeIconClass: 'glyphicon-refresh',
         title: 'TO_DEPLOY',
-        isCurrentAPI: true
+        isCurrentAPI: true,
       });
     }
     this.selectEvent(this.eventsTimeline[0]);
@@ -384,18 +389,18 @@ class ApiHistoryController {
     const eventPayloadDefinition = JSON.parse(_event.definition);
     const reorganizedEvent = {
       ...eventPayloadDefinition,
-      'name': eventPayloadDefinition.name,
-      'version': eventPayloadDefinition.version,
-      'description': _event.description != null ? _event.description : eventPayloadDefinition.description,
-      'tags': eventPayloadDefinition.tags,
-      'proxy': eventPayloadDefinition.proxy,
-      'paths': eventPayloadDefinition.paths,
-      'flows': eventPayloadDefinition.flows,
-      'properties': eventPayloadDefinition.properties,
-      'services': eventPayloadDefinition.services,
-      'resources': eventPayloadDefinition.resources,
-      'path_mappings': eventPayloadDefinition.path_mappings,
-      'response_templates': eventPayloadDefinition.response_templates,
+      name: eventPayloadDefinition.name,
+      version: eventPayloadDefinition.version,
+      description: _event.description != null ? _event.description : eventPayloadDefinition.description,
+      tags: eventPayloadDefinition.tags,
+      proxy: eventPayloadDefinition.proxy,
+      paths: eventPayloadDefinition.paths,
+      flows: eventPayloadDefinition.flows,
+      properties: eventPayloadDefinition.properties,
+      services: eventPayloadDefinition.services,
+      resources: eventPayloadDefinition.resources,
+      path_mappings: eventPayloadDefinition.path_mappings,
+      response_templates: eventPayloadDefinition.response_templates,
     };
     if (reorganizedEvent.flow_mode != null) {
       reorganizedEvent.flow_mode = reorganizedEvent.flow_mode.toLowerCase();
@@ -403,22 +408,24 @@ class ApiHistoryController {
     return reorganizedEvent;
   }
 
-  fetchPolicyDocumentation({detail}) {
+  fetchPolicyDocumentation({ detail }) {
     const policy = detail.policy;
     this.PolicyService.getDocumentation(policy.id)
       .then((response) => {
-        this.studio.documentation = {content: response.data, image: policy.icon, id: policy.id};
+        this.studio.documentation = { content: response.data, image: policy.icon, id: policy.id };
       })
-      .catch(() => this.studio.documentation = null);
+      .catch(() => (this.studio.documentation = null));
   }
 
   fetchResourceDocumentation(event) {
-    const {detail: {resourceType, target}} = event;
+    const {
+      detail: { resourceType, target },
+    } = event;
     this.ResourceService.getDocumentation(resourceType.id)
       .then((response) => {
-        target.documentation = {content: response.data, image: resourceType.icon};
+        target.documentation = { content: response.data, image: resourceType.icon };
       })
-      .catch(() => target.documentation = null);
+      .catch(() => (target.documentation = null));
   }
 }
 

@@ -23,9 +23,9 @@ const WidgetComponent: ng.IComponentOptions = {
     widget: '<',
     updateMode: '<',
     globalQuery: '<',
-    customTimeframe: '<'
+    customTimeframe: '<',
   },
-  controller: function($scope, $state, AnalyticsService: AnalyticsService, EventsService: EventsService) {
+  controller: function ($scope, $state, AnalyticsService: AnalyticsService, EventsService: EventsService) {
     'ngInject';
     this.$state = $state;
     this.AnalyticsService = AnalyticsService;
@@ -72,7 +72,7 @@ const WidgetComponent: ng.IComponentOptions = {
           interval: timeframe.interval,
           from: timeframe.from,
           to: timeframe.to,
-          query: query
+          query: query,
         });
         this.reload();
       }
@@ -96,8 +96,9 @@ const WidgetComponent: ng.IComponentOptions = {
         } else {
           filters = Object.keys(queryFilters);
         }
-        chartRequest.query = filters.map(f => '(' + f + ':' + queryFilters[f]
-          .map(qp => this.AnalyticsService.buildQueryParam(qp, f)).join(' OR ') + ')').join(' AND ');
+        chartRequest.query = filters
+          .map((f) => '(' + f + ':' + queryFilters[f].map((qp) => this.AnalyticsService.buildQueryParam(qp, f)).join(' OR ') + ')')
+          .join(' AND ');
       }
 
       if (this.globalQuery) {
@@ -112,30 +113,36 @@ const WidgetComponent: ng.IComponentOptions = {
 
       let args = [this.widget.root, chartRequest];
 
-      if (! this.widget.root) {
+      if (!this.widget.root) {
         args.splice(0, 1);
       }
 
       this.widget.chart.service.function
         .apply(this.widget.chart.service.caller, args)
-        .then(response => {
+        .then((response) => {
           this.results = response.data;
           if (this.widget.chart.type === 'line' && this.$state.params.apiId) {
-            return this.EventsService.search(['PUBLISH_API'], [this.$state.params.apiId], response.data.timestamp.from, response.data.timestamp.to, 0, 10).then(response => {
+            return this.EventsService.search(
+              ['PUBLISH_API'],
+              [this.$state.params.apiId],
+              response.data.timestamp.from,
+              response.data.timestamp.to,
+              0,
+              10,
+            ).then((response) => {
               this.results.events = response.data;
             });
           } else if (this.widget.chart.percent) {
             delete chartRequest.query;
             chartRequest.type = 'count';
-            return this.widget.chart.service.function
-              .apply(this.widget.chart.service.caller, args)
-              .then(responseTotal => {
-                _.forEach(this.results.values, (value, key) => {
-                  this.results.values[key] = value + '/' + _.round((value / responseTotal.data.hits) * 100, 2);
-                });
+            return this.widget.chart.service.function.apply(this.widget.chart.service.caller, args).then((responseTotal) => {
+              _.forEach(this.results.values, (value, key) => {
+                this.results.values[key] = value + '/' + _.round((value / responseTotal.data.hits) * 100, 2);
               });
+            });
           }
-        }).finally(() => this.fetchData = false);
+        })
+        .finally(() => (this.fetchData = false));
     };
 
     this.delete = () => {
@@ -158,7 +165,7 @@ const WidgetComponent: ng.IComponentOptions = {
           return 'insert_chart';
       }
     };
-  }
+  },
 };
 
 export default WidgetComponent;

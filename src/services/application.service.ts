@@ -41,7 +41,6 @@ interface IMembership {
 }
 
 class ApplicationService {
-
   constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
   }
@@ -49,7 +48,6 @@ class ApplicationService {
   getAnalyticsHttpTimeout() {
     return this.Constants.env.settings.analytics.clientTimeout as number;
   }
-
 
   get(applicationId: string): ng.IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/applications/` + applicationId);
@@ -88,19 +86,16 @@ class ApplicationService {
   }
 
   update(application): ng.IHttpPromise<any> {
-    return this.$http.put(
-      `${this.Constants.env.baseURL}/applications/` + application.id,
-      {
-        'name': application.name,
-        'description': application.description,
-        'groups': application.groups,
-        'settings': application.settings,
-        'picture': application.picture,
-        'picture_url': application.picture_url,
-        'disable_membership_notifications': application.disable_membership_notifications,
-        'background': application.background
-      }
-    );
+    return this.$http.put(`${this.Constants.env.baseURL}/applications/` + application.id, {
+      name: application.name,
+      description: application.description,
+      groups: application.groups,
+      settings: application.settings,
+      picture: application.picture,
+      picture_url: application.picture_url,
+      disable_membership_notifications: application.disable_membership_notifications,
+      background: application.background,
+    });
   }
 
   delete(applicationId: string): ng.IHttpPromise<any> {
@@ -175,18 +170,26 @@ class ApplicationService {
   }
 
   findLogs(application: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), `${this.Constants.env.baseURL}/applications/` + application + '/logs?'), { timeout: 30000 });
+    return this.$http.get(
+      this.buildURLWithQuery(this.cloneQuery(query), `${this.Constants.env.baseURL}/applications/` + application + '/logs?'),
+      { timeout: 30000 },
+    );
   }
 
   exportLogsAsCSV(application: string, query: LogsQuery): ng.IPromise<any> {
     const logsQuery = this.cloneQuery(query);
     logsQuery.page = 1;
     logsQuery.size = 10000;
-    return this.$http.get(this.buildURLWithQuery(logsQuery, `${this.Constants.env.baseURL}/applications/` + application + '/logs/export?'), { timeout: 30000 });
+    return this.$http.get(
+      this.buildURLWithQuery(logsQuery, `${this.Constants.env.baseURL}/applications/` + application + '/logs/export?'),
+      { timeout: 30000 },
+    );
   }
 
   getLog(api, logId, timestamp) {
-    return this.$http.get(`${this.Constants.env.baseURL}/applications/` + api + '/logs/' + logId + ((timestamp) ? '?timestamp=' + timestamp : ''));
+    return this.$http.get(
+      `${this.Constants.env.baseURL}/applications/` + api + '/logs/' + logId + (timestamp ? '?timestamp=' + timestamp : ''),
+    );
   }
 
   getPermissions(application): ng.IPromise<IHttpResponse<any>> {

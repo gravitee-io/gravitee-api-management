@@ -15,14 +15,10 @@
  */
 
 export class NodeType {
-
   static API_GATEWAY: NodeType = new NodeType('gio-apim-gateway', 'API Gateway');
   static MANAGEMENT_API: NodeType = new NodeType('gio-apim-management', 'Management API');
 
-  static TYPES: NodeType[] = [
-    NodeType.API_GATEWAY,
-    NodeType.MANAGEMENT_API
-  ];
+  static TYPES: NodeType[] = [NodeType.API_GATEWAY, NodeType.MANAGEMENT_API];
 
   application: string;
   name: string;
@@ -34,18 +30,12 @@ export class NodeType {
 }
 
 export class NodeMetrics {
-
   static CPU: NodeMetrics = new NodeMetrics('process.cpu.percent', 'CPU %');
   static MEM_HEAP: NodeMetrics = new NodeMetrics('jvm.mem.heap.percent', 'Heap size %');
   static THREADS_ACTIVE: NodeMetrics = new NodeMetrics('jvm.threads.count', 'Active threads');
   static FILE_DESCRIPTORS_OPEN: NodeMetrics = new NodeMetrics('process.fd.open', 'Open file descriptors');
 
-  static METRICS: NodeMetrics[] = [
-    NodeMetrics.CPU,
-    NodeMetrics.MEM_HEAP,
-    NodeMetrics.THREADS_ACTIVE,
-    NodeMetrics.FILE_DESCRIPTORS_OPEN
-  ];
+  static METRICS: NodeMetrics[] = [NodeMetrics.CPU, NodeMetrics.MEM_HEAP, NodeMetrics.THREADS_ACTIVE, NodeMetrics.FILE_DESCRIPTORS_OPEN];
   key: string;
   name: string;
 

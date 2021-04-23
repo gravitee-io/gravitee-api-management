@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class FetcherService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }

@@ -19,10 +19,9 @@
   <md-dialog-content layout-padding>
     <h4>{{title}}</h4>
     <md-select ng-model="selectedPage" required>
-      <md-option ng-repeat="page in pages"
-                 ng-value="page">
+      <md-option ng-repeat="page in pages" ng-value="page">
         <md-icon md-svg-src="assets/logo_{{page.type | lowercase}}.svg"></md-icon>
-        <span style="font-style: italic; opacity: 0.5;">{{ page.parentPath }}</span>/{{ page.name }}
+        <span style="font-style: italic; opacity: 0.5">{{ page.parentPath }}</span>/{{ page.name }}
       </md-option>
     </md-select>
   </md-dialog-content>

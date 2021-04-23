@@ -15,20 +15,20 @@
     limitations under the License.
 
 -->
-<md-card class="gravitee-card gravitee-plan-box plans" style="min-width: 250px;max-width: 350px;margin: 0 auto;">
+<md-card class="gravitee-card gravitee-plan-box plans" style="min-width: 250px; max-width: 350px; margin: 0 auto">
   <md-card-header>
     <md-toolbar>
       <div class="md-toolbar-tools">
         <div layout="column">
           <h4>{{$ctrl.plan.name}}</h4>
-          <span style="font-size: 12px;">Authentication: {{$ctrl.plan.security}}</span>
-          <span ng-if="$ctrl.plan.general_conditions" style="font-size: 12px; margin-bottom: 1rem;">With general conditions</span>
+          <span style="font-size: 12px">Authentication: {{$ctrl.plan.security}}</span>
+          <span ng-if="$ctrl.plan.general_conditions" style="font-size: 12px; margin-bottom: 1rem">With general conditions</span>
         </div>
         <span flex></span>
         <span ng-if="$ctrl.plan.alreadySubscribed && $ctrl.unsubscribable && !$ctrl.plan.pending">
-            <md-tooltip md-direction="top">Unsubscribe</md-tooltip>
-            <ng-md-icon style="fill: grey;" icon="cancel" ng-click="$ctrl.unsubscribe();" disabled></ng-md-icon>
-          </span>
+          <md-tooltip md-direction="top">Unsubscribe</md-tooltip>
+          <ng-md-icon style="fill: grey" icon="cancel" ng-click="$ctrl.unsubscribe();" disabled></ng-md-icon>
+        </span>
       </div>
     </md-toolbar>
   </md-card-header>
@@ -45,8 +45,13 @@
     <md-divider></md-divider>
     <div layout="column">
       <div layout="row" layout-align="end">
-        <md-button ng-if="$ctrl.plan.security !== 'key_less' || $ctrl.plan.security === undefined" class="md-primary md-raised" aria-label="Execute"
-                  ng-click="$ctrl.subscribe()" ng-disabled="!$ctrl.subscribable || $ctrl.plan.alreadySubscribed || $ctrl.plan.general_conditions">
+        <md-button
+          ng-if="$ctrl.plan.security !== 'key_less' || $ctrl.plan.security === undefined"
+          class="md-primary md-raised"
+          aria-label="Execute"
+          ng-click="$ctrl.subscribe()"
+          ng-disabled="!$ctrl.subscribable || $ctrl.plan.alreadySubscribed || $ctrl.plan.general_conditions"
+        >
           {{$ctrl.plan.alreadySubscribed ? 'Subscribed' : ($ctrl.plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
           {{$ctrl.plan.pending ? '(pending)' : ''}}
         </md-button>
@@ -54,7 +59,9 @@
           No subscription required
         </md-button>
       </div>
-      <div ng-if="$ctrl.plan.general_conditions && $ctrl.subscribable" class="general_conditions_info">Plan with general conditions can only be subscribed through the portal</div>
+      <div ng-if="$ctrl.plan.general_conditions && $ctrl.subscribable" class="general_conditions_info">
+        Plan with general conditions can only be subscribed through the portal
+      </div>
     </div>
   </md-card-footer>
 </md-card>

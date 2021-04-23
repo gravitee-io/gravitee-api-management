@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<hr/>
+<hr />
 
 <md-list-item ng-if="$ctrl.submenuItems.length > 0" class="subheader">
   <h4>{{$ctrl.sidenavService.getCurrentResource()}}</h4>
@@ -23,8 +23,7 @@
 
 <md-list-item ng-repeat="menuItem in $ctrl.submenuItems track by menuItem.name">
   <md-tooltip md-delay="400">{{menuItem.data.menu.label}}</md-tooltip>
-  <a ui-sref="{{ :: menuItem.name }}" title="{{ :: menuItem.data.menu.label }}"
-    ng-class="{'sidenav-active': $ctrl.isActive(menuItem)}">
+  <a ui-sref="{{ :: menuItem.name }}" title="{{ :: menuItem.data.menu.label }}" ng-class="{'sidenav-active': $ctrl.isActive(menuItem)}">
     <ng-md-icon icon="{{ :: menuItem.data.menu.icon }}"></ng-md-icon>
     <span>{{ :: menuItem.data.menu.label}}</span>
   </a>

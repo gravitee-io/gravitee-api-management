@@ -20,19 +20,17 @@ require('@gravitee/ui-components/wc/gv-chart-map');
 const WidgetChartMapComponent: ng.IComponentOptions = {
   template: require('./widget-chart-map.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
   controller: function widgetChartMapController($scope, $element) {
     'ngInject';
 
     this.options = {
-      'name': 'Number of API requests',
-      'excludedKeys': [
-        'Unknown'
-      ]
+      name: 'Number of API requests',
+      excludedKeys: ['Unknown'],
     };
 
     this.$onInit = () => {
@@ -44,7 +42,7 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
 
       if (changes.data) {
         let series = {
-          values: changes.data.currentValue ? changes.data.currentValue.values : []
+          values: changes.data.currentValue ? changes.data.currentValue.values : [],
         };
 
         // Send data to gv-chart-map
@@ -61,7 +59,7 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
       };
       this.gvChartMap.setAttribute('options', JSON.stringify(this.options));
     };
-  }
+  },
 };
 
 export default WidgetChartMapComponent;

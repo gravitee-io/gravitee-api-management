@@ -16,30 +16,32 @@
 
 const AlertTriggerNodeLifecycleChangedComponent: ng.IComponentOptions = {
   bindings: {
-    alert: '<'
+    alert: '<',
   },
   template: require('./trigger-node-healthcheck.html'),
-  controller: function() {
+  controller: function () {
     'ngInject';
 
     this.$onInit = () => {
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
-        this.alert.conditions = [{
-          'type': 'STRING',
-          'operator': 'MATCHES',
-          'property': 'node.healthy',
-          'pattern': '.*'
-        }];
+        this.alert.conditions = [
+          {
+            type: 'STRING',
+            operator: 'MATCHES',
+            property: 'node.healthy',
+            pattern: '.*',
+          },
+        ];
 
         this.alert.dampening = {
-          'mode': 'strict_count',
-          'trueEvaluations': 1,
-          'totalEvaluations': 1
+          mode: 'strict_count',
+          trueEvaluations: 1,
+          totalEvaluations: 1,
         };
       }
     };
-  }
+  },
 };
 
 export default AlertTriggerNodeLifecycleChangedComponent;

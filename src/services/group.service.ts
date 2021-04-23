@@ -17,7 +17,6 @@ import * as _ from 'lodash';
 import { PageQuery } from '../entities/pageQuery';
 
 class GroupService {
-
   static _mapToEntity(grp) {
     return {
       name: grp.name,
@@ -52,7 +51,7 @@ class GroupService {
 
     opts = opts || {};
     opts.params = {
-      ...page
+      ...page,
     };
 
     return this.$http.get(url, opts);
@@ -81,10 +80,10 @@ class GroupService {
   updateEventRules(group, defaultApi, defaultApplication) {
     let eventRules = [];
     if (defaultApi) {
-      eventRules.push({event: 'API_CREATE'});
+      eventRules.push({ event: 'API_CREATE' });
     }
     if (defaultApplication) {
-      eventRules.push({event: 'APPLICATION_CREATE'});
+      eventRules.push({ event: 'APPLICATION_CREATE' });
     }
 
     group.event_rules = eventRules;
@@ -101,13 +100,13 @@ class GroupService {
         _.forEach(roleScopes, (roleScope) => {
           groupRole.push({
             scope: roleScope,
-            name: member.roles[roleScope]
+            name: member.roles[roleScope],
           });
         });
         body.push({
-          'id': member.id,
-          'reference': member.reference,
-          'roles': groupRole
+          id: member.id,
+          reference: member.reference,
+          roles: groupRole,
         });
       }
     });
@@ -143,7 +142,7 @@ class GroupService {
       reference_id: group.id,
       email: email,
       api_role: group.api_role,
-      application_role: group.application_role
+      application_role: group.application_role,
     });
   }
 

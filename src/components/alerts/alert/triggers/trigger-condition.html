@@ -16,17 +16,14 @@
 
 -->
 <div layout-gt-sm="row">
-  <span ng-if="$ctrl.label === undefined || $ctrl.label === true" flex="15" style="display: grid;align-items: center;"
-        align="center">When</span>
+  <span ng-if="$ctrl.label === undefined || $ctrl.label === true" flex="15" style="display: grid; align-items: center" align="center"
+    >When</span
+  >
 
   <md-input-container class="md-block" flex-gt-sm flex="15">
     <label>Metrics</label>
     <md-select ng-model="$ctrl.condition.property" required ng-change="$ctrl.onMetricsChange(true)">
-      <md-option
-        ng-value="type.key"
-        ng-repeat="type in $ctrl.metrics">
-        {{::type.name}}
-      </md-option>
+      <md-option ng-value="type.key" ng-repeat="type in $ctrl.metrics"> {{::type.name}} </md-option>
     </md-select>
   </md-input-container>
 
@@ -35,11 +32,7 @@
   <md-input-container class="md-block" flex-gt-sm flex="15">
     <label>Type</label>
     <md-select ng-model="$ctrl.condition.type" required ng-change="$ctrl.onConditionChange()">
-      <md-option
-        ng-value="type"
-        ng-repeat="type in $ctrl.conditions">
-        {{::type}}
-      </md-option>
+      <md-option ng-value="type" ng-repeat="type in $ctrl.conditions"> {{::type}} </md-option>
     </md-select>
   </md-input-container>
 
@@ -49,11 +42,7 @@
     <md-input-container class="md-block" flex-gt-sm>
       <label>Operator</label>
       <md-select ng-model="$ctrl.condition.operator" required>
-        <md-option
-          ng-value="operator.key"
-          ng-repeat="operator in $ctrl.operators">
-          {{::operator.name}}
-        </md-option>
+        <md-option ng-value="operator.key" ng-repeat="operator in $ctrl.operators"> {{::operator.name}} </md-option>
       </md-select>
     </md-input-container>
   </div>
@@ -61,14 +50,20 @@
   <span flex="5">&nbsp;</span>
 
   <div ng-if="$ctrl.condition.operator && $ctrl.condition.type" ng-switch="$ctrl.condition.type" flex>
-    <gv-alert-trigger-condition-threshold ng-switch-when="threshold"
-                                          condition="$ctrl.condition"></gv-alert-trigger-condition-threshold>
-    <gv-alert-trigger-condition-threshold-range ng-switch-when="threshold_range"
-                                                condition="$ctrl.condition"></gv-alert-trigger-condition-threshold-range>
-    <gv-alert-trigger-condition-string ng-switch-when="string" metrics="$ctrl.metrics"
-                                       condition="$ctrl.condition"></gv-alert-trigger-condition-string>
-    <gv-alert-trigger-condition-compare ng-switch-when="compare" metrics="$ctrl.metrics"
-                                        condition="$ctrl.condition"></gv-alert-trigger-condition-compare>
+    <gv-alert-trigger-condition-threshold ng-switch-when="threshold" condition="$ctrl.condition"></gv-alert-trigger-condition-threshold>
+    <gv-alert-trigger-condition-threshold-range
+      ng-switch-when="threshold_range"
+      condition="$ctrl.condition"
+    ></gv-alert-trigger-condition-threshold-range>
+    <gv-alert-trigger-condition-string
+      ng-switch-when="string"
+      metrics="$ctrl.metrics"
+      condition="$ctrl.condition"
+    ></gv-alert-trigger-condition-string>
+    <gv-alert-trigger-condition-compare
+      ng-switch-when="compare"
+      metrics="$ctrl.metrics"
+      condition="$ctrl.condition"
+    ></gv-alert-trigger-condition-compare>
   </div>
-
 </div>

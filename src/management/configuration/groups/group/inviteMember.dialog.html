@@ -21,43 +21,39 @@
       <h4>Invite members to group <b>{{$ctrl.group.name}}</b></h4>
       <div layout="row" layout-align="space-between center">
         <span>Choose an API role</span>
-        <md-select ng-model="$ctrl.group.api_role"
-                   aria-label="API Role"
-                   class="md-no-underline" ng-disabled="!$ctrl.canChangeDefaultApiRole()">
-          <md-option ng-repeat="role in $ctrl.apiRoles"
-                     ng-value="role.name"
-                     ng-disabled="$ctrl.isApiRoleDisabled(role)">
+        <md-select
+          ng-model="$ctrl.group.api_role"
+          aria-label="API Role"
+          class="md-no-underline"
+          ng-disabled="!$ctrl.canChangeDefaultApiRole()"
+        >
+          <md-option ng-repeat="role in $ctrl.apiRoles" ng-value="role.name" ng-disabled="$ctrl.isApiRoleDisabled(role)">
             {{role.name}}
           </md-option>
         </md-select>
       </div>
       <div layout="row" layout-align="space-between center">
         <span>Choose an Application role</span>
-        <md-select ng-model="$ctrl.group.application_role"
-                   aria-label="Application Role"
-                   class="md-no-underline" ng-disabled="!$ctrl.canChangeDefaultApplicationRole()">
-          <md-option ng-repeat="role in $ctrl.applicationRoles"
-                     ng-value="role.name"
-                     ng-disabled="role.system">
-            {{role.name}}
-          </md-option>
+        <md-select
+          ng-model="$ctrl.group.application_role"
+          aria-label="Application Role"
+          class="md-no-underline"
+          ng-disabled="!$ctrl.canChangeDefaultApplicationRole()"
+        >
+          <md-option ng-repeat="role in $ctrl.applicationRoles" ng-value="role.name" ng-disabled="role.system"> {{role.name}} </md-option>
         </md-select>
       </div>
       <div layout="column">
         <md-input-container>
           <label>Email</label>
-          <input ng-model="$ctrl.email" type="email" required md-autofocus>
+          <input ng-model="$ctrl.email" type="email" required md-autofocus />
         </md-input-container>
       </div>
     </md-dialog-content>
 
     <md-dialog-actions layout="row">
-      <md-button ng-click="$ctrl.hide()">
-        Cancel
-      </md-button>
-      <md-button type="submit" class="md-raised md-primary" ng-disabled="formInvitation.$invalid">
-        Save
-      </md-button>
+      <md-button ng-click="$ctrl.hide()"> Cancel </md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formInvitation.$invalid"> Save </md-button>
     </md-dialog-actions>
   </form>
 </md-dialog>

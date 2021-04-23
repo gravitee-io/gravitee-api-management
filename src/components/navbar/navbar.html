@@ -18,20 +18,25 @@
 <md-toolbar class="topnavbar" id="gv-navbar" layout="row" layout-align="left center" gv-theme-element="portal.navbar" ng-if="$ctrl.visible">
   <div class="topnavbar-brand navigation-header">
     <a ui-sref="management.home" style="text-decoration: none">
-      <img ng-src="{{$ctrl.getLogo()}}" alt="logo"/>
+      <img ng-src="{{$ctrl.getLogo()}}" alt="logo" />
     </a>
     <md-button ng-if="$ctrl.portalURL" class="gv-navbar-link" ng-href="{{$ctrl.portalURL}}" target="_blank">Developers portal</md-button>
   </div>
   <span flex></span>
-  <md-button class="gv-navbar-button" ng-click="$ctrl.openContextualDocumentation();" aria-label="Display contextual documentation"
-             ng-if="$ctrl.displayContextualDocumentationButton">
+  <md-button
+    class="gv-navbar-button"
+    ng-click="$ctrl.openContextualDocumentation();"
+    aria-label="Display contextual documentation"
+    ng-if="$ctrl.displayContextualDocumentationButton"
+  >
     <ng-md-icon icon="live_help" gv-theme-element="portal.navbar.help"></ng-md-icon>
   </md-button>
   <portal-notifications user="$ctrl.graviteeUser" ng-if="$ctrl.graviteeUser.id && $ctrl.newsletterProposed"></portal-notifications>
 
   <md-menu ng-if="$ctrl.graviteeUser.id && $ctrl.newsletterProposed" md-offset="0 54">
     <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" aria-label="Open user menu">
-      <gravitee-identity-picture ng-if="$ctrl.hasAlert()"
+      <gravitee-identity-picture
+        ng-if="$ctrl.hasAlert()"
         image-id="'navbar'"
         image-url="$ctrl.getUserPicture()"
         image-name="$ctrl.graviteeUser.displayName"
@@ -39,7 +44,8 @@
         image-border-radius="true"
         image-theme="'portal.navbar.user.img.alert'"
       ></gravitee-identity-picture>
-      <gravitee-identity-picture ng-if="!$ctrl.hasAlert()"
+      <gravitee-identity-picture
+        ng-if="!$ctrl.hasAlert()"
         image-id="'navbar'"
         image-url="$ctrl.getUserPicture()"
         image-name="$ctrl.graviteeUser.displayName"
@@ -69,14 +75,16 @@
         </div>
         <md-divider></md-divider>
         <div layout="column" layout-align="end start" class="gv-menu-content-links">
-            <a ui-sref="user">My account</a>
-            <a ui-sref="management.tasks">Tasks<span ng-if="$ctrl.getUserTaskCount() > 0" flex class="badge gv-menu-badge">{{$ctrl.getUserTaskCount()}}</span></a>
-            <a ui-sref="management.support.create">Support</a>
+          <a ui-sref="user">My account</a>
+          <a ui-sref="management.tasks"
+            >Tasks<span ng-if="$ctrl.getUserTaskCount() > 0" flex class="badge gv-menu-badge">{{$ctrl.getUserTaskCount()}}</span></a
+          >
+          <a ui-sref="management.support.create">Support</a>
         </div>
       </div>
       <md-divider></md-divider>
       <div layout="row" layout-align="end end" class="gv-menu-content-footer">
-        <md-button ui-sref="logout" style="border: 1px solid grey; font-size: 12px;">Sign out</md-button>
+        <md-button ui-sref="logout" style="border: 1px solid grey; font-size: 12px">Sign out</md-button>
       </div>
     </md-menu-content>
   </md-menu>

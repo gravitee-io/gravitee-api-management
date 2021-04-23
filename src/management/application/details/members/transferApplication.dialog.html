@@ -19,15 +19,12 @@
   <md-dialog-content layout-padding>
     <h4>Transfer Application</h4>
     <p>
-      This action cannot be undone. If you are the primary owner of this Application, your role will be set to <code>{{$ctrl.newRole.name}}</code>.
+      This action cannot be undone. If you are the primary owner of this Application, your role will be set to
+      <code>{{$ctrl.newRole.name}}</code>.
     </p>
   </md-dialog-content>
   <md-dialog-actions layout="row">
-    <md-button ng-click="cancel()">
-      Cancel
-    </md-button>
-    <md-button ng-click="transferOwnership()" class="md-raised md-warn">
-      I understand, transfer this Application
-    </md-button>
+    <md-button ng-click="cancel()"> Cancel </md-button>
+    <md-button ng-click="transferOwnership()" class="md-raised md-warn"> I understand, transfer this Application </md-button>
   </md-dialog-actions>
 </md-dialog>

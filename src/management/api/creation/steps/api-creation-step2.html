@@ -19,12 +19,17 @@
   <md-step-body>
     <md-content layout-padding class="gv-creation-content">
       <div layout="row" layout-align="end start"><a ng-click="$ctrl.toggleAdvancedMode()">Advanced mode</a></div>
-      <form name="apiGatewayForm" ng-submit="$ctrl.parent.selectEndpoint(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[1].data)">
+      <form
+        name="apiGatewayForm"
+        ng-submit="$ctrl.parent.selectEndpoint(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[1].data)"
+      >
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Backend</label>
-            <input ng-model="$ctrl.parent.endpoint" type="url" required name="endpoint"/>
-            <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">Target backend when a request is received for the API context-path</div>
+            <input ng-model="$ctrl.parent.endpoint" type="url" required name="endpoint" />
+            <div class="hint" ng-if="apiGatewayForm.endpoint.$valid || apiGatewayForm.endpoint.$pristine">
+              Target backend when a request is received for the API context-path
+            </div>
             <div ng-messages="apiGatewayForm.endpoint.$error">
               <div ng-message="required">Endpoint is required.</div>
               <div ng-message="url">Endpoint is not a valid URL.</div>

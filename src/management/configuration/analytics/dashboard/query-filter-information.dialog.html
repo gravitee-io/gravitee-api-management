@@ -19,18 +19,16 @@
   <md-dialog-content layout-padding>
     <h4>How to write a query filter</h4>
     <p>
-      Example 1: Get error calls in tenant europe<br>
+      Example 1: Get error calls in tenant europe<br />
       <code>tenant:europe AND status:[500 TO 599]</code>
     </p>
-    <br>
+    <br />
     <p>
-      Example 2: Get hits geo-localized in France<br>
+      Example 2: Get hits geo-localized in France<br />
       <code>geoip.country_iso_code:FR</code>
     </p>
   </md-dialog-content>
   <md-dialog-actions layout="row">
-    <md-button class="md-primary" ng-click="ctrl.cancel()">
-      Close
-    </md-button>
+    <md-button class="md-primary" ng-click="ctrl.cancel()"> Close </md-button>
   </md-dialog-actions>
 </md-dialog>

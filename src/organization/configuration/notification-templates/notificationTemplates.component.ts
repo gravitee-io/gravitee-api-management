@@ -15,10 +15,10 @@
  */
 const NotificationTemplatesComponent: ng.IComponentOptions = {
   bindings: {
-    notificationTemplates: '<'
+    notificationTemplates: '<',
   },
   controller: 'NotificationTemplatesController',
-  template: require('./notificationTemplates.html')
+  template: require('./notificationTemplates.html'),
 };
 
 export default NotificationTemplatesComponent;

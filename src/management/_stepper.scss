@@ -1,4 +1,4 @@
-input[type="number"] + div.md-errors-spacer + .hint {
+input[type='number'] + div.md-errors-spacer + .hint {
   bottom: -5px;
 }
 md-select + .hint {
@@ -15,22 +15,23 @@ md-select + .hint {
   line-height: 14px;
   transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
   /* Set our own color */
-  color: grey; }
+  color: grey;
+}
 .hint.ng-hide,
 .hint.ng-enter,
 .hint.ng-leave.ng-leave-active {
   bottom: 26px;
-  opacity: 0; }
+  opacity: 0;
+}
 .hint.ng-leave,
 .hint.ng-enter.ng-enter-active {
   bottom: 7px;
-  opacity: 1; }
+  opacity: 1;
+}
 
 md-steppers-canvas {
   background-color: #fff;
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),
-  0 1px 1px 0 rgba(0,0,0,.14),
-  0 2px 1px -1px rgba(0,0,0,.12);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
 }
 
 md-steppers-canvas.md-paginated {
@@ -38,19 +39,17 @@ md-steppers-canvas.md-paginated {
 }
 
 .gv-creation-steppers {
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),
-  0 1px 1px 0 rgba(0,0,0,.14),
-  0 2px 1px -1px rgba(0,0,0,.12);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
   background: #fff;
   margin: 20px 20px 20px 20px;
 }
 
 .import-file-drop-box {
-  background: #F8F8F8;
-  border: 1px dashed #DDD;
+  background: #f8f8f8;
+  border: 1px dashed #ddd;
   margin: 10px auto;
   padding: 7px 7px 7px 7px;
-  width: 90%
+  width: 90%;
 }
 
 md-radio-button.import-file-from-url {
@@ -66,8 +65,8 @@ md-radio-button.import-file-from-url {
   width: 90%;
   margin: 10px auto;
   input {
-    background: #F8F8F8;
-    border: 1px solid #DDD;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
     box-shadow: none;
   }
 }
@@ -79,10 +78,10 @@ md-radio-button.import-file-from-url {
 }
 
 .md-button.import-gv-button {
-  background-color: rgb(68,138,255);
+  background-color: rgb(68, 138, 255);
   color: white;
   &:hover:enabled {
-    background-color: rgb(41,98,255) !important;
+    background-color: rgb(41, 98, 255) !important;
   }
 }
 
@@ -90,7 +89,7 @@ md-radio-button.import-file-from-url {
   overflow-y: auto;
   height: calc(100vh - 180px);
   code {
-    color: rgb(68,138,255);
+    color: rgb(68, 138, 255);
   }
   ng-md-icon {
     fill: #337ab7;
@@ -124,16 +123,14 @@ md-radio-button.import-file-from-url {
   display: block;
   text-align: center;
   padding: 16px;
-  color: rgba(0,0,0,.8);
-  background-color: #FFF59D;
+  color: rgba(0, 0, 0, 0.8);
+  background-color: #fff59d;
 }
 
 .gv-creation-timeline-wrapper {
   background: #fff;
   margin: 20px 20px 20px 0px;
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,.2),
-  0 1px 1px 0 rgba(0,0,0,.14),
-  0 2px 1px -1px rgba(0,0,0,.12);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
   h4 {
     margin-top: 15px;
     margin-bottom: 22px;
@@ -153,9 +150,9 @@ md-radio-button.import-file-from-url {
   box-shadow: none;
 
   &.disable {
-    color: rgba(0,0,0,.27);
+    color: rgba(0, 0, 0, 0.27);
     timeline-heading {
-      color: rgba(0,0,0,.27) !important;
+      color: rgba(0, 0, 0, 0.27) !important;
     }
   }
 }
@@ -171,10 +168,10 @@ md-radio-button.import-file-from-url {
 }
 
 .gv-creation-timeline .timeline li.timeline-inverted timeline-panel {
-  float:left;
+  float: left;
   left: 8%;
   code {
-    color: rgb(68,138,255);
+    color: rgb(68, 138, 255);
   }
 }
 
@@ -197,7 +194,7 @@ md-radio-button.import-file-from-url {
 
   &.info {
     i {
-      color: #28444F;
+      color: #28444f;
     }
   }
 }
@@ -206,6 +203,7 @@ md-pagination-wrapper {
   transform: none !important;
 }
 
-.md-step.md-active md-step-label-wrapper:before, .md-step.md-success md-step-label-wrapper:before {
-  background: #28444F;
+.md-step.md-active md-step-label-wrapper:before,
+.md-step.md-success md-step-label-wrapper:before {
+  background: #28444f;
 }

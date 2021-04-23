@@ -16,19 +16,19 @@
 
 -->
 <md-dialog aria-label="New path mapping">
-    <form name="formApiPathMapping" ng-submit="$ctrl.save()" novalidate>
-        <md-dialog-content layout-padding layout="column">
-          <h4>Save path mapping</h4>
-          <label style="color: silver;">Path must start with slash and parameters with two points</label>
-          <md-input-container>
-            <label>Path</label>
-            <input ng-model="path" placeholder="/products/:productId" required md-auto-focus>
-          </md-input-container>
-        </md-dialog-content>
+  <form name="formApiPathMapping" ng-submit="$ctrl.save()" novalidate>
+    <md-dialog-content layout-padding layout="column">
+      <h4>Save path mapping</h4>
+      <label style="color: silver">Path must start with slash and parameters with two points</label>
+      <md-input-container>
+        <label>Path</label>
+        <input ng-model="path" placeholder="/products/:productId" required md-auto-focus />
+      </md-input-container>
+    </md-dialog-content>
 
-        <md-dialog-actions layout="row">
-            <md-button ng-click="$ctrl.hide()">Cancel</md-button>
-            <md-button type="submit" class="md-raised md-primary" ng-disabled="formApiPathMapping.$invalid">Save</md-button>
-        </md-dialog-actions>
-    </form>
+    <md-dialog-actions layout="row">
+      <md-button ng-click="$ctrl.hide()">Cancel</md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formApiPathMapping.$invalid">Save</md-button>
+    </md-dialog-actions>
+  </form>
 </md-dialog>

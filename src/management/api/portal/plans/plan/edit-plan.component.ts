@@ -22,10 +22,10 @@ const ApiEditPlanComponent: ng.IComponentOptions = {
     policies: '<',
     tags: '<',
     userTags: '<',
-    resourceTypes: '<'
+    resourceTypes: '<',
   },
   controller: 'ApiEditPlanController',
-  template: require('./edit-plan.html')
+  template: require('./edit-plan.html'),
 };
 
 export default ApiEditPlanComponent;

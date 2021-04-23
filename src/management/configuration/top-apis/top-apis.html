@@ -23,37 +23,53 @@
       <md-table-container>
         <table md-table class="gv-table-dense">
           <thead md-head>
-          <tr md-row>
-            <th md-column width="1%" nowrap>Name</th>
-            <th md-column width="1%" nowrap>Version</th>
-            <th md-column>Description</th>
-            <th md-column width="96px" nowrap></th>
-            <th md-column width="48px" nowrap></th>
-          </tr>
+            <tr md-row>
+              <th md-column width="1%" nowrap>Name</th>
+              <th md-column width="1%" nowrap>Version</th>
+              <th md-column>Description</th>
+              <th md-column width="96px" nowrap></th>
+              <th md-column width="48px" nowrap></th>
+            </tr>
           </thead>
           <tbody md-body>
-          <tr md-row ng-repeat="topApi in $ctrl.topApis | orderBy:'order'">
-            <td md-cell width="1%" nowrap>
-              <gravitee-identity-picture 
-                image-id="topApi.api"
-                image-url="::topApi.picture_url"
-                image-name="topApi.name + '  ' + topApi.version"
-                image-width="40"
-              ></gravitee-identity-picture>
-              {{::topApi.name}}
-            </td>
-            <td md-cell width="1%" nowrap>{{::topApi.version}}</td>
-            <td md-cell>{{::topApi.description}}</td>
-            <td md-cell width="96px" style="text-align: center;" nowrap>
-              <ng-md-icon permission permission-only="'environment-top_apis-u'" ng-if="!$first" icon="arrow_upwards" ng-click="$ctrl.upward(topApi.order)"></ng-md-icon>
-              <ng-md-icon permission permission-only="'environment-top_apis-u'" ng-if="!$last" icon="arrow_downward" ng-click="$ctrl.downward(topApi.order)"></ng-md-icon>
-            </td>
-            <td md-cell width="48px">
-              <ng-md-icon permission permission-only="'environment-top_apis-d'"
-                          icon="delete" ng-click="$ctrl.delete(topApi)"
-                          style="height: 24px; font-size: 24px;"></ng-md-icon>
-            </td>
-          </tr>
+            <tr md-row ng-repeat="topApi in $ctrl.topApis | orderBy:'order'">
+              <td md-cell width="1%" nowrap>
+                <gravitee-identity-picture
+                  image-id="topApi.api"
+                  image-url="::topApi.picture_url"
+                  image-name="topApi.name + '  ' + topApi.version"
+                  image-width="40"
+                ></gravitee-identity-picture>
+                {{::topApi.name}}
+              </td>
+              <td md-cell width="1%" nowrap>{{::topApi.version}}</td>
+              <td md-cell>{{::topApi.description}}</td>
+              <td md-cell width="96px" style="text-align: center" nowrap>
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-top_apis-u'"
+                  ng-if="!$first"
+                  icon="arrow_upwards"
+                  ng-click="$ctrl.upward(topApi.order)"
+                ></ng-md-icon>
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-top_apis-u'"
+                  ng-if="!$last"
+                  icon="arrow_downward"
+                  ng-click="$ctrl.downward(topApi.order)"
+                ></ng-md-icon>
+              </td>
+              <td md-cell width="48px">
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-top_apis-d'"
+                  icon="delete"
+                  ng-click="$ctrl.delete(topApi)"
+                  style="height: 24px; font-size: 24px"
+                ></ng-md-icon>
+              </td>
+            </tr>
           </tbody>
         </table>
       </md-table-container>
@@ -61,11 +77,14 @@
   </div>
 </div>
 
-<md-button permission permission-only="'environment-top_apis-c'"
-           aria-label="Add top API"
-           class="md-fab md-fab-bottom-right md-fab-scrollable"
-           ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-           ng-click="$ctrl.showAddTopAPIModal()">
+<md-button
+  permission
+  permission-only="'environment-top_apis-c'"
+  aria-label="Add top API"
+  class="md-fab md-fab-bottom-right md-fab-scrollable"
+  ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+  ng-click="$ctrl.showAddTopAPIModal()"
+>
   <md-tooltip md-direction="top" md-visible="false">Add a </md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>

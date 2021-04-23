@@ -32,7 +32,8 @@ class CustomUserFieldsController {
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
     private UserService: UserService,
-    private $state: StateService) {
+    private $state: StateService,
+  ) {
     'ngInject';
 
     let permissionPrefix = 'organization-custom_user_fields';
@@ -41,60 +42,66 @@ class CustomUserFieldsController {
     this.canDelete = this.UserService.isUserHasPermissions([permissionPrefix + '-d']);
   }
 
-  $onInit = () => {
-
-  }
-
+  $onInit = () => {};
 
   newField() {
-    this.$mdDialog.show({
-      controller: 'NewFieldDialogController',
-      controllerAs: '$ctrl',
-      template: require('./dialog/save.custom-user-field.dialog.html'),
-      locals: {
-        fieldFormats: this.fieldFormats,
-        predefinedKeys: this.predefinedKeys,
-      }
-    }).then(savedMetadata => {
-      this.NotificationService.show(`Field '${savedMetadata.key}' created with success`);
-      this.$state.reload();
-    }).catch(() => {
-      // don't display error in console
-    });
+    this.$mdDialog
+      .show({
+        controller: 'NewFieldDialogController',
+        controllerAs: '$ctrl',
+        template: require('./dialog/save.custom-user-field.dialog.html'),
+        locals: {
+          fieldFormats: this.fieldFormats,
+          predefinedKeys: this.predefinedKeys,
+        },
+      })
+      .then((savedMetadata) => {
+        this.NotificationService.show(`Field '${savedMetadata.key}' created with success`);
+        this.$state.reload();
+      })
+      .catch(() => {
+        // don't display error in console
+      });
   }
 
   updateField(field) {
-    this.$mdDialog.show({
-      controller: 'UpdateFieldDialogController',
-      controllerAs: '$ctrl',
-      template: require('./dialog/save.custom-user-field.dialog.html'),
-      locals: {
-        field: field,
-        fieldFormats: this.fieldFormats,
-        predefinedKeys: this.predefinedKeys,
-      }
-    }).then(savedMetadata => {
-      this.NotificationService.show(`Field '${savedMetadata.key}' updated with success`);
-      this.$state.reload();
-    }).catch(() => {
-      // don't display error in console
-    });
+    this.$mdDialog
+      .show({
+        controller: 'UpdateFieldDialogController',
+        controllerAs: '$ctrl',
+        template: require('./dialog/save.custom-user-field.dialog.html'),
+        locals: {
+          field: field,
+          fieldFormats: this.fieldFormats,
+          predefinedKeys: this.predefinedKeys,
+        },
+      })
+      .then((savedMetadata) => {
+        this.NotificationService.show(`Field '${savedMetadata.key}' updated with success`);
+        this.$state.reload();
+      })
+      .catch(() => {
+        // don't display error in console
+      });
   }
 
   deleteField(field) {
-    this.$mdDialog.show({
-      controller: 'DeleteFieldDialogController',
-      controllerAs: '$ctrl',
-      template: require('./dialog/delete.custom-user-field.dialog.html'),
-      locals: {
-        field: field
-      }
-    }).then(savedMetadata => {
-      this.NotificationService.show(`Field '${savedMetadata.key}' deleted with success`);
-      this.$state.reload();
-    }).catch(() => {
-      // don't display error in console
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DeleteFieldDialogController',
+        controllerAs: '$ctrl',
+        template: require('./dialog/delete.custom-user-field.dialog.html'),
+        locals: {
+          field: field,
+        },
+      })
+      .then((savedMetadata) => {
+        this.NotificationService.show(`Field '${savedMetadata.key}' deleted with success`);
+        this.$state.reload();
+      })
+      .catch(() => {
+        // don't display error in console
+      });
   }
 
   fieldDeletable(_field) {

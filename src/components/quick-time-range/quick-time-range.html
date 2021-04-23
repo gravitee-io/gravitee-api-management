@@ -24,10 +24,5 @@
   ng-model="$ctrl.timeframe"
   required
 >
-  <md-option
-    ng-repeat="timeframe in $ctrl.timeframes"
-    ng-value="timeframe"
-  >
-    {{timeframe.title}}
-  </md-option>
+  <md-option ng-repeat="timeframe in $ctrl.timeframes" ng-value="timeframe"> {{timeframe.title}} </md-option>
 </md-select>

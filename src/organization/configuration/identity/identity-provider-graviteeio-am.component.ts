@@ -15,11 +15,10 @@
  */
 const IdentityProviderGraviteeioAmComponent: ng.IComponentOptions = {
   bindings: {
-    identityProvider: '<'
+    identityProvider: '<',
   },
   template: require('./identity-provider-graviteeio-am.html'),
-  controller: function(
-  ) {
+  controller: function () {
     'ngInject';
 
     this.buttonConfig = {};
@@ -33,9 +32,9 @@ const IdentityProviderGraviteeioAmComponent: ng.IComponentOptions = {
       openOnInput: true,
       alphaChannel: false,
       genericPalette: false,
-      history: false
+      history: false,
     };
-  }
+  },
 };
 
 export default IdentityProviderGraviteeioAmComponent;

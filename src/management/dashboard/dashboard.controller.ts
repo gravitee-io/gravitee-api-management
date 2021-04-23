@@ -20,10 +20,7 @@ class DashboardController {
   canViewAnalytics: boolean;
   private selectedIndex;
 
-  constructor(
-    private $state: StateService,
-    private UserService: UserService,
-  ) {
+  constructor(private $state: StateService, private UserService: UserService) {
     'ngInject';
 
     if (this.$state.is('management.dashboard.analytics')) {

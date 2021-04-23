@@ -16,9 +16,15 @@
 import MetadataService from '../../../services/metadata.service';
 import ApiService from '../../../services/api.service';
 import ApplicationService from '../../../services/application.service';
-function UpdateMetadataDialogController(MetadataService: MetadataService, ApiService: ApiService, ApplicationService: ApplicationService,
-                                        $mdDialog: angular.material.IDialogService,
-                                        metadata, metadataFormats, $stateParams) {
+function UpdateMetadataDialogController(
+  MetadataService: MetadataService,
+  ApiService: ApiService,
+  ApplicationService: ApplicationService,
+  $mdDialog: angular.material.IDialogService,
+  metadata,
+  metadataFormats,
+  $stateParams,
+) {
   'ngInject';
 
   if ($stateParams.apiId) {
@@ -39,21 +45,21 @@ function UpdateMetadataDialogController(MetadataService: MetadataService, ApiSer
 
   this.metadataFormats = metadataFormats;
 
-  this.cancel = function() {
+  this.cancel = function () {
     $mdDialog.cancel();
   };
 
   this.save = () => {
     if ($stateParams.apiId) {
-      ApiService.updateMetadata($stateParams.apiId, this.metadata).then(response => {
+      ApiService.updateMetadata($stateParams.apiId, this.metadata).then((response) => {
         $mdDialog.hide(response.data);
       });
     } else if ($stateParams.applicationId) {
-      ApplicationService.updateMetadata($stateParams.applicationId, this.metadata).then(response => {
+      ApplicationService.updateMetadata($stateParams.applicationId, this.metadata).then((response) => {
         $mdDialog.hide(response.data);
       });
     } else {
-      MetadataService.update(this.metadata).then(response => {
+      MetadataService.update(this.metadata).then((response) => {
         $mdDialog.hide(response.data);
       });
     }

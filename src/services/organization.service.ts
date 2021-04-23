@@ -17,7 +17,6 @@
 import { IdentityProviderActivation } from '../entities/identityProvider';
 
 class OrganizationService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }

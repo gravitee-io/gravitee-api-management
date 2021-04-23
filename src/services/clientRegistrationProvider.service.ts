@@ -18,17 +18,18 @@ import { ClientRegistrationProvider } from '../entities/clientRegistrationProvid
 import { IHttpPromise, IPromise } from 'angular';
 
 class ClientRegistrationProviderService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
 
   list(): IPromise<ClientRegistrationProvider[]> {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/`).then(response => response.data);
+    return this.$http
+      .get(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/`)
+      .then((response) => response.data);
   }
 
   get(id: string): IPromise<ClientRegistrationProvider> {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + id).then(response => {
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + id).then((response) => {
       let clientRegistrationProvider = response.data;
       clientRegistrationProvider.scopes = clientRegistrationProvider.scopes || [];
       return clientRegistrationProvider;
@@ -40,9 +41,8 @@ class ClientRegistrationProviderService {
   }
 
   update(clientRegistrationProvider: ClientRegistrationProvider): IPromise<ClientRegistrationProvider> {
-
-    return this.$http.put(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + clientRegistrationProvider.id,
-      {
+    return this.$http
+      .put(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + clientRegistrationProvider.id, {
         name: clientRegistrationProvider.name,
         description: clientRegistrationProvider.description,
         discovery_endpoint: clientRegistrationProvider.discovery_endpoint,
@@ -54,16 +54,19 @@ class ClientRegistrationProviderService {
         renew_client_secret_support: clientRegistrationProvider.renew_client_secret_support,
         renew_client_secret_endpoint: clientRegistrationProvider.renew_client_secret_endpoint,
         renew_client_secret_method: clientRegistrationProvider.renew_client_secret_method,
-        software_id: clientRegistrationProvider.software_id
-      }).then(response => {
-      let clientRegistrationProvider = response.data;
-      clientRegistrationProvider.scopes = clientRegistrationProvider.scopes || [];
-      return clientRegistrationProvider;
-    });
+        software_id: clientRegistrationProvider.software_id,
+      })
+      .then((response) => {
+        let clientRegistrationProvider = response.data;
+        clientRegistrationProvider.scopes = clientRegistrationProvider.scopes || [];
+        return clientRegistrationProvider;
+      });
   }
 
   delete(clientRegistrationProvider: ClientRegistrationProvider): IHttpPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + clientRegistrationProvider.id);
+    return this.$http.delete(
+      `${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + clientRegistrationProvider.id,
+    );
   }
 }
 

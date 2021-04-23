@@ -29,7 +29,7 @@
             <div layout-gt-sm="row">
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Name</label>
-                <input ng-model="$ctrl.qualityRule.name" type="text" required name="name" maxlength="64">
+                <input ng-model="$ctrl.qualityRule.name" type="text" required name="name" maxlength="64" />
                 <div class="hint" ng-if="$ctrl.qualityRuleForm.name.$valid || $ctrl.qualityRuleForm.name.$pristine">Quality rule name</div>
                 <div ng-messages="$ctrl.qualityRuleForm.name.$error">
                   <div ng-message="required">Quality rule name is required.</div>
@@ -41,8 +41,10 @@
             <div layout-gt-sm="row">
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Description</label>
-                <input ng-model="$ctrl.qualityRule.description" type="text" required name="description" maxlength="256">
-                <div class="hint" ng-if="$ctrl.qualityRuleForm.description.$valid || $ctrl.qualityRuleForm.description.$pristine">Quality rule description</div>
+                <input ng-model="$ctrl.qualityRule.description" type="text" required name="description" maxlength="256" />
+                <div class="hint" ng-if="$ctrl.qualityRuleForm.description.$valid || $ctrl.qualityRuleForm.description.$pristine">
+                  Quality rule description
+                </div>
                 <div ng-messages="$ctrl.qualityRuleForm.description.$error">
                   <div ng-message="required">Quality rule description is required.</div>
                   <div ng-message="md-maxlength">The description has to be less than 256 characters long.</div>
@@ -50,19 +52,22 @@
               </md-input-container>
             </div>
 
-            <md-input-container class="md-block" flex="50"  flex-gt-xs="100" flex-gt-sm="50">
+            <md-input-container class="md-block" flex="50" flex-gt-xs="100" flex-gt-sm="50">
               <label>Weight</label>
-              <input type="number" min="0" max="99999" ng-model="$ctrl.qualityRule.weight">
+              <input type="number" min="0" max="99999" ng-model="$ctrl.qualityRule.weight" />
             </md-input-container>
           </div>
         </div>
       </div>
     </div>
     <div layout="row">
-      <md-button ng-disabled="$ctrl.qualityRuleForm.$invalid || $ctrl.qualityRuleForm.$pristine && !$ctrl.formChanged"
-                 type="submit"
-                 permission permission-only="['environment-quality_rule-c', 'environment-quality_rule-u']"
-                 class="md-raised md-primary">
+      <md-button
+        ng-disabled="$ctrl.qualityRuleForm.$invalid || $ctrl.qualityRuleForm.$pristine && !$ctrl.formChanged"
+        type="submit"
+        permission
+        permission-only="['environment-quality_rule-c', 'environment-quality_rule-u']"
+        class="md-raised md-primary"
+      >
         Save
       </md-button>
     </div>

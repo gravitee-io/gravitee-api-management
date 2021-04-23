@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
-import {Alert, Scope} from '../../entities/alert';
+import { StateService } from '@uirouter/core';
+import { Alert, Scope } from '../../entities/alert';
 import AlertService from '../../services/alert.service';
 import NotificationService from '../../services/notification.service';
 
@@ -25,47 +25,60 @@ const AlertsComponent: ng.IComponentOptions = {
     application: '<',
   },
   template: require('./alerts.html'),
-  controller: function ($stateParams, $state: StateService, AlertService: AlertService, NotificationService: NotificationService, $mdDialog) {
+  controller: function (
+    $stateParams,
+    $state: StateService,
+    AlertService: AlertService,
+    NotificationService: NotificationService,
+    $mdDialog,
+  ) {
     'ngInject';
     this.goTo = (suffixState: string, alertId: string) => {
       if ($stateParams.apiId) {
-        $state.go('management.apis.detail.alerts.' + suffixState, {apiId: $stateParams.apiId, alertId: alertId});
+        $state.go('management.apis.detail.alerts.' + suffixState, { apiId: $stateParams.apiId, alertId: alertId });
       } else if ($stateParams.applicationId) {
-        $state.go('management.applications.application.alerts.' + suffixState, {applicationId: $stateParams.applicationId, alertId: alertId});
+        $state.go('management.applications.application.alerts.' + suffixState, {
+          applicationId: $stateParams.applicationId,
+          alertId: alertId,
+        });
       } else {
-        $state.go('management.settings.alerts.' + suffixState, {alertId: alertId});
+        $state.go('management.settings.alerts.' + suffixState, { alertId: alertId });
       }
     };
 
     this.delete = (alert: Alert) => {
       this.enhanceAlert(alert);
-      $mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: `Are you sure you want to delete the alert '${alert.name}'?`,
-          msg: '',
-          confirmButton: 'Delete'
-        }
-      }).then(function (response) {
-        if (response) {
-          AlertService.delete(alert).then(response => {
-            NotificationService.show('Alert \'' + alert.name + '\' has been deleted');
-            $state.go($state.current, {}, {reload: true});
-          });
-        }
-      });
+      $mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: `Are you sure you want to delete the alert '${alert.name}'?`,
+            msg: '',
+            confirmButton: 'Delete',
+          },
+        })
+        .then(function (response) {
+          if (response) {
+            AlertService.delete(alert).then((response) => {
+              NotificationService.show("Alert '" + alert.name + "' has been deleted");
+              $state.go($state.current, {}, { reload: true });
+            });
+          }
+        });
     };
 
     this.update = (alert: Alert) => {
       this.enhanceAlert(alert);
-      AlertService.update(alert).then(() => {
-        NotificationService.show('Alert saved with success');
-      }).finally(() => {
-        $state.go($state.current, {}, {reload: true});
-      });
+      AlertService.update(alert)
+        .then(() => {
+          NotificationService.show('Alert saved with success');
+        })
+        .finally(() => {
+          $state.go($state.current, {}, { reload: true });
+        });
     };
 
     this.toggleEnable = (alert: Alert) => {
@@ -93,7 +106,7 @@ const AlertsComponent: ng.IComponentOptions = {
           return '#d73a49';
       }
     };
-  }
+  },
 };
 
 export default AlertsComponent;

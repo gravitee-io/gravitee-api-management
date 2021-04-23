@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class PolicyService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
@@ -45,7 +44,6 @@ class PolicyService {
   getDocumentation(policyId) {
     return this.$http.get(`${this.Constants.env.baseURL}/policies/` + policyId + '/documentation');
   }
-
 }
 
 export default PolicyService;

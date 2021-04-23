@@ -23,10 +23,13 @@
   </md-dialog-content>
 
   <md-dialog-actions layout="row">
-    <md-button ng-click="$ctrl.hide()">
-      Cancel
-    </md-button>
-    <md-button type="submit" class="md-raised md-primary" ng-click="$ctrl.addUsers()" ng-disabled="formMember.$invalid || $ctrl.usersSelected.length === 0">
+    <md-button ng-click="$ctrl.hide()"> Cancel </md-button>
+    <md-button
+      type="submit"
+      class="md-raised md-primary"
+      ng-click="$ctrl.addUsers()"
+      ng-disabled="formMember.$invalid || $ctrl.usersSelected.length === 0"
+    >
       Add
     </md-button>
   </md-dialog-actions>

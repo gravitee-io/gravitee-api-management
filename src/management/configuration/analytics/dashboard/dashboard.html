@@ -25,11 +25,11 @@
   <form name="$ctrl.formDashboard" ng-submit="$ctrl.save()" novalidate>
     <div class="gv-form">
       <h2>Details</h2>
-        <div class="gv-form-content" layout="column">
+      <div class="gv-form-content" layout="column">
         <div layout="row" layout-align="end center">
           <md-input-container flex>
             <label>Dashboard name</label>
-            <input ng-model="$ctrl.dashboard.name" required>
+            <input ng-model="$ctrl.dashboard.name" required />
           </md-input-container>
 
           <md-input-container>
@@ -40,10 +40,15 @@
         <div layout="row" layout-align="end center">
           <md-input-container flex>
             <label>Query filter</label>
-            <input type="text" ng-model="$ctrl.dashboard.query_filter">
+            <input type="text" ng-model="$ctrl.dashboard.query_filter" />
           </md-input-container>
 
-          <ng-md-icon icon="info" style="fill: #b1bdc5;" aria-label="Query filter info" ng-click="$ctrl.showQueryFilterInformation()"></ng-md-icon>
+          <ng-md-icon
+            icon="info"
+            style="fill: #b1bdc5"
+            aria-label="Query filter info"
+            ng-click="$ctrl.showQueryFilterInformation()"
+          ></ng-md-icon>
 
           <md-input-container ng-if="$ctrl.displayPreview()">
             <md-button type="button" ng-if="$ctrl.updateMode" class="md-raised md-primary" ng-click="$ctrl.tooglePreview()">
@@ -58,12 +63,23 @@
         <gv-dashboard model="$ctrl.dashboard" update-mode="$ctrl.updateMode"></gv-dashboard>
 
         <md-card-actions layout="row" ng-if="$ctrl.updateMode">
-          <md-button type="submit" class="md-raised md-primary" permission permission-only="['environment-dashboard-c', 'environment-dashboard-u']"
-                     ng-disabled="$ctrl.formDashboard.$invalid || $ctrl.formDashboard.$pristine">
+          <md-button
+            type="submit"
+            class="md-raised md-primary"
+            permission
+            permission-only="['environment-dashboard-c', 'environment-dashboard-u']"
+            ng-disabled="$ctrl.formDashboard.$invalid || $ctrl.formDashboard.$pristine"
+          >
             Save
           </md-button>
-          <md-button type="button" class="md-raised" permission permission-only="['environment-dashboard-c', 'environment-dashboard-u']"
-                     ng-click="$ctrl.reset()" ng-disabled="$ctrl.formDashboard.$pristine">
+          <md-button
+            type="button"
+            class="md-raised"
+            permission
+            permission-only="['environment-dashboard-c', 'environment-dashboard-u']"
+            ng-click="$ctrl.reset()"
+            ng-disabled="$ctrl.formDashboard.$pristine"
+          >
             Reset
           </md-button>
         </md-card-actions>
@@ -72,11 +88,15 @@
   </form>
 </div>
 
-<md-button permission permission-only="['environment-dashboard-c', 'environment-dashboard-u']" ng-if="$ctrl.updateMode"
-           aria-label="Add widget"
-           class="md-fab md-fab-bottom-right md-fab-scrollable"
-           ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-           ng-click="$ctrl.addWidget()">
+<md-button
+  permission
+  permission-only="['environment-dashboard-c', 'environment-dashboard-u']"
+  ng-if="$ctrl.updateMode"
+  aria-label="Add widget"
+  class="md-fab md-fab-bottom-right md-fab-scrollable"
+  ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+  ng-click="$ctrl.addWidget()"
+>
   <md-tooltip md-direction="top" md-visible="false">Add a new widget</md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>

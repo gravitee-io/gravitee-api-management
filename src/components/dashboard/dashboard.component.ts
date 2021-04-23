@@ -23,9 +23,9 @@ const DashboardComponent: ng.IComponentOptions = {
     onTimeframeChange: '&',
     onViewLogClick: '&',
     updateMode: '<',
-    customTimeframe: '<'
+    customTimeframe: '<',
   },
-  controller: function($scope) {
+  controller: function ($scope) {
     'ngInject';
     this.initialEventCounter = 2;
     // tslint:disable-next-line:no-unused-expression
@@ -39,33 +39,33 @@ const DashboardComponent: ng.IComponentOptions = {
       swapping: false,
       draggable: {
         enable: true,
-        handle: 'md-card-title'
+        handle: 'md-card-title',
       },
       resizable: {
         enabled: true,
         stop: function () {
           $scope.$broadcast('onWidgetResize');
-        }
+        },
       },
-      rowHeight: 330
+      rowHeight: 330,
     };
 
-    this.timeframeChange = function(timeframe) {
+    this.timeframeChange = function (timeframe) {
       if (this.initialEventCounter > 0) {
-          this.initialEventCounter--;
+        this.initialEventCounter--;
       }
       if (this.initialEventCounter === 0) {
         // TODO: remove event broadcast and call a widget function instead
         $scope.$broadcast('onTimeframeChange', timeframe);
         if (this.onTimeframeChange) {
-            this.onTimeframeChange({timeframe: timeframe});
+          this.onTimeframeChange({ timeframe: timeframe });
         }
         if (this.initialQuery) {
-            $scope.$broadcast('onQueryFilterChange', {query: this.initialQuery, source: undefined});
-            if (this.onFilterChange) {
-              this.onFilterChange({query: this.initialQuery});
-            }
-            delete(this.initialQuery);
+          $scope.$broadcast('onQueryFilterChange', { query: this.initialQuery, source: undefined });
+          if (this.onFilterChange) {
+            this.onFilterChange({ query: this.initialQuery });
+          }
+          delete this.initialQuery;
         }
       } else {
         // waiting for queryFilterChange event ==> store timeframe for further broadcast
@@ -73,30 +73,30 @@ const DashboardComponent: ng.IComponentOptions = {
       }
     };
 
-    this.queryFilterChange = function(query, widget) {
+    this.queryFilterChange = function (query, widget) {
       if (this.initialEventCounter > 0) {
-          this.initialEventCounter--;
+        this.initialEventCounter--;
+      }
+      if (this.initialEventCounter === 0) {
+        // TODO: remove event broadcast and call a widget function instead
+        $scope.$broadcast('onQueryFilterChange', { query: query, source: widget });
+        if (this.onFilterChange) {
+          this.onFilterChange({ query: query });
         }
-        if (this.initialEventCounter === 0) {
-          // TODO: remove event broadcast and call a widget function instead
-          $scope.$broadcast('onQueryFilterChange', {query: query, source: widget});
-          if (this.onFilterChange) {
-            this.onFilterChange({query: query});
+        if (this.initialTimeFrame) {
+          $scope.$broadcast('onTimeframeChange', this.initialTimeFrame);
+          if (this.onTimeframeChange) {
+            this.onTimeframeChange({ timeframe: this.initialTimeFrame });
           }
-          if (this.initialTimeFrame) {
-            $scope.$broadcast('onTimeframeChange', this.initialTimeFrame);
-            if (this.onTimeframeChange) {
-              this.onTimeframeChange({timeframe: this.initialTimeFrame});
-            }
-            delete(this.initialTimeFrame);
-          }
-        } else {
-          // waiting for timeFrameChange event ==> store query for further broadcast
-          this.initialQuery = query;
+          delete this.initialTimeFrame;
         }
+      } else {
+        // waiting for timeFrameChange event ==> store query for further broadcast
+        this.initialQuery = query;
+      }
     };
 
-    this.viewLogs = function() {
+    this.viewLogs = function () {
       if (this.onViewLogClick) {
         this.onViewLogClick();
       }
@@ -104,26 +104,25 @@ const DashboardComponent: ng.IComponentOptions = {
 
     this.$onInit = () => {
       if (this.model) {
-        _.each(this.model.definition, widget => {
+        _.each(this.model.definition, (widget) => {
           widget.$uid = this.guid();
         });
       }
     };
 
-    this.guid = function() {
+    this.guid = function () {
       function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
           .toString(16)
           .substring(1);
       }
-      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-        s4() + '-' + s4() + s4() + s4();
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     };
 
     $scope.$on('onWidgetDelete', (event, widget) => {
       _.remove(this.model.definition, widget);
     });
-  }
+  },
 };
 
 export default DashboardComponent;

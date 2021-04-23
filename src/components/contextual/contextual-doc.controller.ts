@@ -63,7 +63,6 @@ class ContextualDocController {
     this.$window.localStorage.setItem(this.contextualDocVisibilityKey, this.isOpen);
     this.$rootScope.helpDisplayed = this.isOpen;
   }
-
 }
 
 export default ContextualDocController;

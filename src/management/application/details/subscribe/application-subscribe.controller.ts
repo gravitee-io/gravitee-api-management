@@ -27,8 +27,14 @@ class ApplicationSubscribeController {
   private apis: any[] = [];
   private plans: any[] = [];
 
-  constructor(private ApiService: ApiService, private ApplicationService: ApplicationService,
-              private NotificationService: NotificationService, private $mdDialog, private $state, private $transitions) {
+  constructor(
+    private ApiService: ApiService,
+    private ApplicationService: ApplicationService,
+    private NotificationService: NotificationService,
+    private $mdDialog,
+    private $state,
+    private $transitions,
+  ) {
     'ngInject';
   }
 
@@ -36,12 +42,18 @@ class ApplicationSubscribeController {
     let subscriptionsByAPI = _.groupBy(this.subscriptions.data, 'api');
     _.forEach(subscriptionsByAPI, (subscriptions, api) => {
       // @ts-ignore
-      this.subscribedAPIs.push(_.merge(_.find(this.apis, {id: api}),
-        {plans: _.join(_.map(subscriptions, (sub) => this.subscriptions.metadata[sub.plan].name), ', ')}));
+      this.subscribedAPIs.push(
+        _.merge(_.find(this.apis, { id: api }), {
+          plans: _.join(
+            _.map(subscriptions, (sub) => this.subscriptions.metadata[sub.plan].name),
+            ', ',
+          ),
+        }),
+      );
     });
 
     this.subscribedPlans = _.map(this.subscriptions.data, 'plan');
-  }
+  };
 
   onSelectAPI = (api) => {
     if (api) {
@@ -49,7 +61,7 @@ class ApplicationSubscribeController {
       this.ApiService.getApiPlans(api.id, 'published').then((response) => {
         this.plans = _.filter(response.data, (plan) => {
           plan.alreadySubscribed = _.includes(this.subscribedPlans, plan.id);
-          let subscription = _.find(this.subscriptions.data, {plan: plan.id});
+          let subscription = _.find(this.subscriptions.data, { plan: plan.id });
           // @ts-ignore
           plan.pending = subscription && 'pending' === subscription.status;
           return _.includes(authorizedSecurity, plan.security);
@@ -60,22 +72,22 @@ class ApplicationSubscribeController {
       delete this.plans;
       delete this.selectedAPI;
     }
-  }
+  };
 
   getAuthorizedSecurity = (): string[] => {
     let authorizedSecurity = ['api_key'];
     if (this.application.settings) {
-      if (this.application.settings.oauth ||
-        (this.application.settings.app && this.application.settings.app.client_id)) {
+      if (this.application.settings.oauth || (this.application.settings.app && this.application.settings.app.client_id)) {
         authorizedSecurity.push('jwt', 'oauth2');
       }
     }
     return authorizedSecurity;
-  }
+  };
 
   onSubscribe(api, plan) {
     if (plan.comment_required) {
-      let confirm = this.$mdDialog.prompt()
+      let confirm = this.$mdDialog
+        .prompt()
         .title('Subscription message')
         .placeholder(plan.comment_message ? plan.comment_message : 'Fill a message to the API owner')
         .ariaLabel('Subscription message')
@@ -83,13 +95,16 @@ class ApplicationSubscribeController {
         .ok('Confirm')
         .cancel('Cancel');
 
-      this.$mdDialog.show(confirm).then((message) => {
-        this.ApplicationService.subscribe(this.application.id, plan.id, message).then(() => {
-          this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
-          this.$state.reload();
-        });
-        // tslint:disable-next-line:no-empty
-      }, () => {});
+      this.$mdDialog.show(confirm).then(
+        (message) => {
+          this.ApplicationService.subscribe(this.application.id, plan.id, message).then(() => {
+            this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
+            this.$state.reload();
+          });
+          // tslint:disable-next-line:no-empty
+        },
+        () => {},
+      );
     } else {
       this.ApplicationService.subscribe(this.application.id, plan.id).then(() => {
         this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
@@ -103,17 +118,20 @@ class ApplicationSubscribeController {
       title: 'Close subscription?',
       content: 'Are you sure you want to close this subscription?',
       ok: 'CLOSE',
-      cancel: 'CANCEL'
+      cancel: 'CANCEL',
     });
 
-    this.$mdDialog.show(alert).then(() => {
-      // @ts-ignore
-      this.ApplicationService.closeSubscription(this.application.id, _.find(this.subscriptions.data, {plan: plan.id}).id).then(() => {
-        this.NotificationService.show('Subscription has been successfully closed');
-        this.$state.reload();
-      });
-      // tslint:disable-next-line:no-empty
-    }, () => {});
+    this.$mdDialog.show(alert).then(
+      () => {
+        // @ts-ignore
+        this.ApplicationService.closeSubscription(this.application.id, _.find(this.subscriptions.data, { plan: plan.id }).id).then(() => {
+          this.NotificationService.show('Subscription has been successfully closed');
+          this.$state.reload();
+        });
+        // tslint:disable-next-line:no-empty
+      },
+      () => {},
+    );
   }
 }
 

@@ -36,7 +36,7 @@ class IdentityPictureDirective {
       },
       template: require('./identityPicture.html'),
       controller: IdentityPictureController,
-      controllerAs: 'identityPictureCtrl'
+      controllerAs: 'identityPictureCtrl',
     };
 
     return directive;
@@ -46,7 +46,7 @@ class IdentityPictureDirective {
 class IdentityPictureController {
   constructor(private $scope) {
     'ngInject';
-    $scope.imgError = function() {
+    $scope.imgError = function () {
       document.querySelector('#avatar_' + $scope.imageId).classList.remove('show');
       const div: HTMLElement = document.querySelector('#jdenticon_' + $scope.imageId);
       div.classList.add('show');
@@ -55,11 +55,11 @@ class IdentityPictureController {
         div.innerHTML = 'No image defined';
       } else {
         div.title = $scope.imageName;
-        div.innerHTML = jdenticon.toSvg($scope.imageName, ($scope.imageWidth ? $scope.imageWidth : 110), { backColor: '#FFF' });
+        div.innerHTML = jdenticon.toSvg($scope.imageName, $scope.imageWidth ? $scope.imageWidth : 110, { backColor: '#FFF' });
       }
       $scope.$apply();
     };
-    $scope.imgLoad = function() {
+    $scope.imgLoad = function () {
       document.querySelector('#avatar_' + $scope.imageId).classList.add('show');
       document.querySelector('#jdenticon_' + $scope.imageId).classList.remove('show');
       $scope.$apply();
@@ -72,7 +72,6 @@ class IdentityPictureController {
     }
     return this.$scope.imageUrl || this.$scope.imageDefault || '';
   }
-
 }
 
 export default IdentityPictureDirective;

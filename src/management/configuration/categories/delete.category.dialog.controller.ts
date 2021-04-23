@@ -18,11 +18,11 @@ function DeleteCategoryDialogController($scope, $mdDialog, category) {
 
   $scope.category = category.name;
 
-  $scope.cancel = function() {
+  $scope.cancel = function () {
     $mdDialog.cancel();
   };
 
-  $scope.ok = function() {
+  $scope.ok = function () {
     $mdDialog.hide(true);
   };
 }

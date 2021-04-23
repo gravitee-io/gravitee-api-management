@@ -17,10 +17,10 @@ const CategoryComponent: ng.IComponentOptions = {
   bindings: {
     category: '<',
     categoryApis: '<',
-    pages: '<'
+    pages: '<',
   },
   controller: 'CategoryController',
-  template: require('./category.html')
+  template: require('./category.html'),
 };
 
 export default CategoryComponent;

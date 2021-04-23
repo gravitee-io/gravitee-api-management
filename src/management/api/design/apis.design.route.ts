@@ -25,7 +25,7 @@ function apisDesignRouterConfig($stateProvider) {
   'ngInject';
   $stateProvider
     .state('management.apis.detail.design', {
-      template: require('./apis.design.route.html')
+      template: require('./apis.design.route.html'),
     })
     .state('management.apis.detail.design.policies', {
       url: '/policies',
@@ -35,19 +35,19 @@ function apisDesignRouterConfig($stateProvider) {
       resolve: {
         resolvedTenants: (TenantService: TenantService) => TenantService.list(),
       },
-      apiDefinition: {version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio'},
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio' },
       data: {
         menu: {
           label: 'Design',
-          icon: 'palette'
+          icon: 'palette',
         },
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-policies'
-        }
-      }
+          page: 'management-api-policies',
+        },
+      },
     })
     .state('management.apis.detail.design.resources', {
       url: '/resources',
@@ -57,30 +57,30 @@ function apisDesignRouterConfig($stateProvider) {
       resolve: {
         resolvedResources: (ResourceService: ResourceService) => ResourceService.list(),
       },
-      apiDefinition: {version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio'},
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio' },
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-resources'
-        }
-      }
+          page: 'management-api-resources',
+        },
+      },
     })
     .state('management.apis.detail.design.properties', {
       url: '/properties',
       template: require('./properties/properties.html'),
       controller: 'ApiPropertiesController',
       controllerAs: 'apiPropertiesCtrl',
-      apiDefinition: {version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio'},
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio' },
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-properties'
-        }
-      }
+          page: 'management-api-properties',
+        },
+      },
     })
     .state('management.apis.detail.design.policy-studio', {
       url: '/policy-studio?flows',
@@ -95,17 +95,17 @@ function apisDesignRouterConfig($stateProvider) {
       },
       data: {
         perms: {
-          only: ['api-definition-r']
+          only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-policy-studio'
-        }
+          page: 'management-api-policy-studio',
+        },
       },
       params: {
         flows: {
           type: 'string',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     });
 }

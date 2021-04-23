@@ -56,11 +56,10 @@ const TasksComponent: ng.IComponentOptions = {
     this.go = (task) => {
       switch (task.type) {
         case 'subscription_approval':
-          $state.go('management.apis.detail.portal.subscriptions.subscription',
-            {
-              apiId: task.data.api,
-              subscriptionId: task.data.id
-            });
+          $state.go('management.apis.detail.portal.subscriptions.subscription', {
+            apiId: task.data.api,
+            subscriptionId: task.data.id,
+          });
           break;
         case 'in_review':
         case 'request_for_changes':
@@ -85,7 +84,7 @@ const TasksComponent: ng.IComponentOptions = {
           return '';
       }
     };
-  }
+  },
 };
 
 export default TasksComponent;

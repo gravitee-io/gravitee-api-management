@@ -16,7 +16,7 @@
 
 const ApiResponseTemplateComponent: ng.IComponentOptions = {
   template: require('./response-template.html'),
-  controller: 'ApiResponseTemplateController'
+  controller: 'ApiResponseTemplateController',
 };
 
 export default ApiResponseTemplateComponent;

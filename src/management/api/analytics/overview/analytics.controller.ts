@@ -17,17 +17,10 @@ import _ = require('lodash');
 import { StateService } from '@uirouter/core';
 
 class ApiAnalyticsController {
-
   private api: any;
   private dashboard: any;
 
-  constructor(
-    private ApiService,
-    private resolvedApi,
-    private dashboards,
-    private $scope,
-    private $state: StateService
-  ) {
+  constructor(private ApiService, private resolvedApi, private dashboards, private $scope, private $state: StateService) {
     'ngInject';
     this.ApiService = ApiService;
     this.$scope = $scope;
@@ -55,9 +48,9 @@ class ApiAnalyticsController {
           chart: {
             service: {
               caller: this.ApiService,
-              function: this.ApiService.analytics
-            }
-          }
+              function: this.ApiService.analytics,
+            },
+          },
         });
       });
     });
@@ -65,9 +58,7 @@ class ApiAnalyticsController {
 
   viewLogs() {
     // Update the query parameter
-    this.$state.transitionTo(
-      'management.apis.detail.analytics.logs',
-      this.$state.params);
+    this.$state.transitionTo('management.apis.detail.analytics.logs', this.$state.params);
   }
 
   onDashboardChanged() {
@@ -76,9 +67,7 @@ class ApiAnalyticsController {
   }
 
   private setDashboard(dashboardId: string) {
-    this.$state.transitionTo(
-      this.$state.current,
-      _.merge(this.$state.params, { dashboard: dashboardId }), { reload: true });
+    this.$state.transitionTo(this.$state.current, _.merge(this.$state.params, { dashboard: dashboardId }), { reload: true });
   }
 }
 

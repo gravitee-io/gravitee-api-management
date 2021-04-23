@@ -29,20 +29,14 @@ class HomeDashboardController {
   private customTimeframeLastDay: any;
   private timeframe: ITimeframe;
 
-  constructor(
-    private EventsService,
-    private EnvironmentService,
-    private $scope,
-    private dashboards,
-    private UserService
-  ) {
+  constructor(private EventsService, private EnvironmentService, private $scope, private dashboards, private UserService) {
     'ngInject';
     this.eventLabels = {};
     this.eventTypes = [];
     this.selectedAPIs = [];
     this.selectedApplications = [];
     this.selectedEventTypes = [];
-    this.dashboards = this.dashboards.filter(dashboards => dashboards.enabled);
+    this.dashboards = this.dashboards.filter((dashboards) => dashboards.enabled);
 
     this.timeframe = TimeframeRanges.LAST_MINUTE;
 
@@ -52,14 +46,14 @@ class HomeDashboardController {
 
     if (this.dashboard.definition) {
       this.dashboard.definition = JSON.parse(this.dashboard.definition);
-      this.dashboard.definition.forEach(widget => {
+      this.dashboard.definition.forEach((widget) => {
         _.merge(widget, {
           chart: {
             service: {
               caller: this.EnvironmentService,
-              function: this.EnvironmentService.analytics
-            }
-          }
+              function: this.EnvironmentService.analytics,
+            },
+          },
         });
       });
     }
@@ -79,12 +73,13 @@ class HomeDashboardController {
   }
 
   searchEvents() {
-    if (this.UserService.currentUser &&
-      (this.UserService.currentUser.userPermissions.includes('api-event-r')
-        || this.UserService.currentUser.userEnvironmentPermissions.includes('environment-platform-r'))) {
-
+    if (
+      this.UserService.currentUser &&
+      (this.UserService.currentUser.userPermissions.includes('api-event-r') ||
+        this.UserService.currentUser.userEnvironmentPermissions.includes('environment-platform-r'))
+    ) {
       // set apis
-      let apis = this.selectedAPIs.map(api => api.id).join(',');
+      let apis = this.selectedAPIs.map((api) => api.id).join(',');
       // set event types
       let types: any = this.eventTypes;
       if (this.selectedEventTypes.length > 0) {
@@ -93,7 +88,14 @@ class HomeDashboardController {
 
       // search
       this.$scope.eventsFetchData = true;
-      this.EventsService.search(types, apis, this.customTimeframe.from, this.customTimeframe.to, this.query.page - 1, this.query.limit).then(response => {
+      this.EventsService.search(
+        types,
+        apis,
+        this.customTimeframe.from,
+        this.customTimeframe.to,
+        this.query.page - 1,
+        this.query.limit,
+      ).then((response) => {
         this.events = response.data;
         this.$scope.eventsFetchData = false;
       });
@@ -103,10 +105,9 @@ class HomeDashboardController {
   initPagination() {
     this.query = {
       limit: 10,
-      page: 1
+      page: 1,
     };
   }
-
 
   getEventLabel(label) {
     return this.eventLabels[label];
@@ -121,7 +122,7 @@ class HomeDashboardController {
     this.customTimeframe = {
       interval: this.timeframe.interval,
       from: now - this.timeframe.range,
-      to: now
+      to: now,
     };
 
     this.searchEvents();

@@ -19,9 +19,15 @@
   <md-dialog-content layout-padding>
     <h4>Transfer subscription</h4>
     <div ng-cloak layout="column">
-      <span ng-if="$ctrl.atLeastOnePlanWithGeneralConditions()" class="general_conditions_disabled">Plans with general conditions cannot be used</span>
+      <span ng-if="$ctrl.atLeastOnePlanWithGeneralConditions()" class="general_conditions_disabled"
+        >Plans with general conditions cannot be used</span
+      >
       <md-radio-group ng-model="$ctrl.plan">
-        <md-radio-button ng-repeat="plan in $ctrl.plans | orderBy: 'order'" ng-value="plan.id" ng-disabled="$ctrl.hasGeneralConditions(plan)">
+        <md-radio-button
+          ng-repeat="plan in $ctrl.plans | orderBy: 'order'"
+          ng-value="plan.id"
+          ng-disabled="$ctrl.hasGeneralConditions(plan)"
+        >
           {{plan.name}}
           <md-tooltip md-direction="right"> {{plan.description}} </md-tooltip>
         </md-radio-button>

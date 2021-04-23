@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class ResourceService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
@@ -41,7 +40,6 @@ class ResourceService {
   getDocumentation(resourceId) {
     return this.$http.get(`${this.Constants.env.baseURL}/resources/${resourceId}/documentation`);
   }
-
 }
 
 export default ResourceService;

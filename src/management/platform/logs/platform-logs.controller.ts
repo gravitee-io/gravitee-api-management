@@ -13,30 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 
-import {IScope} from 'angular';
-import AnalyticsService, {LogsQuery} from '../../../services/analytics.service';
+import { IScope } from 'angular';
+import AnalyticsService, { LogsQuery } from '../../../services/analytics.service';
 import _ = require('lodash');
 
 class PlatformLogsController {
-
-  private logs: { total: string; logs: any[], metadata: any };
+  private logs: { total: string; logs: any[]; metadata: any };
   private query: LogsQuery;
   private metadata: {
-    apis?: any[],
-    applications?: any[]
+    apis?: any[];
+    applications?: any[];
   };
   private apis;
   private applications;
   private init: boolean;
 
-  constructor(
-    private AnalyticsService: AnalyticsService,
-    private Constants,
-    private $state: StateService,
-    private $scope: IScope
-  ) {
+  constructor(private AnalyticsService: AnalyticsService, private Constants, private $state: StateService, private $scope: IScope) {
     'ngInject';
 
     this.onPaginate = this.onPaginate.bind(this);
@@ -60,7 +54,7 @@ class PlatformLogsController {
 
     this.metadata = {
       apis: this.apis.data,
-      applications: this.applications.data
+      applications: this.applications.data,
     };
   }
 
@@ -85,9 +79,10 @@ class PlatformLogsController {
         size: this.query.size,
         from: this.query.from,
         to: this.query.to,
-        q: this.query.query
+        q: this.query.query,
       },
-      {notify: false});
+      { notify: false },
+    );
 
     this.AnalyticsService.findLogs(this.query).then((logs) => {
       this.logs = logs.data;

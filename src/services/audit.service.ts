@@ -26,7 +26,6 @@ export class AuditQuery {
 }
 
 class AuditService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
@@ -41,7 +40,7 @@ class AuditService {
 
     _.forEach(query, (value, key) => {
       if (value !== undefined && value !== null && value !== '') {
-        url += key + '=' + ((value instanceof Date) ? value.getTime() : value) + '&';
+        url += key + '=' + (value instanceof Date ? value.getTime() : value) + '&';
       }
     });
 

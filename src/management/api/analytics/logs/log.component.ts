@@ -25,17 +25,17 @@ interface IQueryParam {
 
 class LogComponentController {
   public log: {
-    clientRequest: any
-    proxyRequest: any
-    clientResponse: any
-    proxyResponse: any
+    clientRequest: any;
+    proxyRequest: any;
+    clientResponse: any;
+    proxyResponse: any;
   };
   public backStateParams: {
     q: any;
     size: any;
     from: any;
     to: any;
-    page: any
+    page: any;
   };
 
   private static headersAsList(obj) {
@@ -70,7 +70,6 @@ class LogComponentController {
     };
   }
 
-
   $onInit() {
     if (this.log.clientRequest != null) {
       LogComponentController.headersAsList(this.log.clientRequest);
@@ -79,7 +78,6 @@ class LogComponentController {
         queryParams: this.extractQueryParams(this.log.clientRequest.uri),
       };
     }
-
 
     if (this.log.proxyRequest != null) {
       LogComponentController.headersAsList(this.log.proxyRequest);
@@ -96,7 +94,6 @@ class LogComponentController {
     if (this.log.proxyResponse != null) {
       LogComponentController.headersAsList(this.log.proxyResponse);
     }
-
   }
 
   getMimeType(log): string | null {
@@ -127,8 +124,10 @@ class LogComponentController {
     }
 
     // Slice the interesting part of the uri and split to get all the query params
-    const queryParamsMap = uri.slice(uri.indexOf('?') + 1).split('&')
-      .map(queryParamsAsString => queryParamsAsString.split('='))
+    const queryParamsMap = uri
+      .slice(uri.indexOf('?') + 1)
+      .split('&')
+      .map((queryParamsAsString) => queryParamsAsString.split('='))
       // Convert in a map to group query params with the same key (it can happens when sending an array), for the example:
       // {
       //   type: ['monthly'],

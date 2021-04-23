@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import {IScope, IDirective} from 'angular';
+import { IScope, IDirective } from 'angular';
 
 interface IMyScope extends IScope {
   ngPattern: RegExp;
 }
 
-const MetadataValidatorDirective: IDirective = ({
+const MetadataValidatorDirective: IDirective = {
   restrict: 'A',
   require: 'ngModel',
   scope: {
     format: '=gvMetadataFormat',
-    ngPattern: '='
+    ngPattern: '=',
   },
   link: function (scope: IMyScope) {
     scope.$watch('format', function (newFormat) {
@@ -44,7 +44,7 @@ const MetadataValidatorDirective: IDirective = ({
           break;
       }
     });
-  }
-});
+  },
+};
 
 export default MetadataValidatorDirective;

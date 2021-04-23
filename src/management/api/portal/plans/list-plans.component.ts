@@ -16,10 +16,10 @@
 const ApiListPlansComponent: ng.IComponentOptions = {
   bindings: {
     plans: '<',
-    api: '<'
+    api: '<',
   },
   controller: 'ApiListPlansController',
-  template: require('./list-plans.html')
+  template: require('./list-plans.html'),
 };
 
 export default ApiListPlansComponent;

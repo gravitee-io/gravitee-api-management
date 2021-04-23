@@ -35,7 +35,7 @@ class AnalyticsDashboardController {
     private $scope,
     private Constants,
     private $state,
-    private dashboards
+    private dashboards,
   ) {
     'ngInject';
     this.eventLabels = {};
@@ -65,9 +65,9 @@ class AnalyticsDashboardController {
           chart: {
             service: {
               caller: this.AnalyticsService,
-              function: this.AnalyticsService.analytics
-            }
-          }
+              function: this.AnalyticsService.analytics,
+            },
+          },
         });
       });
     });
@@ -84,9 +84,7 @@ class AnalyticsDashboardController {
   }
 
   onDashboardChanged(dashboardId: string) {
-    this.$state.transitionTo(
-      this.$state.current,
-      _.merge(this.$state.params, { dashboard: dashboardId }), { reload: true });
+    this.$state.transitionTo(this.$state.current, _.merge(this.$state.params, { dashboard: dashboardId }), { reload: true });
   }
 
   onTimeframeChange(timeframe) {
@@ -111,9 +109,11 @@ class AnalyticsDashboardController {
 
   searchEvents() {
     // set apis
-    let apis = this.selectedAPIs.map(function (api) {
-      return api.id;
-    }).join(',');
+    let apis = this.selectedAPIs
+      .map(function (api) {
+        return api.id;
+      })
+      .join(',');
     // set event types
     // TODO: types is type any[], and then string !!! beurk beurk beurk
     let types: any = this.eventTypes;
@@ -123,7 +123,7 @@ class AnalyticsDashboardController {
 
     // search
     this.$scope.eventsFetchData = true;
-    this.EventsService.search(types, apis, this.lastFrom, this.lastTo, this.query.page - 1, this.query.limit).then(response => {
+    this.EventsService.search(types, apis, this.lastFrom, this.lastTo, this.query.page - 1, this.query.limit).then((response) => {
       this.events = response.data;
       this.$scope.eventsFetchData = false;
     });
@@ -132,7 +132,7 @@ class AnalyticsDashboardController {
   initPagination() {
     this.query = {
       limit: 10,
-      page: 1
+      page: 1,
     };
   }
 
@@ -142,9 +142,7 @@ class AnalyticsDashboardController {
 
   viewLogs() {
     // Update the query parameter
-    this.$state.transitionTo(
-      'management.logs',
-      this.$state.params);
+    this.$state.transitionTo('management.logs', this.$state.params);
   }
 }
 

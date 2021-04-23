@@ -16,10 +16,10 @@
 const PlatformLogsComponent: ng.IComponentOptions = {
   bindings: {
     applications: '<',
-    apis: '<'
+    apis: '<',
   },
   controller: 'PlatformLogsController',
-  template: require('./platform-logs.html')
+  template: require('./platform-logs.html'),
 };
 
 export default PlatformLogsComponent;

@@ -15,10 +15,10 @@
  */
 const TopApisComponent: ng.IComponentOptions = {
   bindings: {
-    topApis: '<'
+    topApis: '<',
   },
   controller: 'TopApisController',
-  template: require('./top-apis.html')
+  template: require('./top-apis.html'),
 };
 
 export default TopApisComponent;

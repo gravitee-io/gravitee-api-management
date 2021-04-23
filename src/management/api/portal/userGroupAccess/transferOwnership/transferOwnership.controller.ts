@@ -49,13 +49,13 @@ class ApiTransferOwnershipController {
     private UserService: UserService,
     private GroupService,
     private RoleService,
-    private Constants
+    private Constants,
   ) {
     'ngInject';
     this.api = resolvedApi.data;
-    this.poGroups = this.resolvedGroups.filter(group => group.apiPrimaryOwner != null);
+    this.poGroups = this.resolvedGroups.filter((group) => group.apiPrimaryOwner != null);
     if (this.api.owner.type === 'GROUP') {
-      this.poGroups = this.poGroups.filter(group => group.id !== this.api.owner.id);
+      this.poGroups = this.poGroups.filter((group) => group.id !== this.api.owner.id);
     }
     this.useGroupAsPrimaryOwner = this.ApiPrimaryOwnerModeService.isGroupOnly();
     this.members = resolvedMembers.data;
@@ -96,10 +96,12 @@ class ApiTransferOwnershipController {
 
   $onInit() {
     this.userFilterFn = (user: any) => {
-      return user.id === undefined || _.findIndex(this.members,
-        function (apiMember: any) {
+      return (
+        user.id === undefined ||
+        _.findIndex(this.members, function (apiMember: any) {
           return apiMember.id === user.id && apiMember.role === 'PRIMARY_OWNER';
-        }) === -1;
+        }) === -1
+      );
     };
 
     this.defaultUsersList = _.filter(this.members, (member: any) => {
@@ -108,28 +110,36 @@ class ApiTransferOwnershipController {
   }
 
   isPrimaryOwner() {
-    return (this.api.owner.type === 'USER' && this.UserService.currentUser.id === this.api.owner.id)
-      || (this.api.owner.type === 'GROUP' && this.resolvedGroups.some(group => group.id === this.api.owner.id && group.apiPrimaryOwner === this.UserService.currentUser.id));
+    return (
+      (this.api.owner.type === 'USER' && this.UserService.currentUser.id === this.api.owner.id) ||
+      (this.api.owner.type === 'GROUP' &&
+        this.resolvedGroups.some((group) => group.id === this.api.owner.id && group.apiPrimaryOwner === this.UserService.currentUser.id))
+    );
   }
 
   showTransferOwnershipConfirm(ev) {
-    this.$mdDialog.show({
-      controller: 'DialogTransferApiController',
-      controllerAs: '$ctrl',
-      template: require('./transferAPI.dialog.html'),
-      parent: angular.element(document.body),
-      targetEvent: ev,
-      clickOutsideToClose: true,
-      locals: {
-        newRole: this.newPORole
-      }
-    }).then((transferAPI) => {
-      if (transferAPI) {
-        this.transferOwnership(this.newPORole.name);
-      }
-    }, () => {
-      // You cancelled the dialog
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogTransferApiController',
+        controllerAs: '$ctrl',
+        template: require('./transferAPI.dialog.html'),
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose: true,
+        locals: {
+          newRole: this.newPORole,
+        },
+      })
+      .then(
+        (transferAPI) => {
+          if (transferAPI) {
+            this.transferOwnership(this.newPORole.name);
+          }
+        },
+        () => {
+          // You cancelled the dialog
+        },
+      );
   }
 
   isAllowedToTransferOwnership() {
@@ -143,14 +153,14 @@ class ApiTransferOwnershipController {
         id: this.newPrimaryOwnerGroup,
         reference: null,
         role: newRole,
-        type: 'GROUP'
+        type: 'GROUP',
       };
     } else {
       ownership = {
         id: this.usersSelected[0].id,
         reference: this.usersSelected[0].reference,
         role: newRole,
-        type: 'USER'
+        type: 'USER',
       };
     }
     this.ApiService.transferOwnership(this.api.id, ownership).then(() => {

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class StringService {
-
   constructor() {
     'ngInject';
   }
@@ -27,13 +26,12 @@ class StringService {
     for (let i = 0; i < str.length; i++) {
       let char = str.charCodeAt(i);
       // tslint:disable-next-line:no-bitwise
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       // tslint:disable-next-line:no-bitwise
       hash = hash & hash; // Convert to 32bit integer
     }
     return hash;
   }
-
 }
 
 export default StringService;

@@ -15,10 +15,10 @@
  */
 const CategoriesComponent: ng.IComponentOptions = {
   bindings: {
-    categories: '<'
+    categories: '<',
   },
   controller: 'CategoriesController',
-  template: require('./categories.html')
+  template: require('./categories.html'),
 };
 
 export default CategoriesComponent;

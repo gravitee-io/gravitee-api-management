@@ -83,7 +83,6 @@ tr.log-error {
 }
 
 .api-analytics-logging-configuration {
-
   .gv-page-draft-banner {
     margin: 0 0 2rem;
   }
@@ -93,7 +92,7 @@ tr.log-error {
   }
 
   gv-button[link] {
-  --gv-icon--c: #28444F;
+    --gv-icon--c: #28444f;
   }
 
   gv-option {
@@ -114,7 +113,6 @@ tr.log-error {
     opacity: 0;
     transition: all 50ms ease-in-out;
   }
-
 }
 
 .api-analytics-logging-configuration_enabled {

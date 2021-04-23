@@ -7,7 +7,8 @@
     margin: 0;
   }
 
-  .small, small {
+  .small,
+  small {
     font-size: 10px;
   }
 
@@ -19,7 +20,7 @@
   .form {
     position: relative;
     z-index: 1;
-    background: #FFFFFF;
+    background: #ffffff;
     max-width: 360px;
     margin: 0 auto 100px;
     padding: 45px;
@@ -71,8 +72,9 @@
     max-width: 300px;
     margin: 0 auto;
   }
-  .container:before, .container:after {
-    content: "";
+  .container:before,
+  .container:after {
+    content: '';
     display: block;
     clear: both;
   }
@@ -96,11 +98,11 @@
     text-decoration: none;
   }
   .container .info span .fa {
-    color: #EF3B3A;
+    color: #ef3b3a;
   }
   .error {
     font-weight: bold;
-    color: #EF3B3A;
+    color: #ef3b3a;
   }
 
   .text-muted {
@@ -117,7 +119,7 @@
     align-items: center;
     font-weight: bold;
     border-radius: 2px;
-    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .26);
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
     min-height: 39px;
   }
 
@@ -135,12 +137,12 @@
   }
 
   .btn-signin {
-    background-color: #5A7684;
+    background-color: #5a7684;
     color: #fff;
   }
 
   .btn:hover {
-    box-shadow: 0 1px 3px #383E3F;
+    box-shadow: 0 1px 3px #383e3f;
   }
 
   .btn-primary {
@@ -201,7 +203,7 @@
 
   .btn-google {
     color: #fff;
-    background-color: #4285F4;
+    background-color: #4285f4;
     border: 1px solid #427af4;
   }
 

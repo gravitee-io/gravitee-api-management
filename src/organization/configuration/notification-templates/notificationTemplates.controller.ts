@@ -29,17 +29,17 @@ class NotificationTemplatesController {
       return a.scope.localeCompare(b.scope) || a.name.localeCompare(b.name);
     });
 
-    this.notificationTemplates.forEach(notifTemplate => {
+    this.notificationTemplates.forEach((notifTemplate) => {
       const scope = notifTemplate.scope;
       const name = notifTemplate.name;
       if (!this.notifTemplatesMap[scope]) {
-        this.notifTemplatesMap[scope] = { };
+        this.notifTemplatesMap[scope] = {};
       }
       if (!this.notifTemplatesMap[scope][name]) {
         this.notifTemplatesMap[scope][name] = {
           hook: notifTemplate.hook || name, // if TEMPLATES TO INCLUDE, there is no hook. Must have at least a name to load the right template
           scope,
-          description: notifTemplate.description
+          description: notifTemplate.description,
         };
       }
 

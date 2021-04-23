@@ -18,11 +18,9 @@ md-sidenav.healthcheck {
 }
 
 .configuration-card {
-
   gv-cron-editor {
     margin: 0;
   }
-
 }
 
 .healthcheck-summary-timeline-wrapper {
@@ -34,7 +32,7 @@ md-sidenav.healthcheck {
 }
 
 .configuration-card fieldset.form-disabled {
-  background-color: #E1E2E1;
+  background-color: #e1e2e1;
 }
 
 .progress-bar-fatal {
@@ -58,11 +56,11 @@ md-sidenav.healthcheck {
   }
 
   timeline-panel:before {
-    top: 20px
+    top: 20px;
   }
 
   timeline-panel:after {
-    top: 21px
+    top: 21px;
   }
 
   .healthcheck-summary-timeline-title {

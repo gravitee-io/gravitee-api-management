@@ -17,7 +17,7 @@ const AlertTriggerProjectionsComponent: ng.IComponentOptions = {
   bindings: {
     alert: '<',
     condition: '<',
-    metrics: '<'
+    metrics: '<',
   },
   template: require('./trigger-projections.html'),
   controller: function () {
@@ -28,13 +28,13 @@ const AlertTriggerProjectionsComponent: ng.IComponentOptions = {
         this.condition.projections = [];
       }
 
-      this.condition.projections.push({'type': 'PROPERTY'});
+      this.condition.projections.push({ type: 'PROPERTY' });
     };
 
     this.removeProjection = (idx: number) => {
       this.condition.projections.splice(idx, 1);
     };
-  }
+  },
 };
 
 export default AlertTriggerProjectionsComponent;

@@ -24,17 +24,17 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
   bindings: {
     dashboardsPlatform: '<',
     dashboardsApi: '<',
-    dashboardsApplication: '<'
+    dashboardsApplication: '<',
   },
   template: require('./analytics.html'),
-  controller: function(
+  controller: function (
     NotificationService: NotificationService,
     PortalSettingsService: PortalSettingsService,
     $state: StateService,
     Constants: any,
     $mdDialog: angular.material.IDialogService,
     DashboardService: DashboardService,
-    $rootScope
+    $rootScope,
   ) {
     'ngInject';
     this.settings = _.cloneDeep(Constants.env.settings);
@@ -45,7 +45,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
       this.dashboardsByType = {
         Platform: this.dashboardsPlatform,
         API: this.dashboardsApi,
-        Application: this.dashboardsApplication
+        Application: this.dashboardsApplication,
       };
     };
 
@@ -54,7 +54,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     };
 
     this.save = () => {
-      PortalSettingsService.save(this.settings).then( (response) => {
+      PortalSettingsService.save(this.settings).then((response) => {
         _.merge(Constants.env.settings, response.data);
         NotificationService.show('Configuration saved');
         this.formSettings.$setPristine();
@@ -67,32 +67,36 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     };
 
     this.delete = (dashboard: Dashboard) => {
-      $mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: `Are you sure you want to delete the dashboard '${dashboard.name}'?`,
-          msg: '',
-          confirmButton: 'Delete'
-        }
-      }).then(function (response) {
-        if (response) {
-          DashboardService.delete(dashboard).then(response => {
-            NotificationService.show('Dashboard \'' + dashboard.name + '\' has been deleted');
-            $state.go($state.current, {}, {reload: true});
-          });
-        }
-      });
+      $mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: `Are you sure you want to delete the dashboard '${dashboard.name}'?`,
+            msg: '',
+            confirmButton: 'Delete',
+          },
+        })
+        .then(function (response) {
+          if (response) {
+            DashboardService.delete(dashboard).then((response) => {
+              NotificationService.show("Dashboard '" + dashboard.name + "' has been deleted");
+              $state.go($state.current, {}, { reload: true });
+            });
+          }
+        });
     };
 
     this.update = (dashboard: Dashboard) => {
-      DashboardService.update(dashboard).then(() => {
+      DashboardService.update(dashboard)
+        .then(() => {
           NotificationService.show('Dashboard saved with success');
-        }).finally(() => {
-        $state.go($state.current, {}, {reload: true});
-      });
+        })
+        .finally(() => {
+          $state.go($state.current, {}, { reload: true });
+        });
     };
 
     this.upward = (dashboard: Dashboard) => {
@@ -113,7 +117,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     this.isReadonlySetting = (property: string): boolean => {
       return PortalSettingsService.isReadonly(this.settings, property);
     };
-  }
+  },
 };
 
 export default AnalyticsSettingsComponent;

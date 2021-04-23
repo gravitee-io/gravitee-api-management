@@ -22,7 +22,6 @@ import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 
 class TagsController {
-
   public providedConfigurationMessage = 'Configuration provided by the system';
   private tags: any;
   private groups: Array<any>;
@@ -39,34 +38,36 @@ class TagsController {
     private EntrypointService: EntrypointService,
     private PortalSettingsService: PortalSettingsService,
     private $rootScope: IScope,
-    private $state: StateService) {
-
+    private $state: StateService,
+  ) {
     'ngInject';
     this.$rootScope = $rootScope;
   }
 
   deleteTag(tag) {
     var that = this;
-    this.$mdDialog.show({
-      controller: 'DeleteTagDialogController',
-      template: require('./delete.tag.dialog.html'),
-      locals: {
-        tag: tag
-      }
-    }).then((deleteTag) => {
-      if (deleteTag) {
-        if (tag.id) {
-          that.TagService.delete(tag).then(() => {
-            this.deleteEntrypointsByTag(tag).then(() => {
-              that.NotificationService.show('Tag \'' + tag.name + '\' deleted with success');
+    this.$mdDialog
+      .show({
+        controller: 'DeleteTagDialogController',
+        template: require('./delete.tag.dialog.html'),
+        locals: {
+          tag: tag,
+        },
+      })
+      .then((deleteTag) => {
+        if (deleteTag) {
+          if (tag.id) {
+            that.TagService.delete(tag).then(() => {
+              this.deleteEntrypointsByTag(tag).then(() => {
+                that.NotificationService.show("Tag '" + tag.name + "' deleted with success");
                 _.remove(that.tags, tag);
               });
             });
-        } else {
-          _.remove(that.tags, tag);
+          } else {
+            _.remove(that.tags, tag);
+          }
         }
-      }
-    });
+      });
   }
 
   onClipboardSuccess(e) {
@@ -75,53 +76,60 @@ class TagsController {
   }
 
   deleteEntrypoint(entrypoint) {
-    this.$mdDialog.show({
-      controller: 'DeleteEntrypointDialogController',
-      template: require('./entrypoint/delete.entrypoint.dialog.html'),
-      locals: {
-        entrypoint: entrypoint
-      }
-    }).then((entrypointToDelete) => {
-      if (entrypointToDelete) {
-        if (entrypointToDelete.id) {
-          this.EntrypointService.delete(entrypointToDelete).then(() => {
-            this.NotificationService.show('Entrypoint \'' + entrypointToDelete.value + '\' deleted with success');
-            _.remove(this.entrypoints, entrypointToDelete);
-          });
+    this.$mdDialog
+      .show({
+        controller: 'DeleteEntrypointDialogController',
+        template: require('./entrypoint/delete.entrypoint.dialog.html'),
+        locals: {
+          entrypoint: entrypoint,
+        },
+      })
+      .then((entrypointToDelete) => {
+        if (entrypointToDelete) {
+          if (entrypointToDelete.id) {
+            this.EntrypointService.delete(entrypointToDelete).then(() => {
+              this.NotificationService.show("Entrypoint '" + entrypointToDelete.value + "' deleted with success");
+              _.remove(this.entrypoints, entrypointToDelete);
+            });
+          }
         }
-      }
-    });
+      });
   }
 
   deleteEntrypointsByTag(tag) {
     let promises = [];
     _.forEach(this.entrypoints, (entrypoint) => {
       if (_.includes(entrypoint.tags, tag.id)) {
-        promises.push(this.EntrypointService.delete(entrypoint).then(() => {
-          _.remove(this.entrypoints, entrypoint);
-        }));
+        promises.push(
+          this.EntrypointService.delete(entrypoint).then(() => {
+            _.remove(this.entrypoints, entrypoint);
+          }),
+        );
       }
     });
     return this.$q.all(promises);
   }
 
   saveSettings = () => {
-    this.PortalSettingsService.save(this.settings).then( () => {
+    this.PortalSettingsService.save(this.settings).then(() => {
       this.NotificationService.show('Configuration saved!');
       this.formSettings.$setPristine();
     });
-  }
+  };
 
   resetSettings = () => {
     this.$state.reload();
-  }
+  };
 
   groupNames = (groups) => {
     // _.join(array, [separator=','])
-    return _.join(_.map(groups, (groupId) => {
-      return _.find(this.groups, {id: groupId}).name;
-    }), ', ');
-  }
+    return _.join(
+      _.map(groups, (groupId) => {
+        return _.find(this.groups, { id: groupId }).name;
+      }),
+      ', ',
+    );
+  };
 
   isReadonlySetting(property: string): boolean {
     return this.PortalSettingsService.isReadonly(this.settings, property);

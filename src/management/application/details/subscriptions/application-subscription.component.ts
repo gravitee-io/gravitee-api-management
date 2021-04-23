@@ -20,11 +20,10 @@ import { StateService } from '@uirouter/core';
 const ApplicationSubscriptionComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
-    subscription: '<'
+    subscription: '<',
   },
   template: require('./application-subscription.html'),
   controller: class {
-
     private subscription: any;
     private keys: any[];
     private application: any;
@@ -34,7 +33,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
       private $mdDialog: angular.material.IDialogService,
       private NotificationService: NotificationService,
       private ApplicationService: ApplicationService,
-      private $state: StateService
+      private $state: StateService,
     ) {
       'ngInject';
 
@@ -43,7 +42,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
         status: $state.params.status,
         page: $state.params.page,
         size: $state.params.size,
-        api_key: $state.params.api_key
+        api_key: $state.params.api_key,
       };
     }
 
@@ -61,44 +60,48 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
     }
 
     renewApiKey() {
-      this.$mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Are you sure you want to renew your API Key?',
-          msg: 'Your previous API Key will be no longer valid in 2 hours!',
-          confirmButton: 'Renew'
-        }
-      }).then( (response) => {
-        if (response) {
-          this.ApplicationService.renewApiKey(this.application.id, this.subscription.id).then(() => {
-            this.NotificationService.show('A new API Key has been generated');
-            this.listApiKeys();
-          });
-        }
-      });
+      this.$mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Are you sure you want to renew your API Key?',
+            msg: 'Your previous API Key will be no longer valid in 2 hours!',
+            confirmButton: 'Renew',
+          },
+        })
+        .then((response) => {
+          if (response) {
+            this.ApplicationService.renewApiKey(this.application.id, this.subscription.id).then(() => {
+              this.NotificationService.show('A new API Key has been generated');
+              this.listApiKeys();
+            });
+          }
+        });
     }
 
     revokeApiKey(apiKey) {
-      this.$mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Are you sure you want to revoke API Key \'' + apiKey + '\'?',
-          confirmButton: 'Revoke'
-        }
-      }).then( (response) => {
-        if (response) {
-          this.ApplicationService.revokeApiKey(this.application.id, this.subscription.id, apiKey).then(() => {
-            this.NotificationService.show('API Key ' + apiKey + ' has been revoked!');
-            this.listApiKeys();
-          });
-        }
-      });
+      this.$mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: "Are you sure you want to revoke API Key '" + apiKey + "'?",
+            confirmButton: 'Revoke',
+          },
+        })
+        .then((response) => {
+          if (response) {
+            this.ApplicationService.revokeApiKey(this.application.id, this.subscription.id, apiKey).then(() => {
+              this.NotificationService.show('API Key ' + apiKey + ' has been revoked!');
+              this.listApiKeys();
+            });
+          }
+        });
     }
 
     onCopyApiKeySuccess(e) {
@@ -112,27 +115,29 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
         msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
       }
 
-      this.$mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Are you sure you want to close this subscription?',
-          msg: msg,
-          confirmButton: 'Close'
-        }
-      }).then( (response) => {
-        if (response) {
-          this.ApplicationService.closeSubscription(this.application.id, this.subscription.id).then((response) => {
-            this.NotificationService.show('The subscription has been closed');
-            this.subscription = response.data;
-            this.listApiKeys();
-          });
-        }
-      });
+      this.$mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Are you sure you want to close this subscription?',
+            msg: msg,
+            confirmButton: 'Close',
+          },
+        })
+        .then((response) => {
+          if (response) {
+            this.ApplicationService.closeSubscription(this.application.id, this.subscription.id).then((response) => {
+              this.NotificationService.show('The subscription has been closed');
+              this.subscription = response.data;
+              this.listApiKeys();
+            });
+          }
+        });
     }
-  }
+  },
 };
 
 export default ApplicationSubscriptionComponent;

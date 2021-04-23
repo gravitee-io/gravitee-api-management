@@ -15,10 +15,10 @@
  */
 const InstanceEnvironmentComponent: ng.IComponentOptions = {
   bindings: {
-    instance: '<'
+    instance: '<',
   },
   controller: 'InstanceEnvironmentController',
-  template: require('./instance-environment.html')
+  template: require('./instance-environment.html'),
 };
 
 export default InstanceEnvironmentComponent;

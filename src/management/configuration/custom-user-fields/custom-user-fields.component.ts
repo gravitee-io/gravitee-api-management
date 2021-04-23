@@ -17,11 +17,10 @@ const CustomUserFieldsComponent: ng.IComponentOptions = {
   bindings: {
     fields: '<',
     fieldFormats: '<',
-    predefinedKeys: '<'
+    predefinedKeys: '<',
   },
   controller: 'CustomUserFieldsController',
-  template: require('./custom-user-fields.html')
+  template: require('./custom-user-fields.html'),
 };
 
 export default CustomUserFieldsComponent;
-

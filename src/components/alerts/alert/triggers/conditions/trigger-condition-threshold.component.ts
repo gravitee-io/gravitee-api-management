@@ -15,12 +15,12 @@
  */
 const AlertTriggerConditionThresholdComponent: ng.IComponentOptions = {
   bindings: {
-    condition: '<'
+    condition: '<',
   },
   template: require('./trigger-condition-threshold.html'),
   controller: function () {
     'ngInject';
-  }
+  },
 };
 
 export default AlertTriggerConditionThresholdComponent;

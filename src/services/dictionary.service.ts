@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 class DictionaryService {
-
-  constructor(
-    private $http: ng.IHttpService,
-    private Constants) {
+  constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
   }
 
@@ -40,7 +37,7 @@ class DictionaryService {
       type: dictionary.type,
       properties: dictionary.properties,
       provider: dictionary.provider,
-      trigger: dictionary.trigger
+      trigger: dictionary.trigger,
     });
   }
 

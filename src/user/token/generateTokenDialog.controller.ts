@@ -39,8 +39,9 @@ function DialogGenerateTokenController($scope, $mdDialog, locals, TokenService, 
   };
 
   this.getExampleOfUse = function (token) {
-    const envBaseURL = Constants.env.baseURL.startsWith('/') ?
-      $location.absUrl().split('/#')[0] + Constants.env.baseURL : Constants.env.baseURL;
+    const envBaseURL = Constants.env.baseURL.startsWith('/')
+      ? $location.absUrl().split('/#')[0] + Constants.env.baseURL
+      : Constants.env.baseURL;
     return `curl -H "Authorization: Bearer ${token}" "${envBaseURL}"`;
   };
 }

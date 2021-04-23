@@ -28,7 +28,8 @@ class TenantsController {
     private NotificationService: NotificationService,
     private $q: ng.IQService,
     private $mdEditDialog,
-    private $mdDialog: angular.material.IDialogService) {
+    private $mdDialog: angular.material.IDialogService,
+  ) {
     'ngInject';
 
     this.tenantsToCreate = [];
@@ -46,15 +47,15 @@ class TenantsController {
 
     var promise = this.$mdEditDialog.small({
       placeholder: 'Add a name',
-      save: input => {
-        const tenant = {name: input.$modelValue};
+      save: (input) => {
+        const tenant = { name: input.$modelValue };
         this.tenants.push(tenant);
         this.tenantsToCreate.push(tenant);
       },
       targetEvent: event,
       validators: {
-        'md-maxlength': 30
-      }
+        'md-maxlength': 30,
+      },
     });
 
     promise.then(function (ctrl) {
@@ -83,8 +84,8 @@ class TenantsController {
       },
       targetEvent: event,
       validators: {
-        'md-maxlength': 30
-      }
+        'md-maxlength': 30,
+      },
     });
 
     promise.then(function (ctrl) {
@@ -112,50 +113,51 @@ class TenantsController {
       },
       targetEvent: event,
       validators: {
-        'md-maxlength': 160
-      }
+        'md-maxlength': 160,
+      },
     });
   }
 
   saveTenants() {
     var that = this;
 
-    this.$q.all([
-      this.TenantService.create(that.tenantsToCreate),
-      this.TenantService.update(that.tenantsToUpdate)
-    ]).then(function (resultArray) {
-      that.NotificationService.show('Tenants saved with success');
-//      that.loadTenants();
-      that.tenantsToCreate = [];
-      that.tenantsToUpdate = [];
-      let createResult = resultArray[0];
-      if (createResult) {
-        that.tenants = _.unionBy(createResult.data, that.tenants, 'name');
-      }
-    });
+    this.$q
+      .all([this.TenantService.create(that.tenantsToCreate), this.TenantService.update(that.tenantsToUpdate)])
+      .then(function (resultArray) {
+        that.NotificationService.show('Tenants saved with success');
+        //      that.loadTenants();
+        that.tenantsToCreate = [];
+        that.tenantsToUpdate = [];
+        let createResult = resultArray[0];
+        if (createResult) {
+          that.tenants = _.unionBy(createResult.data, that.tenants, 'name');
+        }
+      });
   }
 
   deleteTenant(tenant) {
     var that = this;
-    this.$mdDialog.show({
-      controller: 'DeleteTenantDialogController',
-      template: require('./delete.tenant.dialog.html'),
-      locals: {
-        tenant: tenant
-      }
-    }).then(function (deleteTenant) {
-      if (deleteTenant) {
-        if (tenant.id) {
-          that.TenantService.delete(tenant).then(function () {
-            that.NotificationService.show('Tenant \'' + tenant.name + '\' deleted with success');
+    this.$mdDialog
+      .show({
+        controller: 'DeleteTenantDialogController',
+        template: require('./delete.tenant.dialog.html'),
+        locals: {
+          tenant: tenant,
+        },
+      })
+      .then(function (deleteTenant) {
+        if (deleteTenant) {
+          if (tenant.id) {
+            that.TenantService.delete(tenant).then(function () {
+              that.NotificationService.show("Tenant '" + tenant.name + "' deleted with success");
+              _.remove(that.tenants, tenant);
+            });
+          } else {
+            _.remove(that.tenantsToCreate, tenant);
             _.remove(that.tenants, tenant);
-          });
-        } else {
-          _.remove(that.tenantsToCreate, tenant);
-          _.remove(that.tenants, tenant);
+          }
         }
-      }
-    });
+      });
   }
 
   reset() {

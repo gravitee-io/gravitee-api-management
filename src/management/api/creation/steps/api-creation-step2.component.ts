@@ -17,7 +17,7 @@ import ApiCreationController from './api-creation.controller';
 
 const ApiCreationStep2Component: ng.IComponentOptions = {
   require: {
-    parent: '^apiCreation'
+    parent: '^apiCreation',
   },
   template: require('./api-creation-step2.html'),
   controller: class {
@@ -35,8 +35,8 @@ const ApiCreationStep2Component: ng.IComponentOptions = {
         this.parent.api.tags = [];
         this.parent.selectedTenants = [];
       }
-    }
-  }
+    };
+  },
 };
 
 export default ApiCreationStep2Component;

@@ -21,31 +21,31 @@ export class TimeframeRanges {
     id: '1m',
     title: 'Last minute',
     range: 1000 * 60,
-    interval: (1000 * 60) / nbValuesByBucket
+    interval: (1000 * 60) / nbValuesByBucket,
   };
   static readonly LAST_HOUR: ITimeframe = {
     id: '1h',
     title: 'Last hour',
     range: 1000 * 60 * 60,
-    interval: (1000 * 60 * 60) / nbValuesByBucket
+    interval: (1000 * 60 * 60) / nbValuesByBucket,
   };
   static readonly LAST_DAY: ITimeframe = {
     id: '1d',
     title: 'Last day',
     range: 1000 * 60 * 60 * 24,
-    interval: (1000 * 60 * 60 * 24) / nbValuesByBucket
+    interval: (1000 * 60 * 60 * 24) / nbValuesByBucket,
   };
   static readonly LAST_WEEK: ITimeframe = {
     id: '1w',
     title: 'Last week',
     range: 1000 * 60 * 60 * 24 * 7,
-    interval: (1000 * 60 * 60 * 24 * 7) / nbValuesByBucket
+    interval: (1000 * 60 * 60 * 24 * 7) / nbValuesByBucket,
   };
   static readonly LAST_MONTH: ITimeframe = {
     id: '1M',
     title: 'Last month',
     range: 1000 * 60 * 60 * 24 * 30,
-    interval: (1000 * 60 * 60 * 24 * 30) / nbValuesByBucket
+    interval: (1000 * 60 * 60 * 24 * 30) / nbValuesByBucket,
   };
 }
 
@@ -61,8 +61,7 @@ const QuickTimeRangeComponent: ng.IComponentOptions = {
   controller: 'QuickTimeRangeController',
   bindings: {
     onTimeframeChange: '&',
-  }
+  },
 };
-
 
 export default QuickTimeRangeComponent;

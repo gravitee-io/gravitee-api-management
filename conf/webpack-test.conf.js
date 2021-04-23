@@ -20,53 +20,41 @@ module.exports = {
     rules: [
       {
         test: /.json$/,
-        loaders: [
-          'json-loader'
-        ]
+        loaders: ['json-loader'],
       },
       {
         test: /.ts$/,
         exclude: /node_modules/,
         loader: 'tslint-loader',
-        enforce: 'pre'
+        enforce: 'pre',
       },
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        loaders: [
-          'ng-annotate-loader',
-          'ts-loader'
-        ]
+        loaders: ['ng-annotate-loader', 'ts-loader'],
       },
       {
         test: /.html$/,
-        loaders: [
-          'html-loader'
-        ]
-      }
-    ]
+        loaders: ['html-loader'],
+      },
+    ],
   },
   plugins: [
     new webpack.LoaderOptionsPlugin({
       options: {
         resolve: {},
         ts: {
-          configFileName: 'tsconfig.json'
+          configFileName: 'tsconfig.json',
         },
         tslint: {
-          configuration: require('../tslint.json')
-        }
+          configuration: require('../tslint.json'),
+        },
       },
-      debug: true
-    })
+      debug: true,
+    }),
   ],
   devtool: 'source-map',
   resolve: {
-    extensions: [
-      '.webpack.js',
-      '.web.js',
-      '.js',
-      '.ts'
-    ]
-  }
+    extensions: ['.webpack.js', '.web.js', '.js', '.ts'],
+  },
 };

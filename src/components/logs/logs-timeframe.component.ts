@@ -18,8 +18,8 @@ const LogsTimeframeComponent: ng.IComponentOptions = {
   template: require('./logs-timeframe.html'),
   controller: 'LogsTimeframeController',
   bindings: {
-    onTimeframeChange: '&'
-  }
+    onTimeframeChange: '&',
+  },
 };
 
 export default LogsTimeframeComponent;

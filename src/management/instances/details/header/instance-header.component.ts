@@ -15,9 +15,9 @@
  */
 const InstanceHeaderComponent: ng.IComponentOptions = {
   bindings: {
-    instance: '<'
+    instance: '<',
   },
-  template: require('./instance-header.html')
+  template: require('./instance-header.html'),
 };
 
 export default InstanceHeaderComponent;

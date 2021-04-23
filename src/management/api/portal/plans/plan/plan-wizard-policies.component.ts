@@ -18,7 +18,7 @@ import ApiEditPlanController from './edit-plan.controller';
 
 const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
   require: {
-    parent: '^editPlan'
+    parent: '^editPlan',
   },
   template: require('./plan-wizard-policies.html'),
   controller: class {
@@ -29,23 +29,20 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
     private policyDefinition: any;
     private policySchema: any;
 
-    constructor(
-      private $mdDialog: angular.material.IDialogService,
-      private PolicyService: PolicyService) {
+    constructor(private $mdDialog: angular.material.IDialogService, private PolicyService: PolicyService) {
       'ngInject';
-
     }
 
     addPolicy() {
       this.editablePolicy = null;
-      let policySchema = this.parent.policies.find( policy => policy.id === this.selectedPolicy);
+      let policySchema = this.parent.policies.find((policy) => policy.id === this.selectedPolicy);
 
       // Configure the policy with default values
       let policy = {
         id: policySchema.id,
         name: policySchema.name,
         enabled: true,
-        description: policySchema.description
+        description: policySchema.description,
       };
 
       let idx = this.parent.planPolicies.push(policy);
@@ -62,7 +59,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
         classes.push('gravitee-policy-card-selected');
       }
 
-      if (!selected && ! policy.enabled) {
+      if (!selected && !policy.enabled) {
         classes.push('gravitee-policy-card-disabled');
       }
 
@@ -85,17 +82,17 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
         let model = this.editablePolicy && this.editablePolicy[this.editablePolicy.id];
 
-        this.policyDefinition = (model) ? model : {};
+        this.policyDefinition = model ? model : {};
         this.editablePolicy[this.editablePolicy.id] = this.policyDefinition;
 
-        this.PolicyService.getSchema(this.editablePolicy.id).then(schema => {
+        this.PolicyService.getSchema(this.editablePolicy.id).then((schema) => {
           this.policySchema = schema.data;
 
           if (!this.policySchema || Object.keys(this.policySchema).length === 0) {
             this.policySchema = {
-              'type': 'object',
-              'id': 'empty',
-              'properties': {'': {}}
+              type: 'object',
+              id: 'empty',
+              properties: { '': {} },
             };
           }
         });
@@ -108,35 +105,39 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
       const policy = this.parent.planPolicies[index];
 
-      this.$mdDialog.show({
-        controller: 'DialogEditPolicyController',
-        controllerAs: 'editPolicyDialogCtrl',
-        template: require('../../../design/policies/dialog/policy.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          description: policy.description
-        }
-      }).then(description => policy.description = description);
+      this.$mdDialog
+        .show({
+          controller: 'DialogEditPolicyController',
+          controllerAs: 'editPolicyDialogCtrl',
+          template: require('../../../design/policies/dialog/policy.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            description: policy.description,
+          },
+        })
+        .then((description) => (policy.description = description));
     }
 
     removePolicy(index, path, ev) {
       ev.stopPropagation();
       let that = this;
-      this.$mdDialog.show({
-        controller: 'DialogConfirmController',
-        controllerAs: 'ctrl',
-        template: require('../../../../../components/dialog/confirmWarning.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          title: 'Are you sure you want to remove this policy?',
-          confirmButton: 'Remove'
-        }
-      }).then(function (response) {
-        if (response) {
-          that.editablePolicy = null;
-          that.parent.planPolicies.splice(index, 1);
-        }
-      });
+      this.$mdDialog
+        .show({
+          controller: 'DialogConfirmController',
+          controllerAs: 'ctrl',
+          template: require('../../../../../components/dialog/confirmWarning.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            title: 'Are you sure you want to remove this policy?',
+            confirmButton: 'Remove',
+          },
+        })
+        .then(function (response) {
+          if (response) {
+            that.editablePolicy = null;
+            that.parent.planPolicies.splice(index, 1);
+          }
+        });
     }
 
     switchPolicyEnabled(index, path, ev) {
@@ -150,7 +151,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
     gotoNextStep() {
       // Clean policy definition from plan policies
       let policies = JSON.parse(JSON.stringify(this.parent.planPolicies));
-      policies.forEach(policy => {
+      policies.forEach((policy) => {
         delete policy.$$hashKey;
         delete policy.id;
         delete policy.name;
@@ -159,7 +160,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
       this.parent.plan.paths['/'] = this.parent.restrictionsPolicies.concat(policies);
       this.parent.saveOrUpdate();
     }
-  }
+  },
 };
 
 export default ApiPlanWizardPoliciesComponent;

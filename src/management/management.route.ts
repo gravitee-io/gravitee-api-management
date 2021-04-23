@@ -33,7 +33,7 @@ function managementRouterConfig($stateProvider) {
       parent: 'withSidenav',
       controller: function ($rootScope, Constants) {
         $rootScope.consoleTitle = Constants.org.settings.management.title;
-      }
+      },
     })
     .state('management.dashboard', {
       redirectTo: 'management.dashboard.home',
@@ -47,19 +47,19 @@ function managementRouterConfig($stateProvider) {
       controller: 'HomeDashboardController',
       controllerAs: '$ctrl',
       resolve: {
-        dashboards: (DashboardService: DashboardService) => DashboardService.list('HOME').then(response => response.data)
+        dashboards: (DashboardService: DashboardService) => DashboardService.list('HOME').then((response) => response.data),
       },
       data: {
         docs: {
-          page: 'management-dashboard-home'
+          page: 'management-dashboard-home',
         },
         menu: {
           label: 'Dashboard',
           icon: 'home',
           firstLevel: true,
-          order: 0
-        }
-      }
+          order: 0,
+        },
+      },
     })
     .state('management.dashboard.apis-status', {
       url: '/apis-status',
@@ -67,13 +67,13 @@ function managementRouterConfig($stateProvider) {
       controller: 'ApisStatusDashboardController',
       controllerAs: '$ctrl',
       resolve: {
-        apis: (ApiService: ApiService) => ApiService.list().then(response => response.data),
+        apis: (ApiService: ApiService) => ApiService.list().then((response) => response.data),
       },
       data: {
         docs: {
-          page: 'management-dashboard-apis-status'
-        }
-      }
+          page: 'management-dashboard-apis-status',
+        },
+      },
     })
     .state('management.dashboard.analytics', {
       url: '/platform?from&to&q&dashboard',
@@ -81,60 +81,60 @@ function managementRouterConfig($stateProvider) {
       controller: 'AnalyticsDashboardController',
       controllerAs: '$ctrl',
       resolve: {
-        dashboards: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then(response => response.data)
+        dashboards: (DashboardService: DashboardService) => DashboardService.list('PLATFORM').then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['environment-platform-r']
+          only: ['environment-platform-r'],
         },
         docs: {
-          page: 'management-dashboard-analytics'
-        }
+          page: 'management-dashboard-analytics',
+        },
       },
       params: {
         from: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         to: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         q: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         dashboard: {
           type: 'string',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('management.instances', {
       abstract: true,
       url: '/instances',
-      template: '<div ui-view></div>'
+      template: '<div ui-view></div>',
     })
     .state('management.instances.list', {
       url: '/',
       component: 'instances',
       resolve: {
-        instances: (InstancesService: InstancesService) => InstancesService.search().then(response => response.data)
+        instances: (InstancesService: InstancesService) => InstancesService.search().then((response) => response.data),
       },
       data: {
         menu: {
           label: 'Gateways',
           icon: 'developer_dashboard',
           firstLevel: true,
-          order: 30
+          order: 30,
         },
         perms: {
-          only: ['environment-instance-r']
+          only: ['environment-instance-r'],
         },
         docs: {
-          page: 'management-gateways'
-        }
-      }
+          page: 'management-gateways',
+        },
+      },
     })
     .state('management.instances.detail', {
       abstract: true,
@@ -142,8 +142,8 @@ function managementRouterConfig($stateProvider) {
       component: 'instance',
       resolve: {
         instance: ($stateParams, InstancesService: InstancesService) =>
-          InstancesService.get($stateParams.instanceId).then(response => response.data)
-      }
+          InstancesService.get($stateParams.instanceId).then((response) => response.data),
+      },
     })
     .state('management.instances.detail.environment', {
       url: '/environment',
@@ -151,12 +151,12 @@ function managementRouterConfig($stateProvider) {
       data: {
         menu: {
           label: 'Environment',
-          icon: 'computer'
+          icon: 'computer',
         },
         docs: {
-          page: 'management-gateway-environment'
-        }
-      }
+          page: 'management-gateway-environment',
+        },
+      },
     })
     .state('management.instances.detail.monitoring', {
       url: '/monitoring',
@@ -164,16 +164,16 @@ function managementRouterConfig($stateProvider) {
       data: {
         menu: {
           label: 'Monitoring',
-          icon: 'graphic_eq'
+          icon: 'graphic_eq',
         },
         docs: {
-          page: 'management-gateway-monitoring'
-        }
+          page: 'management-gateway-monitoring',
+        },
       },
       resolve: {
         monitoringData: ($stateParams, InstancesService: InstancesService, instance: any) =>
-          InstancesService.getMonitoringData($stateParams.instanceId, instance.id).then(response => response.data)
-      }
+          InstancesService.getMonitoringData($stateParams.instanceId, instance.id).then((response) => response.data),
+      },
     })
     .state('management.logs', {
       url: '/logs?from&to&q&page&size',
@@ -182,56 +182,56 @@ function managementRouterConfig($stateProvider) {
         menu: null,
         devMode: true,
         perms: {
-          only: ['environment-platform-r']
+          only: ['environment-platform-r'],
         },
         docs: {
-          page: 'management-api-logs'
-        }
+          page: 'management-api-logs',
+        },
       },
       params: {
         from: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         to: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         q: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         page: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         size: {
           type: 'int',
-          dynamic: true
-        }
+          dynamic: true,
+        },
       },
       resolve: {
         apis: ($stateParams: StateParams, ApiService: ApiService) => ApiService.list(),
-        applications: ($stateParams: StateParams, ApplicationService: ApplicationService) => ApplicationService.list()
-      }
+        applications: ($stateParams: StateParams, ApplicationService: ApplicationService) => ApplicationService.list(),
+      },
     })
     .state('management.log', {
       url: '/logs/:logId?timestamp&from&to&q&page&size',
       component: 'platformLog',
       resolve: {
         log: ($stateParams, AnalyticsService: AnalyticsService) =>
-          AnalyticsService.getLog($stateParams.logId, $stateParams.timestamp).then(response => response.data)
+          AnalyticsService.getLog($stateParams.logId, $stateParams.timestamp).then((response) => response.data),
       },
       data: {
         devMode: true,
         menu: null,
         perms: {
-          only: ['environment-platform-r']
+          only: ['environment-platform-r'],
         },
         docs: {
-          page: 'management-api-log'
-        }
-      }
+          page: 'management-api-log',
+        },
+      },
     })
     .state('management.audit', {
       url: '/audit',
@@ -243,19 +243,18 @@ function managementRouterConfig($stateProvider) {
           label: 'Audit',
           icon: 'visibility',
           firstLevel: true,
-          order: 50
+          order: 50,
         },
         perms: {
-          only: ['environment-audit-r']
+          only: ['environment-audit-r'],
         },
         docs: {
-          page: 'management-audit'
-        }
+          page: 'management-audit',
+        },
       },
       resolve: {
-        resolvedEvents:
-          (AuditService: AuditService) => AuditService.listEvents().then(response => response.data)
-      }
+        resolvedEvents: (AuditService: AuditService) => AuditService.listEvents().then((response) => response.data),
+      },
     })
     .state('management.messages', {
       url: '/messages',
@@ -265,33 +264,33 @@ function managementRouterConfig($stateProvider) {
           label: 'Messages',
           icon: 'message',
           firstLevel: true,
-          order: 50
+          order: 50,
         },
         perms: {
-          only: ['environment-message-c']
+          only: ['environment-message-c'],
         },
         docs: {
-          page: 'management-messages'
-        }
+          page: 'management-messages',
+        },
       },
       resolve: {
         resolvedScope: () => 'ENVIRONMENT',
-        resolvedRoles: (RoleService: RoleService) => RoleService.list('ENVIRONMENT')
-      }
+        resolvedRoles: (RoleService: RoleService) => RoleService.list('ENVIRONMENT'),
+      },
     })
     .state('management.tasks', {
       url: '/tasks',
       component: 'tasks',
       data: {
         docs: {
-          page: 'management-tasks'
-        }
+          page: 'management-tasks',
+        },
       },
       resolve: {
-        tasks: ( graviteeUser: User) => {
+        tasks: (graviteeUser: User) => {
           return graviteeUser.tasks;
-        }
-      }
+        },
+      },
     })
     .state('management.support', {
       template: '<div ui-view></div>',
@@ -300,7 +299,7 @@ function managementRouterConfig($stateProvider) {
       url: '/support',
       template: require('./support/ticket.html'),
       controller: 'SupportTicketController',
-      controllerAs: 'supportTicketCtrl'
+      controllerAs: 'supportTicketCtrl',
     })
     .state('management.support.tickets', {
       url: '/support/tickets?page&size&order',
@@ -310,16 +309,16 @@ function managementRouterConfig($stateProvider) {
       params: {
         page: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         size: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         order: {
           type: 'string',
-          dynamic: true
-        }
+          dynamic: true,
+        },
       },
     })
     .state('management.support.ticket', {
@@ -327,10 +326,9 @@ function managementRouterConfig($stateProvider) {
       component: 'ticketDetail',
       resolve: {
         ticket: ($stateParams: StateParams, TicketService: TicketService) =>
-          TicketService.getTicket($stateParams.ticketId).then(response => response.data)
-      }
-    })
-  ;
+          TicketService.getTicket($stateParams.ticketId).then((response) => response.data),
+      },
+    });
 }
 
 export default managementRouterConfig;

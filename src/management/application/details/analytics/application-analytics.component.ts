@@ -16,10 +16,10 @@
 const ApplicationAnalyticsComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
-    dashboards: '<'
+    dashboards: '<',
   },
   controller: 'ApplicationAnalyticsController',
-  template: require('./application-analytics.html')
+  template: require('./application-analytics.html'),
 };
 
 export default ApplicationAnalyticsComponent;

@@ -18,10 +18,10 @@ const DashboardTimeframeComponent: ng.IComponentOptions = {
   template: require('./dashboard-timeframe.html'),
   controller: 'DashboardTimeframeController',
   bindings: {
-    onTimeframeChange: '&'
+    onTimeframeChange: '&',
   },
   require: {
-    parent: '^gvDashboard'
+    parent: '^gvDashboard',
   },
 };
 

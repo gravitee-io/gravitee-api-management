@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-const FileContentDirective: ng.IDirective = ({
+const FileContentDirective: ng.IDirective = {
   scope: {
     filecontent: '=',
-    filename: '='
+    filename: '=',
   },
   link: function (scope: any, element: ng.IRootElementService) {
     element.bind('change', function (changeEvent: any) {
@@ -31,6 +31,6 @@ const FileContentDirective: ng.IDirective = ({
       };
       reader.readAsText(file);
     });
-  }
-});
+  },
+};
 export default FileContentDirective;

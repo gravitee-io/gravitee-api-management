@@ -18,7 +18,7 @@ import _ = require('lodash');
 
 const ApplicationCreationStep3Component: ng.IComponentOptions = {
   require: {
-    parent: '^createApplication'
+    parent: '^createApplication',
   },
   template: require('./application-creation-step3.html'),
   controller: function (ApiService: ApiService, $scope) {
@@ -32,7 +32,7 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
             return _.includes(authorizedSecurity, plan.security);
           });
           this.plans = _.map(filteredPlans, (plan) => {
-            let selectedPlan = _.find(this.parent.selectedPlans, {id: plan.id});
+            let selectedPlan = _.find(this.parent.selectedPlans, { id: plan.id });
             if (selectedPlan) {
               return selectedPlan;
             }
@@ -49,8 +49,10 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
     this.getAuthorizedSecurity = (): string[] => {
       let authorizedSecurity = ['api_key'];
       if (this.parent.application.settings) {
-        if (this.parent.application.settings.oauth ||
-          (this.parent.application.settings.app && this.parent.application.settings.app.client_id)) {
+        if (
+          this.parent.application.settings.oauth ||
+          (this.parent.application.settings.app && this.parent.application.settings.app.client_id)
+        ) {
           authorizedSecurity.push('jwt', 'oauth2');
         }
       }
@@ -68,14 +70,18 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
       return selectedAPIs;
     };
 
-    $scope.$watch('$ctrl.parent.application.settings', () => {
-      this.parent.selectedAPIs = [];
-      this.parent.selectedPlans = [];
-      delete this.plans;
-      delete this.selectedAPI;
-      delete this.filterAPI;
-    }, true);
-  }
+    $scope.$watch(
+      '$ctrl.parent.application.settings',
+      () => {
+        this.parent.selectedAPIs = [];
+        this.parent.selectedPlans = [];
+        delete this.plans;
+        delete this.selectedAPI;
+        delete this.filterAPI;
+      },
+      true,
+    );
+  },
 };
 
 export default ApplicationCreationStep3Component;

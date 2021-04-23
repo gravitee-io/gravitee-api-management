@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class TenantService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }

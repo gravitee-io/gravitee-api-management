@@ -15,9 +15,9 @@
  */
 const IdentityProviderGoogleComponent: ng.IComponentOptions = {
   bindings: {
-    identityProvider: '<'
+    identityProvider: '<',
   },
-  template: require('./identity-provider-google.html')
+  template: require('./identity-provider-google.html'),
 };
 
 export default IdentityProviderGoogleComponent;
