@@ -101,6 +101,7 @@ public class UsersResource extends AbstractResource {
         } catch (PasswordAlreadyResetException e) {
             throw e;
         } catch (AbstractManagementException e) {
+            // do not fail to prevent from brute force attack
             LOGGER.warn("Problem while resetting a password : {}", e.getMessage());
         }
         return Response.noContent().build();
