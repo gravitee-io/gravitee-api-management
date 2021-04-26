@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE
@@ -30,6 +31,7 @@ public class EventEntity {
     private String parentId;
     private Map<String, String> properties;
     private UserEntity user;
+    private Set<String> environments;
 
     @JsonProperty("created_at")
     private Date createdAt;
@@ -101,12 +103,21 @@ public class EventEntity {
         this.updatedAt = updatedAt;
     }
 
+    public void setEnvironments(Set<String> environments) {
+        this.environments = environments;
+    }
+
+    public Set<String> getEnvironments() {
+        return environments;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Event{");
         sb.append("id='").append(id).append('\'');
         sb.append(", type='").append(type.toString()).append('\'');
         sb.append(", payload='").append(payload).append('\'');
+        sb.append(", environments='").append(environments).append('\'');
         sb.append(", parentId='").append(parentId).append('\'');
         sb.append(", createdAt='").append(createdAt).append('\'');
         sb.append(", updatedAt='").append(updatedAt).append('\'');

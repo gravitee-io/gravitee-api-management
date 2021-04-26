@@ -86,8 +86,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
             Event event = convert(newEventEntity);
             event.setId(RandomString.generate());
-            event.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
-
+            event.setEnvironments(Collections.singleton(GraviteeContext.getCurrentEnvironment()));
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
             // Set date fields
@@ -132,7 +131,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     private Set<EventEntity> findByProperty(String property, String value) {
         return convert(
             eventRepository.search(
-                new EventCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).property(property, value).build()
+                new EventCriteria.Builder()
+                    .environments(Collections.singletonList(GraviteeContext.getCurrentEnvironment()))
+                    .property(property, value)
+                    .build()
             )
         );
     }
@@ -154,7 +156,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             properties.forEach(builder::property);
         }
 
-        builder.environmentId(GraviteeContext.getCurrentEnvironment());
+        builder.environments(Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
 
         Page<Event> pageEvent = eventRepository.search(builder.build(), new PageableBuilder().pageNumber(page).pageSize(size).build());
 
@@ -203,7 +205,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     private EventCriteria.Builder queryToCriteria(EventQuery query) {
-        final EventCriteria.Builder builder = new EventCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment());
+        final EventCriteria.Builder builder = new EventCriteria.Builder()
+        .environments(Collections.singletonList(GraviteeContext.getCurrentEnvironment()));
         if (query == null) {
             return builder;
         }
@@ -243,6 +246,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         eventEntity.setProperties(event.getProperties());
         eventEntity.setCreatedAt(event.getCreatedAt());
         eventEntity.setUpdatedAt(event.getUpdatedAt());
+        eventEntity.setEnvironments(event.getEnvironments());
 
         if (event.getProperties() != null) {
             final String userId = event.getProperties().get(Event.EventProperties.USER.getValue());

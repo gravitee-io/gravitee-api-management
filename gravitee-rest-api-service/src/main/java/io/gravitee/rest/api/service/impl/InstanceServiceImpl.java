@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
@@ -29,6 +30,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +51,15 @@ public class InstanceServiceImpl implements InstanceService {
     private EventService eventService;
 
     @Autowired
+    private EnvironmentService environmentService;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Value("${gateway.unknown-expire-after:604800}") // default value : 7 days
     private long unknownExpireAfterInSec;
+
+    public static final String ENVIRONMENT_HRIDS_PROPERTY = "environment_hrids";
 
     private static final List<EventType> instancesAllState = new ArrayList<>();
 
@@ -131,13 +139,21 @@ public class InstanceServiceImpl implements InstanceService {
             LOGGER.debug("Find instance by event ID: {}", eventId);
 
             EventEntity event = eventService.findById(eventId);
-            return convert(event);
+            List<String> environments = Stream
+                .of(event.getProperties().get(ENVIRONMENT_HRIDS_PROPERTY).split(", "))
+                .collect(Collectors.toList());
+
+            return convert(event, environments);
         } catch (EventNotFoundException enfe) {
             throw new InstanceNotFoundException(eventId);
         }
     }
 
     private InstanceEntity convert(EventEntity event) {
+        return convert(event, null);
+    }
+
+    private InstanceEntity convert(EventEntity event, List<String> environments) {
         Instant nowMinusXMinutes = Instant.now().minus(5, ChronoUnit.MINUTES);
 
         Map<String, String> props = event.getProperties();
@@ -145,6 +161,7 @@ public class InstanceServiceImpl implements InstanceService {
         instance.setEvent(event.getId());
         instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
         instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
+        instance.setEnvironments(environments);
 
         if (event.getPayload() != null) {
             try {

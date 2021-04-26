@@ -51,7 +51,7 @@ public class DictionaryRepositoryProxy extends AbstractProxy<DictionaryRepositor
     }
 
     @Override
-    public Set<Dictionary> findAllByEnvironment(String environment) throws TechnicalException {
-        return target.findAllByEnvironment(environment);
+    public Set<Dictionary> findAllByEnvironments(Set<String> environment) throws TechnicalException {
+        return target.findAllByEnvironments(environment);
     }
 }

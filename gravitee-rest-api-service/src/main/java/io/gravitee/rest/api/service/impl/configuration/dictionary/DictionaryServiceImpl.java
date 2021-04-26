@@ -66,7 +66,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     public Set<DictionaryEntity> findAll() {
         try {
             return dictionaryRepository
-                .findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
+                .findAllByEnvironments(Collections.singleton(GraviteeContext.getCurrentEnvironment()))
                 .stream()
                 .map(this::convert)
                 .collect(Collectors.toSet());

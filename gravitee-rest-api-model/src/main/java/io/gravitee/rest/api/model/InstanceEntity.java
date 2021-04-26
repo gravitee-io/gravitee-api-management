@@ -49,6 +49,8 @@ public class InstanceEntity {
 
     private List<String> tags;
 
+    private List<String> environments;
+
     private InstanceState state = InstanceState.UNKNOWN;
 
     private Map<String, String> systemProperties;
@@ -115,6 +117,14 @@ public class InstanceEntity {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public List<String> getEnvironments() {
+        return environments;
+    }
+
+    public void setEnvironments(List<String> environments) {
+        this.environments = environments;
     }
 
     public String getVersion() {

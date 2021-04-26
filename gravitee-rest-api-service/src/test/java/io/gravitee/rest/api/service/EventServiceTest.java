@@ -146,7 +146,7 @@ public class EventServiceTest {
                     .from(1420070400000L)
                     .to(1422748800000L)
                     .types(EventType.START_API)
-                    .environmentId("DEFAULT")
+                    .environments(Collections.singletonList("DEFAULT"))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
@@ -188,7 +188,7 @@ public class EventServiceTest {
                     .from(1420070400000L)
                     .to(1422748800000L)
                     .types(EventType.START_API)
-                    .environmentId("DEFAULT")
+                    .environments(Collections.singletonList("DEFAULT"))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
@@ -229,7 +229,7 @@ public class EventServiceTest {
                     .from(1420070400000L)
                     .to(1422748800000L)
                     .types(EventType.START_API, EventType.STOP_API)
-                    .environmentId("DEFAULT")
+                    .environments(Collections.singletonList("DEFAULT"))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
@@ -273,7 +273,7 @@ public class EventServiceTest {
                     .from(1420070400000L)
                     .to(1422748800000L)
                     .property(Event.EventProperties.API_ID.getValue(), "id-api")
-                    .environmentId("DEFAULT")
+                    .environments(Collections.singletonList("DEFAULT"))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
@@ -311,7 +311,7 @@ public class EventServiceTest {
                     .to(1422748800000L)
                     .property(Event.EventProperties.API_ID.getValue(), "id-api")
                     .types(EventType.START_API, EventType.STOP_API)
-                    .environmentId("DEFAULT")
+                    .environments(Collections.singletonList("DEFAULT"))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
