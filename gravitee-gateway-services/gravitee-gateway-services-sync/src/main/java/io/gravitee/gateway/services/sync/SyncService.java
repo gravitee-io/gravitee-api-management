@@ -17,12 +17,17 @@ package io.gravitee.gateway.services.sync;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.apikeys.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.handler.SyncHandler;
 import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
 import io.gravitee.gateway.services.sync.subscriptions.SubscriptionsCacheService;
 import io.gravitee.node.api.healthcheck.ProbeManager;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.model.Environment;
+import io.vertx.core.net.impl.HandlerHolder;
 import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +37,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -82,6 +93,14 @@ public class SyncService extends AbstractService implements Runnable {
     @Autowired
     private ApiSyncProbe apiSyncProbe;
 
+    @Autowired
+    private EnvironmentRepository environmentRepository;
+
+    @Autowired
+    private GatewayConfiguration configuration;
+
+    private Set<Environment> environments;
+
     private ScheduledFuture<?> schedule;
 
     @Override
@@ -91,6 +110,8 @@ public class SyncService extends AbstractService implements Runnable {
                 super.doStart();
 
                 logger.info("Sync service has been initialized with cron [{}]", cronTrigger);
+
+                this.environments = getTargetedEnvironments();
 
                 probeManager.register(this.apiSyncProbe);
 
@@ -131,7 +152,8 @@ public class SyncService extends AbstractService implements Runnable {
 
     @Override
     public void run() {
-        syncStateManager.refresh();
+        List<String> environmentsIds = environments.stream().map(Environment::getId).collect(Collectors.toList());
+        syncStateManager.refresh(environmentsIds);
     }
 
     public boolean isAllApisSync() {
@@ -141,5 +163,24 @@ public class SyncService extends AbstractService implements Runnable {
     @Override
     protected String name() {
         return "Gateway Sync Service";
+    }
+
+    private Set<Environment> getTargetedEnvironments() throws TechnicalException {
+        final Optional<List<String>> optEnvironmentsList = configuration.environments();
+
+        if (optEnvironmentsList.isPresent()) {
+            List<String> environmentsHrids = optEnvironmentsList.get();
+            Set<Environment> environments = environmentRepository.findByHrids(new HashSet<>(environmentsHrids));
+
+            if (environmentsHrids.size() != environments.size()) {
+                final Set<String> hrids = new HashSet<>(environmentsHrids);
+                final Set<String> returnedHrids = environments.stream().flatMap(env -> env.getHrids().stream()).collect(Collectors.toSet());
+                hrids.removeAll(returnedHrids);
+                logger.warn("No environment found for hrids {}", hrids);
+            }
+
+            return environments;
+        }
+        return new HashSet<>();
     }
 }
