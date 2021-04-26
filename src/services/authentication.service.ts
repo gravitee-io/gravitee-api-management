@@ -23,7 +23,6 @@ import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 
 class AuthenticationService {
-
   constructor(
     private $rootScope: IScope,
     private Constants,
@@ -32,7 +31,8 @@ class AuthenticationService {
     private $auth: AuthProvider,
     private UserService: UserService,
     private RouterService: RouterService,
-    private SatellizerConfig: SatellizerConfig) {
+    private SatellizerConfig: SatellizerConfig,
+  ) {
     'ngInject';
   }
 
@@ -43,7 +43,7 @@ class AuthenticationService {
         oauthType: '2.0',
         requiredUrlParams: ['scope', 'state'],
         scopeDelimiter: ' ',
-        scope: provider.scopes
+        scope: provider.scopes,
       });
     } else {
       provider.scope = provider.scopes;
@@ -56,13 +56,14 @@ class AuthenticationService {
       redirectUri: window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname),
     });
 
-    this.$auth.authenticate(provider.id)
+    this.$auth
+      .authenticate(provider.id)
       .then((response) => {
         this.UserService.current().then((user) => {
           if (provider.userLogoutEndpoint) {
             this.$window.localStorage.setItem('user-logout-url', provider.userLogoutEndpoint);
           }
-          this.$rootScope.$broadcast('graviteeUserRefresh', { 'user': user });
+          this.$rootScope.$broadcast('graviteeUserRefresh', { user: user });
 
           let state = response.data.state;
 
@@ -82,8 +83,7 @@ class AuthenticationService {
           }
         });
       })
-      .catch(() => {
-      });
+      .catch(() => {});
   }
 
   nonce(length: number) {

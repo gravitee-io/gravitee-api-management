@@ -32,8 +32,12 @@
       </md-input-container>
     </md-card-title-text>
     <md-card-title-media>
-      <a aria-label="Modify widget" ng-if="$ctrl.updateMode"
-         ng-click="$ctrl.isModificationMode=!$ctrl.isModificationMode" ng-switch="$ctrl.isModificationMode">
+      <a
+        aria-label="Modify widget"
+        ng-if="$ctrl.updateMode"
+        ng-click="$ctrl.isModificationMode=!$ctrl.isModificationMode"
+        ng-switch="$ctrl.isModificationMode"
+      >
         <ng-md-icon ng-switch-when="true" icon="border_color"></ng-md-icon>
         <ng-md-icon ng-switch-default icon="edit"></ng-md-icon>
       </a>
@@ -65,7 +69,7 @@
       <md-progress-circular md-mode="indeterminate" class="md-accent md-hue-1" md-diameter="50"></md-progress-circular>
     </div>
 
-    <div style="height: 100%;" ng-if="!$ctrl.fetchData && $ctrl.results" ng-switch on="$ctrl.widget.chart.type">
+    <div style="height: 100%" ng-if="!$ctrl.fetchData && $ctrl.results" ng-switch on="$ctrl.widget.chart.type">
       <gv-widget-data-table class="test" ng-switch-when="table" data="$ctrl.results"></gv-widget-data-table>
       <gv-widget-chart-line ng-switch-when="line" data="$ctrl.results"></gv-widget-chart-line>
       <gv-widget-chart-pie ng-switch-when="pie" data="$ctrl.results"></gv-widget-chart-pie>

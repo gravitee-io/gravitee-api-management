@@ -17,10 +17,10 @@ const ApiCreationComponent: ng.IComponentOptions = {
   bindings: {
     tags: '<',
     tenants: '<',
-    groups: '<'
+    groups: '<',
   },
   template: require('./api-creation.html'),
-  controller: 'ApiCreationController'
+  controller: 'ApiCreationController',
 };
 
 export default ApiCreationComponent;

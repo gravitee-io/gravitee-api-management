@@ -27,7 +27,6 @@ interface IClientRegistrationProviderScope extends ng.IScope {
 }
 
 class ClientRegistrationProviderController {
-
   private clientRegistrationProvider: ClientRegistrationProvider;
   private initialClientRegistrationProvider: ClientRegistrationProvider;
   private updateMode: boolean;
@@ -41,7 +40,7 @@ class ClientRegistrationProviderController {
     private Constants,
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
-    private ClientRegistrationProviderService: ClientRegistrationProviderService
+    private ClientRegistrationProviderService: ClientRegistrationProviderService,
   ) {
     'ngInject';
   }
@@ -52,15 +51,15 @@ class ClientRegistrationProviderController {
     this.initialAccessTokenTypes = [];
     this.initialAccessTokenTypes.push({
       name: 'Client Credentials',
-      value: 'client_credentials'
+      value: 'client_credentials',
     });
     this.initialAccessTokenTypes.push({
       name: 'Initial Access Token',
-      value: 'initial_access_token'
+      value: 'initial_access_token',
     });
 
     this.updateMode = this.clientRegistrationProvider !== undefined && this.clientRegistrationProvider.id !== undefined;
-    if (! this.updateMode) {
+    if (!this.updateMode) {
       // Initialize the client registration provider
       this.clientRegistrationProvider = new ClientRegistrationProvider();
       this.clientRegistrationProvider.scopes = [];
@@ -78,7 +77,11 @@ class ClientRegistrationProviderController {
     if (!this.updateMode) {
       this.ClientRegistrationProviderService.create(this.clientRegistrationProvider).then((response: any) => {
         this.NotificationService.show('Client registration provider ' + this.clientRegistrationProvider.name + ' has been created');
-        this.$state.go('management.settings.clientregistrationproviders.clientregistrationprovider', {id: response.data.id}, {reload: true});
+        this.$state.go(
+          'management.settings.clientregistrationproviders.clientregistrationprovider',
+          { id: response.data.id },
+          { reload: true },
+        );
       });
     } else {
       this.ClientRegistrationProviderService.update(this.clientRegistrationProvider).then((response) => {

@@ -23,13 +23,20 @@ export const SubmenuComponent: ng.IComponentOptions = {
   template: require('./submenu.html'),
   bindings: {
     allMenuItems: '<',
-    reducedMode: '<'
+    reducedMode: '<',
   },
   require: {
-    parent: '^gvSidenav'
+    parent: '^gvSidenav',
   },
-  controller: function (SidenavService: SidenavService, $filter: ng.IFilterService, $transitions, $state,
-                        ApiService: ApiService, ApplicationService: ApplicationService, UserService: UserService) {
+  controller: function (
+    SidenavService: SidenavService,
+    $filter: ng.IFilterService,
+    $transitions,
+    $state,
+    ApiService: ApiService,
+    ApplicationService: ApplicationService,
+    UserService: UserService,
+  ) {
     'ngInject';
 
     this.sidenavService = SidenavService;
@@ -46,7 +53,7 @@ export const SubmenuComponent: ng.IComponentOptions = {
     this.reload = function () {
       if ($state.params.apiId && !UserService.currentUser.userApiPermissions) {
         UserService.currentUser.userApiPermissions = [];
-        ApiService.getPermissions($state.params.apiId).then(permissions => {
+        ApiService.getPermissions($state.params.apiId).then((permissions) => {
           _.forEach(_.keys(permissions.data), function (permission) {
             _.forEach(permissions.data[permission], function (right) {
               let permissionName = 'API-' + permission + '-' + right;
@@ -57,7 +64,7 @@ export const SubmenuComponent: ng.IComponentOptions = {
         });
       } else if ($state.params.applicationId && !UserService.currentUser.userApplicationPermissions) {
         UserService.currentUser.userApplicationPermissions = [];
-        ApplicationService.getPermissions($state.params.applicationId).then(permissions => {
+        ApplicationService.getPermissions($state.params.applicationId).then((permissions) => {
           _.forEach(_.keys(permissions.data), function (permission) {
             _.forEach(permissions.data[permission], function (right) {
               let permissionName = 'APPLICATION-' + permission + '-' + right;
@@ -79,10 +86,12 @@ export const SubmenuComponent: ng.IComponentOptions = {
     this.isActive = function (menuItem) {
       let menuItemSplitted = menuItem.name.split('.');
       let currentStateSplitted = $state.current.name.split('.');
-      return menuItemSplitted[0] === currentStateSplitted[0] &&
+      return (
+        menuItemSplitted[0] === currentStateSplitted[0] &&
         menuItemSplitted[1] === currentStateSplitted[1] &&
         menuItemSplitted[2] === currentStateSplitted[2] &&
-        menuItemSplitted[3] === currentStateSplitted[3];
+        menuItemSplitted[3] === currentStateSplitted[3]
+      );
     };
-  }
+  },
 };

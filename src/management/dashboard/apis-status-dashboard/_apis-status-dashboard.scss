@@ -71,23 +71,24 @@
     }
   }
 
-  .apiError, .apiWarn {
+  .apiError,
+  .apiWarn {
     md-card-header-text {
       width: 50%;
     }
   }
 
   .apiError {
-    border: 2px solid #D9534F;
+    border: 2px solid #d9534f;
     ng-md-icon {
-      fill: #D9534F;
+      fill: #d9534f;
     }
   }
 
   .apiWarn {
-    border: 2px solid #F0AD4E;
+    border: 2px solid #f0ad4e;
     ng-md-icon {
-      fill: #F0AD4E;
+      fill: #f0ad4e;
     }
   }
 }

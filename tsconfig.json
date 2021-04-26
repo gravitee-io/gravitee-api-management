@@ -4,22 +4,13 @@
     "outDir": "dist-tsc",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "lib": [
-      "dom",
-      "es2018"
-    ],
+    "lib": ["dom", "es2018"],
     "target": "ES5",
     "noImplicitAny": false,
     "removeComments": false,
     "skipLibCheck": true,
     "sourceMap": true,
-    "types": [
-      "jest",
-      "angular-mocks"
-    ]
+    "types": ["jest", "angular-mocks"]
   },
-  "include": [
-    "src/**/*.ts",
-    "node_modules/@gravitee/ui-components"
-  ]
+  "include": ["src/**/*.ts", "node_modules/@gravitee/ui-components"]
 }

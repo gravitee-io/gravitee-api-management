@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple} from '../alert';
+import { CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
 import TenantService from '../../services/tenant.service';
 
 const statusloader = (type: number, id: string, $injector: any) => {
@@ -27,31 +27,51 @@ const statusloader = (type: number, id: string, $injector: any) => {
 };
 
 export class HealthcheckMetrics extends Metrics {
-  static OLD_STATUS_NAME: HealthcheckMetrics = new HealthcheckMetrics('status.old', 'Old Status',
-    [StringCondition.TYPE], true, undefined, statusloader);
+  static OLD_STATUS_NAME: HealthcheckMetrics = new HealthcheckMetrics(
+    'status.old',
+    'Old Status',
+    [StringCondition.TYPE],
+    true,
+    undefined,
+    statusloader,
+  );
 
-  static NEW_STATUS_NAME: HealthcheckMetrics = new HealthcheckMetrics('status.new', 'New Status',
-    [StringCondition.TYPE], true, undefined, statusloader);
+  static NEW_STATUS_NAME: HealthcheckMetrics = new HealthcheckMetrics(
+    'status.new',
+    'New Status',
+    [StringCondition.TYPE],
+    true,
+    undefined,
+    statusloader,
+  );
 
-  static ENDPOINT_NAME: HealthcheckMetrics = new HealthcheckMetrics('endpoint.name', 'Endpoint name',
-    [StringCondition.TYPE]);
+  static ENDPOINT_NAME: HealthcheckMetrics = new HealthcheckMetrics('endpoint.name', 'Endpoint name', [StringCondition.TYPE]);
 
-  static RESPONSE_TIME: HealthcheckMetrics = new HealthcheckMetrics('response_time', 'Response Time (ms)',
-    [ThresholdCondition.TYPE, ThresholdRangeCondition.TYPE, CompareCondition.TYPE]);
+  static RESPONSE_TIME: HealthcheckMetrics = new HealthcheckMetrics('response_time', 'Response Time (ms)', [
+    ThresholdCondition.TYPE,
+    ThresholdRangeCondition.TYPE,
+    CompareCondition.TYPE,
+  ]);
 
-  static TENANT: HealthcheckMetrics = new HealthcheckMetrics('tenant', 'Tenant', [StringCondition.TYPE], false, undefined, (type: number, id: string, $injector: any) => {
-    let tenants: Tuple[] = [];
+  static TENANT: HealthcheckMetrics = new HealthcheckMetrics(
+    'tenant',
+    'Tenant',
+    [StringCondition.TYPE],
+    false,
+    undefined,
+    (type: number, id: string, $injector: any) => {
+      let tenants: Tuple[] = [];
 
-    // PLATFORM: Search for all registered tenants
-    ($injector.get('TenantService') as TenantService).list()
-      .then(result => {
+      // PLATFORM: Search for all registered tenants
+      ($injector.get('TenantService') as TenantService).list().then((result) => {
         result.data.forEach((tenant) => {
           tenants.push(new Tuple(tenant.id, tenant.name));
         });
       });
 
-    return tenants;
-  });
+      return tenants;
+    },
+  );
 
   static METRICS: HealthcheckMetrics[] = [
     HealthcheckMetrics.OLD_STATUS_NAME,

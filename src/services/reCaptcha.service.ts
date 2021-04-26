@@ -16,7 +16,6 @@
 declare var grecaptcha: any;
 
 class ReCaptchaService {
-
   private readonly headerName: string = 'X-Recaptcha-Token';
   private readonly scriptId: string = 'reCaptcha';
   private readonly siteKey: string;
@@ -82,7 +81,6 @@ class ReCaptchaService {
   }
 
   isEnabled(): Boolean {
-
     return this.enabled;
   }
 

@@ -60,13 +60,13 @@
 pre.api-history-definition {
   background-color: transparent !important;
   border: none !important;
-  max-height:calc(100vh - 170px);
+  max-height: calc(100vh - 170px);
 }
 
 .api-history-icon {
   --gv-icon--s: 24px;
-  --gv-icon-opacit--c: #383E3F;
-  --gv-icon--c: #28444F;
+  --gv-icon-opacit--c: #383e3f;
+  --gv-icon--c: #28444f;
 }
 
 .api-event-content_actions {
@@ -84,7 +84,7 @@ pre.api-history-definition {
 .api-event-content_content {
   background-color: #fff;
   border: 1px solid #e7eaec;
-  padding: 0 0.5rem
+  padding: 0 0.5rem;
 }
 
 .api-event_policy-studio {
@@ -107,8 +107,8 @@ pre.api-history-definition {
 }
 
 .clipboard__popover {
-  --gv-popover--bgc: var(--gv-theme-color-darker, #383E3F);
-  --gv-popover--c: var(--gv-theme-font-color-light, #FFFFFF);
+  --gv-popover--bgc: var(--gv-theme-color-darker, #383e3f);
+  --gv-popover--c: var(--gv-theme-font-color-light, #ffffff);
   --gv-popover--p: 0rem 0.4rem 0rem 0.2rem;
   font-size: 11px;
 }

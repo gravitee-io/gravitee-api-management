@@ -32,7 +32,6 @@ export function getDefinitionVersionDescription(definitionVersion) {
 }
 
 class NewApiController {
-
   definitionVersion: any;
   options: any[];
   isImport: boolean;
@@ -41,10 +40,7 @@ class NewApiController {
   getDefinitionVersionDescription = getDefinitionVersionDescription;
   private definitionVersions: string[];
 
-  constructor(
-    private policies,
-    private Constants: any
-  ) {
+  constructor(private policies, private Constants: any) {
     'ngInject';
     this.definitionVersions = ['2.0.0', '1.0.0'];
     this.definitionVersion = '2.0.0';
@@ -58,7 +54,6 @@ class NewApiController {
   getImportTitle() {
     return `Import ${getDefinitionVersionTitle(this.definitionVersion)}`;
   }
-
 }
 
 export default NewApiController;

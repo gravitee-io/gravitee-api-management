@@ -20,9 +20,12 @@
     <h4>Validate review?</h4>
     <p ng-bind-html="msg"></p>
     <div layout="column">
-      <md-checkbox aria-label="Quality rules" ng-repeat="qualityRule in $ctrl.qualityRules"
-                   ng-click="$ctrl.toggleQualityRule(qualityRule)"
-                   ng-checked="$ctrl.isChecked(qualityRule)">
+      <md-checkbox
+        aria-label="Quality rules"
+        ng-repeat="qualityRule in $ctrl.qualityRules"
+        ng-click="$ctrl.toggleQualityRule(qualityRule)"
+        ng-checked="$ctrl.isChecked(qualityRule)"
+      >
         {{qualityRule.description}}
       </md-checkbox>
     </div>

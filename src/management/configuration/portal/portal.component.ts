@@ -23,16 +23,16 @@ import _ = require('lodash');
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
     tags: '<',
-    settings: '<'
+    settings: '<',
   },
   template: require('./portal.html'),
-  controller: function(
+  controller: function (
     NotificationService: NotificationService,
     PortalSettingsService: PortalSettingsService,
     CorsService: CorsService,
     ApiService: ApiService,
     $state: StateService,
-    Constants: any
+    Constants: any,
   ) {
     'ngInject';
     this.methods = CorsService.getHttpMethods();
@@ -46,12 +46,12 @@ const PortalSettingsComponent: ng.IComponentOptions = {
       this.settings.cors.allowHeaders = this.settings.cors.allowHeaders || [];
       this.settings.cors.allowMethods = this.settings.cors.allowMethods || [];
       this.settings.cors.exposedHeaders = this.settings.cors.exposedHeaders || [];
-      this.settings.authentication.localLogin.enabled = (this.settings.authentication.localLogin.enabled || !this.hasIdpDefined());
+      this.settings.authentication.localLogin.enabled = this.settings.authentication.localLogin.enabled || !this.hasIdpDefined();
       this.overrideHomepageTitle = this.settings.portal.homepageTitle !== null && this.settings.portal.homepageTitle !== undefined;
     };
 
     this.save = () => {
-      PortalSettingsService.save(this.settings).then( (response) => {
+      PortalSettingsService.save(this.settings).then((response) => {
         _.merge(Constants.env.settings, response.data);
         NotificationService.show('Configuration saved');
         $state.reload();
@@ -59,9 +59,11 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     };
 
     this.hasIdpDefined = () => {
-      return this.settings.authentication.google.clientId ||
-       this.settings.authentication.github.clientId ||
-       this.settings.authentication.oauth2.clientId;
+      return (
+        this.settings.authentication.google.clientId ||
+        this.settings.authentication.github.clientId ||
+        this.settings.authentication.oauth2.clientId
+      );
     };
 
     this.toggleDocType = () => {
@@ -96,7 +98,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
         this.settings.portal.homepageTitle = null;
       }
     };
-  }
+  },
 };
 
 export default PortalSettingsComponent;

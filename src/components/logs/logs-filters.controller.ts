@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import {IScope, ITimeoutService} from 'angular';
+import { IScope, ITimeoutService } from 'angular';
 import { StateService } from '@uirouter/core';
 
 interface ILogsFiltersScope extends IScope {
@@ -33,7 +33,7 @@ class LogsFiltersController {
     6: 'PATCH',
     7: 'POST',
     8: 'PUT',
-    9: 'TRACE'
+    9: 'TRACE',
   };
   public responseTimes = {
     '[0 TO 100]': '0 to 100ms',
@@ -44,7 +44,7 @@ class LogsFiltersController {
     '[500 TO 1000]': '500 to 1000ms',
     '[1000 TO 2000]': '1000 to 2000ms',
     '[2000 TO 5000]': '2000 to 5000ms',
-    '[5000 TO *]': '> 5000ms'
+    '[5000 TO *]': '> 5000ms',
   };
   public httpStatus = {
     100: 'CONTINUE',
@@ -93,11 +93,11 @@ class LogsFiltersController {
     503: 'SERVICE UNAVAILABLE',
     504: 'GATEWAY TIMEOUT',
     505: 'HTTP VERSION NOT SUPPORTED',
-    507: 'INSUFFICIENT STORAGE'
+    507: 'INSUFFICIENT STORAGE',
   };
   private fields = {
-    'responseTime': 'response-time',
-    'id': '_id'
+    responseTime: 'response-time',
+    id: '_id',
   };
   private onFiltersChange: any;
   private metadata: any;
@@ -109,24 +109,25 @@ class LogsFiltersController {
     {
       field: '',
       key: '',
-      label: 'All'
-    }, {
+      label: 'All',
+    },
+    {
       key: 'endpoint',
       field: '_exists_',
-      label: 'Only hits to the backend endpoint'
-    }, {
+      label: 'Only hits to the backend endpoint',
+    },
+    {
       key: 'endpoint',
       field: '!_exists_',
-      label: 'Without hits to the backend endpoint'
-    }];
+      label: 'Without hits to the backend endpoint',
+    },
+  ];
 
   private static convert(params) {
     return '(' + params.join(' OR ') + ')';
   }
 
-  constructor(private $scope: ILogsFiltersScope,
-              private $state: StateService,
-              private $timeout: ITimeoutService) {
+  constructor(private $scope: ILogsFiltersScope, private $state: StateService, private $timeout: ITimeoutService) {
     'ngInject';
     this.$scope = $scope;
   }
@@ -149,14 +150,14 @@ class LogsFiltersController {
     if (this.context === 'platform' || this.context === 'api') {
       this.metadata.applications.push({
         id: '1',
-        name: 'Unknown application'
+        name: 'Unknown application',
       });
     }
 
     if (this.context === 'platform' || this.context === 'application') {
       this.metadata.apis.push({
         id: '1',
-        name: 'Unknown API'
+        name: 'Unknown API',
       });
     }
   }
@@ -166,12 +167,13 @@ class LogsFiltersController {
     this.$state.transitionTo(
       this.$state.current,
       _.merge(this.$state.params, {
-        q: query
+        q: query,
       }),
-      {notify: false});
+      { notify: false },
+    );
 
     this.$timeout(() => {
-      this.onFiltersChange({filters : query});
+      this.onFiltersChange({ filters: query });
     });
   }
 
@@ -191,7 +193,7 @@ class LogsFiltersController {
     });
     delete this.filters[this.displayMode.field];
     if (this.displayMode.field) {
-      this.filters[this.displayMode.field] =  this.displayMode.key;
+      this.filters[this.displayMode.field] = this.displayMode.key;
     }
   }
 
@@ -200,7 +202,10 @@ class LogsFiltersController {
     for (let i = 0; i < filters.length; i++) {
       let filter = filters[i].replace(/[()]/g, '');
       let k = filter.split(':')[0].trim();
-      let v = filter.substring(filter.indexOf(':') + 1).split('OR').map(x => x.trim());
+      let v = filter
+        .substring(filter.indexOf(':') + 1)
+        .split('OR')
+        .map((x) => x.trim());
       switch (k) {
         case 'api':
           this.filters.api = v;
@@ -278,34 +283,32 @@ class LogsFiltersController {
 
   private buildQuery(filters): string {
     let query = '';
-    let keys = _.filter(Object.keys(filters), key =>  filters[key] !== undefined && filters[key].length > 0);
+    let keys = _.filter(Object.keys(filters), (key) => filters[key] !== undefined && filters[key].length > 0);
     let index = 0;
     let that = this;
-    _.forEach( keys, key => {
+    _.forEach(keys, (key) => {
       let val = filters[key];
 
       // 1. add the first / for uri
       if (key === 'uri' && !val.startsWith('/')) {
-          val = '/' + val;
+        val = '/' + val;
       }
 
       // 2. escape reserved characters
       // + - = && || > < ! ( ) { } [ ] ^ " ~ ? : \ /
       if (typeof val === 'string' || val instanceof String) {
-        val = val.replace(
-          /(\+|\-|\=|\&{2}|\|{2}|\>|\<|\!|\(|\)|\{|\}|\[|\]|\^|\"|\~|\?|\:|\\|\/)/g,
-          '\\\\$1');
+        val = val.replace(/(\+|\-|\=|\&{2}|\|{2}|\>|\<|\!|\(|\)|\{|\}|\[|\]|\^|\"|\~|\?|\:|\\|\/)/g, '\\\\$1');
       }
 
       // 3. add the last * for uri
       if (key === 'uri' && !val.endsWith('*')) {
-          val += '*';
+        val += '*';
       }
 
       if (key === 'body') {
         val = '*' + val + '*';
       }
-      let params = (val.constructor === Array && val.length > 1) ? LogsFiltersController.convert(val) : val;
+      let params = val.constructor === Array && val.length > 1 ? LogsFiltersController.convert(val) : val;
       query += that.map(key, that.fields, true) + ':' + params;
       if (index + 1 < keys.length) {
         query += ' AND ';
@@ -320,9 +323,9 @@ class LogsFiltersController {
     if (strict) {
       val = list[_val];
     } else {
-      val = list[_.filter(Object.keys(list), elt => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
+      val = list[_.filter(Object.keys(list), (elt) => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
     }
-    return (val) ? val : _val;
+    return val ? val : _val;
   }
 }
 

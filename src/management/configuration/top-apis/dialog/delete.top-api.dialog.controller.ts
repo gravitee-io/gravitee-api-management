@@ -18,13 +18,13 @@ function DeleteTopApiDialogController($scope, $mdDialog, topApi, TopApiService, 
 
   $scope.topApi = topApi;
 
-  $scope.cancel = function() {
+  $scope.cancel = function () {
     $mdDialog.cancel();
   };
 
-  $scope.ok = function() {
+  $scope.ok = function () {
     TopApiService.delete(topApi).then(() => {
-      NotificationService.show('Api \'' + topApi.name + '\' deleted with success from the list of top APIs');
+      NotificationService.show("Api '" + topApi.name + "' deleted with success from the list of top APIs");
       $mdDialog.hide(topApi);
     });
   };

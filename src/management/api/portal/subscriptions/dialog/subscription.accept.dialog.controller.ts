@@ -33,7 +33,7 @@ function DialogSubscriptionAcceptController($scope, $mdDialog, locals) {
       starting_at: $scope.starting_at,
       ending_at: $scope.ending_at,
       reason: $scope.reason,
-      customApiKey: this.customApiKey
+      customApiKey: this.customApiKey,
     });
   };
 

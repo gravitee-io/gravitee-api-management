@@ -22,53 +22,42 @@ import _ = require('lodash');
 require('@gravitee/ui-components/wc/gv-state');
 
 const OrganizationSettingsComponent: ng.IComponentOptions = {
-
   template: require('./organization-settings.html'),
-  controller: function (
-    $rootScope: IScope,
-    $state: StateService,
-    UserService: UserService,
-    Constants,
-    $transitions,
-  ) {
+  controller: function ($rootScope: IScope, $state: StateService, UserService: UserService, Constants, $transitions) {
     'ngInject';
     this.$state = $state;
     this.Constants = Constants;
     this.settingsMenu = {
       // MANAGEMENT
       organizationIdentityProviders: {
-        perm: UserService.isUserHasAllPermissions(
-          ['organization-identity_provider-r', 'organization-identity_provider_activation-r']),
-        goTo: 'organization.settings.identityproviders.list'
+        perm: UserService.isUserHasAllPermissions(['organization-identity_provider-r', 'organization-identity_provider_activation-r']),
+        goTo: 'organization.settings.identityproviders.list',
       },
       consoleSettings: {
-        perm: UserService.isUserHasPermissions(
-          ['organization-settings-r']),
-        goTo: 'organization.settings.console'
+        perm: UserService.isUserHasPermissions(['organization-settings-r']),
+        goTo: 'organization.settings.console',
       },
 
       // USER MANAGEMENT
       users: {
-        perm: UserService.isUserHasPermissions(
-          ['organization-user-r']),
-        goTo: 'organization.settings.users'
+        perm: UserService.isUserHasPermissions(['organization-user-r']),
+        goTo: 'organization.settings.users',
       },
       roles: {
-        perm: UserService.isUserHasPermissions(
-          ['organization-role-c', 'organization-role-u', 'organization-role-d']),
-        goTo: 'organization.settings.roles'
+        perm: UserService.isUserHasPermissions(['organization-role-c', 'organization-role-u', 'organization-role-d']),
+        goTo: 'organization.settings.roles',
       },
 
       // ALERT
       notificationTemplates: {
         perm: UserService.isUserHasPermissions(['organization-notification_templates-r']),
-        goTo: 'organization.settings.notificationTemplates'
+        goTo: 'organization.settings.notificationTemplates',
       },
 
       // COCKPIT
       cockpit: {
         perm: UserService.isUserHasPermissions(['organization-installation-r']),
-        goTo: 'organization.settings.cockpit'
+        goTo: 'organization.settings.cockpit',
       },
     };
 
@@ -81,7 +70,7 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
       }
     }
 
-    $transitions.onBefore({}, function(trans) {
+    $transitions.onBefore({}, function (trans) {
       if (trans.to().name === 'organization.settings') {
         return trans.router.stateService.target(getDefaultSettingsMenu());
       }
@@ -92,8 +81,7 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
         $state.go(getDefaultSettingsMenu());
       }
     };
-
-  }
+  },
 };
 
 export default OrganizationSettingsComponent;

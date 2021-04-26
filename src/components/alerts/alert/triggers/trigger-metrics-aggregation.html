@@ -16,45 +16,32 @@
 
 -->
 <div layout-gt-sm="row">
-  <span flex="15" style="display: grid;align-items: center;" align="center">Calculate</span>
+  <span flex="15" style="display: grid; align-items: center" align="center">Calculate</span>
 
   <md-input-container class="md-block" flex-gt-sm flex="20">
     <label>Function</label>
     <md-select ng-model="$ctrl.alert.conditions[0].function" required>
-      <md-option
-        ng-value="type.key"
-        ng-repeat="type in $ctrl.functions">
-        {{::type.name}}
-      </md-option>
+      <md-option ng-value="type.key" ng-repeat="type in $ctrl.functions"> {{::type.name}} </md-option>
     </md-select>
   </md-input-container>
 
-    <span flex="5" style="display: grid;align-items: center;" align="center" ng-if="$ctrl.alert.conditions[0].function !== 'count'">on</span>
+  <span flex="5" style="display: grid; align-items: center" align="center" ng-if="$ctrl.alert.conditions[0].function !== 'count'">on</span>
 
-    <md-input-container class="md-block" flex-gt-sm flex="20" ng-if="$ctrl.alert.conditions[0].function !== 'count'">
-      <label>Metric</label>
-      <md-select ng-model="$ctrl.alert.conditions[0].property" required>
-        <md-option
-          ng-value="type.key"
-          ng-repeat="type in $ctrl.metrics">
-          {{::type.name}}
-        </md-option>
-      </md-select>
-    </md-input-container>
-
+  <md-input-container class="md-block" flex-gt-sm flex="20" ng-if="$ctrl.alert.conditions[0].function !== 'count'">
+    <label>Metric</label>
+    <md-select ng-model="$ctrl.alert.conditions[0].property" required>
+      <md-option ng-value="type.key" ng-repeat="type in $ctrl.metrics"> {{::type.name}} </md-option>
+    </md-select>
+  </md-input-container>
 </div>
 
 <div layout-gt-sm="row">
-  <span flex="15" style="display: grid;align-items: center;" align="center">If result is</span>
+  <span flex="15" style="display: grid; align-items: center" align="center">If result is</span>
 
   <md-input-container class="md-block" flex-gt-sm flex="20">
     <label>Operator</label>
     <md-select ng-model="$ctrl.alert.conditions[0].operator" required>
-      <md-option
-        ng-value="type.key"
-        ng-repeat="type in $ctrl.operators">
-        {{::type.name}}
-      </md-option>
+      <md-option ng-value="type.key" ng-repeat="type in $ctrl.operators"> {{::type.name}} </md-option>
     </md-select>
   </md-input-container>
 
@@ -62,8 +49,7 @@
 
   <md-input-container class="md-block" flex-gt-sm flex="15">
     <label>Threshold</label>
-    <input ng-model="$ctrl.alert.conditions[0].threshold" required type="number" min="1" name="threshold"
-           aria-label="trigger threshold"/>
+    <input ng-model="$ctrl.alert.conditions[0].threshold" required type="number" min="1" name="threshold" aria-label="trigger threshold" />
     <div ng-messages="$ctrl.parent.formAlert.threshold.$error">
       <div ng-message="required">Threshold is required.</div>
       <div ng-message="min">Threshold must be higher than 0.</div>

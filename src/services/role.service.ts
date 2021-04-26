@@ -43,7 +43,7 @@ class RoleService {
   }
 
   get(roleScope, roleName) {
-    return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + roleScope + '/roles/' + roleName).then(response => {
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + roleScope + '/roles/' + roleName).then((response) => {
       let role = response.data;
       role.scope = _.toUpper(role.scope);
       return role;
@@ -51,7 +51,7 @@ class RoleService {
   }
 
   list(scope: string) {
-    return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + scope + '/roles').then(response => {
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + scope + '/roles').then((response) => {
       return _.map(response.data, function (role: any) {
         role.scope = _.toUpper(role.scope);
         return role;
@@ -60,7 +60,7 @@ class RoleService {
   }
 
   create(role) {
-    return this.$http.post(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles', role).then(response => {
+    return this.$http.post(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles', role).then((response) => {
       let role = response.data;
       role.scope = _.toUpper(role.scope);
       return role;
@@ -68,11 +68,13 @@ class RoleService {
   }
 
   update(role) {
-    return this.$http.put(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles/' + role.name, role).then(response => {
-      let role = response.data;
-      role.scope = _.toUpper(role.scope);
-      return role;
-    });
+    return this.$http
+      .put(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles/' + role.name, role)
+      .then((response) => {
+        let role = response.data;
+        role.scope = _.toUpper(role.scope);
+        return role;
+      });
   }
 
   delete(role) {
@@ -80,11 +82,15 @@ class RoleService {
   }
 
   listUsers(roleScope, roleName) {
-    return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + roleScope + '/roles/' + roleName + '/users').then(response => response.data);
+    return this.$http
+      .get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + roleScope + '/roles/' + roleName + '/users')
+      .then((response) => response.data);
   }
 
   deleteUser(role, username) {
-    return this.$http.delete(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles/' + role.name + '/users/' + username);
+    return this.$http.delete(
+      `${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles/' + role.name + '/users/' + username,
+    );
   }
 
   addRole(roleScope, roleName, user) {
@@ -95,7 +101,7 @@ class RoleService {
     if (this.permissionsByScope) {
       return this.$q.resolve(this.permissionsByScope);
     } else {
-      return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/`).then(response => {
+      return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/`).then((response) => {
         this.permissionsByScope = response.data;
         return this.permissionsByScope;
       });

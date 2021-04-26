@@ -18,10 +18,7 @@
 <div class="gv-forms" layout="column">
   <div class="gv-forms-header" layout="row" layout-align="start end">
     <h1 ng-if="$ctrl.updateMode">
-      <md-icon
-        md-svg-icon="assets/logo_{{$ctrl.identityProvider.type | lowercase}}-idp.svg"
-        style="fill: black;"
-      ></md-icon>
+      <md-icon md-svg-icon="assets/logo_{{$ctrl.identityProvider.type | lowercase}}-idp.svg" style="fill: black"></md-icon>
       {{$ctrl.identityProvider.name}}
     </h1>
     <h1 ng-if="!$ctrl.updateMode">Create a new {{$ctrl.identityProvider.type}} identity provider</h1>
@@ -32,14 +29,14 @@
     <div class="gv-form">
       <h2>General</h2>
       <div class="gv-form-content" layout="column">
-
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <md-checkbox
               aria-label="Allow identity provider for portal"
               class="md-primary md-align-top-left"
               flex
-              ng-model="$ctrl.identityProvider.enabled">
+              ng-model="$ctrl.identityProvider.enabled"
+            >
               Allow portal authentication to use this identity provider.
             </md-checkbox>
           </md-input-container>
@@ -48,7 +45,7 @@
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Name</label>
-            <input autofocus minlength="2" maxlength="50" name="name" ng-model="$ctrl.identityProvider.name" required type="text">
+            <input autofocus minlength="2" maxlength="50" name="name" ng-model="$ctrl.identityProvider.name" required type="text" />
             <div class="hint" ng-if="formIdentityProvider.name.$valid || formIdentityProvider.name.$pristine">
               Identity provider name. The name will be used to define the authentication endpoint.
             </div>
@@ -62,7 +59,7 @@
         <div layout-gt-sm="row">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Description</label>
-            <input name="description" ng-model="$ctrl.identityProvider.description" type="text">
+            <input name="description" ng-model="$ctrl.identityProvider.description" type="text" />
             <div class="hint" ng-if="formIdentityProvider.description.$valid || formIdentityProvider.description.$pristine">
               Provide a description of the identity provider
             </div>
@@ -72,9 +69,10 @@
         <div layout-gt-sm="row" ng-if="$ctrl.identityProvider.type === 'oidc' && $ctrl.tokenExchangeEndpoint">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Token exchange endpoint</label>
-            <input name="exchangeEndpoint" ng-model="$ctrl.tokenExchangeEndpoint" readonly type="text">
+            <input name="exchangeEndpoint" ng-model="$ctrl.tokenExchangeEndpoint" readonly type="text" />
             <div class="hint">
-              Token exchange endpoint used to convert a provider token to a gravitee token to let the user to consume the Gravitee.io Management API.
+              Token exchange endpoint used to convert a provider token to a gravitee token to let the user to consume the Gravitee.io
+              Management API.
             </div>
           </md-input-container>
         </div>
@@ -85,7 +83,8 @@
               aria-label="A public email is required"
               class="md-primary md-align-top-left"
               flex
-              ng-model="$ctrl.identityProvider.emailRequired">
+              ng-model="$ctrl.identityProvider.emailRequired"
+            >
               A public email is required to be able to authenticate.
             </md-checkbox>
           </md-input-container>
@@ -94,13 +93,12 @@
         <div layout-gt-sm="row">
           <md-radio-group ng-model="$ctrl.identityProvider.syncMappings">
             <md-radio-button class="md-primary" ng-value="false">
-              Group and role mappings are computed only during first user authentication. Subsequent authentications
-              will not update any of these mappings. This mode is useful if you want to let the platform administrator
-              manage by himself roles and permissions.
+              Group and role mappings are computed only during first user authentication. Subsequent authentications will not update any of
+              these mappings. This mode is useful if you want to let the platform administrator manage by himself roles and permissions.
             </md-radio-button>
             <md-radio-button ng-value="true">
-              Group and role mappings are computed during each user authentication. Platform administrators still have the
-              ability to override mappings but those one will be refreshed after next user authentications.
+              Group and role mappings are computed during each user authentication. Platform administrators still have the ability to
+              override mappings but those one will be refreshed after next user authentications.
             </md-radio-button>
           </md-radio-group>
         </div>
@@ -111,36 +109,36 @@
       <gv-identityprovider-google identity-provider="$ctrl.identityProvider" ng-switch-when="google"></gv-identityprovider-google>
       <gv-identityprovider-github identity-provider="$ctrl.identityProvider" ng-switch-when="github"></gv-identityprovider-github>
       <gv-identityprovider-oidc identity-provider="$ctrl.identityProvider" ng-switch-when="oidc"></gv-identityprovider-oidc>
-      <gv-identityprovider-graviteeio-am identity-provider="$ctrl.identityProvider" ng-switch-when="graviteeio_am"></gv-identityprovider-graviteeio-am>
+      <gv-identityprovider-graviteeio-am
+        identity-provider="$ctrl.identityProvider"
+        ng-switch-when="graviteeio_am"
+      ></gv-identityprovider-graviteeio-am>
     </div>
 
     <div class="gv-form" ng-if="$ctrl.updateMode">
       <h2>Groups Mapping</h2>
       <div class="gv-form-content" layout="column">
-
         <div layout-gt-sm="column" ng-repeat="mapping in $ctrl.identityProvider.groupMappings">
           <div layout="row">
             <div flex="5" layout="row" layout-align="center center" style="border-right: 1px solid lightgrey; margin-right: 10px">
-              <ng-md-icon icon="close" ng-click="$ctrl.deleteGroupMapping($index)" size="20px" style="fill: grey;"></ng-md-icon>
+              <ng-md-icon icon="close" ng-click="$ctrl.deleteGroupMapping($index)" size="20px" style="fill: grey"></ng-md-icon>
             </div>
             <div flex layout="column">
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Condition</label>
-                <input name="group-mapping-condition" ng-model="mapping.condition" required type="text">
+                <input name="group-mapping-condition" ng-model="mapping.condition" required type="text" />
                 <div class="hint">The condition which should be validated to associate below groups at login time.</div>
               </md-input-container>
 
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Groups</label>
                 <md-select multiple ng-model="mapping.groups" required>
-                  <md-option ng-repeat="group in $ctrl.groups" ng-value="group.id">
-                    {{group.name}}
-                  </md-option>
+                  <md-option ng-repeat="group in $ctrl.groups" ng-value="group.id"> {{group.name}} </md-option>
                 </md-select>
               </md-input-container>
             </div>
           </div>
-          <hr/>
+          <hr />
         </div>
 
         <a ng-click="$ctrl.addGroupMapping();">Add a new mapping</a>
@@ -150,25 +148,22 @@
     <div class="gv-form" ng-if="$ctrl.updateMode">
       <h2>Roles Mapping</h2>
       <div class="gv-form-content" layout="column">
-
         <div layout-gt-sm="column" ng-repeat="mapping in $ctrl.identityProvider.roleMappings">
           <div layout="row">
             <div flex="5" layout="row" layout-align="center center" style="border-right: 1px solid lightgrey; margin-right: 10px">
-              <ng-md-icon icon="close" ng-click="$ctrl.deleteRoleMapping($index)" size="20px" style="fill: grey;"></ng-md-icon>
+              <ng-md-icon icon="close" ng-click="$ctrl.deleteRoleMapping($index)" size="20px" style="fill: grey"></ng-md-icon>
             </div>
             <div flex layout="column">
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Condition</label>
-                <input name="role-mapping-condition" ng-model="mapping.condition" required type="text">
+                <input name="role-mapping-condition" ng-model="mapping.condition" required type="text" />
                 <div class="hint">The condition which should be validated to associate below roles at login time.</div>
               </md-input-container>
 
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Organization Role</label>
                 <md-select multiple ng-model="mapping.organizations">
-                  <md-option ng-repeat="role in $ctrl.organizationRoles" ng-value="role.name">
-                    {{role.name}}
-                  </md-option>
+                  <md-option ng-repeat="role in $ctrl.organizationRoles" ng-value="role.name"> {{role.name}} </md-option>
                 </md-select>
               </md-input-container>
 
@@ -176,31 +171,32 @@
               <md-table-container>
                 <table class="gv-table-dense" md-table>
                   <thead md-head>
-                  <tr md-row>
-                    <th md-column>Name</th>
-                    <th md-column>Description</th>
-                    <th md-column>Roles</th>
-                  </tr>
+                    <tr md-row>
+                      <th md-column>Name</th>
+                      <th md-column>Description</th>
+                      <th md-column>Roles</th>
+                    </tr>
                   </thead>
                   <tbody md-body>
-                  <tr md-row ng-repeat="environment in $ctrl.environments">
-                    <td md-cell>{{environment.name}}</td>
-                    <td md-cell>{{environment.description}}</td>
-                    <td md-cell>
-                      <md-select
-                        aria-label="environment Role"
-                        class="inline-multiple-select"
-                        multiple
-                        ng-model="mapping.environments[environment.id]">
-                        <md-option ng-repeat="role in $ctrl.environmentRoles" ng-value="role.name">{{role.name}}</md-option>
-                      </md-select>
-                    </td>
-                  </tr>
+                    <tr md-row ng-repeat="environment in $ctrl.environments">
+                      <td md-cell>{{environment.name}}</td>
+                      <td md-cell>{{environment.description}}</td>
+                      <td md-cell>
+                        <md-select
+                          aria-label="environment Role"
+                          class="inline-multiple-select"
+                          multiple
+                          ng-model="mapping.environments[environment.id]"
+                        >
+                          <md-option ng-repeat="role in $ctrl.environmentRoles" ng-value="role.name">{{role.name}}</md-option>
+                        </md-select>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </md-table-container>
             </div>
-            <hr/>
+            <hr />
           </div>
         </div>
 
@@ -209,23 +205,37 @@
     </div>
 
     <div class="md-actions gravitee-api-save-button" layout="row">
-      <md-button class="md-raised md-primary" ng-disabled="formIdentityProvider.$invalid || formIdentityProvider.$pristine" ng-if="$ctrl.updateMode"
-                 permission
-                 permission-only="['organization-identity_provider-u']" type="submit">
+      <md-button
+        class="md-raised md-primary"
+        ng-disabled="formIdentityProvider.$invalid || formIdentityProvider.$pristine"
+        ng-if="$ctrl.updateMode"
+        permission
+        permission-only="['organization-identity_provider-u']"
+        type="submit"
+      >
         Update
       </md-button>
-      <md-button class="md-raised md-primary" ng-disabled="formIdentityProvider.$invalid || formIdentityProvider.$pristine" ng-if="!$ctrl.updateMode"
-                 permission
-                 permission-only="['organization-identity_provider-c']" type="submit">
+      <md-button
+        class="md-raised md-primary"
+        ng-disabled="formIdentityProvider.$invalid || formIdentityProvider.$pristine"
+        ng-if="!$ctrl.updateMode"
+        permission
+        permission-only="['organization-identity_provider-c']"
+        type="submit"
+      >
         Create
       </md-button>
 
-      <md-button class="md-raised" ng-click="$ctrl.reset()" ng-disabled="formIdentityProvider.$invalid || formIdentityProvider.$pristine"
-                 permission permission-only="['organization-identity_provider-u']"
-                 type="button">
+      <md-button
+        class="md-raised"
+        ng-click="$ctrl.reset()"
+        ng-disabled="formIdentityProvider.$invalid || formIdentityProvider.$pristine"
+        permission
+        permission-only="['organization-identity_provider-u']"
+        type="button"
+      >
         Reset
       </md-button>
     </div>
   </form>
 </div>
-

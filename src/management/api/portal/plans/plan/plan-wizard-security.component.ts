@@ -23,7 +23,7 @@ import '@gravitee/ui-components/wc/gv-row';
 
 const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
   require: {
-    parent: '^editPlan'
+    parent: '^editPlan',
   },
   template: require('./plan-wizard-security.html'),
   controller: class {
@@ -35,25 +35,32 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
     constructor(private PolicyService: PolicyService, Constants: any, private ResourceService: ResourceService) {
       'ngInject';
 
-      this.securityTypes = _.filter([
-        {
-          'id': 'oauth2',
-          'name': 'OAuth2',
-          'policy': 'oauth2'
-        }, {
-          'id': 'jwt',
-          'name': 'JWT',
-          'policy': 'jwt'
-        }, {
-          'id': 'api_key',
-          'name': 'API Key',
-          'policy': 'api-key'
-        }, {
-          'id': 'key_less',
-          'name': 'Keyless (public)'
-        }], (security) => {
-        return Constants.env.settings.plan.security[_.replace(security.id, '_', '')].enabled;
-      });
+      this.securityTypes = _.filter(
+        [
+          {
+            id: 'oauth2',
+            name: 'OAuth2',
+            policy: 'oauth2',
+          },
+          {
+            id: 'jwt',
+            name: 'JWT',
+            policy: 'jwt',
+          },
+          {
+            id: 'api_key',
+            name: 'API Key',
+            policy: 'api-key',
+          },
+          {
+            id: 'key_less',
+            name: 'Keyless (public)',
+          },
+        ],
+        (security) => {
+          return Constants.env.settings.plan.security[_.replace(security.id, '_', '')].enabled;
+        },
+      );
     }
 
     $onInit() {
@@ -62,13 +69,13 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
       }
     }
 
-    onSecurityDefinitionChange({ detail : { values }}) {
+    onSecurityDefinitionChange({ detail: { values } }) {
       this.parent.plan.securityDefinition = values;
     }
 
     onFetchResources(event) {
       if (this.parent.resourceTypes != null && this.parent.api.resources != null) {
-        const {currentTarget, regexTypes} = event.detail;
+        const { currentTarget, regexTypes } = event.detail;
         const options = this.parent.api.resources
           .filter((resource) => regexTypes == null || new RegExp(regexTypes).test(resource.type))
           .map((resource, index) => {
@@ -76,7 +83,7 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
             const row = document.createElement('gv-row');
             const picture = resourceType.icon ? resourceType.icon : null;
             // @ts-ignore
-            row.item = {picture, name: resource.name};
+            row.item = { picture, name: resource.name };
             return {
               element: row,
               value: resource.name,
@@ -89,17 +96,15 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
     }
 
     onSecurityTypeChange() {
-      let securityType: any = _.find(this.securityTypes, {'id': this.parent.plan.security});
+      let securityType: any = _.find(this.securityTypes, { id: this.parent.plan.security });
       if (securityType && securityType.policy) {
-        this.PolicyService.getSchema(securityType.policy).then(schema => {
+        this.PolicyService.getSchema(securityType.policy).then((schema) => {
           this.securitySchema = schema.data;
           if (this.parent.plan.securityDefinition) {
             try {
               // Try a double parsing (it appears that sometimes the json of security definition is double-encoded
               this.parent.plan.securityDefinition = JSON.parse(this.parent.plan.securityDefinition);
-            } catch (e) {
-
-            }
+            } catch (e) {}
           } else {
             this.parent.plan.securityDefinition = {};
           }
@@ -122,7 +127,7 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
         this.parent.moveToNextStep(this.parent.vm.stepData[1]);
       }
     }
-  }
+  },
 };
 
 export default ApiPlanWizardSecurityComponent;

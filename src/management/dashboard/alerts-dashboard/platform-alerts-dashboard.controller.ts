@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class PlatformAlertsDashboardController {
-
   private hasConfiguredAlerts: boolean;
   private hasAlertingPlugin: boolean;
 

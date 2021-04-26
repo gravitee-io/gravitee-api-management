@@ -18,10 +18,7 @@ class ApiHealthCheckLogController {
   private api: any;
   private log: any;
 
-  constructor (
-    private $scope,
-    private resolvedLog,
-  ) {
+  constructor(private $scope, private resolvedLog) {
     'ngInject';
     this.api = this.$scope.$parent.apiCtrl.api;
     this.log = resolvedLog.data;

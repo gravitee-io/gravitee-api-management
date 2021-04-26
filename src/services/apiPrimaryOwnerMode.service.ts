@@ -21,23 +21,21 @@ export enum ApiPrimaryOwnerMode {
 }
 
 class ApiPrimaryOwnerModeService {
-
   constructor(private Constants) {
     'ngInject';
   }
 
   isGroupOnly = () => {
     return this.Constants.env.settings.api.primaryOwnerMode.toUpperCase() === ApiPrimaryOwnerMode.GROUP;
-  }
+  };
 
   isUserOnly = () => {
     return this.Constants.env.settings.api.primaryOwnerMode.toUpperCase() === ApiPrimaryOwnerMode.USER;
-  }
+  };
 
   isHybrid = () => {
     return this.Constants.env.settings.api.primaryOwnerMode.toUpperCase() === ApiPrimaryOwnerMode.HYBRID;
-  }
+  };
 }
 
 export default ApiPrimaryOwnerModeService;
-

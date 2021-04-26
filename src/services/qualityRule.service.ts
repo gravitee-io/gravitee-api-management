@@ -19,7 +19,6 @@ import { IHttpPromise } from 'angular';
 import { ApiQualityRule } from '../entities/apiQualityRule';
 
 class QualityRuleService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
@@ -37,12 +36,11 @@ class QualityRuleService {
   }
 
   update(qualityRule: QualityRule): IHttpPromise<QualityRule> {
-    return this.$http.put(`${this.Constants.env.baseURL}/configuration/quality-rules/` + qualityRule.id,
-      {
-        name: qualityRule.name,
-        description: qualityRule.description,
-        weight: qualityRule.weight
-      });
+    return this.$http.put(`${this.Constants.env.baseURL}/configuration/quality-rules/` + qualityRule.id, {
+      name: qualityRule.name,
+      description: qualityRule.description,
+      weight: qualityRule.weight,
+    });
   }
 
   delete(qualityRule: QualityRule): IHttpPromise<any> {
@@ -57,13 +55,13 @@ class QualityRuleService {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api + '/quality-rules/', {
       api: api,
       quality_rule: qualityRule,
-      checked: checked
+      checked: checked,
     });
   }
 
   updateApiRule(api: string, qualityRule: string, checked: boolean) {
     return this.$http.put(`${this.Constants.env.baseURL}/apis/` + api + '/quality-rules/' + qualityRule, {
-      checked: checked
+      checked: checked,
     });
   }
 }

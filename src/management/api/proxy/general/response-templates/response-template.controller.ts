@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StateParams, StateService} from '@uirouter/core';
+import { StateParams, StateService } from '@uirouter/core';
 import ApiService from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
 import _ = require('lodash');
@@ -39,7 +39,7 @@ class ApiResponseTemplateController {
   ) {
     'ngInject';
 
-    this.creation = (this.$stateParams.key === undefined);
+    this.creation = this.$stateParams.key === undefined;
 
     this.templateKey = this.$stateParams.key;
 
@@ -48,19 +48,15 @@ class ApiResponseTemplateController {
     this.templates = [];
 
     if (this.api.response_templates && this.api.response_templates[this.$stateParams.key]) {
-      Object
-        .keys(this.api.response_templates[this.$stateParams.key])
-        .forEach(type => {
-          let template = this.api.response_templates[this.$stateParams.key][type];
-          this.templates.push({
-            type: type,
-            status: template.status,
-            body: template.body,
-            headers:
-              (template.headers) ?
-                Object.keys(template.headers).map(name => ({name, value: template.headers[name]})) : []
-          });
+      Object.keys(this.api.response_templates[this.$stateParams.key]).forEach((type) => {
+        let template = this.api.response_templates[this.$stateParams.key][type];
+        this.templates.push({
+          type: type,
+          status: template.status,
+          body: template.body,
+          headers: template.headers ? Object.keys(template.headers).map((name) => ({ name, value: template.headers[name] })) : [],
         });
+      });
     }
 
     this.keys = [
@@ -98,7 +94,7 @@ class ApiResponseTemplateController {
       'GATEWAY_OAUTH2_INVALID_CLIENT',
       'GATEWAY_MISSING_SECURITY_PROVIDER',
       'GATEWAY_POLICY_INTERNAL_ERROR',
-      'GATEWAY_PLAN_UNRESOLVABLE'
+      'GATEWAY_PLAN_UNRESOLVABLE',
     ];
 
     // In case of a new response template, initialize with default media type
@@ -129,7 +125,7 @@ class ApiResponseTemplateController {
     this.templates.push({
       type: type,
       status: 400,
-      headers: []
+      headers: [],
     });
   }
 
@@ -142,16 +138,16 @@ class ApiResponseTemplateController {
     let apiResponseTemplates = this.api.response_templates || {};
 
     if (this.templates.length > 0) {
-      apiResponseTemplates[this.templateKey] =
-        _.mapValues(
-          _.keyBy(this.templates, (template) => template.type),
-          (template) => {
-            return {
-              status: template.status,
-              headers: _.mapValues(_.keyBy(template.headers, 'name'), 'value'),
-              body: template.body
-            };
-          });
+      apiResponseTemplates[this.templateKey] = _.mapValues(
+        _.keyBy(this.templates, (template) => template.type),
+        (template) => {
+          return {
+            status: template.status,
+            headers: _.mapValues(_.keyBy(template.headers, 'name'), 'value'),
+            body: template.body,
+          };
+        },
+      );
       this.api.response_templates = apiResponseTemplates;
     } else {
       delete this.api.response_templates[this.templateKey];
@@ -165,7 +161,7 @@ class ApiResponseTemplateController {
   }
 
   onApiUpdate() {
-    this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
+    this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
     this.NotificationService.show('Response template saved for key: ' + this.templateKey);
     this.$state.go('management.apis.detail.proxy.responsetemplates.list');
   }

@@ -27,7 +27,7 @@ class GvModelDirective {
     return {
       restrict: 'A',
       require: '?ngModel',
-      link: function(scope, element, attrs, ngModel) {
+      link: function (scope, element, attrs, ngModel) {
         if (!ngModel) {
           return;
         }
@@ -39,10 +39,8 @@ class GvModelDirective {
         element.on(`input`, (e) => {
           ngModel.$setViewValue(e.target.value);
         });
-
-      }
+      },
     };
-
   }
 }
 

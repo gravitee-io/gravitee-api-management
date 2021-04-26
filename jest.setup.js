@@ -21,21 +21,21 @@ require('@uirouter/angularjs');
 require('angular-mocks');
 
 // Magic things for angular-schema-form
-Object.assign(angular, {lowercase: _.toLower, uppercase: _.toUpper});
+Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
 
 const mock = () => {
   let storage = {};
   return {
-    getItem: key => key in storage ? storage[key] : null,
-    setItem: (key, value) => storage[key] = value || '',
-    removeItem: key => delete storage[key],
-    clear: () => storage = {}
+    getItem: (key) => (key in storage ? storage[key] : null),
+    setItem: (key, value) => (storage[key] = value || ''),
+    removeItem: (key) => delete storage[key],
+    clear: () => (storage = {}),
   };
 };
-Object.defineProperty(window, 'localStorage', {value: mock()});
-Object.defineProperty(window, 'sessionStorage', {value: mock()});
+Object.defineProperty(window, 'localStorage', { value: mock() });
+Object.defineProperty(window, 'sessionStorage', { value: mock() });
 Object.defineProperty(window, 'getComputedStyle', {
-  value: () => ['-webkit-appearance']
+  value: () => ['-webkit-appearance'],
 });
 
 require('./src/index');
@@ -44,12 +44,12 @@ angular.module('gravitee-management').constant('Constants', {
   org: {
     baseURL: 'http://url.test',
     settings: {
-      reCaptcha: false
-    }
+      reCaptcha: false,
+    },
   },
   env: {
-    baseURL: 'http://url.test'
-  }
+    baseURL: 'http://url.test',
+  },
 });
 
 beforeEach(() => {

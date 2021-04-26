@@ -16,31 +16,33 @@
 
 -->
 <md-menu ng-if="$ctrl.user.id" md-offset="0 45">
-    <md-button class="gv-navbar-button" ng-click="$mdMenu.open($event)" aria-label="Open notifications">
-        <ng-md-icon icon="notifications" gv-theme-element="portal.navbar.notifications"></ng-md-icon>
-        <span ng-if="$ctrl.getUserNotificationsCount()>0" flex class="badge gv-notification-badge" gv-theme-element="portal.navbar.user.notification">
-            {{ $ctrl.getUserNotificationsCount() }}
-        </span>
-    </md-button>
-    <md-menu-content class="gv-notification-content"
-                     width="8">
-            <md-subheader ng-if="$ctrl.user.notifications.data.length < 2">{{$ctrl.user.notifications.data.length}} notification</md-subheader>
-            <md-subheader ng-if="$ctrl.user.notifications.data.length > 1">
-                <div layout="row" layout-align="space-between center">
-                    <span>{{$ctrl.user.notifications.data.length}} notifications</span>
-                    <span><a ng-click="$ctrl.deleteAll($event)">delete all</a></span>
-                </div>
-            </md-subheader>
-            <md-list>
-                <md-list-item class="md-3-line"
-                              ng-repeat="notification in $ctrl.user.notifications.data"
-                              ng-click="$ctrl.delete(notification)">
-                    <div class="md-list-item-text" layout="column">
-                        <h3>{{ notification.title }}</h3>
-                        <h4>{{ notification.message }}</h4>
-                        <p>{{ notification.created_at | humanDatetimeFilter }}</p>
-                    </div>
-                </md-list-item>
-            </md-list>
-    </md-menu-content>
+  <md-button class="gv-navbar-button" ng-click="$mdMenu.open($event)" aria-label="Open notifications">
+    <ng-md-icon icon="notifications" gv-theme-element="portal.navbar.notifications"></ng-md-icon>
+    <span
+      ng-if="$ctrl.getUserNotificationsCount()>0"
+      flex
+      class="badge gv-notification-badge"
+      gv-theme-element="portal.navbar.user.notification"
+    >
+      {{ $ctrl.getUserNotificationsCount() }}
+    </span>
+  </md-button>
+  <md-menu-content class="gv-notification-content" width="8">
+    <md-subheader ng-if="$ctrl.user.notifications.data.length < 2">{{$ctrl.user.notifications.data.length}} notification</md-subheader>
+    <md-subheader ng-if="$ctrl.user.notifications.data.length > 1">
+      <div layout="row" layout-align="space-between center">
+        <span>{{$ctrl.user.notifications.data.length}} notifications</span>
+        <span><a ng-click="$ctrl.deleteAll($event)">delete all</a></span>
+      </div>
+    </md-subheader>
+    <md-list>
+      <md-list-item class="md-3-line" ng-repeat="notification in $ctrl.user.notifications.data" ng-click="$ctrl.delete(notification)">
+        <div class="md-list-item-text" layout="column">
+          <h3>{{ notification.title }}</h3>
+          <h4>{{ notification.message }}</h4>
+          <p>{{ notification.created_at | humanDatetimeFilter }}</p>
+        </div>
+      </md-list-item>
+    </md-list>
+  </md-menu-content>
 </md-menu>

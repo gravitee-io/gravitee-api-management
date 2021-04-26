@@ -21,10 +21,10 @@ function DialogApiDuplicateController($mdDialog, ApiService: ApiService, api) {
   this.contextPathPlaceholder = api.proxy.virtual_hosts[0].path;
   this.versionPlaceholder = api.version;
   this.filteredFields = [
-    {id: 'groups', description: 'Groups', checked: true},
-    {id: 'members', description: 'Members', checked: true},
-    {id: 'pages', description: 'Pages', checked: true},
-    {id: 'plans', description: 'Plans', checked: true}
+    { id: 'groups', description: 'Groups', checked: true },
+    { id: 'members', description: 'Members', checked: true },
+    { id: 'pages', description: 'Pages', checked: true },
+    { id: 'plans', description: 'Plans', checked: true },
   ];
 
   this.hide = () => {
@@ -35,20 +35,28 @@ function DialogApiDuplicateController($mdDialog, ApiService: ApiService, api) {
     const config = {
       context_path: this.contextPath,
       version: this.version,
-      filtered_fields: _.map(_.filter(this.filteredFields, (fl: any) => { return !fl.checked; }), 'id')
+      filtered_fields: _.map(
+        _.filter(this.filteredFields, (fl: any) => {
+          return !fl.checked;
+        }),
+        'id',
+      ),
     };
-    ApiService.duplicate(api.id, config).then( (response) => {
+    ApiService.duplicate(api.id, config).then((response) => {
       $mdDialog.hide(response.data);
     });
   };
 
   this.onContextPathChanged = () => {
     this.contextPathInvalid = false;
-    ApiService.verify({context_path: this.contextPath}, {ignoreLoadingBar: true, silentCall: true}).then(() => {
-      this.contextPathInvalid = false;
-    }, () => {
-      this.contextPathInvalid = true;
-    });
+    ApiService.verify({ context_path: this.contextPath }, { ignoreLoadingBar: true, silentCall: true }).then(
+      () => {
+        this.contextPathInvalid = false;
+      },
+      () => {
+        this.contextPathInvalid = true;
+      },
+    );
   };
 }
 

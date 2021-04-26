@@ -21,11 +21,7 @@ class DashboardController {
   private selectedIndex;
   private alertsEnabled;
 
-  constructor(
-    private $state: StateService,
-    private UserService: UserService,
-    private Constants
-  ) {
+  constructor(private $state: StateService, private UserService: UserService, private Constants) {
     'ngInject';
 
     this.alertsEnabled = Constants.org.settings.alert.enabled && UserService.isUserHasPermissions(['environment-alert-r']);

@@ -27,17 +27,17 @@ interface IQueryParam {
 
 class LogComponentController {
   public log: {
-    clientRequest: any
-    proxyRequest: any
-    clientResponse: any
-    proxyResponse: any
+    clientRequest: any;
+    proxyRequest: any;
+    clientResponse: any;
+    proxyResponse: any;
   };
   public backStateParams: {
     q: any;
     size: any;
     from: any;
     to: any;
-    page: any
+    page: any;
   };
 
   public previousLog: string;
@@ -117,16 +117,17 @@ class LogComponentController {
     this.$state.transitionTo(
       this.$state.current,
       {
-        ...this.$state.params, ...{
-          logId: logId
-        }
+        ...this.$state.params,
+        ...{
+          logId: logId,
+        },
       },
-      {notify: false, });
-    this.ApiService.getLog(this.$state.params.apiId, logId, this.$state.params.timestamp)
-      .then(response => {
-        this.log = response.data;
-        this.$onInit();
-      });
+      { notify: false },
+    );
+    this.ApiService.getLog(this.$state.params.apiId, logId, this.$state.params.timestamp).then((response) => {
+      this.log = response.data;
+      this.$onInit();
+    });
   }
 
   fillPreviousNext() {
@@ -168,8 +169,10 @@ class LogComponentController {
     }
 
     // Slice the interesting part of the uri and split to get all the query params
-    const queryParamsMap = uri.slice(uri.indexOf('?') + 1).split('&')
-      .map(queryParamsAsString => queryParamsAsString.split('='))
+    const queryParamsMap = uri
+      .slice(uri.indexOf('?') + 1)
+      .split('&')
+      .map((queryParamsAsString) => queryParamsAsString.split('='))
       // Convert in a map to group query params with the same key (it can happens when sending an array), for the example:
       // {
       //   type: ['monthly'],

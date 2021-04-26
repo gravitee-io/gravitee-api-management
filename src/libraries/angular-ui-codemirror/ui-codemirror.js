@@ -3,9 +3,7 @@
 /**
  * Binds a CodeMirror widget to a <textarea> element.
  */
-angular.module('ui.codemirror', [])
-  .constant('uiCodemirrorConfig', {})
-  .directive('uiCodemirror', uiCodemirrorDirective);
+angular.module('ui.codemirror', []).constant('uiCodemirrorConfig', {}).directive('uiCodemirror', uiCodemirrorDirective);
 
 /**
  * @ngInject
@@ -21,24 +19,20 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
       }
 
       return postLink;
-    }
+    },
   };
 
   function postLink(scope, iElement, iAttrs, ngModel) {
     const codemirrorOptions = angular.extend(
-      {value: iElement.text()},
+      { value: iElement.text() },
       uiCodemirrorConfig.codemirror || {},
       scope.$eval(iAttrs.uiCodemirror),
-      scope.$eval(iAttrs.uiCodemirrorOpts)
+      scope.$eval(iAttrs.uiCodemirrorOpts),
     );
 
     const codemirror = newCodemirrorEditor(iElement, codemirrorOptions);
 
-    configOptionsWatcher(
-      codemirror,
-      iAttrs.uiCodemirror || iAttrs.uiCodemirrorOpts,
-      scope
-    );
+    configOptionsWatcher(codemirror, iAttrs.uiCodemirror || iAttrs.uiCodemirrorOpts, scope);
 
     configNgModelLink(codemirror, ngModel, scope);
 
@@ -68,9 +62,9 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
       codemirrot = window.CodeMirror.fromTextArea(iElement[0], codemirrorOptions);
     } else {
       iElement.html('');
-      codemirrot = new window.CodeMirror((cm_el => {
+      codemirrot = new window.CodeMirror((cm_el) => {
         iElement.append(cm_el);
-      }), codemirrorOptions);
+      }, codemirrorOptions);
     }
 
     return codemirrot;
@@ -87,7 +81,7 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
       if (!angular.isObject(newValues)) {
         return;
       }
-      codemirrorDefaultsKeys.forEach(key => {
+      codemirrorDefaultsKeys.forEach((key) => {
         if (newValues.hasOwnProperty(key)) {
           if (oldValue && newValues[key] === oldValue[key]) {
             return;
@@ -105,10 +99,11 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
     }
     // CodeMirror expects a string, so make sure it gets one.
     // This does not change the model.
-    ngModel.$formatters.push(value => {
+    ngModel.$formatters.push((value) => {
       if (angular.isUndefined(value) || value === null) {
         return '';
-      } if (angular.isObject(value) || angular.isArray(value)) {
+      }
+      if (angular.isObject(value) || angular.isArray(value)) {
         throw new Error('ui-codemirror cannot use an object or an array as a model');
       }
       return value;
@@ -124,7 +119,7 @@ function uiCodemirrorDirective($timeout, uiCodemirrorConfig) {
     };
 
     // Keep the ngModel in sync with changes from CodeMirror
-    codemirror.on('change', instance => {
+    codemirror.on('change', (instance) => {
       const newValue = instance.getValue();
       if (newValue !== ngModel.$viewValue) {
         scope.$evalAsync(() => {

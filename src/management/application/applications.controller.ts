@@ -36,7 +36,7 @@ class ApplicationsController {
     private $state: StateService,
     private ApplicationService: ApplicationService,
     private $mdDialog: angular.material.IDialogService,
-    private NotificationService: NotificationService
+    private NotificationService: NotificationService,
   ) {
     'ngInject';
     this.selectedApplications = [];
@@ -56,10 +56,11 @@ class ApplicationsController {
     this.currentTab = this.tabs[this.selectedTabIdx];
   }
 
-  isAdmin = () => this.UserService.currentUser.roles.some(role => role.scope === 'ENVIRONMENT' && role.name === 'ADMIN');
+  isAdmin = () => this.UserService.currentUser.roles.some((role) => role.scope === 'ENVIRONMENT' && role.name === 'ADMIN');
 
   loadMore = function (order, searchApplications, showNext) {
-    const doNotLoad = showNext && (this.applications && this.applications.length) === (this.applicationsToDisplay && this.applicationsToDisplay.length);
+    const doNotLoad =
+      showNext && (this.applications && this.applications.length) === (this.applicationsToDisplay && this.applicationsToDisplay.length);
     if (!doNotLoad && this.applications && this.applications.length) {
       let applications = _.clone(this.applications);
       if (searchApplications) {
@@ -81,39 +82,43 @@ class ApplicationsController {
     this.selectedApplications = [];
     this.applications = [];
     this.applicationsToDisplay = [];
-    this.ApplicationService.list(this.currentTab).then(applications => {
-      this.applications = applications.data;
-      this.searchApplications = '';
-    })
-      .finally(() => this.loading = false);
+    this.ApplicationService.list(this.currentTab)
+      .then((applications) => {
+        this.applications = applications.data;
+        this.searchApplications = '';
+      })
+      .finally(() => (this.loading = false));
   }
 
   showRestoreConfirm(ev, applicationId: string, applicationName: string) {
     ev.stopPropagation();
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Would you like to restore the application "' + applicationName + '"?',
-        confirmButton: 'Restore',
-        msg: 'Every subscription belonging to this application will be restored in PENDING status. Subscriptions can be reactivated as per requirements.'
-      }
-    }).then(function(response) {
-      if (response) {
-        that.restoreApplication(applicationId);
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Would you like to restore the application "' + applicationName + '"?',
+          confirmButton: 'Restore',
+          msg:
+            'Every subscription belonging to this application will be restored in PENDING status. Subscriptions can be reactivated as per requirements.',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          that.restoreApplication(applicationId);
+        }
+      });
   }
 
   restoreApplication(application: string) {
     this.ApplicationService.restore(application).then((response) => {
-      this.applications = this.applications.filter(app => app.id !== application);
-      this.applicationsToDisplay = this.applicationsToDisplay.filter(app => app.id !== application);
+      this.applications = this.applications.filter((app) => app.id !== application);
+      this.applicationsToDisplay = this.applicationsToDisplay.filter((app) => app.id !== application);
       this.NotificationService.show('Application ' + response.data.name + ' has been restored');
-      this.$state.go('management.applications.application.subscriptions.list', {applicationId: application}, {reload: true});
+      this.$state.go('management.applications.application.subscriptions.list', { applicationId: application }, { reload: true });
     });
   }
 }

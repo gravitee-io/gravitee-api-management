@@ -36,16 +36,15 @@ export const NavbarComponent: ng.IComponentOptions = {
     $transitions,
     $interval: IIntervalService,
     AuthenticationService: AuthenticationService,
-    $window
+    $window,
   ) {
     'ngInject';
 
     const vm = this;
 
     vm.refreshUser = (user) => {
-      vm.newsletterProposed = (user && !user.firstLogin)
-        || !!$window.localStorage.getItem('newsletterProposed')
-        || !Constants.org.settings.newsletter.enabled;
+      vm.newsletterProposed =
+        (user && !user.firstLogin) || !!$window.localStorage.getItem('newsletterProposed') || !Constants.org.settings.newsletter.enabled;
     };
 
     vm.$state = $state;
@@ -53,7 +52,7 @@ export const NavbarComponent: ng.IComponentOptions = {
     vm.$rootScope = $rootScope;
     vm.displayContextualDocumentationButton = false;
     vm.visible = true;
-    vm.localLoginDisabled = (!Constants.org.settings.authentication.localLogin.enabled) || false;
+    vm.localLoginDisabled = !Constants.org.settings.authentication.localLogin.enabled || false;
     vm.refreshUser(UserService.currentUser);
 
     $scope.$on('graviteePortalUrlRefresh', (event, portalURL) => {
@@ -61,7 +60,6 @@ export const NavbarComponent: ng.IComponentOptions = {
     });
 
     $scope.$on('graviteeUserRefresh', (event, { user, refresh }) => {
-
       if (refresh) {
         UserService.current()
           .then((user) => {
@@ -107,8 +105,7 @@ export const NavbarComponent: ng.IComponentOptions = {
         !trans.to().name.startsWith('confirm') &&
         !trans.to().name.startsWith('user');
 
-      vm.visible = (trans.to().name !== 'login' &&
-        trans.to().name !== 'registration' && trans.to().name !== 'confirm');
+      vm.visible = trans.to().name !== 'login' && trans.to().name !== 'registration' && trans.to().name !== 'confirm';
     });
 
     vm.$onInit = function () {
@@ -185,5 +182,5 @@ export const NavbarComponent: ng.IComponentOptions = {
         }
       });
     };
-  }
+  },
 };

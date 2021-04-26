@@ -15,10 +15,10 @@
  */
 const InstancesComponent: ng.IComponentOptions = {
   bindings: {
-    instances: '<'
+    instances: '<',
   },
   controller: 'InstancesController',
-  template: require('./instances.html')
+  template: require('./instances.html'),
 };
 
 export default InstancesComponent;

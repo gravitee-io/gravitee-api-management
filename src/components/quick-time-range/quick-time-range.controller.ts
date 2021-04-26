@@ -20,8 +20,7 @@ class QuickTimeRangeController {
   private timeframes: ITimeframe[];
   private onTimeframeChange: any;
 
-  constructor(
-  ) {
+  constructor() {
     'ngInject';
 
     this.timeframes = [
@@ -38,7 +37,7 @@ class QuickTimeRangeController {
   }
 
   updateTimeframe() {
-    this.onTimeframeChange({timeframe: this.timeframe});
+    this.onTimeframeChange({ timeframe: this.timeframe });
   }
 }
 

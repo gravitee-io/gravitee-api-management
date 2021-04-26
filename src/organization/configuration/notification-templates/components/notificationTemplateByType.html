@@ -20,21 +20,22 @@
     <form name="$ctrl.notifTemplateForm">
       <div class="gv-form-content" layout="column">
         <h3>{{$ctrl.notifTemplate.description}}</h3>
-        <p ng-if="$ctrl.isTemplateToInclude">To include this template in another template, use
-          <code>&lt;#include "{{$ctrl.notifTemplate.name}}" /&gt;</code></p>
+        <p ng-if="$ctrl.isTemplateToInclude">
+          To include this template in another template, use <code>&lt;#include "{{$ctrl.notifTemplate.name}}" /&gt;</code>
+        </p>
         <div layout="column">
           <div layout="row">
             <md-input-container class="md-block" flex-gt-sm>
-              <md-switch ng-model="$ctrl.overrideModeEnabled" aria-label="Override default template">
-                Override default template
-              </md-switch>
+              <md-switch ng-model="$ctrl.overrideModeEnabled" aria-label="Override default template"> Override default template </md-switch>
             </md-input-container>
           </div>
 
           <md-input-container class="md-block" flex-gt-sm ng-if="!$ctrl.isTemplateToInclude">
             <label>Title</label>
-            <input name="title" ng-model="$ctrl.notifTemplate.title" required type="text" ng-disabled="!$ctrl.overrideModeEnabled">
-            <div class="hint" ng-if="$ctrl.notifTemplateForm.title.$valid || $ctrl.notifTemplateForm.title.$pristine">Title of the notification</div>
+            <input name="title" ng-model="$ctrl.notifTemplate.title" required type="text" ng-disabled="!$ctrl.overrideModeEnabled" />
+            <div class="hint" ng-if="$ctrl.notifTemplateForm.title.$valid || $ctrl.notifTemplateForm.title.$pristine">
+              Title of the notification
+            </div>
             <div ng-messages="$ctrl.notifTemplateForm.title.$error">
               <div ng-message="required">Notification title is required.</div>
             </div>
@@ -42,12 +43,17 @@
 
           <md-input-container ng-class="{'gv-notification-template-content-disabled': !$ctrl.overrideModeEnabled}">
             <label>Content</label>
-            <textarea ui-codemirror ui-codemirror-opts="{lineWrapping: true, readOnly: ($ctrl.overrideModeEnabled ? false : 'nocursor')}"
-                      ng-model="$ctrl.notifTemplate.content"
-                      required>
+            <textarea
+              ui-codemirror
+              ui-codemirror-opts="{lineWrapping: true, readOnly: ($ctrl.overrideModeEnabled ? false : 'nocursor')}"
+              ng-model="$ctrl.notifTemplate.content"
+              required
+            >
             </textarea>
 
-            <div class="hint" ng-if="$ctrl.notifTemplateForm.content.$valid || $ctrl.notifTemplateForm.content.$pristine">Content of the notification</div>
+            <div class="hint" ng-if="$ctrl.notifTemplateForm.content.$valid || $ctrl.notifTemplateForm.content.$pristine">
+              Content of the notification
+            </div>
             <div ng-messages="$ctrl.notifTemplateForm.content.$error">
               <div ng-message="required">Notification content is required.</div>
             </div>
@@ -56,19 +62,26 @@
 
         <md-card-action layout="row">
           <div class="md-actions gravitee-api-save-button" layout="row">
-            <md-button ng-disabled="$ctrl.notifTemplateForm.$invalid || $ctrl.notifTemplateForm.$pristine"
-                       ng-click="$ctrl.save()"
-                       permission permission-only="['organization-notification_templates-u']"
-                       class="md-raised md-primary">
+            <md-button
+              ng-disabled="$ctrl.notifTemplateForm.$invalid || $ctrl.notifTemplateForm.$pristine"
+              ng-click="$ctrl.save()"
+              permission
+              permission-only="['organization-notification_templates-u']"
+              class="md-raised md-primary"
+            >
               Save
             </md-button>
-            <md-button class="md-raised" type="button" ng-click="$ctrl.reset()" ng-disabled="$ctrl.notifTemplateForm.$invalid || $ctrl.notifTemplateForm.$pristine">
+            <md-button
+              class="md-raised"
+              type="button"
+              ng-click="$ctrl.reset()"
+              ng-disabled="$ctrl.notifTemplateForm.$invalid || $ctrl.notifTemplateForm.$pristine"
+            >
               Reset
             </md-button>
           </div>
         </md-card-action>
       </div>
-
     </form>
   </div>
 </div>

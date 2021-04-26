@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import {ApiMetrics} from '../../../../entities/alerts/api.metrics';
+import { ApiMetrics } from '../../../../entities/alerts/api.metrics';
 
 const AlertTriggerApplicationQuotaComponent: ng.IComponentOptions = {
   bindings: {
-    alert: '<'
+    alert: '<',
   },
   require: {
-    parent: '^alertComponent'
+    parent: '^alertComponent',
   },
   template: require('./trigger-application-quota.html'),
-  controller: function() {
+  controller: function () {
     'ngInject';
 
     this.$onInit = () => {
@@ -32,17 +32,19 @@ const AlertTriggerApplicationQuotaComponent: ng.IComponentOptions = {
 
       // New alert, initialize it with the condition model
       if (this.alert.id === undefined) {
-        this.alert.conditions = [{
-          'type': 'COMPARE',
-          'operator': 'GTE',
-          'property': 'quota.counter',
-          'property2': 'quota.limit',
-        }];
+        this.alert.conditions = [
+          {
+            type: 'COMPARE',
+            operator: 'GTE',
+            property: 'quota.counter',
+            property2: 'quota.limit',
+          },
+        ];
 
         this.alert.dampening = {
-          'mode': 'strict_count',
-          'trueEvaluations': 1,
-          'totalEvaluations': 1
+          mode: 'strict_count',
+          trueEvaluations: 1,
+          totalEvaluations: 1,
         };
       }
 
@@ -52,7 +54,7 @@ const AlertTriggerApplicationQuotaComponent: ng.IComponentOptions = {
     this.calculateMultiplier = () => {
       this.alert.conditions[0].multiplier = this.threshold / 100;
     };
-  }
+  },
 };
 
 export default AlertTriggerApplicationQuotaComponent;

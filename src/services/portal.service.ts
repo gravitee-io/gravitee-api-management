@@ -15,7 +15,6 @@
  */
 
 class PortalService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }

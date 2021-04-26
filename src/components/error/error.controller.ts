@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class ErrorController {
-
   private error: Object;
 
   constructor() {
@@ -42,7 +41,6 @@ class ErrorController {
   hasErrors = function () {
     return this.title != null || (this.messages != null && this.messages.length > 0);
   };
-
 }
 
 export default ErrorController;

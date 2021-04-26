@@ -22,7 +22,6 @@ export class TicketsQuery {
 }
 
 class TicketService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }

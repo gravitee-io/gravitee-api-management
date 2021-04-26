@@ -29,8 +29,17 @@
           <h3></h3>
           <md-input-container class="md-block">
             <label>Name</label>
-            <input ng-model="groupCtrl.group.name" name="groupName" type="text" required ng-change="groupCtrl.checkEndpointNameUniqueness()" ng-pattern="/^[^:]*$/">
-            <div class="hint" style="color:rgb(221,44,0);" ng-if="duplicateEndpointNames">This name is used by another endpoint and/or an endpoint group.</div>
+            <input
+              ng-model="groupCtrl.group.name"
+              name="groupName"
+              type="text"
+              required
+              ng-change="groupCtrl.checkEndpointNameUniqueness()"
+              ng-pattern="/^[^:]*$/"
+            />
+            <div class="hint" style="color: rgb(221, 44, 0)" ng-if="duplicateEndpointNames">
+              This name is used by another endpoint and/or an endpoint group.
+            </div>
             <div ng-messages="formGroup.groupName.$error">
               <div ng-message="pattern">Group name does not support <code>:</code> in its name.</div>
             </div>
@@ -38,9 +47,7 @@
           <md-input-container class="md-block">
             <label>Load balancing algorithm</label>
             <md-select ng-model="groupCtrl.group.load_balancing.type">
-              <md-option ng-repeat="lb in lbs" value="{{lb.value}}">
-                {{lb.name}}
-              </md-option>
+              <md-option ng-repeat="lb in lbs" value="{{lb.value}}"> {{lb.name}} </md-option>
             </md-select>
           </md-input-container>
         </md-tab-body>
@@ -54,7 +61,8 @@
       </md-tab>
 
       <md-tab>
-        <md-tab-label>Service Discovery
+        <md-tab-label
+          >Service Discovery
           <span ng-switch on="groupCtrl.discovery.enabled">
             <span class="proxy-activated" ng-switch-when="true">(active)</span>
             <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
@@ -63,25 +71,35 @@
         </md-tab-label>
         <md-tab-body>
           <h3></h3>
-          <md-checkbox ng-model="groupCtrl.discovery.enabled" aria-label="Enable service discovery"
-                       ng-disabled="!groupCtrl.types || groupCtrl.types.length === 0" flex>Enabled service discovery
+          <md-checkbox
+            ng-model="groupCtrl.discovery.enabled"
+            aria-label="Enable service discovery"
+            ng-disabled="!groupCtrl.types || groupCtrl.types.length === 0"
+            flex
+            >Enabled service discovery
             <div class="ipsum">By enabling service discovery, endpoints will be dynamically added or removed (without downtime).</div>
           </md-checkbox>
           <div ng-show="groupCtrl.discovery.enabled">
             <md-content layout="column">
               <md-input-container class="md-block" flex-gt-xs>
                 <label>Type</label>
-                <md-select ng-model="groupCtrl.discovery.provider" placeholder="Type" ng-required="groupCtrl.discovery.enabled"
-                           ng-change="groupCtrl.onTypeChange()">
+                <md-select
+                  ng-model="groupCtrl.discovery.provider"
+                  placeholder="Type"
+                  ng-required="groupCtrl.discovery.enabled"
+                  ng-change="groupCtrl.onTypeChange()"
+                >
                   <md-option ng-repeat="type in groupCtrl.types" ng-value="type.id">{{type.name}}</md-option>
                 </md-select>
               </md-input-container>
-              <div ng-form="groupCtrl.serviceDiscoveryConfigurationForm"
-                    sf-schema="groupCtrl.serviceDiscoveryJsonSchema"
-                    sf-form="groupCtrl.serviceDiscoveryJsonSchemaForm"
-                    sf-model="groupCtrl.discovery.configuration"
-                    sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }" novalidate>
-              </div>
+              <div
+                ng-form="groupCtrl.serviceDiscoveryConfigurationForm"
+                sf-schema="groupCtrl.serviceDiscoveryJsonSchema"
+                sf-form="groupCtrl.serviceDiscoveryJsonSchemaForm"
+                sf-model="groupCtrl.discovery.configuration"
+                sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }"
+                novalidate
+              ></div>
             </md-content>
           </div>
         </md-tab-body>
@@ -89,12 +107,23 @@
     </md-tabs>
 
     <div class="md-actions gravitee-api-save-button" layout="row">
-      <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit"
-                 ng-disabled="duplicateEndpointNames || groupCtrl.serviceDiscoveryConfigurationForm.$invalid || formGroup.$invalid || formGroup.$pristine">
+      <md-button
+        permission
+        permission-only="'api-definition-u'"
+        class="md-raised md-primary"
+        type="submit"
+        ng-disabled="duplicateEndpointNames || groupCtrl.serviceDiscoveryConfigurationForm.$invalid || formGroup.$invalid || formGroup.$pristine"
+      >
         Save
       </md-button>
-      <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button"
-                 ng-click="groupCtrl.reset()" ng-disabled="formGroup.$pristine">
+      <md-button
+        permission
+        permission-only="'api-definition-u'"
+        class="md-raised"
+        type="button"
+        ng-click="groupCtrl.reset()"
+        ng-disabled="formGroup.$pristine"
+      >
         Reset
       </md-button>
     </div>

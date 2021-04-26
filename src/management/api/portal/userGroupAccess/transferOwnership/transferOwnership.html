@@ -30,7 +30,13 @@
       <p ng-if="apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isUserOnly()">Give full access to this API to another user.</p>
       <p ng-if="apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isGroupOnly()">Give full access to this API to another group.</p>
       <div layout="column" flex>
-        <div layout="row " layout-align="center center" layout-padding="5px" flex ng-if="apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isHybrid() && apiTransferOwnershipCtrl.poGroups && apiTransferOwnershipCtrl.poGroups.length > 0">
+        <div
+          layout="row "
+          layout-align="center center"
+          layout-padding="5px"
+          flex
+          ng-if="apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isHybrid() && apiTransferOwnershipCtrl.poGroups && apiTransferOwnershipCtrl.poGroups.length > 0"
+        >
           <md-radio-group ng-model="apiTransferOwnershipCtrl.useGroupAsPrimaryOwner" flex>
             <div layout="row" layout-align="start center">
               <md-radio-button ng-value="false" aria-label="false" style="margin-bottom: initial"></md-radio-button>
@@ -60,7 +66,13 @@
             </div>
           </md-radio-group>
         </div>
-        <div layout="row " layout-align="center center" layout-padding="5px" flex ng-if="(apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isHybrid() && !(apiTransferOwnershipCtrl.poGroups && apiTransferOwnershipCtrl.poGroups.length > 0)) || apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isUserOnly()">
+        <div
+          layout="row "
+          layout-align="center center"
+          layout-padding="5px"
+          flex
+          ng-if="(apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isHybrid() && !(apiTransferOwnershipCtrl.poGroups && apiTransferOwnershipCtrl.poGroups.length > 0)) || apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isUserOnly()"
+        >
           <gv-user-autocomplete
             users-selected="apiTransferOwnershipCtrl.usersSelected"
             place-holder="'Select a user'"
@@ -71,7 +83,13 @@
           >
           </gv-user-autocomplete>
         </div>
-        <div layout="row " layout-align="center center" layout-padding="5px" flex ng-if="apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isGroupOnly() && apiTransferOwnershipCtrl.poGroups && apiTransferOwnershipCtrl.poGroups.length > 0">
+        <div
+          layout="row "
+          layout-align="center center"
+          layout-padding="5px"
+          flex
+          ng-if="apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isGroupOnly() && apiTransferOwnershipCtrl.poGroups && apiTransferOwnershipCtrl.poGroups.length > 0"
+        >
           <md-input-container flex>
             <label>Primary Owner Group</label>
             <md-select
@@ -83,7 +101,13 @@
             </md-select>
           </md-input-container>
         </div>
-        <div layout="row " layout-align="center center" layout-padding="5px" flex ng-if="apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isGroupOnly() && !(apiTransferOwnershipCtrl.poGroups && apiTransferOwnershipCtrl.poGroups.length > 0)">
+        <div
+          layout="row "
+          layout-align="center center"
+          layout-padding="5px"
+          flex
+          ng-if="apiTransferOwnershipCtrl.ApiPrimaryOwnerModeService.isGroupOnly() && !(apiTransferOwnershipCtrl.poGroups && apiTransferOwnershipCtrl.poGroups.length > 0)"
+        >
           <md-input-container flex>
             <div>You must belong to at least one group with an API primary owner member (which is not the current primary owner).</div>
           </md-input-container>
@@ -102,7 +126,7 @@
           ng-disabled="!(apiTransferOwnershipCtrl.usersSelected && apiTransferOwnershipCtrl.usersSelected[0]) && !apiTransferOwnershipCtrl.newPrimaryOwnerGroup"
           class="md-primary md-raised"
           ng-click="apiTransferOwnershipCtrl.showTransferOwnershipConfirm($event)"
-        >Transfer</md-button
+          >Transfer</md-button
         >
       </div>
     </div>

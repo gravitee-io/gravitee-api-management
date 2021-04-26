@@ -26,7 +26,6 @@ import EnvironmentService from './environment.service';
 import { IHttpResponse } from 'angular';
 
 class UserService {
-
   /**
    * Current authenticated user or empty user if not authenticated.
    */
@@ -34,20 +33,22 @@ class UserService {
   private routerInitialized: boolean = false;
   private isLogout: boolean = false;
 
-  constructor(private $http: ng.IHttpService,
-              private $q: ng.IQService,
-              private Constants,
-              private RoleService: RoleService,
-              private PermPermissionStore,
-              private $urlService: UrlService,
-              private ApplicationService: ApplicationService,
-              private ApiService: ApiService,
-              private EnvironmentService: EnvironmentService,
-              private $location,
-              private $cookies,
-              private $window,
-              private StringService: StringService,
-              private Base64Service: Base64Service) {
+  constructor(
+    private $http: ng.IHttpService,
+    private $q: ng.IQService,
+    private Constants,
+    private RoleService: RoleService,
+    private PermPermissionStore,
+    private $urlService: UrlService,
+    private ApplicationService: ApplicationService,
+    private ApiService: ApiService,
+    private EnvironmentService: EnvironmentService,
+    private $location,
+    private $cookies,
+    private $window,
+    private StringService: StringService,
+    private Base64Service: Base64Service,
+  ) {
     'ngInject';
   }
 
@@ -62,7 +63,7 @@ class UserService {
   }
 
   get(code: string): ng.IPromise<User> {
-    return this.$http.get(`${this.Constants.org.baseURL}/users/` + code).then(response => Object.assign(new User(), response.data));
+    return this.$http.get(`${this.Constants.org.baseURL}/users/` + code).then((response) => Object.assign(new User(), response.data));
   }
 
   remove(userId: string): ng.IPromise<any> {
@@ -108,7 +109,7 @@ class UserService {
   refreshEnvironmentPermissions(): ng.IPromise<User> {
     let that = this;
 
-    return this.EnvironmentService.getPermissions(this.Constants.org.currentEnv.id).then(response => {
+    return this.EnvironmentService.getPermissions(this.Constants.org.currentEnv.id).then((response) => {
       that.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(response);
       return this.$q.resolve<User>(that.currentUser);
     });
@@ -117,10 +118,12 @@ class UserService {
   current(): ng.IPromise<User> {
     let that = this;
     if (!this.currentUser || !this.currentUser.authenticated) {
-      const promises: ng.IPromise<IHttpResponse<any>>[] = [this.$http.get(`${this.Constants.org.baseURL}/user/`, {
-        silentCall: true,
-        forceSessionExpired: true
-      } as ng.IRequestShortcutConfig)];
+      const promises: ng.IPromise<IHttpResponse<any>>[] = [
+        this.$http.get(`${this.Constants.org.baseURL}/user/`, {
+          silentCall: true,
+          forceSessionExpired: true,
+        } as ng.IRequestShortcutConfig),
+      ];
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       let applicationId = applicationRegex.exec(this.$location.$$path);
@@ -140,8 +143,9 @@ class UserService {
         promises.push(this.EnvironmentService.getPermissions(environmentId[1]));
       }
 
-      return this.$q.all(promises)
-        .then(response => {
+      return this.$q
+        .all(promises)
+        .then((response) => {
           that.currentUser = Object.assign(new User(), response[0].data);
 
           that.currentUser.userPermissions = [];
@@ -183,12 +187,14 @@ class UserService {
 
           that.currentUser.authenticated = true;
           return this.$q.resolve<User>(that.currentUser);
-        }).catch((error) => {
+        })
+        .catch((error) => {
           // Returns an unauthenticated user
           this.currentUser = new User();
           this.currentUser.authenticated = false;
           return this.$q.resolve<User>(this.currentUser);
-        }).finally(() => {
+        })
+        .finally(() => {
           if (!that.routerInitialized) {
             that.$urlService.sync();
             that.$urlService.listen();
@@ -214,24 +220,30 @@ class UserService {
       });
 
       this.PermPermissionStore.defineManyPermissions(allPermissions, (permissionName) => {
-        return _.includes(this.currentUser.userPermissions, permissionName) ||
+        return (
+          _.includes(this.currentUser.userPermissions, permissionName) ||
           _.includes(this.currentUser.userEnvironmentPermissions, permissionName) ||
           _.includes(this.currentUser.userApiPermissions, permissionName) ||
-          _.includes(this.currentUser.userApplicationPermissions, permissionName);
+          _.includes(this.currentUser.userApplicationPermissions, permissionName)
+        );
       });
     });
   }
 
   isAuthenticated(): boolean {
-    return (this.currentUser !== undefined && this.currentUser.id !== undefined);
+    return this.currentUser !== undefined && this.currentUser.id !== undefined;
   }
 
   login(user): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.org.baseURL}/user/login`, {}, {
-      headers: {
-        Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`
-      }
-    });
+    return this.$http.post(
+      `${this.Constants.org.baseURL}/user/login`,
+      {},
+      {
+        headers: {
+          Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`,
+        },
+      },
+    );
   }
 
   logout(): ng.IPromise<any> {
@@ -278,7 +290,7 @@ class UserService {
       email: user.email,
       firstname: user.firstname,
       lastname: user.lastname,
-      customFields: user.customFields
+      customFields: user.customFields,
     });
   }
 
@@ -312,7 +324,7 @@ class UserService {
       user,
       referenceId,
       referenceType,
-      roles
+      roles,
     });
   }
 
@@ -327,14 +339,14 @@ class UserService {
 
     let permissions = [] as string[];
 
-    response.data.forEach(envWithPermissions => {
-      Object.keys(envWithPermissions.permissions).forEach(permission => {
-        envWithPermissions.permissions[permission].forEach(right => {
-            let permissionName = `ENVIRONMENT-${permission}-${right}`.toLowerCase();
-            permissions.push(permissionName);
-          });
+    response.data.forEach((envWithPermissions) => {
+      Object.keys(envWithPermissions.permissions).forEach((permission) => {
+        envWithPermissions.permissions[permission].forEach((right) => {
+          let permissionName = `ENVIRONMENT-${permission}-${right}`.toLowerCase();
+          permissions.push(permissionName);
         });
       });
+    });
 
     return permissions;
   }

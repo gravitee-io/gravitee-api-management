@@ -18,10 +18,10 @@ require('@gravitee/ui-components/wc/gv-chart-pie');
 const WidgetChartPieComponent: ng.IComponentOptions = {
   template: require('./widget-chart-pie.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
   controller: function widgetChartPieController($scope, $element) {
     'ngInject';
@@ -30,22 +30,21 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
       $scope.$on('onWidgetResize', this.onResize.bind(this));
     };
 
-    this.$onChanges = function(changes) {
+    this.$onChanges = function (changes) {
       if (changes.data) {
-
         this.gvChartPie = $element.children()[0];
         this.options = {
           name: this.parent.widget.title,
           data: Object.keys(changes.data.currentValue.values || {}).map((label, idx) => {
             return {
               name: this.parent.widget.chart.label ? this.parent.widget.chart.label[idx] : label,
-              color: this.parent.widget.chart.colors[idx]
+              color: this.parent.widget.chart.colors[idx],
             };
-          })
+          }),
         };
 
         let series = {
-          values: changes.data.currentValue ? changes.data.currentValue.values : {}
+          values: changes.data.currentValue ? changes.data.currentValue.values : {},
         };
 
         // Send data to gv-chart-pie
@@ -62,7 +61,7 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
       };
       this.gvChartPie.setAttribute('options', JSON.stringify(this.options));
     };
-  }
+  },
 };
 
 export default WidgetChartPieComponent;

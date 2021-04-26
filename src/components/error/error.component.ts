@@ -17,9 +17,8 @@ const ErrorComponent: ng.IComponentOptions = {
   template: require('./error.html'),
   controller: 'errorCtrl',
   bindings: {
-    error: '<'
-  }
+    error: '<',
+  },
 };
-
 
 export default ErrorComponent;

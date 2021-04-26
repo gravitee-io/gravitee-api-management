@@ -19,8 +19,8 @@ const HealthCheckMetricComponent: ng.IComponentOptions = {
   template: require('./healthcheck-metric.html'),
   bindings: {
     availability: '<',
-    responsetime: '<'
-  }
+    responsetime: '<',
+  },
 };
 
 export default HealthCheckMetricComponent;

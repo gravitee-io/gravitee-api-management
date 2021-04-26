@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 const CircularPercentageComponent: ng.IComponentOptions = {
-    bindings: {
-      score: '<'
-    },
-    controller: 'CircularPercentageController',
-    template: require('./circularPercentage.html')
-  };
+  bindings: {
+    score: '<',
+  },
+  controller: 'CircularPercentageController',
+  template: require('./circularPercentage.html'),
+};
 
-  export default CircularPercentageComponent;
-
+export default CircularPercentageComponent;

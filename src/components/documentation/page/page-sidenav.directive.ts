@@ -24,21 +24,20 @@ interface IMyScope extends ng.IScope {
 }
 
 class PageSidenavController {
-  constructor (private $timeout: ng.ITimeoutService, private $document, private $window) {
+  constructor(private $timeout: ng.ITimeoutService, private $document, private $window) {
     'ngInject';
   }
 }
 
-const PageSidenavDirective: ng.IDirective = ({
+const PageSidenavDirective: ng.IDirective = {
   restrict: 'E',
   scope: {
     page: '=',
-    offset: '<'
+    offset: '<',
   },
   template: require('./page-sidenav.html'),
-  link: function (scope: IMyScope, elem, attr, ctr: {$timeout: ng.ITimeoutService, $window, $document}) {
-
-    if (! scope.offset) {
+  link: function (scope: IMyScope, elem, attr, ctr: { $timeout: ng.ITimeoutService; $window; $document }) {
+    if (!scope.offset) {
       scope.offset = 60;
     }
 
@@ -83,21 +82,17 @@ const PageSidenavDirective: ng.IDirective = ({
 
         scope.anchors = _.map(h2Elements, function (elt) {
           elt.id = elt.textContent.replace(new RegExp(' ', 'g'), '').toLowerCase();
-          return {id: elt.id, title: elt.textContent, elt: elt};
+          return { id: elt.id, title: elt.textContent, elt: elt };
         });
 
         scope.scrollTo = function (anchor) {
           let scrollElt = anchor;
-          ctr.$document
-            .scrollToElementAnimated(scrollElt, 54)
-            .catch(function () {
-            });
+          ctr.$document.scrollToElementAnimated(scrollElt, 54).catch(function () {});
         };
       }
-
     }, 200);
   },
-  controller: PageSidenavController
-});
+  controller: PageSidenavController,
+};
 
 export default PageSidenavDirective;

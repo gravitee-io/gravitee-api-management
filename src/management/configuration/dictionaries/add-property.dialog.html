@@ -16,26 +16,22 @@
 
 -->
 <md-dialog aria-label="New property">
-    <form name="formDictionaryProperty" ng-submit="dialogDictionaryAddPropertyCtrl.save()" novalidate>
-        <md-dialog-content layout-padding>
-            <h4>New property</h4>
-                <md-input-container>
-                    <label>Name</label>
-                    <input ng-model="property.name" id="key" required>
-                </md-input-container>
-                <md-input-container>
-                    <label>Value</label>
-                    <input ng-model="property.value" id="value" required>
-                </md-input-container>
-        </md-dialog-content>
+  <form name="formDictionaryProperty" ng-submit="dialogDictionaryAddPropertyCtrl.save()" novalidate>
+    <md-dialog-content layout-padding>
+      <h4>New property</h4>
+      <md-input-container>
+        <label>Name</label>
+        <input ng-model="property.name" id="key" required />
+      </md-input-container>
+      <md-input-container>
+        <label>Value</label>
+        <input ng-model="property.value" id="value" required />
+      </md-input-container>
+    </md-dialog-content>
 
-        <md-dialog-actions layout="row">
-            <md-button ng-click="dialogDictionaryAddPropertyCtrl.hide()">
-                Cancel
-            </md-button>
-            <md-button type="submit" class="md-raised md-primary" ng-disabled="formDictionaryProperty.$invalid">
-                Add
-            </md-button>
-        </md-dialog-actions>
-    </form>
+    <md-dialog-actions layout="row">
+      <md-button ng-click="dialogDictionaryAddPropertyCtrl.hide()"> Cancel </md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formDictionaryProperty.$invalid"> Add </md-button>
+    </md-dialog-actions>
+  </form>
 </md-dialog>

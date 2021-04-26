@@ -34,14 +34,12 @@ import GvModelDirective from '../libraries/gv-model.directive';
 import ApiService from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisController from '../management/api/apis.controller';
-import ApisStatusDashboardController
-  from '../management/dashboard/apis-status-dashboard/apis-status-dashboard.controller';
+import ApisStatusDashboardController from '../management/dashboard/apis-status-dashboard/apis-status-dashboard.controller';
 import ApiPortalController from '../management/api/portal/general/apiPortal.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
 import ApiAnalyticsController from '../management/api/analytics/overview/analytics.controller';
 import ApiMembersController from '../management/api/portal/userGroupAccess/members/members.controller';
-import ApiTransferOwnershipController
-  from '../management/api/portal/userGroupAccess/transferOwnership/transferOwnership.controller';
+import ApiTransferOwnershipController from '../management/api/portal/userGroupAccess/transferOwnership/transferOwnership.controller';
 import ApiPoliciesController from '../management/api/design/policies/policies.controller';
 import ApiEndpointController from '../management/api/proxy/backend/endpoint/endpointConfiguration.controller';
 import ApiEndpointGroupController from '../management/api/proxy/backend/endpoint/group.controller';
@@ -54,8 +52,7 @@ import ApiEventsController from '../management/api/audit/events/apiEvents.contro
 import ApiHistoryController from '../management/api/audit/history/apiHistory.controller';
 import DialogAddPropertyController from '../management/api/design/properties/add-property.dialog.controller';
 import DialogAddMemberApiController from '../management/api/portal/userGroupAccess/members/addMemberDialog.controller';
-import DialogTransferApiController
-  from '../management/api/portal/userGroupAccess/transferOwnership/transferAPIDialog.controller';
+import DialogTransferApiController from '../management/api/portal/userGroupAccess/transferOwnership/transferAPIDialog.controller';
 import DialogApiKeyExpirationController from './api/portal/subscriptions/dialog/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
@@ -99,8 +96,7 @@ import ApiListPlansComponent from '../management/api/portal/plans/list-plans.com
 import ApiListPlansController from '../management/api/portal/plans/list-plans.controller';
 import ApiEditPlanWizardGeneralComponent from '../management/api/portal/plans/plan/plan-wizard-general.component';
 import ApiEditPlanWizardSecurityComponent from '../management/api/portal/plans/plan/plan-wizard-security.component';
-import ApiEditPlanWizardRestrictionsComponent
-  from '../management/api/portal/plans/plan/plan-wizard-restrictions.component';
+import ApiEditPlanWizardRestrictionsComponent from '../management/api/portal/plans/plan/plan-wizard-restrictions.component';
 import ApiEditPlanWizardPoliciesComponent from '../management/api/portal/plans/plan/plan-wizard-policies.component';
 // API PrimaryOwner Mode
 import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';
@@ -127,8 +123,7 @@ import ApplicationGeneralController from './application/details/general/applicat
 import ApplicationGeneralComponent from './application/details/general/application-general.component';
 import ApplicationMembersController from './application/details/members/application-members.controller';
 import ApplicationMembersComponent from './application/details/members/application-members.component';
-import ApplicationSubscriptionsController
-  from './application/details/subscriptions/application-subscriptions.controller';
+import ApplicationSubscriptionsController from './application/details/subscriptions/application-subscriptions.controller';
 import ApplicationSubscriptionsComponent from './application/details/subscriptions/application-subscriptions.component';
 import ApplicationSubscriptionComponent from './application/details/subscriptions/application-subscription.component';
 import ApplicationAnalyticsController from './application/details/analytics/application-analytics.controller';
@@ -155,13 +150,11 @@ import WidgetChartLineComponent from '../components/widget/line/widget-chart-lin
 import WidgetChartPieComponent from '../components/widget/pie/widget-chart-pie.component';
 import WidgetChartMapComponent from '../components/widget/map/widget-chart-map.component';
 import WidgetDataStatsComponent from '../components/widget/stats/widget-data-stats.component';
-import WidgetDataTableConfigurationComponent
-  from '../components/widget/table/widget-data-table-configuration.component';
+import WidgetDataTableConfigurationComponent from '../components/widget/table/widget-data-table-configuration.component';
 import WidgetChartLineConfigurationComponent from '../components/widget/line/widget-chart-line-configuration.component';
 import WidgetChartMapConfigurationComponent from '../components/widget/map/widget-chart-map-configuration.component';
 import WidgetChartPieConfigurationComponent from '../components/widget/pie/widget-chart-pie-configuration.component';
-import WidgetDataStatsConfigurationComponent
-  from '../components/widget/stats/widget-data-stats-configuration.component';
+import WidgetDataStatsConfigurationComponent from '../components/widget/stats/widget-data-stats-configuration.component';
 
 import DashboardComponent from '../components/dashboard/dashboard.component';
 import DashboardFilterComponent from '../components/dashboard/dashboard-filter.component';
@@ -179,8 +172,7 @@ import LogsFiltersController from '../components/logs/logs-filters.controller';
 
 import { LogComponent } from './api/analytics/logs/log.component';
 import ApiLoggingConfigurationController from '../management/api/analytics/logs/logging-configuration.controller';
-import DialogConfigureLoggingEditorController
-  from '../management/api/analytics/logs/configure-logging-editor.dialog.controller';
+import DialogConfigureLoggingEditorController from '../management/api/analytics/logs/configure-logging-editor.dialog.controller';
 // Others
 import ThemeElementDirective from '../components/theme/theme-element.directive';
 import EnvironmentService from '../services/environment.service';
@@ -202,23 +194,17 @@ import CategoriesController from '../management/configuration/categories/categor
 import CategoryController from './configuration/categories/category/category.controller';
 import CategoryService from '../services/category.service';
 import DeleteCategoryDialogController from '../management/configuration/categories/delete.category.dialog.controller';
-import DeleteAPICategoryDialogController
-  from './configuration/categories/category/delete-api-category.dialog.controller';
+import DeleteAPICategoryDialogController from './configuration/categories/category/delete-api-category.dialog.controller';
 import DialogAddGroupMemberController from './configuration/groups/group/addMemberDialog.controller';
 import RegistrationController from '../user/registration/registration.controller';
 import ConfirmController from '../user/registration/confirm/confirm.controller';
 import ResetPasswordController from '../user/resetPassword/resetPassword.controller';
 import SubscriptionService from '../services/subscription.service';
-import DialogSubscriptionRejectController
-  from './api/portal/subscriptions/dialog/subscription.reject.dialog.controller';
-import DialogSubscriptionAcceptController
-  from './api/portal/subscriptions/dialog/subscription.accept.dialog.controller';
-import DialogSubscriptionCreateController
-  from './api/portal/subscriptions/dialog/subscription.create.dialog.controller';
-import DialogSubscriptionTransferController
-  from './api/portal/subscriptions/dialog/subscription.transfer.dialog.controller';
-import DialogSubscriptionChangeEndDateController
-  from './api/portal/subscriptions/dialog/subscription.change.end.date.dialog.controller';
+import DialogSubscriptionRejectController from './api/portal/subscriptions/dialog/subscription.reject.dialog.controller';
+import DialogSubscriptionAcceptController from './api/portal/subscriptions/dialog/subscription.accept.dialog.controller';
+import DialogSubscriptionCreateController from './api/portal/subscriptions/dialog/subscription.create.dialog.controller';
+import DialogSubscriptionTransferController from './api/portal/subscriptions/dialog/subscription.transfer.dialog.controller';
+import DialogSubscriptionChangeEndDateController from './api/portal/subscriptions/dialog/subscription.change.end.date.dialog.controller';
 import DialogSubscriptionRenewController from './api/portal/subscriptions/dialog/subscription.renew.dialog.controller';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import DialogPublishPlanController from '../management/api/portal/plans/publishPlanDialog.controller';
@@ -235,8 +221,7 @@ import UserAvatarDirective from '../components/avatar/user-avatar.directive';
 import FileChooserDialogController from '../components/dialog/fileChooserDialog.controller';
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from '../components/dialog/confirmAndValidateDialog.controller';
-import DialogDynamicProviderHttpController
-  from '../management/api/design/properties/dynamic-provider-http-dialog.controller';
+import DialogDynamicProviderHttpController from '../management/api/design/properties/dynamic-provider-http-dialog.controller';
 import TenantsController from '../management/configuration/tenants/tenants.controller';
 import TenantService from '../services/tenant.service';
 import DeleteTenantDialogController from '../management/configuration/tenants/delete.tenant.dialog.controller';
@@ -255,8 +240,7 @@ import RoleService from '../services/role.service';
 import DialogAddUserRoleController from '../organization/configuration/roles/role/add.user.dialog.controller';
 
 import applicationRouterConfig from './application/applications.route';
-import applicationsNotificationsRouterConfig
-  from './application/details/notifications/applications.notifications.settings.route';
+import applicationsNotificationsRouterConfig from './application/details/notifications/applications.notifications.settings.route';
 import apisRouterConfig from './api/apis.route';
 import apisAnalyticsRouterConfig from './api/analytics/apis.analytics.route';
 import apisAuditRouterConfig from './api/audit/apis.audit.route';
@@ -279,22 +263,15 @@ import PortalNotificationsComponent from './portalnotifications/portalnotificati
 import UserNotificationService from '../services/userNotification.service';
 // Notification Settings
 import NotificationsComponent from '../components/notifications/notifications.component';
-import NotificationSettingsComponent
-  from '../components/notifications/notificationsettings/notificationsettings.component';
+import NotificationSettingsComponent from '../components/notifications/notificationsettings/notificationsettings.component';
 import NotificationSettingsService from '../services/notificationSettings.service';
 import NotificationTemplatesService from '../services/notificationTemplates.service';
-import NotificationTemplatesComponent
-  from '../organization/configuration/notification-templates/notificationTemplates.component';
-import NotificationTemplateComponent
-  from '../organization/configuration/notification-templates/notificationTemplate.component';
-import NotificationTemplateByTypeComponent
-  from '../organization/configuration/notification-templates/components/notificationTemplateByType.component';
-import NotificationTemplatesController
-  from '../organization/configuration/notification-templates/notificationTemplates.controller';
-import NotificationTemplateController
-  from '../organization/configuration/notification-templates/notificationTemplate.controller';
-import NotificationTemplateByTypeController
-  from '../organization/configuration/notification-templates/components/notificationTemplateByType.controller';
+import NotificationTemplatesComponent from '../organization/configuration/notification-templates/notificationTemplates.component';
+import NotificationTemplateComponent from '../organization/configuration/notification-templates/notificationTemplate.component';
+import NotificationTemplateByTypeComponent from '../organization/configuration/notification-templates/components/notificationTemplateByType.component';
+import NotificationTemplatesController from '../organization/configuration/notification-templates/notificationTemplates.controller';
+import NotificationTemplateController from '../organization/configuration/notification-templates/notificationTemplate.controller';
+import NotificationTemplateByTypeController from '../organization/configuration/notification-templates/components/notificationTemplateByType.controller';
 // Documentation
 import DocumentationManagementComponent from '../components/documentation/documentation-management.component';
 import PageComponent from '../components/documentation/page/page.component';
@@ -308,10 +285,8 @@ import EditPageComponent from '../components/documentation/edit-page.component';
 import EditPageAclsComponent from '../components/documentation/edit-page-acls.components';
 import ImportPagesComponent from '../components/documentation/import-pages.component';
 // Healthcheck
-import ApiHealthCheckConfigureController
-  from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
-import DialogAssertionInformationController
-  from '../management/api/proxy/backend/healthcheck/healthcheck-assertion-dialog.controller';
+import ApiHealthCheckConfigureController from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
+import DialogAssertionInformationController from '../management/api/proxy/backend/healthcheck/healthcheck-assertion-dialog.controller';
 import ApiHealthCheckController from '../management/api/proxy/backend/healthcheck/healthcheck.controller';
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
 import ApiHealthCheckLogController from '../management/api/proxy/backend/healthcheck/healthcheck-log.controller';
@@ -347,16 +322,14 @@ import DictionariesComponent from '../management/configuration/dictionaries/dict
 import DictionariesController from '../management/configuration/dictionaries/dictionaries.controller';
 import DictionaryComponent from '../management/configuration/dictionaries/dictionary.component';
 import DictionaryController from '../management/configuration/dictionaries/dictionary.controller';
-import DialogDictionaryAddPropertyController
-  from '../management/configuration/dictionaries/add-property.dialog.controller';
+import DialogDictionaryAddPropertyController from '../management/configuration/dictionaries/add-property.dialog.controller';
 // Settings - Identity providers
 import IdentityProvidersComponent from '../components/identityProviders/identity-providers.component';
 import IdentityProviderComponent from '../organization/configuration/identity/identity-provider.component';
 import IdentityProviderController from '../organization/configuration/identity/identity-provider.controller';
 import IdentityProviderGoogleComponent from '../organization/configuration/identity/identity-provider-google.component';
 import IdentityProviderGitHubComponent from '../organization/configuration/identity/identity-provider-github.component';
-import IdentityProviderGraviteeioAmComponent
-  from '../organization/configuration/identity/identity-provider-graviteeio-am.component';
+import IdentityProviderGraviteeioAmComponent from '../organization/configuration/identity/identity-provider-graviteeio-am.component';
 import IdentityProviderOIDCComponent from '../organization/configuration/identity/identity-provider-oidc.component';
 import IdentityProviderService from '../services/identityProvider.service';
 // Others
@@ -373,8 +346,7 @@ import runBlock from './management.run';
 import uiRouter from '@uirouter/angularjs';
 import { permission, uiPermission } from 'angular-permission';
 
-import DialogAddNotificationSettingsController
-  from '../components/notifications/notificationsettings/addnotificationsettings.dialog.controller';
+import DialogAddNotificationSettingsController from '../components/notifications/notificationsettings/addnotificationsettings.dialog.controller';
 
 import TopApisController from './configuration/top-apis/top-apis.controller';
 import TopApiService from '../services/top-api.service';
@@ -397,10 +369,8 @@ import apisMessagesRouterConfig from './api/messages/apis.messages.route';
 import ApiPortalHeaderComponent from '../management/configuration/api-portal-header/api-portal-header.component';
 import ApiHeaderService from '../services/apiHeader.service';
 
-import UpdateApiPortalHeaderDialogController
-  from './configuration/api-portal-header/update.api-portal-header.dialog.controller';
-import NewApiPortalHeaderDialogController
-  from './configuration/api-portal-header/new.api-portal-header.dialog.controller';
+import UpdateApiPortalHeaderDialogController from './configuration/api-portal-header/update.api-portal-header.dialog.controller';
+import NewApiPortalHeaderDialogController from './configuration/api-portal-header/new.api-portal-header.dialog.controller';
 import Base64Service from '../services/base64.service';
 // Alerts
 import AlertService from '../services/alert.service';
@@ -414,32 +384,20 @@ import AlertTriggerWindowComponent from '../components/alerts/alert/triggers/tri
 import AlertTriggerFiltersComponent from '../components/alerts/alert/triggers/trigger-filters.component';
 import AlertTriggerFilterComponent from '../components/alerts/alert/triggers/trigger-filter.component';
 import AlertTriggerConditionComponent from '../components/alerts/alert/triggers/trigger-condition.component';
-import AlertTriggerConditionThresholdComponent
-  from '../components/alerts/alert/triggers/conditions/trigger-condition-threshold.component';
-import AlertTriggerConditionThresholdRangeComponent
-  from '../components/alerts/alert/triggers/conditions/trigger-condition-threshold-range.component';
-import AlertTriggerConditionStringComponent
-  from '../components/alerts/alert/triggers/conditions/trigger-condition-string.component';
-import AlertTriggerConditionCompareComponent
-  from '../components/alerts/alert/triggers/conditions/trigger-condition-compare.component';
-import AlertTriggerMetricsSimpleConditionComponent
-  from '../components/alerts/alert/triggers/trigger-metrics-simple-condition.component';
-import AlertTriggerMetricsAggregationComponent
-  from '../components/alerts/alert/triggers/trigger-metrics-aggregation.component';
+import AlertTriggerConditionThresholdComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-threshold.component';
+import AlertTriggerConditionThresholdRangeComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-threshold-range.component';
+import AlertTriggerConditionStringComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-string.component';
+import AlertTriggerConditionCompareComponent from '../components/alerts/alert/triggers/conditions/trigger-condition-compare.component';
+import AlertTriggerMetricsSimpleConditionComponent from '../components/alerts/alert/triggers/trigger-metrics-simple-condition.component';
+import AlertTriggerMetricsAggregationComponent from '../components/alerts/alert/triggers/trigger-metrics-aggregation.component';
 import AlertTriggerMissingDataComponent from '../components/alerts/alert/triggers/trigger-missing-data.component';
 import AlertTriggerMetricsRateComponent from '../components/alerts/alert/triggers/trigger-metrics-rate.component';
-import AlertTriggerApiHealthCheckEndpointStatusChangedComponent
-  from '../components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component';
-import AlertTriggerNodeLifecycleChangedComponent
-  from '../components/alerts/alert/triggers/trigger-node-lifecycle-changed.component';
-import AlertTriggerNodeHealthcheckComponent
-  from '../components/alerts/alert/triggers/trigger-node-healthcheck.component';
-import AlertTriggerApplicationQuotaComponent
-  from '../components/alerts/alert/triggers/trigger-application-quota.component';
-import AlertTriggerProjectionsComponent
-  from '../components/alerts/alert/triggers/projections/trigger-projections.component';
-import AlertTriggerProjectionComponent
-  from '../components/alerts/alert/triggers/projections/trigger-projection.component';
+import AlertTriggerApiHealthCheckEndpointStatusChangedComponent from '../components/alerts/alert/triggers/trigger-api-hc-endpoint-status-changed.component';
+import AlertTriggerNodeLifecycleChangedComponent from '../components/alerts/alert/triggers/trigger-node-lifecycle-changed.component';
+import AlertTriggerNodeHealthcheckComponent from '../components/alerts/alert/triggers/trigger-node-healthcheck.component';
+import AlertTriggerApplicationQuotaComponent from '../components/alerts/alert/triggers/trigger-application-quota.component';
+import AlertTriggerProjectionsComponent from '../components/alerts/alert/triggers/projections/trigger-projections.component';
+import AlertTriggerProjectionComponent from '../components/alerts/alert/triggers/projections/trigger-projection.component';
 
 import CircularPercentageComponent from '../components/circularPercentage/circularPercentage.component';
 import CircularPercentageController from '../components/circularPercentage/circularPercentage.controller';
@@ -455,23 +413,16 @@ import TagController from './configuration/tags/tag/tag.controller';
 import SelectFolderDialogController from '../components/documentation/dialog/selectfolder.controller';
 import SelectPageDialogController from '../components/documentation/dialog/selectpage.controller';
 // API Response Templates
-import ApiResponseTemplatesController
-  from '../management/api/proxy/general/response-templates/response-templates.controller';
-import ApiResponseTemplateController
-  from '../management/api/proxy/general/response-templates/response-template.controller';
-import ApiResponseTemplateTypeComponent
-  from '../management/api/proxy/general/response-templates/response-template-type.component';
-import ApiResponseTemplateComponent
-  from '../management/api/proxy/general/response-templates/response-template.component';
+import ApiResponseTemplatesController from '../management/api/proxy/general/response-templates/response-templates.controller';
+import ApiResponseTemplateController from '../management/api/proxy/general/response-templates/response-template.controller';
+import ApiResponseTemplateTypeComponent from '../management/api/proxy/general/response-templates/response-template-type.component';
+import ApiResponseTemplateComponent from '../management/api/proxy/general/response-templates/response-template.component';
 import AnalyticsSettingsComponent from './configuration/analytics/analytics.component';
 // Settings - Client Registration
 import ClientRegistrationProviderService from '../services/clientRegistrationProvider.service';
-import ClientRegistrationProvidersComponent
-  from '../management/configuration/application/registration/client-registration-providers.component';
-import ClientRegistrationProviderComponent
-  from '../management/configuration/application/registration/client-registration-provider.component';
-import ClientRegistrationProviderController
-  from '../management/configuration/application/registration/client-registration-provider.controller';
+import ClientRegistrationProvidersComponent from '../management/configuration/application/registration/client-registration-providers.component';
+import ClientRegistrationProviderComponent from '../management/configuration/application/registration/client-registration-provider.component';
+import ClientRegistrationProviderController from '../management/configuration/application/registration/client-registration-provider.controller';
 
 import DashboardService from '../services/dashboard.service';
 import AnalyticsDashboardComponent from './configuration/analytics/dashboard/dashboard.components';
@@ -495,14 +446,10 @@ import ApplicationSubscribeController from './application/details/subscribe/appl
 
 import QualityRuleService from '../services/qualityRule.service';
 import ApiQualityRulesComponent from '../management/configuration/api-quality-rules/api-quality-rules.component';
-import ApiQualityRuleComponent
-  from '../management/configuration/api-quality-rules/api-quality-rule/api-quality-rule.component';
-import ApiQualityRuleController
-  from '../management/configuration/api-quality-rules/api-quality-rule/api-quality-rule.controller';
-import DeleteApiQualityRuleDialogController
-  from '../management/configuration/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller';
-import DialogQueryFilterInformationController
-  from './configuration/analytics/dashboard/query-filter-information.dialog.controller';
+import ApiQualityRuleComponent from '../management/configuration/api-quality-rules/api-quality-rule/api-quality-rule.component';
+import ApiQualityRuleController from '../management/configuration/api-quality-rules/api-quality-rule/api-quality-rule.controller';
+import DeleteApiQualityRuleDialogController from '../management/configuration/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller';
+import DialogQueryFilterInformationController from './configuration/analytics/dashboard/query-filter-information.dialog.controller';
 
 import ReCaptchaService from '../services/reCaptcha.service';
 
@@ -515,12 +462,9 @@ import NewsletterSubscriptionController from '../user/newsletter/newsletter-subs
 import CustomUserFieldsComponent from './configuration/custom-user-fields/custom-user-fields.component';
 import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
 import CustomUserFieldsService from '../services/custom-user-fields.service';
-import NewFieldDialogController
-  from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
-import DeleteFieldDialogController
-  from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
-import UpdateFieldDialogController
-  from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
+import NewFieldDialogController from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
+import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
+import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from '../services/flow.service';
 import ApiPolicyStudioController from './api/design/policy-studio/policy-studio.controller';
 import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
@@ -544,7 +488,6 @@ import ApiAlertsDashboardController from './api/analytics/alerts/api-alerts-dash
 (<any>window).traverse = traverse;
 
 (<any>window).marked = marked;
-
 
 (<any>window).hljs = hljs;
 
@@ -632,536 +575,561 @@ require('angular-moment-picker');
 (<any>window).tinycolor = tinycolor;
 require('md-color-picker');
 
-const graviteeManagementModule = angular.module('gravitee-management', [uiRouter, permission, uiPermission, 'ngMaterial', 'ng-showdown',
-  'ngMdIcons', 'ui.codemirror', 'md.data.table', 'ngCookies', 'dragularModule', 'readMore',
-  'ngMessages', 'vAccordion', 'schemaForm', 'ngclipboard', 'ui.validate', 'angular-timeline',
-  'utf8-base64', 'ngFileUpload', 'md-steppers', 'ui.tree', 'angular-jwt', 'gridster', 'angular-loading-bar',
-  'ngAnimate', 'LocalStorageModule', 'satellizer', ngInfiniteScroll, 'moment-picker', 'mdColorPicker']);
+const graviteeManagementModule = angular.module('gravitee-management', [
+  uiRouter,
+  permission,
+  uiPermission,
+  'ngMaterial',
+  'ng-showdown',
+  'ngMdIcons',
+  'ui.codemirror',
+  'md.data.table',
+  'ngCookies',
+  'dragularModule',
+  'readMore',
+  'ngMessages',
+  'vAccordion',
+  'schemaForm',
+  'ngclipboard',
+  'ui.validate',
+  'angular-timeline',
+  'utf8-base64',
+  'ngFileUpload',
+  'md-steppers',
+  'ui.tree',
+  'angular-jwt',
+  'gridster',
+  'angular-loading-bar',
+  'ngAnimate',
+  'LocalStorageModule',
+  'satellizer',
+  ngInfiniteScroll,
+  'moment-picker',
+  'mdColorPicker',
+]);
 
-  graviteeManagementModule.config(['cfpLoadingBarProvider', function (cfpLoadingBarProvider) {
+graviteeManagementModule.config([
+  'cfpLoadingBarProvider',
+  function (cfpLoadingBarProvider) {
     cfpLoadingBarProvider.includeSpinner = false;
-  }]);
-  graviteeManagementModule.config((localStorageServiceProvider: angular.local.storage.ILocalStorageServiceProvider) => {
-    'ngInject';
-    localStorageServiceProvider.setPrefix('gravitee');
+  },
+]);
+graviteeManagementModule.config((localStorageServiceProvider: angular.local.storage.ILocalStorageServiceProvider) => {
+  'ngInject';
+  localStorageServiceProvider.setPrefix('gravitee');
+});
+graviteeManagementModule.config(config);
+graviteeManagementModule.config(routerConfig);
+graviteeManagementModule.config(authenticationConfig);
+graviteeManagementModule.config(managementRouterConfig);
+graviteeManagementModule.config(organizationRouterConfig);
+graviteeManagementModule.config(applicationRouterConfig);
+graviteeManagementModule.config(applicationsNotificationsRouterConfig);
+graviteeManagementModule.config(apisRouterConfig);
+graviteeManagementModule.config(apisPortalRouterConfig);
+graviteeManagementModule.config(apisProxyRouterConfig);
+graviteeManagementModule.config(apisDesignRouterConfig);
+graviteeManagementModule.config(apisAnalyticsRouterConfig);
+graviteeManagementModule.config(apisAuditRouterConfig);
+graviteeManagementModule.config(apisNotificationsRouterConfig);
+graviteeManagementModule.config(apisMessagesRouterConfig);
+graviteeManagementModule.config(configurationRouterConfig);
+graviteeManagementModule.config(globalNotificationsRouterConfig);
+graviteeManagementModule.config(interceptorConfig);
+graviteeManagementModule.config(delegatorConfig);
+graviteeManagementModule.config(function ($mdThemingProvider: angular.material.IThemingProvider) {
+  $mdThemingProvider.definePalette('gravitee', {
+    '0': '28444F',
+    '50': '28444F',
+    '100': '28444F',
+    '200': '28444F',
+    '300': '28444F',
+    '400': '28444F',
+    '500': '28444F',
+    '600': '28444F',
+    '700': '28444F',
+    '800': '28444F',
+    '900': '28444F',
+    A100: '28444F',
+    A200: '28444F',
+    A400: '28444F',
+    A700: '28444F',
+    contrastDefaultColor: 'light',
   });
-  graviteeManagementModule.config(config);
-  graviteeManagementModule.config(routerConfig);
-  graviteeManagementModule.config(authenticationConfig);
-  graviteeManagementModule.config(managementRouterConfig);
-  graviteeManagementModule.config(organizationRouterConfig);
-  graviteeManagementModule.config(applicationRouterConfig);
-  graviteeManagementModule.config(applicationsNotificationsRouterConfig);
-  graviteeManagementModule.config(apisRouterConfig);
-  graviteeManagementModule.config(apisPortalRouterConfig);
-  graviteeManagementModule.config(apisProxyRouterConfig);
-  graviteeManagementModule.config(apisDesignRouterConfig);
-  graviteeManagementModule.config(apisAnalyticsRouterConfig);
-  graviteeManagementModule.config(apisAuditRouterConfig);
-  graviteeManagementModule.config(apisNotificationsRouterConfig);
-  graviteeManagementModule.config(apisMessagesRouterConfig);
-  graviteeManagementModule.config(configurationRouterConfig);
-  graviteeManagementModule.config(globalNotificationsRouterConfig);
-  graviteeManagementModule.config(interceptorConfig);
-  graviteeManagementModule.config(delegatorConfig);
-  graviteeManagementModule.config(function ($mdThemingProvider: angular.material.IThemingProvider) {
 
-    $mdThemingProvider.definePalette('gravitee', {
-      '0': '28444F',
-      '50': '28444F',
-      '100': '28444F',
-      '200': '28444F',
-      '300': '28444F',
-      '400': '28444F',
-      '500': '28444F',
-      '600': '28444F',
-      '700': '28444F',
-      '800': '28444F',
-      '900': '28444F',
-      A100: '28444F',
-      A200: '28444F',
-      A400: '28444F',
-      A700: '28444F',
-      'contrastDefaultColor': 'light',
-    });
+  $mdThemingProvider.theme('default').primaryPalette('gravitee').accentPalette('gravitee');
 
-    $mdThemingProvider.theme('default')
-      .primaryPalette('gravitee')
-      .accentPalette('gravitee');
-
-    $mdThemingProvider.theme('sidenav')
-      .backgroundPalette('grey', {
-        'default': '50'
-      });
-
-    $mdThemingProvider.theme('toast-success');
-    $mdThemingProvider.theme('toast-error');
+  $mdThemingProvider.theme('sidenav').backgroundPalette('grey', {
+    default: '50',
   });
-  graviteeManagementModule.config(function ($showdownProvider) {
-    $showdownProvider.setOption('tables', true);
-    $showdownProvider.loadExtension('highlightjs');
-    $showdownProvider.loadExtension('prettify');
-    $showdownProvider.loadExtension('docHelper');
-  });
-  graviteeManagementModule.run(runBlock);
-  graviteeManagementModule.controller('ApisController', ApisController);
-  graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
-  graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
-  graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
-  graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
-  graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
-  graviteeManagementModule.controller('ApiMembersController', ApiMembersController);
-  graviteeManagementModule.controller('ApiTransferOwnershipController', ApiTransferOwnershipController);
-  graviteeManagementModule.controller('ApiPortalController', ApiPortalController);
-  graviteeManagementModule.controller('ApiProxyController', ApiProxyController);
-  graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
-  graviteeManagementModule.controller('ApiEndpointController', ApiEndpointController);
-  graviteeManagementModule.controller('ApiEndpointGroupController', ApiEndpointGroupController);
-  graviteeManagementModule.component('gvHttpConfiguration', HttpConfigurationComponent);
-  graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
-  graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
-  graviteeManagementModule.controller('ApiPolicyStudioController', ApiPolicyStudioController);
-  graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
-  graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
-  graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
-  graviteeManagementModule.controller('ApiPathMappingsController', ApiPathMappingsController);
-  graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
-  graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);
-  graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
-  graviteeManagementModule.controller('DialogAddMemberApiController', DialogAddMemberApiController);
-  graviteeManagementModule.controller('DialogTransferApiController', DialogTransferApiController);
-  graviteeManagementModule.controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController);
-  graviteeManagementModule.controller('UserController', UserController);
-  graviteeManagementModule.controller('DialogApiImportController', DialogApiImportController);
-  graviteeManagementModule.controller('DialogApiExportController', DialogApiExportController);
-  graviteeManagementModule.controller('DialogApiDuplicateController', DialogApiDuplicateController);
-  graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
-  graviteeManagementModule.controller('LoginController', LoginController);
-  graviteeManagementModule.controller('InstancesController', InstancesController);
-  graviteeManagementModule.controller('InstanceEnvironmentController', InstanceEnvironmentController);
-  graviteeManagementModule.controller('InstanceMonitoringController', InstanceMonitoringController);
-  graviteeManagementModule.controller('AnalyticsDashboardController', AnalyticsDashboardController);
-  graviteeManagementModule.controller('DashboardController', DashboardController);
-  graviteeManagementModule.controller('HomeDashboardController', HomeDashboardController);
-  graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
-  graviteeManagementModule.controller('PlatformAlertsDashboardController', PlatformAlertsDashboardController);
-  graviteeManagementModule.controller('ApiAlertsDashboardController', ApiAlertsDashboardController);
-  graviteeManagementModule.controller('CategoriesController', CategoriesController);
-  graviteeManagementModule.controller('CategoryController', CategoryController);
-  graviteeManagementModule.controller('TenantsController', TenantsController);
-  graviteeManagementModule.controller('DeleteCategoryDialogController', DeleteCategoryDialogController);
-  graviteeManagementModule.controller('DeleteAPICategoryDialogController', DeleteAPICategoryDialogController);
-  graviteeManagementModule.controller('DeleteTenantDialogController', DeleteTenantDialogController);
-  graviteeManagementModule.component('groups', GroupsComponent);
-  graviteeManagementModule.component('group', GroupComponent);
-  graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
-  graviteeManagementModule.controller('RegistrationController', RegistrationController);
-  graviteeManagementModule.controller('ConfirmController', ConfirmController);
-  graviteeManagementModule.controller('ResetPasswordController', ResetPasswordController);
-  graviteeManagementModule.controller('NewsletterSubscriptionController', NewsletterSubscriptionController);
-  graviteeManagementModule.controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController);
-  graviteeManagementModule.controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController);
-  graviteeManagementModule.controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController);
-  graviteeManagementModule.controller('DialogSubscriptionTransferController', DialogSubscriptionTransferController);
-  graviteeManagementModule.controller('DialogSubscriptionChangeEndDateController', DialogSubscriptionChangeEndDateController);
-  graviteeManagementModule.controller('DialogSubscriptionRenewController', DialogSubscriptionRenewController);
-  graviteeManagementModule.controller('DialogPublishPlanController', DialogPublishPlanController);
-  graviteeManagementModule.controller('TagsController', TagsController);
-  graviteeManagementModule.controller('MetadataController', MetadataController);
-  graviteeManagementModule.controller('DeleteTagDialogController', DeleteTagDialogController);
-  graviteeManagementModule.controller('DeleteMetadataDialogController', DeleteMetadataDialogController);
-  graviteeManagementModule.controller('NewMetadataDialogController', NewMetadataDialogController);
-  graviteeManagementModule.controller('UpdateMetadataDialogController', UpdateMetadataDialogController);
-  graviteeManagementModule.controller('DeleteFieldDialogController', DeleteFieldDialogController);
-  graviteeManagementModule.controller('NewFieldDialogController', NewFieldDialogController);
-  graviteeManagementModule.controller('UpdateFieldDialogController', UpdateFieldDialogController);
-  graviteeManagementModule.controller('FileChooserDialogController', FileChooserDialogController);
-  graviteeManagementModule.controller('DialogConfirmController', DialogConfirmController);
-  graviteeManagementModule.controller('DialogConfirmDeploymentController', DialogConfirmDeploymentController);
-  graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);
-  graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
-  graviteeManagementModule.controller('DialogAddUserRoleController', DialogAddUserRoleController);
-  graviteeManagementModule.controller('SupportTicketController', SupportTicketController);
-  graviteeManagementModule.controller('TicketsListController', TicketsListController);
-  graviteeManagementModule.controller('AuditController', AuditController);
-  graviteeManagementModule.controller('ApiAuditController', ApiAuditController);
-  graviteeManagementModule.controller('ThemeController', ThemeController);
-  graviteeManagementModule.controller('CustomUserFieldsController', CustomUserFieldsController);
-  graviteeManagementModule.controller('TopApisController', TopApisController);
-  graviteeManagementModule.controller('AddTopApiDialogController', AddTopApiDialogController);
-  graviteeManagementModule.controller('DeleteTopApiDialogController', DeleteTopApiDialogController);
-  graviteeManagementModule.controller('SelectFolderDialogController', SelectFolderDialogController);
-  graviteeManagementModule.controller('SelectPageDialogController', SelectPageDialogController);
-  graviteeManagementModule.controller('DialogReviewController', DialogReviewController);
-  graviteeManagementModule.controller('DialogRequestForChangesController', DialogRequestForChangesController);
-  graviteeManagementModule.service('ApplicationService', ApplicationService);
-  graviteeManagementModule.service('ApplicationTypesService', ApplicationTypesService);
-  graviteeManagementModule.service('ApiService', ApiService);
-  graviteeManagementModule.service('ApiPrimaryOwnerModeService', ApiPrimaryOwnerModeService);
-  graviteeManagementModule.service('CorsService', CorsService);
-  graviteeManagementModule.service('DocumentationService', DocumentationService);
-  graviteeManagementModule.service('InstancesService', InstancesService);
-  graviteeManagementModule.service('NotificationService', NotificationService);
-  graviteeManagementModule.service('PolicyService', PolicyService);
-  graviteeManagementModule.service('NotifierService', NotifierService);
-  graviteeManagementModule.service('UserService', UserService);
-  graviteeManagementModule.service('Base64Service', Base64Service);
-  graviteeManagementModule.service('ResourceService', ResourceService);
-  graviteeManagementModule.service('FetcherService', FetcherService);
-  graviteeManagementModule.service('ServiceDiscoveryService', ServiceDiscoveryService);
-  graviteeManagementModule.service('EventsService', EventsService);
-  graviteeManagementModule.service('AnalyticsService', AnalyticsService);
-  graviteeManagementModule.service('CategoryService', CategoryService);
-  graviteeManagementModule.service('GroupService', GroupService);
-  graviteeManagementModule.service('SubscriptionService', SubscriptionService);
-  graviteeManagementModule.service('TagService', TagService);
-  graviteeManagementModule.service('MetadataService', MetadataService);
-  graviteeManagementModule.service('CustomUserFieldsService', CustomUserFieldsService);
-  graviteeManagementModule.service('TenantService', TenantService);
-  graviteeManagementModule.service('StringService', StringService);
-  graviteeManagementModule.service('AuthenticationService', AuthenticationService);
-  graviteeManagementModule.service('RoleService', RoleService);
-  graviteeManagementModule.service('TicketService', TicketService);
-  graviteeManagementModule.service('AuditService', AuditService);
-  graviteeManagementModule.service('TopApiService', TopApiService);
-  graviteeManagementModule.service('MessageService', MessageService);
-  graviteeManagementModule.service('PortalService', PortalService);
-  graviteeManagementModule.service('ThemeService', ThemeService);
-  graviteeManagementModule.service('ReCaptchaService', ReCaptchaService);
-  graviteeManagementModule.service('TokenService', TokenService);
-  graviteeManagementModule.service('EnvironmentService', EnvironmentService);
-  graviteeManagementModule.service('OrganizationService', OrganizationService);
-  graviteeManagementModule.service('InstallationService', InstallationService);
-  graviteeManagementModule.service('FlowService', FlowService);
-  graviteeManagementModule.service('SpelService', SpelService);
-  graviteeManagementModule.controller('DialogGenerateTokenController', DialogGenerateTokenController);
 
-  graviteeManagementModule.directive('filecontent', () => FileContentDirective);
-  graviteeManagementModule.directive('fileloader', () => FileLoaderDirective);
-  graviteeManagementModule.directive('noDirtyCheck', () => new FormDirective());
-  graviteeManagementModule.directive('autofocus', () => new AutofocusDirective());
-  graviteeManagementModule.directive('graviteeDiff', () => DiffDirective);
-  graviteeManagementModule.directive('graviteeIdentityPicture', () => new IdentityPictureDirective());
-  graviteeManagementModule.directive('gvModel', () => new GvModelDirective());
-  graviteeManagementModule.directive('graviteeImage', () => new ImageDirective());
-  graviteeManagementModule.directive('graviteeEmptyState', () => new EmptyStateDirective());
-  graviteeManagementModule.directive('graviteeChart', () => new ChartDirective());
-  graviteeManagementModule.directive('graviteeUserAvatar', () => new UserAvatarDirective());
-  graviteeManagementModule.directive('gvThemeElement', () => ThemeElementDirective);
+  $mdThemingProvider.theme('toast-success');
+  $mdThemingProvider.theme('toast-error');
+});
+graviteeManagementModule.config(function ($showdownProvider) {
+  $showdownProvider.setOption('tables', true);
+  $showdownProvider.loadExtension('highlightjs');
+  $showdownProvider.loadExtension('prettify');
+  $showdownProvider.loadExtension('docHelper');
+});
+graviteeManagementModule.run(runBlock);
+graviteeManagementModule.controller('ApisController', ApisController);
+graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
+graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
+graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
+graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
+graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
+graviteeManagementModule.controller('ApiMembersController', ApiMembersController);
+graviteeManagementModule.controller('ApiTransferOwnershipController', ApiTransferOwnershipController);
+graviteeManagementModule.controller('ApiPortalController', ApiPortalController);
+graviteeManagementModule.controller('ApiProxyController', ApiProxyController);
+graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
+graviteeManagementModule.controller('ApiEndpointController', ApiEndpointController);
+graviteeManagementModule.controller('ApiEndpointGroupController', ApiEndpointGroupController);
+graviteeManagementModule.component('gvHttpConfiguration', HttpConfigurationComponent);
+graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
+graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
+graviteeManagementModule.controller('ApiPolicyStudioController', ApiPolicyStudioController);
+graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
+graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
+graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
+graviteeManagementModule.controller('ApiPathMappingsController', ApiPathMappingsController);
+graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
+graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);
+graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
+graviteeManagementModule.controller('DialogAddMemberApiController', DialogAddMemberApiController);
+graviteeManagementModule.controller('DialogTransferApiController', DialogTransferApiController);
+graviteeManagementModule.controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController);
+graviteeManagementModule.controller('UserController', UserController);
+graviteeManagementModule.controller('DialogApiImportController', DialogApiImportController);
+graviteeManagementModule.controller('DialogApiExportController', DialogApiExportController);
+graviteeManagementModule.controller('DialogApiDuplicateController', DialogApiDuplicateController);
+graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
+graviteeManagementModule.controller('LoginController', LoginController);
+graviteeManagementModule.controller('InstancesController', InstancesController);
+graviteeManagementModule.controller('InstanceEnvironmentController', InstanceEnvironmentController);
+graviteeManagementModule.controller('InstanceMonitoringController', InstanceMonitoringController);
+graviteeManagementModule.controller('AnalyticsDashboardController', AnalyticsDashboardController);
+graviteeManagementModule.controller('DashboardController', DashboardController);
+graviteeManagementModule.controller('HomeDashboardController', HomeDashboardController);
+graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
+graviteeManagementModule.controller('PlatformAlertsDashboardController', PlatformAlertsDashboardController);
+graviteeManagementModule.controller('ApiAlertsDashboardController', ApiAlertsDashboardController);
+graviteeManagementModule.controller('CategoriesController', CategoriesController);
+graviteeManagementModule.controller('CategoryController', CategoryController);
+graviteeManagementModule.controller('TenantsController', TenantsController);
+graviteeManagementModule.controller('DeleteCategoryDialogController', DeleteCategoryDialogController);
+graviteeManagementModule.controller('DeleteAPICategoryDialogController', DeleteAPICategoryDialogController);
+graviteeManagementModule.controller('DeleteTenantDialogController', DeleteTenantDialogController);
+graviteeManagementModule.component('groups', GroupsComponent);
+graviteeManagementModule.component('group', GroupComponent);
+graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
+graviteeManagementModule.controller('RegistrationController', RegistrationController);
+graviteeManagementModule.controller('ConfirmController', ConfirmController);
+graviteeManagementModule.controller('ResetPasswordController', ResetPasswordController);
+graviteeManagementModule.controller('NewsletterSubscriptionController', NewsletterSubscriptionController);
+graviteeManagementModule.controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController);
+graviteeManagementModule.controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController);
+graviteeManagementModule.controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController);
+graviteeManagementModule.controller('DialogSubscriptionTransferController', DialogSubscriptionTransferController);
+graviteeManagementModule.controller('DialogSubscriptionChangeEndDateController', DialogSubscriptionChangeEndDateController);
+graviteeManagementModule.controller('DialogSubscriptionRenewController', DialogSubscriptionRenewController);
+graviteeManagementModule.controller('DialogPublishPlanController', DialogPublishPlanController);
+graviteeManagementModule.controller('TagsController', TagsController);
+graviteeManagementModule.controller('MetadataController', MetadataController);
+graviteeManagementModule.controller('DeleteTagDialogController', DeleteTagDialogController);
+graviteeManagementModule.controller('DeleteMetadataDialogController', DeleteMetadataDialogController);
+graviteeManagementModule.controller('NewMetadataDialogController', NewMetadataDialogController);
+graviteeManagementModule.controller('UpdateMetadataDialogController', UpdateMetadataDialogController);
+graviteeManagementModule.controller('DeleteFieldDialogController', DeleteFieldDialogController);
+graviteeManagementModule.controller('NewFieldDialogController', NewFieldDialogController);
+graviteeManagementModule.controller('UpdateFieldDialogController', UpdateFieldDialogController);
+graviteeManagementModule.controller('FileChooserDialogController', FileChooserDialogController);
+graviteeManagementModule.controller('DialogConfirmController', DialogConfirmController);
+graviteeManagementModule.controller('DialogConfirmDeploymentController', DialogConfirmDeploymentController);
+graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);
+graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
+graviteeManagementModule.controller('DialogAddUserRoleController', DialogAddUserRoleController);
+graviteeManagementModule.controller('SupportTicketController', SupportTicketController);
+graviteeManagementModule.controller('TicketsListController', TicketsListController);
+graviteeManagementModule.controller('AuditController', AuditController);
+graviteeManagementModule.controller('ApiAuditController', ApiAuditController);
+graviteeManagementModule.controller('ThemeController', ThemeController);
+graviteeManagementModule.controller('CustomUserFieldsController', CustomUserFieldsController);
+graviteeManagementModule.controller('TopApisController', TopApisController);
+graviteeManagementModule.controller('AddTopApiDialogController', AddTopApiDialogController);
+graviteeManagementModule.controller('DeleteTopApiDialogController', DeleteTopApiDialogController);
+graviteeManagementModule.controller('SelectFolderDialogController', SelectFolderDialogController);
+graviteeManagementModule.controller('SelectPageDialogController', SelectPageDialogController);
+graviteeManagementModule.controller('DialogReviewController', DialogReviewController);
+graviteeManagementModule.controller('DialogRequestForChangesController', DialogRequestForChangesController);
+graviteeManagementModule.service('ApplicationService', ApplicationService);
+graviteeManagementModule.service('ApplicationTypesService', ApplicationTypesService);
+graviteeManagementModule.service('ApiService', ApiService);
+graviteeManagementModule.service('ApiPrimaryOwnerModeService', ApiPrimaryOwnerModeService);
+graviteeManagementModule.service('CorsService', CorsService);
+graviteeManagementModule.service('DocumentationService', DocumentationService);
+graviteeManagementModule.service('InstancesService', InstancesService);
+graviteeManagementModule.service('NotificationService', NotificationService);
+graviteeManagementModule.service('PolicyService', PolicyService);
+graviteeManagementModule.service('NotifierService', NotifierService);
+graviteeManagementModule.service('UserService', UserService);
+graviteeManagementModule.service('Base64Service', Base64Service);
+graviteeManagementModule.service('ResourceService', ResourceService);
+graviteeManagementModule.service('FetcherService', FetcherService);
+graviteeManagementModule.service('ServiceDiscoveryService', ServiceDiscoveryService);
+graviteeManagementModule.service('EventsService', EventsService);
+graviteeManagementModule.service('AnalyticsService', AnalyticsService);
+graviteeManagementModule.service('CategoryService', CategoryService);
+graviteeManagementModule.service('GroupService', GroupService);
+graviteeManagementModule.service('SubscriptionService', SubscriptionService);
+graviteeManagementModule.service('TagService', TagService);
+graviteeManagementModule.service('MetadataService', MetadataService);
+graviteeManagementModule.service('CustomUserFieldsService', CustomUserFieldsService);
+graviteeManagementModule.service('TenantService', TenantService);
+graviteeManagementModule.service('StringService', StringService);
+graviteeManagementModule.service('AuthenticationService', AuthenticationService);
+graviteeManagementModule.service('RoleService', RoleService);
+graviteeManagementModule.service('TicketService', TicketService);
+graviteeManagementModule.service('AuditService', AuditService);
+graviteeManagementModule.service('TopApiService', TopApiService);
+graviteeManagementModule.service('MessageService', MessageService);
+graviteeManagementModule.service('PortalService', PortalService);
+graviteeManagementModule.service('ThemeService', ThemeService);
+graviteeManagementModule.service('ReCaptchaService', ReCaptchaService);
+graviteeManagementModule.service('TokenService', TokenService);
+graviteeManagementModule.service('EnvironmentService', EnvironmentService);
+graviteeManagementModule.service('OrganizationService', OrganizationService);
+graviteeManagementModule.service('InstallationService', InstallationService);
+graviteeManagementModule.service('FlowService', FlowService);
+graviteeManagementModule.service('SpelService', SpelService);
+graviteeManagementModule.controller('DialogGenerateTokenController', DialogGenerateTokenController);
 
-  graviteeManagementModule.component('gvWidget', WidgetComponent);
-  graviteeManagementModule.component('gvWidgetDataTable', WidgetDataTableComponent);
-  graviteeManagementModule.component('gvWidgetDataStats', WidgetDataStatsComponent);
-  graviteeManagementModule.component('gvWidgetChartPie', WidgetChartPieComponent);
-  graviteeManagementModule.component('gvWidgetChartLine', WidgetChartLineComponent);
-  graviteeManagementModule.component('gvWidgetChartMap', WidgetChartMapComponent);
-  graviteeManagementModule.component('gvWidgetChartCount', WidgetChartCountComponent);
-  graviteeManagementModule.component('gvWidgetDataTableConfiguration', WidgetDataTableConfigurationComponent);
-  graviteeManagementModule.component('gvWidgetDataLineConfiguration', WidgetChartLineConfigurationComponent);
-  graviteeManagementModule.component('gvWidgetDataMapConfiguration', WidgetChartMapConfigurationComponent);
-  graviteeManagementModule.component('gvWidgetDataPieConfiguration', WidgetChartPieConfigurationComponent);
-  graviteeManagementModule.component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent);
-  graviteeManagementModule.component('gvError', ErrorComponent);
-  graviteeManagementModule.controller('errorCtrl', ErrorController);
+graviteeManagementModule.directive('filecontent', () => FileContentDirective);
+graviteeManagementModule.directive('fileloader', () => FileLoaderDirective);
+graviteeManagementModule.directive('noDirtyCheck', () => new FormDirective());
+graviteeManagementModule.directive('autofocus', () => new AutofocusDirective());
+graviteeManagementModule.directive('graviteeDiff', () => DiffDirective);
+graviteeManagementModule.directive('graviteeIdentityPicture', () => new IdentityPictureDirective());
+graviteeManagementModule.directive('gvModel', () => new GvModelDirective());
+graviteeManagementModule.directive('graviteeImage', () => new ImageDirective());
+graviteeManagementModule.directive('graviteeEmptyState', () => new EmptyStateDirective());
+graviteeManagementModule.directive('graviteeChart', () => new ChartDirective());
+graviteeManagementModule.directive('graviteeUserAvatar', () => new UserAvatarDirective());
+graviteeManagementModule.directive('gvThemeElement', () => ThemeElementDirective);
 
-  graviteeManagementModule.component('categories', CategoriesComponent);
-  graviteeManagementModule.component('category', CategoryComponent);
-  graviteeManagementModule.component('tenants', TenantsComponent);
-  graviteeManagementModule.component('tags', TagsComponent);
-  graviteeManagementModule.component('metadata', MetadataComponent);
-  graviteeManagementModule.component('roles', RolesComponent);
-  graviteeManagementModule.component('role', RoleComponent);
-  graviteeManagementModule.component('roleMembers', RoleMembersComponent);
-  graviteeManagementModule.component('theme', ThemeComponent);
-  graviteeManagementModule.component('topApis', TopApisComponent);
-  graviteeManagementModule.component('cockpit', CockpitComponent);
-  graviteeManagementModule.component('consoleSettings', ConsoleSettingsComponent);
-  graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
-  graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsComponent);
-  graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
-  graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
-  graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
+graviteeManagementModule.component('gvWidget', WidgetComponent);
+graviteeManagementModule.component('gvWidgetDataTable', WidgetDataTableComponent);
+graviteeManagementModule.component('gvWidgetDataStats', WidgetDataStatsComponent);
+graviteeManagementModule.component('gvWidgetChartPie', WidgetChartPieComponent);
+graviteeManagementModule.component('gvWidgetChartLine', WidgetChartLineComponent);
+graviteeManagementModule.component('gvWidgetChartMap', WidgetChartMapComponent);
+graviteeManagementModule.component('gvWidgetChartCount', WidgetChartCountComponent);
+graviteeManagementModule.component('gvWidgetDataTableConfiguration', WidgetDataTableConfigurationComponent);
+graviteeManagementModule.component('gvWidgetDataLineConfiguration', WidgetChartLineConfigurationComponent);
+graviteeManagementModule.component('gvWidgetDataMapConfiguration', WidgetChartMapConfigurationComponent);
+graviteeManagementModule.component('gvWidgetDataPieConfiguration', WidgetChartPieConfigurationComponent);
+graviteeManagementModule.component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent);
+graviteeManagementModule.component('gvError', ErrorComponent);
+graviteeManagementModule.controller('errorCtrl', ErrorController);
 
-  graviteeManagementModule.component('instances', InstancesComponent);
-  graviteeManagementModule.component('instance', InstanceComponent);
-  graviteeManagementModule.component('instanceHeader', InstanceHeaderComponent);
-  graviteeManagementModule.component('instanceEnvironment', InstanceEnvironmentComponent);
-  graviteeManagementModule.component('instanceMonitoring', InstanceMonitoringComponent);
+graviteeManagementModule.component('categories', CategoriesComponent);
+graviteeManagementModule.component('category', CategoryComponent);
+graviteeManagementModule.component('tenants', TenantsComponent);
+graviteeManagementModule.component('tags', TagsComponent);
+graviteeManagementModule.component('metadata', MetadataComponent);
+graviteeManagementModule.component('roles', RolesComponent);
+graviteeManagementModule.component('role', RoleComponent);
+graviteeManagementModule.component('roleMembers', RoleMembersComponent);
+graviteeManagementModule.component('theme', ThemeComponent);
+graviteeManagementModule.component('topApis', TopApisComponent);
+graviteeManagementModule.component('cockpit', CockpitComponent);
+graviteeManagementModule.component('consoleSettings', ConsoleSettingsComponent);
+graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
+graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsComponent);
+graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
+graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
+graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
 
-  graviteeManagementModule.component('apiCreation', ApiCreationComponent);
-  graviteeManagementModule.controller('ApiCreationController', ApiCreationController);
-  graviteeManagementModule.controller('NewApiController', NewApiController);
-  graviteeManagementModule.component('apiCreationStep1', ApiCreationStep1Component);
-  graviteeManagementModule.component('apiCreationStep2', ApiCreationStep2Component);
-  graviteeManagementModule.component('apiCreationStep3', ApiCreationStep3Component);
-  graviteeManagementModule.component('apiCreationStep4', ApiCreationStep4Component);
-  graviteeManagementModule.component('apiCreationStep5', ApiCreationStep5Component);
-  graviteeManagementModule.component('gvApiImport', ApiImportComponent);
-  graviteeManagementModule.component('gvDashboard', DashboardComponent);
-  graviteeManagementModule.component('gvDashboardFilter', DashboardFilterComponent);
-  graviteeManagementModule.controller('DashboardFilterController', DashboardFilterController);
-  graviteeManagementModule.component('gvDashboardTimeframe', DashboardTimeframeComponent);
-  graviteeManagementModule.controller('DashboardTimeframeController', DashboardTimeframeController);
+graviteeManagementModule.component('instances', InstancesComponent);
+graviteeManagementModule.component('instance', InstanceComponent);
+graviteeManagementModule.component('instanceHeader', InstanceHeaderComponent);
+graviteeManagementModule.component('instanceEnvironment', InstanceEnvironmentComponent);
+graviteeManagementModule.component('instanceMonitoring', InstanceMonitoringComponent);
 
-  // Plan
-  graviteeManagementModule.component('apiPlan', ApiPlanComponent);
-  graviteeManagementModule.component('editPlan', ApiEditPlanComponent);
-  graviteeManagementModule.controller('ApiEditPlanController', ApiEditPlanController);
-  graviteeManagementModule.component('listPlans', ApiListPlansComponent);
-  graviteeManagementModule.controller('ApiListPlansController', ApiListPlansController);
-  graviteeManagementModule.component('planWizardGeneral', ApiEditPlanWizardGeneralComponent);
-  graviteeManagementModule.component('planWizardSecurity', ApiEditPlanWizardSecurityComponent);
-  graviteeManagementModule.component('planWizardPolicies', ApiEditPlanWizardPoliciesComponent);
-  graviteeManagementModule.component('planWizardRestrictions', ApiEditPlanWizardRestrictionsComponent);
+graviteeManagementModule.component('apiCreation', ApiCreationComponent);
+graviteeManagementModule.controller('ApiCreationController', ApiCreationController);
+graviteeManagementModule.controller('NewApiController', NewApiController);
+graviteeManagementModule.component('apiCreationStep1', ApiCreationStep1Component);
+graviteeManagementModule.component('apiCreationStep2', ApiCreationStep2Component);
+graviteeManagementModule.component('apiCreationStep3', ApiCreationStep3Component);
+graviteeManagementModule.component('apiCreationStep4', ApiCreationStep4Component);
+graviteeManagementModule.component('apiCreationStep5', ApiCreationStep5Component);
+graviteeManagementModule.component('gvApiImport', ApiImportComponent);
+graviteeManagementModule.component('gvDashboard', DashboardComponent);
+graviteeManagementModule.component('gvDashboardFilter', DashboardFilterComponent);
+graviteeManagementModule.controller('DashboardFilterController', DashboardFilterController);
+graviteeManagementModule.component('gvDashboardTimeframe', DashboardTimeframeComponent);
+graviteeManagementModule.controller('DashboardTimeframeController', DashboardTimeframeController);
 
-  // API subscriptions
-  graviteeManagementModule.component('apiKeyValidatedInput', ApiKeyValidatedInput);
-  graviteeManagementModule.component('apiSubscriptions', ApiSubscriptionsComponent);
-  graviteeManagementModule.component('apiSubscription', ApiSubscriptionComponent);
+// Plan
+graviteeManagementModule.component('apiPlan', ApiPlanComponent);
+graviteeManagementModule.component('editPlan', ApiEditPlanComponent);
+graviteeManagementModule.controller('ApiEditPlanController', ApiEditPlanController);
+graviteeManagementModule.component('listPlans', ApiListPlansComponent);
+graviteeManagementModule.controller('ApiListPlansController', ApiListPlansController);
+graviteeManagementModule.component('planWizardGeneral', ApiEditPlanWizardGeneralComponent);
+graviteeManagementModule.component('planWizardSecurity', ApiEditPlanWizardSecurityComponent);
+graviteeManagementModule.component('planWizardPolicies', ApiEditPlanWizardPoliciesComponent);
+graviteeManagementModule.component('planWizardRestrictions', ApiEditPlanWizardRestrictionsComponent);
 
-  graviteeManagementModule.component('applications', ApplicationsComponent);
-  graviteeManagementModule.component('application', ApplicationComponent);
+// API subscriptions
+graviteeManagementModule.component('apiKeyValidatedInput', ApiKeyValidatedInput);
+graviteeManagementModule.component('apiSubscriptions', ApiSubscriptionsComponent);
+graviteeManagementModule.component('apiSubscription', ApiSubscriptionComponent);
 
-  graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponent);
-  graviteeManagementModule.controller('ApplicationSubscribeController', ApplicationSubscribeController);
+graviteeManagementModule.component('applications', ApplicationsComponent);
+graviteeManagementModule.component('application', ApplicationComponent);
 
-  graviteeManagementModule.component('createApplication', ApplicationCreationComponent);
-  graviteeManagementModule.controller('ApplicationCreationController', ApplicationCreationController);
-  graviteeManagementModule.component('applicationCreationStep1', ApplicationCreationStep1Component);
-  graviteeManagementModule.component('applicationCreationStep2', ApplicationCreationStep2Component);
-  graviteeManagementModule.controller('ApplicationCreationStep2Controller', ApplicationCreationStep2Controller);
-  graviteeManagementModule.component('applicationCreationStep3', ApplicationCreationStep3Component);
-  graviteeManagementModule.component('applicationCreationStep4', ApplicationCreationStep4Component);
+graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponent);
+graviteeManagementModule.controller('ApplicationSubscribeController', ApplicationSubscribeController);
 
-  graviteeManagementModule.component('applicationHeader', ApplicationHeaderComponent);
-  graviteeManagementModule.component('applicationGeneral', ApplicationGeneralComponent);
-  graviteeManagementModule.component('applicationSubscriptions', ApplicationSubscriptionsComponent);
-  graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponent);
-  graviteeManagementModule.component('applicationMembers', ApplicationMembersComponent);
-  graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsComponent);
-  graviteeManagementModule.component('applicationLogs', ApplicationLogsComponent);
-  graviteeManagementModule.component('applicationLog', ApplicationLogComponent);
-  graviteeManagementModule.controller('DialogAddMemberController', DialogAddMemberController);
-  graviteeManagementModule.controller('ApplicationsController', ApplicationsController);
-  graviteeManagementModule.controller('ApplicationGeneralController', ApplicationGeneralController);
-  graviteeManagementModule.controller('ApplicationMembersController', ApplicationMembersController);
-  graviteeManagementModule.controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController);
-  graviteeManagementModule.controller('ApplicationAnalyticsController', ApplicationAnalyticsController);
-  graviteeManagementModule.controller('ApplicationLogsController', ApplicationLogsController);
-  graviteeManagementModule.controller('DialogTransferApplicationController', DialogTransferApplicationController);
+graviteeManagementModule.component('createApplication', ApplicationCreationComponent);
+graviteeManagementModule.controller('ApplicationCreationController', ApplicationCreationController);
+graviteeManagementModule.component('applicationCreationStep1', ApplicationCreationStep1Component);
+graviteeManagementModule.component('applicationCreationStep2', ApplicationCreationStep2Component);
+graviteeManagementModule.controller('ApplicationCreationStep2Controller', ApplicationCreationStep2Controller);
+graviteeManagementModule.component('applicationCreationStep3', ApplicationCreationStep3Component);
+graviteeManagementModule.component('applicationCreationStep4', ApplicationCreationStep4Component);
 
-  graviteeManagementModule.component('user', UserComponent);
+graviteeManagementModule.component('applicationHeader', ApplicationHeaderComponent);
+graviteeManagementModule.component('applicationGeneral', ApplicationGeneralComponent);
+graviteeManagementModule.component('applicationSubscriptions', ApplicationSubscriptionsComponent);
+graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponent);
+graviteeManagementModule.component('applicationMembers', ApplicationMembersComponent);
+graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsComponent);
+graviteeManagementModule.component('applicationLogs', ApplicationLogsComponent);
+graviteeManagementModule.component('applicationLog', ApplicationLogComponent);
+graviteeManagementModule.controller('DialogAddMemberController', DialogAddMemberController);
+graviteeManagementModule.controller('ApplicationsController', ApplicationsController);
+graviteeManagementModule.controller('ApplicationGeneralController', ApplicationGeneralController);
+graviteeManagementModule.controller('ApplicationMembersController', ApplicationMembersController);
+graviteeManagementModule.controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController);
+graviteeManagementModule.controller('ApplicationAnalyticsController', ApplicationAnalyticsController);
+graviteeManagementModule.controller('ApplicationLogsController', ApplicationLogsController);
+graviteeManagementModule.controller('DialogTransferApplicationController', DialogTransferApplicationController);
 
-  graviteeManagementModule.component('tasks', TasksComponent);
-  graviteeManagementModule.service('TaskService', TaskService);
+graviteeManagementModule.component('user', UserComponent);
 
-  graviteeManagementModule.component('portalNotifications', PortalNotificationsComponent);
-  graviteeManagementModule.service('UserNotificationService', UserNotificationService);
-  graviteeManagementModule.service('NotificationSettingsService', NotificationSettingsService);
-  graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);
-  graviteeManagementModule.controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController);
-  graviteeManagementModule.component('notificationSettingsComponent', NotificationSettingsComponent);
-  graviteeManagementModule.component('notificationsComponent', NotificationsComponent);
-  graviteeManagementModule.component('notificationTemplatesComponent', NotificationTemplatesComponent);
-  graviteeManagementModule.component('notificationTemplateComponent', NotificationTemplateComponent);
-  graviteeManagementModule.component('gvNotificationTemplateByType', NotificationTemplateByTypeComponent);
-  graviteeManagementModule.controller('NotificationTemplatesController', NotificationTemplatesController);
-  graviteeManagementModule.controller('NotificationTemplateController', NotificationTemplateController);
-  graviteeManagementModule.controller('NotificationTemplateByTypeController', NotificationTemplateByTypeController);
+graviteeManagementModule.component('tasks', TasksComponent);
+graviteeManagementModule.service('TaskService', TaskService);
 
+graviteeManagementModule.component('portalNotifications', PortalNotificationsComponent);
+graviteeManagementModule.service('UserNotificationService', UserNotificationService);
+graviteeManagementModule.service('NotificationSettingsService', NotificationSettingsService);
+graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);
+graviteeManagementModule.controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController);
+graviteeManagementModule.component('notificationSettingsComponent', NotificationSettingsComponent);
+graviteeManagementModule.component('notificationsComponent', NotificationsComponent);
+graviteeManagementModule.component('notificationTemplatesComponent', NotificationTemplatesComponent);
+graviteeManagementModule.component('notificationTemplateComponent', NotificationTemplateComponent);
+graviteeManagementModule.component('gvNotificationTemplateByType', NotificationTemplateByTypeComponent);
+graviteeManagementModule.controller('NotificationTemplatesController', NotificationTemplatesController);
+graviteeManagementModule.controller('NotificationTemplateController', NotificationTemplateController);
+graviteeManagementModule.controller('NotificationTemplateByTypeController', NotificationTemplateByTypeController);
 
-  graviteeManagementModule.component('documentationManagement', DocumentationManagementComponent);
-  graviteeManagementModule.component('newPage', NewPageComponent);
-  graviteeManagementModule.component('importPages', ImportPagesComponent);
-  graviteeManagementModule.component('editPage', EditPageComponent);
-  graviteeManagementModule.component('gvEditPageAcls', EditPageAclsComponent);
-  graviteeManagementModule.component('gvPage', PageComponent);
-  graviteeManagementModule.component('gvPageMarkdown', PageMarkdownComponent);
-  graviteeManagementModule.component('gvPageEditorMarkdown', PageEditorMarkdownComponent);
-  graviteeManagementModule.component('gvPageEditorMarkdownViewer', PageEditorMarkdownViewerComponent);
-  graviteeManagementModule.component('gvPageSwagger', PageSwaggerComponent);
-  graviteeManagementModule.directive('gvPageSidenav', () => PageSidenavDirective);
+graviteeManagementModule.component('documentationManagement', DocumentationManagementComponent);
+graviteeManagementModule.component('newPage', NewPageComponent);
+graviteeManagementModule.component('importPages', ImportPagesComponent);
+graviteeManagementModule.component('editPage', EditPageComponent);
+graviteeManagementModule.component('gvEditPageAcls', EditPageAclsComponent);
+graviteeManagementModule.component('gvPage', PageComponent);
+graviteeManagementModule.component('gvPageMarkdown', PageMarkdownComponent);
+graviteeManagementModule.component('gvPageEditorMarkdown', PageEditorMarkdownComponent);
+graviteeManagementModule.component('gvPageEditorMarkdownViewer', PageEditorMarkdownViewerComponent);
+graviteeManagementModule.component('gvPageSwagger', PageSwaggerComponent);
+graviteeManagementModule.directive('gvPageSidenav', () => PageSidenavDirective);
 
-  graviteeManagementModule.component('gvSidenav', SidenavComponent);
-  graviteeManagementModule.component('gvSubmenu', SubmenuComponent);
-  graviteeManagementModule.component('graviteeNavbar', NavbarComponent);
+graviteeManagementModule.component('gvSidenav', SidenavComponent);
+graviteeManagementModule.component('gvSubmenu', SubmenuComponent);
+graviteeManagementModule.component('graviteeNavbar', NavbarComponent);
 
-  graviteeManagementModule.filter('currentSubmenus', submenuFilter);
-  graviteeManagementModule.service('SidenavService', SidenavService);
+graviteeManagementModule.filter('currentSubmenus', submenuFilter);
+graviteeManagementModule.service('SidenavService', SidenavService);
 
-  graviteeManagementModule.controller('ApiLogsController', ApiLogsController);
-  graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);
-  graviteeManagementModule.controller('LogsTimeframeController', LogsTimeframeController);
-  graviteeManagementModule.component('log', LogComponent);
-  graviteeManagementModule.component('gvLogsFilters', LogsFiltersComponent);
-  graviteeManagementModule.controller('LogsFiltersController', LogsFiltersController);
-  graviteeManagementModule.controller('ApiLoggingConfigurationController', ApiLoggingConfigurationController);
-  graviteeManagementModule.controller('DialogConfigureLoggingEditorController', DialogConfigureLoggingEditorController);
+graviteeManagementModule.controller('ApiLogsController', ApiLogsController);
+graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);
+graviteeManagementModule.controller('LogsTimeframeController', LogsTimeframeController);
+graviteeManagementModule.component('log', LogComponent);
+graviteeManagementModule.component('gvLogsFilters', LogsFiltersComponent);
+graviteeManagementModule.controller('LogsFiltersController', LogsFiltersController);
+graviteeManagementModule.controller('ApiLoggingConfigurationController', ApiLoggingConfigurationController);
+graviteeManagementModule.controller('DialogConfigureLoggingEditorController', DialogConfigureLoggingEditorController);
 
-  graviteeManagementModule.component('gvAudit', AuditComponent);
-  graviteeManagementModule.component('gvNewsletterReminder', NewsletterReminderComponent);
-  graviteeManagementModule.component('gvContextualDoc', ContextualDocComponent);
-  graviteeManagementModule.controller('ContextualDocController', ContextualDocController);
+graviteeManagementModule.component('gvAudit', AuditComponent);
+graviteeManagementModule.component('gvNewsletterReminder', NewsletterReminderComponent);
+graviteeManagementModule.component('gvContextualDoc', ContextualDocComponent);
+graviteeManagementModule.controller('ContextualDocController', ContextualDocController);
 
-  // Healthcheck
-  graviteeManagementModule.controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController);
-  graviteeManagementModule.controller('ApiHealthCheckLogController', ApiHealthCheckLogController);
-  graviteeManagementModule.component('progressBar', ProgressBarComponent);
-  graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
+// Healthcheck
+graviteeManagementModule.controller('ApiHealthCheckConfigureController', ApiHealthCheckConfigureController);
+graviteeManagementModule.controller('ApiHealthCheckLogController', ApiHealthCheckLogController);
+graviteeManagementModule.component('progressBar', ProgressBarComponent);
+graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
 
-  // Response Templates
-  graviteeManagementModule.controller('ApiResponseTemplatesController', ApiResponseTemplatesController);
-  graviteeManagementModule.controller('ApiResponseTemplateController', ApiResponseTemplateController);
-  graviteeManagementModule.component('gvResponseTemplateType', ApiResponseTemplateTypeComponent);
-  graviteeManagementModule.component('gvResponseTemplate', ApiResponseTemplateComponent);
+// Response Templates
+graviteeManagementModule.controller('ApiResponseTemplatesController', ApiResponseTemplatesController);
+graviteeManagementModule.controller('ApiResponseTemplateController', ApiResponseTemplateController);
+graviteeManagementModule.component('gvResponseTemplateType', ApiResponseTemplateTypeComponent);
+graviteeManagementModule.component('gvResponseTemplate', ApiResponseTemplateComponent);
 
-  // Configuration
-  graviteeManagementModule.component('settings', SettingsComponent);
-  graviteeManagementModule.component('organizationSettings', OrganizationSettingsComponent);
-  graviteeManagementModule.service('ConsoleSettingsService', ConsoleSettingsService);
-  graviteeManagementModule.service('PortalSettingsService', PortalSettingsService);
-  graviteeManagementModule.service('PortalConfigService', PortalConfigService);
-  graviteeManagementModule.component('apiLogging', ApiLoggingComponent);
-  graviteeManagementModule.controller('ApiLoggingController', ApiLoggingController);
+// Configuration
+graviteeManagementModule.component('settings', SettingsComponent);
+graviteeManagementModule.component('organizationSettings', OrganizationSettingsComponent);
+graviteeManagementModule.service('ConsoleSettingsService', ConsoleSettingsService);
+graviteeManagementModule.service('PortalSettingsService', PortalSettingsService);
+graviteeManagementModule.service('PortalConfigService', PortalConfigService);
+graviteeManagementModule.component('apiLogging', ApiLoggingComponent);
+graviteeManagementModule.controller('ApiLoggingController', ApiLoggingController);
 
-  // Users
-  graviteeManagementModule.component('users', UsersComponent);
-  graviteeManagementModule.component('userDetail', UserDetailComponent);
-  graviteeManagementModule.component('newUser', NewUserComponent);
-  graviteeManagementModule.controller('DialogAddUserGroupController', DialogAddUserGroupController);
+// Users
+graviteeManagementModule.component('users', UsersComponent);
+graviteeManagementModule.component('userDetail', UserDetailComponent);
+graviteeManagementModule.component('newUser', NewUserComponent);
+graviteeManagementModule.controller('DialogAddUserGroupController', DialogAddUserGroupController);
 
-  // Router
-  graviteeManagementModule.service('RouterService', RouterService);
+// Router
+graviteeManagementModule.service('RouterService', RouterService);
 
-  graviteeManagementModule.component('messages', MessagesComponent);
+graviteeManagementModule.component('messages', MessagesComponent);
 
-  // Dictionaries
-  graviteeManagementModule.service('DictionaryService', DictionaryService);
-  graviteeManagementModule.component('dictionaries', DictionariesComponent);
-  graviteeManagementModule.component('dictionary', DictionaryComponent);
-  graviteeManagementModule.controller('DictionariesController', DictionariesController);
-  graviteeManagementModule.controller('DictionaryController', DictionaryController);
-  graviteeManagementModule.controller('DialogDictionaryAddPropertyController', DialogDictionaryAddPropertyController);
+// Dictionaries
+graviteeManagementModule.service('DictionaryService', DictionaryService);
+graviteeManagementModule.component('dictionaries', DictionariesComponent);
+graviteeManagementModule.component('dictionary', DictionaryComponent);
+graviteeManagementModule.controller('DictionariesController', DictionariesController);
+graviteeManagementModule.controller('DictionaryController', DictionaryController);
+graviteeManagementModule.controller('DialogDictionaryAddPropertyController', DialogDictionaryAddPropertyController);
 
-  // ApiHeader
-  graviteeManagementModule.component('configApiPortalHeader', ApiPortalHeaderComponent);
-  graviteeManagementModule.service('ApiHeaderService', ApiHeaderService);
-  graviteeManagementModule.controller('NewApiPortalHeaderDialogController', NewApiPortalHeaderDialogController);
-  graviteeManagementModule.controller('UpdateApiPortalHeaderDialogController', UpdateApiPortalHeaderDialogController);
+// ApiHeader
+graviteeManagementModule.component('configApiPortalHeader', ApiPortalHeaderComponent);
+graviteeManagementModule.service('ApiHeaderService', ApiHeaderService);
+graviteeManagementModule.controller('NewApiPortalHeaderDialogController', NewApiPortalHeaderDialogController);
+graviteeManagementModule.controller('UpdateApiPortalHeaderDialogController', UpdateApiPortalHeaderDialogController);
 
-  graviteeManagementModule.component('configApiQuality', ApiQualityRulesComponent);
-  graviteeManagementModule.component('qualityRule', ApiQualityRuleComponent);
-  graviteeManagementModule.controller('ApiQualityRuleController', ApiQualityRuleController);
-  graviteeManagementModule.controller('DeleteApiQualityRuleDialogController', DeleteApiQualityRuleDialogController);
-  graviteeManagementModule.service('QualityRuleService', QualityRuleService);
+graviteeManagementModule.component('configApiQuality', ApiQualityRulesComponent);
+graviteeManagementModule.component('qualityRule', ApiQualityRuleComponent);
+graviteeManagementModule.controller('ApiQualityRuleController', ApiQualityRuleController);
+graviteeManagementModule.controller('DeleteApiQualityRuleDialogController', DeleteApiQualityRuleDialogController);
+graviteeManagementModule.service('QualityRuleService', QualityRuleService);
 
-  // Settings: Identity provider
-  graviteeManagementModule.component('identityProviders', IdentityProvidersComponent);
-  graviteeManagementModule.component('identityProvider', IdentityProviderComponent);
-  graviteeManagementModule.component('gvIdentityproviderGraviteeioAm', IdentityProviderGraviteeioAmComponent);
-  graviteeManagementModule.component('gvIdentityproviderGoogle', IdentityProviderGoogleComponent);
-  graviteeManagementModule.component('gvIdentityproviderGithub', IdentityProviderGitHubComponent);
-  graviteeManagementModule.component('gvIdentityproviderOidc', IdentityProviderOIDCComponent);
-  graviteeManagementModule.controller('IdentityProviderController', IdentityProviderController);
-  graviteeManagementModule.service('IdentityProviderService', IdentityProviderService);
+// Settings: Identity provider
+graviteeManagementModule.component('identityProviders', IdentityProvidersComponent);
+graviteeManagementModule.component('identityProvider', IdentityProviderComponent);
+graviteeManagementModule.component('gvIdentityproviderGraviteeioAm', IdentityProviderGraviteeioAmComponent);
+graviteeManagementModule.component('gvIdentityproviderGoogle', IdentityProviderGoogleComponent);
+graviteeManagementModule.component('gvIdentityproviderGithub', IdentityProviderGitHubComponent);
+graviteeManagementModule.component('gvIdentityproviderOidc', IdentityProviderOIDCComponent);
+graviteeManagementModule.controller('IdentityProviderController', IdentityProviderController);
+graviteeManagementModule.service('IdentityProviderService', IdentityProviderService);
 
-  // Settings: Client Registration
-  graviteeManagementModule.component('clientRegistrationProviders', ClientRegistrationProvidersComponent);
-  graviteeManagementModule.component('clientRegistrationProvider', ClientRegistrationProviderComponent);
-  graviteeManagementModule.controller('ClientRegistrationProviderController', ClientRegistrationProviderController);
-  graviteeManagementModule.service('ClientRegistrationProviderService', ClientRegistrationProviderService);
+// Settings: Client Registration
+graviteeManagementModule.component('clientRegistrationProviders', ClientRegistrationProvidersComponent);
+graviteeManagementModule.component('clientRegistrationProvider', ClientRegistrationProviderComponent);
+graviteeManagementModule.controller('ClientRegistrationProviderController', ClientRegistrationProviderController);
+graviteeManagementModule.service('ClientRegistrationProviderService', ClientRegistrationProviderService);
 
-  // Alerts
-  graviteeManagementModule.service('AlertService', AlertService);
-  graviteeManagementModule.component('alertsComponent', AlertsComponent);
-  graviteeManagementModule.component('alertComponent', AlertComponent);
-  graviteeManagementModule.component('gvAlertNotification', AlertNotificationComponent);
-  graviteeManagementModule.component('gvAlertNotifications', AlertNotificationsComponent);
-  graviteeManagementModule.component('gvAlertHistory', AlertHistoryComponent);
-  graviteeManagementModule.component('gvAlertTriggerWindow', AlertTriggerWindowComponent);
-  graviteeManagementModule.component('gvAlertTriggerDampening', AlertTriggerDampeningComponent);
-  graviteeManagementModule.component('gvAlertTriggerCondition', AlertTriggerConditionComponent);
-  graviteeManagementModule.component('gvAlertTriggerFilters', AlertTriggerFiltersComponent);
-  graviteeManagementModule.component('gvAlertTriggerFilter', AlertTriggerFilterComponent);
-  graviteeManagementModule.component('gvAlertTriggerConditionThreshold', AlertTriggerConditionThresholdComponent);
-  graviteeManagementModule.component('gvAlertTriggerConditionThresholdRange', AlertTriggerConditionThresholdRangeComponent);
-  graviteeManagementModule.component('gvAlertTriggerConditionString', AlertTriggerConditionStringComponent);
-  graviteeManagementModule.component('gvAlertTriggerConditionCompare', AlertTriggerConditionCompareComponent);
-  graviteeManagementModule.component('gvAlertTriggerMetricsSimpleCondition', AlertTriggerMetricsSimpleConditionComponent);
-  graviteeManagementModule.component('gvAlertTriggerMetricsAggregation', AlertTriggerMetricsAggregationComponent);
-  graviteeManagementModule.component('gvAlertTriggerMissingData', AlertTriggerMissingDataComponent);
-  graviteeManagementModule.component('gvAlertTriggerMetricsRate', AlertTriggerMetricsRateComponent);
-  graviteeManagementModule.component('gvAlertTriggerApiHealthCheckStatusChanged', AlertTriggerApiHealthCheckEndpointStatusChangedComponent);
-  graviteeManagementModule.component('gvAlertTriggerNodeLifecycleChanged', AlertTriggerNodeLifecycleChangedComponent);
-  graviteeManagementModule.component('gvAlertTriggerNodeHealthcheck', AlertTriggerNodeHealthcheckComponent);
-  graviteeManagementModule.component('gvAlertTriggerApplicationQuota', AlertTriggerApplicationQuotaComponent);
-  graviteeManagementModule.component('gvAlertTriggerProjections', AlertTriggerProjectionsComponent);
-  graviteeManagementModule.component('gvAlertTriggerProjection', AlertTriggerProjectionComponent);
+// Alerts
+graviteeManagementModule.service('AlertService', AlertService);
+graviteeManagementModule.component('alertsComponent', AlertsComponent);
+graviteeManagementModule.component('alertComponent', AlertComponent);
+graviteeManagementModule.component('gvAlertNotification', AlertNotificationComponent);
+graviteeManagementModule.component('gvAlertNotifications', AlertNotificationsComponent);
+graviteeManagementModule.component('gvAlertHistory', AlertHistoryComponent);
+graviteeManagementModule.component('gvAlertTriggerWindow', AlertTriggerWindowComponent);
+graviteeManagementModule.component('gvAlertTriggerDampening', AlertTriggerDampeningComponent);
+graviteeManagementModule.component('gvAlertTriggerCondition', AlertTriggerConditionComponent);
+graviteeManagementModule.component('gvAlertTriggerFilters', AlertTriggerFiltersComponent);
+graviteeManagementModule.component('gvAlertTriggerFilter', AlertTriggerFilterComponent);
+graviteeManagementModule.component('gvAlertTriggerConditionThreshold', AlertTriggerConditionThresholdComponent);
+graviteeManagementModule.component('gvAlertTriggerConditionThresholdRange', AlertTriggerConditionThresholdRangeComponent);
+graviteeManagementModule.component('gvAlertTriggerConditionString', AlertTriggerConditionStringComponent);
+graviteeManagementModule.component('gvAlertTriggerConditionCompare', AlertTriggerConditionCompareComponent);
+graviteeManagementModule.component('gvAlertTriggerMetricsSimpleCondition', AlertTriggerMetricsSimpleConditionComponent);
+graviteeManagementModule.component('gvAlertTriggerMetricsAggregation', AlertTriggerMetricsAggregationComponent);
+graviteeManagementModule.component('gvAlertTriggerMissingData', AlertTriggerMissingDataComponent);
+graviteeManagementModule.component('gvAlertTriggerMetricsRate', AlertTriggerMetricsRateComponent);
+graviteeManagementModule.component('gvAlertTriggerApiHealthCheckStatusChanged', AlertTriggerApiHealthCheckEndpointStatusChangedComponent);
+graviteeManagementModule.component('gvAlertTriggerNodeLifecycleChanged', AlertTriggerNodeLifecycleChangedComponent);
+graviteeManagementModule.component('gvAlertTriggerNodeHealthcheck', AlertTriggerNodeHealthcheckComponent);
+graviteeManagementModule.component('gvAlertTriggerApplicationQuota', AlertTriggerApplicationQuotaComponent);
+graviteeManagementModule.component('gvAlertTriggerProjections', AlertTriggerProjectionsComponent);
+graviteeManagementModule.component('gvAlertTriggerProjection', AlertTriggerProjectionComponent);
 
-  // CircularPercentageComponent
-  graviteeManagementModule.component('circularPercentage', CircularPercentageComponent);
-  graviteeManagementModule.controller('CircularPercentageController', CircularPercentageController);
+// CircularPercentageComponent
+graviteeManagementModule.component('circularPercentage', CircularPercentageComponent);
+graviteeManagementModule.controller('CircularPercentageController', CircularPercentageController);
 
-  graviteeManagementModule.service('EntrypointService', EntrypointService);
-  graviteeManagementModule.component('entrypoint', EntrypointComponent);
-  graviteeManagementModule.controller('EntrypointController', EntrypointController);
-  graviteeManagementModule.controller('DeleteEntrypointDialogController', DeleteEntrypointDialogController);
-  graviteeManagementModule.component('tag', TagComponent);
-  graviteeManagementModule.controller('TagController', TagController);
+graviteeManagementModule.service('EntrypointService', EntrypointService);
+graviteeManagementModule.component('entrypoint', EntrypointComponent);
+graviteeManagementModule.controller('EntrypointController', EntrypointController);
+graviteeManagementModule.controller('DeleteEntrypointDialogController', DeleteEntrypointDialogController);
+graviteeManagementModule.component('tag', TagComponent);
+graviteeManagementModule.controller('TagController', TagController);
 
-  graviteeManagementModule.service('DashboardService', DashboardService);
-  graviteeManagementModule.component('dashboard', AnalyticsDashboardComponent);
-  graviteeManagementModule.controller('DialogQueryFilterInformationController', DialogQueryFilterInformationController);
+graviteeManagementModule.service('DashboardService', DashboardService);
+graviteeManagementModule.component('dashboard', AnalyticsDashboardComponent);
+graviteeManagementModule.controller('DialogQueryFilterInformationController', DialogQueryFilterInformationController);
 
-  // Platform Analytics
-  graviteeManagementModule.component('platformLogs', PlatformLogsComponent);
-  graviteeManagementModule.component('platformLog', PlatformLogComponent);
-  graviteeManagementModule.controller('PlatformLogsController', PlatformLogsController);
+// Platform Analytics
+graviteeManagementModule.component('platformLogs', PlatformLogsComponent);
+graviteeManagementModule.component('platformLog', PlatformLogComponent);
+graviteeManagementModule.controller('PlatformLogsController', PlatformLogsController);
 
-  // User-Autocomplete
-  graviteeManagementModule.component('gvUserAutocomplete', UserAutocompleteComponent);
-  graviteeManagementModule.controller('UserAutocompleteController', UserAutocompleteController);
+// User-Autocomplete
+graviteeManagementModule.component('gvUserAutocomplete', UserAutocompleteComponent);
+graviteeManagementModule.controller('UserAutocompleteController', UserAutocompleteController);
 
-  // Quick Time range
-  graviteeManagementModule.component('gvQuickTimeRange', QuickTimeRangeComponent);
-  graviteeManagementModule.controller('QuickTimeRangeController', QuickTimeRangeController);
+// Quick Time range
+graviteeManagementModule.component('gvQuickTimeRange', QuickTimeRangeComponent);
+graviteeManagementModule.controller('QuickTimeRangeController', QuickTimeRangeController);
 
-  graviteeManagementModule.filter('humanDateFilter', function () {
-    return function (input) {
-      if (input) {
-        if (!moment().subtract(1, 'weeks').isAfter(input)) {
-          return moment(input).fromNow();
-        } else {
-          return moment(input).format('ll');
-        }
+graviteeManagementModule.filter('humanDateFilter', function () {
+  return function (input) {
+    if (input) {
+      if (!moment().subtract(1, 'weeks').isAfter(input)) {
+        return moment(input).fromNow();
+      } else {
+        return moment(input).format('ll');
       }
-    };
-  });
-  graviteeManagementModule.filter('humanDatetimeFilter', function () {
-    return function (input) {
-      if (input) {
-        if (!moment().subtract(1, 'weeks').isAfter(input)) {
-          return moment(input).fromNow();
-        } else {
-          return moment(input).format('D MMM YYYY HH:mm:ss');
-        }
-      }
-    };
-  });
-  graviteeManagementModule.filter('datetimeFilter', function () {
-    return function (input) {
-      if (input) {
+    }
+  };
+});
+graviteeManagementModule.filter('humanDatetimeFilter', function () {
+  return function (input) {
+    if (input) {
+      if (!moment().subtract(1, 'weeks').isAfter(input)) {
+        return moment(input).fromNow();
+      } else {
         return moment(input).format('D MMM YYYY HH:mm:ss');
       }
-    };
-  });
-  graviteeManagementModule.filter('apiKeyFilter', function () {
-    return function (keys) {
-      return keys;
-    };
-  });
-  graviteeManagementModule.filter('floor', function () {
-    return function (input) {
-      return Math.floor(input);
-    };
-  });
+    }
+  };
+});
+graviteeManagementModule.filter('datetimeFilter', function () {
+  return function (input) {
+    if (input) {
+      return moment(input).format('D MMM YYYY HH:mm:ss');
+    }
+  };
+});
+graviteeManagementModule.filter('apiKeyFilter', function () {
+  return function (keys) {
+    return keys;
+  };
+});
+graviteeManagementModule.filter('floor', function () {
+  return function (input) {
+    return Math.floor(input);
+  };
+});

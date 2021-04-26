@@ -25,10 +25,10 @@ class EmptyStateDirective {
         message: '@message',
         subMessage: '@subMessage',
         createMode: '=',
-        fill: '@fill'
+        fill: '@fill',
       },
       transclude: true,
-      template: require('./emptystate.html')
+      template: require('./emptystate.html'),
     };
 
     return directive;

@@ -15,9 +15,9 @@
  */
 const IdentityProviderGitHubComponent: ng.IComponentOptions = {
   bindings: {
-    identityProvider: '<'
+    identityProvider: '<',
   },
-  template: require('./identity-provider-github.html')
+  template: require('./identity-provider-github.html'),
 };
 
 export default IdentityProviderGitHubComponent;

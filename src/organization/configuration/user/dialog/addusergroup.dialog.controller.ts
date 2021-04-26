@@ -18,7 +18,8 @@ function DialogAddUserGroupController(
   $mdDialog: angular.material.IDialogService,
   groups: any[],
   apiRoles: any[],
-  applicationRoles: any[]) {
+  applicationRoles: any[],
+) {
   'ngInject';
   this.groups = groups;
   this.apiRoles = apiRoles;
@@ -43,7 +44,7 @@ function DialogAddUserGroupController(
 
     $mdDialog.hide({
       id: $scope.selectedGroup,
-      roles: roles
+      roles: roles,
     });
   };
 }

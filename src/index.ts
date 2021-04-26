@@ -26,7 +26,7 @@ let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
 let $http: ng.IHttpService = initInjector.get('$http');
 let $q: ng.IQService = initInjector.get('$q');
 let $window: ng.IWindowService = initInjector.get('$window');
-let configNoCache = { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } };
+let configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
 let ConstantsJSON: any;
 
 fetchData()
@@ -36,10 +36,8 @@ fetchData()
   .then(bootstrapApplication);
 
 function fetchData() {
-
-  return $q.all(
-    [$http.get('constants.json', configNoCache),
-      $http.get('build.json', configNoCache)])
+  return $q
+    .all([$http.get('constants.json', configNoCache), $http.get('build.json', configNoCache)])
     .then((responses: any) => {
       ConstantsJSON = responses[0].data;
       let build = responses[1].data;
@@ -92,7 +90,6 @@ function computeBaseURLs(constants: any): any {
 }
 
 function preselectEnvironment() {
-
   const environmentRegex = /environments\/([\w|\-]+)/;
   const environment = environmentRegex.exec(document.location.toString());
   if (environment && environment[1]) {
@@ -106,11 +103,7 @@ function preselectOrganization() {
   let lastOrganization = $window.localStorage.getItem('gv-last-organization-loaded');
   if (organizationParam) {
     orgId = organizationParam.replace(/\/$/, '');
-    window.history.replaceState(
-      {},
-      '',
-      `${window.location.origin}/${window.location.hash}`,
-    );
+    window.history.replaceState({}, '', `${window.location.origin}/${window.location.hash}`);
   } else if (lastOrganization) {
     orgId = lastOrganization.replace(/\/$/, '');
   }
@@ -130,10 +123,12 @@ function initLoader(constants: any) {
 }
 
 function initTheme(constants: any) {
-  return $http.get(`./themes/${constants.org.settings.theme.name}-theme.json`, configNoCache)
+  return $http
+    .get(`./themes/${constants.org.settings.theme.name}-theme.json`, configNoCache)
     .then((response: any) => {
       angular.module('gravitee-management').constant('Theme', response.data);
-    }).catch(() => {
+    })
+    .catch(() => {
       return $http.get('./themes/default-theme.json', configNoCache).then((response: any) => {
         angular.module('gravitee-management').constant('Theme', response.data);
       });

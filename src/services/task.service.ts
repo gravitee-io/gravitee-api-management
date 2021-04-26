@@ -19,7 +19,6 @@ import { IHttpPromise } from 'angular';
 import UserService from './user.service';
 
 class TaskService {
-
   constructor(private $http: ng.IHttpService, private Constants, private UserService: UserService) {
     'ngInject';
   }

@@ -21,7 +21,7 @@ const TagsComponent: ng.IComponentOptions = {
     settings: '<',
   },
   controller: 'TagsController',
-  template: require('./tags.html')
+  template: require('./tags.html'),
 };
 
 export default TagsComponent;

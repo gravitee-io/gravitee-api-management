@@ -18,7 +18,6 @@ import { ApiPortalHeader } from '../entities/apiPortalHeader';
 import { IHttpPromise } from 'angular';
 
 class ApiHeaderService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
@@ -32,12 +31,11 @@ class ApiHeaderService {
   }
 
   update(apiHeader: ApiPortalHeader): IHttpPromise<ApiPortalHeader> {
-    return this.$http.put(`${this.Constants.env.baseURL}/configuration/apiheaders/` + apiHeader.id,
-      {
-        name: apiHeader.name,
-        value: apiHeader.value,
-        order: apiHeader.order
-      });
+    return this.$http.put(`${this.Constants.env.baseURL}/configuration/apiheaders/` + apiHeader.id, {
+      name: apiHeader.name,
+      value: apiHeader.value,
+      order: apiHeader.order,
+    });
   }
 
   delete(apiHeader: ApiPortalHeader): IHttpPromise<any> {

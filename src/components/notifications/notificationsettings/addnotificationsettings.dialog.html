@@ -16,33 +16,26 @@
 
 -->
 <md-dialog aria-label="New Notification Settings">
-    <form name="formNotificationSetting" ng-submit="dialogAddNotificationSettingsController.save()" novalidate>
-        <md-dialog-content layout="column" layout-padding>
-            <h4>New Notification Settings</h4>
-            <md-input-container>
-                <label>Name</label>
-                <input ng-model="dialogAddNotificationSettingsController.name" id="name" required autofocus>
-            </md-input-container>
-            <md-input-container>
-                <label>Notifier</label>
-                <md-select ng-model="dialogAddNotificationSettingsController.selectedNotifier"
-                           ng-model-options="{trackBy: '$value.id'}"
-                           required>
-                    <md-option ng-repeat="notifier in dialogAddNotificationSettingsController.notifiers"
-                               ng-value="notifier">
-                        {{notifier.name}}
-                    </md-option>
-                </md-select>
-            </md-input-container>
-        </md-dialog-content>
+  <form name="formNotificationSetting" ng-submit="dialogAddNotificationSettingsController.save()" novalidate>
+    <md-dialog-content layout="column" layout-padding>
+      <h4>New Notification Settings</h4>
+      <md-input-container>
+        <label>Name</label>
+        <input ng-model="dialogAddNotificationSettingsController.name" id="name" required autofocus />
+      </md-input-container>
+      <md-input-container>
+        <label>Notifier</label>
+        <md-select ng-model="dialogAddNotificationSettingsController.selectedNotifier" ng-model-options="{trackBy: '$value.id'}" required>
+          <md-option ng-repeat="notifier in dialogAddNotificationSettingsController.notifiers" ng-value="notifier">
+            {{notifier.name}}
+          </md-option>
+        </md-select>
+      </md-input-container>
+    </md-dialog-content>
 
-        <md-dialog-actions layout="row">
-            <md-button ng-click="dialogAddNotificationSettingsController.hide()">
-                Cancel
-            </md-button>
-            <md-button type="submit" class="md-raised md-primary" ng-disabled="formNotificationSetting.$invalid">
-                Add
-            </md-button>
-        </md-dialog-actions>
-    </form>
+    <md-dialog-actions layout="row">
+      <md-button ng-click="dialogAddNotificationSettingsController.hide()"> Cancel </md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formNotificationSetting.$invalid"> Add </md-button>
+    </md-dialog-actions>
+  </form>
 </md-dialog>

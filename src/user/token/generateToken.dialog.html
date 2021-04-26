@@ -19,26 +19,38 @@
   <form ng-submit="ctrl.generate()">
     <md-dialog-content layout-padding>
       <h4>{{ctrl.title}}</h4>
-      <md-input-container ng-show="!ctrl.token" style="width: 100%;">
+      <md-input-container ng-show="!ctrl.token" style="width: 100%">
         <label>Name</label>
-        <input type="text" md-maxlength="64" autofocus ng-model="ctrl.name" placeholder="What’s this token for?"/>
+        <input type="text" md-maxlength="64" autofocus ng-model="ctrl.name" placeholder="What’s this token for?" />
       </md-input-container>
       <div ng-if="ctrl.token">
         <h5>Make sure to copy your new personal access token now. You won’t be able to see it again.</h5>
         <span>
           <code>{{ctrl.token.token}}</code>
           <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
-          <ng-md-icon size="20" style="fill: #424E5A;" icon="content_copy"
-              ngclipboard data-clipboard-text="{{ctrl.token.token}}"
-              ngclipboard-success="onClipboardSuccess()" role="button"></ng-md-icon>
+          <ng-md-icon
+            size="20"
+            style="fill: #424e5a"
+            icon="content_copy"
+            ngclipboard
+            data-clipboard-text="{{ctrl.token.token}}"
+            ngclipboard-success="onClipboardSuccess()"
+            role="button"
+          ></ng-md-icon>
         </span>
         <h6>Example of use:</h6>
         <span>
           <code>{{ctrl.getExampleOfUse(ctrl.token.token)}}</code>
           <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
-          <ng-md-icon size="20" style="fill: #424E5A;" icon="content_copy"
-                      ngclipboard data-clipboard-text="{{ctrl.getExampleOfUse(ctrl.token.token)}}"
-                      ngclipboard-success="onClipboardSuccess()" role="button"></ng-md-icon>
+          <ng-md-icon
+            size="20"
+            style="fill: #424e5a"
+            icon="content_copy"
+            ngclipboard
+            data-clipboard-text="{{ctrl.getExampleOfUse(ctrl.token.token)}}"
+            ngclipboard-success="onClipboardSuccess()"
+            role="button"
+          ></ng-md-icon>
         </span>
       </div>
     </md-dialog-content>

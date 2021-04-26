@@ -20,27 +20,40 @@
     <h1>Deployments</h1>
     <div class="gv-form">
       <div class="gv-forms-header">
-      <h2>Deployment</h2>
+        <h2>Deployment</h2>
         <div class="ipsum">Use sharding tags to control where the API must be deployed.</div>
       </div>
       <div class="gv-form-content">
-      <md-input-container class="md-block">
-        <label>Sharding tags</label>
-        <md-select ng-model="apiProxyCtrl.api.tags" multiple>
-          <md-option ng-repeat="tag in apiProxyCtrl.tags" ng-value="tag.id" ng-disabled="apiProxyCtrl.isTagDisabled(tag)">
-            {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
-          </md-option>
-        </md-select>
-      </md-input-container>
+        <md-input-container class="md-block">
+          <label>Sharding tags</label>
+          <md-select ng-model="apiProxyCtrl.api.tags" multiple>
+            <md-option ng-repeat="tag in apiProxyCtrl.tags" ng-value="tag.id" ng-disabled="apiProxyCtrl.isTagDisabled(tag)">
+              {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
+            </md-option>
+          </md-select>
+        </md-input-container>
 
-  <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine">
-      Save
-    </md-button>
-    <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button" ng-click="apiProxyCtrl.reset()" ng-disabled="apiProxyCtrl.formApi.$pristine">
-      Reset
-    </md-button>
-  </div>
+        <div class="md-actions gravitee-api-save-button" layout="row">
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            class="md-raised md-primary"
+            type="submit"
+            ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine"
+          >
+            Save
+          </md-button>
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            class="md-raised"
+            type="button"
+            ng-click="apiProxyCtrl.reset()"
+            ng-disabled="apiProxyCtrl.formApi.$pristine"
+          >
+            Reset
+          </md-button>
+        </div>
       </div>
     </div>
   </div>

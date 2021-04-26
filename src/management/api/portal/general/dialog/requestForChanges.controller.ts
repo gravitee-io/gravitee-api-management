@@ -16,13 +16,13 @@
 function DialogRequestForChangesController($scope, $mdDialog) {
   'ngInject';
 
-  this.cancel = function() {
+  this.cancel = function () {
     $mdDialog.hide();
   };
 
-  this.confirm = function() {
+  this.confirm = function () {
     $mdDialog.hide({
-      message: this.message
+      message: this.message,
     });
   };
 }

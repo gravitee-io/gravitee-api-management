@@ -16,7 +16,6 @@
 
 -->
 <form name="formEndpoint" ng-submit="endpointCtrl.update(endpointCtrl.api)" novalidate autocomplete="false">
-
   <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
       <h1>Endpoint configuration</h1>
@@ -33,16 +32,23 @@
               <md-input-container flex="20">
                 <label>Type</label>
                 <md-select ng-model="endpointCtrl.endpoint.type" required>
-                  <md-option ng-repeat="type in endpointCtrl.types" ng-value="type">
-                    {{type}}
-                  </md-option>
+                  <md-option ng-repeat="type in endpointCtrl.types" ng-value="type"> {{type}} </md-option>
                 </md-select>
               </md-input-container>
 
               <md-input-container flex="40">
                 <label>Name</label>
-                <input ng-model="endpointCtrl.endpoint.name" type="text" name="endpointName" required ng-change="endpointCtrl.checkEndpointNameUniqueness()" ng-pattern="/^[^:]*$/">
-                <div class="hint" style="color:rgb(221,44,0);" ng-if="duplicateEndpointNames">This name is used by another endpoint and/or an endpoint group.</div>
+                <input
+                  ng-model="endpointCtrl.endpoint.name"
+                  type="text"
+                  name="endpointName"
+                  required
+                  ng-change="endpointCtrl.checkEndpointNameUniqueness()"
+                  ng-pattern="/^[^:]*$/"
+                />
+                <div class="hint" style="color: rgb(221, 44, 0)" ng-if="duplicateEndpointNames">
+                  This name is used by another endpoint and/or an endpoint group.
+                </div>
                 <div ng-messages="formEndpoint.endpointName.$error">
                   <div ng-message="pattern">Endpoint name does not support <code>:</code> in its name.</div>
                 </div>
@@ -50,11 +56,11 @@
             </div>
             <md-input-container flex="30">
               <label>Target</label>
-              <input ng-model="endpointCtrl.endpoint.target" type="text" required>
+              <input ng-model="endpointCtrl.endpoint.target" type="text" required />
             </md-input-container>
             <md-input-container flex="30">
               <label>Weight</label>
-              <input ng-model="endpointCtrl.endpoint.weight" type="number" min="1" max="99">
+              <input ng-model="endpointCtrl.endpoint.weight" type="number" min="1" max="99" />
             </md-input-container>
             <md-input-container class="flex">
               <label>Tenants</label>
@@ -68,18 +74,18 @@
           <section ng-if="endpointCtrl.creation === false">
             <md-subheader>
               Health-check
-              <ng-md-icon icon="settings" ui-sref="management.apis.detail.proxy.endpointhc({groupName: groupName, endpointName: endpointCtrl.endpoint.name})"></ng-md-icon>
+              <ng-md-icon
+                icon="settings"
+                ui-sref="management.apis.detail.proxy.endpointhc({groupName: groupName, endpointName: endpointCtrl.endpoint.name})"
+              ></ng-md-icon>
             </md-subheader>
           </section>
-          <md-checkbox
-            ng-model="endpointCtrl.endpoint.backup"
-            aria-label="Secondary endpoint"
-            class="md-align-top-left" flex>
-            Secondary endpoint<br/>
+          <md-checkbox ng-model="endpointCtrl.endpoint.backup" aria-label="Secondary endpoint" class="md-align-top-left" flex>
+            Secondary endpoint<br />
             <span class="ipsum">
-                      A secondary endpoint is not included in load-balancer pool and can only be selected to handle
-              requests when all primary endpoints are marked as "DOWN" by health-check service.
-                    </span>
+              A secondary endpoint is not included in load-balancer pool and can only be selected to handle requests when all primary
+              endpoints are marked as "DOWN" by health-check service.
+            </span>
           </md-checkbox>
         </md-tab-body>
       </md-tab>
@@ -87,16 +93,28 @@
       <md-tab>
         <md-tab-label>Configuration</md-tab-label>
         <md-tab-body>
-          <gv-http-configuration http-configuration="endpointCtrl.endpoint" inherit-http-configuration="endpointCtrl.group"
-                                 form="formEndpoint"></gv-http-configuration>
+          <gv-http-configuration
+            http-configuration="endpointCtrl.endpoint"
+            inherit-http-configuration="endpointCtrl.group"
+            form="formEndpoint"
+          ></gv-http-configuration>
         </md-tab-body>
       </md-tab>
     </md-tabs>
     <div class="md-actions gravitee-api-save-button" layout="row">
-      <md-button class="md-raised md-primary" type="submit" ng-disabled="duplicateEndpointNames || formEndpoint.$invalid || formEndpoint.$pristine">
+      <md-button
+        class="md-raised md-primary"
+        type="submit"
+        ng-disabled="duplicateEndpointNames || formEndpoint.$invalid || formEndpoint.$pristine"
+      >
         Save
       </md-button>
-      <md-button class="md-raised" type="button" ng-click="endpointCtrl.reset()" ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine">
+      <md-button
+        class="md-raised"
+        type="button"
+        ng-click="endpointCtrl.reset()"
+        ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine"
+      >
         Reset
       </md-button>
     </div>

@@ -16,12 +16,19 @@
 import DashboardService from '../../../../services/dashboard.service';
 import NotificationService from '../../../../services/notification.service';
 import _ = require('lodash');
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import angular = require('angular');
 const DashboardComponent: ng.IComponentOptions = {
   template: require('./dashboard.html'),
-  controller: function (DashboardService: DashboardService, NotificationService: NotificationService,
-                        $state: StateService, $scope, $rootScope, $mdDialog, $timeout) {
+  controller: function (
+    DashboardService: DashboardService,
+    NotificationService: NotificationService,
+    $state: StateService,
+    $scope,
+    $rootScope,
+    $mdDialog,
+    $timeout,
+  ) {
     'ngInject';
     let previousPristine = true;
     this.fields = DashboardService.getIndexedFields();
@@ -38,18 +45,22 @@ const DashboardComponent: ng.IComponentOptions = {
               _.merge(widget, DashboardService.getChartService());
             });
           }
-          $scope.$watch('$ctrl.dashboard.definition', (newDefinition, oldDefinition) => {
-            if (!_.isEqual(newDefinition, oldDefinition)) {
-              this.formDashboard.$setDirty();
-            }
-          }, true);
+          $scope.$watch(
+            '$ctrl.dashboard.definition',
+            (newDefinition, oldDefinition) => {
+              if (!_.isEqual(newDefinition, oldDefinition)) {
+                this.formDashboard.$setDirty();
+              }
+            },
+            true,
+          );
         });
       } else {
         this.dashboard = {
           reference_type: $state.params.type,
           reference_id: 'DEFAULT',
           enabled: true,
-          definition: []
+          definition: [],
         };
       }
     };
@@ -78,7 +89,7 @@ const DashboardComponent: ng.IComponentOptions = {
         savePromise = DashboardService.create(clonedDashboard);
       }
       savePromise.then((response) => {
-        $state.go('management.settings.dashboard', _.merge($state.params, {dashboardId: response.data.id}), {reload: true});
+        $state.go('management.settings.dashboard', _.merge($state.params, { dashboardId: response.data.id }), { reload: true });
         this.formDashboard.$setPristine();
         NotificationService.show(`Dashboard ${this.editMode ? 'updated' : 'created'} with success`);
       });
@@ -107,7 +118,7 @@ const DashboardComponent: ng.IComponentOptions = {
         controllerAs: 'ctrl',
         template: require('./query-filter-information.dialog.html'),
         parent: angular.element(document.body),
-        clickOutsideToClose: true
+        clickOutsideToClose: true,
       });
     };
 
@@ -125,7 +136,7 @@ const DashboardComponent: ng.IComponentOptions = {
         previousPristine = this.formDashboard.$pristine;
       }
     };
-  }
+  },
 };
 
 export default DashboardComponent;

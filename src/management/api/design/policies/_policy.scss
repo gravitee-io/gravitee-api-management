@@ -1,17 +1,17 @@
 .gravitee-policy-dropzone {
   border-radius: 4px;
   padding: 20px;
-  border: thick dotted rgba(0, 0, 0, .1);
+  border: thick dotted rgba(0, 0, 0, 0.1);
   text-align: center;
   span.gravitee-policy-dropzone-msg {
-    color: rgba(0,0,0,.2);
+    color: rgba(0, 0, 0, 0.2);
     font-size: 2.2em;
     font-weight: bold;
   }
   md-card md-card-content {
     padding: 8px;
   }
-  .gravitee-policy-card:hover{
+  .gravitee-policy-card:hover {
     cursor: grab;
   }
 }
@@ -24,7 +24,7 @@
   cursor: pointer;
 }
 
-.gravitee-policy-card .md-subhead{
+.gravitee-policy-card .md-subhead {
   font-size: 14px;
 }
 
@@ -35,7 +35,7 @@
   #policy-version md-chips md-chip {
     font-size: 0.6em;
   }
-  .gravitee-policy-card:hover{
+  .gravitee-policy-card:hover {
     cursor: grab;
   }
 }
@@ -43,18 +43,18 @@
 .gravitee-policy-draggable-selected {
   cursor: grab;
   .gu-transit {
-    background-color: #0000AA;
-    color: #0000AA;
+    background-color: #0000aa;
+    color: #0000aa;
   }
 }
 
 .gravitee-policy-card-selected {
-  background-color: #EEE;
+  background-color: #eee;
   border: 1px solid #999;
 }
 
 .gravitee-policy-card-description {
-  color: rgba(0,0,0,0.54);
+  color: rgba(0, 0, 0, 0.54);
   padding-top: 5px;
   padding-bottom: 5px;
   font-size: 11px;
@@ -63,11 +63,11 @@
 
 .gravitee-policy-card-disabled {
   opacity: 0.5;
-  background-color: #EEE;
+  background-color: #eee;
 }
 
 .gravitee-policy-card-missed {
-  color: #EEE;
+  color: #eee;
   background-color: #e53935;
 }
 
@@ -78,12 +78,12 @@
 
 .gravitee-policy-method-badge-filter {
   margin: 2px 5px;
-  font-size: .67em;
+  font-size: 0.67em;
 }
 
 .gravitee-policy-method-badge-info {
   margin: 2px 0;
-  font-size: .7em;
+  font-size: 0.7em;
 }
 
 .gravitee-policy-method-badge-GET-selected {

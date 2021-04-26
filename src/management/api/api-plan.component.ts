@@ -22,7 +22,7 @@ const ApiPlanComponent: ng.IComponentOptions = {
     subscribable: '<',
     unsubscribable: '<',
     onSubscribe: '&',
-    onUnsubscribe: '&'
+    onUnsubscribe: '&',
   },
   template: require('./api-plan.html'),
   controller: function (UserService: UserService) {
@@ -30,14 +30,14 @@ const ApiPlanComponent: ng.IComponentOptions = {
 
     this.authenticated = UserService.isAuthenticated();
 
-    this.subscribe = function() {
+    this.subscribe = function () {
       this.onSubscribe(this.plan);
     };
 
-    this.unsubscribe = function() {
+    this.unsubscribe = function () {
       this.onUnsubscribe(this.plan);
     };
-  }
+  },
 };
 
 export default ApiPlanComponent;

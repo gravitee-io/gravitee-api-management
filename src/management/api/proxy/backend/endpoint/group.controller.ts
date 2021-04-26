@@ -17,7 +17,7 @@
 import _ = require('lodash');
 import ApiService from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
-import {StateService, StateParams} from '@uirouter/core';
+import { StateService, StateParams } from '@uirouter/core';
 
 class ApiEndpointGroupController {
   private api: any;
@@ -31,7 +31,7 @@ class ApiEndpointGroupController {
   private serviceDiscoveryJsonSchema: any;
   private serviceDiscoveryConfigurationForm: any;
 
-  constructor (
+  constructor(
     private ApiService: ApiService,
     private NotificationService: NotificationService,
     private ServiceDiscoveryService,
@@ -40,14 +40,14 @@ class ApiEndpointGroupController {
     private resolvedServicesDiscovery,
     private $state: StateService,
     private $stateParams: StateParams,
-    private $timeout
+    private $timeout,
   ) {
     'ngInject';
   }
 
   $onInit() {
     this.api = this.$scope.$parent.apiCtrl.api;
-    this.group = _.find(this.api.proxy.groups, { 'name': this.$stateParams.groupName});
+    this.group = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
     this.$scope.duplicateEndpointNames = false;
     // Creation mode
     if (!this.group) {
@@ -60,27 +60,31 @@ class ApiEndpointGroupController {
     this.types = this.resolvedServicesDiscovery.data;
 
     this.discovery = this.group.services && this.group.services.discovery;
-    this.discovery = this.discovery || {enabled: false, configuration: {}};
+    this.discovery = this.discovery || { enabled: false, configuration: {} };
     this.initialGroups = _.cloneDeep(this.api.proxy.groups);
 
     this.$scope.lbs = [
       {
         name: 'Round-Robin',
-        value: 'ROUND_ROBIN'
-      }, {
+        value: 'ROUND_ROBIN',
+      },
+      {
         name: 'Random',
-        value: 'RANDOM'
-      }, {
+        value: 'RANDOM',
+      },
+      {
         name: 'Weighted Round-Robin',
-        value: 'WEIGHTED_ROUND_ROBIN'
-      }, {
+        value: 'WEIGHTED_ROUND_ROBIN',
+      },
+      {
         name: 'Weighted Random',
-        value: 'WEIGHTED_RANDOM'
-      }];
+        value: 'WEIGHTED_RANDOM',
+      },
+    ];
 
     if (!this.group.load_balancing) {
       this.group.load_balancing = {
-        type: this.$scope.lbs[0].value
+        type: this.$scope.lbs[0].value,
       };
     }
 
@@ -95,27 +99,29 @@ class ApiEndpointGroupController {
 
   retrievePluginSchema() {
     if (this.discovery.provider !== undefined) {
-      this.ServiceDiscoveryService.getSchema(this.discovery.provider).then(({data}) => {
+      this.ServiceDiscoveryService.getSchema(this.discovery.provider).then(
+        ({ data }) => {
           this.serviceDiscoveryJsonSchema = data;
         },
         (response) => {
           if (response.status === 404) {
             this.serviceDiscoveryJsonSchema = {};
             return {
-              schema: {}
+              schema: {},
             };
           } else {
             // todo manage errors
             this.NotificationService.showError('Unexpected error while loading service discovery schema for ' + this.discovery.provider);
           }
-        });
+        },
+      );
     }
   }
 
   update(api) {
     // include discovery service
     this.group.services = {
-      discovery: this.discovery
+      discovery: this.discovery,
     };
 
     if (!_.includes(api.proxy.groups, this.group)) {
@@ -149,7 +155,7 @@ class ApiEndpointGroupController {
   }
 
   onApiUpdate() {
-    this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
+    this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
     this.NotificationService.show('Group configuration saved');
     this.$state.go('management.apis.detail.proxy.endpoints');
   }
@@ -166,8 +172,7 @@ class ApiEndpointGroupController {
   }
 
   checkEndpointNameUniqueness() {
-    this.$scope.duplicateEndpointNames =
-      this.ApiService.isEndpointNameAlreadyUsed(this.api, this.group.name, this.creation);
+    this.$scope.duplicateEndpointNames = this.ApiService.isEndpointNameAlreadyUsed(this.api, this.group.name, this.creation);
   }
 }
 

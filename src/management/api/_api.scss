@@ -110,7 +110,7 @@
 
 .api-box-footer {
   margin-top: 5px;
-  border-top: 1px solid rgba(0, 0, 0, .12);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
   padding: 2px;
 }
 
@@ -154,11 +154,11 @@
 
 .gravitee-api-banner-content {
   background: #dfa941;
-  padding: .5rem;
+  padding: 0.5rem;
   text-align: center;
   color: white;
   line-height: 0.7rem;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
 }
 
 .gravitee-api-banner-content:hover {
@@ -193,11 +193,11 @@
 
 .gravitee-api-card {
   background: #fff;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .2), 0 1px 1px 0 rgba(0, 0, 0, .14), 0 2px 1px -1px rgba(0, 0, 0, .12)
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
 }
 
 .gravitee-api-card:hover {
-  box-shadow: 0 1px 6px 1px rgba(0, 0, 0, .37);
+  box-shadow: 0 1px 6px 1px rgba(0, 0, 0, 0.37);
 }
 
 .apis-header-filter {
@@ -245,7 +245,7 @@
 span.proxy-activated {
   font-size: 11px;
   font-weight: normal;
-  color: #00AA00;
+  color: #00aa00;
 }
 
 span.proxy-deactivated {
@@ -278,11 +278,10 @@ span.proxy-deactivated {
     line-height: 48px;
   }
 
-  input[type="file"] {
+  input[type='file'] {
     cursor: pointer;
   }
 }
-
 
 .highlight {
   color: black !important;
@@ -303,7 +302,6 @@ api-creation {
   min-height: 0;
 }
 
-
 .md-chips {
   font-size: 12px;
 }
@@ -312,19 +310,23 @@ md-switch {
   margin: 0;
 }
 
-md-switch.md-default-theme.md-checked.md-primary .md-thumb, md-switch.md-checked.md-primary .md-thumb {
+md-switch.md-default-theme.md-checked.md-primary .md-thumb,
+md-switch.md-checked.md-primary .md-thumb {
   background-color: green;
 }
 
-md-switch.md-default-theme.md-primary .md-thumb, md-switch.md-primary .md-thumb {
+md-switch.md-default-theme.md-primary .md-thumb,
+md-switch.md-primary .md-thumb {
   background-color: #e00000;
 }
 
-md-switch.md-default-theme.md-checked .md-bar, md-switch.md-checked .md-bar {
-  background-color: lightgrey
+md-switch.md-default-theme.md-checked .md-bar,
+md-switch.md-checked .md-bar {
+  background-color: lightgrey;
 }
 
-md-switch.md-default-theme .md-bar, md-switch .md-bar {
+md-switch.md-default-theme .md-bar,
+md-switch .md-bar {
   background-color: lightgrey;
 }
 
@@ -436,6 +438,6 @@ md-switch.md-default-theme .md-bar, md-switch .md-bar {
   fill: red;
 }
 
-.gravitee-listening-host md-autocomplete-wrap{
+.gravitee-listening-host md-autocomplete-wrap {
   box-shadow: none;
 }

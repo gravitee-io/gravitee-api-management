@@ -16,26 +16,31 @@
 
 -->
 <div flex>
-    <div layout="row" flex>
-        <div class="gv-sub-menu menu">
-            <div class="md-headline">
-                <span>
-                    {{apiCtrl.api.name}} ({{apiCtrl.api.version}})
-                    <md-tooltip md-direction="bottom">{{apiCtrl.api.name}} ({{apiCtrl.api.version}})</md-tooltip>
-                </span>
-            </div>
+  <div layout="row" flex>
+    <div class="gv-sub-menu menu">
+      <div class="md-headline">
+        <span>
+          {{apiCtrl.api.name}} ({{apiCtrl.api.version}})
+          <md-tooltip md-direction="bottom">{{apiCtrl.api.name}} ({{apiCtrl.api.version}})</md-tooltip>
+        </span>
+      </div>
 
-            <div class="aui-nav-heading">
-                <strong>General</strong>
-            </div>
-            <ul class="aui-nav">
-                <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.audit.general'><a class="execute">Audit</a></li>
-                <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.audit.history'><a class="execute">History</a></li>
-                <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref='management.apis.detail.audit.events'><a class="execute">Events</a></li>
-            </ul>
-        </div>
-
-        <div flex class="gv-sub-content" ui-view layout="column"></div>
-
+      <div class="aui-nav-heading">
+        <strong>General</strong>
+      </div>
+      <ul class="aui-nav">
+        <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref="management.apis.detail.audit.general">
+          <a class="execute">Audit</a>
+        </li>
+        <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref="management.apis.detail.audit.history">
+          <a class="execute">History</a>
+        </li>
+        <li class="iterable-item" ui-sref-active="aui-nav-selected" ui-sref="management.apis.detail.audit.events">
+          <a class="execute">Events</a>
+        </li>
+      </ul>
     </div>
+
+    <div flex class="gv-sub-content" ui-view layout="column"></div>
+  </div>
 </div>

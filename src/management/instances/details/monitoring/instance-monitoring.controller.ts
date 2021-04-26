@@ -21,13 +21,11 @@ class InstanceMonitoringController {
   private monitoringData: any;
   private instance: any;
   private instanceStarted: boolean;
-  private monitoringCpuChartData: {series: [{name: string; data: any[]}]};
-  private monitoringHeapChartData: {series: [{name: string; data: any[]}]};
+  private monitoringCpuChartData: { series: [{ name: string; data: any[] }] };
+  private monitoringHeapChartData: { series: [{ name: string; data: any[] }] };
   private interval: any;
 
-  constructor(
-    private $stateParams,
-    private InstancesService: InstancesService) {
+  constructor(private $stateParams, private InstancesService: InstancesService) {
     'ngInject';
   }
 
@@ -67,7 +65,7 @@ class InstanceMonitoringController {
   }
 
   ratio(value, value2) {
-    return _.round(value / value2 * 100);
+    return _.round((value / value2) * 100);
   }
 
   getPieChartPercentColor(value) {
@@ -76,16 +74,20 @@ class InstanceMonitoringController {
 
   buildChartData() {
     this.monitoringCpuChartData = {
-      series: [{
-        name: 'CPU',
-        data: [this.monitoringData.process && this.monitoringData.process.cpu_percent]
-      }]
+      series: [
+        {
+          name: 'CPU',
+          data: [this.monitoringData.process && this.monitoringData.process.cpu_percent],
+        },
+      ],
     };
     this.monitoringHeapChartData = {
-      series: [{
-        name: 'Heap',
-        data: [this.monitoringData.jvm && this.monitoringData.jvm.heap_used_percent]
-      }]
+      series: [
+        {
+          name: 'Heap',
+          data: [this.monitoringData.jvm && this.monitoringData.jvm.heap_used_percent],
+        },
+      ],
     };
   }
 }

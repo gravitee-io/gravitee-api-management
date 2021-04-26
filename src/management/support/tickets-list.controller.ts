@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import TicketService, {TicketsQuery} from '../../services/ticket.service';
-import {StateService} from '@uirouter/core';
-import {IScope} from 'angular';
+import TicketService, { TicketsQuery } from '../../services/ticket.service';
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 
 class TicketsListController {
-
   private query: TicketsQuery;
-  private tickets: {totalElements: number, content: any[]};
+  private tickets: { totalElements: number; content: any[] };
 
-  constructor(
-    private TicketService: TicketService,
-    private $scope: IScope,
-    private $state: StateService) {
+  constructor(private TicketService: TicketService, private $scope: IScope, private $state: StateService) {
     'ngInject';
   }
 
   $onInit() {
-
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new TicketsQuery();
@@ -59,7 +54,8 @@ class TicketsListController {
         size: this.query.size,
         order: this.query.order,
       },
-      {notify: false});
+      { notify: false },
+    );
     this.TicketService.search(this.query).then((tickets) => {
       this.tickets = tickets.data;
     });

@@ -15,10 +15,10 @@
  */
 const TagComponent: ng.IComponentOptions = {
   bindings: {
-    groups: '<'
+    groups: '<',
   },
   controller: 'TagController',
-  template: require('./tag.html')
+  template: require('./tag.html'),
 };
 
 export default TagComponent;

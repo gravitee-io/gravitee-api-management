@@ -19,22 +19,18 @@ module.exports = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   verbose: true,
-  moduleFileExtensions: [
-    'js',
-    'ts',
-    'html'
-  ],
+  moduleFileExtensions: ['js', 'ts', 'html'],
   moduleNameMapper: {
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/__mocks__/fileMock.js',
-    '\\.(css|scss)$': '<rootDir>/__mocks__/styleMock.js'
+    '\\.(css|scss)$': '<rootDir>/__mocks__/styleMock.js',
   },
   transform: {
     '^.+\\.ts$': 'ts-jest',
     '\\.js$': 'babel-jest',
-    '^.+\\.html$': '<rootDir>/__mocks__/rawLoader.js'
+    '^.+\\.html$': '<rootDir>/__mocks__/rawLoader.js',
   },
   transformIgnorePatterns: [
     // Ensure these packages are transformed with babel as they contains some ES6+ features (as `await import` and spread operator)
-    '/node_modules/(?!(@gravitee/ui-components|lit-element|lit-html|resize-observer-polyfill)).+\\.js$'
-  ]
+    '/node_modules/(?!(@gravitee/ui-components|lit-element|lit-html|resize-observer-polyfill)).+\\.js$',
+  ],
 };

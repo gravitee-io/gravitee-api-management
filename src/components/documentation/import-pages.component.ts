@@ -16,8 +16,8 @@
 
 import NotificationService from '../../services/notification.service';
 import DocumentationService from '../../services/documentation.service';
-import {StateService} from '@uirouter/core';
-import {IScope} from 'angular';
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import _ = require('lodash');
 
 interface IPageScope extends IScope {
@@ -26,14 +26,14 @@ interface IPageScope extends IScope {
 const ImportPagesComponent: ng.IComponentOptions = {
   bindings: {
     resolvedFetchers: '<',
-    resolvedRootPage: '<'
+    resolvedRootPage: '<',
   },
   template: require('./import-pages.html'),
   controller: function (
     NotificationService: NotificationService,
     DocumentationService: DocumentationService,
     $state: StateService,
-    $scope: IPageScope
+    $scope: IPageScope,
   ) {
     'ngInject';
     this.apiId = $state.params.apiId;
@@ -43,28 +43,27 @@ const ImportPagesComponent: ng.IComponentOptions = {
       lineNumbers: true,
       allowDropFileTypes: true,
       autoCloseTags: true,
-      mode: 'javascript'
+      mode: 'javascript',
     };
 
     this.$onInit = () => {
-
       this.page = this.resolvedRootPage || {
         name: 'root',
-        type: 'ROOT'
+        type: 'ROOT',
       };
 
       this.fetchers = this.resolvedFetchers;
 
       this.emptyFetcher = {
-        'type': 'object',
-        'id': 'empty',
-        'properties': {'' : {}}
+        type: 'object',
+        id: 'empty',
+        properties: { '': {} },
       };
       $scope.fetcherJsonSchema = this.emptyFetcher;
       this.fetcherJsonSchemaForm = ['*'];
 
       if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
-        _.forEach(this.fetchers, fetcher => {
+        _.forEach(this.fetchers, (fetcher) => {
           if (fetcher.id === this.page.source.type) {
             $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
           }
@@ -73,13 +72,13 @@ const ImportPagesComponent: ng.IComponentOptions = {
     };
 
     this.configureFetcher = (fetcher) => {
-      if (! this.page.source) {
+      if (!this.page.source) {
         this.page.source = {};
       }
 
       this.page.source = {
         type: fetcher.id,
-        configuration: {}
+        configuration: {},
       };
       $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
     };
@@ -88,34 +87,43 @@ const ImportPagesComponent: ng.IComponentOptions = {
       this.importInProgress = true;
       this.page.name = 'import';
       DocumentationService.import(this.page, this.apiId)
-        .then( (response: any) => {
+        .then((response: any) => {
           if (this.page.id) {
             if (response.data.messages && response.data.messages.length > 0) {
-              NotificationService.showError('\'' + response.data.length + '\' elements has been updated (with validation errors - check the bottom of the page for details)');
+              NotificationService.showError(
+                "'" +
+                  response.data.length +
+                  "' elements has been updated (with validation errors - check the bottom of the page for details)",
+              );
             } else {
-              NotificationService.show('\'' + response.data.length + '\' elements has been updated.');
+              NotificationService.show("'" + response.data.length + "' elements has been updated.");
             }
           } else {
             if (response.data.messages && response.data.messages.length > 0) {
-              NotificationService.showError('\'' + response.data.length + '\' elements has been created (with validation errors - check the bottom of the page for details)');
+              NotificationService.showError(
+                "'" +
+                  response.data.length +
+                  "' elements has been created (with validation errors - check the bottom of the page for details)",
+              );
             } else {
-              NotificationService.show('\'' + response.data.length + '\' elements has been created.');
+              NotificationService.show("'" + response.data.length + "' elements has been created.");
             }
           }
           if (this.apiId) {
-            $state.go('management.apis.detail.portal.documentation', {apiId: this.apiId});
+            $state.go('management.apis.detail.portal.documentation', { apiId: this.apiId });
           } else {
             $state.go('management.settings.documentation');
           }
-      }).finally( () => {
-        this.importInProgress = false;
-      });
+        })
+        .finally(() => {
+          this.importInProgress = false;
+        });
     };
 
     this.changeContentMode = (newMode) => {
       if ('fetcher' === newMode) {
         this.page.source = {
-          configuration: {}
+          configuration: {},
         };
       } else {
         delete this.page.source;
@@ -124,12 +132,12 @@ const ImportPagesComponent: ng.IComponentOptions = {
 
     this.cancel = () => {
       if (this.apiId) {
-        $state.go('management.apis.detail.portal.documentation', {apiId: this.apiId});
+        $state.go('management.apis.detail.portal.documentation', { apiId: this.apiId });
       } else {
         $state.go('management.settings.documentation');
       }
     };
-  }
+  },
 };
 
 export default ImportPagesComponent;

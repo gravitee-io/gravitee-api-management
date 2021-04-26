@@ -19,14 +19,14 @@ const ApplicationHeaderComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
   },
-  controller: function(SidenavService : SidenavService) {
+  controller: function (SidenavService: SidenavService) {
     'ngInject';
 
-    this.$onInit = function() {
+    this.$onInit = function () {
       this.hideSubscribeLink = this.application.status === 'ARCHIVED';
     };
   },
-  template: require('./application-header.html')
+  template: require('./application-header.html'),
 };
 
 export default ApplicationHeaderComponent;

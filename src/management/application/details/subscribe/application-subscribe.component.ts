@@ -17,10 +17,10 @@ const ApplicationSubscribeComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
     apis: '<',
-    subscriptions: '<'
+    subscriptions: '<',
   },
   template: require('./application-subscribe.html'),
-  controller: 'ApplicationSubscribeController'
+  controller: 'ApplicationSubscribeController',
 };
 
 export default ApplicationSubscribeComponent;

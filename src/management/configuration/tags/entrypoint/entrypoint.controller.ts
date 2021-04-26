@@ -19,16 +19,14 @@ import EntrypointService from '../../../../services/entrypoint.service';
 class EntrypointController {
   private entrypoint: any;
 
-  constructor(private EntrypointService: EntrypointService,
-              private $state,
-              private NotificationService: NotificationService) {
+  constructor(private EntrypointService: EntrypointService, private $state, private NotificationService: NotificationService) {
     'ngInject';
     if ($state.params.entrypointId) {
       EntrypointService.findById($state.params.entrypointId).then((response) => {
         this.entrypoint = response.data;
       });
     } else {
-      this.entrypoint = {tags: []};
+      this.entrypoint = { tags: [] };
     }
   }
 

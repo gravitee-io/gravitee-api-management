@@ -15,7 +15,6 @@
  */
 
 class InstallationService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
@@ -23,7 +22,6 @@ class InstallationService {
   getInstallationInformation() {
     return this.$http.get(`${this.Constants.org.baseURL}/installation/`);
   }
-
 }
 
 export default InstallationService;

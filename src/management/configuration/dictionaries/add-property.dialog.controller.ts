@@ -23,7 +23,7 @@ function DialogDictionaryAddPropertyController($scope, $mdDialog) {
   this.save = function () {
     let property = {
       key: $scope.property.name,
-      value: $scope.property.value
+      value: $scope.property.value,
     };
 
     $mdDialog.hide(property);

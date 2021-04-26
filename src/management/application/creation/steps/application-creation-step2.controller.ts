@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ApplicationType} from '../../../../entities/application';
+import { ApplicationType } from '../../../../entities/application';
 import ApplicationCreationController from './application-creation.controller';
 
 class ApplicationCreationStep2Controller {
@@ -35,12 +35,12 @@ class ApplicationCreationStep2Controller {
         oauth: {
           application_type: this.selectedType.id,
           grant_types: this.selectedType.default_grant_types.map((grant) => grant.type),
-          redirect_uris: []
-        }
+          redirect_uris: [],
+        },
       };
     } else {
       this.parent.application.settings = {
-        app: {}
+        app: {},
       };
     }
   }
@@ -52,7 +52,6 @@ class ApplicationCreationStep2Controller {
   displayRedirectUris() {
     return this.selectedType.isOauth() && this.selectedType.requires_redirect_uris;
   }
-
 }
 
 export default ApplicationCreationStep2Controller;

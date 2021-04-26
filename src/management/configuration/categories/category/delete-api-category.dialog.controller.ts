@@ -18,11 +18,11 @@ function DeleteAPICategoryDialogController($scope, $mdDialog, api) {
 
   $scope.api = api.name;
 
-  $scope.cancel = function() {
+  $scope.cancel = function () {
     $mdDialog.cancel();
   };
 
-  $scope.ok = function() {
+  $scope.ok = function () {
     $mdDialog.hide(true);
   };
 }

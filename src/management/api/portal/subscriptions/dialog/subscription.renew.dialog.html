@@ -21,20 +21,23 @@
       <h4>{{title}}</h4>
       <p ng-bind-html="msg"></p>
       <div ng-if="customMessage">
-      <p ng-bind-html="customMessage" style="margin-bottom: 20px;"></p>
-        <api-key-validated-input form-reference="CustomApiKeyForm"
-                                 api-id="apiId"
-                                 on-change="ctrl.onApiKeyValueChange"
+        <p ng-bind-html="customMessage" style="margin-bottom: 20px"></p>
+        <api-key-validated-input
+          form-reference="CustomApiKeyForm"
+          api-id="apiId"
+          on-change="ctrl.onApiKeyValueChange"
         ></api-key-validated-input>
       </div>
     </md-dialog-content>
     <md-dialog-actions layout="row">
       <md-button ng-click="ctrl.cancel()">Cancel</md-button>
-      <md-button class="md-raised md-warn"
-                 ng-click="ctrl.confirm()"
-                 ng-disabled="ctrl.customApiKeyInputState === 'invalid'
+      <md-button
+        class="md-raised md-warn"
+        ng-click="ctrl.confirm()"
+        ng-disabled="ctrl.customApiKeyInputState === 'invalid'
                             || CustomApiKeyForm.$invalid"
-      >{{confirmButton}}</md-button>
+        >{{confirmButton}}</md-button
+      >
     </md-dialog-actions>
   </form>
 </md-dialog>

@@ -45,7 +45,7 @@ class ApplicationMembersController {
     private $state: StateService,
     private RoleService: RoleService,
     private GroupService: GroupService,
-    private UserService: UserService
+    private UserService: UserService,
   ) {
     'ngInject';
 
@@ -85,10 +85,12 @@ class ApplicationMembersController {
     }
 
     this.userFilterFn = (user: any) => {
-      return user.id === undefined || _.findIndex(this.members,
-        function (member: any) {
+      return (
+        user.id === undefined ||
+        _.findIndex(this.members, function (member: any) {
           return member.id === user.id && member.role === 'PRIMARY_OWNER';
-        }) === -1;
+        }) === -1
+      );
     };
 
     this.defaultUsersList = _.filter(this.members, (member: any) => {
@@ -115,42 +117,49 @@ class ApplicationMembersController {
   showDeleteMemberConfirm(ev, member) {
     ev.stopPropagation();
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirm.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Would you like to remove the member?',
-        msg: '',
-        confirmButton: 'Remove'
-      }
-    }).then(function (response) {
-      if (response) {
-        that.deleteMember(member);
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirm.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Would you like to remove the member?',
+          msg: '',
+          confirmButton: 'Remove',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          that.deleteMember(member);
+        }
+      });
   }
 
   showAddMemberModal(ev) {
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogAddMemberController',
-      template: require('./addMember.dialog.html'),
-      parent: angular.element(document.body),
-      targetEvent: ev,
-      clickOutsideToClose: true,
-      locals: {
-        application: that.application,
-        members: that.members
-      }
-    }).then(function (application) {
-      if (application) {
-        that.$state.go('management.applications.application.members', { applicationId: that.application.id }, { reload: true });
-      }
-    }, function () {
-      // You cancelled the dialog
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogAddMemberController',
+        template: require('./addMember.dialog.html'),
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose: true,
+        locals: {
+          application: that.application,
+          members: that.members,
+        },
+      })
+      .then(
+        function (application) {
+          if (application) {
+            that.$state.go('management.applications.application.members', { applicationId: that.application.id }, { reload: true });
+          }
+        },
+        function () {
+          // You cancelled the dialog
+        },
+      );
   }
 
   getMembershipDisplay(member): string {
@@ -158,33 +167,36 @@ class ApplicationMembersController {
       return member.username;
     }
 
-    return (member.username)
-      ? member.displayName + ' (' + member.username + ')'
-      : member.displayName;
+    return member.username ? member.displayName + ' (' + member.username + ')' : member.displayName;
   }
 
   getMembershipAvatar(member): string {
-    return (member.id) ? this.UserService.getUserAvatar(member.id) : 'assets/default_photo.png';
+    return member.id ? this.UserService.getUserAvatar(member.id) : 'assets/default_photo.png';
   }
 
   showTransferOwnershipConfirm(ev) {
-    this.$mdDialog.show({
-      controller: 'DialogTransferApplicationController',
-      controllerAs: '$ctrl',
-      template: require('./transferApplication.dialog.html'),
-      parent: angular.element(document.body),
-      targetEvent: ev,
-      clickOutsideToClose: true,
-      locals: {
-        newRole: this.newPORole
-      }
-    }).then((transferApplication) => {
-      if (transferApplication) {
-        this.transferOwnership(this.newPORole.name);
-      }
-    }, () => {
-      // You cancelled the dialog
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogTransferApplicationController',
+        controllerAs: '$ctrl',
+        template: require('./transferApplication.dialog.html'),
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose: true,
+        locals: {
+          newRole: this.newPORole,
+        },
+      })
+      .then(
+        (transferApplication) => {
+          if (transferApplication) {
+            this.transferOwnership(this.newPORole.name);
+          }
+        },
+        () => {
+          // You cancelled the dialog
+        },
+      );
   }
 
   isAllowedToTransferOwnership() {
@@ -196,7 +208,7 @@ class ApplicationMembersController {
   }
 
   toggleDisableMembershipNotifications() {
-    this.ApplicationService.update(this.application).then(updatedApplication => {
+    this.ApplicationService.update(this.application).then((updatedApplication) => {
       this.application = updatedApplication.data;
       this.NotificationService.show('Application ' + this.application.name + ' has been updated');
     });
@@ -206,7 +218,7 @@ class ApplicationMembersController {
     let ownership = {
       id: this.usersSelected[0].id,
       reference: this.usersSelected[0].reference,
-      role: newRole
+      role: newRole,
     };
 
     this.ApplicationService.transferOwnership(this.application.id, ownership).then(() => {

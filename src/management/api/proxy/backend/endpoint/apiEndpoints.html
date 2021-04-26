@@ -23,22 +23,39 @@
         <h2>Groups</h2>
       </div>
       <div class="gv-form-content">
-        <div ng-repeat="group in apiProxyCtrl.api.proxy.groups" style="margin-bottom: 28px;">
+        <div ng-repeat="group in apiProxyCtrl.api.proxy.groups" style="margin-bottom: 28px">
           <md-subheader>
             <div layout="row" layout-align="space-between center">
               <div>Group: {{group.name}}</div>
               <div>
-                <md-button class="md-icon-button" aria-label="Add endpoint" ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: ''})">
+                <md-button
+                  class="md-icon-button"
+                  aria-label="Add endpoint"
+                  ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: ''})"
+                >
                   <ng-md-icon icon="add"></ng-md-icon>
                   <md-tooltip md-direction="left">Add new endpoint</md-tooltip>
                 </md-button>
-                <md-button class="md-icon-button" aria-label="Edit group" ui-sref="management.apis.detail.proxy.group({groupName: group.name})">
+                <md-button
+                  class="md-icon-button"
+                  aria-label="Edit group"
+                  ui-sref="management.apis.detail.proxy.group({groupName: group.name})"
+                >
                   <ng-md-icon icon="settings"></ng-md-icon>
                   <md-tooltip md-direction="left">Edit group</md-tooltip>
                 </md-button>
-                <md-button class="md-icon-button" aria-label="Delete group" ng-click="apiProxyCtrl.deleteGroup(group.name)" ng-disabled="apiProxyCtrl.api.proxy.groups.length == 1">
+                <md-button
+                  class="md-icon-button"
+                  aria-label="Delete group"
+                  ng-click="apiProxyCtrl.deleteGroup(group.name)"
+                  ng-disabled="apiProxyCtrl.api.proxy.groups.length == 1"
+                >
                   <ng-md-icon icon="delete" ng-show="apiProxyCtrl.api.proxy.groups.length > 1"></ng-md-icon>
-                  <ng-md-icon icon="delete" style="fill: rgba(142, 158, 170, 0.54);" ng-show="apiProxyCtrl.api.proxy.groups.length == 1"></ng-md-icon>
+                  <ng-md-icon
+                    icon="delete"
+                    style="fill: rgba(142, 158, 170, 0.54)"
+                    ng-show="apiProxyCtrl.api.proxy.groups.length == 1"
+                  ></ng-md-icon>
                   <md-tooltip md-direction="left">Delete group</md-tooltip>
                 </md-button>
               </div>
@@ -47,44 +64,53 @@
           <md-table-container>
             <table md-table md-row-select="true" ng-model="selected" ng-init="order = 'name'" multiple="true">
               <thead md-head md-order="order">
-              <tr md-row>
-                <th md-column md-order-by="name"><span>Name</span></th>
-                <th width="1%"></th>
-                <th md-column md-order-by="target"><span>Target</span></th>
-                <th md-column><span>Type</span></th>
-                <th ng-if="apiProxyCtrl.hasTenants()" md-column md-order-by="tenant" hide-gt-xs show-gt-sm>Tenants</th>
-                <th width="1%" md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
-                <th width="1%" nowrap md-column permission permission-only="'api-definition-u'">
-                  <md-button class="md-icon-button" aria-label="Delete endpoint" ng-click="apiProxyCtrl.removeEndpoints($event)" ng-disabled="selected.length == 0">
-                    <ng-md-icon icon="delete" ng-show="selected.length > 0"></ng-md-icon>
-                    <ng-md-icon icon="delete" style="fill: rgba(142, 158, 170, 0.54);" ng-show="selected.length == 0"></ng-md-icon>
-                    <md-tooltip md-direction="left">Delete endpoint</md-tooltip>
-                  </md-button>
-                </th>
-              </tr>
+                <tr md-row>
+                  <th md-column md-order-by="name"><span>Name</span></th>
+                  <th width="1%"></th>
+                  <th md-column md-order-by="target"><span>Target</span></th>
+                  <th md-column><span>Type</span></th>
+                  <th ng-if="apiProxyCtrl.hasTenants()" md-column md-order-by="tenant" hide-gt-xs show-gt-sm>Tenants</th>
+                  <th width="1%" md-column md-order-by="weight" md-numeric hide-gt-xs show-gt-sm><span>Weight</span></th>
+                  <th width="1%" nowrap md-column permission permission-only="'api-definition-u'">
+                    <md-button
+                      class="md-icon-button"
+                      aria-label="Delete endpoint"
+                      ng-click="apiProxyCtrl.removeEndpoints($event)"
+                      ng-disabled="selected.length == 0"
+                    >
+                      <ng-md-icon icon="delete" ng-show="selected.length > 0"></ng-md-icon>
+                      <ng-md-icon icon="delete" style="fill: rgba(142, 158, 170, 0.54)" ng-show="selected.length == 0"></ng-md-icon>
+                      <md-tooltip md-direction="left">Delete endpoint</md-tooltip>
+                    </md-button>
+                  </th>
+                </tr>
               </thead>
               <tbody md-body>
-              <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in group.endpoints | orderBy:order">
-                <td md-cell ng-style="endpoint.backup ? {'font-style': 'italic','color': 'darkgrey'} : ''">{{endpoint.name}}</td>
-                <td md-cell hide-gt-xs show-gt-sm nowrap>
-                  <ng-md-icon ng-show="apiProxyCtrl.hasHealthCheck(endpoint)" icon="favorite">
-                    <md-tooltip md-direction="top">Health-check enabled</md-tooltip>
-                  </ng-md-icon>
-                  <ng-md-icon ng-show="endpoint.inherit" icon="subdirectory_arrow_right">
-                    <md-tooltip md-direction="top">HTTP configuration inherited</md-tooltip>
-                  </ng-md-icon>
-                </td>
-                <td md-cell ng-style="endpoint.backup ? {'font-style': 'italic','color': 'darkgrey'} : ''">{{endpoint.target}}</td>
-                <td md-cell>{{endpoint.type}}</td>
-                <td ng-if="apiProxyCtrl.hasTenants()" md-cell hide-gt-xs show-gt-sm>{{apiProxyCtrl.getTenants(endpoint.tenants)}}</td>
-                <td md-cell hide-gt-xs show-gt-sm ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
-                <td md-cell permission permission-only="'api-definition-u'">
-                  <md-button class="md-icon-button" aria-label="Edit endpoint" ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: endpoint.name})">
-                    <ng-md-icon icon="settings"></ng-md-icon>
-                    <md-tooltip md-direction="left">Edit endpoint</md-tooltip>
-                  </md-button>
-                </td>
-              </tr>
+                <tr md-row md-select="endpoint" md-auto-select="false" ng-repeat="endpoint in group.endpoints | orderBy:order">
+                  <td md-cell ng-style="endpoint.backup ? {'font-style': 'italic','color': 'darkgrey'} : ''">{{endpoint.name}}</td>
+                  <td md-cell hide-gt-xs show-gt-sm nowrap>
+                    <ng-md-icon ng-show="apiProxyCtrl.hasHealthCheck(endpoint)" icon="favorite">
+                      <md-tooltip md-direction="top">Health-check enabled</md-tooltip>
+                    </ng-md-icon>
+                    <ng-md-icon ng-show="endpoint.inherit" icon="subdirectory_arrow_right">
+                      <md-tooltip md-direction="top">HTTP configuration inherited</md-tooltip>
+                    </ng-md-icon>
+                  </td>
+                  <td md-cell ng-style="endpoint.backup ? {'font-style': 'italic','color': 'darkgrey'} : ''">{{endpoint.target}}</td>
+                  <td md-cell>{{endpoint.type}}</td>
+                  <td ng-if="apiProxyCtrl.hasTenants()" md-cell hide-gt-xs show-gt-sm>{{apiProxyCtrl.getTenants(endpoint.tenants)}}</td>
+                  <td md-cell hide-gt-xs show-gt-sm ng-class="{'md-placeholder': !endpoint.weight}">{{endpoint.weight}}</td>
+                  <td md-cell permission permission-only="'api-definition-u'">
+                    <md-button
+                      class="md-icon-button"
+                      aria-label="Edit endpoint"
+                      ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: endpoint.name})"
+                    >
+                      <ng-md-icon icon="settings"></ng-md-icon>
+                      <md-tooltip md-direction="left">Edit endpoint</md-tooltip>
+                    </md-button>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </md-table-container>
@@ -99,10 +125,23 @@
   </div>
 
   <div class="md-actions gravitee-api-save-button" layout="row">
-    <md-button permission permission-only="'api-definition-u'" class="md-raised md-primary" type="submit" ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine">
+    <md-button
+      permission
+      permission-only="'api-definition-u'"
+      class="md-raised md-primary"
+      type="submit"
+      ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine"
+    >
       Save
     </md-button>
-    <md-button permission permission-only="'api-definition-u'" class="md-raised" type="button" ng-click="apiProxyCtrl.reset()" ng-disabled="apiProxyCtrl.formApi.$pristine">
+    <md-button
+      permission
+      permission-only="'api-definition-u'"
+      class="md-raised"
+      type="button"
+      ng-click="apiProxyCtrl.reset()"
+      ng-disabled="apiProxyCtrl.formApi.$pristine"
+    >
       Reset
     </md-button>
   </div>
