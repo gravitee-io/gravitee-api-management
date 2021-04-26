@@ -37,9 +37,13 @@ public class GatewayConfiguration implements InitializingBean {
     static final String MULTI_TENANT_CONFIGURATION = "tenant";
     static final String MULTI_TENANT_SYSTEM_PROPERTY = "gravitee." + MULTI_TENANT_CONFIGURATION;
 
+    static final String ENVIRONMENTS_SYSTEM_PROPERTY = "environments";
+    private static final String ENVIRONMENTS_SEPARATOR = ",";
+
     private Optional<List<String>> shardingTags;
     private Optional<String> zone;
     private Optional<String> tenant;
+    private Optional<List<String>> environments;
 
     @Autowired
     private Environment environment;
@@ -48,6 +52,7 @@ public class GatewayConfiguration implements InitializingBean {
         this.initShardingTags();
         this.initZone();
         this.initTenant();
+        this.initEnvironments();
         this.initVertxWebsocket();
     }
 
@@ -107,5 +112,20 @@ public class GatewayConfiguration implements InitializingBean {
 
     public Optional<String> tenant() {
         return tenant;
+    }
+
+    private void initEnvironments() {
+        String systemPropertyEnvironments = System.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY);
+        String envs = systemPropertyEnvironments == null ?
+                environment.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY) : systemPropertyEnvironments;
+        if (envs != null && ! envs.isEmpty()) {
+            environments = Optional.of(Arrays.asList(envs.split(ENVIRONMENTS_SEPARATOR)));
+        } else {
+            environments = Optional.empty();
+        }
+    }
+
+    public Optional<List<String>> environments() {
+        return environments;
     }
 }

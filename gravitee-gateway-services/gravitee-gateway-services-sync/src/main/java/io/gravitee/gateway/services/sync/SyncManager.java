@@ -30,6 +30,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -102,7 +103,7 @@ public class SyncManager {
 
     private boolean allApisSync = false;
 
-    void refresh() {
+    void refresh(List<String> environments) {
         long nextLastRefreshAt = System.currentTimeMillis();
         boolean error = false;
         if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
@@ -110,7 +111,7 @@ public class SyncManager {
             logger.debug("Refreshing gateway state...");
 
             try {
-                synchronizeApis(nextLastRefreshAt);
+                synchronizeApis(nextLastRefreshAt, environments);
             } catch (Exception ex) {
                 error = true;
                 lastErrorMessage = ex.getMessage();
@@ -118,7 +119,7 @@ public class SyncManager {
             }
 
             try {
-                synchronizeDictionaries(nextLastRefreshAt);
+                synchronizeDictionaries(nextLastRefreshAt, environments);
             } catch (Exception ex) {
                 error = true;
                 lastErrorMessage = ex.getMessage();
@@ -143,21 +144,25 @@ public class SyncManager {
         }
     }
 
-    private void synchronizeApis(long nextLastRefreshAt) {
+    private void synchronizeApis(long nextLastRefreshAt, List<String> environments) {
         Map<String, Event> apiEvents;
 
         // Initial synchronization
         if (lastRefreshAt == -1) {
             // Extract all registered APIs
             List<io.gravitee.repository.management.model.Api> apis =
-                    apiRepository.search(null, new ApiFieldExclusionFilter.Builder()
+                    apiRepository.search(
+                            new ApiCriteria.Builder()
+                                    .environments(environments)
+                                    .build(),
+                            new ApiFieldExclusionFilter.Builder()
                             .excludeDefinition()
                             .excludePicture().build());
 
             // Get last event by API
             apiEvents = apis
                     .stream()
-                    .map(api -> getLastApiEvent(api.getId()))
+                    .map(api -> getLastApiEvent(api.getId(), environments))
                     .filter(Objects::nonNull)
                     .collect(
                             toMap(
@@ -167,7 +172,7 @@ public class SyncManager {
                     );
         } else {
             // Get latest API events
-            List<Event> events = getLatestApiEvents(nextLastRefreshAt);
+            List<Event> events = getLatestApiEvents(nextLastRefreshAt, environments);
 
             // Extract only the latest event by API
             apiEvents = events
@@ -183,17 +188,17 @@ public class SyncManager {
         computeApiEvents(apiEvents);
     }
 
-    private void synchronizeDictionaries(long nextLastRefreshAt) throws Exception {
+    private void synchronizeDictionaries(long nextLastRefreshAt, List<String> environments) throws Exception {
         Map<String, Event> dictionaryEvents;
 
         // Initial synchronization
         if (lastRefreshAt == -1) {
-            Set<io.gravitee.repository.management.model.Dictionary> dictionaries = dictionaryRepository.findAll();
+            Set<io.gravitee.repository.management.model.Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(new HashSet<>(environments));
 
             // Get last event by dictionary
             dictionaryEvents = dictionaries
                     .stream()
-                    .map(api -> getLastDictionaryEvent(api.getId()))
+                    .map(dictionary -> getLastDictionaryEvent(dictionary.getId(), environments))
                     .filter(Objects::nonNull)
                     .collect(
                             toMap(
@@ -203,7 +208,7 @@ public class SyncManager {
                     );
         } else {
             // Get latest dictionary events
-            List<Event> events = getLatestDictionaryEvents(nextLastRefreshAt);
+            List<Event> events = getLatestDictionaryEvents(nextLastRefreshAt, environments);
 
             // Extract only the latest event by API
             dictionaryEvents = events
@@ -280,10 +285,11 @@ public class SyncManager {
         return allApisSync;
     }
 
-    private Event getLastDictionaryEvent(final String dictionary) {
+    private Event getLastDictionaryEvent(final String dictionary, List<String> environments) {
         final EventCriteria.Builder eventCriteriaBuilder =
                 new EventCriteria.Builder()
-                        .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary);
+                        .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary)
+                        .environments(environments);
 
         List<Event> events = eventRepository.search(eventCriteriaBuilder
                         .types(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY).build(),
@@ -292,30 +298,33 @@ public class SyncManager {
         return (!events.isEmpty()) ? events.get(0) : null;
     }
 
-    private List<Event> getLatestDictionaryEvents(long nextLastRefreshAt) {
+    private List<Event> getLatestDictionaryEvents(long nextLastRefreshAt, List<String> environments) {
         final EventCriteria.Builder builder = new EventCriteria.Builder()
                 .types(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
                 // Search window is extended by 5 seconds for each sync error to ensure that we are never missing data
                 .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY - (5000 * errors) )
-                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
+                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+                .environments(environments);
 
         return eventRepository.search(builder.build());
     }
 
-    private List<Event> getLatestApiEvents(long nextLastRefreshAt) {
+    private List<Event> getLatestApiEvents(long nextLastRefreshAt, List<String> environments) {
         final EventCriteria.Builder builder = new EventCriteria.Builder()
                 .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
                 // Search window is extended by 5 seconds for each sync error to ensure that we are never missing data
                 .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY - (5000 * errors) )
-                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
+                .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+                .environments(environments);
 
         return eventRepository.search(builder.build());
     }
 
-    private Event getLastApiEvent(final String api) {
+    private Event getLastApiEvent(final String api, List<String> environments) {
         final EventCriteria.Builder eventCriteriaBuilder =
                 new EventCriteria.Builder()
-                        .property(Event.EventProperties.API_ID.getValue(), api);
+                        .property(Event.EventProperties.API_ID.getValue(), api)
+                        .environments(environments);
 
         List<Event> events = eventRepository.search(eventCriteriaBuilder
                 .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API).build(),

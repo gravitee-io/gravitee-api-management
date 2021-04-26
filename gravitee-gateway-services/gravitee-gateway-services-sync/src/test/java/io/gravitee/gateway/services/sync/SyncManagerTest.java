@@ -30,6 +30,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -81,9 +82,13 @@ public class SyncManagerTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    private List<String> environments;
+
     @Before
     public void setUp() {
+
         when(clusterManager.isMasterNode()).thenReturn(true);
+        environments = Arrays.asList("DEFAULT", "ENVIRONMENT_2");
     }
 
     @Test
@@ -91,7 +96,7 @@ public class SyncManagerTest {
         when(clusterManager.isMasterNode()).thenReturn(false);
         syncManager.setDistributed(true);
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiRepository, never()).search(any(ApiCriteria.class), any(ApiFieldExclusionFilter.class));
     }
@@ -101,18 +106,24 @@ public class SyncManagerTest {
         when(clusterManager.isMasterNode()).thenReturn(false);
         syncManager.setDistributed(false);
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(emptyList());
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(emptyList());
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
-        verify(apiRepository, times(1)).search(eq(null), any(ApiFieldExclusionFilter.class));
+        verify(apiRepository, times(1)).search(any(ApiCriteria.class), any(ApiFieldExclusionFilter.class));
     }
 
     @Test
     public void test_empty() throws TechnicalException {
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(emptyList());
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(emptyList());
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiManager, never()).register(any(Api.class));
         verify(apiManager, never()).unregister(any(String.class));
@@ -131,9 +142,12 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiManager).register(new Api(mockApi));
         verify(apiManager, never()).unregister(any(String.class));
@@ -152,15 +166,18 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
         apiDefinition.setDeployedAt(api.getDeployedAt());
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiManager).register(new Api(mockApi));
         verify(apiManager, never()).unregister(any(String.class));
@@ -180,9 +197,12 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         io.gravitee.repository.management.model.Api api2 =
                 new RepositoryApiBuilder().id("api-test-2").updatedAt(new Date()).definition("test2").build();
@@ -197,7 +217,7 @@ public class SyncManagerTest {
                 any(EventCriteria.class)
         )).thenReturn(events);
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiManager, times(2)).register(argThat(api1 -> api1.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId())));
         verify(apiManager, never()).unregister(any(String.class));
@@ -217,9 +237,12 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         io.gravitee.repository.management.model.Api api2 =
                 new RepositoryApiBuilder().id("api-test-2").updatedAt(new Date()).definition("test2").build();
@@ -230,7 +253,7 @@ public class SyncManagerTest {
                 any(EventCriteria.class)
         )).thenReturn(Collections.singletonList(mockEvent));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiManager, times(2)).register(argThat(api1 -> api1.getId().equals(mockApi.getId()) || api2.getId().equals(mockApi2.getId())));
         verify(apiManager, never()).unregister(api.getId());
@@ -261,9 +284,12 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(events, 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         when(eventRepository.search(
                 any(EventCriteria.class)
@@ -273,7 +299,7 @@ public class SyncManagerTest {
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
         apiDefinition.setDeployedAt(api.getDeployedAt());
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         // First time for creation, second to update the API
         verify(apiManager, times(2)).register(apiDefinition);
@@ -302,15 +328,18 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(events, 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         when(eventRepository.search(
                 any(EventCriteria.class)
         )).thenReturn(Collections.singletonList(mockEvent2));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiManager, times(2)).register(new Api(mockApi));
         verify(apiManager, never()).unregister(any(String.class));
@@ -327,9 +356,12 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiManager, never()).register(new Api(mockApi));
         verify(apiManager, never()).unregister(any(String.class));
@@ -354,9 +386,12 @@ public class SyncManagerTest {
                 new Page<>(Collections.emptyList(), 0, 0, 0),
                 new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(apis);
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(apis);
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiManager).register(argThat(api1 -> api1.getId().equals(mockApi.getId())));
         verify(apiManager, never()).unregister(any(String.class));
@@ -376,15 +411,18 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1), new Page<>(singletonList(mockEvent2), 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         when(eventRepository.search(
                 any(EventCriteria.class)
         )).thenReturn(singletonList(mockEvent2));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         verify(apiManager).register(new Api(mockApi));
         verify(apiManager).unregister(mockApi.getId());
@@ -422,9 +460,12 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
@@ -434,7 +475,7 @@ public class SyncManagerTest {
                 any(EventCriteria.class)
         )).thenReturn(singletonList(mockEvent2));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         // First time for creation, second to update the API
         verify(apiManager, times(2)).register(new Api(mockApi));
@@ -472,9 +513,12 @@ public class SyncManagerTest {
                 any(Pageable.class)
         )).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
-        when(apiRepository.search(null, new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build())).thenReturn(singletonList(api));
+        when(apiRepository.search(
+                new ApiCriteria.Builder().environments(environments).build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()))
+            .thenReturn(singletonList(api));
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         when(eventRepository.search(
                 any(EventCriteria.class)
@@ -484,7 +528,7 @@ public class SyncManagerTest {
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
         apiDefinition.setDeployedAt(api.getDeployedAt());
 
-        syncManager.refresh();
+        syncManager.refresh(this.environments);
 
         // First time for creation, second to update the API
         verify(apiManager, times(2)).register(new Api(mockApi));
