@@ -40,6 +40,7 @@ public class ApiCriteria {
     private String name;
     private List<ApiLifecycleState> lifecycleStates;
     private String environmentId;
+    private List<String> environments;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -52,6 +53,7 @@ public class ApiCriteria {
         this.name = builder.name;
         this.lifecycleStates = builder.lifecycleStates;
         this.environmentId = builder.environmentId;
+        this.environments = builder.environments;
     }
 
     public List<String> getIds() {
@@ -94,6 +96,10 @@ public class ApiCriteria {
         return environmentId;
     }
 
+    public List<String> getEnvironments() {
+        return environments;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -108,12 +114,13 @@ public class ApiCriteria {
                 Objects.equals(version, that.version) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(lifecycleStates, that.lifecycleStates) &&
-                Objects.equals(environmentId, that.environmentId);
+                Objects.equals(environmentId, that.environmentId) &&
+                Objects.equals(environments, that.environments) ;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, groups, category, label, state, visibility, version, name, lifecycleStates, environmentId);
+        return Objects.hash(ids, groups, category, label, state, visibility, version, name, lifecycleStates, environmentId, environments);
     }
 
     public static class Builder {
@@ -127,6 +134,7 @@ public class ApiCriteria {
         private String name;
         private List<ApiLifecycleState> lifecycleStates;
         private String environmentId;
+        private List<String> environments;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = asList(id);
@@ -175,6 +183,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder environmentId(final String environmentId) {
             this.environmentId = environmentId;
+            return this;
+        }
+
+        public ApiCriteria.Builder environments(final List<String> environments) {
+            this.environments = environments;
             return this;
         }
         

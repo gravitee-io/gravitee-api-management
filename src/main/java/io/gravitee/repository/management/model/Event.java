@@ -18,6 +18,7 @@ package io.gravitee.repository.management.model;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -31,9 +32,9 @@ public class Event implements Serializable {
     private String id;
 
     /**
-     * The ID of the environment the event is attached to
+     * The list of ids of the environments the event is attached to
      */
-    private String environmentId;
+    private Set<String> environments;
     
     /**
      * The event Type
@@ -65,12 +66,12 @@ public class Event implements Serializable {
      */
     private Date updatedAt;
 
-    public String getEnvironmentId() {
-        return environmentId;
+    public Set<String> getEnvironments() {
+        return environments;
     }
 
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
+    public void setEnvironments(Set<String> environments) {
+        this.environments = environments;
     }
 
     public String getId() {
