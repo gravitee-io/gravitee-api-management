@@ -17,6 +17,7 @@ package io.gravitee.repository.config.mock;
 
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
+import org.mockito.internal.util.collections.Sets;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -79,6 +80,6 @@ public class EnvironmentRepositoryMock extends AbstractRepositoryMock<Environmen
         
         when(EnvironmentRepository.findAll()).thenReturn(allEnvironments);
         when(EnvironmentRepository.findByOrganization("DEFAULT-ORG")).thenReturn(orgEnvironments);
-
+        when(EnvironmentRepository.findByHrids(Sets.newSet("def", "find"))).thenReturn(newSet(envCreate, envFindById));
     }
 }

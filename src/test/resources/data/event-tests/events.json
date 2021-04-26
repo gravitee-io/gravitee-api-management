@@ -1,7 +1,7 @@
 [
   {
     "id": "event1",
-    "environmentId": "DEFAULT",
+    "environments": ["DEFAULT"],
     "type": "PUBLISH_API",
     "payload": "{}",
     "parentId": null,
@@ -12,7 +12,7 @@
   },
   {
     "id": "event2",
-    "environmentId": "DEFAULT",
+    "environments": ["DEFAULT"],
     "type": "UNPUBLISH_API",
     "payload": "{}",
     "parentId": null,
@@ -23,7 +23,7 @@
   },
   {
     "id": "event3",
-    "environmentId": "DEFAULT",
+    "environments": ["DEFAULT"],
     "type": "PUBLISH_API",
     "payload": "{}",
     "parentId": null,
@@ -35,7 +35,7 @@
   },
   {
     "id": "event4",
-    "environmentId": "DEFAULT",
+    "environments": ["DEFAULT"],
     "type": "STOP_API",
     "payload": "{}",
     "parentId": null,
@@ -46,7 +46,7 @@
   },
   {
     "id": "event5",
-    "environmentId": "DEFAULT",
+    "environments": ["DEFAULT"],
     "type": "START_API",
     "payload": "{}",
     "parentId": null,
@@ -58,7 +58,7 @@
   },
   {
     "id": "event6",
-    "environmentId": "DEFAULT",
+    "environments": ["DEFAULT"],
     "type": "START_API",
     "payload": "{}",
     "parentId": null,
@@ -67,5 +67,14 @@
     },
     "createdAt": 1464739200000,
     "updatedAt": 1464739200000
+  },
+  {
+    "id": "event7",
+    "environments": ["OTHER_ENV", "OTHER_ENV_2"],
+    "type": "GATEWAY_STOPPED",
+    "payload": "{}",
+    "parentId": null,
+    "createdAt": 1464739200000,
+    "updatedAt": 1464939200000
   }
 ]

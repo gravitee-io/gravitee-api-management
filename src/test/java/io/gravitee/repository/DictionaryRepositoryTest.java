@@ -20,6 +20,7 @@ import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.DictionaryType;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.internal.util.collections.Sets;
 
 import java.util.*;
 
@@ -38,15 +39,34 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAll();
 
         assertNotNull(dictionaries);
+        assertEquals(4, dictionaries.size());
+    }
+
+    @Test
+    public void shouldFindAllByEnvironments() throws Exception {
+        final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(Collections.singleton("DEFAULT"));
+
+        assertNotNull(dictionaries);
         assertEquals(3, dictionaries.size());
     }
 
     @Test
-    public void shouldFindAllByEnvironment() throws Exception {
-        final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironment("DEFAULT");
+    public void shouldFindAllByEnvironmentEmptyList() throws Exception {
+        final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(Collections.emptySet());
 
         assertNotNull(dictionaries);
-        assertEquals(3, dictionaries.size());
+        assertEquals(4, dictionaries.size());
+    }
+
+    @Test
+    public void shouldFindAllByEnvironmentsDefaultAndOtherEnv() throws Exception {
+        HashSet<String> envs = new HashSet<>();
+        envs.add("DEFAULT");
+        envs.add("OTHER_ENV");
+        final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(envs);
+
+        assertNotNull(dictionaries);
+        assertEquals(4, dictionaries.size());
     }
 
     @Test

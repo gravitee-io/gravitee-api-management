@@ -16,17 +16,20 @@
 package io.gravitee.repository;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.*;
+import static org.mockito.internal.util.collections.Sets.newSet;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Environment;
+import org.mockito.internal.util.collections.Sets;
 
 public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
 
@@ -104,5 +107,15 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
         Set<Environment> orgEnvironments = environmentRepository.findByOrganization("DEFAULT-ORG");
         Assert.assertTrue("No environment found", !orgEnvironments.isEmpty());
         Assert.assertEquals(1, orgEnvironments.size());
+    }
+
+    @Test
+    public void shouldFindByHrids() throws Exception {
+        Set<String> hrids = new HashSet<>();
+        hrids.add("def");
+        hrids.add("find");
+        Set<Environment> orgEnvironments = environmentRepository.findByHrids(hrids);
+        Assert.assertTrue("No environment found", !orgEnvironments.isEmpty());
+        Assert.assertEquals(2, orgEnvironments.size());
     }
 }

@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import org.mockito.internal.util.collections.Sets;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
@@ -115,6 +116,10 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiToFindById.isDisableMembershipNotifications()).thenReturn(true);
         when(apiRepository.findById("api-to-findById")).thenReturn(of(apiToFindById));
 
+        final Api apiBigName = mock(Api.class);
+        when(apiBigName.getId()).thenReturn("big-name");
+        when(apiBigName.getEnvironmentId()).thenReturn("DEV");
+
         final List<Api> searchedApis = asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class));
         final List<Api> searchedApisAfterDeletion = asList(mock(Api.class), mock(Api.class), mock(Api.class));
         when(apiRepository.search(null)).thenReturn(searchedApis, searchedApis, searchedApis, searchedApisAfterDeletion);
@@ -122,6 +127,9 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         when(apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build())).
                 thenReturn(asList(apiToUpdate, apiToDelete));
+
+        when(apiRepository.search(new ApiCriteria.Builder().environments(asList("DEV", "DEVS")).build())).
+                thenReturn(asList(apiToUpdate, apiToDelete, apiBigName));
 
         when(apiRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 

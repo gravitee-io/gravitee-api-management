@@ -2,7 +2,8 @@
    {
       "id": "DEFAULT-update",
       "name": "Default env for update",
-      "organizationId": "ANOTHER-ORG"
+      "organizationId": "ANOTHER-ORG",
+      "hrids": ["def", "ault"]
    },
    {
       "id": "DEFAULT-delete",
@@ -12,6 +13,7 @@
    {
       "id": "DEFAULT-findById",
       "name": "Default env for findById",
-      "organizationId": "DEFAULT-ORG"
+      "organizationId": "DEFAULT-ORG",
+      "hrids": ["find"]
    }
 ]

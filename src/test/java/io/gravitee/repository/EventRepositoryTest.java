@@ -26,6 +26,8 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
 public class EventRepositoryTest extends AbstractRepositoryTest {
@@ -39,7 +41,7 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     public void createEventTest() throws Exception {
         Event event = new Event();
         event.setId(UUID.toString(UUID.random()));
-        event.setEnvironmentId("DEFAULT");
+        event.setEnvironments(singleton("DEFAULT"));
         event.setType(EventType.PUBLISH_API);
         event.setPayload("{}");
         event.setParentId(null);
@@ -50,7 +52,7 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals("Invalid saved event type.", EventType.PUBLISH_API, eventCreated.getType());
         assertEquals("Invalid saved event payload.", "{}", eventCreated.getPayload());
-        assertEquals("Invalid saved environment id.", "DEFAULT", eventCreated.getEnvironmentId());
+        assertTrue("Invalid saved environment id.", eventCreated.getEnvironments().contains("DEFAULT"));
     }
 
     @Test
@@ -204,10 +206,10 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void searchByEnvironment() throws Exception {
+    public void searchByEnvironmentDefault() throws Exception {
         List<Event> events = eventRepository.search(
                 new EventCriteria.Builder()
-                .environmentId("DEFAULT")
+                .environments(singletonList("DEFAULT"))
                 .build());
 
         assertTrue(6L == events.size());
@@ -220,7 +222,23 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
         assertTrue("event1".equals(iterator.next().getId()));
     }
 
-    
+    @Test
+    public void searchByEnvironmentsAll() throws Exception {
+        List<Event> events = eventRepository.search(
+                new EventCriteria.Builder()
+                        .environments(Arrays.asList("DEFAULT", "OTHER_ENV"))
+                        .build());
+
+        assertEquals(7, events.size());
+        final Iterator<Event> iterator = events.iterator();
+        assertTrue("event7".equals(iterator.next().getId()));
+        assertTrue("event6".equals(iterator.next().getId()));
+        assertTrue("event5".equals(iterator.next().getId()));
+        assertTrue("event4".equals(iterator.next().getId()));
+        assertTrue("event3".equals(iterator.next().getId()));
+        assertTrue("event2".equals(iterator.next().getId()));
+        assertTrue("event1".equals(iterator.next().getId()));
+    }
     
     @Test
     public void shouldDelete() throws Exception {

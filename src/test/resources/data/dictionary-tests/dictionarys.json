@@ -37,6 +37,24 @@
       "environmentId": "DEFAULT",
       "name":"My dic 3",
       "description": "Description for my dic 3",
+      "type": "MANUAL",
+      "provider": {
+         "type": "HTTP",
+         "configuration": "{}"
+      },
+      "trigger": {
+         "rate": 10,
+         "unit": "MINUTES"
+      },
+      "createdAt": 1000000000000,
+      "updatedAt": 1111111111111,
+      "deployedAt": 1111111111111
+   },
+   {
+      "id":"dic-4",
+      "environmentId": "OTHER_ENV",
+      "name":"My dic 4",
+      "description": "Description for my dic 3",
       "type": "DYNAMIC",
       "provider": {
          "type": "HTTP",

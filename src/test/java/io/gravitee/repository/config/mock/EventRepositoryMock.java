@@ -20,13 +20,16 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import org.mockito.internal.util.collections.Sets;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -51,6 +54,7 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         final Event event4 = mock(Event.class);
         final Event event5 = mock(Event.class);
         final Event event6 = mock(Event.class);
+        final Event event7 = mock(Event.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent = mock(io.gravitee.common.data.domain.Page.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent2 = mock(io.gravitee.common.data.domain.Page.class);
         final io.gravitee.common.data.domain.Page<Event> pageEvent3 = mock(io.gravitee.common.data.domain.Page.class);
@@ -68,33 +72,37 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
         eventProperties.put("api_id", "api-4");
 
         when(event1.getId()).thenReturn("event1");
-        when(event1.getEnvironmentId()).thenReturn("DEFAULT");
+        when(event1.getEnvironments()).thenReturn(singleton("DEFAULT"));
         when(event1.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(event1.getType()).thenReturn(EventType.PUBLISH_API);
         when(event1.getPayload()).thenReturn("{}");
         when(event1.getProperties()).thenReturn(eventProperties);
         when(event2.getId()).thenReturn("event2");
-        when(event2.getEnvironmentId()).thenReturn("DEFAULT");
+        when(event2.getEnvironments()).thenReturn(singleton("DEFAULT"));
         when(event2.getType()).thenReturn(EventType.UNPUBLISH_API);
         when(event2.getCreatedAt()).thenReturn(parse("12/02/2016"));
         when(event2.getProperties()).thenReturn(eventProperties);
         when(event3.getId()).thenReturn("event3");
-        when(event3.getEnvironmentId()).thenReturn("DEFAULT");
+        when(event3.getEnvironments()).thenReturn(singleton("DEFAULT"));
         when(event3.getType()).thenReturn(EventType.PUBLISH_API);
         when(event3.getCreatedAt()).thenReturn(parse("13/02/2016"));
         when(event4.getId()).thenReturn("event4");
-        when(event4.getEnvironmentId()).thenReturn("DEFAULT");
+        when(event4.getEnvironments()).thenReturn(singleton("DEFAULT"));
         when(event4.getType()).thenReturn(EventType.STOP_API);
         when(event4.getCreatedAt()).thenReturn(parse("14/02/2016"));
         when(event4.getProperties()).thenReturn(eventProperties2);
         when(event5.getId()).thenReturn("event5");
-        when(event5.getEnvironmentId()).thenReturn("DEFAULT");
+        when(event5.getEnvironments()).thenReturn(singleton("DEFAULT"));
         when(event5.getType()).thenReturn(EventType.START_API);
         when(event5.getCreatedAt()).thenReturn(parse("15/02/2016"));
         when(event6.getId()).thenReturn("event6");
-        when(event6.getEnvironmentId()).thenReturn("DEFAULT");
+        when(event6.getEnvironments()).thenReturn(singleton("DEFAULT"));
         when(event6.getType()).thenReturn(EventType.START_API);
         when(event6.getCreatedAt()).thenReturn(parse("16/02/2016"));
+        when(event7.getId()).thenReturn("event7");
+        when(event7.getEnvironments()).thenReturn(Sets.newSet("OTHER_ENV", "OTHER_ENV_2"));
+        when(event7.getType()).thenReturn(EventType.GATEWAY_STOPPED);
+        when(event7.getCreatedAt()).thenReturn(parse("16/02/2016"));
 
         when(eventRepository.findById("event1")).thenReturn(of(event1));
 
@@ -184,8 +192,13 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
 
         when(eventRepository.search(
                 new EventCriteria.Builder()
-                        .environmentId("DEFAULT")
+                        .environments(singletonList("DEFAULT"))
                         .build())).thenReturn(asList(event6, event5, event4, event3, event2, event1));
+
+        when(eventRepository.search(
+                new EventCriteria.Builder()
+                        .environments(Arrays.asList("DEFAULT", "OTHER_ENV"))
+                        .build())).thenReturn(asList(event7, event6, event5, event4, event3, event2, event1));
         
         when(eventRepository.search(
                 new EventCriteria.Builder().types(EventType.GATEWAY_STARTED).build(),
