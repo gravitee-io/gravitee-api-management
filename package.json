@@ -3,7 +3,7 @@
   "version": "3.8.0",
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
-    "@gravitee/ui-components": "^2.3.1",
+    "@gravitee/ui-components": "^2.3.3",
     "@highcharts/map-collection": "^1.1.3",
     "@toast-ui/editor": "^2.1.1",
     "@toast-ui/editor-plugin-code-syntax-highlight": "^1.0.0",
@@ -120,6 +120,7 @@
     "ng-annotate-loader": "^0.6.1",
     "node-sass": "^4.14.1",
     "postcss-loader": "^2.1.6",
+    "prettier": "^2.2.1",
     "require-dir": "^1.2.0",
     "sass-loader": "^7.3.1",
     "style-loader": "^0.21.0",
@@ -149,17 +150,20 @@
     ]
   },
   "scripts": {
-    "test": "jest",
-    "test:ci": "jest --runInBand --ci",
+    "build:prod": "gulp serve:dist",
+    "compile": "gulp compile",
+    "lint": "gulp lint && npm run prettier",
+    "lint:fix": "gulp lint:fix && npm run prettier:fix",
+    "postinstall": "rm -rf node_modules/codemirror/mode/rpm/changes",
+    "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
+    "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
+    "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
     "serve": "gulp serve",
     "serve:demo": "gulp serve:demo",
     "serve:nightly": "gulp serve:nightly",
     "serve:prod": "node scripts/serve.js",
+    "test": "jest",
     "test:auto": "jest --watch",
-    "build:prod": "gulp serve:dist",
-    "lint": "gulp lint",
-    "lint:fix": "gulp lint:fix",
-    "compile": "gulp compile",
-    "postinstall": "rm -rf node_modules/codemirror/mode/rpm/changes"
+    "test:ci": "jest --runInBand --ci"
   }
 }
