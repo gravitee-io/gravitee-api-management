@@ -124,4 +124,12 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
                 .map(environmentMongo -> mapper.map(environmentMongo, Environment.class))
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public Set<Environment> findByHrids(Set<String> hrids) throws TechnicalException {
+        final Set<EnvironmentMongo> environments = internalEnvironmentRepo.findByHrids(hrids);
+        return environments.stream()
+                .map(environmentMongo -> mapper.map(environmentMongo, Environment.class))
+                .collect(Collectors.toSet());
+    }
 }

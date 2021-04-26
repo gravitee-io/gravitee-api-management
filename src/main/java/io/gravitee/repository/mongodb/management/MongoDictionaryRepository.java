@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -191,10 +192,14 @@ public class MongoDictionaryRepository implements DictionaryRepository {
     }
 
     @Override
-    public Set<Dictionary> findAllByEnvironment(String environmentId) throws TechnicalException {
+    public Set<Dictionary> findAllByEnvironments(Set<String> environments) throws TechnicalException {
         LOGGER.debug("Find all dictionaries by environment");
 
-        List<DictionaryMongo> dictionaries = internalDictionaryRepo.findByEnvironmentId(environmentId);
+        if (CollectionUtils.isEmpty(environments)) {
+            return findAll();
+        }
+
+        List<DictionaryMongo> dictionaries = internalDictionaryRepo.findByEnvironments(environments);
         Set<Dictionary> res = mapper.collection2set(dictionaries, DictionaryMongo.class, Dictionary.class);
 
         LOGGER.debug("Find all dictionaries by environment- Done");

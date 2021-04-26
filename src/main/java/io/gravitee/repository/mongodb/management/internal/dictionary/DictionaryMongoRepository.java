@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.dictionary;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -29,8 +30,9 @@ import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
  */
 @Repository
 public interface DictionaryMongoRepository extends MongoRepository<DictionaryMongo, String> {
-    @Query("{ environmentId: ?0 }")
-    List<DictionaryMongo> findByEnvironmentId(String environmentId);
+
+    @Query("{ environmentId: {$in: ?0} }")
+    List<DictionaryMongo> findByEnvironments(Set<String> environments);
 }
 
 

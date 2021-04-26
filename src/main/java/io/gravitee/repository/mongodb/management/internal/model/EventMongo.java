@@ -15,7 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -29,7 +31,7 @@ public class EventMongo extends Auditable {
 
     @Id
     private String id;
-    private String environmentId;
+    private Set<String> environments;
     private String type;
     private String payload;
     private String parentId;
@@ -43,12 +45,12 @@ public class EventMongo extends Auditable {
         this.id = id;
     }
 
-    public String getEnvironmentId() {
-        return environmentId;
+    public Set<String> getEnvironments() {
+        return environments;
     }
 
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
+    public void setEnvironments(Set<String> environments) {
+        this.environments = environments;
     }
 
     public String getType() {
