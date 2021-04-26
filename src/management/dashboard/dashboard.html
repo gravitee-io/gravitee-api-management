@@ -25,7 +25,7 @@
       <md-tab-label><ng-md-icon icon="favorite" style="fill: #28444F;"></ng-md-icon> APIs Status</md-tab-label>
       <md-tab-body></md-tab-body>
     </md-tab>
-    <md-tab ui-sref="management.dashboard.analytics">
+    <md-tab ui-sref="management.dashboard.analytics" ng-if="$ctrl.canViewAnalytics">
       <md-tab-label><ng-md-icon icon="insert_chart" style="fill: #28444F;"></ng-md-icon> Analytics</md-tab-label>
       <md-tab-body></md-tab-body>
     </md-tab>

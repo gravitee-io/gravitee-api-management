@@ -283,7 +283,11 @@ class UserService {
   }
 
   subscribeNewsletter(email): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.org.baseURL}/user/subscribeNewsletter`, email);
+    return this.$http.post(`${this.Constants.org.userURL}newsletter/subscribe`, email);
+  }
+
+  getNewsletterTaglines(): ng.IPromise<any> {
+    return this.$http.get(`${this.Constants.org.userURL}newsletter/taglines`);
   }
 
   resetPassword(id: string): ng.IPromise<any> {

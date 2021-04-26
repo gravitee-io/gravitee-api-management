@@ -17,6 +17,7 @@ import { StateService } from '@uirouter/core';
 import UserService from '../../services/user.service';
 
 class DashboardController {
+  canViewAnalytics: boolean;
   private selectedIndex;
   private alertsEnabled;
 
@@ -37,6 +38,8 @@ class DashboardController {
     } else {
       this.selectedIndex = 0;
     }
+
+    this.canViewAnalytics = UserService.isUserHasAllPermissions(['environment-platform-r']);
   }
 }
 

@@ -76,10 +76,10 @@
   <gv-error error="$ctrl.importError"></gv-error>
 </div>
 <md-dialog-actions layout="row" class="gv-import-api-actions">
-  <div  ng-show="$ctrl.hasCancel()">
+  <div ng-show="$ctrl.hasCancel()">
     <md-button md-no-ink ng-click="$ctrl.cancel()">Cancel</md-button>
   </div>
   <div>
-    <md-button ng-disabled="!$ctrl.enableImport() || $ctrl.importError" ng-click="$ctrl.importAPI()" class="md-raised" ng-class="{'md-warn': $ctrl.isForUpdate()}">Import</md-button>
+    <md-button ng-disabled="!$ctrl.enableImport() && !$ctrl.importTriggered" ng-click="$ctrl.importAPI()" class="md-raised" ng-class="{'md-warn': $ctrl.isForUpdate()}">Import</md-button>
   </div>
 </md-dialog-actions>

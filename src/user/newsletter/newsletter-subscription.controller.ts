@@ -26,7 +26,8 @@ class NewsletterSubscriptionController {
               private NotificationService,
               Constants,
               private $window,
-              private $rootScope) {
+              private $rootScope,
+              private taglines) {
     'ngInject';
 
     $scope.user = UserService.currentUser;
@@ -35,6 +36,9 @@ class NewsletterSubscriptionController {
     this.newsletterPage.addEventListener('gv-newsletter-subscription:subscribe', this.onSubscribe.bind(this));
     this.newsletterPage.addEventListener('gv-newsletter-subscription:skip', this.onSkip.bind(this));
     this.newsletterPage.disabled = !!$scope.user.email;
+    if (taglines) {
+      this.newsletterPage.taglines = taglines;
+    }
   }
 
   onSubscribe({ detail } ) {
