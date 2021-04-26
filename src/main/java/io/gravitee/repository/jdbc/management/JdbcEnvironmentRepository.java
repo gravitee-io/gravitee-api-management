@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.*;
 
@@ -156,6 +157,32 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
         } catch (final Exception ex) {
             LOGGER.error("Failed to find environments by organization:", ex);
             throw new TechnicalException("Failed to find environments by organization", ex);
+        }
+    }
+
+    @Override
+    public Set<Environment> findByHrids(Set<String> hrids) throws TechnicalException {
+        LOGGER.debug("JdbcEnvironmentRepository.findByHrids({})", hrids);
+
+        final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
+                .append(" env")
+                .append(" join ").append(ENVIRONMENT_HRIDS).append(" eh on env.id = eh.environment_id");
+
+        getOrm().buildInCondition(true, query, "eh.hrid", hrids);
+
+        try {
+            List<Environment> environments = jdbcTemplate.query(query.toString(),
+                    (PreparedStatement ps) -> getOrm().setArguments(ps, hrids, 1),
+                    getOrm().getRowMapper()
+            );
+            for(Environment env: environments) {
+                this.addDomainRestrictions(env);
+                this.addHrids(env);
+            }
+            return new HashSet<>(environments);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find environments by hrids:", ex);
+            throw new TechnicalException("Failed to find environments by hrids", ex);
         }
     }
 

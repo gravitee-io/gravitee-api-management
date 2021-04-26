@@ -280,6 +280,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (!isEmpty(apiCriteria.getEnvironmentId())) {
                 sbQuery.append("and a.environment_id = ? ");
             }
+            if (!isEmpty(apiCriteria.getEnvironments())) {
+                sbQuery.append("and a.environment_id in (").append(getOrm().buildInClause(apiCriteria.getEnvironments())).append(") ");
+            }
         }
         sbQuery.append("order by a.name");
 
@@ -315,6 +318,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                         }
                         if (!isEmpty(apiCriteria.getEnvironmentId())) {
                             ps.setString(lastIndex++, apiCriteria.getEnvironmentId());
+                        }
+                        if (!isEmpty(apiCriteria.getEnvironments())) {
+                            getOrm().setArguments(ps, apiCriteria.getEnvironments(), lastIndex++);
                         }
                     }
                 }

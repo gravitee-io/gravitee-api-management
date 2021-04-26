@@ -64,3 +64,17 @@ databaseChangeLog:
             cascadeConstraints: true
             columnName: environment_id
             tableName: ${gravitee_prefix}entrypoints
+
+        - createTable:
+            tableName: ${gravitee_prefix}event_environments
+            columns:
+              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+
+              - sql:
+                  sql: insert into ${gravitee_prefix}event_environments (event_id, environment_id) select id, environment_id from ${gravitee_prefix}events;
+
+        - dropColumn:
+            cascadeConstraints: true
+            columnName: environment_id
+            tableName: ${gravitee_prefix}events

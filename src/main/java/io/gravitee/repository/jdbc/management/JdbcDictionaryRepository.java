@@ -51,6 +51,7 @@ import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
 import io.gravitee.repository.management.model.LifecycleState;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -313,20 +314,31 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
     }
 
     @Override
-    public Set<Dictionary> findAllByEnvironment(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironment({})", environmentId);
+    public Set<Dictionary> findAllByEnvironments(Set<String> environments) throws TechnicalException {
+        LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironments({})", environments);
         try {
+
+            if (CollectionUtils.isEmpty(environments)) {
+                return findAll();
+            }
+
+            final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
+                    .append(" d")
+                    .append(" left join ").append(DICTIONARY_PROPERTY).append(" dp on d.id = dp.dictionary_id");
+
+            getOrm().buildInCondition(true, query, "d.environment_id", environments);
+
             JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query(getOrm().getSelectAllSql() + " d left join " + DICTIONARY_PROPERTY + " dp on d.id = dp.dictionary_id where d.environment_id = ?"
-                    , rowMapper
-                    , environmentId
+            jdbcTemplate.query(query.toString(),
+                    (PreparedStatement ps) -> getOrm().setArguments(ps, environments, 1),
+                    rowMapper
             );
             Set<Dictionary> result = new HashSet<>(rowMapper.getRows());
-            LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironment({}) = {}", environmentId, result);
+            LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironments({}) = {}", environments, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find dictionary by environment:", ex);
-            throw new TechnicalException("Failed to find dictionary by environment", ex);
+            LOGGER.error("Failed to find dictionary for environments:", ex);
+            throw new TechnicalException("Failed to find dictionary for environments", ex);
         }
     }
 }
