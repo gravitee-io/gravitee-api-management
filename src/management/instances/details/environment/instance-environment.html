@@ -62,6 +62,11 @@
             <td md-cell>Tenant</td>
             <td md-cell>{{$ctrl.instance.tenant}}</td>
           </tr>
+          <tr md-row ng-if="$ctrl.instance.environments && $ctrl.instance.environments.length > 0">
+            <td md-cell><gv-icon shape="general:settings#1"  style="--gv-icon--s: 24px"></gv-icon></td>
+            <td md-cell>Environments</td>
+            <td md-cell>{{$ctrl.instance.environments}}</td>
+          </tr>
           <tr md-row>
             <td md-cell><ng-md-icon icon="timer"></ng-md-icon></td>
             <td md-cell>Started at</td>
